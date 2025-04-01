@@ -1,29 +1,54 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Profile') }}
-        </h2>
-    </x-slot>
+@extends('layouts.backend.layouts')
+@section('page-content')
+    <!-- Wrapper Start -->
+    <div class="wrapper">
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-profile-information-form')
-                </div>
-            </div>
+        <div class="content-page">
 
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-password-form')
-                </div>
-            </div>
+            <div class="container-fluid add-form-list">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between">
+                                <div class="header-title">
+                                    <h4 class="card-title">Edit Roles</h4>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <form action="{{ route('roles.update', $record->id) }}" method="POST">
+                                    @csrf
+                                    @method('PUT')
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Name *</label>
+                                                <input type="text" name="role_name" value="{{ $record->role_name }}" class="form-control" placeholder="Enter Name"
+                                                    required>
+                                                <div class="help-block with-errors"></div>
+                                            </div>
+                                        </div>
 
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.delete-user-form')
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Status *</label>
+                                                <select name="is_active" class="selectpicker form-control"
+                                                    data-style="py-0">
+                                                    <option value="yes" {{ $record->is_active == 'yes' ? 'selected' : '' }}>Yes</option>
+                                                    <option value="no" {{ $record->is_active == 'no' ? 'selected' : '' }}>No</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary mr-2">Update Role</button>
+                                    <button type="reset" class="btn btn-danger">Reset</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                <!-- Page end  -->
             </div>
         </div>
     </div>
-</x-app-layout>
+    <!-- Wrapper End-->
+@endsection

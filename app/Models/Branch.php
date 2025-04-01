@@ -12,4 +12,9 @@ class Branch extends Model
      protected $table = 'branch';
 
     protected $fillable = ['name', 'address', 'description', 'is_active', 'is_deleted'];
+
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
 }

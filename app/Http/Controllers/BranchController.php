@@ -16,6 +16,60 @@ class BranchController extends Controller
         return view('branch.index', compact('data'));
     }
 
+    public function getData(Request $request)
+    {
+
+        $draw = $request->input('draw', 1);
+        $start = $request->input('start', 0);
+        $length = $request->input('length', 10);
+        $searchValue = $request->input('search.value', '');
+        $orderColumnIndex = $request->input('order.0.column', 0);
+        $orderColumn = $request->input('columns' . $orderColumnIndex . 'data', 'id');
+        $orderDirection = $request->input('order.0.dir', 'asc');
+
+        $query = Branch::query();
+
+        if (!empty($searchValue)) {
+            $query->where(function ($q) use ($searchValue) {
+                $q->where('name', 'like', '%' . $searchValue . '%')
+                    ->orWhere('address', 'like', '%' . $searchValue . '%');
+            });
+        }
+
+        $recordsTotal = Branch::count();
+        $recordsFiltered = $query->count();
+
+        $data = $query->orderBy($orderColumn, $orderDirection)
+            ->offset($start)
+            ->limit($length)
+            ->get();
+
+        $records = [];
+
+        $url = url('/');
+        foreach ($data as $employee) {
+
+            $action = "";
+            $action .= "<a href='" . $url . "/store/edit/" . $employee->id . "' class='btn btn-info mr_2'>Edit</a>";
+            $action .= '<button type="button" onclick="delete_store(' . $employee->id . ')" class="btn btn-danger ml-2">Delete</button>';
+
+            $records[] = [
+                'name' => $employee->name,
+                'address' => $employee->address,
+                'is_active' => $employee->is_active,
+                'created_at' => date('d-m-Y h:s', strtotime($employee->created_at)),
+                'action' => $action
+            ];
+        }
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $records
+        ]);
+    }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -29,8 +83,9 @@ class BranchController extends Controller
      */
     public function store(Request $request)
     {
+
         $validated = $request->validate([
-            'name' => 'required|string|unique:my_models,name',
+            'name' => 'required|string|unique:branch,name',
             'address' => 'nullable|string',
             'description' => 'nullable|string',
             'is_active' => 'in:yes,no',
@@ -44,7 +99,7 @@ class BranchController extends Controller
             'is_deleted' => 'no',
         ]);
 
-        return redirect()->route('branch.index')->with('success', 'Record created successfully.');
+        return redirect()->route('branch.list')->with('success', 'Record created successfully.');
     }
 
     /**
@@ -68,7 +123,7 @@ class BranchController extends Controller
         $record = Branch::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'sometimes|string|unique:my_models,name,' . $id,
+            'name' => 'sometimes|string|unique:branch,name,' . $id,
             'address' => 'nullable|string',
             'description' => 'nullable|string',
             'is_active' => 'in:yes,no',
@@ -76,7 +131,7 @@ class BranchController extends Controller
 
         $record->update($validated);
 
-        return redirect()->route('myrecords.index')->with('success', 'Record updated successfully.');
+        return redirect()->route('branch.list')->with('success', 'Record updated successfully.');
     }
 
     // Soft delete a record
@@ -85,7 +140,7 @@ class BranchController extends Controller
         $record = Branch::findOrFail($id);
         $record->update(['is_deleted' => 'yes']);
 
-        return redirect()->route('branch.index')->with('success', 'Record deleted successfully.');
+        return redirect()->route('branch.list')->with('success', 'Record deleted successfully.');
     }
 
 }

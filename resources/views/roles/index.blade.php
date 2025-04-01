@@ -2,7 +2,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -11,21 +10,19 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <h1>Store List</h1>
-                <a href="{{ route('branch.create') }}">Create New</a>
+                <h1>Roles List</h1>
+                <a href="{{ route('roles.create') }}">Create New</a>
 
                 @if (session('success'))
                     <p>{{ session('success') }}</p>
                 @endif
 
-
-                <table class="table datatable" id="branch_table">
+                <table class="table datatable" id="roles_table">
                     <thead>
                         <tr>
                             <th>
                                 <b>N</b>ame
                             </th>
-                            <th>Address</th>
                             <th>Status</th>
                             <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
                             <th>Action</th>
@@ -51,7 +48,7 @@
             });
 
 
-            $('#branch_table').DataTable({
+            $('#roles_table').DataTable({
                 pagelength: 10,
                 responsive: true,
                 processing: true,
@@ -60,17 +57,13 @@
                 serverSide: true,
 
                 "ajax": {
-                    "url": '{{ url('store/get-data') }}',
+                    "url": '{{ url('roles/get-data') }}',
                     "type": "post",
                     "data": function(d) {},
                 },
                 aoColumns: [
-
                     {
-                        data: 'name'
-                    },
-                    {
-                        data: 'address'
+                        data: 'role_name'
                     },
                     {
                         data: 'is_active'

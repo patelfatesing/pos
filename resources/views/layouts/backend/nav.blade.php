@@ -242,7 +242,17 @@
                                             <p class="mb-0">Since 10 march, 2020</p>
                                             <div class="d-flex align-items-center justify-content-center mt-3">
                                                 <a href="../app/user-profile.html" class="btn border mr-2">Profile</a>
-                                                <a href="auth-sign-in.html" class="btn border">Sign Out</a>
+                                                
+                                                
+                                                <form method="POST" action="{{ route('logout') }}">
+                                                    @csrf
+                        
+                                                    <a :href="route('logout')" class="btn border"
+                                                            onclick="event.preventDefault();
+                                                                        this.closest('form').submit();">
+                                                        {{ __('Log Out') }}
+                                                    </a>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>
