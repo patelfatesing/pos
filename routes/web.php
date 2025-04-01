@@ -5,14 +5,23 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\BranchController;
 use Illuminate\Support\Facades\Route;
+use App\Models\User;
 
+
+Route::middleware(['role:admin'])->get('/admin-dashboard', function () {
+    return 'Admin Dashboard';
+});
+
+Route::middleware(['permission:editor_permission'])->get('/editor-dashboard', function () {
+    return 'Editor Dashboard';
+});
 Route::get('/', function () {
     return view('welcome');
 });
 
 Route::get('/dashboard', function () {
     return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth', 'verified','role:admin'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
