@@ -12,6 +12,9 @@ class BranchController extends Controller
      */
     public function index()
     {
+        if (!auth()->user()->hasPermission('View')) {
+            abort(403, 'Unauthorized - You do not have the required permission.');
+        }
         $data = Branch::where('is_deleted', 'no')->get();
         return view('branch.index', compact('data'));
     }
@@ -83,7 +86,9 @@ class BranchController extends Controller
      */
     public function store(Request $request)
     {
-
+        if (!auth()->user()->hasPermission('Insert')) {
+            abort(403, 'Unauthorized - You do not have the required permission.');
+        }
         $validated = $request->validate([
             'name' => 'required|string|unique:branch,name',
             'address' => 'nullable|string',
@@ -113,6 +118,9 @@ class BranchController extends Controller
     // Show edit form
     public function edit($id)
     {
+        if (!auth()->user()->hasPermission('Update')) {
+            abort(403, 'Unauthorized - You do not have the required permission.');
+        }
         $record = Branch::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
         return view('branch.edit', compact('record'));
     }
@@ -120,6 +128,9 @@ class BranchController extends Controller
     // Update a record
     public function update(Request $request, $id)
     {
+        if (!auth()->user()->hasPermission('Update')) {
+            abort(403, 'Unauthorized - You do not have the required permission.');
+        }
         $record = Branch::findOrFail($id);
 
         $validated = $request->validate([
@@ -137,6 +148,9 @@ class BranchController extends Controller
     // Soft delete a record
     public function destroy($id)
     {
+        if (!auth()->user()->hasPermission('Delete')) {
+            abort(403, 'Unauthorized - You do not have the required permission.');
+        }
         $record = Branch::findOrFail($id);
         $record->update(['is_deleted' => 'yes']);
 
