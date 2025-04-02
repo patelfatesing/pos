@@ -24,6 +24,7 @@
                                 <b>N</b>ame
                             </th>
                             <th>Email</th>
+                            <th>Phone Number</th>
                             <th>Role</th>
                             <th>Branch</th>
                             <th>Status</th>
@@ -51,7 +52,7 @@
             });
 
 
-            $('#user_table').DataTable({
+            $('#users_table').DataTable({
                 pagelength: 10,
                 responsive: true,
                 processing: true,
@@ -72,13 +73,15 @@
                     {
                         data: 'email'
                     },
-                    ,
                     {
-                        data: 'role'
+                        data: 'phone_number'
                     },
-                    ,
                     {
-                        data: 'branch'
+                        data: 'role_name'
+                    },
+                    
+                    {
+                        data: 'branch_name'
                     },
                     {
                         data: 'is_active'

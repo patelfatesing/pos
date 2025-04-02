@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Branch;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Roles;
+use App\Models\UserInfo;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -27,14 +31,21 @@ class UserController extends Controller
         $orderColumn = $request->input('columns' . $orderColumnIndex . 'data', 'id');
         $orderDirection = $request->input('order.0.dir', 'asc');
 
-        $query = User::query();
-
-        if (!empty($searchValue)) {
-            $query->where(function ($q) use ($searchValue) {
-                $q->where('name', 'like', '%' . $searchValue . '%');
-            });
-        }
-
+        $query = User::select('users.*', 'first_name','last_name','branches.name as branch_name', 'roles.role_name')
+        ->leftJoin('user_info', 'users.id', '=', 'user_info.user_id')
+        ->leftJoin('branches', 'user_info.branch_id', '=', 'branches.id')
+        ->leftJoin('roles', 'users.role_id', '=', 'roles.id');
+    
+    // **Search filter**
+    if (!empty($searchValue)) {
+        $query->where(function ($q) use ($searchValue) {
+            $q->where('users.name', 'like', '%' . $searchValue . '%')
+              ->orWhere('users.email', 'like', '%' . $searchValue . '%')
+              ->orWhere('branches.name', 'like', '%' . $searchValue . '%')
+              ->orWhere('roles.role_name', 'like', '%' . $searchValue . '%');
+        });
+    }
+    
         $recordsTotal = User::count();
         $recordsFiltered = $query->count();
 
@@ -53,9 +64,11 @@ class UserController extends Controller
             $action .= '<button type="button" onclick="delete_role(' . $employee->id . ')" class="btn btn-danger ml-2">Delete</button>';
 
             $records[] = [
-                'name' => $employee->name,
-                'role_id' => $employee->role_id,
-                'work_branch_id' => $employee->work_branch_id,
+                'name' => $employee->first_name.' '.$employee->last_name,
+                'email' => $employee->email,
+                'phone_number' => $employee->phone_number,
+                'role_name' => $employee->role_name,
+                'branch_name' => $employee->branch_name,
                 'is_active' => $employee->is_active,
                 'created_at' => date('d-m-Y h:s', strtotime($employee->created_at)),
                 'action' => $action
@@ -75,7 +88,9 @@ class UserController extends Controller
      */
     public function create()
     {
-           return view('user.create');
+        $roles = Roles::where('is_deleted', 'no')->pluck('role_name', 'id');
+        $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
+        return view('user.create', compact('roles', 'branch'));
     }
 
     /**
@@ -83,17 +98,34 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'role_name' => 'required|string|unique:user,role_name',
-            'is_active' => 'in:yes,no',
+        // $validated = $request->validate([
+        //     'first_name' => 'required|string|max:255',
+        //     'last_name' => 'required|string|max:255',
+        //     'email' => 'required|email|unique:users,email',
+        //     'password' => 'required|string|min:8|confirmed',
+        //     'role_id' => 'required|exists:roles,id',
+        // ]);
+
+         // Create the user
+         $user = User::create([
+            'name' => $request->first_name.' '.$request->last_name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role_id' => $request->role_id,
+            'created_by' => $request->created_by
         ]);
 
-        User::create([
-            'role_name' => $validated['role_name'],
-            'is_active' => $validated['is_active'] ?? 'yes'
+        // Create user info
+        UserInfo::create([
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'user_id' => $user->id,
+            'branch_id' => $request->branch_id,
+            'address' => $request->address,
+            'phone_number' => $request->phone_number
         ]);
 
-        return redirect()->route('user.list')->with('success', 'Record created successfully.');
+        return redirect()->route('users.list')->with('success', 'Record created successfully.');
     }
 
     /**
@@ -107,23 +139,46 @@ class UserController extends Controller
     // Show edit form
     public function edit($id)
     {
-        $record = User::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
-        return view('user.edit', compact('record'));
+        $roles = Roles::where('is_deleted', 'no')->pluck('role_name', 'id');
+        $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
+        $record = User::with(['userInfo'])->where('users.id', $id)->where('is_deleted', 'no')->firstOrFail();
+        
+        return view('user.edit', compact('record','roles','branch'));
     }
 
     // Update a record
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
-        $record = User::findOrFail($id);
-
-        $validated = $request->validate([
-            'role_name' => 'sometimes|string|unique:user,role_name,' . $id,
-            'is_active' => 'in:yes,no',
+        $id = $request->id;
+        $validatedData = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            // 'email' => 'required|email|unique:users,email',
+            'role_id' => 'required|exists:roles,id',
+            'branch_id' => 'nullable|exists:branches,id',
         ]);
 
-        $record->update($validated);
+        // Find the user
+        $user = User::findOrFail($id);
 
-        return redirect()->route('user.list')->with('success', 'Record updated successfully.');
+        // Update user info
+        $user->update([
+            'name' => $request->first_name.' '.$request->last_name,
+            'email' => $user->email,
+            'role_id' => $request->role_id,
+            // 'updated_by' => $request->updated_by
+        ]);
+
+        // Update user info
+        $user->userInfo()->update([
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'branch_id' => $request->branch_id,
+            'address' => $request->address,
+            'phone_number' => $request->phone_number
+        ]);
+
+        return redirect()->route('users.list')->with('success', 'Record updated successfully.');
     }
 
     // Soft delete a record

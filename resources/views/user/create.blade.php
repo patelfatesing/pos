@@ -11,44 +11,76 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between">
                                 <div class="header-title">
-                                    <h4 class="card-title">Add Store</h4>
+                                    <h4 class="card-title">Add User</h4>
                                 </div>
                             </div>
                             <div class="card-body">
-                                <form action="{{ route('branch.store') }}" method="POST" data-toggle="validator">
+                                <form action="{{ route('users.store') }}" method="POST" data-toggle="validator">
                                     @csrf
                                     <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Name *</label>
-                                                <input type="text" name="name" class="form-control" placeholder="Enter Name"
-                                                    required>
-                                                <div class="help-block with-errors"></div>
+                                        <div class="col-lg-6">
+                                            <div class="floating-label form-group">
+                                                <label>Full Name</label>
+                                                <input class="floating-input form-control" type="text" name="first_name" placeholder=" ">
                                             </div>
                                         </div>
-
+                                        <div class="col-lg-6">
+                                            <div class="floating-label form-group">
+                                                <label>Last Name</label>
+                                                <input class="floating-input form-control" name="last_name" type="text" placeholder=" ">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="floating-label form-group">
+                                                <label>Email</label>
+                                                <input class="floating-input form-control" name="email" type="email" placeholder=" ">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="floating-label form-group">
+                                                <label>Phone No.</label>
+                                                <input class="floating-input form-control" name="phone_number" type="text" placeholder=" ">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="floating-label form-group">
+                                                <label>Password</label>
+                                                <input class="floating-input form-control" name="password" type="password" placeholder=" ">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="floating-label form-group">
+                                                <label>Confirm Password</label>
+                                                <input class="floating-input form-control" name="confirm_password" type="password" placeholder=" ">
+                                            </div>
+                                        </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label>Status *</label>
-                                                <select name="is_active" class="selectpicker form-control"
-                                                    data-style="py-0">
-                                                    <option value="yes" selected>Active</option>
-                                                    <option value="no">Inactive</option>
+                                                <label>Role *</label>
+                                                <select name="role_id" class="selectpicker form-control" data-style="py-0">
+                                                    <option value="">Select Role</option>
+                                                    @foreach ($roles as $id => $name)
+                                                        <option value="{{ $id }}">{{ $name }}</option>
+                                                    @endforeach
                                                 </select>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label>Store Address</label>
-                                                <textarea class="form-control" name="address" rows="4"></textarea>
+                                                <label>Store *</label>
+                                                <select name="branch_id" class="selectpicker form-control"
+                                                    data-style="py-0">
+                                                    <option value="">Select Store</option>
+                                                    @foreach ($branch as $id => $name)
+                                                        <option value="{{ $id }}">{{ $name }}</option>
+                                                    @endforeach
+                                                </select>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label>Description</label>
-                                                <textarea class="form-control" name="description" rows="4"></textarea>
+                                                <label>Address</label>
+                                                <textarea class="form-control" name="address" rows="4"></textarea>
                                             </div>
                                         </div>
                                     </div>

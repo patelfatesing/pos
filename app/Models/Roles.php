@@ -10,8 +10,15 @@ class Roles extends Model
 
     protected $fillable = ['role_name', 'is_active', 'is_deleted'];
 
+    // public function users()
+    // {
+    //     return $this->hasMany(User::class);
+    // }
+
+    
+
     public function users()
     {
-        return $this->hasMany(User::class);
+        return $this->hasOne(User::class, 'role_id');
     }
 }

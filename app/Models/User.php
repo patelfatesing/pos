@@ -45,11 +45,7 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    public function roles()
-    {
-        return $this->belongsToMany(Role::class);
-    }
-
+    
      public function hasRole($role)
     {
         return $this->roles->contains('name', $role);
@@ -63,5 +59,20 @@ class User extends Authenticatable
             }
         }
         return false;
+    }
+
+    public function roles()
+    {
+        return $this->belongsTo(Roles::class);
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class); // Assuming one branch per user
+    }
+
+    public function userInfo()
+    {
+        return $this->hasOne(UserInfo::class, 'user_id');
     }
 }

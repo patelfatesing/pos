@@ -33,8 +33,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/users/get-data', [UserController::class, 'getData'])->name('users.getData');
     Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
-    Route::get('/users/{id}/edit', [UserController::class, 'edit'])->name('users.edit');
-    Route::put('/users/{id}', [UserController::class, 'update'])->name('users.update');
+    Route::get('/users/edit/{id}', [UserController::class, 'edit'])->name('users.edit');
+    Route::post('/users/update', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
 
     Route::get('/roles/list', [RolesController::class, 'index'])->name('roles.list');
@@ -42,7 +42,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/roles/create', [RolesController::class, 'create'])->name('roles.create');
     Route::post('/roles', [RolesController::class, 'store'])->name('roles.store');
     Route::get('/roles/{id}/edit', [RolesController::class, 'edit'])->name('roles.edit');
-    Route::put('/roles/{id}', [RolesController::class, 'update'])->name('roles.update');
+    Route::post('/roles/{id}', [RolesController::class, 'update'])->name('roles.update');
     Route::delete('/roles/{id}', [RolesController::class, 'destroy'])->name('roles.destroy');
 
     Route::get('/store/list', [BranchController::class, 'index'])->name('branch.list');
