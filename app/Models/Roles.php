@@ -15,8 +15,19 @@ class Roles extends Model
     //     return $this->hasMany(User::class);
     // }
 
+    
+
+    // public function users()
+    // {
+    //     return $this->hasOne(User::class, 'role_id');
+    // }
+    public function permissions()
+    {
+        return $this->belongsToMany(Permission::class);
+    }
+
     public function users()
     {
-        return $this->hasOne(User::class, 'role_id');
+        return $this->belongsToMany(User::class);
     }
 }

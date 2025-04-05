@@ -5,6 +5,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ItemController;
+use App\Livewire\Shoppingcart;
 use Illuminate\Support\Facades\Route;
 use App\Models\User;
 
@@ -65,6 +67,19 @@ Route::middleware('auth')->group(function () {
     Route::post('/products/upload-pic', [ProductController::class, 'uploadPhotp'])->name('products.upload');
     
     Route::post('/products/barcode/check', [ProductController::class, 'barcodeCheck'])->name('products.check');
+
+
+    Route::get('/items/list', [ItemController::class, 'index'])->name('items.list');
+    Route::get('/items/cart', [ItemController::class, 'cart'])->name('items.cart');
+    Route::get('/items/{id}', [ItemController::class, 'show'])->name('items.show');
+
+    Route::post('/items/get-data', [ItemController::class, 'getData'])->name('items.getData');
+    Route::get('/items/create', [ItemController::class, 'create'])->name('items.create');
+    Route::post('/items', [ItemController::class, 'store'])->name('items.store');
+    Route::get('/items/{id}/edit', [ItemController::class, 'edit'])->name('items.edit');
+    Route::post('/items/{id}', [ItemController::class, 'update'])->name('items.update');
+    Route::delete('/items/{id}', [ItemController::class, 'destroy'])->name('items.destroy');
+
 });
 
 require __DIR__.'/auth.php';
