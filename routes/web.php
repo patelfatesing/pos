@@ -7,6 +7,8 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ItemController;
 use App\Livewire\Shoppingcart;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\SubCategoryController;
 use Illuminate\Support\Facades\Route;
 use App\Models\User;
 
@@ -65,6 +67,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/products/check-barcode', [ProductController::class, 'check'])->name('products.checkbarcode');
     Route::get('/products/pic', [ProductController::class, 'pic'])->name('products.pic');
     Route::post('/products/upload-pic', [ProductController::class, 'uploadPhotp'])->name('products.upload');
+
+    Route::get('/products/subcategory/{category_id}', [ProductController::class, 'getSubcategories'])->name('get.subcategories');
     
     Route::post('/products/barcode/check', [ProductController::class, 'barcodeCheck'])->name('products.check');
 
@@ -80,6 +84,21 @@ Route::middleware('auth')->group(function () {
     Route::post('/items/{id}', [ItemController::class, 'update'])->name('items.update');
     Route::delete('/items/{id}', [ItemController::class, 'destroy'])->name('items.destroy');
 
+    Route::get('/categories/list', [CategoryController::class, 'index'])->name('categories.list');
+    Route::post('/categories/get-data', [CategoryController::class, 'getData'])->name('categories.getData');
+    Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');
+    Route::post('/categories/store', [CategoryController::class, 'store'])->name('categories.store');
+    Route::get('/categories/edit/{id}', [CategoryController::class, 'edit'])->name('categories.edit');
+    Route::post('/categories/update', [CategoryController::class, 'update'])->name('categories.update');
+    Route::delete('/categories/delete/{id}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+
+    Route::get('/subcategories/list', [SubCategoryController::class, 'index'])->name('subcategories.list');
+    Route::post('/subcategories/get-data', [SubCategoryController::class, 'getData'])->name('subcategories.getData');
+    Route::get('/subcategories/create', [SubCategoryController::class, 'create'])->name('subcategories.create');
+    Route::post('/subcategories/store', [SubCategoryController::class, 'store'])->name('subcategories.store');
+    Route::get('/subcategories/edit/{id}', [SubCategoryController::class, 'edit'])->name('subcategories.edit');
+    Route::post('/subcategories/update', [SubCategoryController::class, 'update'])->name('subcategories.update');
+    Route::delete('/subcategories/delete/{id}', [SubCategoryController::class, 'destroy'])->name('categories.destroy');
 });
 
 require __DIR__.'/auth.php';

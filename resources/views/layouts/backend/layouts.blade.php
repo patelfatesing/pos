@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'My Laravel 12 App')</title>
+    <title>@yield('title', 'Mamaji POS')</title>
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
     <link rel="shortcut icon" href="{{ asset('assets/images/favicon.ico') }}" />
     <link rel="stylesheet" href="{{ asset('assets/css/backend-plugin.min.css') }}">
@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="{{ asset('assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendor/remixicon/fonts/remixicon.css') }}">
 </head>
-</head>
+
 
 <body>
     @include('layouts.backend.slidebar') <!-- Include header -->
@@ -29,14 +29,13 @@
     <div class="wrapper">
             <main>
                 @yield('page-content')
-            </main>
-        
+            </main> 
     </div>
 
     @include('layouts.backend.footer') <!-- Include footer -->
 
-
     <script src="{{ asset('assets/js/script.js') }}"></script>
+
     <!-- Backend Bundle JavaScript -->
     <script src="{{ asset('assets/js/backend-bundle.min.js') }}"></script>
 

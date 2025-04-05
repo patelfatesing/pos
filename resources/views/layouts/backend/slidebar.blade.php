@@ -40,11 +40,7 @@
                                 <i class="las la-minus"></i><span>List Product</span>
                             </a>
                         </li>
-                        <li class="">
-                            <a href="../backend/page-add-product.html">
-                                <i class="las la-minus"></i><span>Add Product</span>
-                            </a>
-                        </li>
+                        
                     </ul>
                 </li>
                 <li class=" ">
@@ -65,13 +61,13 @@
                     </a>
                     <ul id="category" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                         <li class="">
-                            <a href="../backend/page-list-category.html">
+                            <a href="{{ route('categories.list') }}">
                                 <i class="las la-minus"></i><span>List Category</span>
                             </a>
                         </li>
                         <li class="">
-                            <a href="../backend/page-add-category.html">
-                                <i class="las la-minus"></i><span>Add Category</span>
+                            <a href="{{ route('subcategories.list') }}">
+                                <i class="las la-minus"></i><span>Sub Category</span>
                             </a>
                         </li>
                     </ul>

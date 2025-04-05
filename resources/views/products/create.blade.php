@@ -11,7 +11,7 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between">
                                 <div class="header-title">
-                                    <h4 class="card-title">Add User</h4>
+                                    <h4 class="card-title">Add Product</h4>
                                 </div>
                                 <div>
                                     <a href="{{ route('products.list') }}" class="btn btn-secondary">Back</a>
@@ -22,16 +22,10 @@
                                 <form action="{{ route('products.store') }}" enctype="multipart/form-data" method="POST">
                                     @csrf
                                     <div class="row">
-                                        <div class="col-md-12">
+                                        <div class="col-md-6">
                                             <div class="form-group">
-                                                <label>Product Type *</label>
-                                                <select name="product_type" class="selectpicker form-control"
-                                                    data-style="py-0">
-                                                    <option>Standard</option>
-                                                    <option>Combo</option>
-                                                    <option>Digital</option>
-                                                    <option>Service</option>
-                                                </select>
+                                                <label>Barcode</label>
+                                                {!! $barcode !!}
                                             </div>
                                         </div>
                                         <div class="col-md-6">
@@ -55,7 +49,7 @@
                                             </div>
                                         </div>
 
-                                        {!! $barcode !!}
+
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Barcode Symbology *</label>
@@ -77,17 +71,27 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Category *</label>
-                                                <select name="category" class="selectpicker form-control"
+                                                <select name="category" id="category" class="selectpicker form-control"
                                                     data-style="py-0">
-                                                    <option>Beauty</option>
-                                                    <option>Grocery</option>
-                                                    <option>Food</option>
-                                                    <option>Furniture</option>
-                                                    <option>Shoes</option>
-                                                    <option>Frames</option>
-                                                    <option>Jewellery</option>
+                                                    <option value="" disabled selected>Select Main Category</option>
+                                                    @foreach ($categories as $category)
+                                                        <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                                    @endforeach
                                                 </select>
-                                                @error('code')
+                                                @error('category')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Sub Category *</label>
+                                                <select id="sub_category" name="sub_category_id"
+                                                    class="selectpicker form-control" data-style="py-0">
+                                                    <option value="" disabled selected>Select Sub Category</option>
+                                                </select>
+                                                @error('sub_category_id')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
@@ -164,4 +168,33 @@
         </div>
     </div>
     <!-- Wrapper End-->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#category').on('change', function() {
+                alert('Category changed');
+                var categoryId = $(this).val();
+                if (categoryId) {
+                    $.ajax({
+                        url: "{{ url('/products/subcategory') }}/" + categoryId,
+                        type: "GET",
+                        dataType: "json",
+                        success: function(data) {
+                            $('#sub_category').empty();
+                            $('#sub_category').append(
+                                '<option value="" disabled selected>Select Sub Category</option>');
+                            $.each(data, function(key, value) {
+                                $('#sub_category').append('<option value="' + value.id + '">' +
+                                    value.name + '</option>');
+                            });
+                        },
+                    });
+                } else {
+                    $('#sub_category').empty();
+                    $('#sub_category').append('<option value="" disabled selected>Select Sub Category</option>');
+                }
+            });
+        });
+    </script>
 @endsection

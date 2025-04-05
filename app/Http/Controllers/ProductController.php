@@ -8,6 +8,8 @@ use Picqer\Barcode\BarcodeGeneratorHTML;
 use Picqer\Barcode\BarcodeGeneratorPNG;
 use App\Models\Barcode;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Category;
+use App\Models\SubCategory;
 
 class ProductController extends Controller
 {
@@ -90,8 +92,10 @@ class ProductController extends Controller
     public function create()
     {
         $generator = new BarcodeGeneratorHTML();
+        $categories = Category::all();
+
         $barcode = $generator->getBarcode('123456789', $generator::TYPE_CODE_128);
-           return view('products.create', compact('barcode'));
+           return view('products.create', compact('barcode','categories'));
     }
 
 
@@ -134,6 +138,7 @@ class ProductController extends Controller
 // dd($validatedData);  /  
             // Save product in a transaction
             // \DB::transaction(function () use ($validatedData) {
+                $validatedData['product_type'] = 'LIQUOR';
                 $dd=Product::create($validatedData);
             // });
     // dd($dd);
@@ -178,6 +183,12 @@ class ProductController extends Controller
     {
         $record = Product::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
         return view('products.edit', compact('record'));
+    }
+
+    public function getSubcategories($category_id)
+    {
+        $subcategories = SubCategory::where('category_id', $category_id)->get();
+        return response()->json($subcategories);
     }
 
     public function check()

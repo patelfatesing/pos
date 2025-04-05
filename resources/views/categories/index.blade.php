@@ -2,6 +2,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -10,23 +11,20 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <h1>Products List</h1>
-                <a href="{{ route('products.create') }}">Create New</a>
+                <h1>Categories List</h1>
+                <a href="{{ route('categories.create') }}">Create New</a>
 
                 @if (session('success'))
                     <p>{{ session('success') }}</p>
                 @endif
 
-                <table class="table datatable" id="products_table">
+
+                <table class="table datatable" id="categories_tbl">
                     <thead>
                         <tr>
                             <th>
                                 <b>N</b>ame
                             </th>
-                            <th>Code</th>
-                            <th>Cotegory</th>
-                            <th>Coast</th>
-                            <th>Price</th>
                             <th>Status</th>
                             <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
                             <th>Action</th>
@@ -52,7 +50,7 @@
             });
 
 
-            $('#products_table').DataTable({
+            $('#categories_tbl').DataTable({
                 pagelength: 10,
                 responsive: true,
                 processing: true,
@@ -61,7 +59,7 @@
                 serverSide: true,
 
                 "ajax": {
-                    "url": '{{ url('products/get-data') }}',
+                    "url": '{{ url('categories/get-data') }}',
                     "type": "post",
                     "data": function(d) {},
                 },
@@ -69,18 +67,6 @@
 
                     {
                         data: 'name'
-                    },
-                    {
-                        data: 'code'
-                    },
-                    {
-                        data: 'category'
-                    },
-                    {
-                        data: 'cost'
-                    },
-                    {
-                        data: 'price'
                     },
                     {
                         data: 'is_active'
@@ -109,8 +95,8 @@
 
         });
 
-        function delete_store(id) {
-
+        function delete_category(id) {
+            
             Swal.fire({
                 title: "Are you sure?",
                 text: "You won't be able to revert this!",
@@ -121,7 +107,7 @@
                 if (result.isConfirmed) {
                     $.ajax({
                         type: "delete", // "method" also works
-                        url: "{{ url('store/delete') }}/" + id, // Ensure correct Laravel URL
+                        url: "{{ url('store/delete') }}/"+id, // Ensure correct Laravel URL
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
