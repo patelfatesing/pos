@@ -98,13 +98,23 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        // $validated = $request->validate([
-        //     'first_name' => 'required|string|max:255',
-        //     'last_name' => 'required|string|max:255',
-        //     'email' => 'required|email|unique:users,email',
-        //     'password' => 'required|string|min:8|confirmed',
-        //     'role_id' => 'required|exists:roles,id',
-        // ]);
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'phone_number' => [
+                'required',
+                'regex:/^(\+?\d{1,3})?\d{10}$/'
+            ],
+            'password' => 'required|string|min:8|confirmed',
+            'role_id' => 'required|exists:roles,id',
+            'branch_id' => 'required|exists:branch,id',
+        ], [
+            'phone_number.required' => 'The phone number field is required.',
+            'phone_number.regex' => 'Please enter a valid phone number.',
+            'role_id.required' => 'Please select role.',
+            'branch_id.required' => 'Please select store.'
+        ]);
 
          // Create the user
          $user = User::create([
@@ -150,13 +160,24 @@ class UserController extends Controller
     public function update(Request $request)
     {
         $id = $request->id;
-        $validatedData = $request->validate([
+        
+        $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            // 'email' => 'required|email|unique:users,email',
+            'email' => 'required|email|unique:users,email,' . $id, // Allow updating the same email
+            'phone_number' => [
+                'required',
+                'regex:/^(\+?\d{1,3})?\d{10}$/'
+            ],
             'role_id' => 'required|exists:roles,id',
             'branch_id' => 'nullable|exists:branches,id',
+        ], [
+            'phone_number.required' => 'The phone number field is required.',
+            'phone_number.regex' => 'Please enter a valid phone number.',
+            'role_id.required' => 'Please select role.',
+            'branch_id.required' => 'Please select store.'
         ]);
+    
 
         // Find the user
         $user = User::findOrFail($id);

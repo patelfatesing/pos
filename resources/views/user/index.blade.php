@@ -79,7 +79,7 @@
                     {
                         data: 'role_name'
                     },
-                    
+
                     {
                         data: 'branch_name'
                     },
@@ -111,7 +111,7 @@
         });
 
         function delete_store(id) {
-            
+
             Swal.fire({
                 title: "Are you sure?",
                 text: "You won't be able to revert this!",
@@ -122,7 +122,7 @@
                 if (result.isConfirmed) {
                     $.ajax({
                         type: "delete", // "method" also works
-                        url: "{{ url('store/delete') }}/"+id, // Ensure correct Laravel URL
+                        url: "{{ url('store/delete') }}/" + id, // Ensure correct Laravel URL
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },

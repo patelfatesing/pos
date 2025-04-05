@@ -13,18 +13,24 @@
                                 <div class="header-title">
                                     <h4 class="card-title">Edit Roles</h4>
                                 </div>
+                                <div>
+                                    <a href="{{ route('roles.list') }}" class="btn btn-secondary">Back</a>
+                                </div>
                             </div>
                             <div class="card-body">
                                 <form action="{{ route('roles.update', $record->id) }}" method="POST">
                                     @csrf
-                                    @method('PUT')
+                                    @method('POST')
+                                    <input type="hidden" name="id" value="{{ $record->id }}">
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Name *</label>
-                                                <input type="text" name="role_name" value="{{ $record->role_name }}" class="form-control" placeholder="Enter Name"
-                                                    required>
-                                                <div class="help-block with-errors"></div>
+                                                <input type="text" name="name" value="{{ $record->name }}"
+                                                    class="form-control" placeholder="Enter Name" required>
+                                                @error('name')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
                                             </div>
                                         </div>
 
@@ -33,9 +39,14 @@
                                                 <label>Status *</label>
                                                 <select name="is_active" class="selectpicker form-control"
                                                     data-style="py-0">
-                                                    <option value="yes" {{ $record->is_active == 'yes' ? 'selected' : '' }}>Yes</option>
-                                                    <option value="no" {{ $record->is_active == 'no' ? 'selected' : '' }}>No</option>
+                                                    <option value="yes"
+                                                        {{ $record->is_active == 'yes' ? 'selected' : '' }}>Yes</option>
+                                                    <option value="no"
+                                                        {{ $record->is_active == 'no' ? 'selected' : '' }}>No</option>
                                                 </select>
+                                                @error('is_active')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
                                             </div>
                                         </div>
                                     </div>

@@ -11,17 +11,22 @@
                                 <div class="header-title">
                                     <h4 class="card-title">Add Role</h4>
                                 </div>
+                                <div>
+                                    <a href="{{ route('roles.list') }}" class="btn btn-secondary">Back</a>
+                                </div>
                             </div>
                             <div class="card-body">
-                                <form action="{{ route('roles.store') }}" method="POST" data-toggle="validator">
+                                <form action="{{ route('roles.store') }}" method="POST">
                                     @csrf
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Name *</label>
-                                                <input type="text" name="role_name" class="form-control" placeholder="Enter Name"
-                                                    required>
-                                                <div class="help-block with-errors"></div>
+                                                <input type="text" name="name" class="form-control"
+                                                    placeholder="Enter Name">
+                                                @error('name')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
                                             </div>
                                         </div>
                                         <div class="col-md-6">
@@ -32,10 +37,13 @@
                                                     <option value="yes" selected>Active</option>
                                                     <option value="no">Inactive</option>
                                                 </select>
+                                                @error('is_active')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <button type="submit" class="btn btn-primary mr-2">Add Role</button>
                                     <button type="reset" class="btn btn-danger">Reset</button>
                                 </form>

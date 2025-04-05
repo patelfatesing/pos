@@ -12,9 +12,10 @@ class BranchController extends Controller
      */
     public function index()
     {
-        if (!auth()->user()->hasPermission('View')) {
-            abort(403, 'Unauthorized - You do not have the required permission.');
-        }
+        // if (!auth()->user()->hasPermission('View')) {
+        //     abort(403, 'Unauthorized - You do not have the required permission.');
+        // }
+
         $data = Branch::where('is_deleted', 'no')->get();
         return view('branch.index', compact('data'));
     }
@@ -59,6 +60,7 @@ class BranchController extends Controller
             $records[] = [
                 'name' => $employee->name,
                 'address' => $employee->address,
+                'main_branch' => $employee->main_branch,
                 'is_active' => $employee->is_active,
                 'created_at' => date('d-m-Y h:s', strtotime($employee->created_at)),
                 'action' => $action
@@ -126,8 +128,10 @@ class BranchController extends Controller
     }
 
     // Update a record
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
+        $id = $request->id;
+        
         if (!auth()->user()->hasPermission('Update')) {
             abort(403, 'Unauthorized - You do not have the required permission.');
         }

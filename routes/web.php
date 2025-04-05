@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\BranchController;
+use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 use App\Models\User;
 
@@ -41,8 +42,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/roles/get-data', [RolesController::class, 'getData'])->name('roles.getData');
     Route::get('/roles/create', [RolesController::class, 'create'])->name('roles.create');
     Route::post('/roles', [RolesController::class, 'store'])->name('roles.store');
-    Route::get('/roles/{id}/edit', [RolesController::class, 'edit'])->name('roles.edit');
-    Route::post('/roles/{id}', [RolesController::class, 'update'])->name('roles.update');
+    Route::get('/roles/edit/{id}', [RolesController::class, 'edit'])->name('roles.edit');
+    Route::post('/roles/update', [RolesController::class, 'update'])->name('roles.update');
     Route::delete('/roles/{id}', [RolesController::class, 'destroy'])->name('roles.destroy');
 
     Route::get('/store/list', [BranchController::class, 'index'])->name('branch.list');
@@ -50,8 +51,20 @@ Route::middleware('auth')->group(function () {
     Route::get('/store/create', [BranchController::class, 'create'])->name('branch.create');
     Route::post('/store/store', [BranchController::class, 'store'])->name('branch.store');
     Route::get('/store/edit/{id}', [BranchController::class, 'edit'])->name('branch.edit');
-    Route::put('/store/{id}', [BranchController::class, 'update'])->name('branch.update');
+    Route::post('/store/update', [BranchController::class, 'update'])->name('branch.update');
     Route::delete('/store/delete/{id}', [BranchController::class, 'destroy'])->name('branch.destroy');
+
+
+    Route::get('/products/list', [ProductController::class, 'index'])->name('products.list');
+    Route::post('/products/get-data', [ProductController::class, 'getData'])->name('products.getData');
+    Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
+    Route::post('/products/add', [ProductController::class, 'store'])->name('products.store');
+    Route::get('/products/edit/{id}', [ProductController::class, 'edit'])->name('products.edit');
+    Route::get('/products/check-barcode', [ProductController::class, 'check'])->name('products.checkbarcode');
+    Route::get('/products/pic', [ProductController::class, 'pic'])->name('products.pic');
+    Route::post('/products/upload-pic', [ProductController::class, 'uploadPhotp'])->name('products.upload');
+    
+    Route::post('/products/barcode/check', [ProductController::class, 'barcodeCheck'])->name('products.check');
 });
 
 require __DIR__.'/auth.php';

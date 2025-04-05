@@ -63,7 +63,7 @@ class User extends Authenticatable
 
     public function roles()
     {
-        return $this->belongsTo(Roles::class);
+        return $this->belongsToMany(Role::class);
     }
 
     public function branch()

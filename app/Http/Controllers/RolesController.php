@@ -18,24 +18,26 @@ class RolesController extends Controller
 
     public function getData(Request $request)
     {
-
         $draw = $request->input('draw', 1);
         $start = $request->input('start', 0);
         $length = $request->input('length', 10);
         $searchValue = $request->input('search.value', '');
         $orderColumnIndex = $request->input('order.0.column', 0);
-        $orderColumn = $request->input('columns' . $orderColumnIndex . 'data', 'id');
+        $orderColumn = $request->input("columns.$orderColumnIndex.data", 'id'); // Fixed input key
         $orderDirection = $request->input('order.0.dir', 'asc');
 
-        $query = Roles::query();
-
-        if (!empty($searchValue)) {
-            $query->where(function ($q) use ($searchValue) {
-                $q->where('role_name', 'like', '%' . $searchValue . '%');
-            });
+        // Validate order direction
+        if (!in_array($orderDirection, ['asc', 'desc'])) {
+            $orderDirection = 'asc';
         }
 
-        $recordsTotal = Roles::count();
+        $query = Roles::query()->where('is_deleted', 'no');
+
+        if (!empty($searchValue)) {
+            $query->where('name', 'like', '%' . $searchValue . '%');
+        }
+
+        $recordsTotal = Roles::where('is_deleted', 'no')->count();
         $recordsFiltered = $query->count();
 
         $data = $query->orderBy($orderColumn, $orderDirection)
@@ -44,18 +46,16 @@ class RolesController extends Controller
             ->get();
 
         $records = [];
-
         $url = url('/');
-        foreach ($data as $employee) {
 
-            $action = "";
-            $action .= "<a href='" . $url . "/role/edit/" . $employee->id . "' class='btn btn-info mr_2'>Edit</a>";
-            $action .= '<button type="button" onclick="delete_role(' . $employee->id . ')" class="btn btn-danger ml-2">Delete</button>';
+        foreach ($data as $role) {
+            $action = "<a href='" . $url . "/roles/edit/" . $role->id . "' class='btn btn-info mr-2'>Edit</a>";
+            $action .= '<button type="button" onclick="delete_role(' . $role->id . ')" class="btn btn-danger ml-2">Delete</button>';
 
             $records[] = [
-                'role_name' => $employee->role_name,
-                'is_active' => $employee->is_active,
-                'created_at' => date('d-m-Y h:s', strtotime($employee->created_at)),
+                'name' => $role->name,
+                'is_active' => $role->is_active,
+                'created_at' => \Carbon\Carbon::parse($role->created_at)->format('d-m-Y H:i'),
                 'action' => $action
             ];
         }
@@ -82,12 +82,17 @@ class RolesController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'role_name' => 'required|string|unique:roles,role_name',
-            'is_active' => 'in:yes,no',
+            'name' => 'required|string|unique:roles,name|max:255',
+            'is_active' => 'nullable|in:yes,no',
+        ], [
+            'name.required' => 'The role name is required.',
+            'name.unique' => 'This role name already exists.',
+            'name.max' => 'The role name must not exceed 255 characters.',
+            'is_active.in' => 'The is_active field must be either "yes" or "no".',
         ]);
 
         Roles::create([
-            'role_name' => $validated['role_name'],
+            'name' => $validated['name'],
             'is_active' => $validated['is_active'] ?? 'yes'
         ]);
 
@@ -110,13 +115,19 @@ class RolesController extends Controller
     }
 
     // Update a record
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
+        $id = $request->id;
+        
         $record = Roles::findOrFail($id);
 
         $validated = $request->validate([
-            'role_name' => 'sometimes|string|unique:roles,role_name,' . $id,
-            'is_active' => 'in:yes,no',
+            'name' => 'sometimes|string|unique:roles,name,' . $id . '|max:255',
+            'is_active' => 'nullable|in:yes,no',
+        ], [
+            'name.unique' => 'This role name already exists.',
+            'name.max' => 'The role name must not exceed 255 characters.',
+            'is_active.in' => 'The is_active field must be either "yes" or "no".',
         ]);
 
         $record->update($validated);
@@ -127,7 +138,8 @@ class RolesController extends Controller
     // Soft delete a record
     public function destroy($id)
     {
-        $record = Roles::findOrFail($id);
+        $record = Roles::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
+
         $record->update(['is_deleted' => 'yes']);
 
         return redirect()->route('roles.list')->with('success', 'Record deleted successfully.');

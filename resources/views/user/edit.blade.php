@@ -13,7 +13,10 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between">
                                 <div class="header-title">
-                                    <h4 class="card-title">Add User</h4>
+                                    <h4 class="card-title">Edit User - {{ $record->userInfo->first_name }}  {{ $record->userInfo->last_name }}</h4>
+                                </div>
+                                <div>
+                                    <a href="{{ route('users.list') }}" class="btn btn-secondary">Back</a>
                                 </div>
                             </div>
                             <div class="card-body">
@@ -27,6 +30,9 @@
                                                 <input class="floating-input form-control"
                                                     value="{{ $record->userInfo->first_name }}" type="text"
                                                     name="first_name" placeholder=" ">
+                                                @error('first_name')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
                                             </div>
                                         </div>
                                         <div class="col-lg-6">
@@ -35,16 +41,19 @@
                                                 <input class="floating-input form-control"
                                                     value="{{ $record->userInfo->last_name }}" name="last_name"
                                                     type="text" placeholder=" ">
+                                                @error('last_name')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
                                             </div>
-                                            @error('last_name')
-                                                <span class="text-danger">{{ $message }}</span>
-                                            @enderror
                                         </div>
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>Email</label>
                                                 <input class="floating-input form-control" value="{{ $record->email }}"
                                                     disabled name="email" type="email" placeholder=" ">
+                                                @error('email')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
                                             </div>
                                         </div>
                                         <div class="col-lg-6">
@@ -53,6 +62,9 @@
                                                 <input class="floating-input form-control"
                                                     value="{{ $record->userInfo->phone_number }}" name="phone_number"
                                                     type="text" placeholder=" ">
+                                                @error('phone_number')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
                                             </div>
                                         </div>
                                         <div class="col-md-6">
@@ -68,6 +80,9 @@
                                                         </option>
                                                     @endforeach
                                                 </select>
+                                                @error('role_id')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
                                             </div>
                                         </div>
                                         <div class="col-md-6">
@@ -83,6 +98,9 @@
                                                         </option>
                                                     @endforeach
                                                 </select>
+                                                @error('branch_id')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
                                             </div>
                                         </div>
                                         <div class="col-md-6">

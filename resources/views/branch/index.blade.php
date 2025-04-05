@@ -27,6 +27,7 @@
                             </th>
                             <th>Address</th>
                             <th>Status</th>
+                            <th>Main Branch</th>
                             <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
                             <th>Action</th>
                         </tr>
@@ -75,6 +76,7 @@
                     {
                         data: 'is_active'
                     },
+                    { data: 'main_branch' },
                     {
                         data: 'created_at'
                     },

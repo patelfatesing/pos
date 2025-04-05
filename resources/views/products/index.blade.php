@@ -10,19 +10,23 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <h1>Roles List</h1>
-                <a href="{{ route('roles.create') }}">Create New</a>
+                <h1>Products List</h1>
+                <a href="{{ route('products.create') }}">Create New</a>
 
                 @if (session('success'))
                     <p>{{ session('success') }}</p>
                 @endif
 
-                <table class="table datatable" id="roles_table">
+                <table class="table datatable" id="products_table">
                     <thead>
                         <tr>
                             <th>
                                 <b>N</b>ame
                             </th>
+                            <th>Email</th>
+                            <th>Phone Number</th>
+                            <th>Role</th>
+                            <th>Branch</th>
                             <th>Status</th>
                             <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
                             <th>Action</th>
@@ -48,7 +52,7 @@
             });
 
 
-            $('#roles_table').DataTable({
+            $('#products_table').DataTable({
                 pagelength: 10,
                 responsive: true,
                 processing: true,
@@ -57,12 +61,27 @@
                 serverSide: true,
 
                 "ajax": {
-                    "url": '{{ url('roles/get-data') }}',
+                    "url": '{{ url('products/get-data') }}',
                     "type": "post",
                     "data": function(d) {},
                 },
-                aoColumns: [{
+                aoColumns: [
+
+                    {
                         data: 'name'
+                    },
+                    {
+                        data: 'email'
+                    },
+                    {
+                        data: 'phone_number'
+                    },
+                    {
+                        data: 'role_name'
+                    },
+
+                    {
+                        data: 'branch_name'
                     },
                     {
                         data: 'is_active'

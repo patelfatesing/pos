@@ -13,6 +13,9 @@
                                 <div class="header-title">
                                     <h4 class="card-title">Add Store</h4>
                                 </div>
+                                <div>
+                                    <a href="{{ route('store.list') }}" class="btn btn-secondary">Back</a>
+                                </div>
                             </div>
                             <div class="card-body">
                                 <form action="{{ route('branch.store') }}" method="POST" data-toggle="validator">
@@ -21,9 +24,11 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Name *</label>
-                                                <input type="text" name="name" class="form-control" placeholder="Enter Name"
-                                                    required>
-                                                <div class="help-block with-errors"></div>
+                                                <input type="text" name="name" class="form-control"
+                                                    placeholder="Enter Name" required>
+                                                @error('name')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
                                             </div>
                                         </div>
 
@@ -35,6 +40,9 @@
                                                     <option value="yes" selected>Active</option>
                                                     <option value="no">Inactive</option>
                                                 </select>
+                                                @error('is_active')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
                                             </div>
                                         </div>
                                     </div>
@@ -43,6 +51,9 @@
                                             <div class="form-group">
                                                 <label>Store Address</label>
                                                 <textarea class="form-control" name="address" rows="4"></textarea>
+                                                @error('address')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
                                             </div>
                                         </div>
                                         <div class="col-md-6">
