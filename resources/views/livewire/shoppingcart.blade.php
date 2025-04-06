@@ -7,8 +7,12 @@
     @if($cartitems->isEmpty())
         <div class="alert alert-info">Your cart is empty.</div>
     @else
+    <div class="mb-3">
+        <input type="text" id="cartSearch" class="form-control" placeholder="Search products in cart..." oninput="validateSearchInput(this)">
+        <small id="cartSearchError" class="text-danger d-none">Please enter valid characters.</small>
+    </div>
     <div class="table-responsive mb-4">
-        <table class="table table-bordered">
+        <table class="table table-bordered" id="cartTable">
             <thead class="thead-light">
                 <tr>
                     <th></th>
@@ -25,7 +29,7 @@
                     <td>
                         <img src="{{ $item->product->image }}" width="50" class="rounded" />
                     </td>
-                    <td>
+                    <td class="product-name">
                         <strong>{{ $item->product->name }}</strong><br>
                         <small>{{ $item->product->description }}</small>
                     </td>
@@ -53,11 +57,13 @@
             <h5>💳 Payment Details</h5>
             <div class="form-group">
                 <label>Cash Payment (₹)</label>
-                <input type="number" id="cashAmount" wire:model="cashAmount" class="form-control" placeholder="Enter cash amount">
+                <input type="number" id="cashAmount" wire:model="cashAmount" class="form-control" placeholder="Enter cash amount" oninput="validateAmountInput(this)">
+                <small id="cashAmountError" class="text-danger d-none">Please enter a valid amount.</small>
             </div>
             <div class="form-group">
                 <label>Online Payment (₹)</label>
-                <input type="number" id="onlineAmount" wire:model="onlineAmount" class="form-control" placeholder="Enter online amount">
+                <input type="number" id="onlineAmount" wire:model="onlineAmount" class="form-control" placeholder="Enter online amount" oninput="validateAmountInput(this)">
+                <small id="onlineAmountError" class="text-danger d-none">Please enter a valid amount.</small>
             </div>
 
             <div class="mt-4">
@@ -103,9 +109,38 @@
     @endif
 
 </div>
+
+<script>
+    function validateSearchInput(input) {
+        const regex = /^[a-zA-Z0-9\s]*$/;
+        const errorElement = document.getElementById('cartSearchError');
+        if (!regex.test(input.value)) {
+            errorElement.classList.remove('d-none');
+        } else {
+            errorElement.classList.add('d-none');
+        }
+    }
+
+    function validateAmountInput(input) {
+        const errorElement = input.id === 'cashAmount' ? document.getElementById('cashAmountError') : document.getElementById('onlineAmountError');
+        if (input.value < 0 || isNaN(input.value)) {
+            errorElement.classList.remove('d-none');
+        } else {
+            errorElement.classList.add('d-none');
+        }
+    }
+</script>
 <script>
     $(document).ready(function () {
-         totalAmount = {{ $this->total ?? 0 }};
+        // Search functionality
+        $("#cartSearch").on("input", function () {
+            const query = $(this).val().toLowerCase();
+            $("#cartTable tbody tr").filter(function () {
+            $(this).toggle($(this).text().toLowerCase().indexOf(query) > -1);
+            });
+        });
+
+        totalAmount = {{ $this->total ?? 0 }};
 
         function updateBreakdown(cash) {
             let remaining = cash;
