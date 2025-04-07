@@ -17,4 +17,10 @@ class Branch extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    public function inventories()
+{
+    return $this->morphMany(Inventory::class, 'location');
+}
+
 }

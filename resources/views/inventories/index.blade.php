@@ -10,8 +10,7 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <h1>Products List</h1>
-                <a href="{{ route('products.create') }}">Create New</a>
+                <h1>Inventory</h1>
 
                 @if (session('success'))
                     <p>{{ session('success') }}</p>
@@ -19,16 +18,17 @@
 
                 <table class="table datatable" id="products_table">
                     <thead>
+                        
                         <tr>
-                            <th>
-                                <b>N</b>ame
-                            </th>
-                            <th>Brand</th>
-                            <th>Cotegory</th>
-                            <th>sku</th>
-                            <th>Size</th>
+                            <th>Product</th>
+                            <th>Location</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Batch No</th>
+                            <th>Expiry Date</th>
+                            <th>Low Stock Alert Level</th>
                             <th>Status</th>
-                            <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
+                            <th data-type="date" data-format="YYYY/DD/MM">Last updated</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -51,7 +51,6 @@
                 }
             });
 
-
             $('#products_table').DataTable({
                 pagelength: 10,
                 responsive: true,
@@ -61,7 +60,7 @@
                 serverSide: true,
 
                 "ajax": {
-                    "url": '{{ url('products/get-data') }}',
+                    "url": '{{ url('inventories/get-data') }}',
                     "type": "post",
                     "data": function(d) {},
                 },
@@ -70,20 +69,27 @@
                     {
                         data: 'name'
                     },
+
                     {
-                        data: 'brand'
+                        data: 'location'
                     },
                     {
-                        data: 'category'
+                        data: 'quantity'
                     },
                     {
-                        data: 'sku'
+                        data: 'cost_price'
                     },
                     {
-                        data: 'size'
+                        data: 'batch_no'
                     },
                     {
-                        data: 'is_active'
+                        data: 'expiry_date'
+                    },
+                    {
+                        data: 'reorder_level'
+                    },
+                    {
+                        data: 'status'
                     },
                     {
                         data: 'created_at'

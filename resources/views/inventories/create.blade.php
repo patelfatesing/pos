@@ -28,91 +28,8 @@
                                             <div class="form-group">
                                                 <label>Name *</label>
                                                 <input type="text" name="name" class="form-control"
-                                                   value="{{old('name')}}" placeholder="Enter Name" data-errors="Please Enter Name.">
+                                                    placeholder="Enter Name" data-errors="Please Enter Name.">
                                                 @error('name')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Brand *</label>
-                                                <input type="text" name="brand" class="form-control"
-                                                value="{{old('brand')}}"  placeholder="Enter brand" data-errors="Please Enter brand.">
-                                                @error('brand')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Category *</label>
-                                                <select name="category_id" id="categorys" class="selectpicker form-control"
-                                                    data-style="py-0">
-                                                    <option value="" disabled selected>Select Category</option>                                        
-                                                @foreach ($categories as $category)
-                                                <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
-                                                    {{ $category->name }}
-                                                </option>
-                                                @endforeach              
-                                                </select>
-                                                @error('category')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Sub Category *</label>
-                                                <select id="sub_category_ids" name="subcategory_id" class="form-control"
-                                                    data-style="py-0">
-                                                    <option value="" selected>Select Sub Category</option>
-                                                    @if (old('subcategory_id'))
-                                                        <option value="{{ old('subcategory_id') }}" selected>{{ old('subcategory_id') }}</option>
-                                                    @endif
-                                                </select>
-                                                @error('subcategory_id')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Pack Size *</label>
-                                                <select id="pack_size" name="size" class="form-control"
-                                                    data-style="py-0">
-                                                    <option value="" selected>Select Pack Size</option>
-                                                    @if (old('pack_size'))
-                                                        <option value="{{ old('pack_size') }}" selected>{{ old('pack_size') }}</option>
-                                                    @endif
-                                                </select>
-                                                @error('pack_size')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Image</label>
-                                                <input type="file" name="image" class="form-control image-file"
-                                                    name="pic" accept="image/*">
-                                                @error('image')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>SKU *</label>
-                                                <input type="text" name="code" class="form-control"
-                                                    placeholder="Enter Code" data-errors="Please Enter Code.">
-                                                @error('code')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
@@ -123,11 +40,114 @@
                                                <p> <img src="{{ route('barcode.generate', ['productCode' => $productCode]) }}" alt="Barcode"></p>
                                                 <p>{{ $productCode }}</p>
                                             </div>
-                                        </div> 
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Code *</label>
+                                                <input type="text" name="code" class="form-control"
+                                                    placeholder="Enter Code" data-errors="Please Enter Code.">
+                                                @error('code')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Category *</label>
+                                                <select name="category" id="categorys" class="selectpicker form-control"
+                                                    data-style="py-0">
+                                                    <option value="" disabled selected>Select Category</option>
+                                                    @foreach ($categories as $category)
+                                                        <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                @error('category')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Sub Category *</label>
+                                                <select id="sub_category_ids" name="sub_category_id" class="form-control"
+                                                    data-style="py-0">
+                                                    <option value="" selected>Select Sub Category</option>
+                                                </select>
+                                                @error('sub_category_id')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Sub Pack Size *</label>
+                                                <select id="pack_size" name="pack_size" class="form-control"
+                                                    data-style="py-0">
+                                                    <option value="" selected>Select Pack Size</option>
+                                                </select>
+                                                @error('pack_size')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Cost *</label>
+                                                <input type="text" name="cost" class="form-control"
+                                                    placeholder="Enter Cost" data-errors="Please Enter Cost.">
+                                                @error('cost')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Price *</label>
+                                                <input type="text" name="price" class="form-control"
+                                                    placeholder="Enter Price" data-errors="Please Enter Price.">
+                                                @error('price')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label>Tax Method *</label>
+                                                <select name="tax_method" class="selectpicker form-control"
+                                                    data-style="py-0">
+                                                    <option>Exclusive</option>
+                                                    <option>Inclusive</option>
+                                                </select>
+                                                @error('tax_method')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label>Quantity *</label>
+                                                <input type="text" name="quantity" class="form-control"
+                                                    placeholder="Enter Quantity">
+                                                @error('quantity')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label>Image</label>
+                                                <input type="file" name="image" class="form-control image-file"
+                                                    name="pic" accept="image/*">
+                                                @error('image')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <label>Description / Product Details</label>
-                                                <textarea class="form-control" name="description" rows="4">{{old('description')}}</textarea>
+                                                <textarea class="form-control" name="description" rows="4"></textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -191,7 +211,7 @@
                             $.each(data, function(key, value) {
                                 $("#fate").text(value.name);
                                 $('#pack_size').append('<option value="' + value
-                                    .size + '">' + value.size + '</option>');
+                                    .id + '">' + value.size + '</option>');
                             });
                         },
                         error: function() {

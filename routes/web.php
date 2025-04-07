@@ -9,6 +9,7 @@ use App\Http\Controllers\ItemController;
 use App\Livewire\Shoppingcart;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\SubCategoryController;
+use App\Http\Controllers\InventoryController;
 use Illuminate\Support\Facades\Route;
 use App\Models\User;
 use App\Http\Controllers\CommissionUserController;
@@ -71,10 +72,21 @@ Route::middleware('auth')->group(function () {
     Route::post('/products/upload-pic', [ProductController::class, 'uploadPhotp'])->name('products.upload');
 
     Route::get('/products/subcategory/{category_id}', [ProductController::class, 'getSubcategories'])->name('get.subcategories');
-    
+    Route::get('/products/getpacksize/{category_id}', [ProductController::class, 'getPackSize'])->name('get.getpacksize');
+    Route::get('/barcode/{productCode}', [ProductController::class, 'generateBarcode'])->name('barcode.generate');
     Route::post('/products/barcode/check', [ProductController::class, 'barcodeCheck'])->name('products.check');
+    Route::get('/products/barcode-print/{id}', [ProductController::class, 'barcodePrint'])->name('products.barcode-print');
+    
 
-
+    Route::get('/inventories/list', [InventoryController::class, 'index'])->name('inventories.list');
+    Route::post('/inventories/get-data', [InventoryController::class, 'getData'])->name('inventories.getData');
+    Route::get('/inventories/create', [InventoryController::class, 'create'])->name('inventories.create');
+    Route::post('/inventories/add', [InventoryController::class, 'store'])->name('inventories.store');
+    Route::get('/inventories/edit/{id}', [InventoryController::class, 'edit'])->name('inventories.edit');
+    Route::get('/inventories/add-stock/{id}', [InventoryController::class, 'addStock'])->name('inventories.add-stock');
+    Route::post('/inventories/store-stock', [InventoryController::class, 'storeStock'])->name('inventories.stockStore');
+    
+    
     Route::get('/items/list', [ItemController::class, 'index'])->name('items.list');
     Route::get('/items/cart', [ItemController::class, 'cart'])->name('items.cart');
     Route::get('/items/{id}', [ItemController::class, 'show'])->name('items.show');
