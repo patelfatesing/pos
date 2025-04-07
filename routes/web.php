@@ -11,6 +11,8 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\SubCategoryController;
 use Illuminate\Support\Facades\Route;
 use App\Models\User;
+use App\Http\Controllers\CommissionUserController;
+
 
 
 Route::middleware(['role:admin'])->get('/admin-dashboard', function () {
@@ -99,6 +101,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/subcategories/edit/{id}', [SubCategoryController::class, 'edit'])->name('subcategories.edit');
     Route::post('/subcategories/update', [SubCategoryController::class, 'update'])->name('subcategories.update');
     Route::delete('/subcategories/delete/{id}', [SubCategoryController::class, 'destroy'])->name('categories.destroy');
+
+    
 });
+Route::middleware('auth')->prefix('commission-users')->name('commission-users.')->group(function () {
+    Route::get('/list', [CommissionUserController::class, 'index'])->name('list');
+    Route::post('/get-data', [CommissionUserController::class, 'getData'])->name('getData');
+    Route::get('/create', [CommissionUserController::class, 'create'])->name('create');
+    Route::post('/', [CommissionUserController::class, 'store'])->name('store');
+    Route::get('/edit/{id}', [CommissionUserController::class, 'edit'])->name('edit');
+    Route::put('/{Commissionuser}', [CommissionUserController::class, 'update'])->name('update');
+    Route::delete('/{Commissionuser}', [CommissionUserController::class, 'destroy'])->name('destroy');
+});
+
 
 require __DIR__.'/auth.php';

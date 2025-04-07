@@ -7,16 +7,20 @@ use Illuminate\Http\Request;
 
 class ItemController extends Controller
 {
+    // public function __construct()
+    // {
+    //     $this->middleware('auth'); // Ensures only authenticated users can access this controller
+    // }
+
     public function index()
     {
         $items = Item::all();
-        //pre($items);
         return view('items.index', compact('items'));
     }
+
     public function cart()
     {
         $items = Item::all();
-        //pre($items);
         return view('items.cart', compact('items'));
     }
 
@@ -41,13 +45,12 @@ class ItemController extends Controller
 
     public function show(Item $item)
     {
-         $item = $item->first();
-        //pre($item);
+        $item = $item->first();
         return view('items.show', compact('item'));
     }
+
     public function getData(Request $request)
     {
-
         $draw = $request->input('draw', 1);
         $start = $request->input('start', 0);
         $length = $request->input('length', 10);
@@ -76,7 +79,6 @@ class ItemController extends Controller
 
         $url = url('/');
         foreach ($data as $employee) {
-
             $action = "";
             $action .= "<a href='" . $url . "/role/edit/" . $employee->id . "' class='btn btn-info mr_2'>Edit</a>";
             $action .= '<button type="button" onclick="delete_role(' . $employee->id . ')" class="btn btn-danger ml-2">Delete</button>';
@@ -96,6 +98,7 @@ class ItemController extends Controller
             'data' => $records
         ]);
     }
+
     public function edit(Item $item)
     {
         return view('items.edit', compact('item'));
