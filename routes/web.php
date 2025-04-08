@@ -13,6 +13,8 @@ use App\Http\Controllers\InventoryController;
 use Illuminate\Support\Facades\Route;
 use App\Models\User;
 use App\Http\Controllers\CommissionUserController;
+use App\Http\Controllers\PartyUserController;
+use App\Http\Controllers\InvoiceController;
 
 
 
@@ -114,6 +116,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/subcategories/update', [SubCategoryController::class, 'update'])->name('subcategories.update');
     Route::delete('/subcategories/delete/{id}', [SubCategoryController::class, 'destroy'])->name('categories.destroy');
 
+    Route::get('/invoice/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show');
+    Route::get('/invoice/{invoice}/download', [InvoiceController::class, 'download'])->name('invoice.download');
     
 });
 Route::middleware('auth')->prefix('commission-users')->name('commission-users.')->group(function () {
@@ -124,6 +128,15 @@ Route::middleware('auth')->prefix('commission-users')->name('commission-users.')
     Route::get('/edit/{id}', [CommissionUserController::class, 'edit'])->name('edit');
     Route::put('/{Commissionuser}', [CommissionUserController::class, 'update'])->name('update');
     Route::delete('/{Commissionuser}', [CommissionUserController::class, 'destroy'])->name('destroy');
+});
+Route::middleware('auth')->prefix('party-users')->name('party-users.')->group(function () {
+    Route::get('/list', [PartyUserController::class, 'index'])->name('list');
+    Route::post('/get-data', [PartyUserController::class, 'getData'])->name('getData');
+    Route::get('/create', [PartyUserController::class, 'create'])->name('create');
+    Route::post('/', [PartyUserController::class, 'store'])->name('store');
+    Route::get('/edit/{id}', [PartyUserController::class, 'edit'])->name('edit');
+    Route::put('/{Partyuser}', [PartyUserController::class, 'update'])->name('update');
+    Route::delete('/{Partyuser}', [PartyUserController::class, 'destroy'])->name('destroy');
 });
 
 

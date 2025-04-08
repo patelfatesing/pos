@@ -8,7 +8,7 @@ class Roles extends Model
 {
     //
 
-    protected $fillable = ['role_name', 'is_active', 'is_deleted'];
+    protected $fillable = ['name', 'is_active', 'is_deleted'];
 
     // public function users()
     // {

@@ -54,10 +54,29 @@
     <!-- Payment Section -->
     <div class="row">
         <div class="col-md-6">
+            <div class="form-group">
+                <label for="commissionUser">👤 Select Commission Customer</label>
+                <select id="commissionUser" class="form-control" wire:model="selectedCommissionUser" wire:change="calculateCommission">
+                    <option value="">-- Select a user --</option>
+                    @foreach($commissionUsers as $user)
+                        <option value="{{ $user->id }}">{{ $user->first_name ." ".$user->last_name}} ({{ $user->commission_value }}%)</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="partyUser">👥 Select Party Customer</label>
+                <select id="partyUser" class="form-control" wire:model="selectedPartyUser" wire:change="calculateParty">
+                    <option value="">-- Select a user --</option>
+                    @foreach($partyUsers as $user)
+                    <option value="{{ $user->id }}">{{ $user->first_name ." ".$user->last_name}} ({{ $user->credit_points }}pt)</option>
+                    @endforeach
+                </select>
+            </div>
+            
             <h5>💳 Payment Details</h5>
             <div class="form-group">
                 <label>Cash Payment (₹)</label>
-                <input type="number" id="cashAmount" wire:model="cashAmount" class="form-control" placeholder="Enter cash amount" oninput="validateAmountInput(this)">
+                <input type="number" id="cashAmount" wire:model="cashAmount" class="form-control" placeholder="Enter cash amount" oninput="validateAmountInput(this)" >
                 <small id="cashAmountError" class="text-danger d-none">Please enter a valid amount.</small>
             </div>
             <div class="form-group">
@@ -94,9 +113,22 @@
                     <strong>Tax (18%)</strong>
                     <span>₹{{ number_format($tax, 2) }}</span>
                 </div>
+                @if($commissionAmount > 0)
+                    <div class="d-flex justify-content-between mb-2">
+                        <strong>Commission Deduction</strong>
+                        <span>- ₹{{ number_format($commissionAmount, 2) }}</span>
+                    </div>
+                @endif
+                @if($partyAmount > 0)
+                <div class="d-flex justify-content-between mb-2">
+                    <strong>Point Deduction</strong>
+                    <span>- ₹{{ number_format($partyAmount, 2) }}</span>
+                </div>
+            @endif
                 <div class="d-flex justify-content-between border-top pt-2">
                     <strong>Total</strong>
                     <span>₹{{ number_format($this->total, 2) }}</span>
+                    <input type="text" id="total" value="{{$this->total}}" class="d-none" />
                 </div>
             </div>
 
@@ -136,12 +168,11 @@
         $("#cartSearch").on("input", function () {
             const query = $(this).val().toLowerCase();
             $("#cartTable tbody tr").filter(function () {
-            $(this).toggle($(this).text().toLowerCase().indexOf(query) > -1);
+                $(this).toggle($(this).text().toLowerCase().indexOf(query) > -1);
             });
         });
 
-        totalAmount = {{ $this->total ?? 0 }};
-
+        
         function updateBreakdown(cash) {
             let remaining = cash;
             const thousands = Math.floor(remaining / 1000);
@@ -159,8 +190,11 @@
         }
 
         function updateCashOnlineFields(source) {
+
+            let totalAmount = parseFloat($("#total").val()) || 0;
             let cash = parseFloat($("#cashAmount").val()) || 0;
             let online = parseFloat($("#onlineAmount").val()) || 0;
+
             if (source === 'cash') {
                 const remaining = (totalAmount - cash) > 0 ? totalAmount - cash : 0;
                 $("#onlineAmount").val(remaining);
@@ -181,6 +215,6 @@
         });
 
         // Initial run
-        $("#cashAmount").trigger("input");
+       // $("#onlineAmount").trigger("input");
     });
 </script>
