@@ -4,7 +4,12 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\Shoppingcart as Cart;
+use App\Models\Commissionuser;
+use App\Models\Partyuser;
 use Srmklive\PayPal\Services\PayPal as PayPalClient;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Str;
+use App\Models\Invoice;
 
 class Shoppingcart extends Component
 {
@@ -14,10 +19,18 @@ class Shoppingcart extends Component
     public $cashAmount = 0;
     public $onlineAmount = 0;
     public $cartCount = 0;
+    public $selectedCommissionUser;
+    public $selectedPartyUser;
+    public $commissionUsers = [];
+    public $partyUsers = [];
+    public $commissionAmount = 0;
+    public $partyAmount = 0;
 
     public function mount()
     {
         $this->loadCartData();
+        $this->commissionUsers = Commissionuser::all(); // Assuming you have a model for this
+        $this->partyUsers = Partyuser::all(); // Assuming you have a model for this
     }
 
     public function loadCartData()
@@ -35,6 +48,7 @@ class Shoppingcart extends Component
     {
         $this->sub_total = $this->cartitems->sum(fn($item) => $item->product->price * $item->quantity);
         $this->tax = $this->sub_total * 0.18;
+        $this->cashAmount = $this->total;
     }
 
     public function getTotalProperty()
@@ -89,29 +103,67 @@ class Shoppingcart extends Component
         $this->loadCartData();
     }
 
-    public function checkout()
+
+    public function calculateCommission()
     {
-        $totalPaid = $this->cashAmount + $this->onlineAmount;
-
-        if ($totalPaid < $this->total) {
-            session()->flash('error', 'Payment amount is less than total.');
-            return;
+        $user = Commissionuser::find($this->selectedCommissionUser);
+        if (!empty($user)) {
+            $this->commissionAmount = ($this->total * $user->commission_value) / 100;
+        } else {
+            $this->commissionAmount = 0;
         }
-
-        foreach ($this->cartitems as $item) {
-            $item->status = Shoppingcart::STATUS['success'];
-            $item->save();
-        }
-
-        session()->flash('success', 'Order placed successfully!');
-        $this->cashAmount = 0;
-        $this->onlineAmount = 0;
-        $this->loadCartData();
+        $this->total = $this->total - $this->commissionAmount;
+        $this->cashAmount = $this->total;
     }
-
+    public function calculateParty(){
+        $user = Partyuser::find($this->selectedPartyUser);
+        if (!empty($user)) {
+            $this->partyAmount =$user->credit_points;
+        } else {
+            $this->partyAmount = 0;
+        }
+        $this->total = $this->total - $this->partyAmount;
+        $this->cashAmount = $this->total;
+    }
     public function render()
     {
         return view('livewire.shoppingcart');
+    }
+
+    public function checkout()
+    {
+        if (!empty($this->commissionAmount)) {
+            $this->total = $this->total - $this->commissionAmount;
+        }
+        if (!empty($this->partyAmount)) {
+            $this->total = $this->total - $this->partyAmount;
+        }
+        $commissionUser = CommissionUser::find($this->selectedCommissionUser);
+        $partyUser = PartyUser::find($this->selectedPartyUser);
+        $cartitems = $this->cartitems;
+        
+        $invoice_number = 'INV-' . strtoupper(Str::random(8));
+        
+        $invoice = Invoice::create([
+            'invoice_number' => $invoice_number,
+            'commission_user_id' => $commissionUser->id ?? null,
+            'party_user_id' => $partyUser->id ?? null,
+            'items' => $cartitems->map(fn($item) => [
+                'name' => $item->product->name,
+                'quantity' => $item->quantity,
+                'price' => $item->product->price,
+            ]),
+            'sub_total' => $this->sub_total,
+            'tax' => $this->tax,
+            'commission_amount' => $this->commissionAmount,
+            'party_amount' => $this->partyAmount,
+            'total' => $this->total,
+        ]);
+
+        // Clear cart if needed
+        // Cart::clear();
+
+        return redirect()->route('invoice.show', $invoice->id);
     }
 }
 
