@@ -27,7 +27,7 @@
                 @foreach($cartitems as $item)
                 <tr>
                     <td>
-                        <img src="{{ $item->product->image }}" width="50" class="rounded" />
+                        <img src="{{ asset('storage/' . $item->product->image) }}" width="50" class="rounded" />
                     </td>
                     <td class="product-name">
                         <strong>{{ $item->product->name }}</strong><br>
@@ -40,8 +40,8 @@
                             <button class="btn btn-sm btn-outline-warning" wire:click="incrementQty({{ $item->id }})">+</button>
                         </div>
                     </td>
-                    <td>₹{{ number_format($item->product->price, 2) }}</td>
-                    <td>₹{{ number_format($item->product->price * $item->quantity, 2) }}</td>
+                    <td>₹{{ number_format(@$item->product->inventorie->sell_price, 2) }}</td>
+                    <td>₹{{ number_format(@$item->product->inventorie->sell_price * $item->quantity, 2) }}</td>
                     <td>
                         <button class="btn btn-sm btn-danger" wire:click="removeItem({{ $item->id }})">Remove</button>
                     </td>
@@ -54,24 +54,32 @@
     <!-- Payment Section -->
     <div class="row">
         <div class="col-md-6">
-            <div class="form-group">
-                <label for="commissionUser">👤 Select Commission Customer</label>
-                <select id="commissionUser" class="form-control" wire:model="selectedCommissionUser" wire:change="calculateCommission">
-                    <option value="">-- Select a user --</option>
-                    @foreach($commissionUsers as $user)
-                        <option value="{{ $user->id }}">{{ $user->first_name ." ".$user->last_name}} ({{ $user->commission_value }}%)</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="partyUser">👥 Select Party Customer</label>
-                <select id="partyUser" class="form-control" wire:model="selectedPartyUser" wire:change="calculateParty">
-                    <option value="">-- Select a user --</option>
-                    @foreach($partyUsers as $user)
-                    <option value="{{ $user->id }}">{{ $user->first_name ." ".$user->last_name}} ({{ $user->credit_points }}pt)</option>
-                    @endforeach
-                </select>
-            </div>
+            @auth
+                @if(auth()->user()->hasRole('cashier'))
+                    <div class="form-group">
+                        <label for="commissionUser">👤 Select Commission Customer</label>
+                        <select id="commissionUser" class="form-control" wire:model="selectedCommissionUser" wire:change="calculateCommission">
+                            <option value="">-- Select a user --</option>
+                            @foreach($commissionUsers as $user)
+                                <option value="{{ $user->id }}">{{ $user->first_name ." ".$user->last_name}} ({{ $user->commission_value }}%)</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
+                @if(auth()->user()->hasRole('warehouse'))
+                    <div class="form-group">
+                        <label for="partyUser">👥 Select Party Customer</label>
+                        <select id="partyUser" class="form-control" wire:model="selectedPartyUser" wire:change="calculateParty">
+                            <option value="">-- Select a user --</option>
+                            @foreach($partyUsers as $user)
+                            <option value="{{ $user->id }}">{{ $user->first_name ." ".$user->last_name}} ({{ $user->credit_points }}pt)</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
+            @endauth
+
+          
             
             <h5>💳 Payment Details</h5>
             <div class="form-group">

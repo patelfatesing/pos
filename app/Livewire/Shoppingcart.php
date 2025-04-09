@@ -46,7 +46,11 @@ class Shoppingcart extends Component
 
     public function calculateTotals()
     {
-        $this->sub_total = $this->cartitems->sum(fn($item) => $item->product->price * $item->quantity);
+        $this->sub_total = $this->cartitems->sum(fn($item) => 
+            !empty($item->product->inventorie->sell_price) 
+            ? $item->product->inventorie->sell_price * $item->quantity 
+            : 0
+        );
         $this->tax = $this->sub_total * 0.18;
         $this->cashAmount = $this->total;
     }
@@ -151,7 +155,7 @@ class Shoppingcart extends Component
             'items' => $cartitems->map(fn($item) => [
                 'name' => $item->product->name,
                 'quantity' => $item->quantity,
-                'price' => $item->product->price,
+                'price' => $item->product->inventorie->sell_price,
             ]),
             'sub_total' => $this->sub_total,
             'tax' => $this->tax,

@@ -46,11 +46,14 @@ class User extends Authenticatable
         ];
     }
     
-     public function hasRole($role)
+    //  public function hasRole($role)
+    // {
+    //     return $this->roles->contains('name', $role);
+    // }
+    public function hasRole($roleName)
     {
-        return $this->roles->contains('name', $role);
+        return $this->role && $this->role->name === $roleName;
     }
-
     public function hasPermission($permission)
     {
         foreach ($this->roles as $role) {
@@ -64,6 +67,10 @@ class User extends Authenticatable
     public function roles()
     {
         return $this->belongsToMany(Role::class);
+    }
+    public function role()
+    {
+        return $this->belongsTo(Role::class)->select('name'); // Return only the role name
     }
 
     public function branch()

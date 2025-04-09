@@ -15,7 +15,15 @@
 </head>
 
 <body>
-    @include('layouts.backend.slidebar') <!-- Include header -->
+    @auth
+        @if(auth()->user()->hasRole('cashier'))
+        @include('layouts.backend.cashierslidebar') <!-- Include header -->
+        @else
+        @include('layouts.backend.slidebar') <!-- Include header -->
+
+        @endif
+       
+    @endauth
 
     @include('layouts.backend.nav') <!-- Include header -->
     <!-- loader Start -->
