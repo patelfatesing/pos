@@ -112,8 +112,8 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        type: "delete", // "method" also works
-                        url: "{{ url('store/delete') }}/"+id, // Ensure correct Laravel URL
+                        type: "POST", // "method" also works
+                        url: "{{ url('store/delete') }}", // Ensure correct Laravel URL
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
@@ -121,8 +121,9 @@
                             id: id
                         },
                         success: function(response) {
-                            swal("Deleted!", "The store has been deleted.", "success")
-                                .then(() => location.reload());
+                            location.reload();
+                            // swal("Deleted!", "The store has been deleted.", "success")
+                            //     .then(() => location.reload());
                         },
                         error: function(xhr) {
                             swal("Error!", "Something went wrong.", "error");

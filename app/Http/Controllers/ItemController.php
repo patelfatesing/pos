@@ -63,7 +63,7 @@ class ItemController extends Controller
 
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
-                $q->where('role_name', 'like', '%' . $searchValue . '%');
+                $q->where('name', 'like', '%' . $searchValue . '%');
             });
         }
 
@@ -84,7 +84,7 @@ class ItemController extends Controller
             $action .= '<button type="button" onclick="delete_role(' . $employee->id . ')" class="btn btn-danger ml-2">Delete</button>';
 
             $records[] = [
-                'role_name' => $employee->role_name,
+                'name' => $employee->name,
                 'is_active' => $employee->is_active,
                 'created_at' => date('d-m-Y h:s', strtotime($employee->created_at)),
                 'action' => $action

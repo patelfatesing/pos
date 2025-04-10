@@ -52,66 +52,43 @@
             });
 
             $('#products_table').DataTable({
-                pagelength: 10,
-                responsive: true,
-                processing: true,
-                ordering: true,
-                bLengthChange: true,
-                serverSide: true,
+    pagelength: 10,
+    responsive: true,
+    processing: true,
+    ordering: true,
+    bLengthChange: true,
+    serverSide: true,
 
-                "ajax": {
-                    "url": '{{ url('inventories/get-data') }}',
-                    "type": "post",
-                    "data": function(d) {},
-                },
-                aoColumns: [
+    "ajax": {
+        "url": '{{ url('inventories/get-data') }}',
+        "type": "post",
+        "data": function(d) {},
+    },
+    aoColumns: [
+        { data: 'name' },
+        { data: 'location' },
+        { data: 'quantity' },
+        { data: 'cost_price' },
+        { data: 'batch_no' },
+        { data: 'expiry_date' },
+        { data: 'reorder_level' },
+        { data: 'status' },
+        { data: 'created_at' },
+        { data: 'action' }
+    ],
+    aoColumnDefs: [{
+        bSortable: false,
+        aTargets: [9] // make "action" column unsortable
+    }],
+    order: [[8, 'desc']], // 🟢 Sort by created_at DESC by default
+    dom: "Bfrtip",
+    lengthMenu: [
+        [10, 25, 50],
+        ['10 rows', '25 rows', '50 rows', 'All']
+    ],
+    buttons: ['pageLength']
+});
 
-                    {
-                        data: 'name'
-                    },
-
-                    {
-                        data: 'location'
-                    },
-                    {
-                        data: 'quantity'
-                    },
-                    {
-                        data: 'cost_price'
-                    },
-                    {
-                        data: 'batch_no'
-                    },
-                    {
-                        data: 'expiry_date'
-                    },
-                    {
-                        data: 'reorder_level'
-                    },
-                    {
-                        data: 'status'
-                    },
-                    {
-                        data: 'created_at'
-                    },
-                    {
-                        data: 'action'
-                    }
-                    // Define more columns as per your table structure
-
-                ],
-                aoColumnDefs: [{
-                    bSortable: false,
-                    aTargets: []
-                }],
-                dom: "Bfrtip",
-                lengthMenu: [
-                    [10, 25, 50],
-                    ['10 rows', '25 rows', '50 rows', 'All']
-                ],
-                buttons: ['pageLength']
-
-            });
 
         });
 

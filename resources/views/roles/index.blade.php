@@ -25,7 +25,6 @@
                             </th>
                             <th>Status</th>
                             <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
-                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -69,9 +68,6 @@
                     },
                     {
                         data: 'created_at'
-                    },
-                    {
-                        data: 'action'
                     }
                     // Define more columns as per your table structure
 
@@ -91,7 +87,7 @@
 
         });
 
-        function delete_store(id) {
+        function delete_user(id) {
 
             Swal.fire({
                 title: "Are you sure?",

@@ -21,18 +21,17 @@
                                 </div>
                             </div>
                             <div class="card-body">
-                                <form action="{{ route('inventories.stockStore') }}" enctype="multipart/form-data"
-                                    method="POST">
+                                <form action="{{ route('inventories.stockStore') }}" enctype="multipart/form-data" method="POST">
                                     @csrf
                                     <input type="hidden" name="product_id" value="{{ $product_details->id }}">
                                     <input type="hidden" name="sku" value="{{ $product_details->sku }}">
-
+                                    
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Name *</label>
-                                                <input type="text" class="form-control" disabled
-                                                    value="{{ $product_details->name }}">
+                                                <input type="text" class="form-control"
+                                                    disabled value="{{ $product_details->name }}">
                                                 @error('name')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -42,20 +41,20 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Brand *</label>
-                                                <input type="text" class="form-control" disabled
-                                                    value="{{ $product_details->brand }}" placeholder="Enter Brand">
+                                                <input type="text" class="form-control"
+                                                disabled value="{{ $product_details->brand }}" placeholder="Enter Brand">
                                                 @error('brand')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
                                         </div>
 
-
+                                        
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>SKU *</label>
-                                                <input type="text" class="form-control" disabled
-                                                    value="{{ $product_details->sku }}" placeholder="Enter Brand">
+                                                <input type="text" class="form-control"
+                                                disabled value="{{ $product_details->sku }}" placeholder="Enter Brand">
                                                 @error('brand')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -65,8 +64,7 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Category *</label>
-                                                <input type="text" disabled
-                                                    value="{{ $product_details->category->name }}" class="form-control"
+                                                <input type="text" disabled value="{{ $product_details->category->name }}" class="form-control"
                                                     placeholder="Enter Category">
                                                 @error('category')
                                                     <span class="text-danger">{{ $message }}</span>
@@ -77,8 +75,8 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Size</label>
-                                                <input type="text" disabled value="{{ $product_details->size }}"
-                                                    name="size" class="form-control" placeholder="Enter Size">
+                                                <input type="text" disabled value="{{ $product_details->size }}" name="size" class="form-control"
+                                                    placeholder="Enter Size">
                                                 @error('size')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -138,31 +136,6 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="vendor_id">Vendor</label>
-                                                <select name="vendor_id" id="vendor_id" class="form-control">
-                                                    <option value="">-- Select Vendor --</option>
-                                                    @foreach ($vendors as $vendor)
-                                                        <option value="{{ $vendor->id }}">{{ $vendor->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <!-- MFG Date -->
-                                        <div class="form-group">
-                                            <label for="mfg_date">Manufacturing Date</label>
-                                            <input type="date" name="mfg_date" class="form-control">
-                                        </div>
-
-                                        <!-- Discount Price -->
-                                        <div class="form-group">
-                                            <label for="discount_price">Discount Price</label>
-                                            <input type="number" name="discount_price" step="0.01"
-                                                class="form-control">
-                                        </div>
-
                                     </div>
                                     <button type="submit" class="btn btn-primary mr-2">Add Stock</button>
                                     <button type="reset" class="btn btn-danger">Reset</button>

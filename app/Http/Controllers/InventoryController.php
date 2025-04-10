@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\UserInfo;
+use App\Models\VendorList;
 use App\Services\InventoryService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -41,13 +42,13 @@ class InventoryController extends Controller
             $orderColumn = 'products.name';
             break;
         case 'created_at':
-            $orderColumn = 'inventories.updated_at';
+            $orderColumn = 'inventories.created_at';
             break;
         default:
-            $orderColumn = 'inventories.' . $orderColumn;
+            $orderColumn = 'inventories.created_at';
     }
 
-    $orderDirection = $request->input('order.0.dir', 'asc');
+    $orderDirection = $request->input('order.0.dir', 'desc');
 
     // Query with joins: products + inventories + branches
     $query = \App\Models\Inventory::select(
@@ -86,8 +87,8 @@ class InventoryController extends Controller
             : '<span class="badge bg-success">OK</span>';
 
         $action = "";
-        $action .= "<a href='" . $url . "/inventory/edit/" . $inventory->id . "' class='btn btn-info mr-2'>Edit</a>";
-        $action .= '<button type="button" onclick="delete_inventory(' . $inventory->id . ')" class="btn btn-danger">Delete</button>';
+        // $action .= "<a href='" . $url . "/inventory/edit/" . $inventory->id . "' class='btn btn-info mr-2'>Edit</a>";
+        // $action .= '<button type="button" onclick="delete_inventory(' . $inventory->id . ')" class="btn btn-danger">Delete</button>';
 
         $records[] = [
             'name' => $inventory->product_name ?? 'N/A',
@@ -134,7 +135,8 @@ class InventoryController extends Controller
     ->where('is_deleted', 'no')
     ->firstOrFail();
 
-        return view('inventories.add_stock', compact('product_details'));
+    $vendors = VendorList::where('is_active', true)->get();
+        return view('inventories.add_stock', compact('product_details', 'vendors'));
     }
 
     public function storeStock(Request $request)
@@ -145,7 +147,10 @@ class InventoryController extends Controller
             'quantity' => 'required|integer|min:1',
             'cost_price' => 'required|numeric',
             'sell_price' => 'required|numeric',
-            'reorder_level' => 'required|integer|min:0'
+            'reorder_level' => 'required|integer|min:0',
+            'vendor_id' => 'nullable|exists:vendor_lists,id',
+            'mfg_date' => 'nullable|date',
+            'discount_price' => 'nullable|numeric',
         ]);
     
         $user_id = Auth::id();
@@ -155,14 +160,17 @@ class InventoryController extends Controller
         ->firstOrFail();
     
         $batchNumber = strtoupper($request->sku) . '-' . now()->format('Ymd') . '-' . Str::upper(Str::random(4));
-// dd($_POST);
+
         $inventory = Inventory::firstOrCreate([
             'product_id'  => $validated['product_id'],
             'store_id'    => $user_details->branch_id,
-            'location_id'    => $user_details->branch_id,
+            'location_id'    => $user_id,
             'batch_no'    => $batchNumber,
             'expiry_date' => $validated['expiry_date'],
-            'reorder_level' => $validated['reorder_level']
+            'reorder_level' => $validated['reorder_level'],
+            'vendor_id' => $request->vendor_id,
+            'discount_price' => $request->discount_price,
+            'discount_amt' => $request->discount_amt
         ]);
     
         // Add stock
@@ -213,6 +221,98 @@ class InventoryController extends Controller
     }
 
     // 🔔 GET /api/inventory/low-stock
+
+
+    public function stockList()
+    {
+        $data =Inventory::with('product')->get();
+        return view('inventories.index', compact('data'));
+    }
+
+    public function getStockData(Request $request)
+{
+    $draw = $request->input('draw', 1);
+    $start = $request->input('start', 0);
+    $length = $request->input('length', 10);
+    $searchValue = $request->input('search.value', '');
+    $orderColumnIndex = $request->input('order.0.column', 0);
+    $orderColumn = $request->input("columns.$orderColumnIndex.data", 'id');
+
+    // Map frontend column names to actual DB columns
+    switch ($orderColumn) {
+        case 'name':
+            $orderColumn = 'products.name';
+            break;
+        case 'created_at':
+            $orderColumn = 'inventories.created_at';
+            break;
+        default:
+            $orderColumn = 'inventories.created_at';
+    }
+
+    $orderDirection = $request->input('order.0.dir', 'desc');
+
+    // Query with joins: products + inventories + branches
+    $query = \App\Models\Inventory::select(
+            'inventories.*',
+            'products.name as product_name',
+            'inventories.cost_price',
+            'branches.name as branch_name'
+        )
+        ->join('products', 'products.id', '=', 'inventories.product_id')
+        ->leftJoin('branches', 'inventories.location_id', '=', 'branches.id');
+
+    // Search filter
+    if (!empty($searchValue)) {
+        $query->where(function ($q) use ($searchValue) {
+            $q->where('products.name', 'like', "%$searchValue%")
+              ->orWhere('inventories.cost_price', 'like', "%$searchValue%")
+              ->orWhere('inventories.batch_no', 'like', "%$searchValue%")
+              ->orWhere('branches.name', 'like', "%$searchValue%");
+        });
+    }
+
+    $recordsTotal = \App\Models\Inventory::count();
+    $recordsFiltered = $query->count();
+
+    $data = $query->orderBy($orderColumn, $orderDirection)
+        ->offset($start)
+        ->limit($length)
+        ->get();
+
+    $records = [];
+    $url = url('/');
+
+    foreach ($data as $inventory) {
+        $status = ($inventory->quantity < $inventory->reorder_level)
+            ? '<span class="badge bg-danger">Low Stock</span>'
+            : '<span class="badge bg-success">OK</span>';
+
+        $action = "";
+        // $action .= "<a href='" . $url . "/inventory/edit/" . $inventory->id . "' class='btn btn-info mr-2'>Edit</a>";
+        // $action .= '<button type="button" onclick="delete_inventory(' . $inventory->id . ')" class="btn btn-danger">Delete</button>';
+
+        $records[] = [
+            'name' => $inventory->product_name ?? 'N/A',
+            'location' => $inventory->branch_name ?? '—',
+            'quantity' => $inventory->quantity,
+            'cost_price' => $inventory->cost_price,
+            'batch_no' => $inventory->batch_no,
+            'expiry_date' => $inventory->expiry_date,
+            'reorder_level' => $inventory->reorder_level,
+            'status' => $status,
+            'created_at' => $inventory->updated_at ? $inventory->updated_at->format('d-m-Y h:i A') : '—',
+            'action' => $action
+        ];
+    }
+
+    return response()->json([
+        'draw' => $draw,
+        'recordsTotal' => $recordsTotal,
+        'recordsFiltered' => $recordsFiltered,
+        'data' => $records
+    ]);
+}
     public function lowStock()
     {
         return $this->inventoryService->getLowStockItems();

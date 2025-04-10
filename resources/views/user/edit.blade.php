@@ -92,11 +92,11 @@
                                                     data-style="py-0">
                                                     <option value="">Select Store</option>
                                                     @foreach ($branch as $id => $name)
-                                                        <option value="{{ $id }}"
-                                                            {{ optional($record->userInfo)->branch_id == $id ? 'selected' : '' }}>
-                                                            {{ $name }}
-                                                        </option>
-                                                    @endforeach
+                                                    <option value="{{ $id }}"
+                                                        {{ ($record->userInfo->branch_id ?? null) == $id ? 'selected' : '' }}>
+                                                        {{ $name }}
+                                                    </option>
+                                                @endforeach
                                                 </select>
                                                 @error('branch_id')
                                                     <span class="text-danger">{{ $message }}</span>

@@ -10,8 +10,33 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                 <livewire:productlist />
-                
+                <h1>Inventory</h1>
+
+                @if (session('success'))
+                    <p>{{ session('success') }}</p>
+                @endif
+
+                <table class="table datatable" id="products_table">
+                    <thead>
+                        
+                        <tr>
+                            <th>Product</th>
+                            <th>Location</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Batch No</th>
+                            <th>Expiry Date</th>
+                            <th>Low Stock Alert Level</th>
+                            <th>Status</th>
+                            <th data-type="date" data-format="YYYY/DD/MM">Last updated</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+
+                <!-- Page end  -->
             </div>
         </div>
     </div>
@@ -26,8 +51,7 @@
                 }
             });
 
-
-            $('#roles_table').DataTable({
+            $('#products_table').DataTable({
                 pagelength: 10,
                 responsive: true,
                 processing: true,
@@ -36,16 +60,36 @@
                 serverSide: true,
 
                 "ajax": {
-                    "url": "{{ url('roles/get-data') }}",
+                    "url": '{{ url('inventories/get-data') }}',
                     "type": "post",
                     "data": function(d) {},
                 },
                 aoColumns: [
+
                     {
                         data: 'name'
                     },
+
                     {
-                        data: 'is_active'
+                        data: 'location'
+                    },
+                    {
+                        data: 'quantity'
+                    },
+                    {
+                        data: 'cost_price'
+                    },
+                    {
+                        data: 'batch_no'
+                    },
+                    {
+                        data: 'expiry_date'
+                    },
+                    {
+                        data: 'reorder_level'
+                    },
+                    {
+                        data: 'status'
                     },
                     {
                         data: 'created_at'
@@ -72,7 +116,7 @@
         });
 
         function delete_store(id) {
-            
+
             Swal.fire({
                 title: "Are you sure?",
                 text: "You won't be able to revert this!",
@@ -83,7 +127,7 @@
                 if (result.isConfirmed) {
                     $.ajax({
                         type: "delete", // "method" also works
-                        url: "{{ url('store/delete') }}/"+id, // Ensure correct Laravel URL
+                        url: "{{ url('store/delete') }}/" + id, // Ensure correct Laravel URL
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },

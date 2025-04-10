@@ -1,7 +1,6 @@
 @extends('layouts.backend.layouts')
 
 @section('page-content')
-
     <!-- Wrapper Start -->
     <div class="wrapper">
         <div class="content-page">
@@ -20,18 +19,18 @@
                             </div>
                             <div class="card-body">
                                 <div class="row" id="printable-area">
-                                    
+
                                     @for ($i = 0; $i < 10; $i++)
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label>Barcode</label>
-                                            <p>
-                                                <img src="{{ asset('storage/barcodes/' . $product_details->barcode . '.png') }}"
-                                                    alt="Barcode">
-                                            </p>
-                                            <p>{{ $product_details->barcode }}</p>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Barcode</label>
+                                                <p>
+                                                    <img src="{{ asset('storage/barcodes/' . $product_details->barcode . '.png') }}"
+                                                        alt="Barcode">
+                                                </p>
+                                                <p>{{ $product_details->barcode }}</p>
+                                            </div>
                                         </div>
-                                    </div>
                                     @endfor
 
                                 </div>
@@ -49,18 +48,38 @@
     {{-- Include jQuery --}}
 
     {{-- Print Section Script --}}
-    <script>
-        window.printSection = function(divId) {
-            var content = document.getElementById(divId).innerHTML;
-            console.log(content);
-            var myWindow = window.open('', '', 'height=600,width=1000');
-            myWindow.document.write('');
-            myWindow.document.write(content);
-            myWindow.document.write('');
-            myWindow.document.close();
-            myWindow.focus();
+    @push('scripts')
+<script>
+    window.addEventListener('print-section', event => {
+        const content = document.getElementById('printable-section').innerHTML;
+
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = content;
+        tempDiv.querySelectorAll('script').forEach(el => el.remove());
+
+        const cleanContent = tempDiv.innerHTML;
+
+        const myWindow = window.open('', '', 'height=600,width=1000');
+        myWindow.document.write('<html><head><title>Print</title>');
+        myWindow.document.write('<style>');
+        myWindow.document.write(`
+            body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+            .form-group { text-align: center; margin-bottom: 20px; }
+            img { max-width: 100%; height: auto; }
+            .row { display: flex; flex-wrap: wrap; justify-content: center; }
+            .col-md-4 { width: 30%; margin-bottom: 20px; }
+        `);
+        myWindow.document.write('</style></head><body>');
+        myWindow.document.write(cleanContent);
+        myWindow.document.write('</body></html>');
+        myWindow.document.close();
+        myWindow.focus();
+        setTimeout(() => {
             myWindow.print();
             myWindow.close();
-        }
-    </script>
+        }, 500);
+    });
+</script>
+@endpush
+
 @endsection

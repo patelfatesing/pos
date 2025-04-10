@@ -27,6 +27,14 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+         // Get role name after authentication
+    $roleName = \DB::table('users')
+    ->join('roles', 'users.role_id', '=', 'roles.id')
+    ->where('users.id', auth()->id())
+    ->value('roles.name');
+
+// Store it in session
+session(['role_name' => $roleName]);
 
         return redirect()->intended(route('dashboard', absolute: false));
     }

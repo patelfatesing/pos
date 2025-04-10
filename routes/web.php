@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Http\Controllers\CommissionUserController;
 use App\Http\Controllers\PartyUserController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\StockController;
 
 
 
@@ -46,7 +47,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
     Route::get('/users/edit/{id}', [UserController::class, 'edit'])->name('users.edit');
     Route::post('/users/update', [UserController::class, 'update'])->name('users.update');
-    Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::post('/users/delete', [UserController::class, 'destroy'])->name('users.delete');
 
     Route::get('/roles/list', [RolesController::class, 'index'])->name('roles.list');
     Route::post('/roles/get-data', [RolesController::class, 'getData'])->name('roles.getData');
@@ -62,7 +63,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/store/store', [BranchController::class, 'store'])->name('branch.store');
     Route::get('/store/edit/{id}', [BranchController::class, 'edit'])->name('branch.edit');
     Route::post('/store/update', [BranchController::class, 'update'])->name('branch.update');
-    Route::delete('/store/delete/{id}', [BranchController::class, 'destroy'])->name('branch.destroy');
+    Route::post('/store/delete', [BranchController::class, 'destroy'])->name('branch.destroy');
 
 
     Route::get('/products/list', [ProductController::class, 'index'])->name('products.list');
@@ -73,6 +74,19 @@ Route::middleware('auth')->group(function () {
     Route::get('/products/check-barcode', [ProductController::class, 'check'])->name('products.checkbarcode');
     Route::get('/products/pic', [ProductController::class, 'pic'])->name('products.pic');
     Route::post('/products/upload-pic', [ProductController::class, 'uploadPhotp'])->name('products.upload');
+
+    Route::get('/stock/list', [StockController::class, 'index'])->name('stock.list');
+    Route::post('/stock/get-data', [StockController::class, 'getData'])->name('stock.getData');
+    Route::get('/stock/add', [StockController::class, 'add'])->name('stock.add');
+    Route::post('/stock/store', [StockController::class, 'store'])->name('stock.store');
+    Route::get('/stock/request-list', [StockController::class, 'show'])->name('stock.requestList');
+    Route::post('/stock/get-request-data', [StockController::class, 'getRequestData'])->name('stock.getRequestData');
+    Route::get('/stock/view/{id}', [StockController::class, 'view'])->name('stock.view');
+    Route::post('/stock-requests/{id}/approve', [StockController::class, 'approve'])
+    ->name('stock-requests.approve');
+    Route::get('/stock-requests/popup-details/{id}', [StockController::class, 'stockShow'])->name('stock.popupDetails');
+
+    Route::get('/stock/edit/{id}', [StockController::class, 'edit'])->name('stock.edit');
 
     Route::get('/products/subcategory/{category_id}', [ProductController::class, 'getSubcategories'])->name('get.subcategories');
     Route::get('/products/getpacksize/{category_id}', [ProductController::class, 'getPackSize'])->name('get.getpacksize');
@@ -88,6 +102,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/inventories/edit/{id}', [InventoryController::class, 'edit'])->name('inventories.edit');
     Route::get('/inventories/add-stock/{id}', [InventoryController::class, 'addStock'])->name('inventories.add-stock');
     Route::post('/inventories/store-stock', [InventoryController::class, 'storeStock'])->name('inventories.stockStore');
+    // Route::get('/stock/list', [InventoryController::class, 'index'])->name('inventories.list');
+    // Route::post('/inventories/get-data', [InventoryController::class, 'getData'])->name('inventories.getData');
     
     
     Route::get('/items/list', [ItemController::class, 'index'])->name('items.list');

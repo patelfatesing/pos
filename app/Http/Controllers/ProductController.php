@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\Category;
 use App\Models\SubCategory;
 use App\Models\PackSize;
+use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
@@ -33,8 +34,9 @@ class ProductController extends Controller
         $orderColumnIndex = $request->input('order.0.column', 0);
         $orderColumn = $request->input("columns.$orderColumnIndex.data", 'id');
         $orderDirection = $request->input('order.0.dir', 'asc');
-    
-        $query = Product::with('category');
+
+        $query = Product::with(['category', 'subcategory']);
+        
     
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
@@ -59,21 +61,31 @@ class ProductController extends Controller
     
         $records = [];
         $url = url('/');
+        if(session('role_name') == "Admin") {
+            $url = url('/admin');
+        } elseif(session('role_name') == 'Owner') {
+            $url = url('/manager');
+        } elseif(session('role_name') == 'Warehouse') {
+            $url = url('/employee');
+        }else{
+            $url = url('');
+        }
+        
     
         foreach ($data as $employee) {
             $action = "";
             $action .= "<a href='" . $url . "/inventories/add-stock/" . $employee->id . "' class='btn btn-info mr-2'>Add Stock</a>";
-            $action .= "<a href='" . $url . "/products/edit/" . $employee->id . "' class='btn btn-info mr-2'>Edit</a>";
             $action .= "<a href='" . $url . "/products/barcode-print/" . $employee->id . "' class='btn btn-info mr-2'>Print</a>";
-           
+            $action .= "<a href='" . $url . "/products/edit/" . $employee->id . "' class='btn btn-info mr-2'>Edit</a>";      
             $action .= '<button type="button" onclick="delete_product(' . $employee->id . ')" class="btn btn-danger ml-2">Delete</button>';
     
             $records[] = [
                 'name' => $employee->name,
-                'brand' => $employee->brand,
                 'category' => $employee->category->name ?? 'N/A',
-                'sku' => $employee->sku,
+                'sub_category' => $employee->subcategory->name ?? 'N/A',
                 'size' => $employee->size,
+                'brand' => $employee->brand,
+                'sku' => $employee->sku,
                 'is_active' => $employee->is_active,
                 'created_at' => date('d-m-Y h:i', strtotime($employee->created_at)),
                 'action' => $action

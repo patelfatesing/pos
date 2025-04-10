@@ -36,8 +36,8 @@
                     </a>
                     <ul id="inventory" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                         <li class="">
-                            <a href="{{ route('stock.list') }}">
-                                <i class="las la-minus"></i><span>Stock Details</span>
+                            <a href="{{ route('inventories.list') }}">
+                                <i class="las la-minus"></i><span>Inventory Details</span>
                             </a>
                         </li>
                         <li class="">
@@ -50,7 +50,6 @@
                                 <i class="las la-minus"></i><span>Stock Request List</span>
                             </a>
                         </li>
-
                     </ul>
                 </li>
                 <li class=" ">

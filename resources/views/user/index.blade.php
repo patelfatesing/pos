@@ -110,7 +110,7 @@
 
         });
 
-        function delete_store(id) {
+        function delete_user(id) {
 
             Swal.fire({
                 title: "Are you sure?",
@@ -121,8 +121,8 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        type: "delete", // "method" also works
-                        url: "{{ url('store/delete') }}/" + id, // Ensure correct Laravel URL
+                        type: "POST", // "method" also works
+                        url: "{{ url('users/delete') }}", // Ensure correct Laravel URL
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },

@@ -14,7 +14,7 @@
                                     <h4 class="card-title">Edit Store</h4>
                                 </div>
                                 <div>
-                                    <a href="{{ route('store.list') }}" class="btn btn-secondary">Back</a>
+                                    <a href="{{ route('branch.list') }}" class="btn btn-secondary">Back</a>
                                 </div>
                             </div>
                             <div class="card-body">

@@ -42,7 +42,7 @@
                 },
                 aoColumns: [
                     {
-                        data: 'role_name'
+                        data: 'name'
                     },
                     {
                         data: 'is_active'

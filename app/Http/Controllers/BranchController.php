@@ -31,7 +31,7 @@ class BranchController extends Controller
         $orderColumn = $request->input('columns' . $orderColumnIndex . 'data', 'id');
         $orderDirection = $request->input('order.0.dir', 'asc');
 
-        $query = Branch::query();
+        $query = Branch::where('is_deleted', '!=', 'yes');
 
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
@@ -40,7 +40,7 @@ class BranchController extends Controller
             });
         }
 
-        $recordsTotal = Branch::count();
+        $recordsTotal = Branch::where('is_deleted', '!=', 'yes')->count();
         $recordsFiltered = $query->count();
 
         $data = $query->orderBy($orderColumn, $orderDirection)
@@ -88,11 +88,11 @@ class BranchController extends Controller
      */
     public function store(Request $request)
     {
-        if (!auth()->user()->hasPermission('Insert')) {
-            abort(403, 'Unauthorized - You do not have the required permission.');
-        }
+        // if (!auth()->user()->hasPermission('Insert')) {
+        //     abort(403, 'Unauthorized - You do not have the required permission.');
+        // }
         $validated = $request->validate([
-            'name' => 'required|string|unique:branch,name',
+            'name' => 'required|string|unique:branches,name',
             'address' => 'nullable|string',
             'description' => 'nullable|string',
             'is_active' => 'in:yes,no',
@@ -120,9 +120,9 @@ class BranchController extends Controller
     // Show edit form
     public function edit($id)
     {
-        if (!auth()->user()->hasPermission('Update')) {
-            abort(403, 'Unauthorized - You do not have the required permission.');
-        }
+        // if (!auth()->user()->hasPermission('Update')) {
+        //     abort(403, 'Unauthorized - You do not have the required permission.');
+        // }
         $record = Branch::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
         return view('branch.edit', compact('record'));
     }
@@ -132,13 +132,13 @@ class BranchController extends Controller
     {
         $id = $request->id;
         
-        if (!auth()->user()->hasPermission('Update')) {
-            abort(403, 'Unauthorized - You do not have the required permission.');
-        }
+        // if (!auth()->user()->hasPermission('Update')) {
+        //     abort(403, 'Unauthorized - You do not have the required permission.');
+        // }
         $record = Branch::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'sometimes|string|unique:branch,name,' . $id,
+            'name' => 'sometimes|string|unique:branches,name,' . $id,
             'address' => 'nullable|string',
             'description' => 'nullable|string',
             'is_active' => 'in:yes,no',
@@ -150,15 +150,20 @@ class BranchController extends Controller
     }
 
     // Soft delete a record
-    public function destroy($id)
+    public function destroy(Request $request)
     {
-        if (!auth()->user()->hasPermission('Delete')) {
-            abort(403, 'Unauthorized - You do not have the required permission.');
-        }
+        $id = $request->id;
+        // if (!auth()->user()->hasPermission('Delete')) {
+        //     abort(403, 'Unauthorized - You do not have the required permission.');
+        // }
         $record = Branch::findOrFail($id);
         $record->update(['is_deleted' => 'yes']);
-
-        return redirect()->route('branch.list')->with('success', 'Record deleted successfully.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Record deleted successfully.',
+        ]);
+        
+        // return redirect()->route('branch.list')->with('success', 'Record deleted successfully.');
     }
 
 }

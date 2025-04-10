@@ -23,10 +23,11 @@
                             <th>
                                 <b>N</b>ame
                             </th>
-                            <th>Brand</th>
                             <th>Cotegory</th>
+                            <th>Sub Cotegory</th>
+                            <th>Pack Size</th>
+                            <th>Brand</th>
                             <th>sku</th>
-                            <th>Size</th>
                             <th>Status</th>
                             <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
                             <th>Action</th>
@@ -70,18 +71,23 @@
                     {
                         data: 'name'
                     },
-                    {
-                        data: 'brand'
-                    },
+                    
                     {
                         data: 'category'
                     },
                     {
-                        data: 'sku'
+                        data: 'sub_category'
                     },
                     {
                         data: 'size'
                     },
+                    {
+                        data: 'brand'
+                    },
+                    {
+                        data: 'sku'
+                    },
+                    
                     {
                         data: 'is_active'
                     },

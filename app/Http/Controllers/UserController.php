@@ -31,10 +31,10 @@ class UserController extends Controller
         $orderColumn = $request->input('columns' . $orderColumnIndex . 'data', 'id');
         $orderDirection = $request->input('order.0.dir', 'asc');
 
-        $query = User::select('users.*', 'first_name','last_name','branches.name as branch_name', 'roles.role_name')
+        $query = User::select('users.*', 'first_name','last_name','branches.name as branch_name', 'roles.name as role_name')
         ->leftJoin('user_info', 'users.id', '=', 'user_info.user_id')
         ->leftJoin('branches', 'user_info.branch_id', '=', 'branches.id')
-        ->leftJoin('roles', 'users.role_id', '=', 'roles.id');
+        ->leftJoin('roles', 'users.role_id', '=', 'roles.id')->where('users.is_deleted', '!=', 'yes');
     
     // **Search filter**
     if (!empty($searchValue)) {
@@ -42,11 +42,11 @@ class UserController extends Controller
             $q->where('users.name', 'like', '%' . $searchValue . '%')
               ->orWhere('users.email', 'like', '%' . $searchValue . '%')
               ->orWhere('branches.name', 'like', '%' . $searchValue . '%')
-              ->orWhere('roles.role_name', 'like', '%' . $searchValue . '%');
+              ->orWhere('roles.name', 'like', '%' . $searchValue . '%');
         });
     }
     
-        $recordsTotal = User::count();
+        $recordsTotal = User::where('is_deleted', '!=', 'yes')->count();
         $recordsFiltered = $query->count();
 
         $data = $query->orderBy($orderColumn, $orderDirection)
@@ -61,7 +61,7 @@ class UserController extends Controller
 
             $action = "";
             $action .= "<a href='" . $url . "/users/edit/" . $employee->id . "' class='btn btn-info mr_2'>Edit</a>";
-            $action .= '<button type="button" onclick="delete_role(' . $employee->id . ')" class="btn btn-danger ml-2">Delete</button>';
+            $action .= '<button type="button" onclick="delete_user(' . $employee->id . ')" class="btn btn-danger ml-2">Delete</button>';
 
             $records[] = [
                 'name' => $employee->first_name.' '.$employee->last_name,
@@ -88,7 +88,7 @@ class UserController extends Controller
      */
     public function create()
     {
-        $roles = Roles::where('is_deleted', 'no')->pluck('role_name', 'id');
+        $roles = Roles::where('is_deleted', 'no')->pluck('name', 'id');
         $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
         return view('user.create', compact('roles', 'branch'));
     }
@@ -149,7 +149,7 @@ class UserController extends Controller
     // Show edit form
     public function edit($id)
     {
-        $roles = Roles::where('is_deleted', 'no')->pluck('role_name', 'id');
+        $roles = Roles::where('is_deleted', 'no')->pluck('name', 'id');
         $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
         $record = User::with(['userInfo'])->where('users.id', $id)->where('is_deleted', 'no')->firstOrFail();
         
@@ -164,7 +164,6 @@ class UserController extends Controller
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id, // Allow updating the same email
             'phone_number' => [
                 'required',
                 'regex:/^(\+?\d{1,3})?\d{10}$/'
@@ -180,12 +179,11 @@ class UserController extends Controller
     
 
         // Find the user
-        $user = User::findOrFail($id);
+        $user = User::findOrFail($id)->when('is_deleted', 'no');
 
         // Update user info
         $user->update([
             'name' => $request->first_name.' '.$request->last_name,
-            'email' => $user->email,
             'role_id' => $request->role_id,
             // 'updated_by' => $request->updated_by
         ]);
@@ -203,11 +201,13 @@ class UserController extends Controller
     }
 
     // Soft delete a record
-    public function destroy($id)
+    public function destroy(Request $request)
     {
+        $id = $request->id;
+        // Find the user and soft delete
         $record = User::findOrFail($id);
         $record->update(['is_deleted' => 'yes']);
 
-        return redirect()->route('user.list')->with('success', 'Record deleted successfully.');
+        return redirect()->route('users.list')->with('success', 'Record deleted successfully.');
     }
 }

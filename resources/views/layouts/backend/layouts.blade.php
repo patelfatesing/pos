@@ -16,13 +16,15 @@
 
 <body>
     @auth
-        @if(auth()->user()->hasRole('cashier'))
-        @include('layouts.backend.cashierslidebar') <!-- Include header -->
+        @if(auth()->user()->hasRole('Cashier'))
+            @include('layouts.backend.cashierslidebar') <!-- Include header -->
+        @elseif(auth()->user()->hasRole('Warehouse'))
+            @include('layouts.backend.warehouseslidebar') <!-- Include header -->
+        @elseif(auth()->user()->hasRole('Admin'))
+            @include('layouts.backend.admin') <!-- Include header -->
         @else
-        @include('layouts.backend.slidebar') <!-- Include header -->
-
+            @include('layouts.backend.slidebar') <!-- Include header -->
         @endif
-       
     @endauth
 
     @include('layouts.backend.nav') <!-- Include header -->
@@ -37,11 +39,9 @@
             <main>
                 @yield('page-content')
             </main>
-        
     </div>
 
     @include('layouts.backend.footer') <!-- Include footer -->
-
 
     <script src="{{ asset('assets/js/script.js') }}"></script>
     <!-- Backend Bundle JavaScript -->
