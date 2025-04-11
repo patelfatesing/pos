@@ -86,6 +86,106 @@ class StockController extends Controller
 
     }
 
+    public function getData(Request $request)
+    {
+        $draw = $request->input('draw', 1);
+        $start = $request->input('start', 0);
+        $length = $request->input('length', 10);
+        $searchValue = $request->input('search.value', '');
+        $orderColumnIndex = $request->input('order.0.column', 0);
+        $orderColumn = $request->input("columns.$orderColumnIndex.data", 'id');
+    
+        // Map frontend column names to actual DB columns
+        switch ($orderColumn) {
+            case 'name':
+                $orderColumn = 'products.name';
+                break;
+            case 'created_at':
+                $orderColumn = 'inventories.created_at';
+                break;
+            default:
+                $orderColumn = 'inventories.created_at';
+        }
+    
+        $orderDirection = $request->input('order.0.dir', 'desc');
+    
+        // Query with joins: products + inventories + branches
+        $query = \App\Models\Inventory::select(
+                'inventories.*',
+                'products.name as product_name',
+                'inventories.cost_price',
+                'branches.name as branch_name'
+            )
+            ->join('products', 'products.id', '=', 'inventories.product_id')
+            ->leftJoin('branches', 'inventories.location_id', '=', 'branches.id');
+    
+        // Search filter
+        if (!empty($searchValue)) {
+            $query->where(function ($q) use ($searchValue) {
+                $q->where('products.name', 'like', "%$searchValue%")
+                  ->orWhere('inventories.cost_price', 'like', "%$searchValue%")
+                  ->orWhere('inventories.batch_no', 'like', "%$searchValue%")
+                  ->orWhere('branches.name', 'like', "%$searchValue%");
+            });
+        }
+    
+        if (in_array(session('role_name'), ['Cashier', 'Warehouse'])) {
+
+            // dd('dfg');
+            $query->where(function ($q) {
+                $q->where('store_id', Auth::user()->branch_id);
+            });
+        }
+    
+        // if (in_array(session('role_name'), ['Admin', 'Owner', 'Warehouse'])) {
+        //     $query->where(function ($q) {
+        //         $q->where('store_id', Auth::user()->branch_id)
+        //           ->orWhere('requested_by', Auth::id());
+        //     });
+        // }
+        $recordsTotal = \App\Models\Inventory::count();
+        $recordsFiltered = $query->count();
+    
+        $data = $query->orderBy($orderColumn, $orderDirection)
+            ->offset($start)
+            ->limit($length)
+            ->get();
+    
+        $records = [];
+        $url = url('/');
+    
+        foreach ($data as $inventory) {
+            $status = ($inventory->quantity < $inventory->reorder_level)
+                ? '<span class="badge bg-danger">Low Stock</span>'
+                : '<span class="badge bg-success">OK</span>';
+    
+            $action = "";
+            // $action .= "<a href='" . $url . "/inventory/edit/" . $inventory->id . "' class='btn btn-info mr-2'>Edit</a>";
+            // $action .= '<button type="button" onclick="delete_inventory(' . $inventory->id . ')" class="btn btn-danger">Delete</button>';
+    
+            $records[] = [
+                'name' => $inventory->product_name ?? 'N/A',
+                'location' => $inventory->branch_name ?? '—',
+                'quantity' => $inventory->quantity,
+                'cost_price' => $inventory->cost_price,
+                'batch_no' => $inventory->batch_no,
+                'expiry_date' => $inventory->expiry_date,
+                'reorder_level' => $inventory->reorder_level,
+                'status' => $status,
+                'created_at' => $inventory->updated_at ? $inventory->updated_at->format('d-m-Y h:i A') : '—',
+                'action' => $action
+            ];
+        }
+    
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $records
+        ]);
+    }
+
+    
     public function view($id)
     {
         $stockRequest = StockRequest::with(['branch', 'user', 'items.product'])->findOrFail($id);
@@ -122,6 +222,29 @@ class StockController extends Controller
               ->orWhereHas('user', fn($u) => $u->where('name', 'like', "%$searchValue%"));
         });
     }
+
+
+    // if(session('role_name') == "Admin") {
+    //     $query = $query->where(function ($q) use ($url) {
+    //         $q->where('store_id', Auth::user()->branch_id)
+    //           ->orWhere('requested_by', Auth::id());
+    //     });
+    // } elseif(session('role_name') == 'Owner') {
+    //     $query = $query->where(function ($q) use ($url) {
+    //         $q->where('store_id', Auth::user()->branch_id)
+    //           ->orWhere('requested_by', Auth::id());
+    //     });
+    // } elseif(session('role_name') == 'Warehouse') {
+    //     $query = $query->where(function ($q) use ($url) {
+    //         $q->where('store_id', Auth::user()->branch_id)
+    //           ->orWhere('requested_by', Auth::id());
+    //     });
+    // }else{
+    //     $query = $query->where(function ($q) use ($url) {
+    //         $q->where('store_id', Auth::user()->branch_id)
+    //           ->orWhere('requested_by', Auth::id());
+    //     });
+    // }
 
     $recordsTotal = StockRequest::count();
     $recordsFiltered = $query->count();

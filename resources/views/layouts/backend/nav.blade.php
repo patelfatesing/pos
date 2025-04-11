@@ -241,7 +241,7 @@
                                                 class="rounded profile-img img-fluid avatar-70" />
                                         </div>
                                         <div class="p-3">
-                                            <h5 class="mb-1">JoanDuo@property.com</h5>
+                                            <h5 class="mb-1">{{ Auth::user()->name }}</h5>
                                             <p class="mb-0">Since 10 march, 2020</p>
                                             <div class="d-flex align-items-center justify-content-center mt-3">
                                                 <a href="{{ asset('app/user-profile.html')}}" class="btn border mr-2">Profile</a>

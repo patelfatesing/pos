@@ -60,7 +60,7 @@
                 serverSide: true,
 
                 "ajax": {
-                    "url": '{{ url('inventories/get-data') }}',
+                    "url": '{{ url('stock/get-data') }}',
                     "type": "post",
                     "data": function(d) {},
                 },

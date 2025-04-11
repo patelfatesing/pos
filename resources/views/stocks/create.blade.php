@@ -24,14 +24,19 @@
                                 <form method="POST" action="{{ route('stock.store') }}">
                                     @csrf
 
+                                    {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
                                     <div class="mb-3">
-                                        <label for="store_id" class="form-label">Select Store</label>
-                                        <select name="store_id" id="store_id" class="form-control" required>
-                                            <option value="">-- Select Store --</option>
-                                            @foreach ($stores as $store)
-                                                <option value="{{ $store->id }}">{{ $store->name }}</option>
-                                            @endforeach
-                                        </select>
+                                        @if (session('role_name') === 'Warehouse')
+                                            <label for="store_id" class="form-label">Select Store</label>
+                                            <select name="store_id[]" id="store_id" multiple class="form-control" required>
+                                                <option value="">-- Select Store --</option>
+                                                @foreach ($stores as $store)
+                                                    <option value="{{ $store->id }}">{{ $store->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        @elseif (session('role_name') === 'Cashier')
+                                            <input type="hidden" name="store_id[]" value="{{ auth()->user()->store_id }}">
+                                        @endif
                                     </div>
 
                                     <div id="product-items">
@@ -41,7 +46,8 @@
                                                 <option value="">-- Select Product --</option>
                                                 @foreach ($products as $product)
                                                     <option value="{{ $product->id }}">{{ $product->name }}
-                                                        ({{ $product->sku }})</option>
+                                                        ({{ $product->sku }})
+                                                    </option>
                                                 @endforeach
                                             </select>
                                             <input type="number" name="items[0][quantity]"
