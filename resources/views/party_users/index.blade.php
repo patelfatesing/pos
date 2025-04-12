@@ -10,29 +10,37 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-                <h1>Party Users</h1>
-                <a href="{{ route('party-users.create') }}" class="btn btn-primary mb-3">Add New Party User</a>
-
-                @if (session('success'))
-                    <div class="alert alert-success">{{ session('success') }}</div>
-                @endif
-
-                <table class="table table-bordered datatable" id="party_users_table">
-                    <thead>
-                        <tr>
-                            <th>First Name</th>
-                            <th>Middle Name</th>
-                            <th>Last Name</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Points</th>
-                            <th>Image</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+                            <div>
+                                <h4 class="mb-3">Party Users List</h4>
+                                <p class="mb-0">Manage party users effectively and monitor their details in one central place.</p>
+                            </div>
+                            <a href="{{ route('party-users.create') }}" class="btn btn-primary add-list">
+                                <i class="las la-plus mr-3"></i>Add New Party User
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        <table class="table datatable" id="party_users_table">
+                            <thead>
+                                <tr>
+                                    <th>First Name</th>
+                                    <th>Middle Name</th>
+                                    <th>Last Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Points</th>
+                                    <th>Image</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

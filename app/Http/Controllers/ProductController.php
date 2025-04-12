@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\Category;
 use App\Models\SubCategory;
 use App\Models\PackSize;
+use App\Models\CommissionUserImage;
 use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
@@ -241,16 +242,27 @@ class ProductController extends Controller
         return view('products.edit', compact('record'));
     }
 
-    public function uploadPhotp(Request $request)
+    public function uploadPhoto(Request $request)
     {
+        $request->validate([
+            'selectedCommissionUser' => 'required',
+        ]);
 
-        $filename = '';
-        return response()->json(['success' => true, 'filename' => $filename]);
-        $barcode = Product::where('code', $request->code)->first();
+        $image = $request->file('photo');
+        $path = $image->store('uploaded_photos', 'public');
+        $filename = $image->getClientOriginalName();
 
-        dd($barcode);
-        $record = Product::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
-        return view('products.edit', compact('record'));
+        CommissionUserImage::create([
+            'commission_user_id' => $request->selectedCommissionUser,
+            'image_path' => $path,
+            'image_name' => $filename,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'filename' => $filename,
+            'path' => $path,
+        ]);
     }
 
     /**

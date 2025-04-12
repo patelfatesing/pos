@@ -73,7 +73,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/products/edit/{id}', [ProductController::class, 'edit'])->name('products.edit');
     Route::get('/products/check-barcode', [ProductController::class, 'check'])->name('products.checkbarcode');
     Route::get('/products/pic', [ProductController::class, 'pic'])->name('products.pic');
-    Route::post('/products/upload-pic', [ProductController::class, 'uploadPhotp'])->name('products.upload');
+    Route::post('/products/upload-pic', [ProductController::class, 'uploadPhoto'])->name('products.uploadpic');
 
     Route::get('/stock/list', [StockController::class, 'index'])->name('stock.list');
     Route::post('/stock/get-data', [StockController::class, 'getData'])->name('stock.getData');

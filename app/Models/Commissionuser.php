@@ -22,6 +22,7 @@ class Commissionuser extends Model
         'first_name',
         'middle_name',
         'last_name',
+        'email',
     ];
 
     /**

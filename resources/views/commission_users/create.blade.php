@@ -50,7 +50,15 @@
                                                 @enderror
                                             </div>
                                         </div>
-
+                                        <div class="col-lg-6">
+                                            <div class="floating-label form-group">
+                                                <label>Email</label>
+                                                <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
+                                                @error('email')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
 
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">

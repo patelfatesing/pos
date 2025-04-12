@@ -60,24 +60,44 @@
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0);
-    
-            const dataURL = canvas.toDataURL('image/png');
-            document.getElementById('photo').value = dataURL;
+        
+            canvas.toBlob(blob => {
+            const formData = new FormData();
+            formData.append('photo', blob, 'captured_image.png');
+            
+            fetch('{{ route('products.uploadpic') }}', {
+                method: 'POST',
+                headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.path) {
+                alert('Photo uploaded! Path: ' + data.path);
+                document.getElementById('photo').value = data.path;
+                } else {
+                alert('Upload failed!');
+                }
+            })
+            .catch(err => console.error(err));
+            }, 'image/png');
         });
     
         // Upload to server
         document.getElementById('photoForm').addEventListener('submit', e => {
             e.preventDefault();
-    
+        
             const formData = new FormData();
             formData.append('photo', document.getElementById('photo').value);
-    
-            fetch('/pos/public/products/upload-pic', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: formData
+        
+            fetch('{{ route('products.uploadpic') }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: formData
             })
             .then(res => res.json())
             .then(data => alert('Photo uploaded!'))
