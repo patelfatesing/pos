@@ -25,6 +25,10 @@ class Shoppingcart extends Component
     public $partyUsers = [];
     public $commissionAmount = 0;
     public $partyAmount = 0;
+    public $productSearch = '';
+    public $searchResults = [];
+    public $products = [];
+    protected $listeners = ['updateProductList' => 'loadCartData'];
 
     public function mount()
     {
@@ -42,6 +46,10 @@ class Shoppingcart extends Component
 
         $this->calculateTotals();
         $this->getCartItemCount();
+        $this->products = Cart::with('product')
+                ->where(['user_id'=>auth()->user()->id])
+                ->where('status', '!=', Cart::STATUS['success'])
+                ->get();
     }
 
     public function calculateTotals()
@@ -51,7 +59,7 @@ class Shoppingcart extends Component
             ? $item->product->inventorie->sell_price * $item->quantity 
             : 0
         );
-        $this->tax = $this->sub_total * 0.18;
+        //$this->tax = $this->sub_total * 0.18;
         $this->cashAmount = $this->total;
     }
 
@@ -110,14 +118,20 @@ class Shoppingcart extends Component
 
     public function calculateCommission()
     {
+       
         $user = Commissionuser::find($this->selectedCommissionUser);
         if (!empty($user)) {
-            $this->commissionAmount = ($this->total * $user->commission_value) / 100;
+            $getDiscountAmt = Cart::with(['product', 'product.inventorie'])
+            ->where(['user_id' => auth()->user()->id])
+            ->where('status', '!=', Cart::STATUS['success'])
+            ->get()
+            ->sum(fn($cart) => $cart->product->inventorie->discount_price ?? 0);
+            $this->commissionAmount = $getDiscountAmt;
+            $this->total=$this->cashAmount = $this->total - $getDiscountAmt;
+
         } else {
             $this->commissionAmount = 0;
         }
-        $this->total = $this->total - $this->commissionAmount;
-        $this->cashAmount = $this->total;
     }
     public function calculateParty(){
         $user = Partyuser::find($this->selectedPartyUser);

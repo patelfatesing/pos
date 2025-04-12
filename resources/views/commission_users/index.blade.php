@@ -10,32 +10,42 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <h1>Commision Users List</h1>
-                <a href="{{ route('commission-users.create') }}">Create New</a>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+                            <div>
+                                <h4 class="mb-3">Commission Users List</h4>
+                                <p class="mb-0">Manage commission users effectively and monitor their details in one central place.</p>
+                            </div>
+                            <a href="{{ route('commission-users.create') }}" class="btn btn-primary add-list">
+                                <i class="las la-plus mr-3"></i>Create New
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        <table class="table datatable" id="commission_users_table">
+                            <thead>
+                                <tr>
+                                    <th>First Name</th>
+                                    <th>Middle Name</th>
+                                    <th>Last Name</th>
+                                    <th>Commission Type</th>
+                                    <th>Commission Value</th>
+                                    <th>Applies To</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Images</th>
+                                    <th>Created Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
-                @if (session('success'))
-                    <p>{{ session('success') }}</p>
-                @endif
-
-                <table class="table datatable" id="commission_users_table">
-                    <thead>
-                        <tr>
-                            <th>First Name</th>
-                            <th>Middle Name</th>
-                            <th>Last Name</th>
-                            <th>Commission Type</th>
-                            <th>Commission Value</th>
-                            <th>Applies To</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                            <th>Images</th>
-                            <th>Created Date</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
+                
 
                 <!-- Page end  -->
             </div>
