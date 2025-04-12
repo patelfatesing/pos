@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Picqer\Barcode\BarcodeGeneratorHTML;
 use Picqer\Barcode\BarcodeGeneratorPNG;
 use App\Models\Barcode;
+use App\Models\Branch;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Category;
 use App\Models\SubCategory;
@@ -62,24 +63,28 @@ class ProductController extends Controller
     
         $records = [];
         $url = url('/');
-        if(session('role_name') == "Admin") {
-            $url = url('/admin');
-        } elseif(session('role_name') == 'Owner') {
-            $url = url('/manager');
-        } elseif(session('role_name') == 'Warehouse') {
-            $url = url('/employee');
+        if(session('role_name') == "admin") {
+            // $url = url('/admin');
+        } elseif(session('role_name') == 'wwner') {
+            // $url = url('/manager');
+        } elseif(session('role_name') == 'warehouse') {
+            // $url = url('/employee');
         }else{
             $url = url('');
         }
         
     
         foreach ($data as $employee) {
-            $action = "";
-            $action .= "<a href='" . $url . "/inventories/add-stock/" . $employee->id . "' class='btn btn-info mr-2'>Add Stock</a>";
-            $action .= "<a href='" . $url . "/products/barcode-print/" . $employee->id . "' class='btn btn-info mr-2'>Print</a>";
-            $action .= "<a href='" . $url . "/products/edit/" . $employee->id . "' class='btn btn-info mr-2'>Edit</a>";      
-            $action .= '<button type="button" onclick="delete_product(' . $employee->id . ')" class="btn btn-danger ml-2">Delete</button>';
+            $action = '<div class="d-flex align-items-center list-action">';
+            $action .= "<a class='badge badge-info mr-2' href='" . $url . "/inventories/add-stock/" . $employee->id . "' class='btn btn-info mr-2'>Add Stock</a>";
+            $action .= "<a class='badge badge-info mr-2' href='" . $url . "/products/barcode-print/" . $employee->id . "' class='btn btn-info mr-2'>Print</a>";
+            $action .= "<a class='badge bg-success mr-2' href='" . $url . "/products/edit/" . $employee->id . "' class='btn btn-info mr-2'>Edit</a>";      
+            $action .= '<button class="badge bg-warning mr-2" type="button" onclick="delete_product(' . $employee->id . ')" class="btn btn-danger ml-2">Delete</button>';
     
+            $action .= "</div>";
+
+            
+                                  
             $records[] = [
                 'name' => $employee->name,
                 'category' => $employee->category->name ?? 'N/A',
@@ -195,8 +200,15 @@ class ProductController extends Controller
      */
     public function edit($id)
     {
+        $generator = new BarcodeGeneratorHTML();
+        $categories = Category::all();
+        
+        $productCode = '123456789';
+        $subcategories = SubCategory::all(); // Fetch subcategories
+        $packSizes = PackSize::all(); // Example pack sizes
+    
         $record = Product::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
-        return view('products.edit', compact('record'));
+        return view('products.edit', compact('subcategories','packSizes','record','generator','categories','productCode'));
     }
 
     public function getSubcategories($category_id)
@@ -279,5 +291,27 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         //
+    }
+
+    
+    public function getAvailability($productId)
+    {
+
+        return Branch::with(['inventories' => function ($query) use ($productId) {
+            $query->where('product_id', $productId);
+        }])
+        ->where('is_deleted', 'no') 
+        ->where('is_active', 'yes') 
+        ->where('is_warehouser', 'no') // <- move this outside
+        ->get()
+        ->map(function ($branch) {
+            return [
+                'id' => $branch->id,
+                'name' => $branch->name,
+                'available_quantity' => $branch->inventories->sum('quantity'),
+            ];
+        });
+
+        
     }
 }

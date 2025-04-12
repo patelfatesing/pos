@@ -41,7 +41,7 @@
     </table>
 
     <p><strong>Subtotal:</strong> {{ number_format($sub_total, 2) }}</p>
-    <p><strong>Tax (18%):</strong> {{ number_format($tax, 2) }}</p>
+    {{-- <p><strong>Tax (18%):</strong> {{ number_format($tax, 2) }}</p> --}}
     @if($commissionAmount > 0)
         <p><strong>Commission Deduction:</strong> -{{ number_format($commissionAmount, 2) }}</p>
     @endif

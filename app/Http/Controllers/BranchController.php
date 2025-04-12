@@ -31,7 +31,7 @@ class BranchController extends Controller
         $orderColumn = $request->input('columns' . $orderColumnIndex . 'data', 'id');
         $orderDirection = $request->input('order.0.dir', 'asc');
 
-        $query = Branch::where('is_deleted', '!=', 'yes');
+        $query = Branch::where('is_deleted', '!=', 'yes')->where('is_warehouser', '!=', 'yes');
 
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
@@ -40,7 +40,7 @@ class BranchController extends Controller
             });
         }
 
-        $recordsTotal = Branch::where('is_deleted', '!=', 'yes')->count();
+        $recordsTotal = Branch::where('is_deleted', '!=')->where('is_warehouser','no')->count();
         $recordsFiltered = $query->count();
 
         $data = $query->orderBy($orderColumn, $orderDirection)

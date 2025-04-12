@@ -26,17 +26,7 @@
 
                                     {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
                                     <div class="mb-3">
-                                        @if (session('role_name') === 'Warehouse')
-                                            <label for="store_id" class="form-label">Select Store</label>
-                                            <select name="store_id[]" id="store_id" multiple class="form-control" required>
-                                                <option value="">-- Select Store --</option>
-                                                @foreach ($stores as $store)
-                                                    <option value="{{ $store->id }}">{{ $store->name }}</option>
-                                                @endforeach
-                                            </select>
-                                        @elseif (session('role_name') === 'Cashier')
-                                            <input type="hidden" name="store_id[]" value="{{ auth()->user()->store_id }}">
-                                        @endif
+                                        <input type="hidden" name="store_id" value="{{ $data->userInfo->branch_id }}">
                                     </div>
 
                                     <div id="product-items">
@@ -50,9 +40,13 @@
                                                     </option>
                                                 @endforeach
                                             </select>
+                                            @error('items')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
                                             <input type="number" name="items[0][quantity]"
                                                 class="form-control d-inline w-25 ms-2" placeholder="Qty" min="1"
                                                 required>
+                                               
                                             <button type="button" class="btn btn-danger btn-sm ms-2 remove-item">X</button>
                                         </div>
                                     </div>

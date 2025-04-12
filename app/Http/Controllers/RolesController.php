@@ -31,7 +31,7 @@ class RolesController extends Controller
             $orderDirection = 'asc';
         }
 
-        $query = Roles::query()->where('is_deleted', 'no');
+        $query = Roles::query()->where('is_deleted', 'no')->where('name', '!=', "owner");
 
         if (!empty($searchValue)) {
             $query->where('name', 'like', '%' . $searchValue . '%');

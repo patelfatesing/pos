@@ -28,11 +28,11 @@
                                         <p class="card-text mb-0 text-success fw-bold">₹{{ number_format($product->inventorie->sell_price, 2) }}</p>
                                     @endif
                                     {{-- Quantity Increment/Decrement Buttons --}}
-                                    <div class="d-flex align-items-center">
+                                    {{-- <div class="d-flex align-items-center">
                                         <button class="btn btn-sm btn-outline-success" wire:click="decrementQty({{ $product->id }})">−</button>
                                         <span class="mx-2">{{ $product->quantity }}</span>
                                         <button class="btn btn-sm btn-outline-warning" wire:click="incrementQty({{ $product->id }})">+</button>
-                                    </div>
+                                    </div> --}}
                                 </div>
                                 <div class="mt-auto">
                                     <button class="btn btn-primary btn-sm w-100 mb-2" wire:click="addToCart({{ $product->id }})">

@@ -146,17 +146,27 @@
                         <div class="form-group">
                             <div class="mt-4">
                                 <h6 class="text-muted">💰 Cash Note Breakdown</h6>
-                                <div class="d-flex justify-content-between">
+                                {{-- <div class="d-flex justify-content-between">
                                     <span>₹1000 Notes</span>
                                     <span id="note1000">{{ $this->noteBreakdown['thousand'] }}</span>
-                                </div>
+                                </div> --}}
                                 <div class="d-flex justify-content-between">
                                     <span>₹500 Notes</span>
-                                    <span id="note500">{{ $this->noteBreakdown['five_hundred'] }}</span>
+                                     <div class="d-flex align-items-center">
+                                        <button class="btn btn-sm btn-outline-success" wire:click="decrementQty(0)">−</button>
+                                        <span class="mx-2">0</span>
+                                        <button class="btn btn-sm btn-outline-warning" wire:click="incrementQty(0)">+</button>
+                                    </div> 
+                                    <span id="note500"><input type="text" class="mr-1 " value=""></span>
                                 </div>
                                 <div class="d-flex justify-content-between">
                                     <span>₹200 Notes</span>
-                                    <span id="note200">{{ $this->noteBreakdown['two_hundred'] }}</span>
+                                     <div class="d-flex align-items-center">
+                                        <button class="btn btn-sm btn-outline-success" wire:click="decrementQty(0)">−</button>
+                                        <span class="mx-2">0</span>
+                                        <button class="btn btn-sm btn-outline-warning" wire:click="incrementQty(0)">+</button>
+                                    </div> 
+                                    <span id="note200"><input type="text"class="mr-1 "  value=""></span>
                                 </div>
                             </div>
                         </div>

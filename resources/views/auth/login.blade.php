@@ -13,16 +13,18 @@
                         @csrf
                          <div class="row">
                             <div class="col-lg-12">
-                               <div class="floating-label form-group">
+                               <div class="form-group">
+                                 <label>Email</label>
                                   <input class="floating-input form-control" name="email" type="email" placeholder=" " :value="old('email')">
-                                  <label>Email</label>
+                                  
                                </div>
                                <x-input-error :messages="$errors->get('email')" class="mt-2" />
                             </div>
                             <div class="col-lg-12">
-                               <div class="floating-label form-group">
+                               <div class="form-group">
+                                 <label>Password</label>
                                   <input class="floating-input form-control" name="password" type="password" placeholder=" " :value="old('password')">
-                                  <label>Password</label>
+                                  
                                </div>
                                <x-input-error :messages="$errors->get('password')" class="mt-2" />
                             </div>

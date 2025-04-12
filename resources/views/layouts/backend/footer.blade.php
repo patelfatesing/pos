@@ -15,7 +15,7 @@
                             <script>
                                 document.write(new Date().getFullYear())
                             </script>©
-                        </span> <a href="#" class="">POS Dash</a>.
+                        </span> <a href="#" class="">LiquorHub</a>.
                     </div>
                 </div>
             </div>

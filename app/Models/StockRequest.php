@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class StockRequest extends Model
 {
     protected $fillable = [
-        'store_id', 'requested_by', 'approved_by', 'status', 'notes', 'requested_at', 'approved_at'
+        'store_id', 'requested_by', 'approved_by', 'status', 'notes', 'requested_at', 'approved_at','created_by','total_request_quantity','','','','','',
     ];
 
     protected $casts = [
@@ -21,7 +21,7 @@ class StockRequest extends Model
     }
 
     public function requestedBy(): BelongsTo {
-        return $this->belongsTo(User::class, 'requested_by');
+        return $this->belongsTo(Branch::class, 'requested_by');
     }
 
     public function approvedBy(): BelongsTo {

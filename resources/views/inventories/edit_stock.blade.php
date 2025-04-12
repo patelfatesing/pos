@@ -3,9 +3,6 @@
 @section('page-content')
     <!-- Wrapper Start -->
     <div class="wrapper">
-        <?php
-        // dd($record->userInfo);
-        ?>
         <div class="content-page">
 
             <div class="container-fluid add-form-list">
@@ -14,25 +11,25 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between">
                                 <div class="header-title">
-                                    <h4 class="card-title">Add Stock - {{ $product_details->name }} </h4>
+                                    <h4 class="card-title">Update Stock - {{ $inventory->product->name }} </h4>
                                 </div>
                                 <div>
-                                    <a href="{{ route('products.list') }}" class="btn btn-secondary">Back</a>
+                                    <a href="{{ route('inventories.list') }}" class="btn btn-secondary">Back</a>
                                 </div>
                             </div>
                             <div class="card-body">
                                 <form action="{{ route('inventories.stockStore') }}" enctype="multipart/form-data"
                                     method="POST">
                                     @csrf
-                                    <input type="hidden" name="product_id" value="{{ $product_details->id }}">
-                                    <input type="hidden" name="sku" value="{{ $product_details->sku }}">
+                                    <input type="hidden" name="product_id" value="{{ $inventory->id }}">
+                                    <input type="hidden" name="sku" value="{{ $inventory->product->sku }}">
 
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Name *</label>
                                                 <input type="text" class="form-control" disabled
-                                                    value="{{ $product_details->name }}">
+                                                    value="{{ $inventory->product->name }}">
                                                 @error('name')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -43,7 +40,7 @@
                                             <div class="form-group">
                                                 <label>Brand *</label>
                                                 <input type="text" class="form-control" disabled
-                                                    value="{{ $product_details->brand }}" placeholder="Enter Brand">
+                                                    value="{{ $inventory->product->brand }}" placeholder="Enter Brand">
                                                 @error('brand')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -55,7 +52,7 @@
                                             <div class="form-group">
                                                 <label>SKU *</label>
                                                 <input type="text" class="form-control" disabled
-                                                    value="{{ $product_details->sku }}" placeholder="Enter Brand">
+                                                    value="{{ $inventory->product->sku }}" placeholder="Enter Brand">
                                                 @error('brand')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -66,7 +63,7 @@
                                             <div class="form-group">
                                                 <label>Category *</label>
                                                 <input type="text" disabled
-                                                    value="{{ $product_details->category->name }}" class="form-control"
+                                                    value="{{ $inventory->product->category->name }}" class="form-control"
                                                     placeholder="Enter Category">
                                                 @error('category')
                                                     <span class="text-danger">{{ $message }}</span>
@@ -77,97 +74,107 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Size</label>
-                                                <input type="text" disabled value="{{ $product_details->size }}"
+                                                <input type="text" disabled value="{{ $inventory->product->size }}"
                                                     name="size" class="form-control" placeholder="Enter Size">
                                                 @error('size')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
                                         </div>
-
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Expiry Date</label>
-                                                <input type="date" name="expiry_date" class="form-control">
+
+                                                <input type="date" name="expiry_date" class="form-control"
+                                                    value="{{ old('expiry_date',$inventory->expiry_date) }}">
                                                 @error('expiry_date')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
                                         </div>
-
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label>Quantity *</label>
+                                                <label>Quantity</label>
                                                 <input type="number" name="quantity" class="form-control"
-                                                    placeholder="Enter Quantity">
+                                                    placeholder="Enter Quantity" value="{{ old('quantity',$inventory->quantity) }}">
                                                 @error('quantity')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
                                         </div>
-
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Reorder Level</label>
                                                 <input type="number" name="reorder_level" class="form-control"
-                                                    placeholder="Enter Reorder Level">
+                                                    placeholder="Enter Reorder Level" value="{{ old('reorder_level',$inventory->reorder_level) }}">
                                                 @error('reorder_level')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
                                         </div>
-
+                                        {{-- filepath: d:\xampp\htdocs\pos\resources\views\inventories\edit_stock.blade.php --}}
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label>Cost Price *</label>
+                                                <label>Cost Price</label>
                                                 <input type="number" step="0.01" name="cost_price" class="form-control"
-                                                    placeholder="Enter Cost Price">
+                                                    placeholder="Enter Cost Price"
+                                                    value="{{ old('cost_price', $inventory->cost_price ?? '') }}">
                                                 @error('cost_price')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
                                         </div>
-
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label>Sell Price *</label>
+                                                <label>Sell Price</label>
                                                 <input type="number" step="0.01" name="sell_price" class="form-control"
-                                                    placeholder="Enter Sell Price">
+                                                    placeholder="Enter Sell Price"
+                                                    value="{{ old('sell_price', $inventory->sell_price ?? '') }}">
                                                 @error('sell_price')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
                                         </div>
-                                        <!-- MFG Date -->
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label for="mfg_date">Manufacturing Date</label>
-                                                <input type="date" name="mfg_date" class="form-control">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <!-- Discount Price -->
-                                            <div class="form-group">
-                                                <label for="discount_price">Discount Price</label>
+                                                <label>Discount Price</label>
                                                 <input type="number" name="discount_price" step="0.01"
-                                                    class="form-control">
-
+                                                    class="form-control" placeholder="Enter Discount Price"
+                                                    value="{{ old('discount_price', $inventory->discount_price ?? '') }}">
+                                                @error('discount_price')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label for="vendor_id">Vendor</label>
+                                                <label>Manufacturing Date</label>
+                                                <input type="date" name="mfg_date" class="form-control"
+                                                    value="{{ old('mfg_date', $inventory->mfg_date ?? '') }}">
+                                                @error('mfg_date')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Vendor</label>
                                                 <select name="vendor_id" id="vendor_id" class="form-control">
                                                     <option value="">-- Select Vendor --</option>
                                                     @foreach ($vendors as $vendor)
-                                                        <option value="{{ $vendor->id }}">{{ $vendor->name }}</option>
+                                                        <option value="{{ $vendor->id }}"
+                                                            {{ old('vendor_id', $inventory->vendor_id ?? '') == $vendor->id ? 'selected' : '' }}>
+                                                            {{ $vendor->name }}
+                                                        </option>
                                                     @endforeach
                                                 </select>
+                                                @error('vendor_id')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
                                             </div>
                                         </div>
-
-
-
+                                        
+                                        
                                     </div>
                                     <button type="submit" class="btn btn-primary mr-2">Add Stock</button>
                                     <button type="reset" class="btn btn-danger">Reset</button>

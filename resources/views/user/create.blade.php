@@ -24,8 +24,8 @@
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>First Name</label>
-                                                <input class="floating-input form-control" type="text" value="{{ old('first_name') }}" name="first_name"
-                                                    placeholder=" ">
+                                                <input class="floating-input form-control" type="text"
+                                                    value="{{ old('first_name') }}" name="first_name" placeholder=" ">
                                                 @error('first_name')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -34,8 +34,8 @@
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>Last Name</label>
-                                                <input class="floating-input form-control" value="{{ old('last_name') }}" name="last_name" type="text"
-                                                    placeholder=" ">
+                                                <input class="floating-input form-control" value="{{ old('last_name') }}"
+                                                    name="last_name" type="text" placeholder=" ">
                                                 @error('last_name')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -44,8 +44,8 @@
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>Email</label>
-                                                <input class="floating-input form-control" value="{{ old('email') }}" name="email" type="email"
-                                                    placeholder=" ">
+                                                <input class="floating-input form-control" value="{{ old('email') }}"
+                                                    name="email" type="email" placeholder=" ">
                                                 @error('email')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -54,8 +54,8 @@
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>Phone No.</label>
-                                                <input class="floating-input form-control" value="{{ old('phone_number') }}" name="phone_number"
-                                                    type="text" placeholder=" ">
+                                                <input class="floating-input form-control" value="{{ old('phone_number') }}"
+                                                    name="phone_number" type="text" placeholder=" ">
                                                 @error('phone_number')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -64,8 +64,8 @@
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>Password</label>
-                                                <input class="floating-input form-control" value="{{ old('password') }}" name="password" type="password"
-                                                    placeholder=" ">
+                                                <input class="floating-input form-control" value="{{ old('password') }}"
+                                                    name="password" type="password" placeholder=" ">
                                                 @error('password')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -74,8 +74,8 @@
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>Confirm Password</label>
-                                                <input class="floating-input form-control" value="{{ old('confirm_password') }}" name="confirm_password"
-                                                    type="password" placeholder=" ">
+                                                <input class="floating-input form-control" name="password_confirmation"
+                                                    value="{{ old('confirm_password') }}" type="password" placeholder=" ">
                                                 @error('confirm_password')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror

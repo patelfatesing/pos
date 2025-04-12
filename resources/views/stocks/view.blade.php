@@ -19,7 +19,7 @@
 
                 <div class="card mb-4">
                     <div class="card-body">
-                        <p><strong>Store:</strong> {{ $stockRequest->store->name ?? 'Warehouse' }}</p>
+                        <p><strong>Store:</strong> {{ $stockRequest->store->name ?? 'warehouse' }}</p>
                         <p><strong>Requested By:</strong> {{ $stockRequest->user->name ?? 'N/A' }}</p>
                         <p><strong>Date:</strong> {{ $stockRequest->requested_at->format('d M Y h:i A') }}</p>
                         <p><strong>Status:</strong>

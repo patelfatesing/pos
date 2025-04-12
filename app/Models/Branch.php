@@ -11,16 +11,21 @@ class Branch extends Model
      // Explicitly specify the table name
      protected $table = 'branches';
 
-    protected $fillable = ['name', 'address', 'description', 'is_active', 'is_deleted'];
+    protected $fillable = ['name', 'address', 'description', 'is_active', 'is_deleted','is_warehouser'];
 
     public function users()
     {
         return $this->hasMany(User::class);
     }
 
-    public function inventories()
+//     public function inventories()
+// {
+//     return $this->morphMany(Inventory::class, 'location');
+// }
+
+public function inventories()
 {
-    return $this->morphMany(Inventory::class, 'location');
+    return $this->hasMany(Inventory::class, 'store_id'); // or StockEntry
 }
 
 }

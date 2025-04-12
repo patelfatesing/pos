@@ -74,6 +74,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/products/check-barcode', [ProductController::class, 'check'])->name('products.checkbarcode');
     Route::get('/products/pic', [ProductController::class, 'pic'])->name('products.pic');
     Route::post('/products/upload-pic', [ProductController::class, 'uploadPhoto'])->name('products.uploadpic');
+    // Route::post('/products/upload-pic', [ProductController::class, 'uploadPhotp'])->name('products.upload');
+    Route::get('/products/availability/{id}', [ProductController::class, 'getAvailability']);
 
     Route::get('/stock/list', [StockController::class, 'index'])->name('stock.list');
     Route::post('/stock/get-data', [StockController::class, 'getData'])->name('stock.getData');
@@ -87,6 +89,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/stock-requests/popup-details/{id}', [StockController::class, 'stockShow'])->name('stock.popupDetails');
 
     Route::get('/stock/edit/{id}', [StockController::class, 'edit'])->name('stock.edit');
+    Route::get('/stock/add-warehouse', [StockController::class, 'addWarehouse'])->name('addWarehouse');
+    Route::post('/stock/store-warehouse', [StockController::class, 'storeWarehouse'])->name('stock.warehouse');
+    Route::get('/stock/send-request-list', [StockController::class, 'showSendRequest'])->name('stock.requestSendList');
+    Route::post('/stock/get-send-request-data', [StockController::class, 'getSendRequestData'])->name('stock.getSendRequestData');
+  
+    // Route::get('/stock/send-store-request-list', [StockController::class, 'showStoreSendRequest'])->name('stock.requestStoreSendList');
+    // Route::post('/stock/get-send-store-request-data', [StockController::class, 'getStoreSendRequestData'])->name('stock.getSendStoreRequestData');
+   
 
     Route::get('/products/subcategory/{category_id}', [ProductController::class, 'getSubcategories'])->name('get.subcategories');
     Route::get('/products/getpacksize/{category_id}', [ProductController::class, 'getPackSize'])->name('get.getpacksize');
@@ -101,6 +111,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/inventories/add', [InventoryController::class, 'store'])->name('inventories.store');
     Route::get('/inventories/edit/{id}', [InventoryController::class, 'edit'])->name('inventories.edit');
     Route::get('/inventories/add-stock/{id}', [InventoryController::class, 'addStock'])->name('inventories.add-stock');
+    Route::get('/inventories/edit1/{id}', [InventoryController::class, 'editStock'])->name('inventories.edit-stock');
     Route::post('/inventories/store-stock', [InventoryController::class, 'storeStock'])->name('inventories.stockStore');
     // Route::get('/stock/list', [InventoryController::class, 'index'])->name('inventories.list');
     // Route::post('/inventories/get-data', [InventoryController::class, 'getData'])->name('inventories.getData');

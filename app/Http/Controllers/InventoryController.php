@@ -70,6 +70,15 @@ class InventoryController extends Controller
         });
     }
 
+    if (in_array(session('role_name'), ['warehouse'])) {
+      
+    
+        
+        $query->where(function ($q)  {
+            $q->where('inventories.vendor_id', "!=", '');
+        });
+    }
+
     $recordsTotal = \App\Models\Inventory::count();
     $recordsFiltered = $query->count();
 
@@ -85,11 +94,13 @@ class InventoryController extends Controller
         $status = ($inventory->quantity < $inventory->reorder_level)
             ? '<span class="badge bg-danger">Low Stock</span>'
             : '<span class="badge bg-success">OK</span>';
-
-        $action = "";
-        // $action .= "<a href='" . $url . "/inventory/edit/" . $inventory->id . "' class='btn btn-info mr-2'>Edit</a>";
+            $action = "";
+            if(session('role_name') == "admin") {
+             
+       
+        $action .= "<a href='" . $url . "/inventories/edit1/" . $inventory->id . "' class='btn btn-info mr-2'>Edit</a>";
         // $action .= '<button type="button" onclick="delete_inventory(' . $inventory->id . ')" class="btn btn-danger">Delete</button>';
-
+     }
         $records[] = [
             'name' => $inventory->product_name ?? 'N/A',
             'location' => $inventory->branch_name ?? '—',
@@ -139,6 +150,22 @@ class InventoryController extends Controller
         return view('inventories.add_stock', compact('product_details', 'vendors'));
     }
 
+    public function editStock($id)
+    {
+        $product_details = Product::with(['inventories','category', 'subcategory'])
+    ->where('id', $id)
+    ->where('is_deleted', 'no')
+    ->firstOrFail();
+
+    $inventory = Inventory::with(['product.category', 'product.subcategory'])
+    ->where('id', $id) // $id is inventories.id
+    ->firstOrFail();
+// dd($inventory);
+        // Get all vendors
+    $vendors = VendorList::where('is_active', true)->get();
+        return view('inventories.edit_stock', compact('product_details', 'vendors','inventory'));
+    }
+
     public function storeStock(Request $request)
     {
         $validated = $request->validate([
@@ -163,7 +190,7 @@ class InventoryController extends Controller
 
         $inventory = Inventory::firstOrCreate([
             'product_id'  => $validated['product_id'],
-            'store_id'    => $user_details->branch_id,
+            'store_id'    => 1,
             'location_id'    => $user_id,
             'batch_no'    => $batchNumber,
             'expiry_date' => $validated['expiry_date'],

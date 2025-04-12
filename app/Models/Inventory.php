@@ -15,7 +15,15 @@ class Inventory extends Model
         'expiry_date',
         'cost_price',
         'selling_price',
-        'reorder_level'
+        'reorder_level',
+        'is_active',
+        'is_deleted',
+        'created_by',
+        'discount_price',
+        'case_size',
+        'secondary_unitx',
+        'vendor_id ',
+        'mfg_date'
     ];
     
 public function product()

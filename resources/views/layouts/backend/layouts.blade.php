@@ -16,11 +16,11 @@
 
 <body>
     @auth
-        @if(auth()->user()->hasRole('Cashier'))
+        @if(auth()->user()->hasRole('cashier'))
             @include('layouts.backend.cashierslidebar') <!-- Include header -->
-        @elseif(auth()->user()->hasRole('Warehouse'))
+        @elseif(auth()->user()->hasRole('warehouse'))
             @include('layouts.backend.warehouseslidebar') <!-- Include header -->
-        @elseif(auth()->user()->hasRole('Admin'))
+        @elseif(auth()->user()->hasRole('admin'))
             @include('layouts.backend.admin') <!-- Include header -->
         @else
             @include('layouts.backend.slidebar') <!-- Include header -->
