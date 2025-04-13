@@ -24,7 +24,7 @@
         <div class="col-md-6">
             <div class="card">
                 
-                <div class="card-body" wire:ignore>
+                <div class="card-body">
                     <h5 class="card-title">Scan Barcode using Webcam</h5>
                     <div id="camera" style="width:100%; height: 300px; border: 1px solid #ddd; border-radius: 5px; overflow: hidden;"></div>
                 </div>
@@ -97,7 +97,7 @@
                                     </select>
                                 </div>
                                 @if($selectedCommissionUser)
-                                    <div class="card-body text-center" wire:ignore>
+                                    <div class="card-body text-center">
                                         <video id="video" class="rounded border" width="100%" height="300" autoplay></video>
                                         <canvas id="canvas" style="display: none;"></canvas>
                                         <button id="snap" class="btn btn-success mt-3">Capture Photo</button>
@@ -152,21 +152,11 @@
                                 </div> --}}
                                 <div class="d-flex justify-content-between">
                                     <span>₹500 Notes</span>
-                                     <div class="d-flex align-items-center">
-                                        <button class="btn btn-sm btn-outline-success" wire:click="decrementQty(0)">−</button>
-                                        <span class="mx-2">0</span>
-                                        <button class="btn btn-sm btn-outline-warning" wire:click="incrementQty(0)">+</button>
-                                    </div> 
-                                    <span id="note500"><input type="text" class="mr-1 " value=""></span>
+                                    <span id="note500">{{ $this->noteBreakdown['five_hundred'] }}</span>
                                 </div>
                                 <div class="d-flex justify-content-between">
                                     <span>₹200 Notes</span>
-                                     <div class="d-flex align-items-center">
-                                        <button class="btn btn-sm btn-outline-success" wire:click="decrementQty(0)">−</button>
-                                        <span class="mx-2">0</span>
-                                        <button class="btn btn-sm btn-outline-warning" wire:click="incrementQty(0)">+</button>
-                                    </div> 
-                                    <span id="note200"><input type="text"class="mr-1 "  value=""></span>
+                                    <span id="note200">{{ $this->noteBreakdown['two_hundred'] }}</span>
                                 </div>
                             </div>
                         </div>
@@ -207,7 +197,6 @@
 
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
-
 <script>
     function validateSearchInput(input) {
         const regex = /^[a-zA-Z0-9\s]*$/;
@@ -298,43 +287,57 @@
                     aspectRatio: { min: 1, max: 2 }
                 }
             },
-            decoder: {
-                readers: ['code_128_reader']
-            },
+            decoder: { readers: ['code_128_reader'] }
         };
 
+        function startQuagga() {
         Quagga.init(quaggaConf, function (err) {
             if (err) {
-                console.error("Quagga initialization failed:", err);
+                    console.log("Quagga initialization failed:", err);
                 return;
             }
             Quagga.start();
         });
+        }
+
+        startQuagga();
 
         Quagga.onDetected(function (result) {
             const code = result.codeResult.code;
             if (code) {
                 alert("Detected barcode: " + code);
-                Quagga.stop(); // Stop scanning after detecting a barcode
+                Quagga.stop();
             }
         });
-            // Re-run Quagga after any Livewire update
-        document.addEventListener("livewire:load", () => {
-            Livewire.hook('message.processed', (message, component) => {
-                startQuagga();
-            });
-        });
+
     });
 </script>
 <script>
-    // Access camera
     navigator.mediaDevices.getUserMedia({ video: true })
         .then(stream => {
-            document.getElementById('video').srcObject = stream;
-        });
+            const videoElement = document.getElementById('video');
+            if (videoElement) {
+                videoElement.srcObject = stream;
+            } else {
+                console.log('Video element not found.');
+            }
+        })
+        .catch(err => console.log('Error accessing webcam:', err));
 
-    // Capture image
-    document.getElementById('snap').addEventListener('click', () => {
+    document.addEventListener('DOMContentLoaded', () => {
+        const snapButton = document.getElementById('snap');
+        if (snapButton) {
+            snapButton.addEventListener('click', () => {
+                const selectedUser = document.getElementById('commissionUser').value;
+                if (!selectedUser) {
+                    Swal.fire({
+                        title: 'No User Selected',
+                        text: 'Please select a Commission Customer before capturing the photo.',
+                        icon: 'warning',
+                        confirmButtonText: 'OK'
+                    });
+                    return;
+                }
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         canvas.width = video.videoWidth;
@@ -348,40 +351,38 @@
         
         fetch('{{ route('products.uploadpic') }}', {
             method: 'POST',
-            headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
+                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
             body: formData
         })
         .then(res => res.json())
         .then(data => {
             if (data.path) {
-            alert('Photo uploaded! Path: ' + data.path);
+                                Swal.fire({
+                                    title: 'Photo Uploaded!',
+                                    text: 'Your photo has been uploaded successfully.',
+                                    icon: 'success',
+                                    confirmButtonText: 'OK'
+                                });
             document.getElementById('photo').value = data.path;
             } else {
             alert('Upload failed!');
             }
         })
-        .catch(err => console.error(err));
+                        .catch(err => console.log(err));
         }, 'image/png');
     });
-
-    // Upload to server
-    document.getElementById('photoForm').addEventListener('submit', e => {
-        e.preventDefault();
-    
-        const formData = new FormData();
-        formData.append('photo', document.getElementById('photo').value);
-    
-        fetch('{{ route('products.uploadpic') }}', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: formData
-        })
-        .then(res => res.json())
-        .then(data => alert('Photo uploaded!'))
-        .catch(err => console.error(err));
+        }
     });
+</script>
+<script>
+    window.addEventListener('user-selection-updated', event => {
+        const userId = event.detail.userId;
+        yourJsFunction(userId);
+    });
+
+    function yourJsFunction(userId) {
+        
+        console.log("JS function called with user ID:", userId);
+        // Your custom logic here
+    }
 </script>

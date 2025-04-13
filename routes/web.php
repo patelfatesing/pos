@@ -16,7 +16,19 @@ use App\Http\Controllers\CommissionUserController;
 use App\Http\Controllers\PartyUserController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\StockController;
+use App\Http\Controllers\CashInHandController;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Session;
 
+Route::get('lang/{locale}', function ($locale) {
+
+    if (in_array($locale, ['en', 'hi', 'sq'])) {
+        Session::put('locale', $locale);
+        App::setLocale($locale);
+    }
+
+    return redirect()->back();
+});
 
 
 Route::middleware(['role:admin'])->get('/admin-dashboard', function () {
@@ -48,6 +60,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/users/edit/{id}', [UserController::class, 'edit'])->name('users.edit');
     Route::post('/users/update', [UserController::class, 'update'])->name('users.update');
     Route::post('/users/delete', [UserController::class, 'destroy'])->name('users.delete');
+    Route::post('/cash-in-hand', [CashInHandController::class, 'store'])->middleware('auth');
 
     Route::get('/roles/list', [RolesController::class, 'index'])->name('roles.list');
     Route::post('/roles/get-data', [RolesController::class, 'getData'])->name('roles.getData');
@@ -142,7 +155,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/subcategories/store', [SubCategoryController::class, 'store'])->name('subcategories.store');
     Route::get('/subcategories/edit/{id}', [SubCategoryController::class, 'edit'])->name('subcategories.edit');
     Route::post('/subcategories/update', [SubCategoryController::class, 'update'])->name('subcategories.update');
-    Route::delete('/subcategories/delete/{id}', [SubCategoryController::class, 'destroy'])->name('categories.destroy');
+    Route::delete('/subcategories/delete/{id}', [SubCategoryController::class, 'destroy'])->name('subcategories.destroy');
 
     Route::get('/invoice/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show');
     Route::get('/invoice/{invoice}/download', [InvoiceController::class, 'download'])->name('invoice.download');

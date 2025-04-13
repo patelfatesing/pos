@@ -28,6 +28,7 @@ class Shoppingcart extends Component
     public $productSearch = '';
     public $searchResults = [];
     public $products = [];
+    public $selectedUser = 0;
     protected $listeners = ['updateProductList' => 'loadCartData'];
 
     public function mount()
@@ -118,6 +119,8 @@ class Shoppingcart extends Component
 
     public function calculateCommission()
     {
+        $this->dispatch('user-selection-updated', ['userId' => $this->selectedUser]);
+
        
         $user = Commissionuser::find($this->selectedCommissionUser);
         if (!empty($user)) {
@@ -159,7 +162,13 @@ class Shoppingcart extends Component
         $commissionUser = CommissionUser::find($this->selectedCommissionUser);
         $partyUser = PartyUser::find($this->selectedPartyUser);
         $cartitems = $this->cartitems;
-        
+        foreach ($cartitems as $key => $cartitem) {
+            $product = $cartitem->product->inventorie;
+            if ($product) {
+                $product->quantity -= $cartitem->quantity;
+                $product->save();
+            }
+        }
         $invoice_number = 'INV-' . strtoupper(Str::random(8));
         
         $invoice = Invoice::create([
