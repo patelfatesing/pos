@@ -43,7 +43,6 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -161,7 +160,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/invoice/{invoice}/download', [InvoiceController::class, 'download'])->name('invoice.download');
     
 });
-Route::middleware('auth')->prefix('commission-users')->name('commission-users.')->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('commission-users')->name('commission-users.')->group(function () {
+  
     Route::get('/list', [CommissionUserController::class, 'index'])->name('list');
     Route::post('/get-data', [CommissionUserController::class, 'getData'])->name('getData');
     Route::get('/create', [CommissionUserController::class, 'create'])->name('create');
@@ -170,7 +170,7 @@ Route::middleware('auth')->prefix('commission-users')->name('commission-users.')
     Route::put('/{Commissionuser}', [CommissionUserController::class, 'update'])->name('update');
     Route::delete('/{Commissionuser}', [CommissionUserController::class, 'destroy'])->name('destroy');
 });
-Route::middleware('auth')->prefix('party-users')->name('party-users.')->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('party-users')->name('party-users.')->group(function () {
     Route::get('/list', [PartyUserController::class, 'index'])->name('list');
     Route::post('/get-data', [PartyUserController::class, 'getData'])->name('getData');
     Route::get('/create', [PartyUserController::class, 'create'])->name('create');

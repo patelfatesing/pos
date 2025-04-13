@@ -34,7 +34,7 @@
                                 class="img-fluid image-flag mr-2" style="width: 20px; height: 15px;" />हिंदी
                                 @else
                                 <img src="{{ asset('assets/images/small/flag-01.png')}}" alt="img-flag"
-                                    class="img-fluid image-flag mr-2" />En
+                                    class="img-fluid image-flag mr-2" />English
                                 @endif
                             </a>
                             <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton2">

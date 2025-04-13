@@ -1,6 +1,6 @@
 <div class="container mt-5">
 
-    @include('layouts.flash-message')
+    {{-- @include('layouts.flash-message') --}}
 
     {{-- @if($cartitems->isEmpty())
         <div class="alert alert-info text-center">Your cart is empty.</div>

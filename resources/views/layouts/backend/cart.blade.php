@@ -19,6 +19,14 @@
             padding: 0%;
             margin: 0%
         }
+        .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 250px;
+
+    }
     </style>
     @livewireStyles
     </head>
@@ -59,7 +67,13 @@
     
     <!-- app JavaScript -->
     <script src="../assets/js/app.js"></script>
+    
+    <script>
+      setTimeout(function() {
+          $('.toast').fadeOut('slow');
+      }, 5000); // 5 seconds before fade-out
+    </script>
     @livewireScripts
-
+  
   </body>
 </html>
