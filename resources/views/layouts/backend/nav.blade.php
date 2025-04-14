@@ -29,27 +29,25 @@
                             <a href="#" class="search-toggle dropdown-toggle btn border add-btn"
                                 id="dropdownMenuButton02" data-toggle="dropdown" aria-haspopup="true"
                                 aria-expanded="false">
+                                @if (session('locale') == 'hi')
+                                    <img src="{{ asset('assets/images/small/india.png')}}" alt="img-flag"
+                                class="img-fluid image-flag mr-2" style="width: 20px; height: 15px;" />हिंदी
+                                @else
                                 <img src="{{ asset('assets/images/small/flag-01.png')}}" alt="img-flag"
-                                    class="img-fluid image-flag mr-2" />En
+                                    class="img-fluid image-flag mr-2" />English
+                                @endif
                             </a>
                             <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton2">
                                 <div class="card shadow-none m-0">
                                     <div class="card-body p-3">
-                                        <a class="iq-sub-card" href="#"><img
-                                                src="{{ asset('assets/images/small/flag-02.png')}}" alt="img-flag"
-                                                class="img-fluid mr-2" />French</a>
-                                        <a class="iq-sub-card" href="#"><img
-                                                src="{{ asset('assets/images/small/flag-03.png')}}" alt="img-flag"
-                                                class="img-fluid mr-2" />Spanish</a>
-                                        <a class="iq-sub-card" href="#"><img
-                                                src="{{ asset('assets/images/small/flag-04.png')}}" alt="img-flag"
-                                                class="img-fluid mr-2" />Italian</a>
-                                        <a class="iq-sub-card" href="#"><img
-                                                src="{{ asset('assets/images/small/flag-05.png')}}" alt="img-flag"
-                                                class="img-fluid mr-2" />German</a>
-                                        <a class="iq-sub-card" href="#"><img
-                                                src="{{ asset('assets/images/small/flag-06.png')}}" alt="img-flag"
-                                                class="img-fluid mr-2" />Japanese</a>
+                                        <a class="iq-sub-card" href="{{ url('lang/en') }}">
+                                            <img src="{{ asset('assets/images/small/flag-01.png')}}" alt="img-flag"
+                                                class="img-fluid mr-2" style="width: 20px; height: 15px;" />English
+                                        </a>
+                                        <a class="iq-sub-card" href="{{ url('lang/hi') }}">
+                                            <img src="{{ asset('assets/images/small/india.png')}}" alt="img-flag"
+                                                class="img-fluid mr-2" style="width: 20px; height: 15px;" />हिंदी
+                                        </a>
                                     </div>
                                 </div>
                             </div>

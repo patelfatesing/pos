@@ -16,7 +16,19 @@ use App\Http\Controllers\CommissionUserController;
 use App\Http\Controllers\PartyUserController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\StockController;
+use App\Http\Controllers\CashInHandController;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Session;
 
+Route::get('lang/{locale}', function ($locale) {
+
+    if (in_array($locale, ['en', 'hi', 'sq'])) {
+        Session::put('locale', $locale);
+        App::setLocale($locale);
+    }
+
+    return redirect()->back();
+});
 
 
 Route::middleware(['role:admin'])->get('/admin-dashboard', function () {
@@ -31,7 +43,6 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -48,6 +59,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/users/edit/{id}', [UserController::class, 'edit'])->name('users.edit');
     Route::post('/users/update', [UserController::class, 'update'])->name('users.update');
     Route::post('/users/delete', [UserController::class, 'destroy'])->name('users.delete');
+    Route::post('/cash-in-hand', [CashInHandController::class, 'store'])->middleware('auth');
 
     Route::get('/roles/list', [RolesController::class, 'index'])->name('roles.list');
     Route::post('/roles/get-data', [RolesController::class, 'getData'])->name('roles.getData');
@@ -142,13 +154,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/subcategories/store', [SubCategoryController::class, 'store'])->name('subcategories.store');
     Route::get('/subcategories/edit/{id}', [SubCategoryController::class, 'edit'])->name('subcategories.edit');
     Route::post('/subcategories/update', [SubCategoryController::class, 'update'])->name('subcategories.update');
-    Route::delete('/subcategories/delete/{id}', [SubCategoryController::class, 'destroy'])->name('categories.destroy');
+    Route::delete('/subcategories/delete/{id}', [SubCategoryController::class, 'destroy'])->name('subcategories.destroy');
 
     Route::get('/invoice/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show');
     Route::get('/invoice/{invoice}/download', [InvoiceController::class, 'download'])->name('invoice.download');
     
 });
-Route::middleware('auth')->prefix('commission-users')->name('commission-users.')->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('commission-users')->name('commission-users.')->group(function () {
+  
     Route::get('/list', [CommissionUserController::class, 'index'])->name('list');
     Route::post('/get-data', [CommissionUserController::class, 'getData'])->name('getData');
     Route::get('/create', [CommissionUserController::class, 'create'])->name('create');
@@ -157,7 +170,7 @@ Route::middleware('auth')->prefix('commission-users')->name('commission-users.')
     Route::put('/{Commissionuser}', [CommissionUserController::class, 'update'])->name('update');
     Route::delete('/{Commissionuser}', [CommissionUserController::class, 'destroy'])->name('destroy');
 });
-Route::middleware('auth')->prefix('party-users')->name('party-users.')->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('party-users')->name('party-users.')->group(function () {
     Route::get('/list', [PartyUserController::class, 'index'])->name('list');
     Route::post('/get-data', [PartyUserController::class, 'getData'])->name('getData');
     Route::get('/create', [PartyUserController::class, 'create'])->name('create');

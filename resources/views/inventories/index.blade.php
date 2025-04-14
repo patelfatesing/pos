@@ -12,10 +12,6 @@
             <div class="container-fluid">
                 <h1>Inventory</h1>
 
-                @if (session('success'))
-                    <p>{{ session('success') }}</p>
-                @endif
-
                 <table class="table datatable" id="products_table">
                     <thead>
                         

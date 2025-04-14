@@ -1,5 +1,5 @@
 <div>
-    {{-- @include('layouts.flash-message') --}}
+    @include('layouts.flash-message')
 
     <main class="my-4">
         <div class="container mx-auto px-6">

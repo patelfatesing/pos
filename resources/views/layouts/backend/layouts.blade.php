@@ -12,9 +12,25 @@
     <link rel="stylesheet" href="{{ asset('assets/vendor/@fortawesome/fontawesome-free/css/all.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendor/remixicon/fonts/remixicon.css') }}">
+    
+    <style>
+        /* Position the toast at the top-right corner */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        .toast {
+            min-width: 250px;
+        }
+    </style>
 </head>
 
 <body>
+    @include('layouts.flash-message')
+
     @auth
         @if(auth()->user()->hasRole('cashier'))
             @include('layouts.backend.cashierslidebar') <!-- Include header -->
@@ -58,6 +74,12 @@
 
     <!-- app JavaScript -->
     <script src="{{ asset('assets/js/app.js') }}"></script>
+    <!-- Include your JavaScript files here -->
+    <script>
+        setTimeout(function() {
+            $('.toast').fadeOut('slow');
+        }, 5000); // 5 seconds before fade-out
+    </script>
     @yield('scripts')
 </body>
 
