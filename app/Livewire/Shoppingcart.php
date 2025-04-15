@@ -10,9 +10,15 @@ use Srmklive\PayPal\Services\PayPal as PayPalClient;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
 use App\Models\Invoice;
+use App\Models\Product;
+use Livewire\WithPagination;
+
 
 class Shoppingcart extends Component
 {
+
+    use WithPagination;
+
     public $cartitems = [];
     public $sub_total = 0;
     public $tax = 0;
@@ -30,14 +36,26 @@ class Shoppingcart extends Component
     public $products = [];
     public $selectedUser = 0;
     protected $listeners = ['updateProductList' => 'loadCartData'];
+    public $noteDenominations = [
+        500 => 0,
+        2000 => 0,
+        200 => 0,
+        100 => 0,
+    ];
+    public $remainingAmount=0;
+    public $totalBreakdown = [];
+    public $searchTerm = '';
+
+
 
     public function mount()
     {
         $this->loadCartData();
         $this->commissionUsers = Commissionuser::all(); // Assuming you have a model for this
         $this->partyUsers = Partyuser::all(); // Assuming you have a model for this
-    }
 
+    }
+   
     public function loadCartData()
     {
         $this->cartitems = Cart::with('product')
@@ -62,8 +80,22 @@ class Shoppingcart extends Component
         );
         //$this->tax = $this->sub_total * 0.18;
         $this->cashAmount = $this->total;
+        $this->remainingAmount = $this->cashAmount;
     }
+    public function calculateBreakdown()
+    {
+        $remaining = $this->cashAmount;
+        $this->totalBreakdown = [];
+        
+        foreach ($this->noteDenominations as $note => $count) {
+            $breakdown = $note * (Integer)$count;
+            $remaining -= $breakdown;
 
+            $this->totalBreakdown[$note] = $breakdown;
+        }
+
+        $this->remainingAmount = $remaining;
+    }
     public function getTotalProperty()
     {
         return $this->sub_total + $this->tax;
@@ -148,7 +180,40 @@ class Shoppingcart extends Component
     }
     public function render()
     {
-        return view('livewire.shoppingcart');
+        if (strlen($this->searchTerm) > 1) {
+            $this->searchResults= Product::with('inventorie')
+            ->when($this->searchTerm, function ($query) {
+                $query->where('name', 'like', '%' . $this->searchTerm . '%');
+            })
+            ->take(5)
+            ->get();
+         } else {
+            $this->searchResults = [];
+        }
+        $itemCarts = Cart::GetCartItems();
+        
+        return view('livewire.shoppingcart', [
+            'itemCarts' => $itemCarts,
+            'searchResults' => $this->searchTerm,
+        ]);
+    }
+    public function addToCart($id){
+        if(auth()->user()){
+            // add to cart
+            $data = [
+                'user_id' => auth()->user()->id,
+                'product_id' => $id,
+            ];
+            Cart::updateOrCreate($data);
+
+            $this->dispatch('updateCartCount');
+            $this->dispatch('updateProductList');
+
+            session()->flash('success','Product added to the cart successfully');
+        }else{
+            // redirect to login page
+            return redirect(route('login'));
+        }
     }
 
     public function checkout()
