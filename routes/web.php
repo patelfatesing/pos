@@ -19,6 +19,9 @@ use App\Http\Controllers\StockController;
 use App\Http\Controllers\CashInHandController;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Session;
+use App\Livewire\CashBreakdown;
+
+Route::get('/cash-breakdown', CashBreakdown::class);
 
 Route::get('lang/{locale}', function ($locale) {
 

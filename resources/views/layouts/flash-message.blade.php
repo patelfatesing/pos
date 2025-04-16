@@ -6,7 +6,6 @@
           <rect width="100%" height="100%" fill="#fff"></rect>
        </svg>
        <strong class="mr-auto text-white">LiquorHub</strong>
-       <small>11 mins ago</small>
        <button type="button" class="ml-2 mb-1 close text-white" data-dismiss="toast" aria-label="Close">
        <span aria-hidden="true">×</span>
        </button>
@@ -25,7 +24,6 @@
           <rect width="100%" height="100%" fill="#fff"></rect>
        </svg>
        <strong class="mr-auto text-white">LiquorHub</strong>
-       <small>11 mins ago</small>
        <button type="button" class="ml-2 mb-1 close text-white" data-dismiss="toast" aria-label="Close">
        <span aria-hidden="true">×</span>
        </button>

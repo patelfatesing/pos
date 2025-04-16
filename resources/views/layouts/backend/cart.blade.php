@@ -16,7 +16,7 @@
       <link rel="stylesheet" href="../assets/vendor/remixicon/fonts/remixicon.css"> 
     <style>
         .content-page{
-            padding: 0%;
+            padding: 1%;
             margin: 0%
         }
         .toast {
@@ -42,13 +42,8 @@
       
       <div class="content-page">
       <div class="container-fluid">
-         <div class="row">
-            <div class="col-lg-12">
-                <main>
-                    @yield('page-content')
-                </main>
-            </div>
-         </div>
+        @yield('page-content')
+
       </div>
       </div>
     </div>
