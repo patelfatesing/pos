@@ -507,10 +507,6 @@ public function getSendRequestData(Request $request)
                         'message' => "Not enough stock for product {$item->product->name}"
                     ]);
                 }
-                // echo "<pre>";
-                // print_r($warehouse->quantity);
-                // echo "<br>";
-                // echo $updatedQty;
                 $warehouse->quantity -= $updatedQty;
 
                 // dd($warehouse->quantity);

@@ -10,35 +10,29 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <h1>Products List</h1>
-                <a href="{{ route('products.create') }}">Create New</a>
+                <h1>Pack Size List</h1>
+                <a href="{{ route('packsize.create') }}">Create New</a>
 
                 @if (session('success'))
                     <p>{{ session('success') }}</p>
                 @endif
-                <div class="col-lg-12">
-                    <div class="table-responsive rounded mb-3">
-                        <table class="table datatable mb-0 tbl-server-info" id="products_table">
-                            <thead class="bg-white text-uppercase">
-                                <tr class="ligth ligth-data">
-                                    <th>
-                                        <b>N</b>ame
-                                    </th>
-                                    <th>Cotegory</th>
-                                    <th>Sub Cotegory</th>
-                                    <th>Pack Size</th>
-                                    <th>Brand</th>
-                                    <th>sku</th>
-                                    <th>Status</th>
-                                    <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody class="ligth-body">
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+
+
+                <table class="table datatable" id="pack_size_tbl">
+                    <thead>
+                        <tr>
+                            <th>
+                                <b>S</b>ize
+                            </th>
+                            <th>Status</th>
+                            <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+
                 <!-- Page end  -->
             </div>
         </div>
@@ -55,7 +49,7 @@
             });
 
 
-            $('#products_table').DataTable({
+            $('#pack_size_tbl').DataTable({
                 pagelength: 10,
                 responsive: true,
                 processing: true,
@@ -64,32 +58,15 @@
                 serverSide: true,
 
                 "ajax": {
-                    "url": '{{ url('products/get-data') }}',
+                    "url": '{{ url('pack-size/get-data') }}',
                     "type": "post",
                     "data": function(d) {},
                 },
                 aoColumns: [
 
                     {
-                        data: 'name'
-                    },
-
-                    {
-                        data: 'category'
-                    },
-                    {
-                        data: 'sub_category'
-                    },
-                    {
                         data: 'size'
                     },
-                    {
-                        data: 'brand'
-                    },
-                    {
-                        data: 'sku'
-                    },
-
                     {
                         data: 'is_active'
                     },
@@ -117,8 +94,8 @@
 
         });
 
-        function delete_store(id) {
-
+        function delete_category(id) {
+            
             Swal.fire({
                 title: "Are you sure?",
                 text: "You won't be able to revert this!",
@@ -129,7 +106,7 @@
                 if (result.isConfirmed) {
                     $.ajax({
                         type: "delete", // "method" also works
-                        url: "{{ url('store/delete') }}/" + id, // Ensure correct Laravel URL
+                        url: "{{ url('store/delete') }}/"+id, // Ensure correct Laravel URL
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },

@@ -10,6 +10,7 @@ use App\Models\VendorList;
 use App\Services\InventoryService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use App\Models\Branch;
 
 class InventoryController extends Controller
 {
@@ -24,18 +25,19 @@ class InventoryController extends Controller
     public function index()
     {
         $data =Inventory::with('product')->get();
-        return view('inventories.index', compact('data'));
+        $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
+        return view('inventories.index', compact('data','branch'));
     }
 
     public function getData(Request $request)
 {
+
     $draw = $request->input('draw', 1);
     $start = $request->input('start', 0);
     $length = $request->input('length', 10);
     $searchValue = $request->input('search.value', '');
     $orderColumnIndex = $request->input('order.0.column', 0);
     $orderColumn = $request->input("columns.$orderColumnIndex.data", 'id');
-
     // Map frontend column names to actual DB columns
     switch ($orderColumn) {
         case 'name':
@@ -70,10 +72,12 @@ class InventoryController extends Controller
         });
     }
 
+    if ($request->has('store_id') && $request->store_id != '') {
+        $query->where('branches.id', $request->store_id);
+    }
+
     if (in_array(session('role_name'), ['warehouse'])) {
-      
-    
-        
+       
         $query->where(function ($q)  {
             $q->where('inventories.vendor_id', "!=", '');
         });
@@ -86,6 +90,7 @@ class InventoryController extends Controller
         ->offset($start)
         ->limit($length)
         ->get();
+        
 
     $records = [];
     $url = url('/');

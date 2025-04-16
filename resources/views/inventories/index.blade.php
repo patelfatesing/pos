@@ -12,26 +12,42 @@
             <div class="container-fluid">
                 <h1>Inventory</h1>
 
-                <table class="table datatable" id="products_table">
-                    <thead>
-                        
-                        <tr>
-                            <th>Product</th>
-                            <th>Location</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th>Batch No</th>
-                            <th>Expiry Date</th>
-                            <th>Low Stock Alert Level</th>
-                            <th>Status</th>
-                            <th data-type="date" data-format="YYYY/DD/MM">Last updated</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
 
+                <div class="col-lg-12">
+                    <div class="table-responsive rounded mb-3">
+                        <table class="table datatable mb-0 tbl-server-info" id="products_table">
+                            <div class="col-md-3" style="float: right; margin-bottom: 10px;">
+                                <div class="form-group">
+                                    <select name="storeSearch" id="storeSearch" class="selectpicker form-control"
+                                        data-style="py-0">
+                                        <option value="">Select Store</option>
+                                        @foreach ($branch as $id => $name)
+                                            <option value="{{ $id }}">{{ $name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            <thead class="bg-white text-uppercase">
+
+                                <tr class="ligth ligth-data">
+                                    <th>Product</th>
+                                    <th>Location</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Batch No</th>
+                                    <th>Expiry Date</th>
+                                    <th>Low Stock Alert Level</th>
+                                    <th>Status</th>
+                                    <th data-type="date" data-format="YYYY/DD/MM">Last updated</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="ligth-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
                 <!-- Page end  -->
             </div>
         </div>
@@ -47,44 +63,70 @@
                 }
             });
 
-            $('#products_table').DataTable({
-    pagelength: 10,
-    responsive: true,
-    processing: true,
-    ordering: true,
-    bLengthChange: true,
-    serverSide: true,
+            var table = $('#products_table').DataTable({
+                pagelength: 10,
+                responsive: true,
+                processing: true,
+                ordering: true,
+                bLengthChange: true,
+                serverSide: true,
 
-    "ajax": {
-        "url": '{{ url('inventories/get-data') }}',
-        "type": "post",
-        "data": function(d) {},
-    },
-    aoColumns: [
-        { data: 'name' },
-        { data: 'location' },
-        { data: 'quantity' },
-        { data: 'cost_price' },
-        { data: 'batch_no' },
-        { data: 'expiry_date' },
-        { data: 'reorder_level' },
-        { data: 'status' },
-        { data: 'created_at' },
-        { data: 'action' }
-    ],
-    aoColumnDefs: [{
-        bSortable: false,
-        aTargets: [9] // make "action" column unsortable
-    }],
-    order: [[8, 'desc']], // 🟢 Sort by created_at DESC by default
-    dom: "Bfrtip",
-    lengthMenu: [
-        [10, 25, 50],
-        ['10 rows', '25 rows', '50 rows', 'All']
-    ],
-    buttons: ['pageLength']
-});
+                "ajax": {
+                    "url": '{{ url('inventories/get-data') }}',
+                    "type": "post",
+                    data: function(d) {
+                        d.store_id = $('#storeSearch').val(); // pass department value
+                    }
+                },
+                aoColumns: [{
+                        data: 'name'
+                    },
+                    {
+                        data: 'location'
+                    },
+                    {
+                        data: 'quantity'
+                    },
+                    {
+                        data: 'cost_price'
+                    },
+                    {
+                        data: 'batch_no'
+                    },
+                    {
+                        data: 'expiry_date'
+                    },
+                    {
+                        data: 'reorder_level'
+                    },
+                    {
+                        data: 'status'
+                    },
+                    {
+                        data: 'created_at'
+                    },
+                    {
+                        data: 'action'
+                    }
+                ],
+                aoColumnDefs: [{
+                    bSortable: false,
+                    aTargets: [9] // make "action" column unsortable
+                }],
+                order: [
+                    [8, 'desc']
+                ], // 🟢 Sort by created_at DESC by default
+                dom: "Bfrtip",
+                lengthMenu: [
+                    [10, 25, 50],
+                    ['10 rows', '25 rows', '50 rows', 'All']
+                ],
+                buttons: ['pageLength']
+            });
 
+            $('#storeSearch').on('change', function() {
+                table.draw();
+            });
 
         });
 

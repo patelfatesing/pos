@@ -17,8 +17,12 @@ use App\Http\Controllers\PartyUserController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\CashInHandController;
+use App\Http\Controllers\PackSizeController;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Session;
+use App\Livewire\CashBreakdown;
+
+Route::get('/cash-breakdown', CashBreakdown::class);
 
 Route::get('lang/{locale}', function ($locale) {
 
@@ -158,7 +162,15 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/invoice/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show');
     Route::get('/invoice/{invoice}/download', [InvoiceController::class, 'download'])->name('invoice.download');
-    
+
+    Route::get('/pack-size/list', [PackSizeController::class, 'index'])->name('packsize.list');
+    Route::post('/pack-size/get-data', [PackSizeController::class, 'getData'])->name('packsize.getData');
+    Route::get('/pack-size/create', [PackSizeController::class, 'create'])->name('packsize.create');
+    Route::post('/pack-size/store', [PackSizeController::class, 'store'])->name('packsize.store');
+    Route::get('/pack-size/edit/{id}', [PackSizeController::class, 'edit'])->name('packsize.edit');
+    Route::post('/pack-size/update', [PackSizeController::class, 'update'])->name('packsize.update');
+    Route::delete('/pack-size/delete/{id}', [PackSizeController::class, 'destroy'])->name('packsize.destroy');
+
 });
 Route::middleware(['auth', 'admin'])->prefix('commission-users')->name('commission-users.')->group(function () {
   
