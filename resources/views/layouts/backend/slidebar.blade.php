@@ -47,7 +47,7 @@
                         </li>
                         <li class="">
                             <a href="{{ route('stock.requestList') }}">
-                                <i class="las la-minus"></i><span>Stock Request List</span>
+                                <i class="las la-minus"></i><span>Stock Request Manage</span>
                             </a>
                         </li>
                     </ul>
@@ -69,7 +69,7 @@
                     <ul id="product" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                         <li class="">
                             <a href="{{ route('products.list') }}">
-                                <i class="las la-minus"></i><span>List Product</span>
+                                <i class="las la-minus"></i><span>Products Manage</span>
                             </a>
                         </li>
                     </ul>
@@ -93,12 +93,17 @@
                     <ul id="category" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                         <li class="">
                             <a href="{{ route('categories.list') }}">
-                                <i class="las la-minus"></i><span>List Category</span>
+                                <i class="las la-minus"></i><span>Category Manage</span>
                             </a>
                         </li>
                         <li class="">
                             <a href="{{ route('subcategories.list') }}">
                                 <i class="las la-minus"></i><span>Sub Category</span>
+                            </a>
+                        </li>
+                        <li class="">
+                            <a href="{{ route('packsize.list') }}">
+                                <i class="las la-minus"></i><span>Pack Size</span>
                             </a>
                         </li>
                     </ul>
@@ -123,7 +128,7 @@
                     <ul id="role" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                         <li class="">
                             <a href="{{ route('roles.list') }}">
-                                <i class="las la-minus"></i><span>Roles List</span>
+                                <i class="las la-minus"></i><span>Roles Manage</span>
                             </a>
                         </li>
                     </ul>
@@ -145,7 +150,7 @@
                     <ul id="store" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                         <li class="">
                             <a href="{{ route('branch.list') }}">
-                                <i class="las la-minus"></i><span>List Store</span>
+                                <i class="las la-minus"></i><span>Store Manage</span>
                             </a>
                         </li>
                     </ul>
