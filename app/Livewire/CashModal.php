@@ -13,9 +13,9 @@ class CashModal extends Component
 
     protected $listeners = ['openCashModal' => 'resetFieldsAndOpen'];
 
-    public function mount($cash = 0)
+    public function mount()
     {
-        $this->cash = $cash;
+        $this->cash = 0;
         $this->tendered = 0;
         $this->change = 0;
     }

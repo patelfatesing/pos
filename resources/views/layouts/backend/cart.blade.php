@@ -27,6 +27,28 @@
         min-width: 250px;
 
     }
+    .search-results {
+        max-height: 300px;
+        overflow-y: auto;
+        position: absolute;
+        z-index: 999;
+        width: 100%;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    #cartTable tbody {
+        min-height: 450px;
+        display: block;
+    }
+    #cartTable thead, #cartTable tbody tr {
+        display: table;
+        width: 100%;
+        table-layout: fixed;
+    }
+    .table{
+      border-radius: unset;
+    }
     </style>
     @livewireStyles
     </head>
@@ -62,7 +84,9 @@
     
     <!-- app JavaScript -->
     <script src="../assets/js/app.js"></script>
-    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
       setTimeout(function() {
           $('.toast').fadeOut('slow');
