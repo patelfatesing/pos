@@ -12,6 +12,7 @@ class CommissionUserImage extends Model
     // Specify fillable fields
     protected $fillable = [
         'commission_user_id',
+        'type',
         'image_path',
         'image_name',
     ];

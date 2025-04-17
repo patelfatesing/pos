@@ -266,6 +266,7 @@ class ProductController extends Controller
 
         CommissionUserImage::create([
             'commission_user_id' => $request->selectedCommissionUser,
+            'type' => $request->type,
             'image_path' => $path,
             'image_name' => $filename,
         ]);
