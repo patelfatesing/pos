@@ -15,7 +15,7 @@
 
                 <div class="col-lg-12">
                     <div class="table-responsive rounded mb-3">
-                        <table class="table datatable mb-0 tbl-server-info" id="products_table">
+                        <table class="table data-tables table-striped" id="products_table">
                             <div class="col-md-3" style="float: right; margin-bottom: 10px;">
                                 <div class="form-group">
                                     <select name="storeSearch" id="storeSearch" class="selectpicker form-control"
@@ -63,6 +63,8 @@
                 }
             });
 
+            $('#products_table').DataTable().clear().destroy();
+
             var table = $('#products_table').DataTable({
                 pagelength: 10,
                 responsive: true,
@@ -91,13 +93,15 @@
                         data: 'cost_price'
                     },
                     {
-                        data: 'batch_no'
+                        data: 'batch_no',
+                        orderable: false
                     },
                     {
                         data: 'expiry_date'
                     },
                     {
-                        data: 'reorder_level'
+                        data: 'reorder_level',
+                        orderable: false
                     },
                     {
                         data: 'status'
@@ -106,12 +110,13 @@
                         data: 'created_at'
                     },
                     {
-                        data: 'action'
+                        data: 'action',
+                        orderable: false
                     }
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [9] // make "action" column unsortable
+                    aTargets: [2, 4, 6, 7, 9] // make "action" column unsortable
                 }],
                 order: [
                     [8, 'desc']

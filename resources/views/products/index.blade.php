@@ -75,29 +75,29 @@
                     },
 
                     {
-                        data: 'category'
+                        data: 'category', orderable: false
                     },
                     {
-                        data: 'sub_category'
+                        data: 'sub_category', orderable: false
                     },
                     {
                         data: 'size'
                     },
                     {
-                        data: 'brand'
+                        data: 'brand', orderable: false
                     },
                     {
-                        data: 'sku'
+                        data: 'sku', orderable: false
                     },
 
                     {
-                        data: 'is_active'
+                        data: 'is_active', orderable: false
                     },
                     {
                         data: 'created_at'
                     },
                     {
-                        data: 'action'
+                        data: 'action',orderable: false
                     }
                     // Define more columns as per your table structure
 

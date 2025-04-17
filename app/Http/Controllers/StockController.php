@@ -200,7 +200,7 @@ $branch_id = $data->userInfo->branch_id;
                 'branches.name as branch_name'
             )
             ->join('products', 'products.id', '=', 'inventories.product_id')
-            ->leftJoin('branches', 'inventories.location_id', '=', 'branches.id');
+            ->leftJoin('branches', 'inventories.store_id', '=', 'branches.id');
     
         // Search filter
         if (!empty($searchValue)) {
@@ -500,32 +500,63 @@ public function getSendRequestData(Request $request)
                 $item->save();
 
                 // Decrease from warehouse
-                $warehouse = Inventory::where('store_id',1)->where('product_id', $item->product_id)->first();
-                if (!$warehouse || $warehouse->quantity < $updatedQty) {
+                $inventories = Inventory::where('product_id', $item->product_id)->orderBy('expiry_date')->get(); // optional: FIFO
+
+                $totalQuantity = $inventories->sum('quantity');
+                
+                if ($totalQuantity < $updatedQty) {
                     return response()->json([
                         'status' => 'error',
                         'message' => "Not enough stock for product {$item->product->name}"
                     ]);
                 }
-                $warehouse->quantity -= $updatedQty;
 
-                // dd($warehouse->quantity);
-                $warehouse->save();
+                $remainingQty = $updatedQty;
 
-                // Increase to store
-                $storeInventory = Inventory::firstOrNew([
-                    'store_id' => $stockRequest->requested_by,
-                    'location_id'=> Auth::id(),
-                    'product_id' => $item->product_id,
-                    'batch_no' => $warehouse->batch_no,
-                    'expiry_date' => $warehouse->expiry_date,
-                    'reorder_level' => $warehouse->reorder_level,
-                    'cost_price' => $warehouse->cost_price,
-                    'sell_price' => $warehouse->sell_price,
-                ]);
-                $storeInventory->quantity += $updatedQty;
-                $storeInventory->save();
-                // dd($storeInventory->save());
+                foreach ($inventories as $inventory) {
+                    if ($remainingQty <= 0) break;
+
+                    $deducted = min($inventory->quantity, $remainingQty);
+
+                    // Deduct from warehouse
+                    $inventory->quantity -= $deducted;
+                    $inventory->save();
+
+                    // Add to store inventory
+                    $storeInventory = Inventory::firstOrNew([
+                        'store_id' => $stockRequest->requested_by,
+                        'location_id'=> Auth::id(),
+                        'product_id' => $item->product_id,
+                        'batch_no' => $inventory->batch_no,
+                        'expiry_date' => $inventory->expiry_date,
+                        'reorder_level' => $inventory->reorder_level,
+                        'cost_price' => $inventory->cost_price,
+                        'sell_price' => $inventory->sell_price,
+                    ]);
+
+                    $storeInventory->quantity += $deducted;
+                    $storeInventory->save();
+
+                    // Transfer log
+                    $inventoryService = new \App\Services\InventoryService();
+                    $data = User::with('userInfo')
+                        ->where('users.id', Auth::id())
+                        ->where('is_deleted', 'no')
+                        ->firstOrFail();
+                    $branch_id = $data->userInfo->branch_id;
+
+                    $inventoryService->transferProduct(
+                        $item->product_id,
+                        $inventory->id,
+                        $branch_id,
+                        $stockRequest->requested_by,
+                        $deducted,
+                        'warehouse_to_store',
+                        'store'
+                    );
+
+                    $remainingQty -= $deducted;
+                }
             }
 
             $stockRequest->status = 'approved';
@@ -539,6 +570,7 @@ public function getSendRequestData(Request $request)
             DB::rollBack();
             return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
         }
+
     }
 
     public function stockShow($id)
