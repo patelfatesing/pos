@@ -172,25 +172,26 @@ Route::middleware('auth')->group(function () {
     Route::delete('/pack-size/delete/{id}', [PackSizeController::class, 'destroy'])->name('packsize.destroy');
 
 });
-Route::middleware(['auth', 'admin'])->prefix('commission-users')->name('commission-users.')->group(function () {
+// Route::middleware(['auth', 'admin'])->prefix('commission-users')->name('commission-users.')->group(function () {
   
-    Route::get('/list', [CommissionUserController::class, 'index'])->name('list');
-    Route::post('/get-data', [CommissionUserController::class, 'getData'])->name('getData');
-    Route::get('/create', [CommissionUserController::class, 'create'])->name('create');
-    Route::post('/', [CommissionUserController::class, 'store'])->name('store');
-    Route::get('/edit/{id}', [CommissionUserController::class, 'edit'])->name('edit');
-    Route::put('/{Commissionuser}', [CommissionUserController::class, 'update'])->name('update');
-    Route::delete('/{Commissionuser}', [CommissionUserController::class, 'destroy'])->name('destroy');
-});
-Route::middleware(['auth', 'admin'])->prefix('party-users')->name('party-users.')->group(function () {
-    Route::get('/list', [PartyUserController::class, 'index'])->name('list');
-    Route::post('/get-data', [PartyUserController::class, 'getData'])->name('getData');
-    Route::get('/create', [PartyUserController::class, 'create'])->name('create');
-    Route::post('/', [PartyUserController::class, 'store'])->name('store');
-    Route::get('/edit/{id}', [PartyUserController::class, 'edit'])->name('edit');
-    Route::put('/{Partyuser}', [PartyUserController::class, 'update'])->name('update');
-    Route::delete('/{Partyuser}', [PartyUserController::class, 'destroy'])->name('destroy');
-});
+    Route::get('/commission-users/list', [CommissionUserController::class, 'index'])->name('commission-users.list');
+    Route::post('/commission-users/get-data', [CommissionUserController::class, 'getData'])->name('commission-users.getData');
+    Route::get('/commission-users/create', [CommissionUserController::class, 'create'])->name('commission-users.create');
+    Route::post('/commission-users/', [CommissionUserController::class, 'store'])->name('commission-users.store');
+    Route::get('/commission-users/edit/{id}', [CommissionUserController::class, 'edit'])->name('commission-users.edit');
+    Route::put('/commission-users/{Commissionuser}', [CommissionUserController::class, 'update'])->name('commission-users.update');
+    Route::delete('/commission-users/{Commissionuser}', [CommissionUserController::class, 'destroy'])->name('commission-users.destroy');
+// });
+
+// Route::middleware(['auth', 'admin'])->prefix('party-users')->name('party-users.')->group(function () {
+    Route::get('/party-users/list', [PartyUserController::class, 'index'])->name('party-users.list');
+    Route::post('/party-users/get-data', [PartyUserController::class, 'getData'])->name('party-users.getData');
+    Route::get('/party-users/create', [PartyUserController::class, 'create'])->name('party-users.create');
+    Route::post('/party-users/', [PartyUserController::class, 'store'])->name('party-users.store');
+    Route::get('/party-users/edit/{id}', [PartyUserController::class, 'edit'])->name('party-users.edit');
+    Route::put('/party-users/{Partyuser}', [PartyUserController::class, 'update'])->name('party-users.update');
+    Route::delete('/party-users/{Partyuser}', [PartyUserController::class, 'destroy'])->name('party-users.destroy');
+// });
 
 
 require __DIR__.'/auth.php';

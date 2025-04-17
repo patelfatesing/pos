@@ -60,7 +60,7 @@ class InventoryController extends Controller
             'branches.name as branch_name'
         )
         ->join('products', 'products.id', '=', 'inventories.product_id')
-        ->leftJoin('branches', 'inventories.location_id', '=', 'branches.id');
+        ->leftJoin('branches', 'inventories.store_id', '=', 'branches.id');
 
     // Search filter
     if (!empty($searchValue)) {
@@ -79,7 +79,7 @@ class InventoryController extends Controller
     if (in_array(session('role_name'), ['warehouse'])) {
        
         $query->where(function ($q)  {
-            $q->where('inventories.vendor_id', "!=", '');
+            // $q->where('inventories.vendor_id', "!=", '');
         });
     }
 
@@ -196,13 +196,14 @@ class InventoryController extends Controller
         $inventory = Inventory::firstOrCreate([
             'product_id'  => $validated['product_id'],
             'store_id'    => 1,
-            'location_id'    => $user_id,
+            'location_id'    => 1,
             'batch_no'    => $batchNumber,
             'expiry_date' => $validated['expiry_date'],
             'reorder_level' => $validated['reorder_level'],
             'vendor_id' => $request->vendor_id,
             'discount_price' => $request->discount_price,
-            'discount_amt' => $request->discount_amt
+            'discount_amt' => $request->discount_amt,
+            'added_by' => $user_id,
         ]);
     
         // Add stock

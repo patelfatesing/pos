@@ -23,7 +23,8 @@ class Inventory extends Model
         'case_size',
         'secondary_unitx',
         'vendor_id ',
-        'mfg_date'
+        'mfg_date',
+        'added_by'
     ];
     
 public function product()
