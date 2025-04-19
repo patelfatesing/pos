@@ -16,7 +16,9 @@ class Invoice extends Model
         'tax',
         'commission_amount',
         'party_amount',
-        'total'
+        'total',
+        'cash_break_id',
+        'status',
     ];
 
     protected $casts = [

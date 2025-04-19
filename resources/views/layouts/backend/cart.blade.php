@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <title>POS Dash | Responsive Bootstrap 4 Admin Dashboard Template</title>
+      <title>POS Dash </title>
       
       <!-- Favicon -->
       <link rel="shortcut icon" href="../assets/images/favicon.ico" />
@@ -48,6 +48,20 @@
     }
     .table{
       border-radius: unset;
+    }
+     /* Hide on screen */
+     .print-only {
+        display: none;
+    }
+
+    /* Show only when printing */
+    @media print {
+        .print-only {
+            display: block !important;
+        }
+        .no-print {
+            display: none !important;
+        }
     }
     </style>
     @livewireStyles

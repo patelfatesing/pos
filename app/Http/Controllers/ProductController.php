@@ -14,7 +14,7 @@ use App\Models\SubCategory;
 use App\Models\PackSize;
 use App\Models\CommissionUserImage;
 use Illuminate\Support\Facades\Auth;
-
+use App\Models\PartyUserImage;
 class ProductController extends Controller
 {
     public function index()
@@ -256,20 +256,40 @@ class ProductController extends Controller
 
     public function uploadPhoto(Request $request)
     {
-        $request->validate([
-            'selectedCommissionUser' => 'required',
-        ]);
+        if (strtolower(Auth::user()->role->name )== 'cashier') {
+            $request->validate([
+                'selectedCommissionUser' => 'required',
+            ]);
+        }else{
+            $request->validate([
+                'selectedPartyUser' => 'required',
+            ]);
+        }
+
+        
 
         $image = $request->file('photo');
         $path = $image->store('uploaded_photos', 'public');
         $filename = $image->getClientOriginalName();
 
-        CommissionUserImage::create([
-            'commission_user_id' => $request->selectedCommissionUser,
-            'type' => $request->type,
-            'image_path' => $path,
-            'image_name' => $filename,
-        ]);
+        if (strtolower(Auth::user()->role->name )== 'cashier') {
+            $modal=new CommissionUserImage();
+            $modal->commission_user_id = $request->selectedCommissionUser;
+            $modal->type = $request->type;
+            $modal->image_path = $path;
+            $modal->image_name = $filename;
+            $modal->save();
+
+
+        }else{
+            $modal=new PartyUserImage();
+            $modal->party_user_id = $request->selectedPartyUser;
+            $modal->type = $request->type;
+            $modal->image_path = $path;
+           // $modal->image_name = $filename;
+            $modal->save();
+
+        }
 
         return response()->json([
             'success' => true,
