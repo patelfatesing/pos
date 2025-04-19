@@ -21,6 +21,11 @@ use App\Http\Controllers\PackSizeController;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Session;
 use App\Livewire\CashBreakdown;
+use App\Http\Controllers\CashController;
+
+Route::get('/cash-tender', [CashController::class, 'index']);
+Route::post('/calculate-change', [CashController::class, 'calculateChange']);
+
 
 Route::get('/cash-breakdown', CashBreakdown::class);
 

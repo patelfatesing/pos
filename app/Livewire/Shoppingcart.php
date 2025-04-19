@@ -18,6 +18,13 @@ class Shoppingcart extends Component
 {
 
     use WithPagination;
+    public $invoiceData;
+
+    public $changeAmount = 0;
+    public $showBox = false;
+    public $cashPayAmt;
+    public $cashPaTenderyAmt;
+    public $cashPayChangeAmt;
 
     public $cartitems = [];
     public $sub_total = 0;
@@ -34,20 +41,60 @@ class Shoppingcart extends Component
     public $productSearch = '';
     public $searchResults = [];
     public $products = [];
+    public $tenderedAmount = 0;
+
     public $selectedUser = 0;
     protected $listeners = ['updateProductList' => 'loadCartData'];
     public $noteDenominations = [
-        500 => 0,
-        2000 => 0,
-        200 => 0,
-        100 => 0,
+        0 => 2000,
+        1 => 500,
+        2 => 200,
+        3 => 100,
+
     ];
     public $remainingAmount = 0;
     public $totalBreakdown = [];
     public $searchTerm = '';
     public $branch_name = '';
     public $quantities = [];
+    public $showSuggestions = false;
+    public $selectedNote;
+    public $cashNotes = [];
 
+    public function toggleBox()
+    {
+        if (!empty($this->products->toArray())) {
+            $this->showBox = true;
+            $this->total = $this->cashAmount;
+        } else {
+            session()->flash('error', 'add minimum one product');
+        }
+    }
+
+
+    public function updatedNoteDenominations()
+    {
+        $this->calculateBreakdown();
+    }
+
+    public function updatedTenderedAmount()
+    {
+        $this->changeAmount = $this->tenderedAmount - $this->cashAmount;
+    }
+
+    public function calculateBreakdown()
+    {
+        $this->totalBreakdown = [];
+        $total = 0;
+
+        foreach ($this->noteDenominations as $note => $count) {
+            $amount = $note * $count;
+            $this->totalBreakdown[$note] = $amount;
+            $total += $amount;
+        }
+
+        //$this->remainingAmount = $this->cashAmount - $total;
+    }
 
 
     public function mount()
@@ -62,7 +109,7 @@ class Shoppingcart extends Component
 
     public function loadCartData()
     {
-        $this->branch_name = auth()->user()->userinfo->branch->name;
+        $this->branch_name = (!empty(auth()->user()->userinfo->branch->name)) ? auth()->user()->userinfo->branch->name : "";
         $this->cartitems = Cart::with('product')
             ->where(['user_id' => auth()->user()->id])
             ->where('status', '!=', Cart::STATUS['success'])
@@ -78,7 +125,7 @@ class Shoppingcart extends Component
     }
     public function updateQty($itemId)
     {
-        $quantity = (int) $this->quantities[$itemId];
+        $quantity = (isset($this->quantities[$itemId])) ? (int) $this->quantities[$itemId] : 0;
         if ($quantity < 1) {
             $quantity = 1;
             $this->quantities[$itemId] = 1;
@@ -95,6 +142,9 @@ class Shoppingcart extends Component
             ->where(['user_id' => auth()->user()->id])
             ->where('status', '!=', Cart::STATUS['success'])
             ->get();
+
+        $this->dispatch('updateCartCount');
+        $this->dispatch('updateProductList');
     }
 
 
@@ -108,22 +158,22 @@ class Shoppingcart extends Component
         );
         //$this->tax = $this->sub_total * 0.18;
         $this->cashAmount = $this->total;
-        $this->remainingAmount = $this->cashAmount;
+        // $this->remainingAmount = $this->cashAmount;
     }
-    public function calculateBreakdown()
-    {
-        $remaining = $this->cashAmount;
-        $this->totalBreakdown = [];
+    // public function calculateBreakdown()
+    // {
+    //     $remaining = $this->cashAmount;
+    //     $this->totalBreakdown = [];
 
-        foreach ($this->noteDenominations as $note => $count) {
-            $breakdown = $note * (int)$count;
-            $remaining -= $breakdown;
+    //     foreach ($this->noteDenominations as $note => $count) {
+    //         $breakdown = $note * (int)$count;
+    //         $remaining -= $breakdown;
 
-            $this->totalBreakdown[$note] = $breakdown;
-        }
+    //         $this->totalBreakdown[$note] = $breakdown;
+    //     }
 
-        $this->remainingAmount = $remaining;
-    }
+    //     $this->remainingAmount = $remaining;
+    // }
     public function getTotalProperty()
     {
         return $this->sub_total + $this->tax;
@@ -142,10 +192,10 @@ class Shoppingcart extends Component
 
     public function getCartItemCount()
     {
-        $this->cartCount =  Cart::with('product')
-            ->where(['user_id' => auth()->user()->id])
+        $this->cartCount = Cart::where('user_id', auth()->id())
             ->where('status', '!=', Cart::STATUS['success'])
-            ->count();
+            ->sum('quantity');
+
 
         $this->dispatch('updateCartCount');
     }
@@ -181,6 +231,7 @@ class Shoppingcart extends Component
     public function removeItem($id)
     {
         Cart::find($id)?->delete();
+        $this->showBox = false;
         $this->loadCartData();
     }
 
@@ -216,6 +267,7 @@ class Shoppingcart extends Component
     }
     public function render()
     {
+
         if (strlen($this->searchTerm) > 1) {
             $this->searchResults = Product::with('inventorie')
                 ->when($this->searchTerm, function ($query) {
@@ -223,6 +275,7 @@ class Shoppingcart extends Component
                 })
                 ->take(5)
                 ->get();
+            $this->showSuggestions = true;
         } else {
             $this->searchResults = [];
         }
@@ -241,38 +294,97 @@ class Shoppingcart extends Component
                 'user_id' => auth()->user()->id,
                 'product_id' => $id,
             ];
-            Cart::updateOrCreate($data);
-
+            $CartDb = Cart::updateOrCreate($data);
+            $this->updateQty($CartDb->id);
             $this->dispatch('updateCartCount');
             $this->dispatch('updateProductList');
-
             session()->flash('success', 'Product added to the cart successfully');
+            $this->reset('cashAmount', 'commissionAmount', 'showBox');
         } else {
             // redirect to login page
             return redirect(route('login'));
         }
     }
 
+    // public function checkout()
+    // {
+    //     if (!empty($this->commissionAmount)) {
+    //         $this->total = $this->total - $this->commissionAmount;
+    //     }
+    //     if (!empty($this->partyAmount)) {
+    //         $this->total = $this->total - $this->partyAmount;
+    //     }
+    //     $commissionUser = CommissionUser::find($this->selectedCommissionUser);
+    //     $partyUser = PartyUser::find($this->selectedPartyUser);
+    //     $cartitems = $this->cartitems;
+    //     foreach ($cartitems as $key => $cartitem) {
+    //         $product = $cartitem->product->inventorie;
+    //         if ($product) {
+    //             $product->quantity -= $cartitem->quantity;
+    //             $product->save();
+    //         }
+    //     }
+    //     $invoice_number = 'INV-' . strtoupper(Str::random(8));
+
+    //     $invoice = Invoice::create([
+    //         'invoice_number' => $invoice_number,
+    //         'commission_user_id' => $commissionUser->id ?? null,
+    //         'party_user_id' => $partyUser->id ?? null,
+    //         'items' => $cartitems->map(fn($item) => [
+    //             'name' => $item->product->name,
+    //             'quantity' => $item->quantity,
+    //             'price' => $item->product->inventorie->sell_price,
+    //         ]),
+    //         'sub_total' => $this->sub_total,
+    //         'tax' => $this->tax,
+    //         'commission_amount' => $this->commissionAmount,
+    //         'party_amount' => $this->partyAmount,
+    //         'total' => $this->total,
+    //     ]);
+
+    //     // Clear cart if needed
+    //     // Cart::clear();
+
+    //     return redirect()->route('invoice.show', $invoice->id);
+    // }
     public function checkout()
     {
         if (!empty($this->commissionAmount)) {
-            $this->total = $this->total - $this->commissionAmount;
+            $this->total -= $this->commissionAmount;
         }
         if (!empty($this->partyAmount)) {
-            $this->total = $this->total - $this->partyAmount;
+            $this->total -= $this->partyAmount;
         }
+
         $commissionUser = CommissionUser::find($this->selectedCommissionUser);
         $partyUser = PartyUser::find($this->selectedPartyUser);
         $cartitems = $this->cartitems;
+
         foreach ($cartitems as $key => $cartitem) {
             $product = $cartitem->product->inventorie;
-            if ($product) {
+            if ($product && $product->quantity>0) {
                 $product->quantity -= $cartitem->quantity;
                 $product->save();
             }
         }
-        $invoice_number = 'INV-' . strtoupper(Str::random(8));
 
+        $cashNotes = json_encode($this->cashNotes) ?? [];
+
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+        // 💾 Save cash breakdown
+        $cashBreakdown = \App\Models\CashBreakdown::create([
+            'user_id' => auth()->id(),
+            'branch_id' => $branch_id,
+            'denominations' => $cashNotes,
+            'total' => $this->total,
+        ]);
+
+        $invoice_number = 'INV-' . strtoupper(Str::random(8));
+        if(!empty($commissionUser)){
+            $address = $commissionUser->address ?? null;
+        }else  if(!empty($partyUser)){
+            $address = $partyUser->address ?? null;
+        }
         $invoice = Invoice::create([
             'invoice_number' => $invoice_number,
             'commission_user_id' => $commissionUser->id ?? null,
@@ -284,14 +396,19 @@ class Shoppingcart extends Component
             ]),
             'sub_total' => $this->sub_total,
             'tax' => $this->tax,
+            'status'=>"Paid",
             'commission_amount' => $this->commissionAmount,
             'party_amount' => $this->partyAmount,
             'total' => $this->total,
+            'cash_break_id' => $cashBreakdown->id,
+            //'billing_address'=> $address,
         ]);
+        // ✅ Set invoice data for the view
+        $this->invoiceData = $invoice;
+        // ✅ Trigger print via browser event
+        $this->dispatch('triggerPrint');
+        //return redirect()->route('invoice.show', $invoice->id);
+        $this->reset('searchTerm', 'searchResults', 'showSuggestions');
 
-        // Clear cart if needed
-        // Cart::clear();
-
-        return redirect()->route('invoice.show', $invoice->id);
     }
 }
