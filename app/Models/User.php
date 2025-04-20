@@ -22,7 +22,8 @@ class User extends Authenticatable
         'email',
         'password',
         'is_deleted',
-        'role_id'
+        'role_id',
+        'username'
     ];
 
     /**
@@ -56,6 +57,7 @@ class User extends Authenticatable
     {
         return $this->role && $this->role->name === $roleName;
     }
+
     public function hasPermission($permission)
     {
         foreach ($this->roles as $role) {
@@ -70,6 +72,7 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Role::class);
     }
+    
     public function role()
     {
         return $this->belongsTo(Role::class)->select('name'); // Return only the role name

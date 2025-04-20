@@ -13,12 +13,22 @@ class CashInHandController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'amount' => 'required|numeric|min:0',
+            'amount' => 'required|numeric',
+            'cashNotes' => 'required|array',
         ]);
+        $cashNotes = $request->post('cashNotes');
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
         $start = Carbon::today();
         $end = $start->copy()->addHours(8)->addMinutes(30);
-
+        $cashNotes = json_encode($cashNotes) ?? [];
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+        // 💾 Save cash breakdown
+        $cashBreakdown = \App\Models\CashBreakdown::create([
+            'user_id' => auth()->id(),
+            'branch_id' => $branch_id,
+            'denominations' => $cashNotes,
+            'total' => $request->amount,
+        ]);
         UserShift::updateOrCreate(
             [
                 'user_id' => auth()->id(),
@@ -29,7 +39,8 @@ class CashInHandController extends Controller
                 'deshi_sales' => 0,
             ],
             [
-                'opening_cash' => $request->amount
+                'opening_cash' => $request->amount,
+                'cash_break_id' => $cashBreakdown->id,
             ]
         );
         

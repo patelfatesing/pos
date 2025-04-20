@@ -87,14 +87,52 @@
 
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label>Expiry Date</label>
-                                                <input type="date" name="expiry_date" class="form-control">
-                                                @error('expiry_date')
+                                                <label>Reorder Level</label>
+                                                <input type="number" name="reorder_level" value="{{old('reorder_level',$product_details->reorder_level) }}" class="form-control"
+                                                    placeholder="Enter Reorder Level">
+                                                @error('reorder_level')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
                                         </div>
 
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Cost Price *</label>
+                                                <input type="number" step="0.01" value="{{old('cost_price',$product_details->cost_price) }}" name="cost_price" class="form-control"
+                                                    placeholder="Enter Cost Price">
+                                                @error('cost_price')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Sell Price *</label>
+                                                <input type="number" step="0.01" value="{{old('sell_price',$product_details->sell_price) }}" name="sell_price" class="form-control"
+                                                    placeholder="Enter Sell Price">
+                                                @error('sell_price')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <!-- Discount Price -->
+                                            <div class="form-group">
+                                                <label for="discount_price">Discount Price</label>
+                                                <input type="number" value="{{old('discount_price',$product_details->discount_price) }}" name="discount_price" step="0.01"
+                                                    class="form-control">
+
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Barcode</label>
+                                                <input type="text" name="barcode" id="barcode" value="{{old('barcode',$product_details->barcode) }}" class="form-control"
+                                                    placeholder="Enter Code" data-errors="Please Enter barcode.">
+                                            </div>
+                                        </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Quantity *</label>
@@ -106,38 +144,6 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Reorder Level</label>
-                                                <input type="number" name="reorder_level" class="form-control"
-                                                    placeholder="Enter Reorder Level">
-                                                @error('reorder_level')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Cost Price *</label>
-                                                <input type="number" step="0.01" name="cost_price" class="form-control"
-                                                    placeholder="Enter Cost Price">
-                                                @error('cost_price')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Sell Price *</label>
-                                                <input type="number" step="0.01" name="sell_price" class="form-control"
-                                                    placeholder="Enter Sell Price">
-                                                @error('sell_price')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
                                         <!-- MFG Date -->
                                         <div class="col-md-6">
                                             <div class="form-group">
@@ -145,15 +151,17 @@
                                                 <input type="date" name="mfg_date" class="form-control">
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <!-- Discount Price -->
-                                            <div class="form-group">
-                                                <label for="discount_price">Discount Price</label>
-                                                <input type="number" name="discount_price" step="0.01"
-                                                    class="form-control">
 
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Expiry Date</label>
+                                                <input type="date" name="expiry_date" class="form-control">
+                                                @error('expiry_date')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
                                             </div>
                                         </div>
+
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="vendor_id">Vendor</label>
@@ -165,9 +173,6 @@
                                                 </select>
                                             </div>
                                         </div>
-
-
-
                                     </div>
                                     <button type="submit" class="btn btn-primary mr-2">Add Stock</button>
                                     <button type="reset" class="btn btn-danger">Reset</button>

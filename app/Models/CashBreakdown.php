@@ -13,6 +13,7 @@ class CashBreakdown extends Model
         'branch_id',
         'denominations',
         'total',
+
     ];
 
     protected $casts = [
@@ -34,5 +35,9 @@ class CashBreakdown extends Model
     public function invoice()
     {
         return $this->hasOne(Invoice::class);
+    }
+    public function userShift()
+    {
+        return $this->hasOne(UserShift::class);
     }
 }

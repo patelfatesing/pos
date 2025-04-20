@@ -20,13 +20,16 @@ class Shoppingcart extends Component
 
     use WithPagination;
     public $invoiceData;
+    public $shift;
+    public $shiftcash;
 
     public $changeAmount = 0;
     public $showBox = false;
+    public $shoeCashUpi= false;
     public $cashPayAmt;
     public $cashPaTenderyAmt;
     public $cashPayChangeAmt;
-
+    public $categoryTotals=[];
     public $cartitems = [];
     public $sub_total = 0;
     public $tax = 0;
@@ -61,11 +64,22 @@ class Shoppingcart extends Component
     public $showSuggestions = false;
     public $selectedNote;
     public $cashNotes = [];
-
+    public $todayCash = 0;
     public function toggleBox()
     {
         if (!empty($this->products->toArray())) {
             $this->showBox = true;
+            $this->total = $this->cashAmount;
+        } else {
+            session()->flash('error', 'add minimum one product');
+            $this->dispatch('alert_remove');
+
+        }
+    }
+    public function cashupitoggleBox()
+    {
+        if (!empty($this->products->toArray())) {
+            $this->shoeCashUpi = true;
             $this->total = $this->cashAmount;
         } else {
             session()->flash('error', 'add minimum one product');
@@ -109,7 +123,43 @@ class Shoppingcart extends Component
         if(empty($UserShift)){ 
             $this->showModal = true;
         } 
+        $this->shift = UserShift::with('cashBreakdown')->with('branch')->whereDate('created_at', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id'=>$branch_id])->first();
+        
+        $invoices= Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id'=>$branch_id])->latest()->get();
+        $discountTotal=$totalSales=$totalPaid=0;
 
+        foreach ($invoices as $invoice) {
+            $items = $invoice->items; // decode items from longtext JSON
+        
+            if (is_array($items)) {
+                foreach ($items as $item) {
+                    $category = $item['category'] ?? 'Unknown'; // fallback if category not set
+                    $amount = $item['price'] ?? 0;
+        
+                    if (!isset($this->categoryTotals[$category])) {
+                        $this->categoryTotals[$category] = 0;
+                    }
+        
+                    $this->categoryTotals[$category] += $amount;
+                }
+            }
+            $discountTotal += ($invoice->commission_amount ?? 0) + ($invoice->party_amount ?? 0);
+            $totalSales += $invoice->sub_total;
+            $totalPaid += $invoice->total;
+
+        }
+        $this->todayCash=$totalPaid;
+        $this->categoryTotals['TOTAL'] = $totalSales;
+        $this->categoryTotals['DISCOUNT'] = $discountTotal*(-1);
+        $this->categoryTotals['TOTAL CASH'] = $totalPaid;
+
+        //TOTAL CASH
+
+        // Decode cash JSON to array
+        if(!empty($this->shift->cashBreakdown->denominations))
+        $this->shiftcash = json_decode($this->shift->cashBreakdown->denominations, true);
+
+        // return view('shift_closing.show', compact('shift'));
         $this->loadCartData();
         $this->commissionUsers = Commissionuser::all(); // Assuming you have a model for this
         $this->partyUsers = Partyuser::all(); // Assuming you have a model for this
@@ -120,9 +170,12 @@ class Shoppingcart extends Component
 
     public function loadCartData()
     {
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
         $this->branch_name = (!empty(auth()->user()->userinfo->branch->name)) ? auth()->user()->userinfo->branch->name : "";
         $this->cartitems = Cart::with('product')
             ->where(['user_id' => auth()->user()->id])
+          //  ->where(['branch_id'=>$branch_id])
             ->where('status', '!=', Cart::STATUS['success'])
             ->get();
 
@@ -163,8 +216,8 @@ class Shoppingcart extends Component
     {
         $this->sub_total = $this->cartitems->sum(
             fn($item) =>
-            !empty($item->product->inventorie->sell_price)
-                ? $item->product->inventorie->sell_price * $item->quantity
+            !empty($item->product->sell_price)
+                ? $item->product->sell_price * $item->quantity
                 : 0
         );
         //$this->tax = $this->sub_total * 0.18;
@@ -258,12 +311,13 @@ class Shoppingcart extends Component
                 ->where(['user_id' => auth()->user()->id])
                 ->where('status', '!=', Cart::STATUS['success'])
                 ->get()
-                ->sum(fn($cart) => $cart->product->inventorie->discount_price ?? 0);
+                ->sum(fn($cart) => $cart->product->discount_price ?? 0);
             $this->commissionAmount = $getDiscountAmt;
             $this->total = $this->cashAmount = $this->total - $getDiscountAmt;
         } else {
             $this->commissionAmount = 0;
         }
+
     }
     public function calculateParty()
     {
@@ -344,7 +398,7 @@ class Shoppingcart extends Component
     //         'items' => $cartitems->map(fn($item) => [
     //             'name' => $item->product->name,
     //             'quantity' => $item->quantity,
-    //             'price' => $item->product->inventorie->sell_price,
+    //             'price' => $item->product->sell_price,
     //         ]),
     //         'sub_total' => $this->sub_total,
     //         'tax' => $this->tax,
@@ -397,13 +451,16 @@ class Shoppingcart extends Component
             $address = $partyUser->address ?? null;
         }
         $invoice = Invoice::create([
+            'user_id' => auth()->id(),
+            'branch_id' => $branch_id,
             'invoice_number' => $invoice_number,
             'commission_user_id' => $commissionUser->id ?? null,
             'party_user_id' => $partyUser->id ?? null,
             'items' => $cartitems->map(fn($item) => [
                 'name' => $item->product->name,
                 'quantity' => $item->quantity,
-                'price' => $item->product->inventorie->sell_price,
+                'category'=> $item->product->category->name,
+                'price' => $item->product->sell_price,
             ]),
             'sub_total' => $this->sub_total,
             'tax' => $this->tax,

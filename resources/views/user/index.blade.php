@@ -10,32 +10,45 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <h1>Users List</h1>
-                <a href="{{ route('users.create') }}">Create New</a>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+                            <div>
+                                <h2 class="mb-3">Users List</h2>
+                            </div>
+                            <a href="{{ route('users.create') }}" class="btn btn-primary add-list">
+                                <i class="las la-plus mr-3"></i>Create New Users
+                            </a>
+                        </div>
+                    </div>
 
-                @if (session('success'))
-                    <p>{{ session('success') }}</p>
-                @endif
+                    @if (session('success'))
+                        <p>{{ session('success') }}</p>
+                    @endif
+                    <div class="col-lg-12">
+                        <div class="table-responsive rounded mb-3">
+                            <table class="table data-tables table-striped" id="users_table">
 
-                <table class="table datatable" id="users_table">
-                    <thead>
-                        <tr>
-                            <th>
-                                <b>N</b>ame
-                            </th>
-                            <th>Email</th>
-                            <th>Phone Number</th>
-                            <th>Role</th>
-                            <th>Branch</th>
-                            <th>Status</th>
-                            <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-
+                                <thead class="bg-white text-uppercase"> 
+                                    <tr class="ligth ligth-data">
+                                        <th>
+                                            <b>N</b>ame
+                                        </th>
+                                        <th>Email</th>
+                                        <th>Phone Number</th>
+                                        <th>Role</th>
+                                        <th>Branch</th>
+                                        <th>Status</th>
+                                        <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white text-uppercase">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
                 <!-- Page end  -->
             </div>
         </div>
@@ -51,6 +64,7 @@
                 }
             });
 
+            $('#users_table').DataTable().clear().destroy();
 
             $('#users_table').DataTable({
                 pagelength: 10,

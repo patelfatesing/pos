@@ -63,6 +63,11 @@ class UserController extends Controller
             // $action .= "<a href='" . $url . "/users/edit/" . $employee->id . "' class='btn btn-info mr_2'>Edit</a>";
             // $action .= '<button type="button" onclick="delete_user(' . $employee->id . ')" class="btn btn-danger ml-2">Delete</button>';
 
+            $action ='<div class="d-flex align-items-center list-action">
+                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
+                                        href="' . url('/users/edit/' . $employee->id) . '"><i class="ri-pencil-line mr-0"></i></a>
+                                   </div>';
+
             $records[] = [
                 'name' => $employee->first_name.' '.$employee->last_name,
                 'email' => $employee->email,

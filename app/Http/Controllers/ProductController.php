@@ -15,6 +15,9 @@ use App\Models\PackSize;
 use App\Models\CommissionUserImage;
 use Illuminate\Support\Facades\Auth;
 use App\Models\PartyUserImage;
+use Illuminate\Support\Facades\Validator;
+use App\Models\ProductPriceChangeHistory;
+
 class ProductController extends Controller
 {
     public function index()
@@ -72,28 +75,30 @@ class ProductController extends Controller
         }else{
             $url = url('');
         }
-        
-    
-        foreach ($data as $employee) {
-            $action = '<div class="d-flex align-items-center list-action">';
-            $action .= "<a class='badge badge-info mr-2' href='" . $url . "/inventories/add-stock/" . $employee->id . "' class='btn btn-info mr-2'>Add Stock</a>";
-            $action .= "<a class='badge badge-info mr-2' href='" . $url . "/products/barcode-print/" . $employee->id . "' class='btn btn-info mr-2'>Print</a>";
-            $action .= "<a class='badge bg-success mr-2' href='" . $url . "/products/edit/" . $employee->id . "' class='btn btn-info mr-2'>Edit</a>";      
-            $action .= '<button class="badge bg-warning mr-2" type="button" onclick="delete_product(' . $employee->id . ')" class="btn btn-danger ml-2">Delete</button>';
-    
-            $action .= "</div>";
-
-            
-                                  
+          
+        foreach ($data as $product) {
+            $action ='<div class="d-flex align-items-center list-action">
+            <a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
+                    href="#" onclick="product_price_change(' . $product->id . ')"><i class="ri-eye-line mr-0"></i></a>
+                    
+                    <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
+                    href="' . url('/inventories/add-stock/' . $product->id) . '"><i class="ri-eye-line mr-0"></i></a>
+                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
+                                        href="' . url('/products/edit/' . $product->id) . '"><i class="ri-pencil-line mr-0"></i></a>
+                                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
+                                        href="#" onclick="delete_product(' . $product->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
+            </div>';
+                               
+            $status = ($product->is_active ? '<div class="badge badge-success">Active</div>':'<div class="badge badge-success">Inactive</div>');
             $records[] = [
-                'name' => $employee->name,
-                'category' => $employee->category->name ?? 'N/A',
+                'name' => $product->name,
+                'category' => $product->category->name ?? 'N/A',
                 'sub_category' => $employee->subcategory->name ?? 'N/A',
-                'size' => $employee->size,
-                'brand' => $employee->brand,
-                'sku' => $employee->sku,
-                'is_active' => $employee->is_active,
-                'created_at' => date('d-m-Y h:i', strtotime($employee->created_at)),
+                'size' => $product->size,
+                'brand' => $product->brand,
+                'sku' => $product->sku,
+                'is_active' => $status,
+                'created_at' => date('d-m-Y h:i', strtotime($product->created_at)),
                 'action' => $action
             ];
         }
@@ -113,11 +118,11 @@ class ProductController extends Controller
     {
         $generator = new BarcodeGeneratorHTML();
         $categories = Category::all();
-
+        $packSize = PackSize::all();
         $productCode = '123456789';
 
         // $barcode = $generator->getBarcode('123456789', $generator::TYPE_CODE_128);
-           return view('products.create', compact('categories','productCode'));
+           return view('products.create', compact('categories','productCode','packSize'));
     }
 
     public function generateBarcode($productCode)
@@ -141,6 +146,10 @@ class ProductController extends Controller
             'category_id' => 'required|numeric',
             'subcategory_id' => 'required|numeric',
             'size' => 'required|string',
+            'cost_price' => 'required|numeric',
+            'sell_price' => 'required|numeric',
+            'reorder_level' => 'required|integer|min:0',
+            'discount_price' => 'nullable|numeric',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'description' => 'nullable|string',
         ]);
@@ -151,15 +160,15 @@ class ProductController extends Controller
             $sku = Product::generateSku($request->brand, $request->name, $request->size);
            
             $validatedData['sku'] = $sku;
-            $code = str_replace('-', '', $sku);
-            // Generate barcode
-            $generator = new BarcodeGeneratorPNG();
-            $barcodeData = $generator->getBarcode($code, $generator::TYPE_CODE_128);
-    
-            $filePath = 'barcodes/' . $code . '.png';
-            Storage::disk('public')->put($filePath, $barcodeData);
-
-            $validatedData['barcode'] = $code;
+            
+            // //barcode code
+            // $code = str_replace('-', '', $sku);
+            // $generator = new BarcodeGeneratorPNG();
+            // $barcodeData = $generator->getBarcode($code, $generator::TYPE_CODE_128);
+            // $filePath = 'barcodes/' . $code . '.png';
+            // Storage::disk('public')->put($filePath, $barcodeData);
+            // $validatedData['barcode'] = $code;
+            // //barcode code end
     
             // Handle image upload
             if ($request->hasFile('image')) {
@@ -173,7 +182,7 @@ class ProductController extends Controller
                 Product::create($validatedData);
             // });
     
-            return redirect()->route('products.list')->with('success', 'Item created successfully.');
+            return redirect()->route('products.list')->with('success', 'Product has been added successfully!');
    
             // return redirect()->back()->with('success', 'Product added successfully!');
         // } catch (\Exception $e) {
@@ -182,10 +191,7 @@ class ProductController extends Controller
     
         //     return redirect()->back()->with('error', 'An error occurred while adding the product. Please try again.');
         // }
-
-    
     }
-
 
     /**
      * Display the specified resource.
@@ -200,15 +206,54 @@ class ProductController extends Controller
      */
     public function edit($id)
     {
-        $generator = new BarcodeGeneratorHTML();
         $categories = Category::all();
-        
-        $productCode = '123456789';
+        // $generator = new BarcodeGeneratorHTML();
+        // $productCode = '123456789';
         $subcategories = SubCategory::all(); // Fetch subcategories
         $packSizes = PackSize::all(); // Example pack sizes
     
         $record = Product::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
-        return view('products.edit', compact('subcategories','packSizes','record','generator','categories','productCode'));
+
+        return view('products.edit', compact('subcategories','packSizes','record','categories'));
+    }
+
+    public function updatePrice(Request $request, $id)
+    {
+        // 🔍 Validate input
+        $validator = Validator::make($request->all(), [
+            'price' => 'required|numeric|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // 🧱 Find the product
+        $product = Product::findOrFail($id);
+
+        // 💡 Only log if price actually changes
+        if ($product->price != $request->price) {
+            // 💾 Save price change history
+            ProductPriceChangeHistory::create([
+                'product_id' => $product->id,
+                'old_price' => $product->price,
+                'new_price' => $request->price,
+                'changed_at' => now(),
+            ]);
+        }
+
+        // 🔁 Update product
+        $product->price = $request->price;
+        $product->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Product price updated successfully.',
+            'data' => $product,
+        ]);
     }
 
     public function getSubcategories($category_id)
@@ -226,7 +271,6 @@ class ProductController extends Controller
     public function barcodePrint($id)
     {
         $product_details = Product::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
-    //    dd($record);
         return view('products.barcode_print', compact('product_details'));
     }
 
@@ -266,8 +310,6 @@ class ProductController extends Controller
             ]);
         }
 
-        
-
         $image = $request->file('photo');
         $path = $image->store('uploaded_photos', 'public');
         $filename = $image->getClientOriginalName();
@@ -279,8 +321,6 @@ class ProductController extends Controller
             $modal->image_path = $path;
             $modal->image_name = $filename;
             $modal->save();
-
-
         }else{
             $modal=new PartyUserImage();
             $modal->party_user_id = $request->selectedPartyUser;
@@ -301,10 +341,65 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Product $product)
+
+    public function update(Request $request)
     {
-        //
+        $id = $request->id;
+        $product = Product::findOrFail($id);
+
+        $request->validate([
+
+            'name'             => 'required|string|max:255',
+            'brand'            => 'required|string|max:255',
+            'category_id'      => 'required',
+            'subcategory_id'   => 'required',
+            'size'             => 'required|string|max:255',
+            'cost_price'       => 'required|numeric|min:0',
+            'sell_price'       => 'required|numeric|min:0',
+            'discount_price'   => 'nullable|numeric|min:0|lte:sell_price',
+            'reorder_level'    => 'nullable|numeric|min:0',
+            'description'      => 'nullable|string',
+            'image'            => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        $image = $product->image;
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            // Delete old image
+            if ($product->image && file_exists(public_path('storage/product_images/' . $product->image))) {
+                unlink(public_path('storage/product_images/' . $product->image));
+            }
+
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('product_images', 'public');
+               
+                $image = $imagePath;
+            }
+
+            // $file = $request->file('image');
+            // $imageName = time() . '_' . $file->getClientOriginalName();
+            // $file->move(public_path('uploads/products'), $imageName);
+            // $product->image = $imageName;
+        }
+
+        // Update product fields
+        $product->name           = $request->name;
+        $product->brand          = $request->brand;
+        $product->category_id    = $request->category_id;
+        $product->subcategory_id = $request->subcategory_id;
+        $product->size           = $request->size;
+        $product->cost_price     = $request->cost_price;
+        $product->sell_price     = $request->sell_price;
+        $product->discount_price = $request->discount_price;
+        $product->reorder_level  = $request->reorder_level;
+        $product->description    = $request->description;
+        $product->image    = $image;
+
+        $product->save();
+
+        return redirect()->route('products.list')->with('success', 'Product updated successfully.');
     }
+
 
     /**
      * Remove the specified resource from storage.
@@ -332,6 +427,62 @@ class ProductController extends Controller
                 'available_quantity' => $branch->inventories->sum('quantity'),
             ];
         });
+
+        
+    }
+
+    public function getAvailabilityBranch($productId, Request $request)
+    {
+        $from = $request->query('from');
+        $to = $request->query('to');
+
+
+       $from_count = Branch::with(['inventories' => function ($query) use ($productId) {
+        $query->where('product_id', $productId);
+    }])
+    ->where('id', $from) // Filter the branch here
+    ->where('is_deleted', 'no') 
+    ->where('is_active', 'yes') 
+    ->get()
+    ->map(function ($branch) {
+        return [
+            'id' => $branch->id,
+            'name' => $branch->name,
+            'available_quantity' => $branch->inventories->sum('quantity'),
+        ];
+    });
+
+    $from_count_val = '';
+    if(!empty($from_count)){
+        $from_count_val = $from_count[0]['available_quantity'];
+    }
+
+
+        $to_count = Branch::with(['inventories' => function ($query) use ($productId) {
+            $query->where('product_id', $productId);
+        }])
+        ->where('id', $to) // Filter the branch here
+        ->where('is_deleted', 'no') 
+        ->where('is_active', 'yes') 
+        ->get()
+        ->map(function ($branch) {
+            return [
+                'id' => $branch->id,
+                'name' => $branch->name,
+                'available_quantity' => $branch->inventories->sum('quantity'),
+            ];
+        });
+
+        $to_count_val = '';
+        if(!empty($to_count)){
+            $to_count_val = $to_count[0]['available_quantity'];
+        }
+    
+    $arr = [];
+    $arr['from_count'] = $from_count_val;
+    $arr['to_count'] = $to_count_val;
+    
+    return response()->json($arr); 
 
         
     }

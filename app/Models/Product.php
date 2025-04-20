@@ -12,7 +12,15 @@ class Product extends Model
 
     protected $guarded = [];
     protected $fillable = [
-        'brand', 'name', 'size', 'sku', 'category_id', 'subcategory_id','image', 'description','barcode', 'abv', 'abv'
+        'brand', 'name', 'size', 'sku', 'category_id', 'subcategory_id','image', 'description','barcode', 'abv', 'abv',
+        'discount_price',
+        'case_size',
+        'secondary_unitx',
+        'vendor_id ',
+        'mfg_date',
+        'cost_price',
+        'sell_price',
+        'reorder_level'
     ];
 
     public static function generateSku($brand, $name, $size)

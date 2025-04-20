@@ -11,11 +11,9 @@
         <div class="content-page">
             <div class="container-fluid">
                 <h1>Inventory</h1>
-
-
                 <div class="col-lg-12">
                     <div class="table-responsive rounded mb-3">
-                        <table class="table data-tables table-striped" id="products_table">
+                        <table class="table data-tables table-striped" id="inventory_table">
                             <div class="col-md-3" style="float: right; margin-bottom: 10px;">
                                 <div class="form-group">
                                     <select name="storeSearch" id="storeSearch" class="selectpicker form-control"
@@ -63,9 +61,9 @@
                 }
             });
 
-            $('#products_table').DataTable().clear().destroy();
+            $('#inventory_table').DataTable().clear().destroy();
 
-            var table = $('#products_table').DataTable({
+            var table = $('#inventory_table').DataTable({
                 pagelength: 10,
                 responsive: true,
                 processing: true,
