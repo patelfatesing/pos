@@ -496,6 +496,7 @@
                             data-target="#closeShiftModal">
                             Close Shift
                         </button>
+                        <button type="button" class="btn btn-outline-danger ms-2" data-bs-toggle="tooltip"
                             data-bs-placement="top" title="Logout"
                             onclick="document.getElementById('logout-form').submit();">
                             <i class="fas fa-sign-out-alt"></i>
