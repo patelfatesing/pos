@@ -8,7 +8,7 @@ return new class extends Migration {
     public function up(): void {
         Schema::create('stock_requests', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('store_id')->constrained('    ');
+            $table->foreignId('store_id')->constrained('branches');
             $table->foreignId('requested_by')->constrained('users');
             $table->foreignId('approved_by')->nullable()->constrained('users');
             $table->enum('status', ['pending', 'approved', 'rejected', 'completed'])->default('pending');
