@@ -10,27 +10,23 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <h1>Stock Request Details</h1>
-
-                @if (session('success'))
-                    <p>{{ session('success') }}</p>
-                @endif
-
-                <table id="stock-requests-table" class="table datatable table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>Requested By Store</th>
-                            <th data-type="date" data-format="YYYY/DD/MM">Requested At</th>
-                            <th>Total Product</th>
-                            <th>Total Quantity</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-
+                <h1>Stock Request Details</h1>                
+                <div class="table-responsive rounded mb-3">
+                    <table class="table data-tables table-striped" id="stock-requests-table">
+                        <thead class="bg-white text-uppercase">
+                            <tr class="ligth ligth-data">
+                                <th>Requested By Store</th>
+                                <th data-type="date" data-format="YYYY/DD/MM">Requested At</th>
+                                <th>Total Product</th>
+                                <th>Total Quantity</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
                 <!-- Page end  -->
             </div>
         </div>
@@ -50,44 +46,45 @@
             <div class="modal-content">
                 <form id="approveForm">
                     @csrf
-                <div class="modal-header">
-                    <h5 class="modal-title" id="approveModalLabel">Approve Stock Request</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" name="request_id" id="request_id">
-                    <input type="hidden" name="from_store_id" id="from_store_id">
-                    <table class="table table-bordered">
-                        <thead>
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="approveModalLabel">Approve Stock Request</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="request_id" id="request_id">
+                        <input type="hidden" name="from_store_id" id="from_store_id">
+                        <table class="table table-bordered">
+                            <thead>
 
-                        </thead>
-                        <tbody id="requested-store-info">
-                        </tbody>
-                        <tbody id="request-items-body">
-                            <!-- Dynamically loaded -->
-                        </tbody>
-                    </table>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Save changes</button>
-                </div>
-            </form>
+                            </thead>
+                            <tbody id="requested-store-info">
+                            </tbody>
+                            <tbody id="request-items-body">
+                                <!-- Dynamically loaded -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+
     <script>
         $(document).on('click', '.open-approve-modal', function() {
             const id = $(this).data('id');
-            
+
             $('#request_id').val(id);
             $('#request-items-body').html('<tr><td colspan="3">Loading...</td></tr>');
 
             $.get('{{ url('stock-requests/popup-details/') }}/' + id, function(res) {
                 $('#from_store_id').val(res.stockRequest.store_id);
-                
+
                 let storeHtml = '';
                 let requestedStoreInfo = `
         <div class="">
@@ -150,7 +147,8 @@
                 success: function(res) {
                     alert(res.message);
                     $('#approveModal').modal('hide');
-                    $('#stockRequestTable').DataTable().ajax.reload(null, false);
+                    $('#stock-requests-table').DataTable().ajax.reload(null, false);
+
                 },
                 error: function(xhr) {
                     alert('Approval failed');
@@ -165,6 +163,8 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
+
+            $('#stock-requests-table').DataTable().clear().destroy();
 
             $('#stock-requests-table').DataTable({
                 pagelength: 10,
@@ -202,7 +202,7 @@
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: []
+                    aTargets: [2,3,5]
                 }],
                 order: [
                     [1, 'desc']

@@ -102,6 +102,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/products/edit/{id}', [ProductController::class, 'edit'])->name('products.edit');
     Route::post('/products/update', [ProductController::class, 'update'])->name('products.update');
     Route::post('/products/update-price', [ProductController::class, 'updatePrice'])->name('products.updatePrice');
+    Route::post('/products/delete', [ProductController::class, 'destroy'])->name('products.destroy');
     
     Route::get('/products/check-barcode', [ProductController::class, 'check'])->name('products.checkbarcode');
     Route::get('/products/pic', [ProductController::class, 'pic'])->name('products.pic');

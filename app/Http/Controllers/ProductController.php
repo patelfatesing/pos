@@ -56,6 +56,8 @@ class ProductController extends Controller
             });
         }
     
+        $query->where('is_deleted', 'no');
+        
         $recordsTotal = Product::count();
         $recordsFiltered = $query->count();
     
@@ -63,6 +65,7 @@ class ProductController extends Controller
             ->offset($start)
             ->limit($length)
             ->get();
+            
     
         $records = [];
         $url = url('/');
@@ -400,15 +403,19 @@ class ProductController extends Controller
         return redirect()->route('products.list')->with('success', 'Product updated successfully.');
     }
 
-
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Product $product)
+    // Soft delete a record
+    public function destroy(Request $request)
     {
-        //
-    }
+        $id = $request->id;
+        // Find the user and soft delete
+        $record = Product::findOrFail($id);
+        $record->update(['is_deleted' => 'yes']);
 
+        return redirect()->route('users.list')->with('success', 'Product has been deleted successfully.');
+    }
     
     public function getAvailability($productId)
     {

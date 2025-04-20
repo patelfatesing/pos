@@ -163,47 +163,47 @@ class UserController extends Controller
 
     // Update a record
     public function update(Request $request)
-{
-    $id = $request->id;
+    {
+        $id = $request->id;
 
-    // Validate the request
-    $request->validate([
-        'first_name'    => 'required|string|max:255',
-        'last_name'     => 'required|string|max:255',
-        'phone_number'  => [
-            'required',
-            'regex:/^(\+?\d{1,3})?\d{10}$/'
-        ],
-        'role_id'       => 'required|exists:roles,id',
-        'branch_id'     => 'nullable|exists:branches,id',
-    ], [
-        'phone_number.required' => 'The phone number field is required.',
-        'phone_number.regex'    => 'Please enter a valid phone number.',
-        'role_id.required'      => 'Please select role.',
-        'branch_id.required'    => 'Please select store.',
-    ]);
+        // Validate the request
+        $request->validate([
+            'first_name'    => 'required|string|max:255',
+            'last_name'     => 'required|string|max:255',
+            'phone_number'  => [
+                'required',
+                'regex:/^(\+?\d{1,3})?\d{10}$/'
+            ],
+            'role_id'       => 'required|exists:roles,id',
+            'branch_id'     => 'nullable|exists:branches,id',
+        ], [
+            'phone_number.required' => 'The phone number field is required.',
+            'phone_number.regex'    => 'Please enter a valid phone number.',
+            'role_id.required'      => 'Please select role.',
+            'branch_id.required'    => 'Please select store.',
+        ]);
 
-    // Find the user (only if not deleted)
-    $user = User::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
+        // Find the user (only if not deleted)
+        $user = User::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
 
-    // Update user main table
-    $user->update([
-        'name'    => $request->first_name . ' ' . $request->last_name,
-        'role_id' => $request->role_id,
-        // 'updated_by' => $request->updated_by, // Optional if you have this
-    ]);
+        // Update user main table
+        $user->update([
+            'name'    => $request->first_name . ' ' . $request->last_name,
+            'role_id' => $request->role_id,
+            // 'updated_by' => $request->updated_by, // Optional if you have this
+        ]);
 
-    // Update user info relation
-    $user->userInfo()->update([
-        'first_name'   => $request->first_name,
-        'last_name'    => $request->last_name,
-        'branch_id'    => $request->branch_id,
-        'address'      => $request->address,
-        'phone_number' => $request->phone_number,
-    ]);
+        // Update user info relation
+        $user->userInfo()->update([
+            'first_name'   => $request->first_name,
+            'last_name'    => $request->last_name,
+            'branch_id'    => $request->branch_id,
+            'address'      => $request->address,
+            'phone_number' => $request->phone_number,
+        ]);
 
-    return redirect()->route('users.list')->with('success', 'Record updated successfully.');
-}
+        return redirect()->route('users.list')->with('success', 'Record updated successfully.');
+    }
 
     // Soft delete a record
     public function destroy(Request $request)

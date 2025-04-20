@@ -13,6 +13,7 @@ class CommissionUserController extends Controller
         $commissionUsers = Commissionuser::with('images')->latest()->get();
         return view('commission_users.index', compact('commissionUsers'));
     }
+
     public function getData(Request $request)
     {
         $draw = $request->input('draw', 1);
@@ -53,6 +54,13 @@ class CommissionUserController extends Controller
                 return asset('storage/' . $image->image_path);
             })->toArray();
 
+            $action ='<div class="d-flex align-items-center list-action">
+                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
+                                        href="' . url('/commission-users/edit/' . $commissionUser->id) . '"><i class="ri-pencil-line mr-0"></i></a>
+                                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
+                                        href="#" onclick="delete_commission_user(' . $commissionUser->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
+            </div>';
+
             $records[] = [
                 'first_name' => $commissionUser->first_name,
                 'middle_name' => $commissionUser->middle_name,
@@ -68,8 +76,7 @@ class CommissionUserController extends Controller
                 }, $images)),
                 
                 'created_at' => date('d-m-Y h:i', strtotime($commissionUser->created_at)),
-                'action' => "<a href='" . url('/commission-users/edit/' . $commissionUser->id) . "' class='btn btn-info mr-2'>Edit</a>
-                             <button type='button' onclick='delete_commission_user(" . $commissionUser->id . ")' class='btn btn-danger ml-2'>Delete</button>"
+                'action' => $action
             ];
         }
 
@@ -80,7 +87,6 @@ class CommissionUserController extends Controller
             'data' => $records
         ]);
     }
-
 
     public function create()
     {

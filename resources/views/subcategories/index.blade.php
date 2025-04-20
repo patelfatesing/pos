@@ -10,29 +10,33 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <h1>Category List</h1>
-                <a href="{{ route('subcategories.create') }}">Create Sub Category</a>
-
-                @if (session('success'))
-                    <p>{{ session('success') }}</p>
-                @endif
-
-                <table class="table datatable" id="subcategories_tbl">
-                    <thead>
-                        <tr>
-                            <th>
-                                <b>N</b>ame
-                            </th>
-                            <th>Main Category</th>
-                            <th>Status</th>
-                            <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-
+                <div class="col-lg-12">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+                        <div>
+                            <h4 class="mb-3">Sub Categories List</h4>
+                        </div>
+                        <a href="{{ route('subcategories.create') }}" class="btn btn-primary add-list">
+                            <i class="las la-plus mr-3"></i>Create New Sub Category
+                        </a>
+                    </div>
+                </div>
+                <div class="table-responsive rounded mb-3">
+                    <table class="table data-tables table-striped" id="subcategories_tbl">
+                        <thead class="bg-white text-uppercase">
+                            <tr class="ligth ligth-data">
+                                <th>
+                                    <b>N</b>ame
+                                </th>
+                                <th>Main Category</th>
+                                <th>Status</th>
+                                <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
                 <!-- Page end  -->
             </div>
         </div>
@@ -48,6 +52,7 @@
                 }
             });
 
+            $('#subcategories_tbl').DataTable().clear().destroy();
 
             $('#subcategories_tbl').DataTable({
                 pagelength: 10,
@@ -84,8 +89,11 @@
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: []
+                    aTargets: [2, 4] // make "action" column unsortable
                 }],
+                order: [
+                    [3, 'desc']
+                ], // 🟢 Sort by created_at DESC by default
                 dom: "Bfrtip",
                 lengthMenu: [
                     [10, 25, 50],
@@ -97,8 +105,8 @@
 
         });
 
-        function delete_store(id) {
-            
+        function delete_sub_cat(id) {
+
             Swal.fire({
                 title: "Are you sure?",
                 text: "You won't be able to revert this!",
@@ -108,8 +116,8 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        type: "delete", // "method" also works
-                        url: "{{ url('store/delete') }}/"+id, // Ensure correct Laravel URL
+                        type: "post", // "method" also works
+                        url: "{{ url('subcategories/delete') }}", // Ensure correct Laravel URL
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },

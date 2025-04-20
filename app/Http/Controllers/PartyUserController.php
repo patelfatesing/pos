@@ -52,6 +52,13 @@ class PartyUserController extends Controller
                 return asset('storage/' . $image->image_path);
             })->toArray();
 
+            $action ='<div class="d-flex align-items-center list-action">
+            <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
+                                        href="' . url('/party-users/edit/' . $partyUser->id) . '"><i class="ri-pencil-line mr-0"></i></a>
+                                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
+                                        href="#" onclick="delete_party_user(' . $partyUser->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
+            </div>';
+
             $records[] = [
                 'first_name' => $partyUser->first_name,
                 'middle_name' => $partyUser->middle_name,
@@ -64,8 +71,7 @@ class PartyUserController extends Controller
                 }, $images)),
                 
                 'created_at' => date('d-m-Y h:i', strtotime($partyUser->created_at)),
-                'action' => "<a href='" . url('/party-users/edit/' . $partyUser->id) . "' class='btn btn-info mr-2'>Edit</a>
-                             <button type='button' onclick='delete_party_user(" . $partyUser->id . ")' class='btn btn-danger ml-2'>Delete</button>"
+                'action' => $action
             ];
         }
 
@@ -154,10 +160,13 @@ class PartyUserController extends Controller
         return redirect()->route('party-users.list')->with('success', 'Party User Updated');
     }
 
-
-    public function destroy(Partyuser $Partyuser)
+    public function destroy(Request $request)
     {
-        $Partyuser->delete();
-        return response()->json(['success' => true, 'message' => 'Commission User Deleted']);
+        $id = $request->id;
+        // Find the user and soft delete
+        $record = Partyuser::findOrFail($id);
+        $record->update(['is_deleted' => 'yes']);
+
+        return redirect()->route('users.list')->with('success', 'Party User has been deleted successfully.');
     }
 }

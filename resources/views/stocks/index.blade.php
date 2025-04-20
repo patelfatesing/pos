@@ -12,29 +12,26 @@
             <div class="container-fluid">
                 <h1>Stocks</h1>
 
-                @if (session('success'))
-                    <p>{{ session('success') }}</p>
-                @endif
-
-                <table class="table datatable" id="products_table">
-                    <thead>
-                        
-                        <tr>
-                            <th>Product</th>
-                            <th>Location</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th>Batch No</th>
-                            <th>Expiry Date</th>
-                            <th>Low Stock Alert Level</th>
-                            <th>Status</th>
-                            <th data-type="date" data-format="YYYY/DD/MM">Last updated</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
+                <div class="table-responsive rounded mb-3">
+                    <table class="table data-tables table-striped" id="products_table">
+                        <thead class="bg-white text-uppercase">
+                            <tr class="ligth ligth-data">
+                                <th>Product</th>
+                                <th>Location</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Batch No</th>
+                                <th>Expiry Date</th>
+                                <th>Low Stock Alert Level</th>
+                                <th>Status</th>
+                                <th data-type="date" data-format="YYYY/DD/MM">Last updated</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
 
                 <!-- Page end  -->
             </div>

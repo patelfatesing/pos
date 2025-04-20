@@ -10,29 +10,34 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <h1>Pack Size List</h1>
-                <a href="{{ route('packsize.create') }}">Create New</a>
 
-                @if (session('success'))
-                    <p>{{ session('success') }}</p>
-                @endif
+                <div class="col-lg-12">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+                        <div>
+                            <h4 class="mb-3">Pack Size List</h4>
+                        </div>
+                        <a href="{{ route('packsize.create') }}" class="btn btn-primary add-list">
+                            <i class="las la-plus mr-3"></i>Create New Pack Size
+                        </a>
+                    </div>
+                </div>
 
-
-                <table class="table datatable" id="pack_size_tbl">
-                    <thead>
-                        <tr>
-                            <th>
-                                <b>S</b>ize
-                            </th>
-                            <th>Status</th>
-                            <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-
+                <div class="table-responsive rounded mb-3">
+                    <table class="table data-tables table-striped" id="pack_size_tbl">
+                        <thead class="bg-white text-uppercase">
+                            <tr class="ligth ligth-data">
+                                <th>
+                                    <b>S</b>ize
+                                </th>
+                                <th>Status</th>
+                                <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
                 <!-- Page end  -->
             </div>
         </div>
@@ -48,6 +53,7 @@
                 }
             });
 
+            $('#pack_size_tbl').DataTable().clear().destroy();
 
             $('#pack_size_tbl').DataTable({
                 pagelength: 10,
@@ -62,9 +68,7 @@
                     "type": "post",
                     "data": function(d) {},
                 },
-                aoColumns: [
-
-                    {
+                aoColumns: [{
                         data: 'size'
                     },
                     {
@@ -77,12 +81,14 @@
                         data: 'action'
                     }
                     // Define more columns as per your table structure
-
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: []
+                    aTargets: [1, 3] // make "action" column unsortable
                 }],
+                order: [
+                    [2, 'desc']
+                ], // 🟢 Sort by created_at DESC by default
                 dom: "Bfrtip",
                 lengthMenu: [
                     [10, 25, 50],
@@ -95,7 +101,7 @@
         });
 
         function delete_category(id) {
-            
+
             Swal.fire({
                 title: "Are you sure?",
                 text: "You won't be able to revert this!",
@@ -106,7 +112,7 @@
                 if (result.isConfirmed) {
                     $.ajax({
                         type: "delete", // "method" also works
-                        url: "{{ url('store/delete') }}/"+id, // Ensure correct Laravel URL
+                        url: "{{ url('store/delete') }}/" + id, // Ensure correct Laravel URL
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },

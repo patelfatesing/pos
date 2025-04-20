@@ -23,7 +23,6 @@
                 <div class="col-lg-12">
                     <div class="table-responsive rounded mb-3">
                         <table class="table data-tables table-striped" id="products_table">
-
                             <thead class="bg-white text-uppercase">
                                 <tr class="ligth ligth-data">
                                     <th>
@@ -186,7 +185,7 @@
 
         });
 
-        function delete_store(id) {
+        function delete_product(id) {
 
             Swal.fire({
                 title: "Are you sure?",
@@ -197,8 +196,8 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        type: "delete", // "method" also works
-                        url: "{{ url('store/delete') }}/" + id, // Ensure correct Laravel URL
+                        type: "post", // "method" also works
+                        url: "{{ url('products/delete') }}", // Ensure correct Laravel URL
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
