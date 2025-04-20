@@ -11,7 +11,7 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between">
                                 <div class="header-title">
-                                    <h4 class="card-title">Purchase Order</h4>
+                                    <h4 class="card-title">Delivery Order</h4>
                                 </div>
                                 <div>
                                     <a href="{{ route('purchase.list') }}" class="btn btn-secondary">Back</a>
@@ -191,8 +191,6 @@
                                         </form>
                                     </div>
                                 </div>
-
-
                             </div>
                         </div>
                     </div>
@@ -294,10 +292,11 @@
                 const row = `
                 <tr>
                     <td>${srNo}</td>
+                    <input type="hidden" name="products[${srNo - 1}][product_id]" value="${brand}">
                     <td><input type="text" name="products[${srNo - 1}][brand_name]" class="form-control" value="${brandVal}" readonly></td>
-                    <td><input type="text" name="products[${srNo - 1}][batch]" class="form-control" value="${batch}" readonly></td>
-                    <td><input type="date" name="products[${srNo - 1}][mfg_date]" class="form-control" value="${mfg}" readonly></td>
-                    <td><input type="number" step="0.01" name="products[${srNo - 1}][mrp]" class="form-control" value="${mrp}" readonly></td>
+                    <td><input type="text" name="products[${srNo - 1}][batch]" class="form-control" value="${batch}"></td>
+                    <td><input type="date" name="products[${srNo - 1}][mfg_date]" class="form-control" value="${mfg}"></td>
+                    <td><input type="number" step="0.01" name="products[${srNo - 1}][mrp]" class="form-control" value="${mrp}"></td>
                     <td><input type="number" name="products[${srNo - 1}][qnt]" class="form-control" value="${qty}" min="1" data-prev="${qty}"></td>
                     <td><input type="number" step="0.01" name="products[${srNo - 1}][rate]" class="form-control" value="${rate}"></td>
                     <td><input type="number" step="0.01" name="products[${srNo - 1}][amount]" class="form-control" value="${amount}" readonly></td>

@@ -78,7 +78,7 @@
                 </div>
             @endif
         </div>
-        <div class="table-responsive">
+        <div class="table-responsive mb-2" id="main_tb">
             <div class="cart-table-scroll {{ count($itemCarts) > 5 ? 'scrollable' : '' }}">
                 
                 <table class="table table-bordered" id="cartTable">
@@ -150,7 +150,6 @@
             </div>
         </div>
         
-   
         <div class="card shadow-sm mb-3">
             <div class="card-body p-0">
                 <table class="table table-bordered text-center mb-0">
@@ -492,11 +491,17 @@
                     <div class="col-md-6">
                         <h5 class="mb-0">🛒 Cart Summary</h5>
                     </div>
+<<<<<<< Updated upstream
                     <div class="col-md-6 text-right">
                         <button type="button" id="customer" class="btn btn-primary btn-sm mr-2 " data-toggle="modal"
                             data-target="#closeShiftModal">
                             Close Shift
                         </button>
+=======
+                    <div class="col-md-4">
+                    </div>
+                    <div class="col-md-2 text-end">
+>>>>>>> Stashed changes
                         <button type="button" class="btn btn-outline-danger ms-2" data-bs-toggle="tooltip"
                             data-bs-placement="top" title="Logout"
                             onclick="document.getElementById('logout-form').submit();">

@@ -56,6 +56,7 @@ class InventoryController extends Controller
         $query = \App\Models\Inventory::select(
                 'inventories.*',
                 'products.name as product_name',
+                'products.reorder_level',
                 'products.cost_price',
                 'branches.name as branch_name'
             )
@@ -75,7 +76,7 @@ class InventoryController extends Controller
         if ($request->has('store_id') && $request->store_id != '') {
             $query->where('branches.id', $request->store_id);
         }
-
+        
         if (in_array(session('role_name'), ['warehouse'])) {
         
             $query->where(function ($q)  {

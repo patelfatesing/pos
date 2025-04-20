@@ -143,7 +143,6 @@
             const id = $('#request_id').val();
             const baseUrl = "{{ url('/stock-requests') }}";
 
-
             $.ajax({
                 url: `${baseUrl}/${id}/approve`,
                 method: 'POST',

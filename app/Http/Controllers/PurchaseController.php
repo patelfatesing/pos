@@ -9,6 +9,10 @@ use App\Models\Product;
 use App\Models\VendorList;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
+use App\Models\Inventory;
+use Illuminate\Support\Facades\Auth;
 
 class PurchaseController extends Controller
 {
@@ -17,7 +21,6 @@ class PurchaseController extends Controller
      */
     public function index()
     {    
-
         return view('purchase.index');
     }
 
@@ -27,20 +30,14 @@ class PurchaseController extends Controller
     public function create()
     {
         $vendors = VendorList::where('is_active', true)->get();
-        $products = Product::with('inventories')->where('is_deleted', 'no')->get();
+        $products = Product::select('id','name')->where('is_deleted', 'no')->get();
 
-    //     $products = Product::select('products.id','products.name', 'inventories.quantity')
-    // ->join('inventories', 'products.id', '=', 'inventories.product_id')
-    // ->where('products.is_deleted', 'no')
-    // ->orderBy('inventories.quantity', 'asc')
-    // ->get();
-
-    $products = Product::select('products.id', 'products.name', DB::raw('SUM(inventories.quantity) as total_quantity'))
-    ->join('inventories', 'products.id', '=', 'inventories.product_id')
-    ->where('products.is_deleted', 'no')
-    ->groupBy('products.id', 'products.name') // Include all selected fields
-    ->orderBy('inventories.id', 'asc')
-    ->get();
+        // $products = Product::select('products.id', 'products.name', DB::raw('SUM(inventories.quantity) as total_quantity'))
+        // ->join('inventories', 'products.id', '=', 'inventories.product_id')
+        // ->where('products.is_deleted', 'no')
+        // ->groupBy('products.id', 'products.name') // Include all selected fields
+        // ->orderBy('inventories.id', 'asc')
+        // ->get();
 
         return view('purchase.create', compact('vendors','products'));
     }
@@ -110,6 +107,68 @@ class PurchaseController extends Controller
                     'rate' => $product['rate'],
                     'amount' => $product['amount'],
                 ]);
+
+                // $user_id = Auth::id();
+
+                // $user_details = UserInfo::select('branch_id')
+                // ->where('user_id', $user_id)
+                // ->firstOrFail();
+
+                // $product_id = $product['product_id'];
+                // $batch = $product['batch'];
+                // $expiryDatePlusOneYear = Carbon::parse($product['mfg_date'])->addYear();
+
+                // $record = Product::with('inventories')->where('id', $product_id)->where('is_deleted', 'no')->firstOrFail();
+                // dd($record);
+                // if ($record->inventories->isEmpty()) {
+                    
+                //     $batchNumber = strtoupper($request->sku) . '-' . now()->format('Ymd') . '-' . Str::upper(Str::random(4));
+        
+                //     $inventory = Inventory::firstOrCreate([
+                //         'product_id'  => $product_id,
+                //         'store_id'    => 1,
+                //         'location_id'    => 1,
+                //         'batch_no'    => $batch,
+                //         'expiry_date' => $expiryDatePlusOneYear,
+                //         'added_by' => Auth::id(),
+                //     ]);
+
+                // } else {
+                    
+                //     foreach($record->inventories as $key => $val){
+                //         if ($record->inventories->batch_no == $batch) {
+
+                //         }else{
+                //             $inventory = Inventory::firstOrCreate([
+                //                 'product_id'  => $product_id,
+                //                 'store_id'    => 1,
+                //                 'location_id'    => 1,
+                //                 'batch_no'    => $batch,
+                //                 'expiry_date' => $expiryDatePlusOneYear,
+                //                 'added_by' => Auth::id(),
+                //             ]);
+                //         }
+                //     }
+                // }
+                
+                // dd($record);
+            
+                // Add stock
+                // $inventory->quantity += $validated['quantity'];
+            
+                // // Optionally update pricing
+                // if (isset($validated['cost_price'])) {
+                //     $inventory->cost_price = $validated['cost_price'];
+                // }
+                // if (isset($validated['sell_price'])) {
+                //     $inventory->sell_price = $validated['sell_price'];
+                // }
+            
+                // $inventory->save();
+                // $inventoryService = new \App\Services\InventoryService();
+        
+                // $inventoryService->transferProduct($validated['product_id'], $inventory->id, $user_details->branch_id, '', $validated['quantity'],'add_stock');
+               
             }
 
             DB::commit();
@@ -155,77 +214,93 @@ class PurchaseController extends Controller
     }
 
     public function getData(Request $request)
-{
-    $draw = $request->input('draw', 1);
-    $start = $request->input('start', 0);
-    $length = $request->input('length', 10);
-    $searchValue = $request->input('search.value', '');
-    $orderColumnIndex = $request->input('order.0.column', 0);
-    $orderColumn = $request->input('columns.' . $orderColumnIndex . '.data', 'id');
-    $orderDirection = $request->input('order.0.dir', 'asc');
+    {
+        $draw = $request->input('draw', 1);
+        $start = $request->input('start', 0);
+        $length = $request->input('length', 10);
+        $searchValue = $request->input('search.value', '');
+        $orderColumnIndex = $request->input('order.0.column', 0);
+        $orderColumn = $request->input('columns.' . $orderColumnIndex . '.data', 'id');
+        $orderDirection = $request->input('order.0.dir', 'asc');
 
-    $query = Purchase::with('vendor'); // Eager load vendor
+        $query = Purchase::with('vendor'); // Eager load vendor
 
-    // Search filter
-    if (!empty($searchValue)) {
-        $query->where(function ($q) use ($searchValue) {
-            $q->where('bill_no', 'like', '%' . $searchValue . '%')
-              ->orWhereHas('vendor', function ($q2) use ($searchValue) {
-                  $q2->where('name', 'like', '%' . $searchValue . '%');
-              });
-        });
+        // Search filter
+        if (!empty($searchValue)) {
+            $query->where(function ($q) use ($searchValue) {
+                $q->where('bill_no', 'like', '%' . $searchValue . '%')
+                ->orWhereHas('vendor', function ($q2) use ($searchValue) {
+                    $q2->where('name', 'like', '%' . $searchValue . '%');
+                });
+            });
+        }
+
+        $recordsTotal = Purchase::count();
+        $recordsFiltered = $query->count();
+
+        $data = $query->orderBy($orderColumn, $orderDirection)
+            ->offset($start)
+            ->limit($length)
+            ->get();
+
+        $records = [];
+
+        foreach ($data as $purchase) {
+            $records[] = [
+                'bill_no' => $purchase->bill_no,
+                'party_name' => $purchase->vendor->name ?? 'N/A',
+                'total' => number_format($purchase->total, 2),
+                'total_amount' => number_format($purchase->total_amount, 2),
+                'created_at' => date('d-m-Y h:i', strtotime($purchase->created_at)),
+                'action' => ' <div class="d-flex align-items-center list-action">
+                                        <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
+                                            href="' . url('/purchase/view/' . $purchase->id) . '"><i class="ri-eye-line mr-0"></i></a>
+                </div>'
+
+                // 'action' => "<a href='" . url('/purchase/view/' . $purchase->id) . "' class='btn btn-info mr-2'>View</a>
+                //              <button type='button' onclick='delete_purchase(" . $purchase->id . ")' class='btn btn-danger ml-2'>Delete</button>"
+            ];
+        }
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $records
+        ]);
     }
 
-    $recordsTotal = Purchase::count();
-    $recordsFiltered = $query->count();
-
-    $data = $query->orderBy($orderColumn, $orderDirection)
-        ->offset($start)
-        ->limit($length)
-        ->get();
-
-    $records = [];
-
-    foreach ($data as $purchase) {
-        $records[] = [
-            'bill_no' => $purchase->bill_no,
-            'party_name' => $purchase->vendor->name ?? 'N/A',
-            'total' => number_format($purchase->total, 2),
-            'total_amount' => number_format($purchase->total_amount, 2),
-            'created_at' => date('d-m-Y h:i', strtotime($purchase->created_at)),
-            'action' => ' <div class="d-flex align-items-center list-action">
-                                    <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                                        href="' . url('/purchase/view/' . $purchase->id) . '"><i class="ri-eye-line mr-0"></i></a>
-            </div>'
-
-            // 'action' => "<a href='" . url('/purchase/view/' . $purchase->id) . "' class='btn btn-info mr-2'>View</a>
-            //              <button type='button' onclick='delete_purchase(" . $purchase->id . ")' class='btn btn-danger ml-2'>Delete</button>"
-        ];
-    }
-
-    return response()->json([
-        'draw' => $draw,
-        'recordsTotal' => $recordsTotal,
-        'recordsFiltered' => $recordsFiltered,
-        'data' => $records
-    ]);
-}
-
-
-        /**
+    /**
      * Show the form for editing the specified resource.
      */
     public function getProductDetails(string $id)
     {
         // $record = Product::with('inventories')->where('id', $id)->where('is_deleted', 'no')->firstOrFail();
 
-        $record = Product::select('products.id', 'products.name','products.brand','inventories.batch_no','inventories.mfg_date','inventories.cost_price','inventories.sell_price', DB::raw('SUM(inventories.quantity) as total_quantity'))
-    ->join('inventories', 'products.id', '=', 'inventories.product_id')
-    ->where('products.is_deleted', 'no')
-    ->where('products.id', $id)
-    ->groupBy('products.id', 'products.name','products.brand','inventories.batch_no','inventories.mfg_date','inventories.cost_price','inventories.sell_price') // Include all selected fields
-    ->orderBy('total_quantity', 'asc')
-    ->first();
+        $record = Product::select(
+            'products.id',
+            'products.name',
+            'products.brand',
+            'inventories.batch_no',
+            'inventories.mfg_date',
+            'products.cost_price',
+            'products.sell_price',
+            DB::raw('SUM(COALESCE(inventories.quantity, 0)) as total_quantity')
+        )
+        ->leftJoin('inventories', 'products.id', '=', 'inventories.product_id')
+        ->where('products.is_deleted', 'no')
+        ->where('products.id', $id)
+        ->groupBy(
+            'products.id',
+            'products.name',
+            'products.brand',
+            'inventories.batch_no',
+            'inventories.mfg_date',
+            'products.cost_price',
+            'products.sell_price'
+        )
+        ->orderBy('total_quantity', 'asc')
+        ->first();
 
         return json_decode($record);
     }
