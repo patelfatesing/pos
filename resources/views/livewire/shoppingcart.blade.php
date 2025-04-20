@@ -1,6 +1,6 @@
 <div class="row ">
 
-    <div class="col-md-8 no-print">
+    <div class="col-md-7 no-print">
         <div class="col-md-12">
             <h4 class="text-right">Store Location:: {{ $this->branch_name }}</h4>
 
@@ -68,7 +68,7 @@
                 <div class="col-md-4">
                     <div class="row">
                         <div class="col-md-6">
-                            <button type="button" id="customer" class="btn btn-primary mt-2" data-toggle="modal"
+                            <button type="button" id="customer" class="btn btn-primary btn-sm mr-2 " data-toggle="modal"
                                 data-target="#captureModal">
                                 Take picture
                             </button>
@@ -78,70 +78,73 @@
                 </div>
             @endif
         </div>
-
-        <div class="table-responsive" style="max-height: 700px; min-height: 520px; overflow-y: auto;">
-            <table class="table table-bordered" id="cartTable">
-                <thead class="thead-light">
-                    <tr>
-                        <th style="width: 50%;">Product</th>
-                        <th style="width: 20%;">Quantity</th>
-                        <th style="width: 10%;">Price</th>
-                        <th style="width: 10%;">Total</th>
-                        <th style="width: 10%;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($itemCarts as $item)
+        <div class="table-responsive">
+            <div 
+                class="cart-table-scroll" 
+                style="max-height: {{ count($itemCarts) > 5 ? '400px' : 'auto' }}; overflow-y: {{ count($itemCarts) > 5 ? 'auto' : 'visible' }};">
+                <table class="table table-bordered" id="cartTable">
+                    <thead class="thead-light">
                         <tr>
-                            <td class="product-name" style="word-wrap: break-word; width: 50%;">
-                                <strong>{{ $item->product->name }}</strong><br>
-                                <small>{{ $item->product->description }}</small>
-                            </td>
-                            <td style="width: 20%;">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <button class="btn btn-sm btn-outline-success"
-                                        wire:click="decrementQty({{ $item->id }})">−</button>
-                                    <input type="number" min="1"
-                                        class="form-control form-control-sm mx-2 text-center"
-                                        wire:model.lazy="quantities.{{ $item->id }}"
-                                        wire:change="updateQty({{ $item->id }})" />
-                                    <button class="btn btn-sm btn-outline-warning"
-                                        wire:click="incrementQty({{ $item->id }})">+</button>
-                                </div>
-                            </td>
-                            <td style="width: 10%;">
-                                @if (@$item->product->inventorie->discount_price && $this->commissionAmount > 0)
-                                    <span class="text-danger">
+                            <th style="width: 50%;">Product</th>
+                            <th style="width: 20%;">Quantity</th>
+                            <th style="width: 10%;">Price</th>
+                            <th style="width: 10%;">Total</th>
+                            <th style="width: 10%;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($itemCarts as $item)
+                            <tr>
+                                <td class="product-name" style="word-wrap: break-word; width: 50%;">
+                                    <strong>{{ $item->product->name }}</strong><br>
+                                    <small>{{ $item->product->description }}</small>
+                                </td>
+                                <td style="width: 20%;">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <button class="btn btn-sm btn-outline-success"
+                                            wire:click="decrementQty({{ $item->id }})">−</button>
+                                        <input type="number" min="1"
+                                            class="form-control form-control-sm mx-2 text-center"
+                                            wire:model.lazy="quantities.{{ $item->id }}"
+                                            wire:change="updateQty({{ $item->id }})" />
+                                        <button class="btn btn-sm btn-outline-warning"
+                                            wire:click="incrementQty({{ $item->id }})">+</button>
+                                    </div>
+                                </td>
+                                <td style="width: 10%;">
+                                    @if (@$item->product->inventorie->discount_price && $this->commissionAmount > 0)
+                                        <span class="text-danger">
+                                            ₹{{ number_format(@$item->product->inventorie->sell_price, 2) }}
+                                        </span>
+                                        <br>
+                                        <small class="text-muted">
+                                            <s>₹{{ number_format(@$item->product->inventorie->discount_price, 2) }}</s>
+                                        </small>
+                                    @else
                                         ₹{{ number_format(@$item->product->inventorie->sell_price, 2) }}
-                                    </span>
-                                    <br>
-                                    <small class="text-muted">
-                                        <s>₹{{ number_format(@$item->product->inventorie->discount_price, 2) }}</s>
-                                    </small>
-                                @else
-                                    ₹{{ number_format(@$item->product->inventorie->sell_price, 2) }}
-                                @endif
-                            </td>
-                            <td style="width: 10%;">
-                                ₹{{ number_format(@$item->product->inventorie->sell_price * $item->quantity, 2) }}
-                            </td>
-                            <td style="width: 10%;">
-                                <button class="btn btn-sm btn-danger"
-                                    wire:click="removeItem({{ $item->id }})">Remove</button>
-                            </td>
-                        </tr>
-
-                    @empty
-                        <tr>
-                            <td colspan="5" class="text-center text-muted">No products found in the cart.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-            <div class="mt-3">
-                {{-- {{ $itemCarts->links('components.pagination.custom') }} --}}
+                                    @endif
+                                </td>
+                                <td style="width: 10%;">
+                                    ₹{{ number_format(@$item->product->inventorie->sell_price * $item->quantity, 2) }}
+                                </td>
+                                <td style="width: 10%;">
+                                    <button class="btn btn-sm btn-danger"
+                                        wire:click="removeItem({{ $item->id }})">Remove</button>
+                                </td>
+                            </tr>
+    
+                        @empty
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">No products found in the cart.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+               
             </div>
         </div>
+        
+   
         <div class="card shadow-sm mb-3">
             <div class="card-body p-0">
                 <table class="table table-bordered text-center mb-0">
@@ -174,23 +177,23 @@
                         </tr>
                         <tr>
                             <td>
-                                <button wire:click="toggleBox" class="btn btn-lg btn-primary w-100 shadow-sm">
+                                <button wire:click="toggleBox" class="btn btn-sm btn-primary w-100 shadow-sm">
                                     <i class="bi bi-file-earmark-spreadsheet me-2"></i> Cash
                                 </button>
 
                             </td>
                             <td>
-                                <button class="btn btn-lg btn-primary w-100 shadow-sm">
+                                <button class="btn btn-sm btn-primary w-100 shadow-sm">
                                     <i class="bi bi-file-earmark-spreadsheet me-2"></i> Online
                                 </button>
                             </td>
                             <td>
-                                <button class="btn btn-lg btn-primary w-100 shadow-sm">
+                                <button class="btn btn-sm btn-primary w-100 shadow-sm">
                                     <i class="bi bi-file-earmark-spreadsheet me-2"></i> Hold
                                 </button>
                             </td>
                             <td>
-                                <button class="btn btn-lg btn-primary w-100 shadow-sm">
+                                <button class="btn btn-sm btn-primary w-100 shadow-sm">
                                     <i class="bi bi-file-earmark-spreadsheet me-2"></i> Cash + UPI
                                 </button>
                             </td>
@@ -254,9 +257,28 @@
             </div>
         </div>
     </div>
+    <!-- Modal HTML -->
+    <div class="modal fade" id="firstLoginModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+        <form method="POST" action="{{ route('cash-in-hand') }}">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Enter Amount</h5>
+                </div>
+                <div class="modal-body">
+                    <input type="number" name="amount" class="form-control" placeholder="Enter amount" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary btn-sm mr-2">Save</button>
+                </div>
+            </div>
+        </form>
+        </div>
+    </div>
+    
 
-
-    <div class="col-md-4 no-print">
+    <div class="col-md-5 no-print">
 
         <div class="card">
             <div class="card-header">
@@ -376,12 +398,12 @@
                             <p id="result" class="mt-3 fw-bold text-success"></p>
                             <div class="mt-4">
                                 @if ($selectedCommissionUser || $selectedPartyUser)
-                                    <button id="paymentSubmit" class="btn btn-primary btn-block mt-4"
+                                    <button id="paymentSubmit" class="btn btn-primary btn-sm mr-2 btn-block mt-4"
                                         style="display:none" wire:click="checkout" wire:loading.attr="disabled">
                                         Submit
                                     </button>
                                 @endif
-                                <div wire:loading class="mt-2 text-muted">Processing payment...</div>
+                                <div wire:loading class=" text-muted">Processing payment...</div>
                             </div>
 
                         </form>
@@ -529,7 +551,18 @@
     window.onafterprint = () => {
         window.location.reload();
     };
+    
 </script>
+
+  <!-- Script to show modal -->
+  {{-- @if($showModal) --}}
+  <script>
+    //   window.addEventListener('DOMContentLoaded', () => {
+    //       const modal = new bootstrap.Modal(document.getElementById('firstLoginModal'));
+    //       modal.show();
+    //   });
+  </script>
+  {{-- @endif --}}
 
 
 <script>
@@ -640,7 +673,7 @@
         if (cash == total) {
             document.getElementById('paymentSubmit').style.display = 'block';
 
-            document.getElementById('result').textContent = `Total Cash: ₹${total.toLocaleString()}`;
+           // document.getElementById('result').textContent = `Total Cash: ₹${total.toLocaleString()}`;
         }
     }
 

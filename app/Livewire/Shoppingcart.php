@@ -298,8 +298,8 @@ class Shoppingcart extends Component
             $this->updateQty($CartDb->id);
             $this->dispatch('updateCartCount');
             $this->dispatch('updateProductList');
+            $this->reset('searchTerm', 'searchResults', 'showSuggestions');
             session()->flash('success', 'Product added to the cart successfully');
-            $this->reset('cashAmount', 'commissionAmount', 'showBox');
         } else {
             // redirect to login page
             return redirect(route('login'));
