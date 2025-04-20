@@ -79,9 +79,8 @@
             @endif
         </div>
         <div class="table-responsive">
-            <div 
-                class="cart-table-scroll" 
-                style="max-height: {{ count($itemCarts) > 5 ? '400px' : 'auto' }}; overflow-y: {{ count($itemCarts) > 5 ? 'auto' : 'visible' }};">
+            <div class="cart-table-scroll {{ count($itemCarts) > 5 ? 'scrollable' : '' }}">
+                
                 <table class="table table-bordered" id="cartTable">
                     <thead class="thead-light">
                         <tr>

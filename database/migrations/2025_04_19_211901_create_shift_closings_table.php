@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('branch_id')->constrained()->onDelete('cascade'); // references branches table
 
             $table->timestamp('start_time');
-            $table->timestamp('end_time');
+            $table->timestamp('end_time')->nullable();
             $table->integer('opening_cash')->default(0);
 
             $table->integer('deshi_sales')->default(0);

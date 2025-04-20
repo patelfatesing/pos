@@ -21,15 +21,21 @@
                                 <form action="{{ route('packsize.store') }}" method="POST" data-toggle="validator">
                                     @csrf
                                     <div class="row">
+                                        
                                         <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Size *</label>
-                                                <input type="text" name="size" class="form-control"
-                                                    placeholder="Enter Size" required>
-                                                @error('size')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                            </div>
+                                            <label>Size *</label>
+                                            <div class="input-group mb-4">
+                                                
+                                                <input type="text" class="form-control" name="size" placeholder="Enter Size" value="{{old('size')}}"
+                                                   aria-label="Enter Size" aria-describedby="basic-addon2">
+                                                <div class="input-group-append">
+                                                   <span class="input-group-text" id="basic-addon2">ML</span>
+                                                </div>
+                                                
+                                             </div>
+                                             @error('size')
+                                                <span class="text-danger">{{ $message }}</span>
+                                            @enderror
                                         </div>
 
                                     </div>

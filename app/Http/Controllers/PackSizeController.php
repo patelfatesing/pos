@@ -47,7 +47,8 @@ class PackSizeController extends Controller
         $url = url('/');
 
         foreach ($data as $role) {
-            $action = "<a href='" . $url . "/categories/edit/" . $role->id . "' class='btn btn-info mr-2'>Edit</a>";
+            $action = '';
+            // $action .= "<a href='" . $url . "/categories/edit/" . $role->id . "' class='btn btn-info mr-2'>Edit</a>";
             // $action .= '<button type="button" onclick="delete_category(' . $role->id . ')" class="btn btn-danger ml-2">Delete</button>';
 
             $records[] = [
@@ -71,10 +72,35 @@ class PackSizeController extends Controller
         return view('pack_sizes.create');
     }
 
-    public function store(StorePackSizeRequest $request)
+    public function store1(StorePackSizeRequest $request)
     {
         PackSize::create($request->validated());
         return redirect()->route('pack_sizes.index')->with('success', 'Pack Size created!');
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'size' => 'required|numeric|unique:pack_sizes,size',
+        ], [
+            'size.required' => 'The size is required.'
+        ]);
+
+            // Step 2: Add " ML" suffix
+        $sizeWithML = $validated['size'] . ' ML';
+
+        // Step 3: Check for uniqueness manually
+        $exists = \App\Models\PackSize::where('size', $sizeWithML)->exists();
+        if ($exists) {
+            return back()->withErrors(['size' => 'This size already exists.'])->withInput();
+        }
+
+        // Step 4: Save to database
+        \App\Models\PackSize::create([
+            'size' => $sizeWithML,
+        ]);
+
+        return redirect()->route('packsize.list')->with('success', 'Record created successfully.');
     }
 
     public function show(PackSize $packSize)
@@ -99,4 +125,3 @@ class PackSizeController extends Controller
         return redirect()->route('pack_sizes.index')->with('success', 'Pack Size deleted!');
     }
 }
-

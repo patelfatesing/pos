@@ -17,19 +17,16 @@
                 @endif
 
                 <table id="stock-requests-table" class="table datatable table-bordered table-striped">
-
                     <thead>
-
                         <tr>
-                            <th>Store</th>
-                            <th>Requested By</th>
+                            <th>Requested By Store</th>
                             <th data-type="date" data-format="YYYY/DD/MM">Requested At</th>
+                            <th>Total Product</th>
+                            <th>Total Quantity</th>
                             <th>Status</th>
                             <th>Actions</th>
-
                         </tr>
                     </thead>
-
                     <tbody>
                     </tbody>
                 </table>
@@ -38,62 +35,107 @@
             </div>
         </div>
     </div>
+    <style>
+        .table td {
+            padding: 5px 20px !important;
+        }
+    </style>
     <!-- Wrapper End-->
 
     <!-- Approve Modal -->
-    <div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
+
+    <div class="modal fade bd-example-modal-lg" id="approveModal" tabindex="-1" role="dialog"
+        aria-labelledby="approveModalLabel" aria-hidden="true">
+        <div class="modal-dialog  modal-lg" role="document">
             <div class="modal-content">
                 <form id="approveForm">
                     @csrf
-                    <div class="modal-header">
-                        <h5 class="modal-title">Approve Stock Request</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <input type="hidden" name="request_id" id="request_id">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Product</th>
-                                    <th>Requested Quantity</th>
-                                    <th>Edit Quantity</th>
-                                </tr>
-                            </thead>
-                            <tbody id="request-items-body">
-                                <!-- Dynamically loaded -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-success">Approve</button>
-                    </div>
-                </form>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="approveModalLabel">Approve Stock Request</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="request_id" id="request_id">
+                    <input type="hidden" name="from_store_id" id="from_store_id">
+                    <table class="table table-bordered">
+                        <thead>
+
+                        </thead>
+                        <tbody id="requested-store-info">
+                        </tbody>
+                        <tbody id="request-items-body">
+                            <!-- Dynamically loaded -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
             </div>
         </div>
     </div>
     <script>
         $(document).on('click', '.open-approve-modal', function() {
             const id = $(this).data('id');
+            
             $('#request_id').val(id);
             $('#request-items-body').html('<tr><td colspan="3">Loading...</td></tr>');
 
-            $.get('{{ url("stock-requests/popup-details/") }}/' + id, function(res) {
-                let rows = '';
-                console.log(res,"===res===");
-                res.items.forEach(item => {
-                    rows += `
+            $.get('{{ url('stock-requests/popup-details/') }}/' + id, function(res) {
+                $('#from_store_id').val(res.stockRequest.store_id);
+                
+                let storeHtml = '';
+                let requestedStoreInfo = `
+        <div class="">
+            <h5 class="mb-2 text-primary">Requested From: ${res.stockRequest.branch_name ?? 'N/A'}</h5>
+        </div>
+    `;
+                // Loop through each store group
+                Object.values(res.items_by_store).forEach(store => {
+                    let rows = '';
+                    store.items.forEach(item => {
+                        rows += `
+                <tr class="mt-2">
+                    <td>${item.product_name}</td>
+                    <td>${item.req_quantity}</td>
+                    <td>${item.store_ava_quantity}</td>
+                    <td>
+                        <input type="number" class="form-control" name="items[${item.store_id}][${item.product_id}]" value="${item.req_quantity}" min="1">
+                    </td>
+                </tr>
+            `;
+                    });
+
+                    storeHtml += `
+            <div class="mb-2 mt-2">
+                <h5 class="text-success">${store.store_name}</h5>
+                <table class="table table-bordered">
+                    <thead class="table-secondary">
                         <tr>
-                            <td>${item.product.name}</td>
-                            <td>${item.quantity}</td>
-                            <td>
-                                <input type="number" class="form-control" name="items[${item.id}]" value="${item.quantity}" min="1">
-                            </td>
-                        </tr>`;
+                            <th>Product</th>
+                            <th>Requested Qty</th>
+                            <th>Available in</th>
+                            <th>Approve Qty</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+            </div>
+        `;
                 });
-                $('#request-items-body').html(rows);
+
+                // Inject into modal
+                $('#requested-store-info').html(requestedStoreInfo);
+                $('#request-items-body').html(storeHtml);
                 $('#approveModal').modal('show');
             });
+
         });
 
         $('#approveForm').on('submit', function(e) {
@@ -138,17 +180,17 @@
                     "type": "post",
                     "data": function(d) {},
                 },
-                aoColumns: [
-
-                    {
+                aoColumns: [{
                         data: 'store'
-                    },
-
-                    {
-                        data: 'requested_by'
                     },
                     {
                         data: 'requested_at'
+                    },
+                    {
+                        data: 'total_product'
+                    },
+                    {
+                        data: 'total_quantity'
                     },
                     {
                         data: 'status'
@@ -163,6 +205,9 @@
                     bSortable: false,
                     aTargets: []
                 }],
+                order: [
+                    [1, 'desc']
+                ],
                 dom: "Bfrtip",
                 lengthMenu: [
                     [10, 25, 50],

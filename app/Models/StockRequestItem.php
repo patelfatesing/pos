@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class StockRequestItem extends Model
 {
-    protected $fillable = ['stock_request_id', 'product_id', 'quantity', 'fulfilled_quantity'];
+    protected $fillable = ['stock_request_id', 'product_id', 'quantity', 'fulfilled_quantity','request_to_location_id'];
 
     public function stockRequest(): BelongsTo {
         return $this->belongsTo(StockRequest::class);

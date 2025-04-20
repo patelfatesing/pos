@@ -23,6 +23,47 @@
 .mb-4, .my-4{
     margin-bottom: 0px !important;
 }
+.card .card-header {
+    padding: 11px 20px ! important;
+ }
+
+</style>
+
+<style>
+    .cart-table-scroll.scrollable {
+        overflow-y: auto;
+    }
+
+    /* Default (mobile first) */
+    .cart-table-scroll.scrollable {
+        max-height: 300px;
+    }
+
+    /* Tablet screens and up */
+    @media (min-width: 768px) {
+        .cart-table-scroll.scrollable {
+            max-height: 400px;
+        }
+    }
+
+    /* Desktop screens and up */
+    @media (min-width: 992px) {
+        .cart-table-scroll.scrollable {
+            max-height: 500px;
+        }
+    }
+
+    /* Large desktops */
+    @media (min-width: 1200px) {
+        .cart-table-scroll.scrollable {
+            max-height: 600px;
+        }
+    }
+    @media (min-width: 1300px) {
+        .cart-table-scroll {
+            max-height: 450px;
+        }
+    }
 </style>
     <livewire:shoppingcart />
 @endsection

@@ -18,6 +18,9 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\CashInHandController;
 use App\Http\Controllers\PackSizeController;
+use App\Http\Controllers\StockTransferController;
+use App\Http\Controllers\VendorListController;
+use App\Http\Controllers\PurchaseController;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Session;
 use App\Livewire\CashBreakdown;
@@ -94,12 +97,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
     Route::post('/products/add', [ProductController::class, 'store'])->name('products.store');
     Route::get('/products/edit/{id}', [ProductController::class, 'edit'])->name('products.edit');
+    Route::post('/products/update', [ProductController::class, 'update'])->name('products.update');
+    Route::post('/products/update-price', [ProductController::class, 'updatePrice'])->name('products.updatePrice');
+    
     Route::get('/products/check-barcode', [ProductController::class, 'check'])->name('products.checkbarcode');
     Route::get('/products/pic', [ProductController::class, 'pic'])->name('products.pic');
     Route::post('/products/upload-pic', [ProductController::class, 'uploadPhoto'])->name('products.uploadpic');
     // Route::post('/products/upload-pic', [ProductController::class, 'uploadPhotp'])->name('products.upload');
     Route::get('/products/availability/{id}', [ProductController::class, 'getAvailability']);
-
+    Route::get('/products/get-availability-branch/{id}', [ProductController::class, 'getAvailabilityBranch']);
+    
     Route::get('/stock/list', [StockController::class, 'index'])->name('stock.list');
     Route::post('/stock/get-data', [StockController::class, 'getData'])->name('stock.getData');
     Route::get('/stock/add', [StockController::class, 'add'])->name('stock.add');
@@ -200,5 +207,22 @@ Route::middleware('auth')->group(function () {
     Route::delete('/party-users/{Partyuser}', [PartyUserController::class, 'destroy'])->name('party-users.destroy');
 // });
 
+    Route::get('/stock-transfer/list', [StockTransferController::class, 'index'])->name('stock-transfer.list');
+    Route::post('/stock-transfer/store', [StockTransferController::class, 'store'])->name('stock-transfer.store');
+
+    Route::get('/vendor/list', [VendorListController::class, 'index'])->name('vendor.list');
+    Route::post('/vendor/get-data', [VendorListController::class, 'getData'])->name('vendor.getData');
+    Route::get('/vendor/create', [VendorListController::class, 'create'])->name('vendor.create');
+    Route::post('/vendor/', [VendorListController::class, 'store'])->name('vendor.store');
+    Route::get('/vendor/edit/{id}', [VendorListController::class, 'edit'])->name('vendor.edit');
+    Route::put('/vendor/{Partyuser}', [VendorListController::class, 'update'])->name('vendor.update');
+    Route::delete('/vendor/{Partyuser}', [VendorListController::class, 'destroy'])->name('vendor.destroy');
+
+    Route::get('/purchase/list', [PurchaseController::class, 'index'])->name('purchase.list');
+    Route::get('/purchase/create', [PurchaseController::class, 'create'])->name('purchase.create');
+    Route::post('/purchase/store', [PurchaseController::class, 'store'])->name('purchase.store');
+    Route::post('/purchase/get-data', [PurchaseController::class, 'getData'])->name('purchase.getData');
+    Route::get('/purchase/view/{id}', [PurchaseController::class, 'view'])->name('purchase.view');
+    Route::get('/vendor/get-product-details/{id}', [PurchaseController::class, 'getProductDetails'])->name('vendor.get-product-details');
 
 require __DIR__.'/auth.php';
