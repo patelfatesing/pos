@@ -14,6 +14,8 @@ use Livewire\WithPagination;
 use Carbon\Carbon;
 use App\Models\CashInHand;
 use App\Models\UserShift;
+use PhpParser\Node\Expr\PreInc;
+use App\Models\CashBreakdown;
 
 class Shoppingcart extends Component
 {
@@ -49,13 +51,7 @@ class Shoppingcart extends Component
     public $showModal = false;
     public $selectedUser = 0;
     protected $listeners = ['updateProductList' => 'loadCartData'];
-    public $noteDenominations = [
-        0 => 2000,
-        1 => 500,
-        2 => 200,
-        3 => 100,
-
-    ];
+    public $noteDenominations = [10, 20, 50, 100, 500];
     public $remainingAmount = 0;
     public $totalBreakdown = [];
     public $searchTerm = '';
@@ -65,6 +61,7 @@ class Shoppingcart extends Component
     public $selectedNote;
     public $cashNotes = [];
     public $todayCash = 0;
+    
     public function toggleBox()
     {
         if (!empty($this->products->toArray())) {
@@ -154,10 +151,25 @@ class Shoppingcart extends Component
         $this->categoryTotals['TOTAL CASH'] = $totalPaid;
 
         //TOTAL CASH
+        $cashBreakdowns = CashBreakdown::where(['user_id' => auth()->user()->id])->where(['branch_id'=>$branch_id])->get();
+        
+        $denominationCounts = [];
 
+        foreach ($cashBreakdowns as $breakdown) {
+            $denominations = json_decode($breakdown->denominations, true);
+            if (is_array($denominations)) {
+                foreach ($denominations as $note => $qty) {
+
+                    if (!isset($denominationCounts[$note])) {
+                        $denominationCounts[$note] = 0;
+                    }
+
+                    $denominationCounts[$note] += (Integer)$qty;
+                }
+            }
+        }
         // Decode cash JSON to array
-        if(!empty($this->shift->cashBreakdown->denominations))
-        $this->shiftcash = json_decode($this->shift->cashBreakdown->denominations, true);
+        $this->shiftcash = $denominationCounts;
 
         // return view('shift_closing.show', compact('shift'));
         $this->loadCartData();
@@ -333,12 +345,11 @@ class Shoppingcart extends Component
     public function render()
     {
 
-        if (strlen($this->searchTerm) > 1) {
+        if (strlen($this->searchTerm) > 0) {
             $this->searchResults = Product::with('inventorie')
                 ->when($this->searchTerm, function ($query) {
                     $query->where('name', 'like', '%' . $this->searchTerm . '%');
                 })
-                ->take(5)
                 ->get();
             $this->showSuggestions = true;
         } else {
@@ -476,6 +487,9 @@ class Shoppingcart extends Component
         // ✅ Trigger print via browser event
         $this->dispatch('triggerPrint');
         //return redirect()->route('invoice.show', $invoice->id);
+        Cart::where('user_id', auth()->user()->id)
+            ->where('status', '!=', Cart::STATUS['success'])
+            ->delete();
         $this->reset('searchTerm', 'searchResults', 'showSuggestions');
 
     }
