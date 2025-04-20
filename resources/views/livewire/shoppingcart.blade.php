@@ -258,13 +258,14 @@
         </div>
     </div>
     <!-- Modal HTML -->
-    <div class="modal fade" id="firstLoginModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade no-print " id="cashInHand" tabindex="-1" aria-labelledby="captureModalLabel"
+        aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog">
         <form method="POST" action="{{ route('cash-in-hand') }}">
             @csrf
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Enter Amount</h5>
+                    <h5 class="modal-title">Cash In Hand Details</h5>
                 </div>
                 <div class="modal-body">
                     <input type="number" name="amount" class="form-control" placeholder="Enter amount" required>
@@ -279,6 +280,7 @@
     
 
     <div class="col-md-5 no-print">
+        @include('layouts.flash-message')
 
         <div class="card">
             <div class="card-header">
@@ -302,7 +304,6 @@
                 </div>
 
             </div>
-            @include('layouts.flash-message')
             <div class="card-body">
                 @if ($showBox)
 
@@ -555,14 +556,14 @@
 </script>
 
   <!-- Script to show modal -->
-  {{-- @if($showModal) --}}
+  @if($showModal)
   <script>
-    //   window.addEventListener('DOMContentLoaded', () => {
-    //       const modal = new bootstrap.Modal(document.getElementById('firstLoginModal'));
-    //       modal.show();
-    //   });
+      window.addEventListener('DOMContentLoaded', () => {
+          const modal = new bootstrap.Modal(document.getElementById('cashInHand'));
+          modal.show();
+      });
   </script>
-  {{-- @endif --}}
+  @endif
 
 
 <script>
@@ -753,6 +754,28 @@
             // Reset to Step 1 when modal is closed
             document.getElementById('step1').classList.remove('d-none');
             document.getElementById('step2').classList.add('d-none');
+        });
+    });
+    $( "#cashInHand" ).click(function() {
+        e.preventDefault(); // prevent default form submission
+        $('#cashInHand').submit(); // submit the form
+        // Perform form submission using AJAX or any logic
+        // Example:
+        // $.post('/submit-url', $(this).serialize(), function(response) {
+        //   $('#myModal').modal('hide'); // hide modal after success
+        // });
+
+        // For demo purposes, simulate a successful submission
+      
+        });
+
+</script>
+<script>
+    $(document).ready(function () {
+        window.livewire.on('alert_remove', () => {
+            setTimeout(function () {
+                $(".toast").fadeOut("fast");
+            }, 5000); // auto-dismiss after 5 seconds
         });
     });
 </script>
