@@ -51,8 +51,8 @@ class Productlist extends Component
     public function calculateTotals()
     {
         $this->sub_total = $this->cartitems->sum(fn($item) => 
-            !empty($item->product->inventorie->sell_price) 
-            ? $item->product->inventorie->sell_price * $item->quantity 
+            !empty($item->product->sell_price) 
+            ? $item->product->sell_price * $item->quantity 
             : 0
         );
         //$this->tax = $this->sub_total * 0.18;

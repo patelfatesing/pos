@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Session;
 use App\Livewire\CashBreakdown;
 use App\Http\Controllers\CashController;
+use App\Http\Controllers\ShiftClosingController;
 use App\Livewire\ShiftClosingForm;
 
 Route::get('/shift-closing', ShiftClosingForm::class);
@@ -55,6 +56,8 @@ Route::middleware(['permission:editor_permission'])->get('/editor-dashboard', fu
 Route::get('/', function () {
     return redirect('/login');
 });
+Route::post('/shift-close/store', [ShiftClosingController::class, 'store'])->name('shift-close.store');
+
 
 Route::get('/dashboard', function () {
     return view('dashboard');
