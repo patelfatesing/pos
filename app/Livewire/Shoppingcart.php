@@ -7,12 +7,13 @@ use App\Models\Shoppingcart as Cart;
 use App\Models\Commissionuser;
 use App\Models\Partyuser;
 use Srmklive\PayPal\Services\PayPal as PayPalClient;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
 use App\Models\Invoice;
 use App\Models\Product;
 use Livewire\WithPagination;
-
+use Carbon\Carbon;
+use App\Models\CashInHand;
+use App\Models\UserShift;
 
 class Shoppingcart extends Component
 {
@@ -42,7 +43,7 @@ class Shoppingcart extends Component
     public $searchResults = [];
     public $products = [];
     public $tenderedAmount = 0;
-
+    public $showModal = false;
     public $selectedUser = 0;
     protected $listeners = ['updateProductList' => 'loadCartData'];
     public $noteDenominations = [
@@ -68,6 +69,8 @@ class Shoppingcart extends Component
             $this->total = $this->cashAmount;
         } else {
             session()->flash('error', 'add minimum one product');
+            $this->dispatch('alert_remove');
+
         }
     }
 
@@ -99,6 +102,14 @@ class Shoppingcart extends Component
 
     public function mount()
     {
+        $today = Carbon::today();
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
+        $UserShift = UserShift::whereDate('created_at', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id'=>$branch_id])->exists();
+        if(empty($UserShift)){ 
+            $this->showModal = true;
+        } 
+
         $this->loadCartData();
         $this->commissionUsers = Commissionuser::all(); // Assuming you have a model for this
         $this->partyUsers = Partyuser::all(); // Assuming you have a model for this

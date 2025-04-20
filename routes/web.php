@@ -22,7 +22,9 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Session;
 use App\Livewire\CashBreakdown;
 use App\Http\Controllers\CashController;
+use App\Livewire\ShiftClosingForm;
 
+Route::get('/shift-closing', ShiftClosingForm::class);
 Route::get('/cash-tender', [CashController::class, 'index']);
 Route::post('/calculate-change', [CashController::class, 'calculateChange']);
 
@@ -68,7 +70,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/users/edit/{id}', [UserController::class, 'edit'])->name('users.edit');
     Route::post('/users/update', [UserController::class, 'update'])->name('users.update');
     Route::post('/users/delete', [UserController::class, 'destroy'])->name('users.delete');
-    Route::post('/cash-in-hand', [CashInHandController::class, 'store'])->middleware('auth');
+    Route::post('/cash-in-hand', [CashInHandController::class, 'store'])->name('cash-in-hand')->middleware('auth');
 
     Route::get('/roles/list', [RolesController::class, 'index'])->name('roles.list');
     Route::post('/roles/get-data', [RolesController::class, 'getData'])->name('roles.getData');
