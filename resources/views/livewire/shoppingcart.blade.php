@@ -491,18 +491,11 @@
                     <div class="col-md-6">
                         <h5 class="mb-0">🛒 Cart Summary</h5>
                     </div>
-<<<<<<< Updated upstream
                     <div class="col-md-6 text-right">
                         <button type="button" id="customer" class="btn btn-primary btn-sm mr-2 " data-toggle="modal"
                             data-target="#closeShiftModal">
                             Close Shift
                         </button>
-=======
-                    <div class="col-md-4">
-                    </div>
-                    <div class="col-md-2 text-end">
->>>>>>> Stashed changes
-                        <button type="button" class="btn btn-outline-danger ms-2" data-bs-toggle="tooltip"
                             data-bs-placement="top" title="Logout"
                             onclick="document.getElementById('logout-form').submit();">
                             <i class="fas fa-sign-out-alt"></i>
