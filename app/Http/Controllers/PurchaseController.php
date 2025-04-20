@@ -94,11 +94,11 @@ class PurchaseController extends Controller
                 'aed_to_be_paid' => $request->aed_to_be_paid ?? 0,
                 'total_amount' => $request->total_amount,
                 'status' => $request->status ?? 'pending',
-                'created_by' => auth()->id(),
+                'created_by' => Auth::id(),
             ]);
 
             foreach ($request->products as $product) {
-                $purchase->products()->create([
+                PurchaseProduct::create([
                     'brand_name' => $product['brand_name'],
                     'batch' => $product['batch'],
                     'mfg_date' => $product['mfg_date'],
@@ -106,6 +106,7 @@ class PurchaseController extends Controller
                     'qnt' => $product['qnt'],
                     'rate' => $product['rate'],
                     'amount' => $product['amount'],
+                    'purchase_id' => $purchase->id
                 ]);
 
                 // $user_id = Auth::id();
@@ -114,61 +115,61 @@ class PurchaseController extends Controller
                 // ->where('user_id', $user_id)
                 // ->firstOrFail();
 
-                // $product_id = $product['product_id'];
-                // $batch = $product['batch'];
-                // $expiryDatePlusOneYear = Carbon::parse($product['mfg_date'])->addYear();
+                $product_id = $product['product_id'];
+                $batch = $product['batch'];
+                $expiryDatePlusOneYear = Carbon::parse($product['mfg_date'])->addYear();
 
-                // $record = Product::with('inventories')->where('id', $product_id)->where('is_deleted', 'no')->firstOrFail();
-                // dd($record);
-                // if ($record->inventories->isEmpty()) {
-                    
-                //     $batchNumber = strtoupper($request->sku) . '-' . now()->format('Ymd') . '-' . Str::upper(Str::random(4));
-        
-                //     $inventory = Inventory::firstOrCreate([
-                //         'product_id'  => $product_id,
-                //         'store_id'    => 1,
-                //         'location_id'    => 1,
-                //         'batch_no'    => $batch,
-                //         'expiry_date' => $expiryDatePlusOneYear,
-                //         'added_by' => Auth::id(),
-                //     ]);
-
-                // } else {
-                    
-                //     foreach($record->inventories as $key => $val){
-                //         if ($record->inventories->batch_no == $batch) {
-
-                //         }else{
-                //             $inventory = Inventory::firstOrCreate([
-                //                 'product_id'  => $product_id,
-                //                 'store_id'    => 1,
-                //                 'location_id'    => 1,
-                //                 'batch_no'    => $batch,
-                //                 'expiry_date' => $expiryDatePlusOneYear,
-                //                 'added_by' => Auth::id(),
-                //             ]);
-                //         }
-                //     }
-                // }
+                $record = Product::with('inventories')->where('id', $product_id)->where('is_deleted', 'no')->firstOrFail();
                 
-                // dd($record);
-            
-                // Add stock
-                // $inventory->quantity += $validated['quantity'];
-            
-                // // Optionally update pricing
-                // if (isset($validated['cost_price'])) {
-                //     $inventory->cost_price = $validated['cost_price'];
-                // }
-                // if (isset($validated['sell_price'])) {
-                //     $inventory->sell_price = $validated['sell_price'];
-                // }
-            
-                // $inventory->save();
-                // $inventoryService = new \App\Services\InventoryService();
+                $inventoryService = new \App\Services\InventoryService();
         
-                // $inventoryService->transferProduct($validated['product_id'], $inventory->id, $user_details->branch_id, '', $validated['quantity'],'add_stock');
-               
+                if ($record->inventories->isEmpty()) {
+                    
+                    $batchNumber = strtoupper($request->sku) . '-' . now()->format('Ymd') . '-' . Str::upper(Str::random(4));
+        
+                    $inventory = Inventory::firstOrCreate([
+                        'product_id'  => $product_id,
+                        'store_id'    => 1,
+                        'location_id'    => 1,
+                        'batch_no'    => $batch,
+                        'expiry_date' => $expiryDatePlusOneYear,
+                        'added_by' => Auth::id(),
+                        'quantity' => $product['qnt']
+                    ]);
+
+                    $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $product['qnt'],'add_stock');
+
+                } else {
+                    
+                    foreach($record->inventories as $key => $val){
+                        // dd($record->inventories);
+                        if ($val->batch_no == $batch) {
+
+                            $inventory = Inventory::findOrFail($val->id);
+                            
+                            $qnt = $inventory->quantity + $product['qnt'];
+                            $inventory->updated_at = now();
+                            $inventory->quantity = $qnt;
+                            $inventory->save();
+
+                            $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $product['qnt'],'add_stock');
+                                                
+                        }else{
+
+                            $inventory = Inventory::firstOrCreate([
+                                'product_id'  => $product_id,
+                                'store_id'    => 1,
+                                'location_id'    => 1,
+                                'batch_no'    => $batch,
+                                'expiry_date' => $expiryDatePlusOneYear,
+                                'quantity' => $product['qnt'],
+                                'added_by' => Auth::id(),
+                            ]);
+                            
+                            $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $product['qnt'],'add_stock');
+                        }
+                    }
+                }  
             }
 
             DB::commit();
@@ -187,30 +188,6 @@ class PurchaseController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
     }
 
     public function getData(Request $request)
@@ -310,13 +287,5 @@ class PurchaseController extends Controller
         $purchase = Purchase::with('vendor', 'productsItems')->findOrFail($id);
 
         return view('purchase.view', compact('purchase'));
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }

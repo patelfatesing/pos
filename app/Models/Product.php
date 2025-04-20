@@ -20,7 +20,8 @@ class Product extends Model
         'mfg_date',
         'cost_price',
         'sell_price',
-        'reorder_level'
+        'reorder_level',
+        'is_deleted'
     ];
 
     public static function generateSku($brand, $name, $size)

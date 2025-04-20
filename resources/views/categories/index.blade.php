@@ -11,29 +11,33 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <h1>Categories List</h1>
-                <a href="{{ route('categories.create') }}">Create New</a>
+                <div class="col-lg-12">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+                        <div>
+                            <h4 class="mb-3">Categories List</h4>
+                        </div>
+                        <a href="{{ route('categories.create') }}" class="btn btn-primary add-list">
+                            <i class="las la-plus mr-3"></i>Create New Category
+                        </a>
+                    </div>
+                </div>
+                <div class="table-responsive rounded mb-3">
+                    <table class="table data-tables table-striped" id="categories_tbl">
+                        <thead class="bg-white text-uppercase">
+                            <tr class="ligth ligth-data">
 
-                @if (session('success'))
-                    <p>{{ session('success') }}</p>
-                @endif
-
-
-                <table class="table datatable" id="categories_tbl">
-                    <thead>
-                        <tr>
-                            <th>
-                                <b>N</b>ame
-                            </th>
-                            <th>Status</th>
-                            <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-
+                                <th>
+                                    <b>N</b>ame
+                                </th>
+                                <th>Status</th>
+                                <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
                 <!-- Page end  -->
             </div>
         </div>
@@ -49,6 +53,7 @@
                 }
             });
 
+            $('#categories_tbl').DataTable().clear().destroy();
 
             $('#categories_tbl').DataTable({
                 pagelength: 10,
@@ -78,12 +83,14 @@
                         data: 'action'
                     }
                     // Define more columns as per your table structure
-
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: []
+                    aTargets: [3] // make "action" column unsortable
                 }],
+                order: [
+                    [2, 'desc']
+                ], // 🟢 Sort by created_at DESC by default
                 dom: "Bfrtip",
                 lengthMenu: [
                     [10, 25, 50],
@@ -96,7 +103,7 @@
         });
 
         function delete_category(id) {
-            
+
             Swal.fire({
                 title: "Are you sure?",
                 text: "You won't be able to revert this!",
@@ -107,7 +114,7 @@
                 if (result.isConfirmed) {
                     $.ajax({
                         type: "delete", // "method" also works
-                        url: "{{ url('store/delete') }}/"+id, // Ensure correct Laravel URL
+                        url: "{{ url('store/delete') }}/" + id, // Ensure correct Laravel URL
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },

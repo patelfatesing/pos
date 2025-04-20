@@ -242,6 +242,7 @@
         });
 
         function updateAmount() {
+            alert("sdf");
             const rate = parseFloat($('#rate').val()) || 0;
             const qty = parseInt($('#qty').val()) || 0;
             const get_total = (rate * qty);
@@ -346,6 +347,7 @@
             let am = parseFloat($row.find('input[name*="[amount]"]').val()) || 0;
             const qty = parseFloat($row.find('input[name*="[qnt]"]').val()) || 0;
             const rate = parseFloat($row.find('input[name*="[rate]"]').val()) || 0;
+
             const amount = (qty * rate).toFixed(2);
             $row.find('input[name*="[amount]"]').val(amount);
             const prevQty = parseFloat($input.data('prev')) || 0;
@@ -353,16 +355,17 @@
 
             const amountInput = $row.find('input[name*="[amount]"]');
 
-            const newAmount = (newQty * rate).toFixed(2);
-            amountInput.val(newAmount);
+            // const newAmount = (newQty * rate).toFixed(2);
+            // amountInput.val(newAmount);
 
             // Compare
             if (newQty > prevQty) {
-                console.log(`Quantity increased from ${prevQty} to ${newQty}`);
+                // console.log(`Quantity increas
+                // ed from ${prevQty} to ${newQty}`);
             } else if (newQty < prevQty) {
-                console.log(`Quantity decreased from ${prevQty} to ${newQty}`);
+                // console.log(`Quantity decreased from ${prevQty} to ${newQty}`);
             } else {
-                console.log(`Quantity unchanged`);
+                // console.log(`Quantity unchanged`);
             }
 
             // Update the prev value
@@ -376,7 +379,7 @@
             $('#total').text(total.toFixed(2));
             $('#total_amount').text(total.toFixed(2));
 
-            calculation(get_total, '', '', '', '', '', '');
+            calculation(total, '', '', '', '', '', '');
         });
 
         $('#excise_fee, #composition_vat, #surcharge_on_ca, #tcs, #aed_to_be_paid').on('input', function() {

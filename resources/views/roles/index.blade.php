@@ -6,31 +6,36 @@
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Wrapper Start -->
-    <div class="wrapper">
 
+    <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-                <h1>Roles List</h1>
-                <a href="{{ route('roles.create') }}">Create New</a>
+                <div class="col-lg-12">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+                        <div>
+                            <h4 class="mb-3">Role List</h4>
+                        </div>
+                        <a href="{{ route('roles.create') }}" class="btn btn-primary add-list">
+                            <i class="las la-plus mr-3"></i>Create New Role
+                        </a>
+                    </div>
+                </div>
 
-                @if (session('success'))
-                    <p>{{ session('success') }}</p>
-                @endif
-
-                <table class="table datatable" id="roles_table">
-                    <thead>
-                        <tr>
-                            <th>
-                                <b>N</b>ame
-                            </th>
-                            <th>Status</th>
-                            <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-
+                <div class="table-responsive rounded mb-3">
+                    <table class="table data-tables table-striped" id="roles_table">
+                        <thead class="bg-white text-uppercase">
+                            <tr class="ligth ligth-data">
+                                <th>
+                                    <b>N</b>ame
+                                </th>
+                                <th>Status</th>
+                                <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
                 <!-- Page end  -->
             </div>
         </div>
@@ -46,6 +51,7 @@
                 }
             });
 
+            $('#roles_table').DataTable().clear().destroy();
 
             $('#roles_table').DataTable({
                 pagelength: 10,
@@ -74,17 +80,18 @@
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: []
+                    aTargets: [1] // make "action" column unsortable
                 }],
+                order: [
+                    [2, 'desc']
+                ], // 🟢 Sort by created_at DESC by default
                 dom: "Bfrtip",
                 lengthMenu: [
                     [10, 25, 50],
                     ['10 rows', '25 rows', '50 rows', 'All']
                 ],
                 buttons: ['pageLength']
-
             });
-
         });
 
         function delete_user(id) {

@@ -14,7 +14,7 @@
                                     <h4 class="card-title">{{ __('messages.add_user') }}</h4>
                                 </div>
                                 <div>
-                                    <a href="{{ route('product.list') }}" class="btn btn-secondary">{{ __('messages.back') }}</a>
+                                    <a href="{{ route('users.list') }}" class="btn btn-secondary">{{ __('messages.back') }}</a>
                                 </div>
                             </div>
                             <div class="card-body">

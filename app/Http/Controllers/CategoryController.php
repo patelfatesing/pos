@@ -46,9 +46,12 @@ class CategoryController extends Controller
         $url = url('/');
 
         foreach ($data as $role) {
-            $action = "<a href='" . $url . "/categories/edit/" . $role->id . "' class='btn btn-info mr-2'>Edit</a>";
-            // $action .= '<button type="button" onclick="delete_category(' . $role->id . ')" class="btn btn-danger ml-2">Delete</button>';
 
+            $action ='<div class="d-flex align-items-center list-action">
+                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
+                                        href="' . url('/categories/edit/' . $role->id) . '"><i class="ri-pencil-line mr-0"></i></a>
+                               </div>';
+            
             $records[] = [
                 'name' => $role->name,
                 'is_active' => $role->is_active,
@@ -106,9 +109,13 @@ class CategoryController extends Controller
         return redirect()->route('categories.list')->with('success', 'Category updated!');
     }
 
-    public function destroy(Category $category)
+    public function destroy(Request $request)
     {
-        $category->delete();
-        return redirect()->route('categories.index')->with('success', 'Category deleted!');
+        $id = $request->id;
+        // Find the user and soft delete
+        $record = Category::findOrFail($id);
+        $record->update(['is_deleted' => 'yes']);
+
+        return redirect()->route('users.list')->with('success', 'Category has been deleted successfully.');
     }
 }
