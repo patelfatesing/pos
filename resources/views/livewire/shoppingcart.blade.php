@@ -3,7 +3,6 @@
     <div class="col-md-7 no-print">
         <div class="col-md-12">
             <h4 class="text-right">Store Location:: {{ $this->branch_name }}</h4>
-
         </div>
 
         <div class="row">
@@ -11,14 +10,15 @@
                 <div class="mb-3">
                     <form wire:submit.prevent="searchTerm" class="mb-3">
                         <div class="input-group">
-                            <input type="text" wire:model.live.debounce.500ms="searchTerm" placeholder="Enter Product Name" class="form-control">
+                            <input type="text" wire:model.live.debounce.500ms="searchTerm"
+                                placeholder="Enter Product Name" class="form-control">
 
                         </div>
                     </form>
                     @if ($showSuggestions && count($searchResults) > 0)
-                    <div class="search-results">
-                        
-                        <div class="list-group mb-3 ">
+                        <div class="search-results">
+
+                            <div class="list-group mb-3 ">
                                 @foreach ($searchResults as $product)
                                     <a href="#" class="list-group-item list-group-item-action"
                                         wire:click.prevent="addToCart({{ $product->id }})">
@@ -29,14 +29,13 @@
                             </div>
                         </div>
                     @endif
-                    
+
                 </div>
             </div>
-            
+
             <div class="col-md-2">
                 <div class="mb-3">
-                    <input type="text" class="form-control" id="searchBarcodeTerm"
-                        placeholder="Scan Barcode" >
+                    <input type="text" class="form-control" id="searchBarcodeTerm" placeholder="Scan Barcode">
                 </div>
 
             </div>
@@ -75,8 +74,8 @@
                 <div class="col-md-4">
                     <div class="row">
                         <div class="col-md-6">
-                            <button type="button" id="customer" class="btn btn-primary btn-sm mr-2 " data-toggle="modal"
-                                data-target="#captureModal">
+                            <button type="button" id="customer" class="btn btn-primary btn-sm mr-2 "
+                                data-toggle="modal" data-target="#captureModal">
                                 Take picture
                             </button>
                         </div>
@@ -87,7 +86,7 @@
         </div>
         <div class="table-responsive mb-2" id="main_tb">
             <div class="cart-table-scroll {{ count($itemCarts) > 5 ? 'scrollable' : '' }}">
-                
+
                 <table class="table table-bordered" id="cartTable">
                     <thead class="thead-light">
                         <tr>
@@ -107,16 +106,15 @@
                                 </td>
                                 <td style="width: 20%;">
                                     @if (auth()->user()->hasRole('cashier'))
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <input type="number" min="1"
-                                            class="form-control form-control-sm mx-2 text-center"
-                                            wire:model.lazy="quantities.{{ $item->id }}"
-                                            wire:change="updateQty({{ $item->id }})" readonly />
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <input type="number" min="1"
+                                                class="form-control form-control-sm mx-2 text-center"
+                                                wire:model.lazy="quantities.{{ $item->id }}"
+                                                wire:change="updateQty({{ $item->id }})" readonly />
 
-                                    </div>
+                                        </div>
                                     @endif
                                     @if (auth()->user()->hasRole('warehouse'))
-                    
                                         <div class="d-flex align-items-center justify-content-between">
                                             <button class="btn btn-sm btn-outline-success"
                                                 wire:click="decrementQty({{ $item->id }})">−</button>
@@ -157,7 +155,7 @@
                                         wire:click="removeItem({{ $item->id }})">Remove</button>
                                 </td>
                             </tr>
-    
+
                         @empty
                             <tr>
                                 <td colspan="5" class="text-center text-muted">No products found in the cart.</td>
@@ -165,10 +163,10 @@
                         @endforelse
                     </tbody>
                 </table>
-               
+
             </div>
         </div>
-        
+
         <div class="card shadow-sm mb-3">
             <div class="card-body p-0">
                 <table class="table table-bordered text-center mb-0">
@@ -217,7 +215,7 @@
                                 </button>
                             </td>
                             <td>
-                              
+
                                 <button wire:click="cashupitoggleBox" class="btn btn-sm btn-primary w-100 shadow-sm">
                                     <i class="bi bi-file-earmark-spreadsheet me-2"></i> Cash + UPI
                                 </button>
@@ -284,8 +282,9 @@
     </div>
     <form action="{{ route('shift-close.store') }}" method="POST">
         @csrf
-    
-        <div class="modal fade no-print" id="closeShiftModal" tabindex="-1" aria-labelledby="closeShiftModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+
+        <div class="modal fade no-print" id="closeShiftModal" tabindex="-1" aria-labelledby="closeShiftModalLabel"
+            aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content shadow-sm rounded-4 border-0">
                     <div class="modal-header bg-primary text-white rounded-top-4">
@@ -296,36 +295,36 @@
                             <span aria-hidden="true">×</span>
                         </button>
                     </div>
-    
+
                     <div class="modal-body px-4 py-4">
-    
+
                         {{-- Hidden Fields --}}
-                        <input type="hidden" name="start_time" value="{{ $shift->start_time??'' }}">
-                        <input type="hidden" name="end_time" value="{{ $shift->end_time??'' }}">
-                        <input type="hidden" name="opening_cash" value="{{ $shift->opening_cash??'' }}">
-                        <input type="hidden" name="today_cash" value="{{ $todayCash??'' }}">
-                        <input type="hidden" name="total_payments" value="{{ $shift->total_payments??'' }}">
-    
+                        <input type="hidden" name="start_time" value="{{ $shift->start_time ?? '' }}">
+                        <input type="hidden" name="end_time" value="{{ $shift->end_time ?? '' }}">
+                        <input type="hidden" name="opening_cash" value="{{ $shift->opening_cash ?? '' }}">
+                        <input type="hidden" name="today_cash" value="{{ $todayCash ?? '' }}">
+                        <input type="hidden" name="total_payments" value="{{ $shift->total_payments ?? '' }}">
+
                         {{-- Time Info --}}
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 <h5 class="text-dark text-center w-100">💰 CURRENT REGISTER</h5>
                             </div>
-    
+
                             <div class="col-md-6">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <label class="form-label fw-semibold">Start Time</label>
-                                        <div class="">{{ $shift->start_time ?? "" }}</div>
+                                        <div class="">{{ $shift->start_time ?? '' }}</div>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-semibold">End Time</label>
-                                        <div class="">{{ $shift->end_time ?? ""}}</div>
+                                        <div class="">{{ $shift->end_time ?? '' }}</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-    
+
                         {{-- Sales --}}
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
@@ -339,42 +338,43 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach($categoryTotals as $category => $amount)
+                                            @foreach ($categoryTotals as $category => $amount)
                                                 <tr>
                                                     <td class="text-start">{{ $category }}</td>
                                                     <td class="text-end">{{ number_format($amount, 2) }}</td>
                                                 </tr>
-                                                <input type="hidden" name="categories[{{ $category }}]" value="{{ $amount }}">
+                                                <input type="hidden" name="categories[{{ $category }}]"
+                                                    value="{{ $amount }}">
                                             @endforeach
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
-    
+
                             <div class="col-md-6">
                                 <table class="table table-bordered table-sm align-middle">
                                     <tbody>
                                         <tr>
                                             <td class="text-center fw-bold">OPENING CASH</td>
-                                            <td class="text-center">{{ $shift->opening_cash ??0 }}</td>
+                                            <td class="text-center">{{ $shift->opening_cash ?? 0 }}</td>
                                         </tr>
                                         <tr>
                                             <td class="text-center fw-bold">TODAY CASH</td>
-                                            <td class="text-center">{{ $todayCash ??0 }}</td>
+                                            <td class="text-center">{{ $todayCash ?? 0 }}</td>
                                         </tr>
                                         <tr>
                                             <td class="text-center fw-bold">CLOSING CASH</td>
-                                            <td class="text-center">{{ $shift->total_payments ??0 }}</td>
+                                            <td class="text-center">{{ $shift->total_payments ?? 0 }}</td>
                                         </tr>
                                     </tbody>
                                 </table>
-                                 {{-- Submit Button --}}
+                                {{-- Submit Button --}}
                                 <div class="text-right mt-3">
                                     <button type="submit" class="btn btn-primary px-4">💾 Save Shift Close</button>
                                 </div>
                             </div>
                         </div>
-    
+
                         {{-- Cash Details --}}
                         <div class="row">
                             <div class="col-md-6">
@@ -389,14 +389,15 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @if(!empty($shiftcash))
+                                            @if (!empty($shiftcash))
                                                 @foreach ($shiftcash as $key => $item)
-                                                <tr>
-                                                    <td class="text-center fw-bold">{{ $key }}</td>
-                                                    <td class="text-center">{{ $item }}</td>
-                                                    <td class="text-center">{{ $key * $item }}</td>
-                                                </tr>
-                                                <input type="hidden" name="cash_breakdown[{{ $key }}]" value="{{ $item }}">
+                                                    <tr>
+                                                        <td class="text-center fw-bold">{{ $key }}</td>
+                                                        <td class="text-center">{{ $item }}</td>
+                                                        <td class="text-center">{{ $key * $item }}</td>
+                                                    </tr>
+                                                    <input type="hidden" name="cash_breakdown[{{ $key }}]"
+                                                        value="{{ $item }}">
                                                 @endforeach
                                             @endif
                                         </tbody>
@@ -404,102 +405,94 @@
                                 </div>
                             </div>
                         </div>
-    
-                       
-    
                     </div>
                 </div>
             </div>
         </div>
     </form>
-    
-    
-    
-    
+
     <!-- Modal HTML -->
     <div class="modal fade no-print" id="cashInHand" tabindex="-1" aria-labelledby="captureModalLabel"
-    aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog">
-        <form method="POST" action="{{ route('cash-in-hand') }}">
-            @csrf
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Cash In Hand Details</h5>
-                </div>
-                <div class="modal-body">
+        aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog">
+            <form method="POST" action="{{ route('cash-in-hand') }}">
+                @csrf
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Cash In Hand Details</h5>
+                    </div>
+                    <div class="modal-body">
 
-                    <input type="number" name="amount" id="amountTotal" class="form-control mb-3"
-                        placeholder="Enter opening amount" required readonly>
+                        <input type="number" name="amount" id="amountTotal" class="form-control mb-3"
+                            placeholder="Enter opening amount" required readonly>
 
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Currency</th>
-                                <th>Nos</th>
-                                <th>Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($noteDenominations as $key => $denomination)
+                        <table class="table">
+                            <thead>
                                 <tr>
-                                    <td>₹{{ $denomination }}</td>
-                                    <td>
-                                        <input type="number"
-                                        name="cashNotes[{{ $denomination }}]"
-                                        class="form-control note-input"
-                                        id="cashnotes_{{ $denomination }}"
-                                        data-denomination="{{ $denomination }}"
-                                        value="0" min="0">
-
-                                    </td>
-                                    <td id="cashsum_{{ $denomination }}">₹0</td>
+                                    <th>Currency</th>
+                                    <th>Nos</th>
+                                    <th>Amount</th>
                                 </tr>
-                            @endforeach
-                            <tr>
-                                <td colspan="2" class="text-end fw-bold">Total Cash</td>
-                                <td id="totalNoteCashNew">₹0</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach ($noteDenominations as $key => $denomination)
+                                    <tr>
+                                        <td>₹{{ $denomination }}</td>
+                                        <td>
+                                            <input type="number" name="cashNotes[{{ $denomination }}]"
+                                                class="form-control note-input" id="cashnotes_{{ $denomination }}"
+                                                data-denomination="{{ $denomination }}" value="0"
+                                                min="0">
 
+                                        </td>
+                                        <td id="cashsum_{{ $denomination }}">₹0</td>
+                                    </tr>
+                                @endforeach
+                                <tr>
+                                    <td colspan="2" class="text-end fw-bold">Total Cash</td>
+                                    <td id="totalNoteCashNew">₹0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary btn-sm mr-2">Save</button>
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary btn-sm mr-2">Save</button>
-                </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
-</div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const inputs = document.querySelectorAll('.note-input');
-        const totalCashDisplay = document.getElementById('totalNoteCashNew');
-        const amountInput = document.getElementById('amountTotal');
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('.note-input');
+            const totalCashDisplay = document.getElementById('totalNoteCashNew');
+            const amountInput = document.getElementById('amountTotal');
 
-        function updateTotals() {
-            let total = 0;
+            function updateTotals() {
+                let total = 0;
+                inputs.forEach(input => {
+                    const denom = parseInt(input.dataset.denomination);
+                    const qty = parseInt(input.value) || 0;
+                    const sum = denom * qty;
+                    document.getElementById(`cashsum_${denom}`).innerText = `₹${sum}`;
+                    total += sum;
+                });
+                totalCashDisplay.innerText = `₹${total}`;
+                amountInput.value = total;
+            }
+
             inputs.forEach(input => {
-                const denom = parseInt(input.dataset.denomination);
-                const qty = parseInt(input.value) || 0;
-                const sum = denom * qty;
-                document.getElementById(`cashsum_${denom}`).innerText = `₹${sum}`;
-                total += sum;
+                input.addEventListener('input', updateTotals);
             });
-            totalCashDisplay.innerText = `₹${total}`;
-            amountInput.value = total;
-        }
 
-        inputs.forEach(input => {
-            input.addEventListener('input', updateTotals);
+            // Initial calculation
+            updateTotals();
         });
+    </script>
 
-        // Initial calculation
-        updateTotals();
-    });
-</script>
 
-    
 
     <div class="col-md-5 no-print">
         @include('layouts.flash-message')
@@ -515,8 +508,8 @@
                             data-target="#cashout">
                             Cash Out
                         </button> --}}
-                        <button type="button" id="customer" class="btn btn-primary btn-sm mr-2 " data-toggle="modal"
-                            data-target="#closeShiftModal">
+                        <button type="button" id="customer" class="btn btn-primary btn-sm mr-2 "
+                            data-toggle="modal" data-target="#closeShiftModal">
                             Close Shift
                         </button>
                         <button type="button" class="btn btn-outline-danger ms-2" data-bs-toggle="tooltip"
@@ -581,8 +574,8 @@
                                                 <tr>
                                                     <td class="d-flex align-items-center justify-content-between">
 
-                                                    ₹{{ $denomination }} × 
-                                                    
+                                                        ₹{{ $denomination }} ×
+
                                                         <input type="number"
                                                             wire:model="cashNotes.{{ $key }}.{{ $denomination }}"
                                                             class="form-control" id="notes_{{ $denomination }}"
@@ -594,11 +587,109 @@
                                                 </tr>
                                             @endforeach
                                             <tr>
-                                                <td  class="d-flex align-items-center justify-content-between" >Total Cash: <span class="text-right" id="totalNoteCash">₹0</span></td>
-                                              
+                                                <td class="d-flex align-items-center justify-content-between">Total
+                                                    Cash: <span class="text-right" id="totalNoteCash">₹0</span></td>
+
                                             </tr>
                                         </tbody>
                                     </table>
+                                </div>
+
+                            </div>
+                            <div class="border p-3 rounded bg-light">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <strong>Subtotal</strong>
+                                    <span>₹{{ number_format($sub_total, 2) }}</span>
+                                </div>
+
+                                @if ($commissionAmount > 0)
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <strong>Commission Deduction</strong>
+                                        <span>- ₹{{ number_format($commissionAmount, 2) }}</span>
+                                    </div>
+                                @endif
+                                @if ($partyAmount > 0)
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <strong>Point Deduction</strong>
+                                        <span>- ₹{{ number_format($partyAmount, 2) }}</span>
+                                    </div>
+                                @endif
+                                <div class="d-flex justify-content-between">
+                                    <strong>Total Payable</strong>
+                                    <span>₹{{ number_format($this->total, 2) }}</span>
+                                    <input type="text" id="total" value="{{ $this->total }}"
+                                        class="d-none" />
+                                </div>
+                            </div>
+                            <p id="result" class="mt-3 fw-bold text-success"></p>
+                            <div class="mt-4">
+                                {{-- @if ($selectedCommissionUser || $selectedPartyUser) --}}
+                                    <button id="paymentSubmit" class="btn btn-primary btn-sm mr-2 btn-block mt-4"
+                                        style="display:block" wire:click="checkout" wire:loading.attr="disabled">
+                                        Submit
+                                    </button>
+                                {{-- @endif --}}
+                                <div wire:loading class=" text-muted">Processing payment...</div>
+                            </div>
+                        </form>
+                    </div>
+                @elseif($shoeCashUpi)
+                    <div id="cashupi-payment">
+                        <form onsubmit="event.preventDefault(); calculateCash();" class="needs-validation" novalidate>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label for="cash" class="form-label">Cash Amount</label>
+
+                                    <input type="number" class="form-control" id="cash"
+                                        value="{{ $this->total }}" placeholder="Enter Cash Amount"
+                                        oninput="calculateChange()" readonly>
+
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label for="tender" class="form-label">UPI Amount</label>
+                                    <input type="number" wire:model="cashPaTenderyAmt" class="form-control"
+                                        id="tender" placeholder="Enter UPI Amount" oninput="calculateChange()">
+                                </div>
+
+                            </div>
+
+                            <hr class="">
+
+                            {{-- <h6 class="mb-3">💵 Enter Cash Denominations</h6> --}}
+                            <div class="row g-3">
+                                <div class="col-md-6">
+
+                                    <<table class="table">
+                                        <thead>
+                                            <tr colspan="2">
+                                                <th>CASH DETAILS</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($noteDenominations as $key => $denomination)
+                                                <tr>
+                                                    <td class="d-flex align-items-center justify-content-between">
+
+                                                        ₹{{ $denomination }} ×
+
+                                                        <input type="number"
+                                                            wire:model="cashNotes.{{ $key }}.{{ $denomination }}"
+                                                            class="form-control" id="notes_{{ $denomination }}"
+                                                            value="0" min="0" style="width: 60px;"
+                                                            oninput="calculateCashBreakdown()">
+                                                        =
+                                                        <span id="sum_{{ $denomination }}">₹0</span>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                            <tr>
+                                                <td class="d-flex align-items-center justify-content-between">Total
+                                                    Cash: <span class="text-right" id="totalNoteCash">₹0</span></td>
+
+                                            </tr>
+                                        </tbody>
+                                        </table>
                                 </div>
 
                             </div>
@@ -640,105 +731,6 @@
 
                         </form>
                     </div>
-                @elseif($shoeCashUpi)
-                <div id="cashupi-payment">
-                    <form onsubmit="event.preventDefault(); calculateCash();" class="needs-validation" novalidate>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label for="cash" class="form-label">Cash Amount</label>
-
-                                <input type="number" class="form-control" id="cash"
-                                    value="{{ $this->total }}" placeholder="Enter Cash Amount"
-                                    oninput="calculateChange()" readonly>
-
-                            </div>
-
-                            <div class="col-md-4">
-                                <label for="tender" class="form-label">UPI Amount</label>
-                                <input type="number" wire:model="cashPaTenderyAmt" class="form-control"
-                                    id="tender" placeholder="Enter UPI Amount"
-                                    oninput="calculateChange()">
-                            </div>
-
-                        </div>
-
-                        <hr class="">
-
-                        {{-- <h6 class="mb-3">💵 Enter Cash Denominations</h6> --}}
-                        <div class="row g-3">
-                            <div class="col-md-6">
-
-                                <<table class="table">
-                                    <thead>
-                                        <tr colspan="2">
-                                            <th>CASH DETAILS</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($noteDenominations as $key => $denomination)
-                                            <tr>
-                                                <td class="d-flex align-items-center justify-content-between">
-
-                                                ₹{{ $denomination }} × 
-                                                
-                                                    <input type="number"
-                                                        wire:model="cashNotes.{{ $key }}.{{ $denomination }}"
-                                                        class="form-control" id="notes_{{ $denomination }}"
-                                                        value="0" min="0" style="width: 60px;"
-                                                        oninput="calculateCashBreakdown()">
-                                                    =
-                                                    <span id="sum_{{ $denomination }}">₹0</span>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                        <tr>
-                                            <td  class="d-flex align-items-center justify-content-between" >Total Cash: <span class="text-right" id="totalNoteCash">₹0</span></td>
-                                          
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                        </div>
-                        <div class="border p-3 rounded bg-light">
-                            <div class="d-flex justify-content-between mb-2">
-                                <strong>Subtotal</strong>
-                                <span>₹{{ number_format($sub_total, 2) }}</span>
-                            </div>
-
-                            @if ($commissionAmount > 0)
-                                <div class="d-flex justify-content-between mb-2">
-                                    <strong>Commission Deduction</strong>
-                                    <span>- ₹{{ number_format($commissionAmount, 2) }}</span>
-                                </div>
-                            @endif
-                            @if ($partyAmount > 0)
-                                <div class="d-flex justify-content-between mb-2">
-                                    <strong>Point Deduction</strong>
-                                    <span>- ₹{{ number_format($partyAmount, 2) }}</span>
-                                </div>
-                            @endif
-                            <div class="d-flex justify-content-between">
-                                <strong>Total Payable</strong>
-                                <span>₹{{ number_format($this->total, 2) }}</span>
-                                <input type="text" id="total" value="{{ $this->total }}"
-                                    class="d-none" />
-                            </div>
-                        </div>
-                        <p id="result" class="mt-3 fw-bold text-success"></p>
-                        <div class="mt-4">
-                            @if ($selectedCommissionUser || $selectedPartyUser)
-                                <button id="paymentSubmit" class="btn btn-primary btn-sm mr-2 btn-block mt-4"
-                                    style="display:none" wire:click="checkout" wire:loading.attr="disabled">
-                                    Submit
-                                </button>
-                            @endif
-                            <div wire:loading class=" text-muted">Processing payment...</div>
-                        </div>
-
-                    </form>
-                </div>
-
                 @else
                     <div class="d-flex justify-content-between">
                         <strong>No Data Found</strong>
@@ -750,9 +742,9 @@
         </div>
 
     </div>
-  
+
     @if ($invoiceData)
-       
+
         <div class="col-lg-12 print-only">
             <div class="card card-block card-stretch card-height print rounded">
                 <div class="card-header d-flex justify-content-between bg-primary header-invoice">
@@ -784,7 +776,8 @@
                                         <tr>
                                             <td>{{ $invoiceData->created_at->format('d M Y') }}</td>
                                             <td>
-                                                <span class="badge badge-{{ $invoiceData->status == 'Paid' ? 'success' : 'danger' }}">
+                                                <span
+                                                    class="badge badge-{{ $invoiceData->status == 'Paid' ? 'success' : 'danger' }}">
                                                     {{ $invoiceData->status }}
                                                 </span>
                                             </td>
@@ -792,7 +785,7 @@
                                             {{-- <td>
                                                 <p class="mb-0">{{ $invoiceData->billing_address }}</p>
                                             </td> --}}
-                                           
+
                                         </tr>
                                     </tbody>
                                 </table>
@@ -814,16 +807,18 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($invoiceData->items as $i => $item)
-                                        <tr>
-                                            <th class="text-center" scope="row">{{ $i + 1 }}</th>
-                                            <td>
-                                                <h6 class="mb-0">{{ $item['name'] }}</h6>
-                                            </td>
-                                            <td class="text-center">{{ $item['quantity'] }}</td>
-                                            <td class="text-center">₹{{ number_format($item['price'], 2) }}</td>
-                                            <td class="text-center"><b>₹{{ number_format($item['price'] * $item['quantity'], 2) }}</b></td>
-                                        </tr>
+                                        @foreach ($invoiceData->items as $i => $item)
+                                            <tr>
+                                                <th class="text-center" scope="row">{{ $i + 1 }}</th>
+                                                <td>
+                                                    <h6 class="mb-0">{{ $item['name'] }}</h6>
+                                                </td>
+                                                <td class="text-center">{{ $item['quantity'] }}</td>
+                                                <td class="text-center">₹{{ number_format($item['price'], 2) }}</td>
+                                                <td class="text-center">
+                                                    <b>₹{{ number_format($item['price'] * $item['quantity'], 2) }}</b>
+                                                </td>
+                                            </tr>
                                         @endforeach
                                     </tbody>
                                 </table>
@@ -839,22 +834,23 @@
                                         <h6>Sub Total</h6>
                                         <p>₹{{ number_format($invoiceData->sub_total, 2) }}</p>
                                     </div>
-                                    @if($invoiceData->commission_amount > 0)
-                                    <div class="mb-2">
-                                        <h6>Commission Deduction</h6>
-                                        <p>- ₹{{ number_format($invoiceData->commission_amount, 2) }}</p>
-                                    </div>
+                                    @if ($invoiceData->commission_amount > 0)
+                                        <div class="mb-2">
+                                            <h6>Commission Deduction</h6>
+                                            <p>- ₹{{ number_format($invoiceData->commission_amount, 2) }}</p>
+                                        </div>
                                     @endif
-                                    @if($invoiceData->party_amount > 0)
-                                    <div class="mb-2">
-                                        <h6>Party Deduction</h6>
-                                        <p>- ₹{{ number_format($invoiceData->party_amount, 2) }}</p>
-                                    </div>
+                                    @if ($invoiceData->party_amount > 0)
+                                        <div class="mb-2">
+                                            <h6>Party Deduction</h6>
+                                            <p>- ₹{{ number_format($invoiceData->party_amount, 2) }}</p>
+                                        </div>
                                     @endif
                                 </div>
                                 <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
                                     <h6>Total</h6>
-                                    <h3 class="text-primary font-weight-700">₹{{ number_format($invoiceData->total, 2) }}</h3>
+                                    <h3 class="text-primary font-weight-700">
+                                        ₹{{ number_format($invoiceData->total, 2) }}</h3>
                                 </div>
                             </div>
                         </div>
@@ -862,7 +858,8 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <b class="text-danger">Notes:</b>
-                            <p class="mb-0">Thank you for your business. If you have any questions, feel free to contact us.</p>
+                            <p class="mb-0">Thank you for your business. If you have any questions, feel free to
+                                contact us.</p>
                         </div>
                     </div>
                 </div>
@@ -873,7 +870,7 @@
 </div>
 <script>
     window.addEventListener('triggerPrint', () => {
-        
+
         setTimeout(() => {
             window.print();
         }, 300);
@@ -882,18 +879,17 @@
     window.onafterprint = () => {
         window.location.reload();
     };
-    
 </script>
 
-  <!-- Script to show modal -->
-  @if($showModal)
-  <script>
-      window.addEventListener('DOMContentLoaded', () => {
-          const modal = new bootstrap.Modal(document.getElementById('cashInHand'));
-          modal.show();
-      });
-  </script>
-  @endif
+<!-- Script to show modal -->
+@if ($showModal)
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const modal = new bootstrap.Modal(document.getElementById('cashInHand'));
+            modal.show();
+        });
+    </script>
+@endif
 
 
 <script>
@@ -964,8 +960,7 @@
     }
 
     function calculateCashBreakdown() {
-        const denominations = [
-            {
+        const denominations = [{
                 id: 'notes_10',
                 value: 10,
                 sumId: 'sum_10'
@@ -994,13 +989,13 @@
 
 
         let total = 0;
-        let notesum=0;
+        let notesum = 0;
         const cash = document.getElementById('cash').value;
         const change = document.getElementById('change').value;
         denominations.forEach(note => {
             //console.log(document.getElementById(note.id).value);
             const count = parseInt(document.getElementById(note.id).value) || 0;
-           // console.log(count);
+            // console.log(count);
 
             const subtotal = count * note.value;
             total += subtotal;
@@ -1008,7 +1003,7 @@
 
             document.getElementById(note.sumId).textContent = `₹${subtotal.toLocaleString()}`;
         });
-        
+
         document.getElementById('totalNoteCash').textContent = ` ₹${total.toLocaleString()}`;
 
         total -= change;
@@ -1017,7 +1012,7 @@
         if (cash == total) {
             document.getElementById('paymentSubmit').style.display = 'block';
 
-           // document.getElementById('result').textContent = `Total Cash: ₹${total.toLocaleString()}`;
+            // document.getElementById('result').textContent = `Total Cash: ₹${total.toLocaleString()}`;
         }
     }
 
@@ -1069,7 +1064,7 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.path) {
-                        var alertmsg=(type === 'product') ? 'Product' : 'Customer';
+                        var alertmsg = (type === 'product') ? 'Product' : 'Customer';
                         if (type === 'product') {
                             document.getElementById('step1').classList.add('d-none');
                             document.getElementById('step2').classList.remove('d-none');
@@ -1082,7 +1077,7 @@
                         }
                         Swal.fire({
                             title: 'Photo Uploaded!',
-                            text: 'Your '+alertmsg+' photo has been uploaded successfully.',
+                            text: 'Your ' + alertmsg + ' photo has been uploaded successfully.',
                             icon: 'success',
                             confirmButtonText: 'OK'
                         });
@@ -1107,11 +1102,11 @@
         Livewire.on('alert_remove', () => {
             setTimeout(() => {
                 $(".toast").fadeOut("fast");
-            },2000);
+            }, 2000);
         });
     });
-    $( "#cashInHand" ).click(function() {
-       // e.preventDefault(); // prevent default form submission
+    $("#cashInHand").click(function() {
+        // e.preventDefault(); // prevent default form submission
         $('#cashInHand').submit(); // submit the form
         // Perform form submission using AJAX or any logic
         // Example:
@@ -1120,9 +1115,9 @@
         // });
 
         // For demo purposes, simulate a successful submission
-      
-        });
-        document.addEventListener('DOMContentLoaded', function () {
+
+    });
+    document.addEventListener('DOMContentLoaded', function() {
         const inputs = document.querySelectorAll('.note-input');
         const totalCashDisplay = document.getElementById('totalNoteCash');
         const amountInput = document.getElementById('amountTotal');
@@ -1148,5 +1143,4 @@
         // Initial calculation
         updateTotals();
     });
-
 </script>
