@@ -22,6 +22,10 @@ class Shoppingcart extends Component
 
     use WithPagination;
     public $invoiceData;
+    public $cash = 0;
+    public $upi = 0;
+    public $updatingField = null;
+
     public $shift;
     public $shiftcash;
 
@@ -61,11 +65,19 @@ class Shoppingcart extends Component
     public $selectedNote;
     public $cashNotes = [];
     public $todayCash = 0;
+    public $upiPayment = 0;
+    public $cashPayment = 0;
+    public $paymentType="";
+    public $scTotalCashAmt=0;
+    public $scTotalUpiAmt=0;
+    public $shiftEndTime="";
     
     public function toggleBox()
     {
         if (!empty($this->products->toArray())) {
+            $this->shoeCashUpi=false;
             $this->showBox = true;
+            $this->paymentType="cash";
             $this->total = $this->cashAmount;
         } else {
             session()->flash('error', 'add minimum one product');
@@ -76,11 +88,37 @@ class Shoppingcart extends Component
     public function cashupitoggleBox()
     {
         if (!empty($this->products->toArray())) {
+            $this->showBox = false;
             $this->shoeCashUpi = true;
+            $this->paymentType="cashupi";
+
             $this->total = $this->cashAmount;
         } else {
             session()->flash('error', 'add minimum one product');
             $this->dispatch('alert_remove');
+
+        }
+    }
+    public function updatedCash($value)
+    {
+        if ($this->updatingField !== 'upi') {
+            $this->updatingField = 'cash';
+            $this->cash = floatval($value);
+            $this->upi = $this->cashAmount - $this->cash;
+            $this->updatingField = null;
+            $this->total = $this->cashAmount;
+
+        }
+    }
+
+    public function updatedUpi($value)
+    {
+        if ($this->updatingField !== 'cash') {
+            $this->updatingField = 'upi';
+            $this->upi = floatval($value);
+            $this->cash = $this->cashAmount - $this->upi;
+            $this->updatingField = null;
+            $this->total = $this->cashAmount;
 
         }
     }
@@ -119,52 +157,88 @@ class Shoppingcart extends Component
             $this->showModal = true;
         } 
         $this->shift = UserShift::with('cashBreakdown')->with('branch')->whereDate('created_at', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id'=>$branch_id])->first();
-        
+        $this->shiftEndTime=$this->shift->end_time ?? 0;
         $invoices= Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id'=>$branch_id])->latest()->get();
-        $discountTotal=$totalSales=$totalPaid=0;
+        $discountTotal = $totalSales = $totalPaid =$totalCashPaid=$totalUpiPaid= 0;
+        $sales = ['Desi', 'BEER SALES', 'ENGLISH SALES'];
+        $this->categoryTotals = [];
 
+        // ✅ Initialize totals to 0 for all expected categories
+        foreach ($sales as $category) {
+            $this->categoryTotals[$category] = 0;
+        }
+        
         foreach ($invoices as $invoice) {
             $items = $invoice->items; // decode items from longtext JSON
-        
+
+            if (is_string($items)) {
+                $items = json_decode($items, true); // decode if not already an array
+            }
+
             if (is_array($items)) {
                 foreach ($items as $item) {
-                    $category = $item['category'] ?? 'Unknown'; // fallback if category not set
+                    $category = $item['category'] ?? 'Unknown';
                     $amount = $item['price'] ?? 0;
-        
+
                     if (!isset($this->categoryTotals[$category])) {
                         $this->categoryTotals[$category] = 0;
                     }
-        
+                    
                     $this->categoryTotals[$category] += $amount;
                 }
             }
+
             $discountTotal += ($invoice->commission_amount ?? 0) + ($invoice->party_amount ?? 0);
+            $totalCashPaid += $invoice->cash_amount ?? 0;
+            $totalUpiPaid += $invoice->upi_amount ?? 0;
             $totalSales += $invoice->sub_total;
             $totalPaid += $invoice->total;
-
+        }
+        if(isset($this->categoryTotals['Desi']))
+        {
+            $this->categoryTotals['DESHI SALES']=$this->categoryTotals['Desi'];
+            unset($this->categoryTotals['Desi']);
         }
 
         $this->todayCash=$totalPaid;
-        $this->categoryTotals['TOTAL'] = $totalSales;
+        $this->categoryTotals['TOTAL SALES'] = $totalSales;
         $this->categoryTotals['DISCOUNT'] = $discountTotal*(-1);
-        $this->categoryTotals['TOTAL CASH'] = $totalPaid;
+        $this->categoryTotals['UPI PAYMENT'] = $totalUpiPaid;
+        $this->categoryTotals['WITHDRAWAL PAYMENT'] =0;
+        $this->categoryTotals['TOTAL CASH'] = $totalCashPaid;
 
         //TOTAL CASH
-        $cashBreakdowns = CashBreakdown::where(['user_id' => auth()->user()->id])->where(['branch_id'=>$branch_id])->get();
+        $cashBreakdowns = CashBreakdown::where(['user_id' => auth()->user()->id])
+        ->where(['branch_id' => $branch_id])
+        ->where('type', '!=', 'cashinhand')  // Add condition where type is not 'cashinhand'
+        ->get();
+
         
         $denominationCounts = [];
 
         foreach ($cashBreakdowns as $breakdown) {
             $denominations = json_decode($breakdown->denominations, true);
             if (is_array($denominations)) {
-                foreach ($denominations as $note => $qty) {
+                foreach ($denominations as $key=> $noteGroup) {
+                    if(is_array($noteGroup)){
 
-                    if (!isset($denominationCounts[$note])) {
-                        $denominationCounts[$note] = 0;
+                        foreach ($noteGroup as $denomination => $count) {
+                            if (!isset($denominationCounts[$denomination])) {
+                                $denominationCounts[$denomination] = 0;
+                            }
+        
+                            $denominationCounts[$denomination] += (Integer)$count;
+                        }
+                    }else{
+                        if (!isset($denominationCounts[$key])) {
+                            $denominationCounts[$key] = 0;
+                        }
+    
+                        $denominationCounts[$key] += (Integer)$noteGroup;
+
                     }
-
-                    $denominationCounts[$note] += (Integer)$qty;
                 }
+
             }
         }
 
@@ -179,6 +253,7 @@ class Shoppingcart extends Component
             $this->quantities[$item->id] = $item->quantity;
         }
     }
+    
 
     public function loadCartData()
     {
@@ -210,7 +285,7 @@ class Shoppingcart extends Component
 
         $item = Cart::find($itemId);
         if ($item) {
-            $item->quantity = $quantity;
+            $item->quantity = $quantity+1;
             $item->save();
         }
 
@@ -465,6 +540,12 @@ class Shoppingcart extends Component
         }else  if(!empty($partyUser)){
             $address = $partyUser->address ?? null;
         }
+        if($this->paymentType=="cash"){
+            $this->cash=$this->cashPaTenderyAmt;
+            $this->upi=0;
+
+        }
+
         $invoice = Invoice::create([
             'user_id' => auth()->id(),
             'branch_id' => $branch_id,
@@ -477,6 +558,8 @@ class Shoppingcart extends Component
                 'category'=> $item->product->category->name,
                 'price' => $item->product->sell_price,
             ]),
+            'upi_amount' => $this->upi,
+            'cash_amount' => $this->cash,
             'sub_total' => $this->sub_total,
             'tax' => $this->tax,
             'status'=>"Paid",

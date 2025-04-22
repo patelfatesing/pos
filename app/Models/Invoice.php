@@ -21,6 +21,8 @@ class Invoice extends Model
         'status',
         'user_id',
         'branch_id',
+        'upi_amount',
+        'cash_amount'
     ];
 
     protected $casts = [
