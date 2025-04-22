@@ -63,6 +63,39 @@
             display: none !important;
         }
     }
+    .numpad {
+            position: absolute;
+            display: grid;
+            grid-template-columns: repeat(3, 60px);
+            gap: 10px;
+            background: #f1f1f1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            z-index: 1000;
+        }
+
+        .numpad button {
+            width: 60px;
+            height: 60px;
+            font-size: 18px;
+            border: none;
+            background-color: #fff;
+            cursor: pointer;
+            border-radius: 5px;
+            box-shadow: 0 0 4px rgba(0,0,0,0.2);
+        }
+
+        .numpad button:hover {
+            background-color: #ddd;
+        }
+        /* Ensuring logo aligns with the text */
+        .light-logo {
+           color: #32bdea !important;
+           
+        }
+
+
     </style>
     @livewireStyles
     </head>
