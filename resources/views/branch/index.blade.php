@@ -8,130 +8,139 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Wrapper Start -->
     <div class="wrapper">
-
         <div class="content-page">
             <div class="container-fluid">
-                <h1>Store List</h1>
-                <a href="{{ route('branch.create') }}">Create New</a>
 
-                @if (session('success'))
-                    <p>{{ session('success') }}</p>
-                @endif
+                <div class="col-lg-12">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+                        <div>
+                            <h4 class="mb-3">Store List</h4>
+                        </div>
+                        <a href="{{ route('branch.create') }}" class="btn btn-primary add-list">
+                            <i class="las la-plus mr-3"></i>Create New Store
+                        </a>
+                    </div>
+                </div>
 
+                <div class="table-responsive rounded mb-3">
+                    <table class="table data-tables table-striped" id="branch_table">
+                        <thead class="bg-white text-uppercase">
+                            <tr class="ligth ligth-data">
 
-                <table class="table datatable" id="branch_table">
-                    <thead>
-                        <tr>
-                            <th>
-                                <b>N</b>ame
-                            </th>
-                            <th>Address</th>
-                            <th>Status</th>
-                            <th>Main Branch</th>
-                            <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-
-                <!-- Page end  -->
+                                <th>
+                                    <b>N</b>ame
+                                </th>
+                                <th>Address</th>
+                                <th>Status</th>
+                                <th>Main Branch</th>
+                                <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    <!-- Page end  -->
+                </div>
             </div>
         </div>
-    </div>
-    <!-- Wrapper End-->
+        <!-- Wrapper End-->
 
-    <script>
-        $(document).ready(function() {
+        <script>
+            $(document).ready(function() {
 
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-            });
-
-
-            $('#branch_table').DataTable({
-                pagelength: 10,
-                responsive: true,
-                processing: true,
-                ordering: true,
-                bLengthChange: true,
-                serverSide: true,
-
-                "ajax": {
-                    "url": '{{ url('store/get-data') }}',
-                    "type": "post",
-                    "data": function(d) {},
-                },
-                aoColumns: [
-
-                    {
-                        data: 'name'
-                    },
-                    {
-                        data: 'address'
-                    },
-                    {
-                        data: 'is_active'
-                    },
-                    { data: 'main_branch' },
-                    {
-                        data: 'created_at'
-                    },
-                    {
-                        data: 'action'
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     }
-                    // Define more columns as per your table structure
+                });
 
-                ],
-                aoColumnDefs: [{
-                    bSortable: false,
-                    aTargets: []
-                }],
-                dom: "Bfrtip",
-                lengthMenu: [
-                    [10, 25, 50],
-                    ['10 rows', '25 rows', '50 rows', 'All']
-                ],
-                buttons: ['pageLength']
+                $('#branch_table').DataTable().clear().destroy();
 
-            });
+                $('#branch_table').DataTable({
+                    pagelength: 10,
+                    responsive: true,
+                    processing: true,
+                    ordering: true,
+                    bLengthChange: true,
+                    serverSide: true,
 
-        });
+                    "ajax": {
+                        "url": '{{ url('store/get-data') }}',
+                        "type": "post",
+                        "data": function(d) {},
+                    },
+                    aoColumns: [
 
-        function delete_store(id) {
-            
-            Swal.fire({
-                title: "Are you sure?",
-                text: "You won't be able to revert this!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Yes, delete it!",
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        type: "POST", // "method" also works
-                        url: "{{ url('store/delete') }}", // Ensure correct Laravel URL
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        {
+                            data: 'name'
                         },
-                        data: {
-                            id: id
+                        {
+                            data: 'address'
                         },
-                        success: function(response) {
-                            location.reload();
-                            // swal("Deleted!", "The store has been deleted.", "success")
-                            //     .then(() => location.reload());
+                        {
+                            data: 'is_active'
                         },
-                        error: function(xhr) {
-                            swal("Error!", "Something went wrong.", "error");
+                        {
+                            data: 'main_branch'
+                        },
+                        {
+                            data: 'created_at'
+                        },
+                        {
+                            data: 'action'
                         }
-                    });
-                }
+                        // Define more columns as per your table structure
+
+                    ],
+                    aoColumnDefs: [{
+                        bSortable: false,
+                        aTargets: [1, 2, 3, 5]
+                    }],
+                    order: [
+                        [4, 'desc']
+                    ], // 🟢 Sort by created_at DESC by default
+                    dom: "Bfrtip",
+                    lengthMenu: [
+                        [10, 25, 50],
+                        ['10 rows', '25 rows', '50 rows', 'All']
+                    ],
+                    buttons: ['pageLength']
+
+                });
             });
 
-        }
-    </script>
-@endsection
+            function delete_store(id) {
+
+                Swal.fire({
+                    title: "Are you sure?",
+                    text: "You won't be able to revert this!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, delete it!",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            type: "POST", // "method" also works
+                            url: "{{ url('store/delete') }}", // Ensure correct Laravel URL
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            data: {
+                                id: id
+                            },
+                            success: function(response) {
+                                location.reload();
+                                // swal("Deleted!", "The store has been deleted.", "success")
+                                //     .then(() => location.reload());
+                            },
+                            error: function(xhr) {
+                                swal("Error!", "Something went wrong.", "error");
+                            }
+                        });
+                    }
+                });
+
+            }
+        </script>
+    @endsection

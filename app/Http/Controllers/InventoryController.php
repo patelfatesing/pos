@@ -98,16 +98,22 @@ class InventoryController extends Controller
         $url = url('/');
 
         foreach ($data as $inventory) {
-            $status = ($inventory->quantity < $inventory->reorder_level)
-                ? '<span class="badge bg-danger">Low Stock</span>'
-                : '<span class="badge bg-success">OK</span>';
+            $reorder_level = ($inventory->quantity < $inventory->reorder_level)
+                ? '<span class="badge bg-danger">Low Level ('.$inventory->quantity.')</span>'
+                : '<span class="badge bg-success">'.$inventory->quantity.'</span>';
+                $status = ($inventory->status == 'Yes')
+                ? '<span class="badge bg-danger">Active</span>'
+                : '<span class="badge bg-success">Inactive</span>';
+                
                 $action = "";
                 if(session('role_name') == "admin") {
                 
-        
-            $action .= "<a href='" . $url . "/inventories/edit1/" . $inventory->id . "' class='btn btn-info mr-2'>Edit</a>";
-            // $action .= '<button type="button" onclick="delete_inventory(' . $inventory->id . ')" class="btn btn-danger">Delete</button>';
-        }
+                    $action ='<div class="d-flex align-items-center list-action">
+                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
+                        href="' . url('/inventories/edit/' . $inventory->id) . '"><i class="ri-pencil-line mr-0"></i></a>
+                    </div>';
+                }
+
             $records[] = [
                 'name' => $inventory->product_name ?? 'N/A',
                 'location' => $inventory->branch_name ?? '—',
@@ -115,7 +121,7 @@ class InventoryController extends Controller
                 'cost_price' => $inventory->cost_price,
                 'batch_no' => $inventory->batch_no,
                 'expiry_date' => $inventory->expiry_date,
-                'reorder_level' => $inventory->reorder_level,
+                'reorder_level' => $reorder_level,
                 'status' => $status,
                 'created_at' => $inventory->updated_at ? $inventory->updated_at->format('d-m-Y h:i A') : '—',
                 'action' => $action

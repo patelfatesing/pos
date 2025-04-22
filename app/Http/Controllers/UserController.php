@@ -31,20 +31,21 @@ class UserController extends Controller
         $orderColumn = $request->input('columns' . $orderColumnIndex . 'data', 'id');
         $orderDirection = $request->input('order.0.dir', 'asc');
 
-        $query = User::select('users.*', 'first_name','last_name','branches.name as branch_name', 'roles.name as role_name')
+        $query = User::select('users.*', 'first_name','last_name','branches.name as branch_name', 'roles.name as role_name','user_info.phone_number')
         ->leftJoin('user_info', 'users.id', '=', 'user_info.user_id')
         ->leftJoin('branches', 'user_info.branch_id', '=', 'branches.id')
         ->leftJoin('roles', 'users.role_id', '=', 'roles.id')->where('users.is_deleted', '!=', 'yes');
     
-    // **Search filter**
-    if (!empty($searchValue)) {
-        $query->where(function ($q) use ($searchValue) {
-            $q->where('users.name', 'like', '%' . $searchValue . '%')
-              ->orWhere('users.email', 'like', '%' . $searchValue . '%')
-              ->orWhere('branches.name', 'like', '%' . $searchValue . '%')
-              ->orWhere('roles.name', 'like', '%' . $searchValue . '%');
-        });
-    }
+    
+        // **Search filter**
+        if (!empty($searchValue)) {
+            $query->where(function ($q) use ($searchValue) {
+                $q->where('users.name', 'like', '%' . $searchValue . '%')
+                ->orWhere('users.email', 'like', '%' . $searchValue . '%')
+                ->orWhere('branches.name', 'like', '%' . $searchValue . '%')
+                ->orWhere('roles.name', 'like', '%' . $searchValue . '%');
+            });
+        }
     
         $recordsTotal = User::where('is_deleted', '!=', 'yes')->count();
         $recordsFiltered = $query->count();
@@ -74,7 +75,7 @@ class UserController extends Controller
                 'phone_number' => $employee->phone_number,
                 'role_name' => $employee->role_name,
                 'branch_name' => $employee->branch_name,
-                'is_active' => $employee->is_active,
+                'is_active' => ($employee->is_active ? '<div class="badge badge-success">Active</div>':'<div class="badge badge-success">Inactive</div>'),
                 'created_at' => date('d-m-Y h:s', strtotime($employee->created_at)),
                 'action' => $action
             ];

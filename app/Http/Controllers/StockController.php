@@ -252,6 +252,7 @@ class StockController extends Controller
         //           ->orWhere('requested_by', Auth::id());
         //     });
         // }
+        
         $recordsTotal = \App\Models\Inventory::count();
         $recordsFiltered = $query->count();
     

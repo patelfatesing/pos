@@ -36,7 +36,6 @@
                                     <th>Batch No</th>
                                     <th>Expiry Date</th>
                                     <th>Low Stock Alert Level</th>
-                                    <th>Status</th>
                                     <th data-type="date" data-format="YYYY/DD/MM">Last updated</th>
                                     <th>Action</th>
                                 </tr>
@@ -102,20 +101,49 @@
                         orderable: false
                     },
                     {
-                        data: 'status'
-                    },
-                    {
                         data: 'created_at'
                     },
                     {
-                        data: 'action',
-                        orderable: false
+                        data: 'action'
                     }
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [2, 4, 6, 7, 9] // make "action" column unsortable
+                    aTargets: [2, 4, 6, 7] // make "action" column unsortable
                 }],
+                columnDefs: [{
+                        width: "10%",
+                        targets: 0
+                    }, // set width of column 0
+                    {
+                        width: "10%",
+                        targets: 1
+                    }, // set width of column 1
+                    {
+                        width: "5%",
+                        targets: 2
+                    },{
+                        width: "5%",
+                        targets: 3
+                    },{
+                        width: "5%",
+                        targets: 4
+                    },{
+                        width: "10%",
+                        targets: 5
+                    },{
+                        width: "10%",
+                        targets: 6
+                    },{
+                        width: "10%",
+                        targets: 7
+                    },
+                    {
+                        width: "10%",
+                        targets: 8
+                    }
+                ],
+                autoWidth: false,
                 order: [
                     [8, 'desc']
                 ], // 🟢 Sort by created_at DESC by default

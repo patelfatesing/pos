@@ -17,14 +17,11 @@
                                 <h2 class="mb-3">Users List</h2>
                             </div>
                             <a href="{{ route('users.create') }}" class="btn btn-primary add-list">
-                                <i class="las la-plus mr-3"></i>Create New Users
+                                <i class="las la-plus mr-3"></i>Create New User
                             </a>
                         </div>
                     </div>
 
-                    @if (session('success'))
-                        <p>{{ session('success') }}</p>
-                    @endif
                     <div class="col-lg-12">
                         <div class="table-responsive rounded mb-3">
                             <table class="table data-tables table-striped" id="users_table">
