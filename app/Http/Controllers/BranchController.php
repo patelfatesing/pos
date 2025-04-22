@@ -53,15 +53,18 @@ class BranchController extends Controller
         $url = url('/');
         foreach ($data as $employee) {
 
-            $action = "";
-            $action .= "<a href='" . $url . "/store/edit/" . $employee->id . "' class='btn btn-info mr_2'>Edit</a>";
-            $action .= '<button type="button" onclick="delete_store(' . $employee->id . ')" class="btn btn-danger ml-2">Delete</button>';
+            $action ='<div class="d-flex align-items-center list-action">         
+                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
+                                        href="' . url('/store/edit/' . $employee->id) . '"><i class="ri-pencil-line mr-0"></i></a>
+                                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
+                                        href="#" onclick="delete_store(' . $employee->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
+            </div>';
 
             $records[] = [
                 'name' => $employee->name,
                 'address' => $employee->address,
                 'main_branch' => $employee->main_branch,
-                'is_active' => $employee->is_active,
+                'is_active' => ($employee->is_active ? '<div class="badge badge-success">Active</div>':'<div class="badge badge-success">Inactive</div>'),
                 'created_at' => date('d-m-Y h:s', strtotime($employee->created_at)),
                 'action' => $action
             ];

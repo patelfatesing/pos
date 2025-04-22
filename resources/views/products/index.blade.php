@@ -48,6 +48,11 @@
         </div>
     </div>
 
+    @php
+    // Calculate tomorrow's date
+     $minDate = \Carbon\Carbon::today()->format('Y-m-d');
+    @endphp
+
     <div class="modal fade bd-example-modal-lg" id="approveModal" tabindex="-1" role="dialog"
         aria-labelledby="approveModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
@@ -84,7 +89,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Price Apply Date</label>
-                                    <input type="date" name="changed_at" class="form-control" id="changed_at">
+                                    <input type="date" name="changed_at" min="{{ $minDate }}" class="form-control" id="changed_at">
                                     <span class="text-danger" id="changed_at_error"></span>
                                 </div>
                             </div>
@@ -217,8 +222,10 @@
 
         }
 
-        function product_price_change(id) {
+        function product_price_change(id,sell_price) {
 
+            $('#old_price').val(sell_price);
+            $('#product_id').val(id);
             $('#approveModal').modal('show');
         }
 

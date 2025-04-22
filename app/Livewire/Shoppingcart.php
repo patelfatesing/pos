@@ -85,7 +85,6 @@ class Shoppingcart extends Component
         }
     }
 
-
     public function updatedNoteDenominations()
     {
         $this->calculateBreakdown();
@@ -109,7 +108,6 @@ class Shoppingcart extends Component
 
         //$this->remainingAmount = $this->cashAmount - $total;
     }
-
 
     public function mount()
     {
@@ -145,6 +143,7 @@ class Shoppingcart extends Component
             $totalPaid += $invoice->total;
 
         }
+
         $this->todayCash=$totalPaid;
         $this->categoryTotals['TOTAL'] = $totalSales;
         $this->categoryTotals['DISCOUNT'] = $discountTotal*(-1);
@@ -168,6 +167,7 @@ class Shoppingcart extends Component
                 }
             }
         }
+
         // Decode cash JSON to array
         $this->shiftcash = $denominationCounts;
 
@@ -199,6 +199,7 @@ class Shoppingcart extends Component
             ->where('status', '!=', Cart::STATUS['success'])
             ->get();
     }
+
     public function updateQty($itemId)
     {
         $quantity = (isset($this->quantities[$itemId])) ? (int) $this->quantities[$itemId] : 0;
@@ -223,7 +224,6 @@ class Shoppingcart extends Component
         $this->dispatch('updateProductList');
     }
 
-
     public function calculateTotals()
     {
         $this->sub_total = $this->cartitems->sum(
@@ -236,6 +236,7 @@ class Shoppingcart extends Component
         $this->cashAmount = $this->total;
         // $this->remainingAmount = $this->cashAmount;
     }
+
     // public function calculateBreakdown()
     // {
     //     $remaining = $this->cashAmount;
@@ -250,6 +251,7 @@ class Shoppingcart extends Component
 
     //     $this->remainingAmount = $remaining;
     // }
+
     public function getTotalProperty()
     {
         return $this->sub_total + $this->tax;
@@ -311,11 +313,9 @@ class Shoppingcart extends Component
         $this->loadCartData();
     }
 
-
     public function calculateCommission()
     {
         $this->dispatch('user-selection-updated', ['userId' => $this->selectedUser]);
-
 
         $user = Commissionuser::find($this->selectedCommissionUser);
         if (!empty($user)) {
@@ -331,6 +331,7 @@ class Shoppingcart extends Component
         }
 
     }
+
     public function calculateParty()
     {
         $user = Partyuser::find($this->selectedPartyUser);
@@ -342,6 +343,7 @@ class Shoppingcart extends Component
         $this->total = $this->total - $this->partyAmount;
         $this->cashAmount = $this->total;
     }
+
     public function render()
     {
 
@@ -362,6 +364,7 @@ class Shoppingcart extends Component
             'searchResults' => $this->searchTerm,
         ]);
     }
+
     public function addToCart($id)
     {
         if (auth()->user()) {
@@ -423,6 +426,7 @@ class Shoppingcart extends Component
 
     //     return redirect()->route('invoice.show', $invoice->id);
     // }
+
     public function checkout()
     {
         if (!empty($this->commissionAmount)) {

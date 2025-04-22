@@ -82,7 +82,7 @@ class ProductController extends Controller
         foreach ($data as $product) {
             $action ='<div class="d-flex align-items-center list-action">
             <a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                    href="#" onclick="product_price_change(' . $product->id . ')"><i class="ri-eye-line mr-0"></i></a>
+                    href="#" onclick="product_price_change(' . $product->id . ',' . $product->sell_price . ')"><i class="ri-eye-line mr-0"></i></a>
                     
                     <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="' . url('/inventories/add-stock/' . $product->id) . '"><i class="ri-eye-line mr-0"></i></a>
@@ -114,7 +114,7 @@ class ProductController extends Controller
         ]);
     }
     
-        /**
+    /**
      * Show the form for creating a new resource.
      */
     public function create()
@@ -220,12 +220,16 @@ class ProductController extends Controller
         return view('products.edit', compact('subcategories','packSizes','record','categories'));
     }
 
-    public function updatePrice(Request $request, $id)
+    public function updatePrice(Request $request)
     {
         // 🔍 Validate input
         $validator = Validator::make($request->all(), [
-            'price' => 'required|numeric|min:0',
+            'old_price' => 'required|numeric|min:0',
+            'new_price' => 'required|numeric|min:0',
+            'changed_at' =>'required'
         ]);
+
+        $id = $request->product_id;
 
         if ($validator->fails()) {
             return response()->json([
@@ -238,19 +242,19 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
 
         // 💡 Only log if price actually changes
-        if ($product->price != $request->price) {
+        if ($product->sell_price != $request->new_price) {
             // 💾 Save price change history
             ProductPriceChangeHistory::create([
                 'product_id' => $product->id,
-                'old_price' => $product->price,
-                'new_price' => $request->price,
+                'old_price' => $product->sell_price,
+                'new_price' => $request->new_price,
                 'changed_at' => now(),
             ]);
         }
 
         // 🔁 Update product
-        $product->price = $request->price;
-        $product->save();
+        // $product->price = $request->price;
+        // $product->save();
 
         return response()->json([
             'status' => 'success',
@@ -445,24 +449,24 @@ class ProductController extends Controller
 
 
        $from_count = Branch::with(['inventories' => function ($query) use ($productId) {
-        $query->where('product_id', $productId);
-    }])
-    ->where('id', $from) // Filter the branch here
-    ->where('is_deleted', 'no') 
-    ->where('is_active', 'yes') 
-    ->get()
-    ->map(function ($branch) {
-        return [
-            'id' => $branch->id,
-            'name' => $branch->name,
-            'available_quantity' => $branch->inventories->sum('quantity'),
-        ];
-    });
+            $query->where('product_id', $productId);
+        }])
+            ->where('id', $from) // Filter the branch here
+            ->where('is_deleted', 'no') 
+            ->where('is_active', 'yes') 
+            ->get()
+            ->map(function ($branch) {
+                return [
+                    'id' => $branch->id,
+                    'name' => $branch->name,
+                    'available_quantity' => $branch->inventories->sum('quantity'),
+                ];
+            });
 
-    $from_count_val = '';
-    if(!empty($from_count)){
-        $from_count_val = $from_count[0]['available_quantity'];
-    }
+            $from_count_val = '';
+            if(!empty($from_count)){
+                $from_count_val = $from_count[0]['available_quantity'];
+            }
 
 
         $to_count = Branch::with(['inventories' => function ($query) use ($productId) {
@@ -485,11 +489,11 @@ class ProductController extends Controller
             $to_count_val = $to_count[0]['available_quantity'];
         }
     
-    $arr = [];
-    $arr['from_count'] = $from_count_val;
-    $arr['to_count'] = $to_count_val;
-    
-    return response()->json($arr); 
+        $arr = [];
+        $arr['from_count'] = $from_count_val;
+        $arr['to_count'] = $to_count_val;
+        
+        return response()->json($arr); 
 
         
     }

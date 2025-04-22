@@ -132,7 +132,7 @@
                             </a>
                         </li>
                         <li class="">
-                            <a href="../backend/page-list-suppliers.html">
+                            <a href="#">
                                 <i class="las la-minus"></i><span>Shift Manage</span>
                             </a>
                         </li>

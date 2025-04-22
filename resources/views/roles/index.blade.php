@@ -76,7 +76,6 @@
                         data: 'created_at'
                     }
                     // Define more columns as per your table structure
-
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
