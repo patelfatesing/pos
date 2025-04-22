@@ -13,6 +13,7 @@ class CashBreakdown extends Model
         'branch_id',
         'denominations',
         'total',
+        'type'
 
     ];
 
