@@ -221,9 +221,10 @@
                                 </button>
                             </td>
                             <td>
-                                <button class="btn btn-sm btn-primary w-100 shadow-sm">
-                                    <i class="bi bi-file-earmark-spreadsheet me-2"></i> Void Sales 
+                                <button wire:click="voidSale" class="btn btn-sm btn-primary w-100 shadow-">
+                                    Void Sale
                                 </button>
+                                
                             </td>
                             <td>
 
@@ -1373,4 +1374,13 @@
         document.getElementById('totalNoteCashwith').innerText = '₹' + total;
         document.getElementById('withamountTotal').value = total;
     }
+    window.addEventListener('cart-voided', () => {
+        Swal.fire({
+            title: 'Sales Voided!',
+            text: 'Your Sales Voided Successfully.',
+            icon: 'success',
+            confirmButtonText: 'OK'
+        });
+        // or reset inputs if needed
+    });
 </script>

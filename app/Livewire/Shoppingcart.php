@@ -21,6 +21,8 @@ class Shoppingcart extends Component
 {
 
     use WithPagination;
+    public $cartItems = [];
+
     public $invoiceData;
     public $totalInvoicedAmount=0;
     public $cash = 0;
@@ -308,6 +310,31 @@ class Shoppingcart extends Component
         }
     }
 
+    public function voidSale()
+    {
+        $cartItems = Cart::where('user_id', auth()->user()->id)
+            ->where('status', '!=', Cart::STATUS['success']);
+    
+        if ($cartItems->count() === 0) {
+            // No cart items to clear
+            session()->flash('error', 'No cart data to void.');
+            return;
+        }
+    
+        // Clear the cart
+        $cartItems->delete();
+    
+        // Reset search-related properties
+        $this->reset('searchTerm', 'searchResults', 'showSuggestions');
+    
+        // Dispatch browser event or Livewire event
+        $this->dispatch('cart-voided');
+    
+        // Success message
+        session()->flash('message', 'Cart has been cleared.');
+    }
+    
+    
 
     public function loadCartData()
     {
