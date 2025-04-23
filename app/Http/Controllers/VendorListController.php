@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\VendorList;
+use Illuminate\Support\Facades\Auth;
 
 class VendorListController extends Controller
 {
     public function index()
     {
+        sendNotification('low_stock', 'Item ABC is low on stock', 1, Auth::id());
         $VendorLists = VendorList::get();
         return view('vendors.index', compact('VendorLists'));
     }
@@ -46,6 +48,12 @@ class VendorListController extends Controller
         $records = [];
 
         foreach ($data as $VendorList) {
+            $action ='<div class="d-flex align-items-center list-action">
+                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
+                    href="' . url('/vendor/edit/' . $VendorList->id) . '"><i class="ri-pencil-line mr-0"></i></a>
+                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
+                    href="#" onclick="delete_product(' . $VendorList->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
+            </div>';
 
             $records[] = [
                 'name' => $VendorList->name,
@@ -53,8 +61,7 @@ class VendorListController extends Controller
                 'phone' => $VendorList->phone,
                 'gst_number' => $VendorList->gst_number,
                 'created_at' => date('d-m-Y h:i', strtotime($VendorList->created_at)),
-                'action' => "<a href='" . url('/vendor/edit/' . $VendorList->id) . "' class='btn btn-info mr-2'>Edit</a>
-                             <button type='button' onclick='delete_vendor(" . $VendorList->id . ")' class='btn btn-danger ml-2'>Delete</button>"
+                'action' => $action
             ];
         }
 
