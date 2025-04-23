@@ -71,6 +71,11 @@
                                 <i class="las la-minus"></i><span>Pack Size</span>
                             </a>
                         </li>
+                        <li class="">
+                            <a href="{{ route('vendor.list') }}">
+                                <i class="las la-minus"></i><span>Vendors</span>
+                            </a>
+                        </li>
                     </ul>
                 </li>
 
