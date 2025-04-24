@@ -1,11 +1,15 @@
+<?php
+use App\Models\Branch;
+$branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
+?>
 <div class="iq-top-navbar">
     <div class="iq-navbar-custom">
         <nav class="navbar navbar-expand-lg navbar-light p-0">
             <div class="iq-navbar-logo d-flex align-items-center justify-content-between">
                 <i class="ri-menu-line wrapper-menu"></i>
-                <a href="{{ asset('backend/index.html')}}" class="header-logo">
-                    <img src="{{ asset('assets/images/logo.png')}}" class="img-fluid rounded-normal" alt="logo" />
-                    <h5 class="logo-title ml-3">POSDash</h5>
+                <a href="{{ asset('backend/index.html') }}" class="header-logo">
+                    <img src="{{ asset('assets/images/logo.png') }}" class="img-fluid rounded-normal" alt="logo" />
+                    <h5 class="logo-title ml-3">LiquorHub</h5>
                 </a>
             </div>
             <div class="iq-search-bar device-search">
@@ -22,30 +26,58 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav ml-auto navbar-list align-items-center">
-                        <li>
-                            <livewire:cartcounter />
+                        <li class="nav-item nav-icon dropdown">
+                            <a href="#" class="search-toggle dropdown-toggle btn border add-btn"
+                                id="dropdownMenuButton31" data-toggle="dropdown" aria-haspopup="true"
+                                aria-expanded="false">
+                                <img src="{{ asset('assets/images/small/store.png') }}" alt="img-flag"
+                                    class="img-fluid image-flag mr-2" />Select Store
+
+                            </a>
+                            <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton31">
+                                <div class="card shadow-none m-0">
+                                    <div class="card-body p-3">
+                                        @foreach ($branch as $id => $name)
+                                        @if ($name == 'Warehouse')
+                                            <a class="iq-sub-card" href="{{ url('lang/en') }}">
+                                                <img src="{{ asset('assets/images/small/icons8-warehouse-30.png') }}" alt="img-flag"
+                                                    class="img-fluid mr-2"
+                                                    style="width: 20px; height: 15px;" />{{ $name }}
+                                            </a>
+                                        @else
+                                            <a class="iq-sub-card" href="{{ url('lang/en') }}">
+                                                <img src="{{ asset('assets/images/small/store.png') }}" alt="img-flag"
+                                                    class="img-fluid mr-2"
+                                                    style="width: 20px; height: 15px;" />{{ $name }}
+                                            </a>
+                                        @endif
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
                         </li>
+
                         <li class="nav-item nav-icon dropdown">
                             <a href="#" class="search-toggle dropdown-toggle btn border add-btn"
                                 id="dropdownMenuButton02" data-toggle="dropdown" aria-haspopup="true"
                                 aria-expanded="false">
                                 @if (session('locale') == 'hi')
-                                    <img src="{{ asset('assets/images/small/india.png')}}" alt="img-flag"
-                                class="img-fluid image-flag mr-2" style="width: 20px; height: 15px;" />हिंदी
+                                    <img src="{{ asset('assets/images/small/india.png') }}" alt="img-flag"
+                                        class="img-fluid image-flag mr-2" style="width: 20px; height: 15px;" />हिंदी
                                 @else
-                                <img src="{{ asset('assets/images/small/flag-01.png')}}" alt="img-flag"
-                                    class="img-fluid image-flag mr-2" />English
+                                    <img src="{{ asset('assets/images/small/flag-01.png') }}" alt="img-flag"
+                                        class="img-fluid image-flag mr-2" />English
                                 @endif
                             </a>
                             <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton2">
                                 <div class="card shadow-none m-0">
                                     <div class="card-body p-3">
                                         <a class="iq-sub-card" href="{{ url('lang/en') }}">
-                                            <img src="{{ asset('assets/images/small/flag-01.png')}}" alt="img-flag"
+                                            <img src="{{ asset('assets/images/small/flag-01.png') }}" alt="img-flag"
                                                 class="img-fluid mr-2" style="width: 20px; height: 15px;" />English
                                         </a>
                                         <a class="iq-sub-card" href="{{ url('lang/hi') }}">
-                                            <img src="{{ asset('assets/images/small/india.png')}}" alt="img-flag"
+                                            <img src="{{ asset('assets/images/small/india.png') }}" alt="img-flag"
                                                 class="img-fluid mr-2" style="width: 20px; height: 15px;" />हिंदी
                                         </a>
                                     </div>
@@ -72,7 +104,7 @@
                             </div>
                         </li>
                         <li class="nav-item nav-icon dropdown">
-                            <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton2"
+                            {{-- <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton2"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -83,7 +115,13 @@
                                     <polyline points="22,6 12,13 2,6"></polyline>
                                 </svg>
                                 <span class="bg-primary"></span>
-                            </a>
+                            </a> --}}
+
+                            <?php
+                            $getNotification = getNotificationsByNotifyTo(Auth::id(), 10);
+                            $getCount = count($getNotification);
+                            $user = Auth::user();
+                            ?>
                             <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton2">
                                 <div class="card shadow-none m-0">
                                     <div class="card-body p-0">
@@ -98,7 +136,8 @@
                                                 <div class="media align-items-center cust-card py-3 border-bottom">
                                                     <div class="">
                                                         <img class="avatar-50 rounded-small"
-                                                            src="{{ asset('assets/images/user/01.jpg')}}" alt="01" />
+                                                            src="{{ asset('assets/images/user/01.jpg') }}"
+                                                            alt="01" />
                                                     </div>
                                                     <div class="media-body ml-3">
                                                         <div class="d-flex align-items-center justify-content-between">
@@ -113,7 +152,8 @@
                                                 <div class="media align-items-center cust-card py-3 border-bottom">
                                                     <div class="">
                                                         <img class="avatar-50 rounded-small"
-                                                            src="{{ asset('assets/images/user/02.jpg')}}" alt="02" />
+                                                            src="{{ asset('assets/images/user/02.jpg') }}"
+                                                            alt="02" />
                                                     </div>
                                                     <div class="media-body ml-3">
                                                         <div class="d-flex align-items-center justify-content-between">
@@ -128,7 +168,8 @@
                                                 <div class="media align-items-center cust-card py-3">
                                                     <div class="">
                                                         <img class="avatar-50 rounded-small"
-                                                            src="{{ asset('assets/images/user/03.jpg')}}" alt="03" />
+                                                            src="{{ asset('assets/images/user/03.jpg') }}"
+                                                            alt="03" />
                                                     </div>
                                                     <div class="media-body ml-3">
                                                         <div class="d-flex align-items-center justify-content-between">
@@ -165,30 +206,45 @@
                                         <div class="cust-title p-3">
                                             <div class="d-flex align-items-center justify-content-between">
                                                 <h5 class="mb-0">Notifications</h5>
-                                                <a class="badge badge-primary badge-card" href="#">3</a>
+                                                <a class="badge badge-primary badge-card"
+                                                    href="#">{{ $getCount }}</a>
                                             </div>
                                         </div>
                                         <div class="px-3 pt-0 pb-0 sub-card">
-                                            <a href="#" class="iq-sub-card">
-                                                <div class="media align-items-center cust-card py-3 border-bottom">
-                                                    <div class="">
-                                                        <img class="avatar-50 rounded-small"
-                                                            src="{{ asset('assets/images/user/01.jpg')}}" alt="01" />
-                                                    </div>
-                                                    <div class="media-body ml-3">
-                                                        <div class="d-flex align-items-center justify-content-between">
-                                                            <h6 class="mb-0">Emma Watson</h6>
-                                                            <small class="text-dark"><b>12 : 47 pm</b></small>
+
+                                            @foreach ($getNotification as $key => $item)
+                                                <a href="#" class="iq-sub-card open-form"
+                                                    data-type="{{ $item->type }}">
+                                                    <div class="media align-items-center cust-card py-3 border-bottom">
+                                                        <div class="">
+                                                            <img class="avatar-50 rounded-small"
+                                                                src="{{ asset('assets/images/user/notification.png') }}"
+                                                                alt="01" />
+
                                                         </div>
-                                                        <small class="mb-0">Lorem ipsum dolor sit amet</small>
+                                                        <div class="media-body ml-3">
+                                                            <div
+                                                                class="d-flex align-items-center justify-content-between">
+                                                                <h6 class="mb-0">
+                                                                    {{ ucwords(str_replace('_', ' ', $item->type)) }}
+                                                                </h6>
+                                                            </div>
+                                                            <small class="mb-0 mt-1 mb-1">{{ $item->content }}</small>
+                                                            <div
+                                                                class="d-flex align-items-center justify-content-between">
+                                                                <small
+                                                                    class="text-dark"><b>{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y, h:i A') }}</b></small>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </a>
-                                            <a href="#" class="iq-sub-card">
+                                                </a>
+                                            @endforeach
+                                            {{-- <a href="#" class="iq-sub-card">
                                                 <div class="media align-items-center cust-card py-3 border-bottom">
                                                     <div class="">
                                                         <img class="avatar-50 rounded-small"
-                                                            src="{{ asset('assets/images/user/02.jpg')}}" alt="02" />
+                                                            src="{{ asset('assets/images/user/02.jpg') }}"
+                                                            alt="02" />
                                                     </div>
                                                     <div class="media-body ml-3">
                                                         <div class="d-flex align-items-center justify-content-between">
@@ -203,7 +259,8 @@
                                                 <div class="media align-items-center cust-card py-3">
                                                     <div class="">
                                                         <img class="avatar-50 rounded-small"
-                                                            src="{{ asset('assets/images/user/03.jpg')}}" alt="03" />
+                                                            src="{{ asset('assets/images/user/03.jpg') }}"
+                                                            alt="03" />
                                                     </div>
                                                     <div class="media-body ml-3">
                                                         <div class="d-flex align-items-center justify-content-between">
@@ -213,12 +270,12 @@
                                                         <small class="mb-0">Lorem ipsum dolor sit amet</small>
                                                     </div>
                                                 </div>
-                                            </a>
+                                            </a> --}}
                                         </div>
-                                        <a class="right-ic btn btn-primary btn-block position-relative p-2"
+                                        {{-- <a class="right-ic btn btn-primary btn-block position-relative p-2"
                                             href="#" role="button">
                                             View All
-                                        </a>
+                                        </a> --}}
                                     </div>
                                 </div>
                             </div>
@@ -226,29 +283,34 @@
                         <li class="nav-item nav-icon dropdown caption-content">
                             <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <img src="{{ asset('assets/images/user/1.png')}}" class="img-fluid rounded" alt="user" />
+                                <img src="{{ asset('assets/images/user/1.png') }}" class="img-fluid rounded"
+                                    alt="user" />
                             </a>
                             <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
                                 <div class="card shadow-none m-0">
                                     <div class="card-body p-0 text-center">
                                         <div class="media-body profile-detail text-center">
-                                            <img src="{{ asset('assets/images/page-img/profile-bg.jpg')}}" alt="profile-bg"
-                                                class="rounded-top img-fluid mb-4" />
-                                            <img src="{{ asset('assets/images/user/1.png')}}" alt="profile-img"
+                                            <img src="{{ asset('assets/images/page-img/shop.jpg') }}"
+                                                alt="profile-bg" class="rounded-top img-fluid mb-4" />
+                                            <img src="{{ asset('assets/images/user/1.png') }}" alt="profile-img"
                                                 class="rounded profile-img img-fluid avatar-70" />
                                         </div>
                                         <div class="p-3">
-                                            <h5 class="mb-1">{{ Auth::user()->name }}</h5>
-                                            <p class="mb-0">Since 10 march, 2020</p>
+                                            <h5 class="mb-1">{{ $user->userInfo->first_name }}
+                                                {{ $user->userInfo->last_name }}</h5>
+                                            <p class="mb-0">Since
+                                                {{ \Carbon\Carbon::parse(Auth::user()->created_at)->format('d F, Y') }}
+                                            </p>
                                             <div class="d-flex align-items-center justify-content-center mt-3">
-                                                <a href="{{ asset('app/user-profile.html')}}" class="btn border mr-2">Profile</a>
-                                                
-                                                
+                                                <a href="{{ route('profile.edit') }}"
+                                                    class="btn border mr-2">Profile</a>
+
+
                                                 <form method="POST" action="{{ route('logout') }}">
                                                     @csrf
-                        
+
                                                     <a :href="route('logout')" class="btn border"
-                                                            onclick="event.preventDefault();
+                                                        onclick="event.preventDefault();
                                                                         this.closest('form').submit();">
                                                         {{ __('Log Out') }}
                                                     </a>
@@ -265,3 +327,38 @@
         </nav>
     </div>
 </div>
+
+<div class="modal fade bd-example-modal-lg" id="approveModal" tabindex="-1" role="dialog"
+    aria-labelledby="approveModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content" id="modalContent">
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).on('click', '.open-form', function() {
+        let type = $(this).data('type');
+
+        $.ajax({
+            url: '/popup/form/' + type,
+            type: 'GET',
+            success: function(response) {
+                $('#modalContent').html(response);
+
+                $('#approveModal').modal('show');
+            },
+            error: function() {
+                alert('Failed to load form.');
+            }
+        });
+    });
+
+    // Optional: Close modal on background click
+    $(document).on('click', '#popupModal', function(e) {
+        if (e.target === this) {
+            $(this).fadeOut();
+        }
+    });
+</script>

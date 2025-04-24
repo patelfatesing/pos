@@ -72,7 +72,7 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Role::class);
     }
-    
+        
     public function role()
     {
         return $this->belongsTo(Role::class)->select('name'); // Return only the role name
@@ -85,6 +85,6 @@ class User extends Authenticatable
 
     public function userInfo()
     {
-        return $this->hasOne(UserInfo::class, 'user_id');
+        return $this->hasOne(UserInfo::class);
     }
 }

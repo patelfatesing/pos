@@ -19,7 +19,6 @@ class CashInHandController extends Controller
            // 'cashNotes' => 'required|array',
         ]);
         $data = $request->all();
-        $data = $request->all();
         $cashNotes = [];
         $total = 0;
     
