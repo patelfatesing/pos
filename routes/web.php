@@ -26,6 +26,8 @@ use Illuminate\Support\Facades\Session;
 use App\Livewire\CashBreakdown;
 use App\Http\Controllers\CashController;
 use App\Http\Controllers\ShiftClosingController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\DashboardController;
 use App\Livewire\ShiftClosingForm;
 
 Route::get('/shift-closing', ShiftClosingForm::class);
@@ -60,9 +62,14 @@ Route::post('/shift-close/store', [ShiftClosingController::class, 'store'])->nam
 Route::post('/shift-close/withdraw', [ShiftClosingController::class, 'withdraw'])->name('shift-close.withdraw');
 
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Route::get('/dashboard', function () {
+//     return view('dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
+
+
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -229,5 +236,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/purchase/get-data', [PurchaseController::class, 'getData'])->name('purchase.getData');
     Route::get('/purchase/view/{id}', [PurchaseController::class, 'view'])->name('purchase.view');
     Route::get('/vendor/get-product-details/{id}', [PurchaseController::class, 'getProductDetails'])->name('vendor.get-product-details');
+
+    Route::get('/popup/form/{type}', [NotificationController::class, 'loadForm']);
 
 require __DIR__.'/auth.php';

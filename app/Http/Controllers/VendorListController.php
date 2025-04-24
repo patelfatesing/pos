@@ -10,7 +10,7 @@ class VendorListController extends Controller
 {
     public function index()
     {
-        sendNotification('low_stock', 'Item ABC is low on stock', 1, Auth::id());
+        // sendNotification('low_stock', 'Item ABC is low on stock', 1, Auth::id());
         $VendorLists = VendorList::get();
         return view('vendors.index', compact('VendorLists'));
     }
