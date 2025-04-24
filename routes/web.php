@@ -57,6 +57,7 @@ Route::get('/', function () {
     return redirect('/login');
 });
 Route::post('/shift-close/store', [ShiftClosingController::class, 'store'])->name('shift-close.store');
+Route::post('/shift-close/withdraw', [ShiftClosingController::class, 'withdraw'])->name('shift-close.withdraw');
 
 
 Route::get('/dashboard', function () {
