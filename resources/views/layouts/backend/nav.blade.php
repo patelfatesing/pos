@@ -2,6 +2,35 @@
 use App\Models\Branch;
 $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
 ?>
+<style>
+    .notification-wrapper {
+        position: relative;
+        display: inline-block;
+        font-family: sans-serif;
+    }
+
+    .notification-icon {
+        font-size: 24px;
+        color: #333;
+        cursor: pointer;
+    }
+
+    .notification-count {
+        position: absolute;
+        top: -10px;
+        right: 0px;
+        background-color: red;
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+        border-radius: 50%;
+        padding: 2px 6px;
+        min-width: 20px;
+        text-align: center;
+        line-height: 1;
+        box-shadow: 0 0 0 2px white;
+    }
+</style>
 <div class="iq-top-navbar">
     <div class="iq-navbar-custom">
         <nav class="navbar navbar-expand-lg navbar-light p-0">
@@ -38,19 +67,19 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                 <div class="card shadow-none m-0">
                                     <div class="card-body p-3">
                                         @foreach ($branch as $id => $name)
-                                        @if ($name == 'Warehouse')
-                                            <a class="iq-sub-card" href="{{ url('lang/en') }}">
-                                                <img src="{{ asset('assets/images/small/icons8-warehouse-30.png') }}" alt="img-flag"
-                                                    class="img-fluid mr-2"
-                                                    style="width: 20px; height: 15px;" />{{ $name }}
-                                            </a>
-                                        @else
-                                            <a class="iq-sub-card" href="{{ url('lang/en') }}">
-                                                <img src="{{ asset('assets/images/small/store.png') }}" alt="img-flag"
-                                                    class="img-fluid mr-2"
-                                                    style="width: 20px; height: 15px;" />{{ $name }}
-                                            </a>
-                                        @endif
+                                            @if ($name == 'Warehouse')
+                                                <a class="iq-sub-card" href="{{ url('lang/en') }}">
+                                                    <img src="{{ asset('assets/images/small/icons8-warehouse-30.png') }}"
+                                                        alt="img-flag" class="img-fluid mr-2"
+                                                        style="width: 20px; height: 15px;" />{{ $name }}
+                                                </a>
+                                            @else
+                                                <a class="iq-sub-card" href="{{ url('lang/en') }}">
+                                                    <img src="{{ asset('assets/images/small/store.png') }}"
+                                                        alt="img-flag" class="img-fluid mr-2"
+                                                        style="width: 20px; height: 15px;" />{{ $name }}
+                                                </a>
+                                            @endif
                                         @endforeach
                                     </div>
                                 </div>
@@ -104,24 +133,13 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                             </div>
                         </li>
                         <li class="nav-item nav-icon dropdown">
-                            {{-- <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton2"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail">
-                                    <path
-                                        d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
-                                    </path>
-                                    <polyline points="22,6 12,13 2,6"></polyline>
-                                </svg>
-                                <span class="bg-primary"></span>
-                            </a> --}}
 
                             <?php
                             $getNotification = getNotificationsByNotifyTo(Auth::id(), 10);
                             $getCount = count($getNotification);
                             $user = Auth::user();
                             ?>
+
                             <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton2">
                                 <div class="card shadow-none m-0">
                                     <div class="card-body p-0">
@@ -190,14 +208,12 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                             </div>
                         </li>
                         <li class="nav-item nav-icon dropdown">
-                            <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" class="feather feather-bell">
-                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                                </svg>
+
+                            <a href="#" class="search-toggle dropdown-toggle notification-wrapper"
+                                id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
+                                aria-expanded="false">
+                                <i class="fas fa-bell notification-icon"></i>
+                                <div class="notification-count">{{ $getCount }}</div>
                                 <span class="bg-primary"></span>
                             </a>
                             <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
@@ -213,7 +229,14 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                         <div class="px-3 pt-0 pb-0 sub-card">
 
                                             @foreach ($getNotification as $key => $item)
-                                                <a href="#" class="iq-sub-card open-form"
+                                                <?php
+                                                $id = '';
+                                                if (!empty($item->details)) {
+                                                    $data = json_decode($item->details);
+                                                    $id = $data->id;
+                                                }
+                                                ?>
+                                                <a href="#" data-id="{{$id}}" class="iq-sub-card open-form"
                                                     data-type="{{ $item->type }}">
                                                     <div class="media align-items-center cust-card py-3 border-bottom">
                                                         <div class="">
@@ -229,6 +252,9 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                                                     {{ ucwords(str_replace('_', ' ', $item->type)) }}
                                                                 </h6>
                                                             </div>
+
+                                                            <input type="hidden" id=""
+                                                                value="{{ $id }}" name="id" />
                                                             <small class="mb-0 mt-1 mb-1">{{ $item->content }}</small>
                                                             <div
                                                                 class="d-flex align-items-center justify-content-between">
@@ -341,8 +367,10 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
     $(document).on('click', '.open-form', function() {
         let type = $(this).data('type');
 
+        let id = $(this).data('id');
+
         $.ajax({
-            url: '/popup/form/' + type,
+            url: '/popup/form/' + type+"?id="+id,
             type: 'GET',
             success: function(response) {
                 $('#modalContent').html(response);

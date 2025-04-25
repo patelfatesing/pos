@@ -12,20 +12,24 @@ class Inventory extends Model
         'store_id',
         'quantity',
         'batch_no',
-        'expiry_date',
+        '<expiry_dat></expiry_dat>e',
         'is_active',
         'is_deleted',
         'created_by',
         'added_by'
     ];
     
-public function product()
-{
-    return $this->belongsTo(Product::class);
-}
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
 
-public function location()
-{
-    return $this->morphTo();
-}
+    public function location()
+    {
+        return $this->morphTo();
+    }
+
+    protected $casts = [
+        'expiry_date' => 'datetime', // Automatically cast to Carbon instance
+    ];
 }
