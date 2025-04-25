@@ -4,6 +4,17 @@
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 @section('page-content')
     <style>
+           .btn.rounded-circle {
+        width: 40px;
+        height: 40px;
+        font-size: 1.25rem;
+        padding: 0;
+    }
+    span.fs-5 {
+        min-width: 30px;
+        display: inline-block;
+        text-align: center;
+    }
         .table td {
             padding: 10px !important;
             border: 0px;
