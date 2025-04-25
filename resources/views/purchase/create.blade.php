@@ -242,7 +242,7 @@
         });
 
         function updateAmount() {
-            alert("sdf");
+            
             const rate = parseFloat($('#rate').val()) || 0;
             const qty = parseInt($('#qty').val()) || 0;
             const get_total = (rate * qty);
