@@ -16,23 +16,26 @@ class ShiftClosingController extends Controller
     {
         $branch_id = auth()->user()->userinfo->branch->id ?? null;
         // Save cash breakdown
-        $CashBreakdown = CashBreakdown::create([
-            'user_id' => Auth::id(),
-            'branch_id' => $branch_id,
-            'denominations' => json_encode($request->cash_breakdown),
-            'total' => $request->today_cash,
-        ]);
-        // Save shift close info
-        $shift = new UserShift();
-        $shift->user_id = Auth::id();
-        $shift->branch_id = $branch_id;
-        $shift->start_time = $request->start_time;
-        $shift->end_time = $request->end_time;
-        $shift->opening_cash = $request->opening_cash;
-        // $shift->today_cash = $request->today_cash;
-        $shift->cash_break_id = $CashBreakdown->id;
-        // $shift->total_payments = $request->total_payments;
-        $shift->save();
+        // $CashBreakdown = CashBreakdown::create([
+        //     'user_id' => Auth::id(),
+        //     'branch_id' => $branch_id,
+        //     'denominations' => json_encode($request->cash_breakdown),
+        //     'total' => $request->today_cash,
+        // ]);
+        // // Save shift close info
+        // $shift = new UserShift();
+        // $shift->user_id = Auth::id();
+        // $shift->branch_id = $branch_id;
+        // $shift->start_time = $request->start_time;
+        // $shift->end_time = $request->end_time;
+        // $shift->opening_cash = $request->opening_cash;
+        // // $shift->today_cash = $request->today_cash;
+        // $shift->cash_break_id = $CashBreakdown->id;
+        // // $shift->total_payments = $request->total_payments;
+        // $shift->save();
+        $shift = UserShift::where('user_id', $user_id)
+        ->where('branch_id', $branch_id)
+        ->delete();
         Auth::logout();
 
         // Invalidate session and regenerate token
@@ -44,9 +47,10 @@ class ShiftClosingController extends Controller
     }
     public function withdraw(Request $request){
         $data = $request->all();
-            // $request->validate([
-            //     'narration' => 'required',
-            // ]);
+        $request->validate([
+            'narration' => 'required',
+            'amount' => 'required',
+        ]);
         $withdrawAmount=$request->amount;
         $branch_id = auth()->user()->userinfo->branch->id ?? null;
         $user_id=Auth::id();

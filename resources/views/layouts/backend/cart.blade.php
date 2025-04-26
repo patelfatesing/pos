@@ -15,6 +15,10 @@
       <link rel="stylesheet" href="../assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css">
       <link rel="stylesheet" href="../assets/vendor/remixicon/fonts/remixicon.css"> 
     <style>
+      .text-red
+      {
+        color: red;
+      }
         .content-page{
             padding: 1%;
             margin: 0%
