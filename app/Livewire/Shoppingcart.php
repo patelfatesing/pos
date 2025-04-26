@@ -70,7 +70,7 @@ class Shoppingcart extends Component
     public $tenderedAmount = 0;
     public $showModal = false;
     public $selectedUser = 0;
-    protected $listeners = ['updateProductList' => 'loadCartData','loadHoldTransactions'];
+    protected $listeners = ['updateProductList' => 'loadCartData','loadHoldTransactions','updateNewProductDetails'];
     public $noteDenominations = [10, 20, 50, 100, 200,500];
     public $remainingAmount = 0;
     public $totalBreakdown = [];
@@ -417,7 +417,7 @@ class Shoppingcart extends Component
         $this->checkTime();
 
         // return view('shift_closing.show', compact('shift'));
-        $this->loadCartData();
+        //$this->loadCartData();
         $this->commissionUsers = Commissionuser::all(); // Assuming you have a model for this
         $this->partyUsers = Partyuser::all(); // Assuming you have a model for this
         foreach ($this->cartitems as $item) {
@@ -434,7 +434,9 @@ class Shoppingcart extends Component
                $mycart->save();
                $sum=$sum+$mycart->net_amount;
             }
-            $this->cashAmount=$sum;
+            $this->dispatch('updateNewProductDetails');
+
+            //$this->cashAmount=$sum;
             //$this->basicPartyAmt=$user->credit_points*$mycart->quantity;
             // $this->partyAmount = $user->credit_points;
         } 
@@ -500,6 +502,7 @@ class Shoppingcart extends Component
             $this->showCloseButton = false;
             Log::info('No valid shift end time found.');
         }
+        $this->showCloseButton = true;
 
     }
     
@@ -570,19 +573,18 @@ class Shoppingcart extends Component
     {
 
         $this->branch_name = (!empty(auth()->user()->userinfo->branch->name)) ? auth()->user()->userinfo->branch->name : "";
-        $this->cartitems = Cart::with('product')
+        $this->cartitems = $this->products=Cart::with('product')
             ->where(['user_id' => auth()->user()->id])
             //  ->where(['branch_id'=>$branch_id])
             ->where('status', Cart::STATUS_PENDING)
             ->get();
 
-        
         $this->calculateTotals();
-        $this->getCartItemCount();
-        $this->products = Cart::with('product')
-            ->where(['user_id' => auth()->user()->id])
-            ->where('status', Cart::STATUS_PENDING)
-            ->get();
+       // $this->getCartItemCount();
+        // $this->products = Cart::with('product')
+        //     ->where(['user_id' => auth()->user()->id])
+        //     ->where('status', Cart::STATUS_PENDING)
+        //     ->get();
     }
 
     public function updateQty($itemId)
@@ -607,16 +609,25 @@ class Shoppingcart extends Component
 
     //    / this->basicPartyAmt
         // Optional: refresh cart items if needed
-        $this->cartitems = Cart::with('product')
-            ->where(['user_id' => auth()->user()->id])
-            ->where(['product_id' => auth()->user()->id])
-            ->where('status', Cart::STATUS_PENDING)
-            ->get();
+        // $this->cartitems = Cart::with('product')
+        //     ->where(['user_id' => auth()->user()->id])
+        //     ->where(['product_id' => auth()->user()->id])
+        //     ->where('status', Cart::STATUS_PENDING)
+        //     ->get();
 
-        $this->dispatch('updateCartCount');
-        $this->dispatch('updateProductList');
+       // $this->dispatch('updateCartCount');
+        //$this->dispatch('updateProductList');
     }
+    public function updateNewProductDetails(){
+        $this->cartitems= $this->products=Cart::with('product')
+        ->where(['user_id' => auth()->user()->id])
+        ->where('status', Cart::STATUS_PENDING)
+        ->get();
+        $this->cashAmount = $this->cartitems->sum('net_amount');
 
+        $this->getCartItemCount();
+
+    }
     public function calculateTotals()
     {
         $this->sub_total = $this->cartitems->sum(
@@ -628,7 +639,7 @@ class Shoppingcart extends Component
         
 
         //$this->tax = $this->sub_total * 0.18;
-        $this->cashAmount = $this->total;
+        //$this->cashAmount = $this->total;
         // $this->remainingAmount = $this->cashAmount;
     }
 
@@ -684,14 +695,14 @@ class Shoppingcart extends Component
             // $item->amount+=$item->net_amount*($item->quantity);
             $item->net_amount=($item->mrp-$item->discount)*$item->quantity;
             $item->save();
-            $this->cashAmount=$item->net_amount;
+          //  $this->cashAmount=$item->net_amount;
             if (isset($this->quantities[$id])) {
                 $this->quantities[$id]++;
-                $this->updateQty($id);
+               // $this->updateQty($id);
             }
               //  $this->calculateParty();
-            //$this->dispatch('updateCartCount');
-            $this->dispatch('updateProductList');
+            $this->dispatch('updateNewProductDetails');
+           // $this->dispatch('updateProductList');
         }
     }
     public function incrementNote($key, $denomination, $type)
@@ -730,13 +741,13 @@ class Shoppingcart extends Component
             $item->net_amount=($item->mrp-$item->discount)*$item->quantity;
             
             $item->save();
-            $this->cashAmount=$item->net_amount;
+            //$this->cashAmount=$item->net_amount;
             if (isset($this->quantities[$id]) && $this->quantities[$id] > 1) {
                 $this->quantities[$id]--;
               //  $this->updateQty($id);
             }
-            $this->loadCartData();
-            // $this->dispatch('updateCartCount');
+            //$this->loadCartData();
+            $this->dispatch('updateNewProductDetails');
             // $this->dispatch('updateProductList');
             // $this->calculateParty();
 
@@ -747,7 +758,9 @@ class Shoppingcart extends Component
     {
         Cart::find($id)?->delete();
         $this->showBox = false;
-        $this->loadCartData();
+        $this->dispatch('updateNewProductDetails');
+
+//        $this->loadCartData();
     }
 
     public function calculateCommission()
@@ -786,7 +799,9 @@ class Shoppingcart extends Component
             $this->basicPartyAmt=0;
             $this->commissionAmount = 0;
         }
-        $this->cashAmount=$sum;
+       // $this->cashAmount=$sum;
+       $this->dispatch('updateNewProductDetails');
+
     }
 
     public function calculateParty()
@@ -800,7 +815,6 @@ class Shoppingcart extends Component
                $mycart->discount=$user->credit_points*$mycart->quantity;
                $mycart->save();
                $sum=$sum+$mycart->net_amount;
-               
             }
             
             //$this->basicPartyAmt=$user->credit_points*$mycart->quantity;
@@ -818,7 +832,9 @@ class Shoppingcart extends Component
             $this->basicPartyAmt=0;
             $this->partyAmount = 0;
         }
-        $this->cashAmount=$sum;
+        $this->dispatch('updateNewProductDetails');
+
+       // $this->cashAmount=$sum;
         
     }
 
