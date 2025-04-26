@@ -500,7 +500,6 @@ class Shoppingcart extends Component
             $this->showCloseButton = false;
             Log::info('No valid shift end time found.');
         }
-        $this->showCloseButton = true;
 
     }
     
