@@ -34,8 +34,8 @@ class CashInHandController extends Controller
         }
 
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
-        $now = new \DateTime('now', new \DateTimeZone('Asia/Kolkata'));
-        $end = $start->copy()->addHours(8)->addMinutes(30);
+        $start = date('Y-m-d H:i:s'); // current time
+        $end = date('Y-m-d H:i:s', strtotime('+8 hours 30 minutes'));
         $cashNotes = json_encode($cashNotes) ?? [];
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
         // 💾 Save cash breakdown
