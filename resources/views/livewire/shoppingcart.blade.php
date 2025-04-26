@@ -395,45 +395,31 @@
 
                             {{-- Sales Breakdown --}}
                             <div class="col-md-6">
-                                <div class="card shadow-sm rounded-3">
-                                    <div class="card-body p-4">
-                                        <h5 class="card-title text-left text-success mb-4">💵 Sales Breakdown</h5>
+                               {{-- Assume $data is passed from the controller --}}
 
-                                        {{-- New Layout: No Table, No Badge --}}
-                                        <div class="vstack gap-3">
-
-                                            @foreach ($categoryTotals as $category => $amount)
-                                                @php
-                                                    $textClass = '';
-
-                                                    if (in_array($category, ['TOTAL SALES', 'TOTAL CASH'])) {
-                                                        $textClass = 'fw-semibold text-success';
-                                                    }
-
-                                                    if ($category == 'DISCOUNT') {
-                                                        $textClass = 'fw-semibold text-warning';
-                                                    }
-                                                @endphp
-
-                                                <div
-                                                    class="d-flex justify-content-between align-items-center 
-                                                    {{ in_array($category, ['TOTAL SALES', 'DISCOUNT', 'TOTAL CASH']) ? 'border-top pt-3 mt-2' : '' }}">
-
-                                                    <div class="{{ $textClass }}">
-                                                        {{ ucwords(strtolower($category)) }}</div>
-                                                    <div class="{{ $textClass }}">₹{{ number_format($amount, 2) }}
-                                                    </div>
-
+                                <div class="card p-4">
+                                    <h4 class="mb-4">Sales Details</h4>
+                                    <hr>
+                                    <div class="row">
+                                        @foreach ($categoryTotals as $category => $items)
+                                            <div class="col-md-6 mb-4">
+                                                <div class="card shadow-sm border-0 p-3">
+                                                    <h5 class="mb-3 text-capitalize">{{ ucfirst($category) }}</h5>
+                                                    <ul class="list-group list-group-flush">
+                                                        @foreach ($items as $key => $value)
+                                                            <li class="list-group-item d-flex justify-content-between">
+                                                                <span>{{ $key }}</span>
+                                                                <span>₹{{ number_format($value) }}</span>
+                                                                <input type="hidden" name="{{ $key }}" id="{{ $key }}" value="{{ number_format($value) }}">
+                                                            </li>
+                                                        @endforeach
+                                                    </ul>
                                                 </div>
-
-                                                <input type="hidden" name="categories[{{ $category }}]"
-                                                    value="{{ $amount }}">
-                                            @endforeach
-
-                                        </div>
-
+                                            </div>
+                                        @endforeach
                                     </div>
                                 </div>
+
 
                             </div>
 
@@ -445,7 +431,6 @@
                                         {{-- Shift Timing --}}
                                         <div class="d-flex justify-content-between align-items-center mb-4">
                                             <div>
-                                                <h5 class="card-title text-info mb-0">🕒 Shift Timing</h5>
                                                 <div class="row text-left mt-2">
                                                     <div class="col-6 border-end">
                                                         <div class="small text-muted">Start Time</div>
@@ -468,36 +453,47 @@
                                         {{-- Cash Breakdown --}}
                                         <h5 class="card-title text-warning text-left mb-3">💵 Cash Details</h5>
                                         <div class="table-responsive">
-                                            <table class="table table-sm table-bordered align-middle">
+                                            <table class="table table-bordered table-sm text-center align-middle mb-0">
                                                 <thead class="table-light">
                                                     <tr>
-                                                        <th class="text-center">Denomination</th>
-                                                        <th class="text-center">Qty</th>
-                                                        <th class="text-center">*</th>
-                                                        <th class="text-center">Amount</th>
-                                                        <th class="text-center">=</th>
-                                                        <th class="text-center">Total</th>
+                                                        <th>Denomination</th>
+                                                        <th>Qty</th>
+                                                        <th>*</th>
+                                                        <th>Amount</th>
+                                                        <th>=</th>
+                                                        <th>Total</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     @if (!empty($shiftcash))
-                                                        @foreach ($shiftcash as $key => $item)
+                                                        @php
+                                                            $totalNotes = 0;
+                                                        @endphp
+                                                        @foreach ($shiftcash as $denomination => $quantity)
+                                                            @php
+                                                                $rowTotal = $denomination * $quantity;
+                                                                $totalNotes += $rowTotal;
+                                                            @endphp
                                                             <tr>
-                                                                <td class="text-center fw-bold">{{ $key }}
-                                                                </td>
-                                                                <td class="text-center">{{ $item }}</td>
-                                                                <td class="text-center">*</td>
-                                                                <td class="text-center">{{ $key }}</td>
-                                                                <td class="text-center">=</td>
-                                                                <td class="text-center">{{ $key * $item }}</td>
+                                                                <td class="fw-bold">{{ number_format($denomination) }}</td>
+                                                                <td>{{ $quantity }}</td>
+                                                                <td>*</td>
+                                                                <td>{{ number_format($denomination) }}</td>
+                                                                <td>=</td>
+                                                                <td class="fw-bold">{{ number_format($rowTotal) }}</td>
                                                             </tr>
-                                                            <input type="hidden"
-                                                                name="cash_breakdown[{{ $key }}]"
-                                                                value="{{ $item }}">
+                                                            <input type="hidden" name="cash_breakdown[{{ $denomination }}]['in']" value="{{ $quantity }}">
                                                         @endforeach
                                                     @endif
                                                 </tbody>
+                                                <tfoot class="table-light">
+                                                    <tr>
+                                                        <th colspan="5" class="text-end">Total</th>
+                                                        <th class="fw-bold">{{ number_format(@$totalNotes) }}</th>
+                                                    </tr>
+                                                </tfoot>
                                             </table>
+                                            
                                         </div>
 
                                         {{-- Summary Cash Totals --}}
@@ -511,13 +507,20 @@
                                                     </tr>
                                                     <tr>
                                                         <td class="text-start fw-bold">System Cash</td>
-                                                        <td class="text-end">{{ number_format($todayCash ?? 0, 2) }}
+                                                        <td class="text-end">{{ number_format($totalNotes ?? 0, 2) }}
                                                         </td>
                                                     </tr>
                                                     <tr>
                                                         <td class="text-start fw-bold">Closing Cash</td>
                                                         <td class="text-end">
-                                                            {{ number_format($shift->total_payments ?? 0, 2) }}</td>
+                                                            <input type="text" name="closingCash" id="closingCash" class="form-control" oninput="calculateDifference({{@$totalNotes}})">
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-start fw-bold">Different Cash</td>
+                                                        <td class="text-end">
+                                                            <input type="text" name="diffCash" id="diffCash" class="form-control" readonly>
+                                                        </td>
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -543,7 +546,7 @@
 
     <div class="modal fade no-print" id="cashout" tabindex="-1" aria-labelledby="cashout" aria-hidden="true"
         data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-dialog modal-dialog-scrollable modal-mg">
             <div class="modal-content shadow-sm rounded-4 border-0">
                 <div class="modal-header bg-primary text-white rounded-top-4">
                     <h5 class="modal-title fw-semibold" id="cashout">
@@ -759,16 +762,16 @@
                             View Hold
                         </button>
 
-                        <span wire:poll.60s="checkTime">
-                            @if ($showCloseButton)
+                        {{-- <div wire:poll.60s="checkTime">
+                            @if ($showCloseButton) --}}
                                 <button type="button" id="closeShiftBtn" class="btn btn-primary btn-sm mr-2 "
                                     data-toggle="modal" data-target="#closeShiftModal">
                                     Close Shift
                                 </button>
-                            @else
+                            {{-- @else --}}
                                 {{-- <p>Close button will appear 10 minutes before shift ends.</p> --}}
-                            @endif
-                        </span>
+                            {{-- @endif --}}
+                        {{-- </div> --}}
 
                         <button type="button" class="btn btn-outline-danger ms-2" data-toggle="tooltip"
                             data-placement="top" title="Logout"
@@ -1671,6 +1674,16 @@
     });
 </script>
 <script>
+     function calculateDifference(expectedAmount) {
+        // Get the value entered in the closingCash input
+        const closingCash = parseFloat(document.getElementById('closingCash').value) || 0;
+        
+        // Calculate the difference (for example, assume a static value for calculation)
+        const diffCash = closingCash - expectedAmount;
+
+        // Update the diffCash input with the calculated value
+        document.getElementById('diffCash').value = diffCash.toFixed(2);
+    }
     function updateAmounts() {
         let total = 0;
         const amountInput = document.getElementById('holdamountTotal');

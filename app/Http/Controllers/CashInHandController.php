@@ -28,7 +28,7 @@ class CashInHandController extends Controller
                 $denomination = (string) end($parts); // Ensure it's a string
                 $count = (string) (int)$value;         // Convert to string after casting to int
     
-                $cashNotes[$denomination] = $count;
+                $cashNotes[$denomination]['in'] = $count;
                 $total += ((int)$denomination) * (int)$count;
             }
         }
@@ -50,12 +50,11 @@ class CashInHandController extends Controller
             [
                 'user_id' => auth()->id(),
                 'branch_id' => $branch_id,
-                'start_time' => $start,
-                'end_time' => $end,
-                'closing_cash' => 0,
-                'deshi_sales' => 0,
+                'status'=>'pending'
             ],
             [
+                'start_time' => $start,
+                'end_time' => $end,
                 'opening_cash' => $request->amount,
                 'cash_break_id' => $cashBreakdown->id,
             ]
