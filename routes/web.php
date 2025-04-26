@@ -162,6 +162,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/items/list', [ItemController::class, 'index'])->name('items.list');
     Route::get('/items/cart', [ItemController::class, 'cart'])->name('items.cart');
     Route::get('/items/{id}', [ItemController::class, 'show'])->name('items.show');
+    Route::post('/items/{id}/resume', [ItemController::class, 'resume'])->name('items.resume');
 
     Route::post('/items/get-data', [ItemController::class, 'getData'])->name('items.getData');
     Route::get('/items/create', [ItemController::class, 'create'])->name('items.create');

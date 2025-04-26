@@ -16,6 +16,7 @@ use App\Models\CashInHand;
 use App\Models\UserShift;
 use PhpParser\Node\Expr\PreInc;
 use App\Models\CashBreakdown;
+use Illuminate\Support\Facades\Log;
 
 class Shoppingcart extends Component
 {
@@ -32,6 +33,16 @@ class Shoppingcart extends Component
 
     public $shift;
     public $shiftcash;
+   public  $narrations = [
+        'Personal Expenses',
+        'Business Investment',
+        'Loan Repayment',
+        'Medical Emergency',
+        'Education Fees',
+        'Travel Expenses',
+        'Other'
+    ];
+
 
     public $changeAmount = 0;
     public $showBox = false;
@@ -52,13 +63,14 @@ class Shoppingcart extends Component
     public $partyUsers = [];
     public $commissionAmount = 0;
     public $partyAmount = 0;
+    public $basicPartyAmt=0;
     public $productSearch = '';
     public $searchResults = [];
     public $products = [];
     public $tenderedAmount = 0;
     public $showModal = false;
     public $selectedUser = 0;
-    protected $listeners = ['updateProductList' => 'loadCartData'];
+    protected $listeners = ['updateProductList' => 'loadCartData','loadHoldTransactions'];
     public $noteDenominations = [10, 20, 50, 100, 200,500];
     public $remainingAmount = 0;
     public $totalBreakdown = [];
@@ -80,7 +92,8 @@ class Shoppingcart extends Component
     public $focusedField = null; // Track the currently focused input field
     public $search = '';
     public $selectedProduct;
-
+    public $holdTransactions=[];
+    public $headertitle="";
     public function updatedSearch($value)
     {
         $this->selectedProduct = Product::Where('barcode', 'like', "%{$value}%")
@@ -93,7 +106,7 @@ class Shoppingcart extends Component
 
         $existingItemsum = Cart::where('product_id', $this->selectedProduct->id)
             ->where('user_id', auth()->id())
-            ->where('status', Cart::STATUS['pending'])
+            ->where('status', Cart::STATUS_HOLD)
             ->sum('quantity');
 
             // Fetch product with inventory
@@ -103,19 +116,19 @@ class Shoppingcart extends Component
             session()->flash('error', 'Product is out of stock and cannot be added to cart.');
             return;
             }
-            $item = Cart::where('product_id', $this->selectedProduct->id)
-            ->where('user_id', auth()->id())
-            ->where('status', Cart::STATUS['pending'])
-            ->first();
-            if (!empty($item)) {
-                    $item->quantity = $item->quantity + 1;
-                    $item->save();
-            }else{
-                $item=new Cart();
-                $item->user_id = auth()->user()->id;
-                $item->product_id = $this->selectedProduct->id;
-                $item->save();
-            }
+            // $item = Cart::where('product_id', $this->selectedProduct->id)
+            // ->where('user_id', auth()->id())
+            // ->where('status', Cart::STATUS_HOLD)
+            // ->first();
+            // if (!empty($item)) {
+            //         $item->quantity = $item->quantity + 1;
+            //         $item->save();
+            // }else{
+            // }
+            $item=new Cart();
+            $item->user_id = auth()->user()->id;
+            $item->product_id = $this->selectedProduct->id;
+            $item->save();
       
 
         $this->updateQty($item->id);
@@ -172,6 +185,7 @@ class Shoppingcart extends Component
     public function toggleBox()
     {
         if (!empty($this->products->toArray())) {
+            $this->headertitle="Cash";
             $this->shoeCashUpi = false;
             $this->showBox = true;
             $this->paymentType = "cash";
@@ -188,6 +202,7 @@ class Shoppingcart extends Component
             $this->showBox = false;
             $this->shoeCashUpi = true;
             $this->paymentType = "cashupi";
+            $this->headertitle="Cash + UPI";
 
             $this->total = $this->cashAmount;
             
@@ -337,11 +352,15 @@ class Shoppingcart extends Component
                 }
             }
 
-            $discountTotal += ($invoice->commission_amount ?? 0) + ($invoice->party_amount ?? 0);
-            $totalCashPaid += $invoice->cash_amount ?? 0;
-            $totalUpiPaid += $invoice->upi_amount ?? 0;
-            $totalSales += $invoice->sub_total;
-            $totalPaid += $invoice->total;
+           // $discountTotal += ($invoice->commission_amount ?? 0) + ($invoice->party_amount ?? 0);
+           $discountTotal += (!empty($invoice->commission_amount) && is_numeric($invoice->commission_amount)) ? (int)$invoice->commission_amount : 0;
+           $discountTotal += (!empty($invoice->party_amount) && is_numeric($invoice->party_amount)) ? (int)$invoice->party_amount : 0;
+       
+           $totalCashPaid += (!empty($invoice->cash_amount) && is_numeric($invoice->cash_amount)) ? (int)$invoice->cash_amount : 0;
+           $totalUpiPaid  += (!empty($invoice->upi_amount)  && is_numeric($invoice->upi_amount)) ? (int)$invoice->upi_amount  : 0;
+       
+           $totalSales    += (!empty($invoice->sub_total)   && is_numeric($invoice->sub_total)) ? (int)$invoice->sub_total : 0;
+           $totalPaid     += (!empty($invoice->total)       && is_numeric($invoice->total)) ? (int)$invoice->total : 0;
         }
         if (isset($this->categoryTotals['Desi'])) {
             $this->categoryTotals['DESHI SALES'] = $this->categoryTotals['Desi'];
@@ -357,7 +376,8 @@ class Shoppingcart extends Component
         $this->categoryTotals['DISCOUNT'] = $discountTotal * (-1);
         $this->categoryTotals['UPI PAYMENT'] = $totalUpiPaid;
         $this->categoryTotals['WITHDRAWAL PAYMENT'] = $totalWith*(-1);
-        $this->categoryTotals['TOTAL CASH'] = $totalCashPaid-$totalWith;
+        $this->categoryTotals['TOTAL'] =$totalCashPaid-$totalWith;
+        // $this->categoryTotals['TOTAL CASH'] =$this->shift->opening_cash+ $totalCashPaid-$totalWith;
 
         //TOTAL CASH
         $cashBreakdowns = CashBreakdown::where(['user_id' => auth()->user()->id])
@@ -366,34 +386,34 @@ class Shoppingcart extends Component
             ->get();
 
 
-        $denominationCounts = [];
-
+        $noteCount = [];
+        
         foreach ($cashBreakdowns as $breakdown) {
             $denominations = json_decode($breakdown->denominations, true);
             if (is_array($denominations)) {
-                foreach ($denominations as $key => $noteGroup) {
-                    if (is_array($noteGroup)) {
-
-                        foreach ($noteGroup as $denomination => $count) {
-                            if (!isset($denominationCounts[$denomination])) {
-                                $denominationCounts[$denomination] = 0;
+                foreach ($denominations as $denomination => $notes) {
+                    foreach ($notes as $noteValue => $action) {
+                        // Check for 'in' (added notes) and 'out' (removed notes)
+                        if (isset($action['in'])) {
+                            if (!isset($noteCount[$noteValue])) {
+                                $noteCount[$noteValue] = 0;
                             }
-
-                            $denominationCounts[$denomination] += (int)$count;
+                            $noteCount[$noteValue] += $action['in'];
                         }
-                    } else {
-                        if (!isset($denominationCounts[$key])) {
-                            $denominationCounts[$key] = 0;
+                        if (isset($action['out'])) {
+                            if (!isset($noteCount[$noteValue])) {
+                                $noteCount[$noteValue] = 0;
+                            }
+                            $noteCount[$noteValue] -= $action['out'];
                         }
-
-                        $denominationCounts[$key] += (int)$noteGroup;
                     }
                 }
+                
             }
         }
-
+      //  print_r($noteCount);exit;
         // Decode cash JSON to array
-        $this->shiftcash = $denominationCounts;
+        $this->shiftcash = $noteCount;
         $this->checkTime();
 
         // return view('shift_closing.show', compact('shift'));
@@ -403,29 +423,87 @@ class Shoppingcart extends Component
         foreach ($this->cartitems as $item) {
             $this->quantities[$item->id] = $item->quantity;
         }
+
+        $this->holdTransactions = Cart::where('user_id', auth()->user()->id)->where('status', Cart::STATUS_HOLD)->get();
+        if (empty($this->selectedPartyUser)) {
+            $mycarts = Cart::where('user_id', auth()->user()->id)->where('status', Cart::STATUS_PENDING)->get();
+            $sum=0;
+            foreach ($mycarts as $key => $mycart) {
+               $mycart->discount=0;
+               $mycart->net_amount=$mycart->amount*$mycart->quantity;
+               $mycart->save();
+               $sum=$sum+$mycart->net_amount;
+            }
+            $this->cashAmount=$sum;
+            //$this->basicPartyAmt=$user->credit_points*$mycart->quantity;
+            // $this->partyAmount = $user->credit_points;
+        } 
+
     }
+    
+    // public function loadHoldTransactions()
+    // {
+    //     $this->holdTransactions = Cart::where('user_id', auth()->user()->id)->where('status', Cart::STATUS_HOLD)->get();
+    // }
+
+    // public function resumeTransaction($id)
+    // {
+    //     $transaction = Cart::where('user_id', auth()->user()->id)->where('status', Cart::STATUS_HOLD)->first();
+    //     $transaction->status =Cart::STATUS_PENDING;
+    //     $transaction->save();
+
+    //     $this->loadHoldTransactions(); // refresh list
+    //     session()->flash('message', 'Transaction resumed!');
+    // }
     
     public function checkTime()
     {
-        $now = Carbon::now();
+        // Get the current time in IST using PHP's DateTime
+        $now = new \DateTime('now', new \DateTimeZone('Asia/Kolkata'));
+    
+        // Log current time in IST
+        Log::info('Current time (IST): ' . $now->format('Y-m-d H:i:s'));
+    
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
-
+    
         // Example: get the active shift for the current user or by any logic
-        $shift = UserShift::where('user_id', auth()->id())->where('branch_id', $branch_id)
-                    ->whereDate('end_time', today())
-                    ->latest()
-                    ->first();
-
+        $shift = UserShift::where('user_id', auth()->id())
+                        ->where('branch_id', $branch_id)
+                        ->whereDate('end_time', today())
+                        ->latest()
+                        ->first();
+    
+        // Log the shift data retrieved
+        if ($shift) {
+            Log::info('Shift found for user: ' . auth()->id() . ' - End Time: ' . $shift->end_time);
+        } else {
+            Log::info('No active shift found for user: ' . auth()->id());
+        }
+    
         if ($shift && $shift->end_time) {
-            // Parse the DB end time (assuming it's a "time" or "datetime" column)
-            $endTime = Carbon::parse($shift->end_time);
-
+            // Parse the DB end time and convert it to IST using PHP's DateTime
+            $endTime = new \DateTime($shift->end_time, new \DateTimeZone('Asia/Kolkata'));
+    
+            // Log the parsed end time in IST
+            Log::info('Shift end time (IST): ' . $endTime->format('Y-m-d H:i:s'));
+    
+            // Compare the current time with the shift end time (subtract 10 minutes)
+            $tenMinutesBeforeEnd = clone $endTime;
+            $tenMinutesBeforeEnd->modify('-10 minutes');
+    
             // Show button if within 10 minutes of the shift end time
-            $this->showCloseButton = $now->greaterThanOrEqualTo($endTime->copy()->subMinutes(10));
+            $this->showCloseButton = ($now >= $tenMinutesBeforeEnd);
+    
+            // Log the result of the comparison
+            Log::info('Show close button: ' . ($this->showCloseButton ? 'Yes' : 'No'));
         } else {
             $this->showCloseButton = false;
+            Log::info('No valid shift end time found.');
         }
+        $this->showCloseButton = true;
+
     }
+    
 
     public function clearCashNotes()
     {
@@ -440,7 +518,7 @@ class Shoppingcart extends Component
     public function voidSale()
     {
         $cartItems = Cart::where('user_id', auth()->user()->id)
-            ->where('status', '!=', Cart::STATUS['success']);
+            ->where('status', '!=', Cart::STATUS_HOLD);
     
         if ($cartItems->count() === 0) {
             // No cart items to clear
@@ -461,25 +539,50 @@ class Shoppingcart extends Component
         session()->flash('message', 'Cart has been cleared.');
     }
     
+    public function holdSale()
+    {
+        $cartItems = Cart::where('user_id', auth()->user()->id)
+            ->where('status', Cart::STATUS_PENDING)
+            ->get(); // <-- get all matching rows
     
+        if ($cartItems->isNotEmpty()) {
+            foreach ($cartItems as $item) {
+                $item->status = Cart::STATUS_HOLD;
+                $item->save();
+            }
+    
+            // Optional: reset UI inputs
+            $this->reset('searchTerm', 'searchResults', 'showSuggestions','cashAmount','shoeCashUpi','showBox','cashNotes','quantities','cartCount');
+            $this->dispatch('updateCartCount');
+            $this->dispatch('updateProductList');
+            // Optional: flash message or dispatch event
+            session()->flash('message', 'Your transaction has been added to hold.');
+        }
+    }
+    
+
+    public function showHoldList()
+    {
+        $holdTransactions = Cart::where('user_id', auth()->user()->id)->where('status', 'hold')->get();
+        return view('transactions.hold_list', compact('holdTransactions'));
+    }
 
     public function loadCartData()
     {
-        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
         $this->branch_name = (!empty(auth()->user()->userinfo->branch->name)) ? auth()->user()->userinfo->branch->name : "";
         $this->cartitems = Cart::with('product')
             ->where(['user_id' => auth()->user()->id])
             //  ->where(['branch_id'=>$branch_id])
-            ->where('status', '!=', Cart::STATUS['success'])
+            ->where('status', Cart::STATUS_PENDING)
             ->get();
 
-
+        
         $this->calculateTotals();
         $this->getCartItemCount();
         $this->products = Cart::with('product')
             ->where(['user_id' => auth()->user()->id])
-            ->where('status', '!=', Cart::STATUS['success'])
+            ->where('status', Cart::STATUS_PENDING)
             ->get();
     }
 
@@ -491,21 +594,24 @@ class Shoppingcart extends Component
             $this->quantities[$itemId] = 1;
         }else{
             
-            $item = Cart::where(['user_id' => auth()->user()->id])->find($itemId);
-            if ($item) {
-                $item->quantity = $quantity + 1;
-                $item->save();
-               // $this->quantities[$itemId] = $quantity + 1;
+            // $item1 = Cart::where(['user_id' => auth()->user()->id])->find($itemId);
+            // if ($item1) {
+            //     $item=new Cart();
+            //     $item->quantity = $item1->quantity + 1;
+            //     $item->user_id = auth()->user()->id;
+            //     $item->product_id = $itemId;
+            //     $item->save();
+            //     $this->quantities[$itemId] = $item1->quantity + 1;
 
-            }
+            // }
         }
 
-
+    //    / this->basicPartyAmt
         // Optional: refresh cart items if needed
         $this->cartitems = Cart::with('product')
             ->where(['user_id' => auth()->user()->id])
             ->where(['product_id' => auth()->user()->id])
-            ->where('status', '!=', Cart::STATUS['success'])
+            ->where('status', Cart::STATUS_PENDING)
             ->get();
 
         $this->dispatch('updateCartCount');
@@ -517,7 +623,7 @@ class Shoppingcart extends Component
         $this->sub_total = $this->cartitems->sum(
             fn($item) =>
             !empty($item->product->sell_price)
-                ? $item->product->sell_price * $item->quantity
+                ? $item->product->sell_price 
                 : 0
         );
         
@@ -561,24 +667,32 @@ class Shoppingcart extends Component
     public function getCartItemCount()
     {
         $this->cartCount = Cart::where('user_id', auth()->id())
-            ->where('status', '!=', Cart::STATUS['success'])
+            ->where('status', '!=', Cart::STATUS_HOLD)
             ->sum('quantity');
-
 
         $this->dispatch('updateCartCount');
     }
     //sanjay
-    public function incrementQty($id)
+    public function incrementQty($id,$amount=0)
     {
-        $item = Cart::find($id);
+        $item = Cart::with(['product'])->where('id', $id)
+            ->where('user_id', auth()->id())
+            ->where('status', Cart::STATUS_PENDING)
+            ->first();
+            
         if ($item) {
             $item->quantity++;
+            // $item->amount+=$item->net_amount*($item->quantity);
+            $item->net_amount=($item->mrp-$item->discount)*$item->quantity;
             $item->save();
+            $this->cashAmount=$item->net_amount;
             if (isset($this->quantities[$id])) {
                 $this->quantities[$id]++;
                 $this->updateQty($id);
             }
-            $this->loadCartData();
+              //  $this->calculateParty();
+            //$this->dispatch('updateCartCount');
+            $this->dispatch('updateProductList');
         }
     }
     public function incrementNote($key, $denomination, $type)
@@ -608,15 +722,25 @@ class Shoppingcart extends Component
     
     public function decrementQty($id)
     {
-        $item = Cart::find($id);
+        $item = Cart::with(['product'])->where('id', $id)
+        ->where('user_id', auth()->id())
+        ->where('status', Cart::STATUS_PENDING)
+        ->first();
         if ($item && $item->quantity > 1) {
             $item->quantity--;
+            $item->net_amount=($item->mrp-$item->discount)*$item->quantity;
+            
             $item->save();
+            $this->cashAmount=$item->net_amount;
             if (isset($this->quantities[$id]) && $this->quantities[$id] > 1) {
                 $this->quantities[$id]--;
-                $this->updateQty($id);
+              //  $this->updateQty($id);
             }
             $this->loadCartData();
+            // $this->dispatch('updateCartCount');
+            // $this->dispatch('updateProductList');
+            // $this->calculateParty();
+
         }
     }
 
@@ -630,35 +754,73 @@ class Shoppingcart extends Component
     public function calculateCommission()
     {
         $this->dispatch('user-selection-updated', ['userId' => $this->selectedUser]);
-
+        $sum=$commissionTotal=0;
         $user = Commissionuser::find($this->selectedCommissionUser);
         if (!empty($user)) {
-            $getDiscountAmt = Cart::with(['product', 'product.inventorie'])
-                ->where(['user_id' => auth()->user()->id])
-                ->where('status', '!=', Cart::STATUS['success'])
-                ->get()
-                ->sum(fn($cart) => $cart->product->discount_price ?? 0);
-            $this->commissionAmount = $getDiscountAmt;
+            // $getDiscountAmt = Cart::with(['product', 'product.inventorie'])
+            //     ->where(['user_id' => auth()->user()->id])
+            //     ->where('status', '!=', Cart::STATUS_HOLD)
+            //     ->get()
+            //     ->sum(fn($cart) => $cart->product->discount_price ?? 0);
+            // $this->commissionAmount = $getDiscountAmt;
+            $mycarts = Cart::with(['product', 'product.inventorie'])->where('user_id', auth()->user()->id)->where('status', Cart::STATUS_PENDING)->get();
+            foreach ($mycarts as $key => $mycart) {
+               $mycart->net_amount=$mycart->amount-($mycart->product->discount_price*$mycart->quantity);
+               $mycart->discount=$mycart->product->discount_price*$mycart->quantity;
+               $mycart->save();
+               $sum=$sum+$mycart->net_amount;
+               $commissionTotal=$commissionTotal+$mycart->discount;
 
-            $this->total = $this->cashAmount = $this->total - $getDiscountAmt;
-            
+            }
+            $this->commissionAmount = @$commissionTotal;
+          
         } else {
-            $this->cashAmount = $this->total;
+            $mycarts = Cart::with(['product', 'product.inventorie'])->where('user_id', auth()->user()->id)->where('status', Cart::STATUS_PENDING)->get();
+            foreach ($mycarts as $key => $mycart) {
+               $mycart->net_amount=@$mycart->mrp*$mycart->quantity;
+               $mycart->discount=0;
+               $mycart->save();
+               $sum=$sum+$mycart->net_amount;
+
+            }
+            
+            $this->basicPartyAmt=0;
             $this->commissionAmount = 0;
         }
+        $this->cashAmount=$sum;
     }
 
     public function calculateParty()
     {
+        $sum=$partyCredit=0;
         $user = Partyuser::find($this->selectedPartyUser);
         if (!empty($user)) {
+            $mycarts = Cart::where('user_id', auth()->user()->id)->where('status', Cart::STATUS_PENDING)->get();
+            foreach ($mycarts as $key => $mycart) {
+               $mycart->net_amount=$mycart->net_amount-($user->credit_points*$mycart->quantity);
+               $mycart->discount=$user->credit_points*$mycart->quantity;
+               $mycart->save();
+               $sum=$sum+$mycart->net_amount;
+               
+            }
+            
+            //$this->basicPartyAmt=$user->credit_points*$mycart->quantity;
             $this->partyAmount = $user->credit_points;
         } else {
+            $mycarts = Cart::where('user_id', auth()->user()->id)->where('status', Cart::STATUS_PENDING)->get();
+            foreach ($mycarts as $key => $mycart) {
+               $mycart->net_amount=$mycart->mrp*$mycart->quantity;
+               $mycart->discount=0;
+               $mycart->save();
+               $sum=$sum+$mycart->net_amount;
+
+            }
+            
+            $this->basicPartyAmt=0;
             $this->partyAmount = 0;
         }
-        $this->total = $this->total - $this->partyAmount;
+        $this->cashAmount=$sum;
         
-        $this->cashAmount = $this->total;
     }
 
     public function render()
@@ -675,9 +837,14 @@ class Shoppingcart extends Component
             $this->searchResults = [];
         }
         $itemCarts = Cart::GetCartItems();
-
+        foreach ($itemCarts as $item) {
+            $this->quantities[$item->id] = $item->quantity;
+        }
+        
+      //  print_r($this->quantities);
         return view('livewire.shoppingcart', [
             'itemCarts' => $itemCarts,
+            'narrations' => $this->narrations,
             'searchResults' => $this->searchTerm,
         ]);
     }
@@ -688,7 +855,7 @@ class Shoppingcart extends Component
         if (auth()->user()) {
             $existingItemsum = Cart::where('product_id', $id)
             ->where('user_id', auth()->id())
-            ->where('status', Cart::STATUS['pending'])
+            ->where('status', Cart::STATUS_PENDING)
             ->sum('quantity');
 
             // Fetch product with inventory
@@ -699,26 +866,38 @@ class Shoppingcart extends Component
             return;
             }
 
-            $item = Cart::where('product_id', $id)
-            ->where('user_id', auth()->id())
-            ->where('status', Cart::STATUS['pending'])
-            ->first();
-             if (!empty($item)) {
-                $item->quantity = $item->quantity + 1;
-                $item->save();
-            }else{
-                $item=new Cart();
-                $item->user_id = auth()->user()->id;
-                $item->product_id = $id;
-                $item->save();
+            // $item = Cart::where('product_id', $id)
+            // ->where('user_id', auth()->id())
+            // ->where('status', Cart::STATUS_PENDING)
+            // ->first();
+            //  if (!empty($item)) {
+            //     $item->quantity = $item->quantity + 1;
+            //     $item->save();
+            // }else{
+            //     $item=new Cart();
+            //     $item->user_id = auth()->user()->id;
+            //     $item->product_id = $id;
+            //     $item->save();
+
+            // }
+            $user = Partyuser::find($this->selectedPartyUser);
+            if (!empty($user)) {
+                $myCart=$user->credit_points;
+            } else {
+                $myCart=0;
 
             }
-            // $data = [
-            //     'user_id' => auth()->user()->id,
-            //     'product_id' => $id,
-            // ];
-            // $CartDb = Cart::updateOrCreate($data);
-            $this->updateQty($item->id);
+
+          
+            $item=new Cart();
+            $item->user_id = auth()->user()->id;
+            $item->product_id = $id;
+            $item->mrp = $product->sell_price;
+            $item->amount = $product->sell_price-$myCart;
+            $item->discount = $myCart;
+            $item->net_amount = $product->sell_price-$myCart;
+            $item->save();
+           // $this->updateQty($item->id);
             $this->dispatch('updateCartCount');
             $this->dispatch('updateProductList');
             $this->reset('searchTerm', 'searchResults', 'showSuggestions');
@@ -849,14 +1028,13 @@ class Shoppingcart extends Component
     //     $this->dispatch('triggerPrint');
     //     //return redirect()->route('invoice.show', $invoice->id);
     //     Cart::where('user_id', auth()->user()->id)
-    //         ->where('status', '!=', Cart::STATUS['success'])
+    //         ->where('status', '!=', Cart::STATUS_HOLD)
     //         ->delete();
     //     $this->reset('searchTerm', 'searchResults', 'showSuggestions');
 
     // }
     public function checkout()
     {
-        
         try {
             if ($this->paymentType == "cash") {
 
@@ -870,16 +1048,16 @@ class Shoppingcart extends Component
             }
           
 
-            if (!empty($this->commissionAmount)) {
-                $this->total -= $this->commissionAmount;
+            // if (!empty($this->commissionAmount)) {
+            //     $this->total -= $this->commissionAmount;
                 
 
-            }
-            if (!empty($this->partyAmount)) {
-                $this->total -= $this->partyAmount;
+            // }
+            // if (!empty($this->partyAmount)) {
+            //     $this->total -= $this->partyAmount;
                 
 
-            }
+            // }
 
             $commissionUser = CommissionUser::find($this->selectedCommissionUser);
             $partyUser = PartyUser::find($this->selectedPartyUser);
@@ -906,7 +1084,7 @@ class Shoppingcart extends Component
                 'user_id' => auth()->id(),
                 'branch_id' => $branch_id,
                 'denominations' => $cashNotes,
-                'total' => $this->total,
+                'total' => $this->cash,
             ]);
 
             $invoice_number = 'INV-' . strtoupper(Str::random(8));
@@ -934,7 +1112,7 @@ class Shoppingcart extends Component
                 ]),
                 'upi_amount' => $this->upi,
                 'cash_amount' => $this->cash,
-                'sub_total' => $this->sub_total,
+                'sub_total' => $this->cashAmount,
                 'tax' => $this->tax,
                 'status' => "Paid",
                 'commission_amount' => $this->commissionAmount,
@@ -948,11 +1126,12 @@ class Shoppingcart extends Component
                 $this->invoiceData = $invoice;
                 $this->dispatch('triggerPrint');
             }
+            
             //return redirect()->route('invoice.show', $invoice->id);
             Cart::where('user_id', auth()->user()->id)
-                ->where('status', '!=', Cart::STATUS['success'])
+                ->where('status', '!=', Cart::STATUS_HOLD)
                 ->delete();
-            $this->reset('searchTerm', 'searchResults', 'showSuggestions','cashAmount','shoeCashUpi','showBox','cashNotes','quantities');
+            $this->reset('searchTerm', 'searchResults', 'showSuggestions','cashAmount','shoeCashUpi','showBox','cashNotes','quantities','cartCount');
             return redirect()->back()->with('success', 'Order placed successfully.');
 
         } catch (\Illuminate\Validation\ValidationException $e) {

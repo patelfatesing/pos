@@ -14,18 +14,19 @@ class Shoppingcart extends Model
     public function product(){
         return $this->belongsTo(Product::class);
     }
-
-    const STATUS  = [
-        'pending'       => 0,
-        'in_process'    => 1,
-        'success'       => 2,
-        'error'         => 3
-    ];
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_HOLD = 'Hold';
+    public const STATUS_COMPLETED = 'completed';
+    
     public static function GetCartItems()
     {
         return  Shoppingcart::with('product')
         ->where(['user_id'=>auth()->user()->id])
-        ->where('status', '!=', Shoppingcart::STATUS['success'])
+        ->where('status', Shoppingcart::STATUS_PENDING)
         ->paginate(7);
+    }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

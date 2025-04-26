@@ -34,7 +34,7 @@ class CashInHandController extends Controller
         }
 
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
-        $start = Carbon::today();
+        $now = new \DateTime('now', new \DateTimeZone('Asia/Kolkata'));
         $end = $start->copy()->addHours(8)->addMinutes(30);
         $cashNotes = json_encode($cashNotes) ?? [];
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";

@@ -50,26 +50,21 @@
 
             <div class="col-md-3">
                 <div class="mb-3">
-                    <input type="text"
-                    wire:model.live.debounce.500ms="search"
-                        wire:keydown.enter="addToCartBarCode"
-                        class="form-control"
-                        placeholder="Scan barcode or type product name"
-                        autofocus>
-            
-                @if ($selectedProduct)
-                    <div class="search-results">
+                    <input type="text" wire:model.live.debounce.500ms="search" wire:keydown.enter="addToCartBarCode"
+                        class="form-control" placeholder="Scan barcode here" autofocus>
 
-                        <div class="list-group-item list-group-item-action">
-                            <strong>{{ $selectedProduct->name }}</strong>
-                            <small>Barcode: {{ $selectedProduct->barcode }}</small>
-                            <small>Price: ₹{{ $selectedProduct->sell_price }}</small>
-                            <small>Stock: {{ $selectedProduct->quantity }}</small>
+                    @if ($selectedProduct)
+                        <div class="search-results">
+
+                            <div class="list-group-item list-group-item-action">
+                                <strong>{{ $selectedProduct->name }}</strong>
+                                <small>Barcode: {{ $selectedProduct->barcode }}</small>
+                                <small>Price: ₹{{ $selectedProduct->sell_price }}</small>
+                                <small>Stock: {{ $selectedProduct->quantity }}</small>
+                            </div>
                         </div>
-                    </div>
-                   
-                @endif
-                    
+                    @endif
+
                 </div>
 
             </div>
@@ -114,13 +109,13 @@
             @endif
         </div>
         <div class="table-responsive mb-2" id="main_tb">
-            <div class="cart-table-scroll {{ count($itemCarts) > 5 ? 'scrollable' : '' }}">
+            <div class="cart-table-scroll {{ count($itemCarts) > 5 ? '  scrollable' : '' }}">
 
                 <table class="table table-bordered" id="cartTable">
                     <thead class="thead-light">
                         <tr>
                             <th style="width: 40%;">Product</th>
-                            <th style="width: 20%;">Quantity</th>
+                            <th style="width: 20%;">Qty</th>
                             <th style="width: 10%;">Price</th>
                             <th style="width: 10%;">Total</th>
                             <th style="width: 8%;">Actions</th>
@@ -128,6 +123,12 @@
                     </thead>
                     <tbody>
                         @forelse($itemCarts as $item)
+                            @php
+                                $total = @$item->product->sell_price * $item->quantity;
+                                $commission = $commissionAmount ?? 0;
+                                $party = $partyAmount ?? 0;
+                                $finalAmount = $total - $commission - $party;
+                            @endphp
                             <tr>
                                 <td class="product-name" style="word-wrap: break-word; width: 40%;">
                                     <strong>{{ $item->product->name }}</strong><br>
@@ -154,7 +155,7 @@
                                             <div id="numpad" class="numpad" style="display: none;"></div>
 
                                             <button class="btn btn-sm btn-outline-warning"
-                                                wire:click="incrementQty({{ $item->id }})">+</button>
+                                                wire:click="incrementQty({{ $item->id }}, {{ $finalAmount }})">+</button>
                                         </div>
                                     @endif
                                 </td>
@@ -168,17 +169,19 @@
                                             <s>₹{{ number_format(@$item->product->discount_price, 2) }}</s>
                                         </small>
                                     @else
-                                        ₹{{ number_format(@$item->product->sell_price, 2) }}
+                                        <span class="text-danger">
+                                            ₹{{ number_format(@$item->product->sell_price, 2) }}
+                                        </span>
+                                        <br>
+                                        <small class="text-muted">
+
+                                            <s>₹{{ number_format(@$this->partyAmount, 2) }}</s>
+                                        </small>
                                     @endif
                                 </td>
                                 <td style="width: 10%;">
-                                    @php
-                                        $total = @$item->product->sell_price * $item->quantity;
-                                        $commission = $commissionAmount ?? 0;
-                                        $party = $partyAmount ?? 0;
-                                        $finalAmount = $total - $commission - $party;
-                                    @endphp
-                                    ₹{{ number_format($finalAmount, 2) }}
+
+                                    ₹{{ number_format($item->net_amount, 2) }}
 
                                 </td>
                                 <td style="width: 8%; " class="text-center">
@@ -206,7 +209,7 @@
                 <table class="table table-bordered text-center mb-0">
                     <thead class="">
                         <tr>
-                            <th>Quantity</th>
+                            <th>Qty</th>
                             <th>MRP</th>
                             <th>Rounded Off</th>
                             <th>Total Payable</th>
@@ -233,26 +236,37 @@
                         </tr>
                         <tr>
                             <td>
-                                <button wire:click="toggleBox" class="btn btn-sm btn-primary w-100 shadow-sm">
-                                    <i class="bi bi-file-earmark-spreadsheet me-2"></i> Cash
-                                </button>
-
+                                @if (($selectedPartyUser && count($itemCarts) > 0) || count($itemCarts) > 0)
+                                    <button wire:click="toggleBox" class="btn btn-sm btn-primary w-100 shadow-sm">
+                                        <i class="fa fa-money-bill-wave me-2"></i> Cash
+                                    </button>
+                                @else
+                                    <button class="btn btn-sm btn-primary w-100 shadow-sm" disabled>
+                                        <i class="fa fa-money-bill-wave me-2"></i> Cash
+                                    </button>
+                                @endif
                             </td>
                             <td>
                                 <button class="btn btn-sm btn-primary w-100 shadow-sm">
-                                    <i class="bi bi-file-earmark-spreadsheet me-2"></i> Online
+                                    <i class="fa fa-credit-card me-2"></i> Online
                                 </button>
                             </td>
+                            <td>
+                                <button wire:click="holdSale" class="btn btn-sm btn-primary w-100 shadow-">
+                                    <i class="fa fa-pause-circle me-2"></i> Hold
+                                </button>
+                            </td>
+                            <td>
+                                <button wire:click="cashupitoggleBox" class="btn btn-sm btn-primary w-100 shadow-sm">
+                                    <i class="fa fa-hand-holding-usd me-2"></i> Cash + UPI
+                                </button>
+                            </td>
+                        </tr>
+
+                        <tr>
                             <td>
                                 <button wire:click="voidSale" class="btn btn-sm btn-primary w-100 shadow-">
                                     Void Sale
-                                </button>
-
-                            </td>
-                            <td>
-
-                                <button wire:click="cashupitoggleBox" class="btn btn-sm btn-primary w-100 shadow-sm">
-                                    <i class="bi bi-file-earmark-spreadsheet me-2"></i> Cash + UPI
                                 </button>
                             </td>
                         </tr>
@@ -265,9 +279,28 @@
     </div>
 
 
+    <!-- Bootstrap Modal -->
+    <div class="modal fade" id="holdTransactionsModal" tabindex="-1" aria-labelledby="holdModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="holdModalLabel">Hold Transactions</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    @livewire('hold-transactions', ['holdTransactions' => $holdTransactions])
+
+                </div>
+
+            </div>
+        </div>
+    </div>
     <!-- Single Modal -->
     <div class="modal fade no-print " id="captureModal" tabindex="-1" aria-labelledby="captureModalLabel"
-        aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        aria-hidden="true" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-dialog-centered modal-mg">
             <div class="modal-content shadow-sm rounded-4 border-0">
                 <div class="modal-header bg-primary text-white rounded-top-4">
@@ -300,7 +333,7 @@
 
                     <!-- Step 2: User -->
                     <div id="step2" class="d-none mt-4">
-                        <h6 class="text-muted mb-3">Step 2: Capture User Image</h6>
+                        <h6 class="text-muted mb-3">Step 2: Capture Customer Image</h6>
                         <div class="border rounded-3 overflow-hidden mb-3 text-center p-2 bg-light">
                             <img src="{{ asset('assets/images/user/07.jpg') }}" alt="Sample Customer"
                                 class="rounded-circle shadow-sm" width="150" height="150"
@@ -329,18 +362,25 @@
         @csrf
 
         <div class="modal fade no-print" id="closeShiftModal" tabindex="-1" aria-labelledby="closeShiftModalLabel"
-            aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-            <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            aria-hidden="true" data-backdrop="static" data-keyboard="false">
+            <div class="modal-dialog modal-dialog-scrollable modal-xl">
                 <div class="modal-content shadow-sm rounded-4 border-0">
+
+                    {{-- Modal Header --}}
                     <div class="modal-header bg-primary text-white rounded-top-4">
-                        <h5 class="modal-title fw-semibold" id="closeShiftModalLabel">
-                            <i class="bi bi-camera-video me-2"></i>Shift Closing - {{ $branch_name ?? 'Shop' }}
-                        </h5>
+                        <div class="d-flex flex-column">
+                            <h5 class="modal-title fw-semibold" id="closeShiftModalLabel">
+                                <i class="bi bi-cash-coin me-2"></i> Shift Close Summary -
+                                {{ $branch_name ?? 'Shop' }}
+                            </h5>
+                        </div>
+
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">×</span>
                         </button>
                     </div>
 
+                    {{-- Modal Body --}}
                     <div class="modal-body px-4 py-4">
 
                         {{-- Hidden Fields --}}
@@ -350,109 +390,151 @@
                         <input type="hidden" name="today_cash" value="{{ $todayCash ?? '' }}">
                         <input type="hidden" name="total_payments" value="{{ $shift->total_payments ?? '' }}">
 
-                        {{-- Time Info --}}
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <h5 class="text-dark text-center w-100">💰 CURRENT REGISTER</h5>
-                            </div>
+                        {{-- Sales and Cash Section --}}
+                        <div class="row g-4 mb-4">
 
+                            {{-- Sales Breakdown --}}
                             <div class="col-md-6">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-semibold">Start Time</label>
-                                        <div class="">{{ $shift->start_time ?? '' }}</div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-semibold">End Time</label>
-                                        <div class="">{{ $shift->end_time ?? '' }}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                                <div class="card shadow-sm rounded-3">
+                                    <div class="card-body p-4">
+                                        <h5 class="card-title text-left text-success mb-4">💵 Sales Breakdown</h5>
 
-                        {{-- Sales --}}
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <div class="border rounded p-3 mb-3 bg-white">
-                                    <h5 class="text-dark text-center">💵 SALES</h5>
-                                    <table class="table table-bordered table-sm m-0">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th class="text-start">Category</th>
-                                                <th class="text-end">Amount</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
+                                        {{-- New Layout: No Table, No Badge --}}
+                                        <div class="vstack gap-3">
+
                                             @foreach ($categoryTotals as $category => $amount)
-                                                <tr>
-                                                    <td class="text-start">{{ $category }}</td>
-                                                    <td class="text-end">{{ number_format($amount, 2) }}</td>
-                                                </tr>
+                                                @php
+                                                    $textClass = '';
+
+                                                    if (in_array($category, ['TOTAL SALES', 'TOTAL CASH'])) {
+                                                        $textClass = 'fw-semibold text-success';
+                                                    }
+
+                                                    if ($category == 'DISCOUNT') {
+                                                        $textClass = 'fw-semibold text-warning';
+                                                    }
+                                                @endphp
+
+                                                <div
+                                                    class="d-flex justify-content-between align-items-center 
+                                                    {{ in_array($category, ['TOTAL SALES', 'DISCOUNT', 'TOTAL CASH']) ? 'border-top pt-3 mt-2' : '' }}">
+
+                                                    <div class="{{ $textClass }}">
+                                                        {{ ucwords(strtolower($category)) }}</div>
+                                                    <div class="{{ $textClass }}">₹{{ number_format($amount, 2) }}
+                                                    </div>
+
+                                                </div>
+
                                                 <input type="hidden" name="categories[{{ $category }}]"
                                                     value="{{ $amount }}">
                                             @endforeach
-                                        </tbody>
-                                    </table>
+
+                                        </div>
+
+                                    </div>
                                 </div>
+
                             </div>
 
+                            {{-- Shift Timing and Cash Details --}}
                             <div class="col-md-6">
-                                <table class="table table-bordered table-sm align-middle">
-                                    <tbody>
-                                        <tr>
-                                            <td class="text-center fw-bold">OPENING CASH</td>
-                                            <td class="text-center">{{ $shift->opening_cash ?? 0 }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-center fw-bold">TODAY CASH</td>
-                                            <td class="text-center">{{ $todayCash ?? 0 }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-center fw-bold">CLOSING CASH</td>
-                                            <td class="text-center">{{ $shift->total_payments ?? 0 }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                                {{-- Submit Button --}}
-                                <div class="text-right mt-3">
-                                    <button type="submit" class="btn btn-primary px-4">💾 Save Shift Close</button>
-                                </div>
-                            </div>
-                        </div>
+                                <div class="card shadow-sm rounded-3">
+                                    <div class="card-body p-4">
 
-                        {{-- Cash Details --}}
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="">
-                                    <h5 class="text-dark text-center">💵 CASH DETAILS</h5>
-                                    <table class="table table-bordered table-sm align-middle">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th class="text-center">Denomination</th>
-                                                <th class="text-center">Qty</th>
-                                                <th class="text-center">Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @if (!empty($shiftcash))
-                                                @foreach ($shiftcash as $key => $item)
+                                        {{-- Shift Timing --}}
+                                        <div class="d-flex justify-content-between align-items-center mb-4">
+                                            <div>
+                                                <h5 class="card-title text-info mb-0">🕒 Shift Timing</h5>
+                                                <div class="row text-left mt-2">
+                                                    <div class="col-6 border-end">
+                                                        <div class="small text-muted">Start Time</div>
+                                                        <div class="fw-semibold">{{ $shift->start_time ?? '-' }}</div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="small text-muted">End Time</div>
+                                                        <div class="fw-semibold">{{ $shift->end_time ?? '-' }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {{-- Shift Close Button --}}
+                                            <div>
+                                                <button class="btn btn-success btn-sm mt-3" type="submit">
+                                                    <i class="bi bi-check-circle me-1"></i> Close Shift
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        {{-- Cash Breakdown --}}
+                                        <h5 class="card-title text-warning text-left mb-3">💵 Cash Details</h5>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-bordered align-middle">
+                                                <thead class="table-light">
                                                     <tr>
-                                                        <td class="text-center fw-bold">{{ $key }}</td>
-                                                        <td class="text-center">{{ $item }}</td>
-                                                        <td class="text-center">{{ $key * $item }}</td>
+                                                        <th class="text-center">Denomination</th>
+                                                        <th class="text-center">Qty</th>
+                                                        <th class="text-center">*</th>
+                                                        <th class="text-center">Amount</th>
+                                                        <th class="text-center">=</th>
+                                                        <th class="text-center">Total</th>
                                                     </tr>
-                                                    <input type="hidden" name="cash_breakdown[{{ $key }}]"
-                                                        value="{{ $item }}">
-                                                @endforeach
-                                            @endif
-                                        </tbody>
-                                    </table>
+                                                </thead>
+                                                <tbody>
+                                                    @if (!empty($shiftcash))
+                                                        @foreach ($shiftcash as $key => $item)
+                                                            <tr>
+                                                                <td class="text-center fw-bold">{{ $key }}
+                                                                </td>
+                                                                <td class="text-center">{{ $item }}</td>
+                                                                <td class="text-center">*</td>
+                                                                <td class="text-center">{{ $key }}</td>
+                                                                <td class="text-center">=</td>
+                                                                <td class="text-center">{{ $key * $item }}</td>
+                                                            </tr>
+                                                            <input type="hidden"
+                                                                name="cash_breakdown[{{ $key }}]"
+                                                                value="{{ $item }}">
+                                                        @endforeach
+                                                    @endif
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        {{-- Summary Cash Totals --}}
+                                        <div class="table-responsive mt-4">
+                                            <table class="table table-sm">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="text-start fw-bold">Opening Cash</td>
+                                                        <td class="text-end">
+                                                            {{ number_format($shift->opening_cash ?? 0, 2) }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-start fw-bold">System Cash</td>
+                                                        <td class="text-end">{{ number_format($todayCash ?? 0, 2) }}
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-start fw-bold">Closing Cash</td>
+                                                        <td class="text-end">
+                                                            {{ number_format($shift->total_payments ?? 0, 2) }}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                    </div>
                                 </div>
                             </div>
+
                         </div>
+
                     </div>
+
                 </div>
             </div>
+
+
         </div>
     </form>
 
@@ -460,7 +542,7 @@
         @csrf --}}
 
     <div class="modal fade no-print" id="cashout" tabindex="-1" aria-labelledby="cashout" aria-hidden="true"
-        data-bs-backdrop="static" data-bs-keyboard="false">
+        data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-dialog-scrollable modal-lg">
             <div class="modal-content shadow-sm rounded-4 border-0">
                 <div class="modal-header bg-primary text-white rounded-top-4">
@@ -496,8 +578,7 @@
                                                         <td>
                                                             <div
                                                                 class="d-flex justify-content-center align-items-center">
-                                                                <button type="button"
-                                                                    class="btn btn-sm btn-danger"
+                                                                <button type="button" class="btn btn-sm btn-danger"
                                                                     onclick="updateNote('{{ $key }}_{{ $denomination }}', -1, {{ $denomination }})">
                                                                     <i class="fas fa-minus"></i>
                                                                 </button>
@@ -530,9 +611,14 @@
                                         class="form-control mb-3" readonly required>
 
                                     <div class="mb-3">
-                                        <label for="narration" class="form-label fw-semibold">Narration</label>
-                                        <input type="text" name="narration" id="narration" class="form-control"
-                                            required>
+                                        <label for="narration" class="form-label">Select Reason for Withdrawal</label>
+                                        <select name="narration" id="narration" class="form-control" required>
+                                            <option value="">-- Select Reason --</option>
+                                            @foreach ($narrations as $narration)
+                                                <option value="{{ $narration }}">{{ $narration }}</option>
+                                            @endforeach
+                                        </select>
+
                                     </div>
 
                                     <div class="text-right">
@@ -553,7 +639,7 @@
 
     <!-- Modal HTML -->
     <div class="modal fade no-print" id="cashInHand" tabindex="-1" aria-labelledby="captureModalLabel"
-        aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        aria-hidden="true" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog">
             <form method="POST" action="{{ route('cash-in-hand') }}">
                 @csrf
@@ -563,8 +649,8 @@
                     </div>
                     <div class="modal-body">
 
-                        <input type="number" name="amount" id="amountTotal" class="form-control mb-3"
-                            placeholder="Enter opening amount" required readonly>
+                        <input type="hidden" name="amount" id="holdamountTotal" class="form-control mb-3"
+                            placeholder="Enter opening amount" readonly>
 
                         <table class="table">
                             <thead>
@@ -579,22 +665,33 @@
                                     <tr>
                                         <td>₹{{ $denomination }}</td>
                                         <td>
-                                            <input type="number"
-                                                name="cashNotes.{{ $key }}.{{ $denomination }}"
-                                                class="form-control note-input" id="cashnotes_{{ $denomination }}"
-                                                data-denomination="{{ $denomination }}" value="0"
-                                                min="0">
-
+                                            <div class="input-group" style="max-width: 150px;">
+                                                <button class="btn btn-sm btn-danger btn-decrease" type="button"
+                                                    data-denomination="{{ $denomination }}"><i
+                                                        class="fa fa-minus"></i></button>
+                                                <input type="text"
+                                                    name="cashNotes.{{ $key }}.{{ $denomination }}"
+                                                    class="form-control text-center note-input"
+                                                    id="cashhandsum_{{ $denomination }}"
+                                                    data-denomination="{{ $denomination }}" value="0" readonly>
+                                                <button class="btn btn-sm btn-success btn-increase" type="button"
+                                                    data-denomination="{{ $denomination }}"><i
+                                                        class="fa fa-plus"></i></button>
+                                            </div>
                                         </td>
-                                        <td id="cashsum_{{ $denomination }}">₹0</td>
+                                        <td id="cashhandsum_{{ $denomination }}">₹0</td>
                                     </tr>
                                 @endforeach
                                 <tr>
                                     <td colspan="2" class="text-end fw-bold">Total Cash</td>
-                                    <td id="totalNoteCashNew">₹0</td>
+                                    <td id="totalNoteCashHand">₹0</td>
                                 </tr>
                             </tbody>
                         </table>
+                        @error('amount')
+                            <span class="text-red">{{ $message }}</span>
+                        @enderror
+
 
                     </div>
                     <div class="modal-footer">
@@ -642,7 +739,7 @@
             <div class="card-header">
                 <div class="row">
                     <div class="col-md-6">
-                        <h5 class="mb-0">Transaction Summary</h5>
+                        <h5 class="mb-0">{{ $this->headertitle }} Summary</h5>
                     </div>
                     <div class="col-md-6 text-right">
                         {{-- <form action="{{ url('lang/change') }}" method="GET" class="d-inline-block me-2">
@@ -651,24 +748,30 @@
                                 <option value="hi" {{ session('locale') == 'hi' ? 'selected' : '' }}>हिंदी</option>
                             </select>
                         </form> --}}
-                        <button type="button" id="customer" class="btn btn-primary btn-sm mr-2 "
-                            data-toggle="modal" data-target="#cashout">
-                            Cash Out
-                        </button>
-                        {{-- <div wire:poll.60s="checkTime"> --}}
-                            {{-- @if ($showCloseButton) --}}
-                                   
-                                <button type="button" id="closeShiftBtn" class="btn btn-primary btn-sm mr-2 "
-                                data-toggle="modal" data-target="#closeShiftModal">
-                                Close Shift
+                        @if (count($itemCarts) == 0)
+                            <button type="button" id="customer" class="btn btn-primary btn-sm mr-2 "
+                                data-toggle="modal" data-target="#cashout">
+                                Cash Out
                             </button>
-                            {{-- @else
-                                <p>Close button will appear 10 minutes before shift ends.</p>
-                            @endif --}}
-                        {{-- </div> --}}
-                     
-                        <button type="button" class="btn btn-outline-danger ms-2" data-bs-toggle="tooltip"
-                            data-bs-placement="top" title="Logout"
+                        @endif
+                        <button type="button" class="btn btn-primary btn-sm mr-2 " data-toggle="modal"
+                            data-target="#holdTransactionsModal">
+                            View Hold
+                        </button>
+
+                        <span wire:poll.60s="checkTime">
+                            @if ($showCloseButton)
+                                <button type="button" id="closeShiftBtn" class="btn btn-primary btn-sm mr-2 "
+                                    data-toggle="modal" data-target="#closeShiftModal">
+                                    Close Shift
+                                </button>
+                            @else
+                                {{-- <p>Close button will appear 10 minutes before shift ends.</p> --}}
+                            @endif
+                        </span>
+
+                        <button type="button" class="btn btn-outline-danger ms-2" data-toggle="tooltip"
+                            data-placement="top" title="Logout"
                             onclick="document.getElementById('logout-form').submit();">
                             <i class="fas fa-sign-out-alt"></i>
                         </button>
@@ -699,9 +802,10 @@
                                                 <th>Currency</th>
                                                 <th class="text-center">IN</th>
                                                 <th class="text-center">OUT</th>
-                                                <th class="text-center">Amount <button wire:click="clearCashNotes" class="btn btn-danger btn-sm">
-                                                    <i class="fa fa-eraser"></i>
-                                                </button></th>
+                                                <th class="text-center">Amount <button wire:click="clearCashNotes"
+                                                        class="btn btn-danger btn-sm">
+                                                        <i class="fa fa-eraser"></i>
+                                                    </button></th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -710,70 +814,83 @@
                                                 $totalOut = 0;
                                                 $totalAmount = 0;
                                             @endphp
-                                    
-                                    @foreach ($noteDenominations as $key => $denomination)
-                                    @php
-                                        $inValue = $cashNotes[$key][$denomination]['in'] ?? 0;
-                                        $outValue = $cashNotes[$key][$denomination]['out'] ?? 0;
-                                        $rowAmount = ($inValue - $outValue) * $denomination;
-                                
-                                        $totalIn += $inValue * $denomination;
-                                        $totalOut += $outValue * $denomination;
-                                        $totalAmount += $rowAmount;
-                                    @endphp
-                                    <tr>
-                                        <td>₹{{ $denomination }}</td>
-                                       <!-- IN Column -->
-                                        <td class="text-center">
-                                            <div class="d-flex justify-content-center align-items-center gap-2">
-                                                
-                                                <button class="btn btn-sm btn-danger" wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'in')">
-                                                    <i class="fa fa-minus"></i>
-                                                </button>
-                                                <input type="number" class="form-control form-control-sm text-center" value="{{ $inValue }}" readonly style="width: 60px;">
-                                                <button class="btn btn-sm btn-success" wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'in')">
-                                                    <i class="fa fa-plus"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                
-                                        
-                                        <!-- OUT Column -->
-                                        <td class="text-center">
-                                            <div class="d-flex justify-content-center align-items-center gap-2">
-                                               
-                                                <button class="btn btn-sm btn-danger" wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'out')">
-                                                    <i class="fa fa-minus"></i>
-                                                </button>
-                                                <input type="number" class="form-control form-control-sm text-center" value="{{ $outValue }}" readonly style="width: 60px;">
-                                                <button class="btn btn-sm btn-success" wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'out')">
-                                                    <i class="fa fa-plus"></i>
-                                                </button>
-                                            </div>
-                                        </td>
 
-                                
-                                        <!-- Amount Column -->
-                                        <td class="text-center fw-bold">₹{{ $rowAmount }}</td>
-                                    </tr>
-                                @endforeach
-                                
-                                    
+                                            @foreach ($noteDenominations as $key => $denomination)
+                                                @php
+                                                    $inValue = $cashNotes[$key][$denomination]['in'] ?? 0;
+                                                    $outValue = $cashNotes[$key][$denomination]['out'] ?? 0;
+                                                    $rowAmount = ($inValue - $outValue) * $denomination;
+
+                                                    $totalIn += $inValue * $denomination;
+                                                    $totalOut += $outValue * $denomination;
+                                                    $totalAmount += $rowAmount;
+                                                @endphp
+                                                <tr>
+                                                    <td>₹{{ $denomination }}</td>
+                                                    <!-- IN Column -->
+                                                    <td class="text-center">
+                                                        <div
+                                                            class="d-flex justify-content-center align-items-center gap-2">
+
+                                                            <button class="btn btn-sm btn-danger"
+                                                                wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'in')">
+                                                                <i class="fa fa-minus"></i>
+                                                            </button>
+                                                            <input type="number"
+                                                                class="form-control form-control-sm text-center"
+                                                                value="{{ $inValue }}" readonly
+                                                                style="width: 60px;">
+                                                            <button class="btn btn-sm btn-success"
+                                                                wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'in')">
+                                                                <i class="fa fa-plus"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+
+
+                                                    <!-- OUT Column -->
+                                                    <td class="text-center">
+                                                        <div
+                                                            class="d-flex justify-content-center align-items-center gap-2">
+
+                                                            <button class="btn btn-sm btn-danger"
+                                                                wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'out')">
+                                                                <i class="fa fa-minus"></i>
+                                                            </button>
+                                                            <input type="number"
+                                                                class="form-control form-control-sm text-center"
+                                                                value="{{ $outValue }}" readonly
+                                                                style="width: 60px;">
+                                                            <button class="btn btn-sm btn-success"
+                                                                wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'out')">
+                                                                <i class="fa fa-plus"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+
+
+                                                    <!-- Amount Column -->
+                                                    <td class="text-center fw-bold">₹{{ $rowAmount }}</td>
+                                                </tr>
+                                            @endforeach
+
+
                                             <tr class="table-secondary fw-bold">
                                                 @php
-                                                    $this->cashPaTenderyAmt=$totalIn;
-                                                    $this->cashPayChangeAmt=$totalOut;
+                                                    $cashPayAmt = $this->cashAmount;
+                                                    $this->cashPaTenderyAmt = $totalIn;
+                                                    $this->cashPayChangeAmt = $cashPayAmt - $totalIn;
 
                                                 @endphp
-                                                <td class="text-end">Total</td>
-                                                <td class="text-end">₹{{ $totalIn }}</td>
-                                                <td class="text-end">₹{{ $totalOut }}</td>
-                                                <td class="text-end">₹{{ $totalAmount }}</td>
+                                                <td class="text-center">Total</td>
+                                                <td class="text-center">₹{{ $totalIn }}</td>
+                                                <td class="text-center">₹{{ $totalOut }}</td>
+                                                <td class="text-center">₹{{ $totalAmount }}</td>
                                             </tr>
                                         </tbody>
                                     </table>
-                                
-                                    
+
+
 
                                 </div>
 
@@ -831,6 +948,7 @@
                             </div>
                             <p id="result" class="mt-3 fw-bold text-success"></p>
                             <div class="mt-4">
+
                                 @if ($this->cashAmount == $totalIn - $totalOut)
                                     <button id="paymentSubmit" class="btn btn-primary btn-sm mr-2 btn-block mt-4"
                                         wire:click="checkout" wire:loading.attr="disabled">
@@ -879,39 +997,52 @@
                                                     $totalOut += $outValue * $denomination;
                                                     $totalAmount += $rowAmount;
                                                 @endphp
-                                                 
+
 
                                                 <tr>
                                                     <td>₹{{ $denomination }}</td>
                                                     <!-- IN Column -->
-                                                <td class="text-center">
-                                                    <div class="d-flex justify-content-center align-items-center gap-2">
-                                                        
-                                                        <button class="btn btn-sm btn-danger" wire:click="decrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'in')">
-                                                            <i class="fa fa-minus"></i>
-                                                        </button>
-                                                        <input type="number" class="form-control form-control-sm text-center" value="{{ $inValue }}" readonly style="width: 60px;">
-                                                        <button class="btn btn-sm btn-success" wire:click="incrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'in')">
-                                                            <i class="fa fa-plus"></i>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                
-                                        
-                                        <!-- OUT Column -->
-                                        <td class="text-center">
-                                            <div class="d-flex justify-content-center align-items-center gap-2">
-                                               
-                                                <button class="btn btn-sm btn-danger" wire:click="decrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'out')">
-                                                    <i class="fa fa-minus"></i>
-                                                </button>
-                                                <input type="number" class="form-control form-control-sm text-center" value="{{ $outValue }}" readonly style="width: 60px;">
-                                                <button class="btn btn-sm btn-success" wire:click="incrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'out')">
-                                                    <i class="fa fa-plus"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                                    <td class="text-center fw-bold" id="amount_{{ $denomination }}_new">
+                                                    <td class="text-center">
+                                                        <div
+                                                            class="d-flex justify-content-center align-items-center gap-2">
+
+                                                            <button class="btn btn-sm btn-danger"
+                                                                wire:click="decrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'in')">
+                                                                <i class="fa fa-minus"></i>
+                                                            </button>
+                                                            <input type="number"
+                                                                class="form-control form-control-sm text-center"
+                                                                value="{{ $inValue }}" readonly
+                                                                style="width: 60px;">
+                                                            <button class="btn btn-sm btn-success"
+                                                                wire:click="incrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'in')">
+                                                                <i class="fa fa-plus"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+
+
+                                                    <!-- OUT Column -->
+                                                    <td class="text-center">
+                                                        <div
+                                                            class="d-flex justify-content-center align-items-center gap-2">
+
+                                                            <button class="btn btn-sm btn-danger"
+                                                                wire:click="decrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'out')">
+                                                                <i class="fa fa-minus"></i>
+                                                            </button>
+                                                            <input type="number"
+                                                                class="form-control form-control-sm text-center"
+                                                                value="{{ $outValue }}" readonly
+                                                                style="width: 60px;">
+                                                            <button class="btn btn-sm btn-success"
+                                                                wire:click="incrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'out')">
+                                                                <i class="fa fa-plus"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-center fw-bold"
+                                                        id="amount_{{ $denomination }}_new">
                                                         ₹{{ $rowAmount }}
                                                     </td>
                                                 </tr>
@@ -925,14 +1056,15 @@
                                                 <td class="text-center">Total</td>
                                                 <td class="text-center" id="total_in_new">₹{{ $totalIn }}</td>
                                                 <td class="text-center" id="total_out_new">₹{{ $totalOut }}</td>
-                                                <td class="text-center" id="total_amount_new">₹{{ $totalAmount }}</td>
+                                                <td class="text-center" id="total_amount_new">₹{{ $totalAmount }}
+                                                </td>
                                             </tr>
                                         </tbody>
 
                                     </table>
                                 </div>
                             </div>
-                            
+
                             <div class="row">
 
                                 <div class="col-md-6">
@@ -940,11 +1072,11 @@
                                     <input type="hidden" id="actualCash"
                                         class="border rounded w-full p-2 bg-gray-100"
                                         value="{{ $this->cashAmount }}" readonly>
-                                        @php
-                                            $this->cash=$totalAmount;
-                                            $this->upi=$this->cashAmount-$totalAmount;
+                                    @php
+                                        $this->cash = $totalAmount;
+                                        $this->upi = $this->cashAmount - $totalAmount;
 
-                                        @endphp
+                                    @endphp
                                     <label for="cash" class="form-label">Cash Amount</label>
                                     <input type="number" id="cashAmount" step="0.01"
                                         wire:model.live.debounce.500ms="cash" class="form-control" min="0"
@@ -990,7 +1122,7 @@
                             </div>
                             <p id="result" class="mt-3 fw-bold text-success"></p>
                             <div class="mt-4">
-                               
+
                                 @if ($this->cashAmount == $cash + $upi)
                                     <button id="paymentSubmit" class="btn btn-primary btn-sm mr-2 btn-block mt-4"
                                         wire:click="checkout" wire:loading.attr="disabled">
@@ -1017,45 +1149,52 @@
     @if ($invoiceData)
         @include('livewire.printinvoice')
     @endif
-  
 
-<!-- Numpad Modal -->
-<div wire:ignore.self class="modal fade" id="numpadModal" tabindex="-1" aria-labelledby="numpadLabel" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered">
-        <div class="modal-content rounded-3 shadow">
-            <div class="modal-header bg-primary text-white rounded-top">
-                <h5 class="modal-title fw-bold" id="numpadLabel">Enter Amount</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" wire:click="clearNumpad"></button>
-            </div>
 
-            <div class="modal-body p-4">
-                <div class="display-4 text-center fw-bold mb-4">{{ $numpadValue }}</div>
+    <!-- Numpad Modal -->
+    <div wire:ignore.self class="modal fade" id="numpadModal" tabindex="-1" aria-labelledby="numpadLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content rounded-3 shadow">
+                <div class="modal-header bg-primary text-white rounded-top">
+                    <h5 class="modal-title fw-bold" id="numpadLabel">Enter Amount</h5>
+                    <button type="button" class="btn-close btn-close-white" data-dismiss="modal" aria-label="Close"
+                        wire:click="clearNumpad"></button>
+                </div>
 
-                <div class="row g-2">
-                    @foreach (array_chunk([1,2,3,4,5,6,7,8,9], 3) as $row)
-                        <div class="col-12 d-flex justify-content-center">
-                            @foreach ($row as $num)
-                                <button wire:click="appendNumpadValue('{{ $num }}')" class="btn btn-light border fw-bold fs-4 mx-2" style="width: 70px; height: 70px;">
-                                    {{ $num }}
-                                </button>
-                            @endforeach
+                <div class="modal-body p-4">
+                    <div class="display-4 text-center fw-bold mb-4">{{ $numpadValue }}</div>
+
+                    <div class="row g-2">
+                        @foreach (array_chunk([1, 2, 3, 4, 5, 6, 7, 8, 9], 3) as $row)
+                            <div class="col-12 d-flex justify-content-center">
+                                @foreach ($row as $num)
+                                    <button wire:click="appendNumpadValue('{{ $num }}')"
+                                        class="btn btn-light border fw-bold fs-4 mx-2"
+                                        style="width: 70px; height: 70px;">
+                                        {{ $num }}
+                                    </button>
+                                @endforeach
+                            </div>
+                        @endforeach
+
+                        <div class="col-12 d-flex justify-content-center mt-2">
+                            <button wire:click="appendNumpadValue('0')" class="btn btn-light border fw-bold fs-4 mx-2"
+                                style="width: 70px; height: 70px;">0</button>
+                            <button wire:click="backspaceNumpad" class="btn btn-danger fw-bold fs-4 mx-2"
+                                style="width: 70px; height: 70px;">⌫</button>
+                            <button wire:click="clearNumpad" class="btn btn-warning fw-bold fs-4 mx-2"
+                                style="width: 70px; height: 70px;">C</button>
                         </div>
-                    @endforeach
-
-                    <div class="col-12 d-flex justify-content-center mt-2">
-                        <button wire:click="appendNumpadValue('0')" class="btn btn-light border fw-bold fs-4 mx-2" style="width: 70px; height: 70px;">0</button>
-                        <button wire:click="backspaceNumpad" class="btn btn-danger fw-bold fs-4 mx-2" style="width: 70px; height: 70px;">⌫</button>
-                        <button wire:click="clearNumpad" class="btn btn-warning fw-bold fs-4 mx-2" style="width: 70px; height: 70px;">C</button>
                     </div>
                 </div>
-            </div>
 
-            <div class="modal-footer justify-content-center bg-light rounded-bottom">
-                <button wire:click="applyNumpadValue" class="btn btn-success btn-lg w-75 fw-bold fs-5">OK</button>
+                <div class="modal-footer justify-content-center bg-light rounded-bottom">
+                    <button wire:click="applyNumpadValue" class="btn btn-success btn-lg w-75 fw-bold fs-5">OK</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 </div>
 
@@ -1266,7 +1405,7 @@
 
     // Run on load
     document.addEventListener("DOMContentLoaded", calculateCashBreakdown);
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-toggle="tooltip"]'))
     tooltipTriggerList.map(function(tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl)
     });
@@ -1360,6 +1499,11 @@
 
     $("#cashAmount").on("input", () => updateCashOnlineFields('cash'));
     $("#onlineAmount").on("input", () => updateCashOnlineFields('online'));
+    document.addEventListener('DOMContentLoaded', function() {
+        $('#holdTransactionsModal').on('show.bs.modal', function() {
+            Livewire.dispatch('loadHoldTransactions');
+        });
+    });
     $(document).ready(function() {
 
         //  // Set your shift end time here
@@ -1507,7 +1651,6 @@
     });
 </script>
 <script>
-    
     // window.addEventListener('show-numpad-modal', () => {
     //     $('#numpadModal').modal('show');
 
@@ -1517,9 +1660,55 @@
     //     $('#numpadModal').modal('hide');
 
     // });
+    window.addEventListener('close-hold-modal', function() {
+        $('.modal-backdrop.show').remove();
+
+        $('#holdTransactionsModal').modal('hide'); // jQuery way to close Bootstrap modal
+    });
     window.addEventListener('product-added', () => {
         // optional: play sound or flash success
         console.log('Product added to cart!');
     });
-    
+</script>
+<script>
+    function updateAmounts() {
+        let total = 0;
+        const amountInput = document.getElementById('holdamountTotal');
+        document.querySelectorAll('.note-input').forEach(function(input) {
+            const denomination = parseInt(input.dataset.denomination);
+            const quantity = parseInt(input.value) || 0;
+            const amount = denomination * quantity;
+            document.getElementById('cashhandsum_' + denomination).innerText = '₹' + amount;
+            total += amount;
+            amountInput.value = total;
+        });
+        document.getElementById('totalNoteCashHand').innerText = '₹' + total;
+    }
+
+    document.querySelectorAll('.btn-increase').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const denomination = this.dataset.denomination;
+            const input = document.getElementById('cashhandsum_' + denomination);
+            input.value = parseInt(input.value || 0) + 1;
+            updateAmounts();
+        });
+    });
+
+    document.querySelectorAll('.btn-decrease').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const denomination = this.dataset.denomination;
+            const input = document.getElementById('cashhandsum_' + denomination);
+            if (parseInt(input.value) > 0) {
+                input.value = parseInt(input.value) - 1;
+                updateAmounts();
+            }
+        });
+    });
+
+    // Optional: If you still want to allow manual update via text field
+    document.querySelectorAll('.note-input').forEach(function(input) {
+        input.addEventListener('input', function() {
+            updateAmounts();
+        });
+    });
 </script>
