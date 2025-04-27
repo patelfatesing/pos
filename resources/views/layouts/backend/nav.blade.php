@@ -239,7 +239,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                                 }
                                                 ?>
                                                 <a href="#" data-id="{{ $id }}"
-                                                    class="iq-sub-card open-form {{ $item->status == 'read' ? 'msg_read' : 'msg_unread' }}"
+                                                    class="iq-sub-card open-form mb-1 {{ $item->status == 'read' ? 'msg_read' : 'msg_unread' }}"
                                                     data-type="{{ $item->type }}" id="{{ $item->id }}"
                                                     data-nfid="{{ $item->id }}">
                                                     <div class="media align-items-center cust-card py-3 border-bottom">
@@ -383,8 +383,8 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
             url: '/popup/form/' + type + "?id=" + id + "&nfid=" + nfid,
             type: 'GET',
             success: function(response) {
-                $("#" + id_get).removeClass("iq-sub-card open-form msg_unread");
-                $("#" + id_get).addClass("iq-sub-card open-form msg_read");
+                $("#" + id_get).removeClass("iq-sub-card open-form mb-1 msg_unread");
+                $("#" + id_get).addClass("iq-sub-card open-form mb-1 msg_read");
 
 
                 if (get_tc > 0) {
