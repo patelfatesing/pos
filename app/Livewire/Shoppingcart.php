@@ -116,25 +116,42 @@ class Shoppingcart extends Component
             session()->flash('error', 'Product is out of stock and cannot be added to cart.');
             return;
             }
-            // $item = Cart::where('product_id', $this->selectedProduct->id)
+            
+            // $item = Cart::where('product_id', $id)
             // ->where('user_id', auth()->id())
-            // ->where('status', Cart::STATUS_HOLD)
+            // ->where('status', Cart::STATUS_PENDING)
             // ->first();
-            // if (!empty($item)) {
-            //         $item->quantity = $item->quantity + 1;
-            //         $item->save();
+            //  if (!empty($item)) {
+            //     $item->quantity = $item->quantity + 1;
+            //     $item->save();
             // }else{
+            //     $item=new Cart();
+            //     $item->user_id = auth()->user()->id;
+            //     $item->product_id = $id;
+            //     $item->save();
+
             // }
+            $user = Partyuser::find($this->selectedPartyUser);
+            if (!empty($user)) {
+                $myCart=$user->credit_points;
+            } else {
+                $myCart=0;
+
+            }
+
+          
             $item=new Cart();
             $item->user_id = auth()->user()->id;
             $item->product_id = $this->selectedProduct->id;
+            $item->mrp = $product->sell_price;
+            $item->amount = $product->sell_price-$myCart;
+            $item->discount = $myCart;
+            $item->net_amount = $product->sell_price-$myCart;
             $item->save();
-      
-
-        $this->updateQty($item->id);
-        $this->dispatch('updateCartCount');
-        $this->dispatch('updateProductList');
-        $this->reset('searchTerm', 'searchResults', 'showSuggestions','selectedProduct','search');
+           // $this->updateQty($item->id);
+            $this->dispatch('updateNewProductDetails');
+            $this->reset('searchTerm', 'searchResults', 'showSuggestions'.'search');
+            session()->flash('success', 'Product added to the cart successfully');
     }
         // Trigger numpad when an input field is clicked
         public function setFocusedField($field)
@@ -311,6 +328,8 @@ class Shoppingcart extends Component
     }
     public function mount()
     {
+        $this->branch_name = (!empty(auth()->user()->userinfo->branch->name)) ? auth()->user()->userinfo->branch->name : "";
+
         $today = Carbon::today();
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
@@ -329,7 +348,7 @@ class Shoppingcart extends Component
         ->sum('total');
         // ✅ Initialize totals to 0 for all expected categories
         foreach ($sales as $category) {
-            $this->categoryTotals[$category] = 0;
+            $this->categoryTotals['sales'][$category] = 0;
         }
 
         foreach ($invoices as $invoice) {
@@ -344,11 +363,11 @@ class Shoppingcart extends Component
                     $category = $item['category'] ?? 'Unknown';
                     $amount = $item['price'] ?? 0;
 
-                    if (!isset($this->categoryTotals[$category])) {
-                        $this->categoryTotals[$category] = 0;
+                    if (!isset($this->categoryTotals['sales'][$category])) {
+                        $this->categoryTotals['sales'][$category] = 0;
                     }
 
-                    $this->categoryTotals[$category] += $amount;
+                    $this->categoryTotals['sales'][$category] += $amount;
                 }
             }
 
@@ -372,11 +391,11 @@ class Shoppingcart extends Component
         ->where('branch_id', $branch_id)
         ->sum('amount');
 
-        $this->categoryTotals['TOTAL SALES'] = $totalSales;
-        $this->categoryTotals['DISCOUNT'] = $discountTotal * (-1);
-        $this->categoryTotals['UPI PAYMENT'] = $totalUpiPaid;
-        $this->categoryTotals['WITHDRAWAL PAYMENT'] = $totalWith*(-1);
-        $this->categoryTotals['TOTAL'] =$totalCashPaid-$totalWith;
+        $this->categoryTotals['payment']['TOTAL'] =$totalCashPaid-$totalWith;
+        $this->categoryTotals['payment']['DISCOUNT'] = $discountTotal * (-1);
+        $this->categoryTotals['payment']['TOTAL SALES'] = $totalSales+@$this->shift->opening_cash;
+        $this->categoryTotals['payment']['UPI PAYMENT'] = $totalUpiPaid;
+        $this->categoryTotals['payment']['WITHDRAWAL PAYMENT'] = $totalWith*(-1);
         // $this->categoryTotals['TOTAL CASH'] =$this->shift->opening_cash+ $totalCashPaid-$totalWith;
 
         //TOTAL CASH
@@ -913,8 +932,7 @@ class Shoppingcart extends Component
             $item->net_amount = $product->sell_price-$myCart;
             $item->save();
            // $this->updateQty($item->id);
-            $this->dispatch('updateCartCount');
-            $this->dispatch('updateProductList');
+            $this->dispatch('updateNewProductDetails');
             $this->reset('searchTerm', 'searchResults', 'showSuggestions');
             session()->flash('success', 'Product added to the cart successfully');
         } else {
@@ -1112,7 +1130,7 @@ class Shoppingcart extends Component
                 $this->cash = $this->cashPaTenderyAmt;
                 $this->upi = 0;
             }
-
+            
             $invoice = Invoice::create([
                 'user_id' => auth()->id(),
                 'branch_id' => $branch_id,
@@ -1132,7 +1150,7 @@ class Shoppingcart extends Component
                 'status' => "Paid",
                 'commission_amount' => $this->commissionAmount,
                 'party_amount' => $this->partyAmount,
-                'total' => $this->total,
+                'total' => $this->cashAmount,
                 'cash_break_id' => $cashBreakdown->id,
                 //'billing_address'=> $address,
             ]);

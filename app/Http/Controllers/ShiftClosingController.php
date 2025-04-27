@@ -14,35 +14,54 @@ class ShiftClosingController extends Controller
 {
     public function store(Request $request)
     {
+        $validated = $request->validate([
+            'opening_cash' => 'required',
+            'closingCash' => 'required',
+            'diffCash' => 'nullable', // Cash discrepancy is optional but if provided, must be numeric
+            
+        ]);
+
+        // Get the branch_id from the authenticated user's info
         $branch_id = auth()->user()->userinfo->branch->id ?? null;
         // Save cash breakdown
-        // $CashBreakdown = CashBreakdown::create([
-        //     'user_id' => Auth::id(),
-        //     'branch_id' => $branch_id,
-        //     'denominations' => json_encode($request->cash_breakdown),
-        //     'total' => $request->today_cash,
-        // ]);
-        // // Save shift close info
-        // $shift = new UserShift();
-        // $shift->user_id = Auth::id();
-        // $shift->branch_id = $branch_id;
-        // $shift->start_time = $request->start_time;
-        // $shift->end_time = $request->end_time;
-        // $shift->opening_cash = $request->opening_cash;
-        // // $shift->today_cash = $request->today_cash;
-        // $shift->cash_break_id = $CashBreakdown->id;
-        // // $shift->total_payments = $request->total_payments;
-        // $shift->save();
-        $shift = UserShift::where('user_id', $user_id)
-        ->where('branch_id', $branch_id)
-        ->delete();
+        $CashBreakdown = CashBreakdown::create([
+            'user_id' => Auth::id(),
+            'branch_id' => $branch_id,
+            'denominations' => json_encode($request->cash_breakdown),
+            'total' => $request->today_cash,
+        ]);
+
+        // Save shift close info
+        $shift = UserShift::where('user_id', Auth::id())
+                        ->where('branch_id', $branch_id)
+                        ->where('status', 'pending')
+                        ->first();
+
+        if (!$shift) {
+            return redirect()->back()->withErrors(['status' => 'No active shift found for this user.']);
+        }
+        // Update shift data
+        $shift->user_id = Auth::id();
+        $shift->branch_id = $branch_id;
+        $shift->start_time = $request->start_time;
+        $shift->end_time = $request->end_time;
+        $shift->opening_cash = str_replace(',', '', $request->opening_cash);
+        $shift->cash_discrepancy = str_replace(',', '', $request->diffCash);
+        $shift->closing_cash = str_replace(',', '', $request->closingCash);
+        $shift->cash_break_id = $CashBreakdown->id;
+        $shift->deshi_sales = str_replace(',', '', @$request->Desi); // Using @ to suppress any potential error (if variable is not set)
+        $shift->beer_sales = str_replace(',', '', $request->BEER_SALES);
+        $shift->english_sales = str_replace(',', '', $request->ENGLISH_SALES);
+        $shift->upi_payment = str_replace(',', '', $request->UPI_PAYMENT);
+        $shift->withdrawal_payment = str_replace(',', '', $request->WITHDRAWAL_PAYMENT);
+        $shift->cash = str_replace(',', '', $request->diffCash); // Assuming you want to store the same cash discrepancy here
+        $shift->status = 'completed';  // Assuming you want to mark it as closed after shift ends
+        $shift->save();
+
+        // Logout user after shift closure
         Auth::logout();
 
-        // Invalidate session and regenerate token
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        // Redirect to login
+        // Redirect to login with a status message
         return redirect('/login')->with('status', 'Shift closed. You have been logged out.');
     }
     public function withdraw(Request $request){
@@ -88,7 +107,7 @@ class ShiftClosingController extends Controller
                 $denomination = (string) end($parts); // Ensure it's a string
                 $count = (string) (int)$value;         // Convert to string after casting to int
     
-                $cashNotes[$denomination] = $count;
+                $cashNotes[$denomination]['in'] = $count;
                 $total += ((int)$denomination) * (int)$count;
             }
         }
