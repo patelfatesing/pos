@@ -1,5 +1,9 @@
 @extends('layouts.backend.layouts')
-
+<style>
+    .form-group {
+        margin-bottom: 0rem !important;
+    }
+</style>
 @section('page-content')
     <!-- Wrapper Start -->
     <div class="wrapper">
@@ -11,7 +15,7 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between">
                                 <div class="header-title">
-                                    <h4 class="card-title">View Delivery Order</h4>
+                                    <h4 class="card-title">View Delivery Invoice</h4>
                                 </div>
                                 <div>
                                     <a href="{{ route('purchase.list') }}" class="btn btn-secondary">Back</a>
@@ -19,11 +23,27 @@
                             </div>
                             <div class="card-body">
                                 <div class="card-body">
-                                    <h5><strong>Bill No:</strong> {{ $purchase->bill_no }}</h5>
-                                    <h5><strong>Party Name:</strong> {{ $purchase->vendor->name }}</h5>
-                                    <h5><strong>Date:</strong> {{ \Carbon\Carbon::parse($purchase->date)->format('d-m-Y') }}
-                                    </h5>
-
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Bill No: </label> <span
+                                                    class="ml-2">{{ $purchase->bill_no }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Vendor Name: </label>
+                                                <span class="ml-2"> {{ $purchase->vendor->name }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Date:</label>
+                                                <span class="ml-2">
+                                                    {{ \Carbon\Carbon::parse($purchase->date)->format('d-m-Y') }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <hr>
 
                                     <div class="table-responsive">

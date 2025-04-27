@@ -19,7 +19,7 @@
                                     <th>Product</th>
                                     <th>SKU</th>
                                     <th>Brand</th>
-                                    <th>Reorder Level</th>
+                                    <th>Low Level Level</th>
                                     <th>Current Stock</th>
                                 </tr>
                             </thead>
@@ -40,12 +40,7 @@
                             </tbody>
                         </table>
                     </div>
-                    
                 </div>
-
-                <span class="mt-2 badge badge-pill border border-secondary text-secondary">
-                    {{ __('messages.change_date_msg') }}
-                </span>
             </div>
 
             <div class="modal-footer">

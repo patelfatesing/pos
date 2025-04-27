@@ -1,3 +1,8 @@
+<style>
+    .form-group {
+        margin-bottom: 0rem !important;
+    }
+</style>
 <form id="priceUpdateForm">
     @csrf
     <div class="modal-header">
@@ -13,21 +18,50 @@
 
             <div class="card mb-4">
                 <div class="card-body">
-                    <p><strong>Store:</strong> {{ $stockRequest->store->name ?? 'warehouse' }}</p>
-                    <p><strong>Requested By:</strong> {{ $stockRequest->user->name ?? 'N/A' }}</p>
-                    <p><strong>Date:</strong> {{ $stockRequest->requested_at->format('d M Y h:i A') }}</p>
-                    <p><strong>Status:</strong>
-                        <span
-                            class="badge 
-                                    {{ $stockRequest->status === 'pending'
-                                        ? 'bg-warning'
-                                        : ($stockRequest->status === 'approved'
-                                            ? 'bg-success'
-                                            : 'bg-danger') }}">
-                            {{ ucfirst($stockRequest->status) }}
-                        </span>
-                    </p>
-                    <p><strong>Notes:</strong> {{ $stockRequest->notes ?? '-' }}</p>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Store: </label> <span
+                                    class="ml-2">{{ $stockRequest->store->name ?? 'warehouse' }}</span>
+
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Requested By: </label>
+                                <span class="ml-2"> {{ $stockRequest->user->name ?? 'N/A' }}</span>
+
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Date:</label>
+                                <span class="ml-2"> {{ $stockRequest->requested_at->format('d M Y h:i A') }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Status: </label>
+                                <span
+                                    class=" ml-2 badge 
+                                            {{ $stockRequest->status === 'pending'
+                                                ? 'bg-warning'
+                                                : ($stockRequest->status === 'approved'
+                                                    ? 'bg-success'
+                                                    : 'bg-danger') }}">
+                                    {{ ucfirst($stockRequest->status) }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Status: </label>
+                                <span class="ml-2"> {{ $stockRequest->notes ?? '-' }}</span>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 

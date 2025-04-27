@@ -8,7 +8,7 @@ use App\Models\WithdrawCash;
 use App\Models\CashBreakdown;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
-
+use App\Models\User;
 
 class ShiftClosingController extends Controller
 {
@@ -24,12 +24,36 @@ class ShiftClosingController extends Controller
         // Get the branch_id from the authenticated user's info
         $branch_id = auth()->user()->userinfo->branch->id ?? null;
         // Save cash breakdown
+<<<<<<< Updated upstream
+=======
+        // $CashBreakdown = CashBreakdown::create([
+        //     'user_id' => Auth::id(),
+        //     'branch_id' => $branch_id,
+        //     'denominations' => json_encode($request->cash_breakdown),
+        //     'total' => $request->today_cash,
+        // ]);
+        // // Save shift close info
+        // $shift = new UserShift();
+        // $shift->user_id = Auth::id();
+        // $shift->branch_id = $branch_id;
+        // $shift->start_time = $request->start_time;
+        // $shift->end_time = $request->end_time;
+        // $shift->opening_cash = $request->opening_cash;
+        // // $shift->today_cash = $request->today_cash;
+        // $shift->cash_break_id = $CashBreakdown->id;
+        // // $shift->total_payments = $request->total_payments;
+        // $shift->save();
+        $shift = UserShift::where('user_id', $user_id)
+        ->where('branch_id', $branch_id)
+        ->delete();
+>>>>>>> Stashed changes
         $CashBreakdown = CashBreakdown::create([
             'user_id' => Auth::id(),
             'branch_id' => $branch_id,
             'denominations' => json_encode($request->cash_breakdown),
             'total' => $request->today_cash,
         ]);
+<<<<<<< Updated upstream
 
         // Save shift close info
         $shift = UserShift::where('user_id', Auth::id())
@@ -41,10 +65,15 @@ class ShiftClosingController extends Controller
             return redirect()->back()->withErrors(['status' => 'No active shift found for this user.']);
         }
         // Update shift data
+=======
+        // Save shift close info
+        $shift = new UserShift();
+>>>>>>> Stashed changes
         $shift->user_id = Auth::id();
         $shift->branch_id = $branch_id;
         $shift->start_time = $request->start_time;
         $shift->end_time = $request->end_time;
+<<<<<<< Updated upstream
         $shift->opening_cash = str_replace(',', '', $request->opening_cash);
         $shift->cash_discrepancy = str_replace(',', '', $request->diffCash);
         $shift->closing_cash = str_replace(',', '', $request->closingCash);
@@ -57,6 +86,17 @@ class ShiftClosingController extends Controller
         $shift->cash = str_replace(',', '', $request->diffCash); // Assuming you want to store the same cash discrepancy here
         $shift->status = 'completed';  // Assuming you want to mark it as closed after shift ends
         $shift->save();
+=======
+        $shift->opening_cash = $request->opening_cash;
+        // $shift->today_cash = $request->today_cash;
+        $shift->cash_break_id = $CashBreakdown->id;
+        // $shift->total_payments = $request->total_payments;
+        $shift->save();
+        $user = User::find(Auth::id());
+        $user->is_login = 'No';
+        $user->save();
+        Auth::logout();
+>>>>>>> Stashed changes
 
         // Logout user after shift closure
         Auth::logout();

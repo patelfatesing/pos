@@ -1,61 +1,53 @@
+<form id="priceUpdateForm">
+    @csrf
+    <div class="modal-header">
+        <h5 class="modal-title" id="approveModalLabel">Expired Products</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
 
-        <form id="priceUpdateForm">
-            @csrf
-            <div class="modal-header">
-                <h5 class="modal-title" id="approveModalLabel">Expired Products</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+    <div class="modal-body">
+        <div class="row">
+            <div class="container mt-1">
+                @if ($expiredProducts->isEmpty())
+                    <p>No expired products found.</p>
+                @else
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Brand</th>
+                                <th>Batch No</th>
+                                <th>Expiry Date</th>
+                                <th>Quantity</th>
+                                <th>SKU</th>
+                                <th>Barcode</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($expiredProducts as $inventory)
+                                <tr>
+                                    <td>{{ $inventory->product_name }}</td>
+                                    <td>{{ $inventory->brand }}</td>
+                                    <td>{{ $inventory->batch_no }}</td>
+                                    <td>
+                                        {{ \Carbon\Carbon::parse($inventory->expiry_date)->format('Y-m-d') }}
+                                    </td>
+                                    <td>{{ $inventory->quantity }}</td>
+                                    <td>{{ $inventory->sku }}</td>
+                                    <td>{{ $inventory->barcode }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @endif
             </div>
+        </div>
+    </div>
 
-            <div class="modal-body">
-                <div class="row">
-                    <div class="container mt-1">
-                        @if($expiredProducts->isEmpty())
-                            <p>No expired products found.</p>
-                        @else
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Product Name</th>
-                                        <th>Brand</th>
-                                        <th>Batch No</th>
-                                        <th>Expiry Date</th>
-                                        <th>Quantity</th>
-                                        <th>SKU</th>
-                                        <th>Barcode</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($expiredProducts as $inventory)
-                                        <tr>
-                                            <td>{{ $inventory->product_name }}</td>
-                                            <td>{{ $inventory->brand }}</td>
-                                            <td>{{ $inventory->batch_no }}</td>
-                                            <td>
-                                                {{ \Carbon\Carbon::parse($inventory->expiry_date)->format('Y-m-d') }}
-                                            </td>
-                                            <td>{{ $inventory->quantity }}</td>
-                                            <td>{{ $inventory->sku }}</td>
-                                            <td>{{ $inventory->barcode }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        @endif
-                    </div>
-                
-                    
-                </div>
-
-                <span class="mt-2 badge badge-pill border border-secondary text-secondary">
-                    {{ __('messages.change_date_msg') }}
-                </span>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                {{-- <button type="submit" class="btn btn-primary">Save changes</button> --}}
-            </div>
-        </form>
-   
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        {{-- <button type="submit" class="btn btn-primary">Save changes</button> --}}
+    </div>
+</form>

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Product;
+use App\Models\Notification;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\StockRequest;
@@ -14,6 +14,12 @@ class NotificationController extends Controller
 
     public function loadForm($type,Request $request)
     {
+        $nf_id = $request->nfid;
+
+        $nf = Notification::find($nf_id);
+        $nf->status = 'read';
+        $nf->save();
+
         if ($type === 'low_stock') {
             
             $lowStockProducts = DB::table('products')

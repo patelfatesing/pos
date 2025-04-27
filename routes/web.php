@@ -29,6 +29,9 @@ use App\Http\Controllers\ShiftClosingController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DashboardController;
 use App\Livewire\ShiftClosingForm;
+use App\Http\Controllers\SalesReportController;
+use App\Http\Controllers\ExpenseCategoryController;
+use App\Http\Controllers\ExpenseController;
 
 Route::get('/shift-closing', ShiftClosingForm::class);
 Route::get('/cash-tender', [CashController::class, 'index']);
@@ -189,6 +192,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/invoice/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show');
     Route::get('/invoice/{invoice}/download', [InvoiceController::class, 'download'])->name('invoice.download');
+    Route::get('/view-invoice/{invoice}', [InvoiceController::class, 'viewInvoice'])->name('invoice.view-invoice');
+    
 
     Route::get('/pack-size/list', [PackSizeController::class, 'index'])->name('packsize.list');
     Route::post('/pack-size/get-data', [PackSizeController::class, 'getData'])->name('packsize.getData');
@@ -199,6 +204,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/pack-size/delete/{id}', [PackSizeController::class, 'destroy'])->name('packsize.destroy');
 
 });
+
 // Route::middleware(['auth', 'admin'])->prefix('commission-users')->name('commission-users.')->group(function () {
   
     Route::get('/commission-users/list', [CommissionUserController::class, 'index'])->name('commission-users.list');
@@ -239,5 +245,28 @@ Route::middleware('auth')->group(function () {
     Route::get('/vendor/get-product-details/{id}', [PurchaseController::class, 'getProductDetails'])->name('vendor.get-product-details');
 
     Route::get('/popup/form/{type}', [NotificationController::class, 'loadForm']);
+
+
+    // routes/web.php
+    Route::get('sales/sales-list', [SalesReportController::class, 'salasList'])->name('sales.sales.list');
+    Route::get('sales/sales-report', [SalesReportController::class, 'index'])->name('sales.report');
+    Route::get('sales-report/data', [SalesReportController::class, 'getSalesReportData'])->name('sales.report.data');
+    Route::post('sales/get-data', [SalesReportController::class, 'getData'])->name('sales.get.data');
+    Route::get('/store-sales-summary', [SalesReportController::class, 'storeSummary'])->name('store-sales-summary');
+
+    Route::get('/exp-category/list', [ExpenseCategoryController::class, 'index'])->name('exp_category.list');
+    Route::post('/exp-category/get-data', [ExpenseCategoryController::class, 'getData'])->name('exp_category.getData');
+    Route::get('/exp-category/create', [ExpenseCategoryController::class, 'create'])->name('exp_category.create');
+    Route::post('/exp-category/store', [ExpenseCategoryController::class, 'store'])->name('exp_category.store');
+    Route::get('/exp-category/edit/{id}', [ExpenseCategoryController::class, 'edit'])->name('exp_category.edit');
+    Route::post('/exp-category/update', [ExpenseCategoryController::class, 'update'])->name('exp_category.update');
+    Route::delete('/exp-category/delete/{id}', [ExpenseCategoryController::class, 'destroy'])->name('exp_category.destroy');
+
+    Route::get('/exp/list', [ExpenseController::class, 'index'])->name('exp.list');
+    Route::post('/exp/get-data', [ExpenseController::class, 'getData'])->name('exp.getData');
+    Route::get('/exp/create', [ExpenseController::class, 'create'])->name('exp.create');
+    Route::post('/exp/store', [ExpenseController::class, 'store'])->name('exp.store');
+    Route::get('/exp/edit/{id}', [ExpenseController::class, 'edit'])->name('exp.edit');
+    
 
 require __DIR__.'/auth.php';

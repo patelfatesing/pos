@@ -18,6 +18,7 @@ class InvoiceController extends Controller
         $partyUser = Partyuser::find($invoice->party_user_id);
         return view('invoice.view', compact('invoice', 'commissionUser', 'partyUser'));
     }
+
     public function download(Invoice $invoice)
     {
         $commissionUser = Commissionuser::find($invoice->commission_user_id);
@@ -35,6 +36,13 @@ class InvoiceController extends Controller
             'partyUser' => $partyUser,
         ]);
         return $pdf->download($invoice->invoice_number . '.pdf');
+    }
+
+    public function viewInvoice(Invoice $invoice)
+    {
+        $commissionUser = Commissionuser::find($invoice->commission_user_id);
+        $partyUser = Partyuser::find($invoice->party_user_id);
+        return view('invoice.viewInvoice', compact('invoice', 'commissionUser', 'partyUser'));
     }
 
 }
