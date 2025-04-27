@@ -68,7 +68,7 @@
                 </div>
 
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 @if (auth()->user()->hasRole('cashier'))
 
                     <div class="form-group">
@@ -100,11 +100,12 @@
 
             </div>
             @if ($selectedPartyUser || $selectedCommissionUser)
-                <div class="col-md-3">
-                    <button type="button" id="customer" class="btn btn-primary btn-sm mr-2 " data-toggle="modal"
-                        data-target="#captureModal">
-                        Take picture
+                <div class="col-md-2">
+                    <button type="button" id="customer" class="btn btn-primary mr-2"
+                    data-toggle="modal" data-target="#captureModal" data-toggle="tooltip" data-placement="top" title="Take Picture">
+                    <i class="fa fa-camera"></i>
                     </button>
+                
                 </div>
             @endif
         </div>
@@ -745,46 +746,36 @@
                         <h5 class="mb-0">{{ $this->headertitle }} Summary</h5>
                     </div>
                     <div class="col-md-6 text-right">
-                        {{-- <form action="{{ url('lang/change') }}" method="GET" class="d-inline-block me-2">
-                            <select name="lang" onchange="this.form.submit()" class="form-control form-control-sm" style="width: auto; display: inline-block;">
-                                <option value="en" {{ session('locale') == 'en' ? 'selected' : '' }}>English</option>
-                                <option value="hi" {{ session('locale') == 'hi' ? 'selected' : '' }}>हिंदी</option>
-                            </select>
-                        </form> --}}
+                        {{-- Language switcher code commented out --}}
+                    
                         @if (count($itemCarts) == 0)
-                            <button type="button" id="customer" class="btn btn-primary btn-sm mr-2 "
-                                data-toggle="modal" data-target="#cashout">
-                                Cash Out
+                            <button type="button" id="customer" class="btn btn-primary btn-sm mr-2"
+                                data-toggle="modal" data-target="#cashout" data-toggle="tooltip" data-placement="top" title="Cash Out">
+                                <i class="fas fa-cash-register"></i>
+                            </button>
+                    
+                            <button type="button" class="btn btn-primary btn-sm mr-2"
+                                data-toggle="modal" data-target="#holdTransactionsModal" data-toggle="tooltip" data-placement="top" title="View Hold">
+                                <i class="fas fa-hand-paper"></i>
                             </button>
                         @endif
-                        <button type="button" class="btn btn-primary btn-sm mr-2 " data-toggle="modal"
-                            data-target="#holdTransactionsModal">
-                            View Hold
+                    
+                        <button type="button" id="closeShiftBtn" class="btn btn-primary btn-sm mr-2"
+                            data-toggle="modal" data-target="#closeShiftModal" data-toggle="tooltip" data-placement="top" title="Close Shift">
+                            <i class="fas fa-door-closed"></i>
                         </button>
-
-                        {{-- <div wire:poll.60s="checkTime">
-                            @if ($showCloseButton) --}}
-                                <button type="button" id="closeShiftBtn" class="btn btn-primary btn-sm mr-2 "
-                                    data-toggle="modal" data-target="#closeShiftModal">
-                                    Close Shift
-                                </button>
-                            {{-- @else --}}
-                                {{-- <p>Close button will appear 10 minutes before shift ends.</p> --}}
-                            {{-- @endif --}}
-                        {{-- </div> --}}
-
+                    
                         <button type="button" class="btn btn-outline-danger ms-2" data-toggle="tooltip"
                             data-placement="top" title="Logout"
                             onclick="document.getElementById('logout-form').submit();">
                             <i class="fas fa-sign-out-alt"></i>
                         </button>
-
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST"
-                            style="display: none;">
+                    
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                             @csrf
                         </form>
-
                     </div>
+                    
                 </div>
 
             </div>
