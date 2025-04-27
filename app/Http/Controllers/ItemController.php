@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use Illuminate\Http\Request;
+use App\Models\Shoppingcart as Cart;
 
 class ItemController extends Controller
 {
@@ -23,7 +24,16 @@ class ItemController extends Controller
         $items = Item::all();
         return view('items.cart', compact('items'));
     }
+    public function resume($id)
+    {
+        $transaction = Cart::where('user_id', auth()->user()->id)->where('status', Cart::STATUS_HOLD)->first();
+        if(!empty($transaction)){
+            $transaction->status = Cart::STATUS_PENDING;
+            $transaction->save();
+            return back()->with('success', 'Transaction resumed.');
+        }
 
+    }
     public function create()
     {
         return view('items.create');

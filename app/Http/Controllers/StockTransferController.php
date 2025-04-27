@@ -80,9 +80,9 @@ class StockTransferController extends Controller
                             'product_id' => $val['product_id'],
                             'batch_no' => $inventory->batch_no,
                             'expiry_date' => $inventory->expiry_date,
-                            'reorder_level' => $inventory->reorder_level,
-                            'cost_price' => $inventory->cost_price,
-                            'sell_price' => $inventory->sell_price,
+                            // 'reorder_level' => $inventory->reorder_level,
+                            // 'cost_price' => $inventory->cost_price,
+                            // 'sell_price' => $inventory->sell_price,
                         ]);
 
                         $storeInventory->quantity += $deducted;
@@ -118,7 +118,7 @@ class StockTransferController extends Controller
                     }
             }
             
-            DB::commit();
+            DB::commit();   
             return redirect()->route('stock.requestList')->with('success', 'Stock request submitted successfully.');
 
         } catch (\Exception $e) {

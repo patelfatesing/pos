@@ -192,15 +192,15 @@
                     </a>
                     <ul id="sale" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                         <li class="">
-                            <a href="#">
+                            <a href="{{ route('sales.sales.list') }}">
                                 <i class="las la-minus"></i><span>List Sale</span>
                             </a>
                         </li>
-                        <li class="">
+                        {{-- <li class="">
                             <a href="#">
                                 <i class="las la-minus"></i><span>Add Sale</span>
                             </a>
-                        </li>
+                        </li> --}}
                     </ul>
                 </li>
                 <li class=" ">
@@ -213,7 +213,7 @@
                             <polyline points="17 11 19 13 23 9"></polyline>
                         </svg>
                         <span class="ml-4">Customers</span>
-                        
+
                     </a>
                     <ul id="customer" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                         <li class="">
@@ -228,10 +228,9 @@
                         </li>
                     </ul>
                 </li>
-
-
                 <li class=" ">
-                    <a href="#pricing" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                    <a href="#expenses" class="collapsed" data-toggle="collapse" aria-expanded="false">
+
                         <svg class="svg-icon" id="p-dash16" width="20" height="20"
                             xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -240,29 +239,23 @@
                             <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
                         </svg>
                         <span class="ml-4">Expenses Manage</span>
-                        <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20"
-                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="10 15 15 20 20 15"></polyline>
-                            <path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
-                        </svg>
+
                     </a>
-                    <ul id="pricing" class="iq-submenu collapse" data-parent="#otherpage">
+                    <ul id="expenses" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                         <li class="">
-                            <a href="#">
-                                <i class="las la-minus"></i><span>Expenses</span>
+                            <a href="{{ route('exp.list') }}">
+                                <i class="las la-minus"></i><span>Expense List</span>
                             </a>
                         </li>
                         <li class="">
-                            <a href="#">
-                                <i class="las la-minus"></i><span>Pricing 2</span>
+                            <a href="{{ route('exp_category.list') }}">
+                                <i class="las la-minus"></i><span>Expense Category</span>
                             </a>
                         </li>
                     </ul>
                 </li>
-
-                <li class="">
-                    <a href="#" class="">
+                <li class=" ">
+                    <a href="#reports" class="collapsed" data-toggle="collapse" aria-expanded="false">
                         <svg class="svg-icon" id="p-dash7" width="20" height="20"
                             xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -273,8 +266,15 @@
                             <polyline points="10 9 9 9 8 9"></polyline>
                         </svg>
                         <span class="ml-4">Reports</span>
+
                     </a>
                     <ul id="reports" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                        <li class="">
+                            <a href="{{ route('sales.report') }}">
+                                <i class="las la-minus"></i><span>Sales</span>
+                            </a>
+                        </li>
+
                     </ul>
                 </li>
                 <li class=" ">

@@ -12,6 +12,7 @@ class PartyUserController extends Controller
         $partyUsers = Partyuser::with('images')->latest()->get();
         return view('party_users.index', compact('partyUsers'));
     }
+    
     public function getData(Request $request)
     {
         $draw = $request->input('draw', 1);

@@ -14,10 +14,10 @@
                     <div class="col-lg-12">
                         <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                             <div>
-                                <h4 class="mb-3">Order Delivery List</h4>
+                                <h4 class="mb-3">Order Invoice List</h4>
                             </div>
                             <a href="{{ route('purchase.create') }}" class="btn btn-primary add-list">
-                                <i class="las la-plus mr-3"></i>Add New Order Delivery
+                                <i class="las la-plus mr-3"></i>Add New Order Invoice
                             </a>
                         </div>
                     </div>

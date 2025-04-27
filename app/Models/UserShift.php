@@ -7,11 +7,26 @@ use Illuminate\Database\Eloquent\Model;
 class UserShift extends Model
 {
     protected $table = 'shift_closings';
-    protected $fillable = [
-        'shop_name', 'start_time', 'end_time', 'opening_cash',
-        'deshi_sales', 'beer_sales', 'english_sales', 'discount',
-        'upi_payment', 'withdrawal_payment', 'today_cash', 'closing_cash','user_id','branch_id','closing_cash','cash_break_id'
+     // Add the new fields to the fillable array
+     protected $fillable = [
+        'user_id',
+        'branch_id',
+        'start_time',
+        'end_time',
+        'opening_cash',
+        'closing_cash',
+        'cash_discrepancy',
+        'deshi_sales',
+        'beer_sales',
+        'english_sales',
+        'discount',
+        'upi_payment',
+        'withdrawal_payment',
+        'cash',
+        'status',
+        'cash_break_id',
     ];
+
 
     public function cashDetails()
     {

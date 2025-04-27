@@ -17,7 +17,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
 
     .notification-count {
         position: absolute;
-        top: -10px;
+        top: 4px;
         right: 0px;
         background-color: red;
         color: white;
@@ -136,7 +136,9 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
 
                             <?php
                             $getNotification = getNotificationsByNotifyTo(Auth::id(), 10);
-                            $getCount = count($getNotification);
+                            $getCount = collect($getNotification)->where('status', 'unread')->count();
+
+                            $getTotalCount = count($getNotification);
                             $user = Auth::user();
                             ?>
 
@@ -223,7 +225,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                             <div class="d-flex align-items-center justify-content-between">
                                                 <h5 class="mb-0">Notifications</h5>
                                                 <a class="badge badge-primary badge-card"
-                                                    href="#">{{ $getCount }}</a>
+                                                    href="#">{{ $getTotalCount }}</a>
                                             </div>
                                         </div>
                                         <div class="px-3 pt-0 pb-0 sub-card">
@@ -236,8 +238,8 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                                     $id = $data->id;
                                                 }
                                                 ?>
-                                                <a href="#" data-id="{{$id}}" class="iq-sub-card open-form"
-                                                    data-type="{{ $item->type }}">
+                                                <a href="#" data-id="{{ $id }}"
+                                                    class="iq-sub-card open-form {{$item->status == 'read' ? 'msg_read' : 'msg_unread'}}" data-type="{{ $item->type }}" id="{{ $item->id }}" data-nfid="{{ $item->id }}">
                                                     <div class="media align-items-center cust-card py-3 border-bottom">
                                                         <div class="">
                                                             <img class="avatar-50 rounded-small"
@@ -369,10 +371,22 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
 
         let id = $(this).data('id');
 
+        let nfid = $(this).data('nfid');
+        let id_get = $(this).attr('id');
+
+        let get_tc = parseInt($(".notification-count").text()); // get current cou
+
+        // console.log(get_tc,"==get_tc");
         $.ajax({
-            url: '/popup/form/' + type+"?id="+id,
+            url: '/popup/form/' + type + "?id=" + id+"&nfid="+nfid,
             type: 'GET',
             success: function(response) {
+                $("#" + id_get).removeClass("iq-sub-card open-form msg_unread");
+                $("#" + id_get).addClass("iq-sub-card open-form msg_read");
+   
+                get_tc = get_tc - 1;
+                $(".notification-count").text(get_tc);
+
                 $('#modalContent').html(response);
 
                 $('#approveModal').modal('show');

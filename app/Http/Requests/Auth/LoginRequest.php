@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use App\Models\User;
 
 class LoginRequest extends FormRequest
 {
@@ -49,6 +50,17 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if (Auth::check() && Auth::user()->is_login === 'Yes') {
+            Auth::logout(); // Force logout immediately
+            throw ValidationException::withMessages([
+                'email' => 'You are already logged in from another device.',
+            ]);
+        } else {
+            $user = User::find(Auth::id());
+            $user->is_login = 'Yes';
+            $user->save();
+        }
+        
         RateLimiter::clear($this->throttleKey());
     }
 
