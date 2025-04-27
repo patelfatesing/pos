@@ -69,11 +69,9 @@
                                                         <select name="product_select" id="product_select"
                                                             class="form-control">
                                                             <option value="">-- Select Product --</option>
-                                                            @foreach ($products as $product)
-                                                                <option value="{{ $product['id'] }}">
-                                                                    {{ $product['name'] }}
-                                                                </option>
-                                                            @endforeach
+                                                            <option value="7">Last 
+                                                                
+                                                            </option>
                                                         </select>
                                                         @error('product_select')
                                                             <span class="text-danger">{{ $message }}</span>

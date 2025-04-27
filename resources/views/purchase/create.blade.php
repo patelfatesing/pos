@@ -378,8 +378,9 @@
             });
             $('#total').text(total.toFixed(2));
             $('#total_amount').text(total.toFixed(2));
+            $(".total_amount").val(total);
 
-            calculation(total, '', '', '', '', '', '');
+            calculation(total, '', '', '', '', '', total);
         });
 
         $('#excise_fee, #composition_vat, #surcharge_on_ca, #tcs, #aed_to_be_paid').on('input', function() {
@@ -398,7 +399,7 @@
             const grandTotal = baseTotal + excise + compVat + surcharge + tcs + aed;
 
             $('#total_amount').text(grandTotal.toFixed(2));
-            $('.total_amount').text(grandTotal.toFixed(2));
+            $('.total_amount').val(grandTotal.toFixed(2));
         }
 
         function calculation(total, excise_fee, composition_vat, surcharge_on_ca, tcs, aed_to_be_paid,
@@ -408,7 +409,7 @@
             $("#total_amount").text('Rs. ' + total_amount);
 
             $('.total_val').val((total).toFixed(2));
-            $(".total_amount").val('Rs. ' + total_amount);
+            $(".total_amount").val(total_amount);
         }
 
         function updateTotal() {
