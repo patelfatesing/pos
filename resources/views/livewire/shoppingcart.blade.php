@@ -138,10 +138,13 @@
                                 <td style="width: 20%;">
                                     @if (auth()->user()->hasRole('cashier'))
                                         <div class="d-flex align-items-center justify-content-between">
-                                            <input type="number" min="1"
+                                            {{-- <input type="number" min="1"
                                                 class="form-control form-control-sm mx-2 text-center"
-                                                wire:model.lazy="quantities.{{ $item->id }}"
-                                                wire:change="updateQty({{ $item->id }})" readonly />
+                                                wire:model="quantities.{{ $item->id }}"
+                                                wire:change="updateQty({{ $item->id }})" readonly /> --}}
+                                                <input type="number" value="{{$this->quantities[$item->id]}}" wire:change="updateQty({{ $item->id }})" 
+                                                class="form-control form-control-sm mx-2 text-center"
+                                                readonly />
 
                                         </div>
                                     @endif
@@ -149,12 +152,14 @@
                                         <div class="d-flex align-items-center justify-content-between">
                                             <button class="btn btn-sm btn-outline-success"
                                                 wire:click="decrementQty({{ $item->id }})">−</button>
-                                            <input id="numberInput" type="number" min="1"
+                                            {{-- <input id="numberInput" type="number" min="1"
                                                 class="form-control form-control-sm mx-2 text-center"
-                                                wire:model.lazy="quantities.{{ $item->id }}"
-                                                wire:change="updateQty({{ $item->id }})" />
-                                            <div id="numpad" class="numpad" style="display: none;"></div>
-
+                                                wire:model="quantities.{{ $item->id }}"
+                                                wire:change="updateQty({{ $item->id }})" /> --}}
+                                            {{-- <div id="numpad" class="numpad" style="display: none;"></div> --}}
+                                            <input type="number" value="{{$this->quantities[$item->id]}}" wire:change="updateQty({{ $item->id }})" 
+                                            class="form-control form-control-sm mx-2 text-center"
+                                            readonly />
                                             <button class="btn btn-sm btn-outline-warning"
                                                 wire:click="incrementQty({{ $item->id }}, {{ $finalAmount }})">+</button>
                                         </div>
@@ -173,11 +178,14 @@
                                         <span class="text-danger">
                                             ₹{{ number_format(@$item->product->sell_price, 2) }}
                                         </span>
+                                        @if( $this->partyAmount > 0)
+
                                         <br>
                                         <small class="text-muted">
 
                                             <s>₹{{ number_format(@$this->partyAmount, 2) }}</s>
                                         </small>
+                                        @endif
                                     @endif
                                 </td>
                                 <td style="width: 10%;">
@@ -286,7 +294,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="holdModalLabel">Hold Transactions</h5>
+                    <h5 class="modal-title" id="holdModalLabel">Hold Transactions @livewireScripts</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
@@ -886,7 +894,7 @@
 
 
     <div class="col-md-5 no-print">
-        @include('layouts.flash-message')
+        {{-- @include('layouts.flash-message') --}}
 
         <div class="card">
             <div class="card-header">
@@ -1048,7 +1056,7 @@
 
                     <div id="cash-payment">
 
-                        <form onsubmit="event.preventDefault(); calculateCash();" class="needs-validation" novalidate>
+                        <form onsubmit="event.preventDefault();" class="needs-validation" novalidate>
 
 
                             {{-- <h6 class="mb-3">💵 Enter Cash Denominations</h6> --}}
@@ -1182,7 +1190,7 @@
                             <div class="border p-1 rounded bg-light">
                                 <div class="d-flex justify-content-between mb-2">
                                     <strong>Subtotal</strong>
-                                    <span>₹{{ number_format($sub_total, 2) }}</span>
+                                    <span>₹{{ number_format($this->sub_total, 2) }}</span>
                                 </div>
 
                                 @if ($commissionAmount > 0)
@@ -1534,18 +1542,18 @@
         //  document.getElementById("notes-breakdown").innerHTML = breakdown;
     }
 
-    function calculateCash() {
-        const notes2000 = parseInt(document.getElementById('notes_2000').value) || 0;
-        const notes500 = parseInt(document.getElementById('notes_500').value) || 0;
+    // function calculateCash() {
+    //     const notes2000 = parseInt(document.getElementById('notes_2000').value) || 0;
+    //     const notes500 = parseInt(document.getElementById('notes_500').value) || 0;
 
-        const total = (notes2000 * 2000) + (notes500 * 500);
+    //     const total = (notes2000 * 2000) + (notes500 * 500);
 
-        if (total === 4000) {
-            document.getElementById('result').innerText = `✅ Total is ₹${total}`;
-        } else {
-            document.getElementById('result').innerText = `❌ Total is ₹${total}, which is not ₹4000`;
-        }
-    }
+    //     if (total === 4000) {
+    //         document.getElementById('result').innerText = `✅ Total is ₹${total}`;
+    //     } else {
+    //         document.getElementById('result').innerText = `❌ Total is ₹${total}, which is not ₹4000`;
+    //     }
+    // }
 
     function calculateCashBreakdown() {
         const denominations = [{
@@ -1898,15 +1906,46 @@
         document.getElementById('totalNoteCashwith').innerText = '₹' + total;
         document.getElementById('withamountTotal').value = total;
     }
-    window.addEventListener('cart-voided', () => {
-        Swal.fire({
-            title: 'Sales Voided!',
-            text: 'Your Sales Voided Successfully.',
-            icon: 'success',
-            confirmButtonText: 'OK'
-        });
-        // or reset inputs if needed
+    // window.addEventListener('cart-voided', (event) => {
+    //         Swal.fire({
+    //             title: 'LiquorHub!',
+    //             text: event.detail[0].message,  // Use the message passed from Livewire through the event
+    //             icon: 'success',
+    //             confirmButtonText: 'OK'
+    //         });
+    //     // Reset inputs if needed or perform any additional actions here
+    // });
+    // Function to display dynamic SweetAlert
+    function showAlert(type, title, message) {
+    Swal.fire({
+        title: title || (type === 'success' ? 'Success!' : 'Error!'),
+        text: message || (type === 'success' ? 'Operation completed successfully.' : 'Something went wrong.'),
+        icon: type,  // 'success' or 'error'
+        confirmButtonText: 'OK',
+        timer: 2000,  // Auto-close after 2 seconds for small alert
+        showConfirmButton: true,  // Show the confirm button
+        position: 'center',  // Center the alert in the middle of the screen
+        toast: false,  // Disable toast style (centered alert)
+        timerProgressBar: true,  // Show progress bar
+        backdrop: true,  // Enable backdrop
+        allowOutsideClick: false,  // Prevent closing the alert by clicking outside
+        showCloseButton: true,  // Optional: Show a close button in the top-right corner
+        customClass: {
+            popup: 'small-alert'  // Apply custom class for small size
+        }
     });
+}
+// Event listeners for success and error
+window.addEventListener('notiffication-sucess', (event) => {
+    // Success Example
+    showAlert('success', 'LiquorHub!', event.detail[0].message || 'Your cart has been voided successfully.');
+});
+
+window.addEventListener('notiffication-error', (event) => {
+    // Error Example
+    showAlert('error', 'LiquorHub!', event.detail[0].message || 'Failed to void the cart.');
+});
+
 </script>
 <script>
     // window.addEventListener('show-numpad-modal', () => {

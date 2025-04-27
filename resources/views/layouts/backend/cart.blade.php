@@ -98,6 +98,20 @@
            color: #32bdea !important;
            
         }
+        /* CSS for small SweetAlert */
+        .swal2-popup.small-alert {
+            width: 300px !important;  /* Set the width to a smaller size */
+            padding: 20px;            /* Adjust padding for a more compact look */
+            font-size: 16px;          /* Adjust font size */
+        }
+
+        .swal2-popup.small-alert .swal2-title {
+            font-size: 18px;          /* Adjust the title font size */
+        }
+
+        .swal2-popup.small-alert .swal2-content {
+            font-size: 14px;          /* Adjust the message font size */
+        }
 
 
     </style>
