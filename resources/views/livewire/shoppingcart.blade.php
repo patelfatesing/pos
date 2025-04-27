@@ -318,7 +318,7 @@
                     <div id="step1">
                         <h6 class="text-muted mb-3">Step 1: Capture Product Image</h6>
                         <div class="border rounded-3 overflow-hidden mb-3 text-center p-2 bg-light">
-                            <img src="{{ asset('assets/images/cold-bottle-beer-with-drops-isolated-white-background.jpg') }}"
+                            <img src="{{ asset('assets/images/bottle.png') }}"
                                 alt="Sample Product" class="rounded-3 shadow-sm" width="200" height="150"
                                 id="productImagePreview">
                             <canvas id="canvas1" class="d-none"></canvas>
