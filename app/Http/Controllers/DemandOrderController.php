@@ -7,6 +7,7 @@ use App\Models\VendorList;
 use App\Models\Product;
 use App\Models\DemandOrderProduct;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DemandOrderController extends Controller
 {
@@ -61,37 +62,100 @@ class DemandOrderController extends Controller
     }
 
     public function createPrediction()
-    {
-     
-        $vendors = VendorList::all();
-        $products = Product::all();
+{
+    // 1. All vendors & products
+    $vendors  = VendorList::all();
+    $products = Product::all();
 
-        $lowStockProducts = Product::whereColumn('stock_quantity', '<', 'reorder_level')->get();
+    // 2. Map product names + size → IDs
+    $nameSizeToId = $products->mapWithKeys(function ($product) {
+        return [strtolower($product->name . '|' . $product->size) => $product->id];
+    })->toArray();
 
-        $lastWeek = now()->subDays(7);
-        $lastMonth = now()->subDays(30);
+    // 3. Find only truly low-stock items, and join categories + sub_categories
+    $lowStock = DB::table('inventories')
+        ->join('products',        'inventories.product_id', '=', 'products.id')
+        ->join('categories',      'products.category_id',   '=', 'categories.id')
+        ->join('sub_categories',  'products.subcategory_id','=', 'sub_categories.id')
+        ->select([
+            'inventories.product_id',
+            'products.name',
+            'products.size',
+            'categories.name as category_name',
+            'sub_categories.name as subcategory_name',
+            'inventories.quantity as current_stock',
+            'products.reorder_level',
+        ])
+        ->whereColumn('inventories.quantity', '<', 'products.reorder_level')
+        ->get();
 
-        $weeklySales = DB::table('invoices')
-            ->select('product_id', DB::raw('SUM(quantity) as total'))
-            ->where('created_at', '>=', $lastWeek)
-            ->groupBy('product_id')
-            ->pluck('total', 'product_id');
+    $lastWeek  = now()->subDays(7);
+    $lastMonth = now()->subDays(30);
 
-        $monthlySales = DB::table('invoices')
-            ->select('product_id', DB::raw('SUM(quantity) as total'))
-            ->where('created_at', '>=', $lastMonth)
-            ->groupBy('product_id')
-            ->pluck('total', 'product_id');
+    // 4. Fetch all invoice items from the last month
+    $invoices = DB::table('invoices')
+        ->where('created_at', '>=', $lastMonth)
+        ->get(['items', 'created_at']);
 
-        $pendingProducts = DemandOrderProduct::where('delivery_status', 'partially')
-            ->select('product_id', DB::raw('SUM(quantity - delivery_quantity) as pending_qty'))
-            ->groupBy('product_id')
-            ->pluck('pending_qty', 'product_id');
+    $weeklySales  = [];
+    $monthlySales = [];
 
-        return view('demand_orders.createPre', compact(
-            'vendors', 'products', 'lowStockProducts', 'weeklySales', 'monthlySales', 'pendingProducts'
-        ));
+    foreach ($invoices as $inv) {
+        $items = json_decode($inv->items, true);
+
+        if (is_array($items)) {
+            foreach ($items as $item) {
+                $key = strtolower(($item['name'] ?? '') . '|' . ($item['size'] ?? ''));
+                $pid = $nameSizeToId[$key] ?? null;
+                if (! $pid) continue;
+
+                $monthlySales[$pid] = ($monthlySales[$pid] ?? 0) + ($item['quantity'] ?? 0);
+                if ($inv->created_at >= $lastWeek) {
+                    $weeklySales[$pid] = ($weeklySales[$pid] ?? 0) + ($item['quantity'] ?? 0);
+                }
+            }
+        }
     }
+
+    // 5. Pending quantities (partially delivered)
+    $pending = DemandOrderProduct::where('delivery_status', 'partially')
+        ->select('product_id', DB::raw('SUM(quantity - delivery_quantity) as pending_qty'))
+        ->groupBy('product_id')
+        ->pluck('pending_qty', 'product_id')
+        ->toArray();
+
+    // 6. Build predictions including category data
+    $predictions = $lowStock->map(function($row) use ($weeklySales, $monthlySales, $pending) {
+        $pid           = $row->product_id;
+        $weeklyCount   = $weeklySales[$pid] ?? 0;
+        $monthlyCount  = $monthlySales[$pid] ?? 0;
+
+        // Average daily sales = (weekly/7 + monthly/30) / 2
+        $avgDailySales = (($weeklyCount / 7) + ($monthlyCount / 30)) / 2;
+        $needed        = $row->reorder_level - $row->current_stock;
+        $pendingQty    = $pending[$pid] ?? 0;
+
+        $suggestedQty  = $needed + ($avgDailySales * 7) - $pendingQty;
+
+        return [
+            'product_id'               => $pid,
+            'name'                     => $row->name,
+            'size'                     => $row->size,
+            'category_name'            => $row->category_name,
+            'subcategory_name'         => $row->subcategory_name,
+            'current_stock'            => $row->current_stock,
+            'reorder_level'            => $row->reorder_level,
+            'weekly_sales'             => $weeklyCount,
+            'monthly_sales'            => $monthlyCount,
+            'avg_daily'                => round($avgDailySales, 2),
+            'pending'                  => $pendingQty,
+            'suggested_order_quantity' => max(0, ceil($suggestedQty)),
+        ];
+    });
+
+    // 7. Return to view
+    return view('demand_orders.createPre', compact('vendors', 'products', 'predictions'));
+}
 
     public function show(DemandOrder $demandOrder)
     {

@@ -181,6 +181,59 @@ class StockController extends Controller
         }
     }    
 
+    public function stockRequestFromStore(Request $request)
+    {
+        // $validated = $request->validate([
+        //     'store_id' => 'required|exists:branches,id',
+        //     'items' => 'required|array|min:1',
+        //     'items.*.product_id' => 'required|exists:products,id',
+        //     'items.*.quantity' => 'required|integer|min:1',
+        //     'notes' => 'nullable|string',
+        // ]);
+
+        DB::beginTransaction();
+        try {
+
+            $data = User::with('userInfo')
+                    ->where('users.id', Auth::id())
+                    ->where('is_deleted', 'no')
+                    ->firstOrFail();
+    
+        $branch_id = $data->userInfo->branch_id;
+        
+            $stockRequest = StockRequest::create([
+                'store_id' => 1,
+                'requested_by' => $request['store_id'],
+                'notes' => $request->notes,
+                'requested_at' => now(),
+                'created_by' => Auth::id(),
+                // 'total_request_quantity' => $request->total_request_quantity,
+            ]);
+
+            foreach ($request['items'] as $item) {
+                StockRequestItem::create([
+                    'stock_request_id' => $stockRequest->id,
+                    'request_to_location_id' =>1,
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                ]);
+            }
+
+            $branch = Branch::where('id', $request['store_id'])->first();
+
+            $arr['id'] = $stockRequest->id;
+
+            sendNotification('request_stock', $branch->name.' store is stock request',null, Auth::id(),json_encode($arr));
+
+            DB::commit();
+            return redirect()->route('stock.requestList')->with('success', 'Stock request submitted successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'Failed to submit stock request: ' . $e->getMessage());
+        }
+    }  
+
     /**
      * Display the specified resource.
      */
@@ -399,105 +452,105 @@ class StockController extends Controller
         ]);
     }
 
-public function showSendRequest(StockRequest $stockRequest)
-{
-    // $stockRequest->load('store', 'items.product');
-    $stockRequest->load('branch', 'user', 'items.product');
-    return view('stocks.showSendRequest', compact('stockRequest'));
-}
-
-public function getSendRequestData(Request $request)
-{
-    $draw = $request->input('draw', 1);
-    $start = $request->input('start', 0);
-    $length = $request->input('length', 10);
-    $searchValue = $request->input('search.value', '');
-    $orderColumnIndex = $request->input('order.0.column', 0);
-    $orderColumn = $request->input("columns.$orderColumnIndex.data", 'id');
-    $orderDirection = $request->input('order.0.dir', 'asc');
-
-    $orderColumn = match ($orderColumn) {
-        'store' => 'stock_requests.id',
-        'created_at' => 'stock_requests.updated_at',
-        default => 'stock_requests.' . $orderColumn,
-    };
-    
-    $query = StockRequest::select(
-            'stock_requests.status',
-            'stock_requests.notes',
-            'users.name as created_by_name',
-            'users.email as created_by_email',
-            'branches.name as branch_name'
-        )
-        ->join('users', 'stock_requests.created_by', '=', 'users.id')
-        ->join('branches', 'stock_requests.requested_by', '=', 'branches.id')
-        ->where('stock_requests.created_by', 3); // static condition from the SQL
-    
-    // Optional search
-    if (!empty($searchValue)) {
-        $query->where(function ($q) use ($searchValue) {
-            $q->where('stock_requests.notes', 'like', "%$searchValue%")
-              ->orWhere('branches.name', 'like', "%$searchValue%")
-              ->orWhere('users.name', 'like', "%$searchValue%");
-        });
-    }
-    
-    // Role-based filtering (keep your existing logic here)
-    if (in_array(session('role_name'), ['cashier', 'warehouse'])) {
-        $data = User::with('userInfo')
-            ->where('users.id', Auth::id())
-            ->where('is_deleted', 'no')
-            ->firstOrFail();
-    
-        $branch_id = $data->userInfo->branch_id;
-    
-        $query->where(function ($q) use ($branch_id) {
-            $q->where('stock_requests.created_by', Auth::id());
-        });
-    }
-    
-    $recordsTotal = StockRequest::count();
-    $recordsFiltered = $query->count();
-    
-    $data = $query->orderBy($orderColumn, $orderDirection)
-        ->offset($start)
-        ->limit($length)
-        ->get();
-
-    
-
-    $records = [];
-    $url = url('/');
-
-    foreach ($data as $requestItem) {
-        $action = "";
-        $action .= "<a href='" . $url . "/stock/view/" . $requestItem->id . "' class='btn btn-sm btn-primary'>View</a> ";
-        // $action .= "<form method='POST' action='" . $url . "/stock/view/" . $requestItem->id . "' style='display:inline;'>"
-        //          . csrf_field() . method_field('DELETE')
-        //          . "<button class='btn btn-sm btn-danger' onclick='return confirm(\"Are you sure?\")'>Delete</button></form>";
-
-        //          if ($requestItem->status === 'pending') {
-        //             $action .= "<button class='btn btn-success btn-sm ml-1 open-approve-modal' data-id='{$requestItem->id}'>Approve</button>";
-
-        //             // $action .= "<button class='btn btn-success btn-sm approve-btn ml-1' data-id='{$requestItem->id}'>Approve</button>";
-        //         }
-        $records[] = [
-            'id' => $requestItem->id,
-            'store' => $requestItem->branch_name,
-            'requested_by' => $requestItem->created_by_name,
-            'requested_at' => optional($requestItem->requested_at)->format('d-m-Y H:i'),
-            'status' => ucfirst($requestItem->status),
-            'action' => $action
-        ];
+    public function showSendRequest(StockRequest $stockRequest)
+    {
+        // $stockRequest->load('store', 'items.product');
+        $stockRequest->load('branch', 'user', 'items.product');
+        return view('stocks.showSendRequest', compact('stockRequest'));
     }
 
-    return response()->json([
-        'draw' => $draw,
-        'recordsTotal' => $recordsTotal,
-        'recordsFiltered' => $recordsFiltered,
-        'data' => $records
-    ]);
-}
+    public function getSendRequestData(Request $request)
+    {
+        $draw = $request->input('draw', 1);
+        $start = $request->input('start', 0);
+        $length = $request->input('length', 10);
+        $searchValue = $request->input('search.value', '');
+        $orderColumnIndex = $request->input('order.0.column', 0);
+        $orderColumn = $request->input("columns.$orderColumnIndex.data", 'id');
+        $orderDirection = $request->input('order.0.dir', 'asc');
+
+        $orderColumn = match ($orderColumn) {
+            'store' => 'stock_requests.id',
+            'created_at' => 'stock_requests.updated_at',
+            default => 'stock_requests.' . $orderColumn,
+        };
+        
+        $query = StockRequest::select(
+                'stock_requests.status',
+                'stock_requests.notes',
+                'users.name as created_by_name',
+                'users.email as created_by_email',
+                'branches.name as branch_name'
+            )
+            ->join('users', 'stock_requests.created_by', '=', 'users.id')
+            ->join('branches', 'stock_requests.requested_by', '=', 'branches.id')
+            ->where('stock_requests.created_by', 3); // static condition from the SQL
+        
+        // Optional search
+        if (!empty($searchValue)) {
+            $query->where(function ($q) use ($searchValue) {
+                $q->where('stock_requests.notes', 'like', "%$searchValue%")
+                ->orWhere('branches.name', 'like', "%$searchValue%")
+                ->orWhere('users.name', 'like', "%$searchValue%");
+            });
+        }
+        
+        // Role-based filtering (keep your existing logic here)
+        if (in_array(session('role_name'), ['cashier', 'warehouse'])) {
+            $data = User::with('userInfo')
+                ->where('users.id', Auth::id())
+                ->where('is_deleted', 'no')
+                ->firstOrFail();
+        
+            $branch_id = $data->userInfo->branch_id;
+        
+            $query->where(function ($q) use ($branch_id) {
+                $q->where('stock_requests.created_by', Auth::id());
+            });
+        }
+        
+        $recordsTotal = StockRequest::count();
+        $recordsFiltered = $query->count();
+        
+        $data = $query->orderBy($orderColumn, $orderDirection)
+            ->offset($start)
+            ->limit($length)
+            ->get();
+
+        
+
+        $records = [];
+        $url = url('/');
+
+        foreach ($data as $requestItem) {
+            $action = "";
+            $action .= "<a href='" . $url . "/stock/view/" . $requestItem->id . "' class='btn btn-sm btn-primary'>View</a> ";
+            // $action .= "<form method='POST' action='" . $url . "/stock/view/" . $requestItem->id . "' style='display:inline;'>"
+            //          . csrf_field() . method_field('DELETE')
+            //          . "<button class='btn btn-sm btn-danger' onclick='return confirm(\"Are you sure?\")'>Delete</button></form>";
+
+            //          if ($requestItem->status === 'pending') {
+            //             $action .= "<button class='btn btn-success btn-sm ml-1 open-approve-modal' data-id='{$requestItem->id}'>Approve</button>";
+
+            //             // $action .= "<button class='btn btn-success btn-sm approve-btn ml-1' data-id='{$requestItem->id}'>Approve</button>";
+            //         }
+            $records[] = [
+                'id' => $requestItem->id,
+                'store' => $requestItem->branch_name,
+                'requested_by' => $requestItem->created_by_name,
+                'requested_at' => optional($requestItem->requested_at)->format('d-m-Y H:i'),
+                'status' => ucfirst($requestItem->status),
+                'action' => $action
+            ];
+        }
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $records
+        ]);
+    }
 
     public function approve(Request $request, $id)
     {

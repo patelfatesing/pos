@@ -138,10 +138,13 @@
                                 <td style="width: 20%;">
                                     @if (auth()->user()->hasRole('cashier'))
                                         <div class="d-flex align-items-center justify-content-between">
-                                            <input type="number" min="1"
+                                            {{-- <input type="number" min="1"
                                                 class="form-control form-control-sm mx-2 text-center"
-                                                wire:model.lazy="quantities.{{ $item->id }}"
-                                                wire:change="updateQty({{ $item->id }})" readonly />
+                                                wire:model="quantities.{{ $item->id }}"
+                                                wire:change="updateQty({{ $item->id }})" readonly /> --}}
+                                                <input type="number" value="{{$this->quantities[$item->id]}}" wire:change="updateQty({{ $item->id }})" 
+                                                class="form-control form-control-sm mx-2 text-center"
+                                                readonly />
 
                                         </div>
                                     @endif
@@ -149,12 +152,14 @@
                                         <div class="d-flex align-items-center justify-content-between">
                                             <button class="btn btn-sm btn-outline-success"
                                                 wire:click="decrementQty({{ $item->id }})">−</button>
-                                            <input id="numberInput" type="number" min="1"
+                                            {{-- <input id="numberInput" type="number" min="1"
                                                 class="form-control form-control-sm mx-2 text-center"
-                                                wire:model.lazy="quantities.{{ $item->id }}"
-                                                wire:change="updateQty({{ $item->id }})" />
-                                            <div id="numpad" class="numpad" style="display: none;"></div>
-
+                                                wire:model="quantities.{{ $item->id }}"
+                                                wire:change="updateQty({{ $item->id }})" /> --}}
+                                            {{-- <div id="numpad" class="numpad" style="display: none;"></div> --}}
+                                            <input type="number" value="{{$this->quantities[$item->id]}}" wire:change="updateQty({{ $item->id }})" 
+                                            class="form-control form-control-sm mx-2 text-center"
+                                            readonly />
                                             <button class="btn btn-sm btn-outline-warning"
                                                 wire:click="incrementQty({{ $item->id }}, {{ $finalAmount }})">+</button>
                                         </div>
@@ -173,11 +178,14 @@
                                         <span class="text-danger">
                                             ₹{{ number_format(@$item->product->sell_price, 2) }}
                                         </span>
+                                        @if( $this->partyAmount > 0)
+
                                         <br>
                                         <small class="text-muted">
 
                                             <s>₹{{ number_format(@$this->partyAmount, 2) }}</s>
                                         </small>
+                                        @endif
                                     @endif
                                 </td>
                                 <td style="width: 10%;">
@@ -286,7 +294,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="holdModalLabel">Hold Transactions</h5>
+                    <h5 class="modal-title" id="holdModalLabel">Hold Transactions @livewireScripts</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
@@ -318,7 +326,7 @@
                     <div id="step1">
                         <h6 class="text-muted mb-3">Step 1: Capture Product Image</h6>
                         <div class="border rounded-3 overflow-hidden mb-3 text-center p-2 bg-light">
-                            <img src="{{ asset('assets/images/cold-bottle-beer-with-drops-isolated-white-background.jpg') }}"
+                            <img src="{{ asset('assets/images/bottle.png') }}"
                                 alt="Sample Product" class="rounded-3 shadow-sm" width="200" height="150"
                                 id="productImagePreview">
                             <canvas id="canvas1" class="d-none"></canvas>
@@ -640,7 +648,156 @@
         </div>
     </div>
     {{-- </form> --}}
+    <div class="modal fade no-print" id="storeStockRequest" tabindex="-1" aria-labelledby="storeStockRequest" aria-hidden="true"
+    data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-dialog-scrollable modal-mg">
+            <div class="modal-content shadow-sm rounded-4 border-0">
+                <div class="modal-header bg-primary text-white rounded-top-4">
+                    <h5 class="modal-title fw-semibold" id="cashout">
+                        <i class="bi bi-camera-video me-2"></i>Stock Request
 
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+
+                <div class="modal-body p-6">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                               
+                              
+                                <div class="card-body">
+    
+                                    <form method="POST" action="{{ route('stock.store') }}">
+                                        @csrf
+    
+                                        {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
+                                        <div class="mb-3">
+                                            <input type="hidden" name="store_id" value="{{ @$data->userInfo->branch_id }}">
+                                        </div>
+    
+                                        <div id="product-items">
+                                            <h5>Products</h5>
+                                            <div class="item-row mb-3">
+                                                <select name="items[0][product_id]" class="form-control d-inline w-50" required>
+                                                    <option value="">-- Select Product --</option>
+                                                    @foreach ($products as $product)
+                                                        <option value="{{ $product->id }}">{{ $product->name }}
+                                                            ({{ $product->sku }})
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                @error('items')
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                    @enderror
+                                                <input type="number" name="items[0][quantity]"
+                                                    class="form-control d-inline w-25 ms-2" placeholder="Qty" min="1"
+                                                    required>
+                                                   
+                                                <button type="button" class="btn btn-danger btn-sm ms-2 remove-item">X</button>
+                                            </div>
+                                        </div>
+    
+                                        <button type="button" id="add-item" class="btn btn-secondary btn-sm mb-3">+ Add
+                                            Another Product</button>
+    
+                                        <div class="mb-3">
+                                            <label for="notes" class="form-label">Notes</label>
+                                            <textarea name="notes" id="notes" class="form-control"></textarea>
+                                        </div>
+    
+                                        <button type="submit" class="btn btn-primary">Submit Request</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="modal fade no-print" id="warehouseStockRequest" tabindex="-1" aria-labelledby="warehouseStockRequest" aria-hidden="true"
+    data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-dialog-scrollable modal-mg">
+            <div class="modal-content shadow-sm rounded-4 border-0">
+                <div class="modal-header bg-primary text-white rounded-top-4">
+                    <h5 class="modal-title fw-semibold" id="cashout">
+                        <i class="bi bi-camera-video me-2"></i>Stock Request
+
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+
+                <div class="modal-body p-6">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+    
+                                <div class="card-body">
+    
+                                    <form method="POST" action="{{ route('stock.warehouse') }}">
+                                        @csrf
+    
+                                        {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
+    
+    
+                                        <div id="product-items">
+                                            <h5>Products</h5>
+                                            <div class="item-row product_items mb-3">
+                                                <select name="items[0][product_id]"
+                                                    class="form-control d-inline w-50 product-select" required>
+                                                    <option value="">-- Select Product --</option>
+                                                    @foreach ($products as $product)
+                                                        <option value="{{ $product->id }}">{{ $product->name }}
+                                                            ({{ $product->sku }})
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <input type="number" name="items[0][quantity]"
+                                                    class="form-control d-inline w-25 ms-2" placeholder="Qty" min="1"
+                                                    required>
+                                                <button type="button" class="btn btn-danger btn-sm ms-2 remove-item">X</button>
+                                                <div class="availability-container mt-2 small text-muted">
+                                                    <!-- Filled dynamically with AJAX -->
+                                                </div>
+                                            </div>
+                                        </div>
+    
+                                        <div class="mb-3">
+                                            {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
+                                            <div id="product-availability" class="mt-3">
+                                                <!-- Availability information will be displayed here -->
+                                            </div>
+    
+    
+                                        </div>
+    
+    
+    
+                                        <button type="button" id="add-item" class="btn btn-secondary btn-sm mb-3">+ Add
+                                            Another Product</button>
+    
+                                        <div class="mb-3">
+                                            <label for="notes" class="form-label">Notes</label>
+                                            <textarea name="notes" id="notes" class="form-control"></textarea>
+                                        </div>
+    
+                                        <button type="submit" class="btn btn-primary">Submit Request</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
     <!-- Modal HTML -->
     <div class="modal fade no-print" id="cashInHand" tabindex="-1" aria-labelledby="captureModalLabel"
         aria-hidden="true" data-backdrop="static" data-keyboard="false">
@@ -737,7 +894,7 @@
 
 
     <div class="col-md-5 no-print">
-        @include('layouts.flash-message')
+        {{-- @include('layouts.flash-message') --}}
 
         <div class="card">
             <div class="card-header">
@@ -747,7 +904,122 @@
                     </div>
                     <div class="col-md-6 text-right">
                         {{-- Language switcher code commented out --}}
+                        <button type="button" class="btn btn-link p-0 search-toggle dropdown-toggle notification-wrapper"
+                        id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-bell notification-icon"></i>
+                        
+                        @if(isset($getCount) && $getCount > 0)
+                            <div class="notification-count">{{ $getCount }}</div>
+                        @endif
+                        
+                        <span class="bg-primary"></span>
+                    </button>
                     
+                    <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <div class="card shadow-none m-0">
+                            <div class="card-body p-0">
+                                <div class="cust-title p-3">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <h5 class="mb-0">Notifications</h5>
+                                        <a class="badge badge-primary badge-card"
+                                            href="#">{{ @$getCount }}</a>
+                                    </div>
+                                </div>
+                                <div class="px-3 pt-0 pb-0 sub-card">
+                                    @if(!empty($getNotification))
+                                    @foreach ($getNotification as $key => $item)
+                                        <?php
+                                        $id = '';
+                                        if (!empty($item->details)) {
+                                            $data = json_decode($item->details);
+                                            $id = $data->id;
+                                        }
+                                        ?>
+                                        <a href="#" data-id="{{$id}}" class="iq-sub-card open-form"
+                                            data-type="{{ $item->type }}">
+                                            <div class="media align-items-center cust-card py-3 border-bottom">
+                                                <div class="">
+                                                    <img class="avatar-50 rounded-small"
+                                                        src="{{ asset('assets/images/user/notification.png') }}"
+                                                        alt="01" />
+
+                                                </div>
+                                                <div class="media-body ml-3">
+                                                    <div
+                                                        class="d-flex align-items-center justify-content-between">
+                                                        <h6 class="mb-0">
+                                                            {{ ucwords(str_replace('_', ' ', $item->type)) }}
+                                                        </h6>
+                                                    </div>
+
+                                                    <input type="hidden" id=""
+                                                        value="{{ $id }}" name="id" />
+                                                    <small class="mb-0 mt-1 mb-1">{{ $item->content }}</small>
+                                                    <div
+                                                        class="d-flex align-items-center justify-content-between">
+                                                        <small
+                                                            class="text-dark"><b>{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y, h:i A') }}</b></small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    @endforeach
+                                    @endif
+                                    {{-- <a href="#" class="iq-sub-card">
+                                        <div class="media align-items-center cust-card py-3 border-bottom">
+                                            <div class="">
+                                                <img class="avatar-50 rounded-small"
+                                                    src="{{ asset('assets/images/user/02.jpg') }}"
+                                                    alt="02" />
+                                            </div>
+                                            <div class="media-body ml-3">
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <h6 class="mb-0">Ashlynn Franci</h6>
+                                                    <small class="text-dark"><b>11 : 30 pm</b></small>
+                                                </div>
+                                                <small class="mb-0">Lorem ipsum dolor sit amet</small>
+                                            </div>
+                                        </div>
+                                    </a>
+                                    <a href="#" class="iq-sub-card">
+                                        <div class="media align-items-center cust-card py-3">
+                                            <div class="">
+                                                <img class="avatar-50 rounded-small"
+                                                    src="{{ asset('assets/images/user/03.jpg') }}"
+                                                    alt="03" />
+                                            </div>
+                                            <div class="media-body ml-3">
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <h6 class="mb-0">Kianna Carder</h6>
+                                                    <small class="text-dark"><b>11 : 21 pm</b></small>
+                                                </div>
+                                                <small class="mb-0">Lorem ipsum dolor sit amet</small>
+                                            </div>
+                                        </div>
+                                    </a> --}}
+                                </div>
+                                {{-- <a class="right-ic btn btn-primary btn-block position-relative p-2"
+                                    href="#" role="button">
+                                    View All
+                                </a> --}}
+                            </div>
+                        </div>
+                    </div>
+                        @if (auth()->user()->hasRole('cashier'))
+
+                        <button type="button" id="customer" class="btn btn-primary btn-sm mr-2"
+                            data-toggle="modal" data-target="#storeStockRequest" data-toggle="tooltip" data-placement="top" title="Store Stock Request">
+                            <i class="fas fa-store"></i>
+                        </button>
+                        @endif
+                        @if (auth()->user()->hasRole('warehouse'))
+        
+                        <button type="button" id="customer" class="btn btn-primary btn-sm mr-2"
+                            data-toggle="modal" data-target="#warehouseStockRequest" data-toggle="tooltip" data-placement="top" title="Warehouse Stock Request">
+                            <i class="fas fa-warehouse"></i>
+                        </button>
+                        @endif
+
                         @if (count($itemCarts) == 0)
                             <button type="button" id="customer" class="btn btn-primary btn-sm mr-2"
                                 data-toggle="modal" data-target="#cashout" data-toggle="tooltip" data-placement="top" title="Cash Out">
@@ -784,7 +1056,7 @@
 
                     <div id="cash-payment">
 
-                        <form onsubmit="event.preventDefault(); calculateCash();" class="needs-validation" novalidate>
+                        <form onsubmit="event.preventDefault();" class="needs-validation" novalidate>
 
 
                             {{-- <h6 class="mb-3">💵 Enter Cash Denominations</h6> --}}
@@ -918,7 +1190,7 @@
                             <div class="border p-1 rounded bg-light">
                                 <div class="d-flex justify-content-between mb-2">
                                     <strong>Subtotal</strong>
-                                    <span>₹{{ number_format($sub_total, 2) }}</span>
+                                    <span>₹{{ number_format($this->sub_total, 2) }}</span>
                                 </div>
 
                                 @if ($commissionAmount > 0)
@@ -1270,18 +1542,18 @@
         //  document.getElementById("notes-breakdown").innerHTML = breakdown;
     }
 
-    function calculateCash() {
-        const notes2000 = parseInt(document.getElementById('notes_2000').value) || 0;
-        const notes500 = parseInt(document.getElementById('notes_500').value) || 0;
+    // function calculateCash() {
+    //     const notes2000 = parseInt(document.getElementById('notes_2000').value) || 0;
+    //     const notes500 = parseInt(document.getElementById('notes_500').value) || 0;
 
-        const total = (notes2000 * 2000) + (notes500 * 500);
+    //     const total = (notes2000 * 2000) + (notes500 * 500);
 
-        if (total === 4000) {
-            document.getElementById('result').innerText = `✅ Total is ₹${total}`;
-        } else {
-            document.getElementById('result').innerText = `❌ Total is ₹${total}, which is not ₹4000`;
-        }
-    }
+    //     if (total === 4000) {
+    //         document.getElementById('result').innerText = `✅ Total is ₹${total}`;
+    //     } else {
+    //         document.getElementById('result').innerText = `❌ Total is ₹${total}, which is not ₹4000`;
+    //     }
+    // }
 
     function calculateCashBreakdown() {
         const denominations = [{
@@ -1634,15 +1906,46 @@
         document.getElementById('totalNoteCashwith').innerText = '₹' + total;
         document.getElementById('withamountTotal').value = total;
     }
-    window.addEventListener('cart-voided', () => {
-        Swal.fire({
-            title: 'Sales Voided!',
-            text: 'Your Sales Voided Successfully.',
-            icon: 'success',
-            confirmButtonText: 'OK'
-        });
-        // or reset inputs if needed
+    // window.addEventListener('cart-voided', (event) => {
+    //         Swal.fire({
+    //             title: 'LiquorHub!',
+    //             text: event.detail[0].message,  // Use the message passed from Livewire through the event
+    //             icon: 'success',
+    //             confirmButtonText: 'OK'
+    //         });
+    //     // Reset inputs if needed or perform any additional actions here
+    // });
+    // Function to display dynamic SweetAlert
+    function showAlert(type, title, message) {
+    Swal.fire({
+        title: title || (type === 'success' ? 'Success!' : 'Error!'),
+        text: message || (type === 'success' ? 'Operation completed successfully.' : 'Something went wrong.'),
+        icon: type,  // 'success' or 'error'
+        confirmButtonText: 'OK',
+        timer: 2000,  // Auto-close after 2 seconds for small alert
+        showConfirmButton: true,  // Show the confirm button
+        position: 'center',  // Center the alert in the middle of the screen
+        toast: false,  // Disable toast style (centered alert)
+        timerProgressBar: true,  // Show progress bar
+        backdrop: true,  // Enable backdrop
+        allowOutsideClick: false,  // Prevent closing the alert by clicking outside
+        showCloseButton: true,  // Optional: Show a close button in the top-right corner
+        customClass: {
+            popup: 'small-alert'  // Apply custom class for small size
+        }
     });
+}
+// Event listeners for success and error
+window.addEventListener('notiffication-sucess', (event) => {
+    // Success Example
+    showAlert('success', 'LiquorHub!', event.detail[0].message || 'Your cart has been voided successfully.');
+});
+
+window.addEventListener('notiffication-error', (event) => {
+    // Error Example
+    showAlert('error', 'LiquorHub!', event.detail[0].message || 'Failed to void the cart.');
+});
+
 </script>
 <script>
     // window.addEventListener('show-numpad-modal', () => {

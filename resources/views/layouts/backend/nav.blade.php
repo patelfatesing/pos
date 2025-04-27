@@ -135,9 +135,9 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                         <li class="nav-item nav-icon dropdown">
 
                             <?php
-                            $getNotification = getNotificationsByNotifyTo(Auth::id(), 10);
+                            $getNotification = getNotificationsByNotifyTo(Auth::id(),null, 10);
                             $getCount = collect($getNotification)->where('status', 'unread')->count();
-
+                            
                             $getTotalCount = count($getNotification);
                             $user = Auth::user();
                             ?>
@@ -239,7 +239,9 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                                 }
                                                 ?>
                                                 <a href="#" data-id="{{ $id }}"
-                                                    class="iq-sub-card open-form {{$item->status == 'read' ? 'msg_read' : 'msg_unread'}}" data-type="{{ $item->type }}" id="{{ $item->id }}" data-nfid="{{ $item->id }}">
+                                                    class="iq-sub-card open-form mb-1 {{ $item->status == 'read' ? 'msg_read' : 'msg_unread' }}"
+                                                    data-type="{{ $item->type }}" id="{{ $item->id }}"
+                                                    data-nfid="{{ $item->id }}">
                                                     <div class="media align-items-center cust-card py-3 border-bottom">
                                                         <div class="">
                                                             <img class="avatar-50 rounded-small"
@@ -378,13 +380,16 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
 
         // console.log(get_tc,"==get_tc");
         $.ajax({
-            url: '/popup/form/' + type + "?id=" + id+"&nfid="+nfid,
+            url: '/popup/form/' + type + "?id=" + id + "&nfid=" + nfid,
             type: 'GET',
             success: function(response) {
-                $("#" + id_get).removeClass("iq-sub-card open-form msg_unread");
-                $("#" + id_get).addClass("iq-sub-card open-form msg_read");
-   
-                get_tc = get_tc - 1;
+                $("#" + id_get).removeClass("iq-sub-card open-form mb-1 msg_unread");
+                $("#" + id_get).addClass("iq-sub-card open-form mb-1 msg_read");
+
+
+                if (get_tc > 0) {
+                    get_tc = get_tc - 1;
+                }
                 $(".notification-count").text(get_tc);
 
                 $('#modalContent').html(response);

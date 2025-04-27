@@ -23,7 +23,7 @@
                     </div>
                     <div class="col-lg-12">
                         <div class="table-responsive rounded mb-3">
-                            <table class="table table-bordered">
+                            <table class="table data-tables table-striped">
                                 <thead>
                                     <tr>
                                         <th>PO Number</th>
