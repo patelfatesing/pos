@@ -19,6 +19,8 @@ use App\Models\CashBreakdown;
 use Illuminate\Support\Facades\Log;
 use App\Models\Branch;
 use App\Models\User;
+use App\Models\CreditHistory;
+use App\Models\DiscountHistory;
 
 class Shoppingcart extends Component
 {
@@ -640,6 +642,21 @@ class Shoppingcart extends Component
 
     public function updateQty($itemId)
     {
+        $existingItemsum = Cart::where('id', $itemId)
+        ->where('user_id', auth()->id())
+        ->where('status', Cart::STATUS_PENDING)
+        ->sum('quantity');
+
+        $getSignlecart = Cart::where(['user_id' => auth()->user()->id])->find($itemId);
+        
+        // Fetch product with inventory
+        $product = \App\Models\Product::with('inventorie')->find($getSignlecart->product_id);
+
+        if (!$product || !$product->inventorie || $product->inventorie->quantity < $existingItemsum) {
+        $this->dispatch('notiffication-error', ['message' => 'Product is out of stock and cannot be added to cart.']);
+
+        return;
+        }
         $quantity = (isset($this->quantities[$itemId])) ? (int) $this->quantities[$itemId] : 0;
         if ($quantity < 1) {
             $quantity = 1;
@@ -1216,7 +1233,9 @@ class Shoppingcart extends Component
                 $this->cash = $this->cashPaTenderyAmt;
                 $this->upi = 0;
             }
-            
+            $totalQuantity = $cartitems->sum(fn($item) => $item->quantity);
+
+           
             $invoice = Invoice::create([
                 'user_id' => auth()->id(),
                 'branch_id' => $branch_id,
@@ -1240,6 +1259,33 @@ class Shoppingcart extends Component
                 'cash_break_id' => $cashBreakdown->id,
                 //'billing_address'=> $address,
             ]);
+            if(!empty($commissionUser->id)){
+                
+                $discountHistory = DiscountHistory::create([
+                    'invoice_id'=>$invoice->id,
+                    'discount_amount' => $this->commissionAmount,
+                    'total_amount' => $this->cashAmount,
+                    'total_purchase_items'=>$totalQuantity,
+                    'commission_user_id' => $commissionUser->id ?? null,
+                    'store_id' => $branch_id,
+                    'created_by'=>auth()->id(),
+    
+                ]);
+            }
+            if(!empty($partyUser->id)){
+            
+                $creditHistory = CreditHistory::create([
+                    'invoice_id'=>$invoice->id,
+                    'credit_amount' => $this->partyAmount,
+                    'total_amount' => $this->cashAmount,
+                    'total_purchase_items'=>$totalQuantity,
+                    'party_user_id' => $partyUser->id ?? null,
+                    'store_id' => $branch_id,
+                    'created_by'=>auth()->id(),
+
+    
+                ]);
+            }
              // Only warehouse role gets invoice for printing
              if (auth()->user()->hasRole('warehouse')) {
                 $this->invoiceData = $invoice;
