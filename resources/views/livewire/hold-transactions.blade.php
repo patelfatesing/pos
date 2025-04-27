@@ -2,25 +2,29 @@
     <table class="table table-bordered">
         <thead>
             <tr>
-                <th>Order ID</th>
-                <th>Product Name</th>
-                <th>Amount</th>
-                <th>Quantity</th>
+                <th>Sales ID</th>
                 <th>Date</th>
+                <th>Quantity</th>
+                <th>Amount</th>
                 <th>Action</th>
             </tr>
         </thead>
         <tbody>
+            @php
+                 $sumqty=0;
+
+            @endphp
             @foreach($holdTransactions as $transaction)
+            @php
+                foreach ($transaction->items as $key =>$item) {
+                   $sumqty+=$item['quantity'];
+                }
+            @endphp
                 <tr>
-                    <td>{{ $transaction->id }}</td>
-                    <td>
-                        {{ $transaction->product->name ?? '-' }} 
-                        ({{ $transaction->product->size ?? '-' }})
-                    </td>
-                    <td>₹{{ number_format($transaction->product->sell_price ?? 0, 2) }}</td>
-                    <td>{{ $transaction->quantity }}</td>
+                    <td>HOLD-{{ $transaction->id }}</td>
                     <td>{{ $transaction->created_at->format('d-m-Y H:i') }}</td>
+                    <td>{{ $sumqty }}</td>
+                    <td>₹{{ number_format($transaction->total ?? 0, 2) }}</td>
                     <td>
                         <button wire:click="resumeTransaction({{ $transaction->id }})" class="btn btn-success btn-sm">
                             Resume
