@@ -647,7 +647,7 @@
             </div>
         </div>
     </div>
-    {{-- </form> --}}
+  
     <div class="modal fade no-print" id="storeStockRequest" tabindex="-1" aria-labelledby="storeStockRequest" aria-hidden="true"
     data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-dialog-scrollable modal-mg">
@@ -900,111 +900,12 @@
             <div class="card-header">
                 <div class="row">
                     <div class="col-md-6">
-                        <h5 class="mb-0">{{ $this->headertitle }} Summary</h5>
+                        <h5 class="mb-3">{{ $this->headertitle }} Summary</h5>
                     </div>
-                    <div class="col-md-6 text-right">
-                        {{-- Language switcher code commented out --}}
-                        <button type="button" class="btn btn-link p-0 search-toggle dropdown-toggle notification-wrapper"
-                        id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-bell notification-icon"></i>
-                        
-                        @if(isset($getCount) && $getCount > 0)
-                            <div class="notification-count">{{ $getCount }}</div>
-                        @endif
-                        
-                        <span class="bg-primary"></span>
-                    </button>
-                    
-                    <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
-                        <div class="card shadow-none m-0">
-                            <div class="card-body p-0">
-                                <div class="cust-title p-3">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <h5 class="mb-0">Notifications</h5>
-                                        <a class="badge badge-primary badge-card"
-                                            href="#">{{ @$getCount }}</a>
-                                    </div>
-                                </div>
-                                <div class="px-3 pt-0 pb-0 sub-card">
-                                    @if(!empty($getNotification))
-                                    @foreach ($getNotification as $key => $item)
-                                        <?php
-                                        $id = '';
-                                        if (!empty($item->details)) {
-                                            $data = json_decode($item->details);
-                                            $id = $data->id;
-                                        }
-                                        ?>
-                                        <a href="#" data-id="{{$id}}" class="iq-sub-card open-form"
-                                            data-type="{{ $item->type }}">
-                                            <div class="media align-items-center cust-card py-3 border-bottom">
-                                                <div class="">
-                                                    <img class="avatar-50 rounded-small"
-                                                        src="{{ asset('assets/images/user/notification.png') }}"
-                                                        alt="01" />
+                    <div class="col-md-6 ">
+                     
+                        <livewire:notification />
 
-                                                </div>
-                                                <div class="media-body ml-3">
-                                                    <div
-                                                        class="d-flex align-items-center justify-content-between">
-                                                        <h6 class="mb-0">
-                                                            {{ ucwords(str_replace('_', ' ', $item->type)) }}
-                                                        </h6>
-                                                    </div>
-
-                                                    <input type="hidden" id=""
-                                                        value="{{ $id }}" name="id" />
-                                                    <small class="mb-0 mt-1 mb-1">{{ $item->content }}</small>
-                                                    <div
-                                                        class="d-flex align-items-center justify-content-between">
-                                                        <small
-                                                            class="text-dark"><b>{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y, h:i A') }}</b></small>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    @endforeach
-                                    @endif
-                                    {{-- <a href="#" class="iq-sub-card">
-                                        <div class="media align-items-center cust-card py-3 border-bottom">
-                                            <div class="">
-                                                <img class="avatar-50 rounded-small"
-                                                    src="{{ asset('assets/images/user/02.jpg') }}"
-                                                    alt="02" />
-                                            </div>
-                                            <div class="media-body ml-3">
-                                                <div class="d-flex align-items-center justify-content-between">
-                                                    <h6 class="mb-0">Ashlynn Franci</h6>
-                                                    <small class="text-dark"><b>11 : 30 pm</b></small>
-                                                </div>
-                                                <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                            </div>
-                                        </div>
-                                    </a>
-                                    <a href="#" class="iq-sub-card">
-                                        <div class="media align-items-center cust-card py-3">
-                                            <div class="">
-                                                <img class="avatar-50 rounded-small"
-                                                    src="{{ asset('assets/images/user/03.jpg') }}"
-                                                    alt="03" />
-                                            </div>
-                                            <div class="media-body ml-3">
-                                                <div class="d-flex align-items-center justify-content-between">
-                                                    <h6 class="mb-0">Kianna Carder</h6>
-                                                    <small class="text-dark"><b>11 : 21 pm</b></small>
-                                                </div>
-                                                <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                            </div>
-                                        </div>
-                                    </a> --}}
-                                </div>
-                                {{-- <a class="right-ic btn btn-primary btn-block position-relative p-2"
-                                    href="#" role="button">
-                                    View All
-                                </a> --}}
-                            </div>
-                        </div>
-                    </div>
                         @if (auth()->user()->hasRole('cashier'))
 
                         <button type="button" id="customer" class="btn btn-primary btn-sm mr-2"
