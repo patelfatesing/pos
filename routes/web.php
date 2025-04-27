@@ -32,6 +32,7 @@ use App\Livewire\ShiftClosingForm;
 use App\Http\Controllers\SalesReportController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\DemandOrderController;
 
 Route::get('/shift-closing', ShiftClosingForm::class);
 Route::get('/cash-tender', [CashController::class, 'index']);
@@ -267,6 +268,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/exp/create', [ExpenseController::class, 'create'])->name('exp.create');
     Route::post('/exp/store', [ExpenseController::class, 'store'])->name('exp.store');
     Route::get('/exp/edit/{id}', [ExpenseController::class, 'edit'])->name('exp.edit');
+
+    Route::get('/demand-order/list', [DemandOrderController::class, 'index'])->name('demand-order.list');
+    Route::post('/demand-order/get-data', [DemandOrderController::class, 'getData'])->name('demand-order.getData');
+    Route::get('/demand-order/create', [DemandOrderController::class, 'create'])->name('demand-order.create');
+    Route::post('/demand-order/store', [DemandOrderController::class, 'store'])->name('demand-order.store');
+    Route::get('/demand-order/edit/{id}', [DemandOrderController::class, 'edit'])->name('demand-orders.edit');
+    Route::get('/demand-order/create-pre', [DemandOrderController::class, 'createPrediction'])->name('demand-order.create.pre');
+    
     
 
 require __DIR__.'/auth.php';
