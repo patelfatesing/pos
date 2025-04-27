@@ -17,6 +17,8 @@ use App\Models\UserShift;
 use PhpParser\Node\Expr\PreInc;
 use App\Models\CashBreakdown;
 use Illuminate\Support\Facades\Log;
+use App\Models\Branch;
+use App\Models\User;
 
 class Shoppingcart extends Component
 {
@@ -874,12 +876,21 @@ class Shoppingcart extends Component
         foreach ($itemCarts as $item) {
             $this->quantities[$item->id] = $item->quantity;
         }
+        $stores = Branch::all();
+        $products = Product::all();
+        $data = User::with('userInfo')
+        ->where('users.id', auth()->id())
+        ->where('is_deleted', 'no')
+        ->firstOrFail();
         
       //  print_r($this->quantities);
         return view('livewire.shoppingcart', [
             'itemCarts' => $itemCarts,
             'narrations' => $this->narrations,
             'searchResults' => $this->searchTerm,
+            'stores'=>$stores,
+            'products'=>$products,
+            'data'=>$data,
         ]);
     }
 

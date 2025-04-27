@@ -640,7 +640,156 @@
         </div>
     </div>
     {{-- </form> --}}
+    <div class="modal fade no-print" id="storeStockRequest" tabindex="-1" aria-labelledby="storeStockRequest" aria-hidden="true"
+    data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-dialog-scrollable modal-mg">
+            <div class="modal-content shadow-sm rounded-4 border-0">
+                <div class="modal-header bg-primary text-white rounded-top-4">
+                    <h5 class="modal-title fw-semibold" id="cashout">
+                        <i class="bi bi-camera-video me-2"></i>Stock Request
 
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+
+                <div class="modal-body p-6">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                               
+                              
+                                <div class="card-body">
+    
+                                    <form method="POST" action="{{ route('stock.store') }}">
+                                        @csrf
+    
+                                        {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
+                                        <div class="mb-3">
+                                            <input type="hidden" name="store_id" value="{{ @$data->userInfo->branch_id }}">
+                                        </div>
+    
+                                        <div id="product-items">
+                                            <h5>Products</h5>
+                                            <div class="item-row mb-3">
+                                                <select name="items[0][product_id]" class="form-control d-inline w-50" required>
+                                                    <option value="">-- Select Product --</option>
+                                                    @foreach ($products as $product)
+                                                        <option value="{{ $product->id }}">{{ $product->name }}
+                                                            ({{ $product->sku }})
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                @error('items')
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                    @enderror
+                                                <input type="number" name="items[0][quantity]"
+                                                    class="form-control d-inline w-25 ms-2" placeholder="Qty" min="1"
+                                                    required>
+                                                   
+                                                <button type="button" class="btn btn-danger btn-sm ms-2 remove-item">X</button>
+                                            </div>
+                                        </div>
+    
+                                        <button type="button" id="add-item" class="btn btn-secondary btn-sm mb-3">+ Add
+                                            Another Product</button>
+    
+                                        <div class="mb-3">
+                                            <label for="notes" class="form-label">Notes</label>
+                                            <textarea name="notes" id="notes" class="form-control"></textarea>
+                                        </div>
+    
+                                        <button type="submit" class="btn btn-primary">Submit Request</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="modal fade no-print" id="warehouseStockRequest" tabindex="-1" aria-labelledby="warehouseStockRequest" aria-hidden="true"
+    data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-dialog-scrollable modal-mg">
+            <div class="modal-content shadow-sm rounded-4 border-0">
+                <div class="modal-header bg-primary text-white rounded-top-4">
+                    <h5 class="modal-title fw-semibold" id="cashout">
+                        <i class="bi bi-camera-video me-2"></i>Stock Request
+
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+
+                <div class="modal-body p-6">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+    
+                                <div class="card-body">
+    
+                                    <form method="POST" action="{{ route('stock.warehouse') }}">
+                                        @csrf
+    
+                                        {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
+    
+    
+                                        <div id="product-items">
+                                            <h5>Products</h5>
+                                            <div class="item-row product_items mb-3">
+                                                <select name="items[0][product_id]"
+                                                    class="form-control d-inline w-50 product-select" required>
+                                                    <option value="">-- Select Product --</option>
+                                                    @foreach ($products as $product)
+                                                        <option value="{{ $product->id }}">{{ $product->name }}
+                                                            ({{ $product->sku }})
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <input type="number" name="items[0][quantity]"
+                                                    class="form-control d-inline w-25 ms-2" placeholder="Qty" min="1"
+                                                    required>
+                                                <button type="button" class="btn btn-danger btn-sm ms-2 remove-item">X</button>
+                                                <div class="availability-container mt-2 small text-muted">
+                                                    <!-- Filled dynamically with AJAX -->
+                                                </div>
+                                            </div>
+                                        </div>
+    
+                                        <div class="mb-3">
+                                            {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
+                                            <div id="product-availability" class="mt-3">
+                                                <!-- Availability information will be displayed here -->
+                                            </div>
+    
+    
+                                        </div>
+    
+    
+    
+                                        <button type="button" id="add-item" class="btn btn-secondary btn-sm mb-3">+ Add
+                                            Another Product</button>
+    
+                                        <div class="mb-3">
+                                            <label for="notes" class="form-label">Notes</label>
+                                            <textarea name="notes" id="notes" class="form-control"></textarea>
+                                        </div>
+    
+                                        <button type="submit" class="btn btn-primary">Submit Request</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
     <!-- Modal HTML -->
     <div class="modal fade no-print" id="cashInHand" tabindex="-1" aria-labelledby="captureModalLabel"
         aria-hidden="true" data-backdrop="static" data-keyboard="false">
@@ -747,7 +896,122 @@
                     </div>
                     <div class="col-md-6 text-right">
                         {{-- Language switcher code commented out --}}
+                        <button type="button" class="btn btn-link p-0 search-toggle dropdown-toggle notification-wrapper"
+                        id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-bell notification-icon"></i>
+                        
+                        @if(isset($getCount) && $getCount > 0)
+                            <div class="notification-count">{{ $getCount }}</div>
+                        @endif
+                        
+                        <span class="bg-primary"></span>
+                    </button>
                     
+                    <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <div class="card shadow-none m-0">
+                            <div class="card-body p-0">
+                                <div class="cust-title p-3">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <h5 class="mb-0">Notifications</h5>
+                                        <a class="badge badge-primary badge-card"
+                                            href="#">{{ @$getCount }}</a>
+                                    </div>
+                                </div>
+                                <div class="px-3 pt-0 pb-0 sub-card">
+                                    @if(!empty($getNotification))
+                                    @foreach ($getNotification as $key => $item)
+                                        <?php
+                                        $id = '';
+                                        if (!empty($item->details)) {
+                                            $data = json_decode($item->details);
+                                            $id = $data->id;
+                                        }
+                                        ?>
+                                        <a href="#" data-id="{{$id}}" class="iq-sub-card open-form"
+                                            data-type="{{ $item->type }}">
+                                            <div class="media align-items-center cust-card py-3 border-bottom">
+                                                <div class="">
+                                                    <img class="avatar-50 rounded-small"
+                                                        src="{{ asset('assets/images/user/notification.png') }}"
+                                                        alt="01" />
+
+                                                </div>
+                                                <div class="media-body ml-3">
+                                                    <div
+                                                        class="d-flex align-items-center justify-content-between">
+                                                        <h6 class="mb-0">
+                                                            {{ ucwords(str_replace('_', ' ', $item->type)) }}
+                                                        </h6>
+                                                    </div>
+
+                                                    <input type="hidden" id=""
+                                                        value="{{ $id }}" name="id" />
+                                                    <small class="mb-0 mt-1 mb-1">{{ $item->content }}</small>
+                                                    <div
+                                                        class="d-flex align-items-center justify-content-between">
+                                                        <small
+                                                            class="text-dark"><b>{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y, h:i A') }}</b></small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    @endforeach
+                                    @endif
+                                    {{-- <a href="#" class="iq-sub-card">
+                                        <div class="media align-items-center cust-card py-3 border-bottom">
+                                            <div class="">
+                                                <img class="avatar-50 rounded-small"
+                                                    src="{{ asset('assets/images/user/02.jpg') }}"
+                                                    alt="02" />
+                                            </div>
+                                            <div class="media-body ml-3">
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <h6 class="mb-0">Ashlynn Franci</h6>
+                                                    <small class="text-dark"><b>11 : 30 pm</b></small>
+                                                </div>
+                                                <small class="mb-0">Lorem ipsum dolor sit amet</small>
+                                            </div>
+                                        </div>
+                                    </a>
+                                    <a href="#" class="iq-sub-card">
+                                        <div class="media align-items-center cust-card py-3">
+                                            <div class="">
+                                                <img class="avatar-50 rounded-small"
+                                                    src="{{ asset('assets/images/user/03.jpg') }}"
+                                                    alt="03" />
+                                            </div>
+                                            <div class="media-body ml-3">
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <h6 class="mb-0">Kianna Carder</h6>
+                                                    <small class="text-dark"><b>11 : 21 pm</b></small>
+                                                </div>
+                                                <small class="mb-0">Lorem ipsum dolor sit amet</small>
+                                            </div>
+                                        </div>
+                                    </a> --}}
+                                </div>
+                                {{-- <a class="right-ic btn btn-primary btn-block position-relative p-2"
+                                    href="#" role="button">
+                                    View All
+                                </a> --}}
+                            </div>
+                        </div>
+                    </div>
+                        @if (auth()->user()->hasRole('cashier'))
+
+                        <button type="button" id="customer" class="btn btn-primary btn-sm mr-2"
+                            data-toggle="modal" data-target="#storeStockRequest" data-toggle="tooltip" data-placement="top" title="Store Stock Request">
+                            <i class="fas fa-store"></i>
+                        </button>
+                        @endif
+                        @if (auth()->user()->hasRole('warehouse'))
+        
+                        <button type="button" id="customer" class="btn btn-primary btn-sm mr-2"
+                            data-toggle="modal" data-target="#warehouseStockRequest" data-toggle="tooltip" data-placement="top" title="Warehouse Stock Request">
+                            <i class="fas fa-warehouse"></i>
+                        </button>
+                        @endif
+
                         @if (count($itemCarts) == 0)
                             <button type="button" id="customer" class="btn btn-primary btn-sm mr-2"
                                 data-toggle="modal" data-target="#cashout" data-toggle="tooltip" data-placement="top" title="Cash Out">
