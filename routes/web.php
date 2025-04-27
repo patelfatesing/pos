@@ -127,6 +127,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/stock/get-data', [StockController::class, 'getData'])->name('stock.getData');
     Route::get('/stock/add', [StockController::class, 'add'])->name('stock.add');
     Route::post('/stock/store', [StockController::class, 'store'])->name('stock.store');
+    Route::post('/stock/stock-request-from-store', [StockController::class, 'stockRequestFromStore'])->name('stock.stock-request-from-store');
+
     Route::get('/stock/request-list', [StockController::class, 'show'])->name('stock.requestList');
     Route::post('/stock/get-request-data', [StockController::class, 'getRequestData'])->name('stock.getRequestData');
     Route::get('/stock/view/{id}', [StockController::class, 'view'])->name('stock.view');

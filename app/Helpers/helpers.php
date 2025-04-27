@@ -28,12 +28,20 @@ if (!function_exists('sendNotification')) {
 }
 
 if (!function_exists('getNotificationsByNotifyTo')) {
-    function getNotificationsByNotifyTo($userId, $limit = 50)
+    function getNotificationsByNotifyTo($userId,$branch_id, $limit = 50)
     {
-        return Notification::where('notify_to', $userId)
-                           ->orderBy('created_at', 'desc')
-                           ->limit($limit)
-                           ->get();
+        if($branch_id != ""){
+            return Notification::where('notify_to', $branch_id)
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get();
+        }else{
+            return Notification::where('notify_to', null)
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get();
+        }
+
     }
 }
 

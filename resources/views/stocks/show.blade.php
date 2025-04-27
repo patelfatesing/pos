@@ -40,14 +40,14 @@
 
     <!-- Approve Modal -->
 
-    <div class="modal fade bd-example-modal-lg" id="approveModal" tabindex="-1" role="dialog"
-        aria-labelledby="approveModalLabel" aria-hidden="true">
+    <div class="modal fade bd-example-modal-lg" id="approvedStockModal" tabindex="-1" role="dialog"
+        aria-labelledby="approvedStockModalLabel" aria-hidden="true">
         <div class="modal-dialog  modal-lg" role="document">
             <div class="modal-content">
                 <form id="approveForm">
                     @csrf
                     <div class="modal-header">
-                        <h5 class="modal-title" id="approveModalLabel">Approve Stock Request</h5>
+                        <h5 class="modal-title" id="approvedStockModalLabel">Approve Stock Request</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -130,7 +130,7 @@
                 // Inject into modal
                 $('#requested-store-info').html(requestedStoreInfo);
                 $('#request-items-body').html(storeHtml);
-                $('#approveModal').modal('show');
+                $('#approvedStockModal').modal('show');
             });
 
         });
@@ -146,7 +146,7 @@
                 data: $(this).serialize(),
                 success: function(res) {
                     alert(res.message);
-                    $('#approveModal').modal('hide');
+                    $('#approvedStockModal').modal('hide');
                     $('#stock-requests-table').DataTable().ajax.reload(null, false);
 
                 },
