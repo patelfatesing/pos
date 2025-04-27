@@ -37,10 +37,6 @@ class Shoppingcart extends Component
     public $shiftcash;
    public  $narrations = [
         'Personal Expenses',
-        'Business Investment',
-        'Loan Repayment',
-        'Medical Emergency',
-        'Education Fees',
         'Travel Expenses',
         'Other'
     ];
