@@ -1383,7 +1383,7 @@
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             const modal = new bootstrap.Modal(document.getElementById('cashInHand'));
-            modal.show();
+            // modal.show();
         });
     </script>
 @endif

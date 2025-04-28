@@ -50,7 +50,7 @@ class ExpenseCategoryController extends Controller
 
             $action ='<div class="d-flex align-items-center list-action">
                                     <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                                        href="' . url('/exp/edit/' . $role->id) . '"><i class="ri-pencil-line mr-0"></i></a>
+                                        href="' . url('/exp-category/edit/' . $role->id) . '"><i class="ri-pencil-line mr-0"></i></a>
                                </div>';
             
             $records[] = [
