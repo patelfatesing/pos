@@ -290,7 +290,7 @@
 
     <!-- Bootstrap Modal -->
     <div class="modal fade" id="holdTransactionsModal" tabindex="-1" aria-labelledby="holdModalLabel"
-        aria-hidden="true">
+        aria-hidden="true" wire:ignore>
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -799,8 +799,70 @@
         </div>
     </div>
     <!-- Modal HTML -->
-    <div class="modal fade no-print" id="cashInHand" tabindex="-1" aria-labelledby="captureModalLabel"
-        aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false" wire:ignore.self>
+        <div class="modal-dialog">
+            <form method="POST" action="{{ route('cash-in-hand') }}">
+                @csrf
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Cash In Hand Details</h5>
+                    </div>
+                    <div class="modal-body">
+
+                        <input type="hidden" name="amount" id="holdamountTotal" class="form-control mb-3"
+                            placeholder="Enter opening amount" readonly>
+
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Currency</th>
+                                    <th>Nos</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($noteDenominations as $key => $denomination)
+                                    <tr>
+                                        <td>₹{{ $denomination }}</td>
+                                        <td>
+                                            <div class="input-group" style="max-width: 150px;">
+                                                <button class="btn btn-sm btn-danger btn-decrease" type="button"
+                                                    data-denomination="{{ $denomination }}"><i
+                                                        class="fa fa-minus"></i></button>
+                                                <input type="text"
+                                                    name="cashNotes.{{ $key }}.{{ $denomination }}"
+                                                    class="form-control text-center note-input"
+                                                    id="cashhandsum_{{ $denomination }}"
+                                                    data-denomination="{{ $denomination }}" value="0" readonly>
+                                                <button class="btn btn-sm btn-success btn-increase" type="button"
+                                                    data-denomination="{{ $denomination }}"><i
+                                                        class="fa fa-plus"></i></button>
+                                            </div>
+                                        </td>
+                                        <td id="cashhandsum_{{ $denomination }}">₹0</td>
+                                    </tr>
+                                @endforeach
+                                <tr>
+                                    <td colspan="2" class="text-end fw-bold">Total Cash</td>
+                                    <td id="totalNoteCashHand">₹0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        @error('amount')
+                            <span class="text-red">{{ $message }}</span>
+                        @enderror
+
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary btn-sm mr-2">Save</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+      </div>
+      
+    <div class="modal fade no-print" id="cashInHand" tabindex="-1" aria-labelledby="captureModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog">
             <form method="POST" action="{{ route('cash-in-hand') }}">
                 @csrf
@@ -1247,7 +1309,7 @@
                                     <label for="cash" class="form-label">Cash Amount</label>
                                     <input type="number" id="cashAmount" step="0.01"
                                         wire:model.live.debounce.500ms="cash" class="form-control" min="0"
-                                        max="{{ $this->cashAmount }}">
+                                        max="{{ $this->cashAmount }}" readonly>
                                 </div>
 
                                 <div class="col-md-6">
@@ -1379,14 +1441,27 @@
 </script>
 
 <!-- Script to show modal -->
-@if ($showModal)
+
+<!-- Script to show modal -->
+{{-- @if ($showModal)
+ 
     <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            const modal = new bootstrap.Modal(document.getElementById('cashInHand'));
-            // modal.show();
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                var myModal = new bootstrap.Modal(document.getElementById('cashInHand'));
+                myModal.show();
+            }, 3000); // delay by 300 milliseconds
         });
     </script>
-@endif
+@endif --}}
+<script>
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('openModal', () => {
+            var myModal = new bootstrap.Modal(document.getElementById('myModal'));
+            myModal.show();
+        });
+    });
+</script>
 
 
 <script>
@@ -1846,7 +1921,30 @@ window.addEventListener('notiffication-error', (event) => {
     // Error Example
     showAlert('error', 'LiquorHub!', event.detail[0].message || 'Failed to void the cart.');
 });
-
+window.addEventListener('order-saved', event => {
+        const { type, title, message } = event.detail;
+        Swal.fire({
+            title:  'Success!',
+            text:  'Order completed successfully.' ,
+            icon: type,  // 'success' or 'error'
+            confirmButtonText: 'OK',
+            timer: 3000,
+            showConfirmButton: true,
+            position: 'center',
+            toast: false,
+            timerProgressBar: true,
+            backdrop: true,
+            allowOutsideClick: false,
+            showCloseButton: true,
+            customClass: {
+                popup: 'small-alert'
+            }
+        }).then((result) => {
+            if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
+                location.reload();  // reload after OK click or auto close
+            }
+        });
+    });
 </script>
 <script>
     // window.addEventListener('show-numpad-modal', () => {

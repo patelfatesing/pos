@@ -25,14 +25,14 @@ class ShiftClosingController extends Controller
         $branch_id = auth()->user()->userinfo->branch->id ?? null;
         // Save cash breakdown
         $CashBreakdown = CashBreakdown::create([
-            'user_id' => Auth::id(),
+            'user_id' => $user_id,
             'branch_id' => $branch_id,
             'denominations' => json_encode($request->cash_breakdown),
             'total' => $request->today_cash,
         ]);
 
         // Save shift close info
-        $shift = UserShift::where('user_id', Auth::id())
+        $shift = UserShift::where('user_id', $user_id)
                         ->where('branch_id', $branch_id)
                         ->where('status', 'pending')
                         ->first();
@@ -41,7 +41,7 @@ class ShiftClosingController extends Controller
             return redirect()->back()->withErrors(['status' => 'No active shift found for this user.']);
         }
         // Update shift data
-        $shift->user_id = Auth::id();
+        $shift->user_id = $user_id;
         $shift->branch_id = $branch_id;
         $shift->start_time = $request->start_time;
         $shift->end_time = $request->end_time;
@@ -57,7 +57,10 @@ class ShiftClosingController extends Controller
         $shift->cash = str_replace(',', '', $request->diffCash); // Assuming you want to store the same cash discrepancy here
         $shift->status = 'completed';  // Assuming you want to mark it as closed after shift ends
         $shift->save();
-
+        $user = User::find($user_id);
+        $user->is_login = 'No';
+        $user->save();
+        Auth::logout(); 
         // Logout user after shift closure
         Auth::logout();
 
@@ -72,7 +75,7 @@ class ShiftClosingController extends Controller
         ]);
         $withdrawAmount=$request->amount;
         $branch_id = auth()->user()->userinfo->branch->id ?? null;
-        $user_id=Auth::id();
+        $user_id=auth()->id();
         
         $shift = UserShift::where('user_id', $user_id)
         ->where('branch_id', $branch_id)
@@ -97,10 +100,10 @@ class ShiftClosingController extends Controller
         // proceed with withdrawal
         $shift->opening_cash -= $withdrawAmount;
         $shift->save();
-        $user = User::find(Auth::id());
-        $user->is_login = 'No';
-        $user->save();
-        Auth::logout();
+        // $user = User::find($user_id);
+        // $user->is_login = 'No';
+        // $user->save();
+        // Auth::logout();
         $cashNotes = [];
         $total = 0;
     
@@ -115,24 +118,22 @@ class ShiftClosingController extends Controller
             }
         }
 
-        $branch_id = auth()->user()->userinfo->branch->id ?? null;
         // Save cash breakdown
         $CashBreakdown = CashBreakdown::create([
-            'user_id' => Auth::id(),
+            'user_id' => $user_id,
             'branch_id' => $branch_id,
             'denominations' => json_encode($cashNotes),
             'total' => $total,
         ]);
         // Save shift close info
         $with = new WithdrawCash();
-        $with->user_id = Auth::id();
+        $with->user_id = $user_id;
         $with->branch_id = $branch_id;
         $with->amount = $request->amount;
         $with->note = $request->narration;
         $with->cash_break_id = $CashBreakdown->id;
         $with->save();
-
-        return redirect()->back()->with('success', 'Amount withdrawn successfully.');
+        return redirect()->back()->with('notification-sucess', 'Amount withdrawn successfully.');
 
     }
 

@@ -59,8 +59,8 @@ class CashInHandController extends Controller
                 'cash_break_id' => $cashBreakdown->id,
             ]
         );
-        
-        return redirect()->back()->with('success', 'Cash in hand saved.');
+
+        return redirect()->back()->with('notification-sucess', 'Cash in hand saved.');
     }
 
 }
