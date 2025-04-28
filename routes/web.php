@@ -257,6 +257,12 @@ Route::middleware('auth')->group(function () {
     Route::post('sales/get-data', [SalesReportController::class, 'getData'])->name('sales.get.data');
     Route::get('/store-sales-summary', [SalesReportController::class, 'storeSummary'])->name('store-sales-summary');
 
+    Route::get('/sales/sales-daily', [SalesReportController::class, 'salesDaily'])->name('sales.sales-daily');
+    Route::get('/sales/branch-sales-report', [SalesReportController::class, 'branchSalesReport'])->name('sales.branch.sales.report');
+    
+    Route::get('/sales/stock-report', [SalesReportController::class, 'stockReport'])->name('sales.stock.report');
+    Route::get('/sales/fetch-stock-data', [SalesReportController::class, 'fetchStockData'])->name('sales.fetch-stock-data');
+    
     Route::get('/exp-category/list', [ExpenseCategoryController::class, 'index'])->name('exp_category.list');
     Route::post('/exp-category/get-data', [ExpenseCategoryController::class, 'getData'])->name('exp_category.getData');
     Route::get('/exp-category/create', [ExpenseCategoryController::class, 'create'])->name('exp_category.create');

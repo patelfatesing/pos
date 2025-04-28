@@ -163,6 +163,23 @@ class InventoryController extends Controller
         return view('inventories.add_stock', compact('product_details', 'vendors'));
     }
 
+    public function edit($id)
+    {
+
+        $inventory = Inventory::with(['product.category', 'product.subcategory'])
+        ->where('id', $id) // $id is inventories.id
+        ->firstOrFail();
+
+        $product_details = Product::with(['inventories','category', 'subcategory'])
+    ->where('id', $inventory->product_id)
+    ->where('is_deleted', 'no')
+    ->firstOrFail();
+
+        // Get all vendors
+    $vendors = VendorList::where('is_active', true)->get();
+        return view('inventories.edit', compact('product_details', 'vendors','inventory'));
+    }
+
     public function editStock($id)
     {
         $product_details = Product::with(['inventories','category', 'subcategory'])

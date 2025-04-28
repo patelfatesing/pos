@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Invoice;
 use Carbon\Carbon;
+use App\Models\Inventory;
 use Illuminate\Support\Facades\DB;
 
 
@@ -230,6 +231,77 @@ class SalesReportController extends Controller
         ]);
     }
 
+    public function salesDaily()
+    {
+        $branches = DB::table('branches')->get(); // Adjust if you use a model
+        return view('sales.sales-daily', compact('branches'));
+    }
+
+
+    public function branchSalesReport(Request $request)
+    {
+        $startDate = $request->start_date ?? now()->toDateString();
+        $endDate = $request->end_date ?? now()->toDateString();
+        $branchId = $request->branch_id;
     
-          
+        $reports = DB::table('invoices')
+            ->select(
+                DB::raw('DATE(invoices.created_at) as date'),
+                'branches.name as branch_name',
+                DB::raw('COUNT(invoices.id) as total_orders'),
+                DB::raw('SUM(JSON_LENGTH(items)) as total_items'),
+                DB::raw('SUM(total) as total_sales')
+            )
+            ->join('branches', 'invoices.branch_id', '=', 'branches.id')
+            ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('invoices.created_at', [$startDate, $endDate]);
+            })
+            ->when($branchId, function ($query) use ($branchId) {
+                $query->where('branches.id', $branchId);
+            })
+            ->groupBy(DB::raw('DATE(invoices.created_at)'), 'branches.id', 'branches.name')
+            ->orderBy('date', 'desc')
+            ->get();
+    
+        return response()->json(['data' => $reports]);
+    }   
+    
+    public function stockReport()
+    {
+        $branches = DB::table('branches')->get(); // Adjust if you use a model
+        return view('sales.stock_report', compact('branches'));
+    }
+
+    public function fetchStockData(Request $request)
+    {
+        $query = Inventory::select(
+                'inventories.store_id',
+                'products.id as product_id',
+                \DB::raw('MAX(branches.name) as branch_name'),
+                \DB::raw('MAX(products.name) as product_name'),
+                \DB::raw('MAX(products.sku) as sku'),
+                \DB::raw('MAX(products.reorder_level) as reorder_level'),
+                \DB::raw('MAX(products.sell_price) as sell_price'),
+                \DB::raw('SUM(inventories.quantity) as quantity')
+            )
+            ->join('products', 'inventories.product_id', '=', 'products.id')
+            ->join('branches', 'inventories.store_id', '=', 'branches.id')
+            ->where('products.is_active', 1);
+            // ->where('products.is_deleted', 0)
+            // ->where('branches.is_active', 1)
+            // ->where('branches.is_deleted', 0);
+    
+        // Filter by branch if selected
+        if ($request->branch_id) {
+            $query->where('inventories.store_id', $request->branch_id);
+        }
+    
+        $stocks = $query
+            ->groupBy('inventories.store_id', 'products.id')
+            ->get();
+    
+        return response()->json([
+            'data' => $stocks
+        ]);
+    }
 }
