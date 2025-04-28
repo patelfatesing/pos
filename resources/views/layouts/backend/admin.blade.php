@@ -274,7 +274,16 @@
                                 <i class="las la-minus"></i><span>Sales</span>
                             </a>
                         </li>
-
+                        <li class="">
+                            <a href="{{ route('sales.sales-daily') }}">
+                                <i class="las la-minus"></i><span>Daily Sales</span>
+                            </a>
+                        </li>
+                        <li class="">
+                            <a href="{{ route('sales.stock.report') }}">
+                                <i class="las la-minus"></i><span>Stock Report</span>
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 <li class=" ">

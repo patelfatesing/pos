@@ -81,13 +81,16 @@
                         data: 'name'
                     },
                     {
-                        data: 'location'
+                        data: 'location',
+                        orderable: false
                     },
                     {
-                        data: 'quantity'
+                        data: 'quantity',
+                        orderable: false
                     },
                     {
-                        data: 'cost_price'
+                        data: 'cost_price',
+                        orderable: false
                     },
                     {
                         data: 'batch_no',
@@ -104,37 +107,34 @@
                         data: 'created_at'
                     },
                     {
-                        data: 'action'
+                        data: 'action',
+                        orderable: false
                     }
                 ],
-                aoColumnDefs: [{
-                    bSortable: false,
-                    aTargets: [2, 4, 6, 7] // make "action" column unsortable
-                }],
                 columnDefs: [{
-                        width: "10%",
+                        width: "15%",
                         targets: 0
                     }, // set width of column 0
                     {
-                        width: "10%",
+                        width: "7%",
                         targets: 1
                     }, // set width of column 1
                     {
                         width: "5%",
                         targets: 2
-                    },{
+                    }, {
                         width: "5%",
                         targets: 3
-                    },{
+                    }, {
                         width: "5%",
                         targets: 4
-                    },{
-                        width: "10%",
+                    }, {
+                        width: "7%",
                         targets: 5
-                    },{
-                        width: "10%",
+                    }, {
+                        width: "7%",
                         targets: 6
-                    },{
+                    }, {
                         width: "10%",
                         targets: 7
                     },

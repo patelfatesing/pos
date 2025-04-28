@@ -118,7 +118,7 @@ class StockTransferController extends Controller
                     }
             }
             
-            DB::commit();   
+            DB::commit();
             return redirect()->route('stock.requestList')->with('success', 'Stock request submitted successfully.');
 
         } catch (\Exception $e) {

@@ -199,6 +199,10 @@
                             data: 'created_at'
                         }
                     ],
+                aoColumnDefs: [{
+                    bSortable: false,
+                    aTargets: [1,2,,3,4,5, 6, 7,8] // make "action" column unsortable
+                }],
                     drawCallback: function(settings) {
                         var api = this.api();
                         var rows = api.rows({

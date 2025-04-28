@@ -152,14 +152,14 @@
                                         <div class="d-flex align-items-center justify-content-between">
                                             <button class="btn btn-sm btn-outline-success"
                                                 wire:click="decrementQty({{ $item->id }})">−</button>
-                                            {{-- <input id="numberInput" type="number" min="1"
+                                            <input id="numberInput" type="number" min="1"
                                                 class="form-control form-control-sm mx-2 text-center"
                                                 wire:model="quantities.{{ $item->id }}"
-                                                wire:change="updateQty({{ $item->id }})" /> --}}
+                                                wire:change="updateQty({{ $item->id }})" />
                                             {{-- <div id="numpad" class="numpad" style="display: none;"></div> --}}
-                                            <input type="number" value="{{$this->quantities[$item->id]}}" wire:change="updateQty({{ $item->id }})" 
+                                            {{-- <input type="number" value="{{$this->quantities[$item->id]}}" wire:change="updateQty({{ $item->id }})" 
                                             class="form-control form-control-sm mx-2 text-center"
-                                            readonly />
+                                            readonly /> --}}
                                             <button class="btn btn-sm btn-outline-warning"
                                                 wire:click="incrementQty({{ $item->id }}, {{ $finalAmount }})">+</button>
                                         </div>
@@ -294,7 +294,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="holdModalLabel">Hold Transactions @livewireScripts</h5>
+                    <h5 class="modal-title" id="holdModalLabel">Hold Transactions </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
@@ -522,7 +522,7 @@
                                                     <tr>
                                                         <td class="text-start fw-bold">Closing Cash</td>
                                                         <td class="text-end">
-                                                            <input type="text" name="closingCash" id="closingCash" class="form-control" oninput="calculateDifference({{@$totalNotes}})">
+                                                            <input type="text" name="closingCash" id="closingCash" class="form-control" oninput="calculateDifference({{@$totalNotes}})" required>
                                                         </td>
                                                     </tr>
                                                     <tr>
@@ -1690,7 +1690,7 @@
         // checkShiftTime();
 
         // Check every 30 seconds
-        setInterval(checkShiftTime, 30000);
+        //setInterval(checkShiftTime, 30000);
         $('#captureModal').on('hidden.bs.modal', function() {
             // Reset to Step 1 when modal is closed
             document.getElementById('step1').classList.remove('d-none');
