@@ -19,7 +19,7 @@
                                     <ul id="top-tab-list" class="p-0">
                                         <li class="active" id="account">
                                             <a href="javascript:void();">
-                                                <i class="ri-lock-unlock-line"></i><span>Basic Details</span>
+                                                <i class="ri-lock-unlock-line"></i><span>Search Details</span>
                                             </a>
                                         </li>
                                         <li id="personal">
@@ -43,7 +43,7 @@
                                         <div class="form-card text-left">
                                             <div class="row">
                                                 <div class="col-7">
-                                                    <h3 class="mb-4">Basic Details:</h3>
+                                                    <h3 class="mb-4">Search Details:</h3>
                                                 </div>
                                                 <div class="col-5">
                                                     <h2 class="steps">Step 1 - 4</h2>
@@ -82,21 +82,22 @@
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4"></div>
-                                                <div class="col-md-4">
+                                                {{-- <div class="col-md-4">
                                                     <div class="form-group">
                                                         <label for="notes" class="form-label">Notes</label>
                                                         <textarea name="notes" class="form-control"></textarea>
 
                                                     </div>
-                                                </div>
+                                                </div> --}}
                                                 <div class="col-md-4">
                                                     <div class="form-group">
-                                                        <label for="product_select">Product</label>
+                                                        <label for="product_select">Avarage Sale</label>
                                                         <select name="product_select" id="product_select"
                                                             class="form-control">
-                                                            <option value="">-- Select Product --</option>
-                                                            <option value="7">Last 
-                                                                
+                                                            <option value="">-- Select Avarage Sale --</option>
+                                                            <option value="7">Last week
+                                                                <option value="14">Last 2 week
+                                                                    <option value="21">Last 3 week
                                                             </option>
                                                         </select>
                                                         @error('product_select')
@@ -217,6 +218,31 @@
                                                     <h2 class="steps">Step 3 - 4</h2>
                                                 </div>
                                             </div>
+
+                                            <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="notes" class="form-label">Notes</label>
+                                                        <textarea name="notes" class="form-control"></textarea>
+
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="product_select">Product</label>
+                                                        <select name="product_select" id="product_select"
+                                                            class="form-control">
+                                                            <option value="">-- Select Product --</option>
+                                                            @foreach ($products as $product)
+                                                                <option value="{{ $product['id'] }}">
+                                                                    {{ $product['name'] }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('product_select')
+                                                            <span class="text-danger">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
                                             <div class="table-responsive mb-3">
                                                 <table class="table table-bordered" id="product_table">
                                                     <thead class="table-light">

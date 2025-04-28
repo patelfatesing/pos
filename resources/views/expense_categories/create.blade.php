@@ -11,14 +11,14 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between">
                                 <div class="header-title">
-                                    <h4 class="card-title">Add Expense</h4>
+                                    <h4 class="card-title">Add Expense Category</h4>
                                 </div>
                                 <div>
-                                    <a href="{{ route('exp.list') }}" class="btn btn-secondary">Back</a>
+                                    <a href="{{ route('exp_category.list') }}" class="btn btn-secondary">Back</a>
                                 </div>
                             </div>
                             <div class="card-body">
-                                <form action="{{ route('exp.store') }}" method="POST" data-toggle="validator">
+                                <form action="{{ route('exp_category.store') }}" method="POST" data-toggle="validator">
                                     @csrf
                                     <div class="row">
                                         <div class="col-md-6">
