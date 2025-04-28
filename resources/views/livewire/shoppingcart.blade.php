@@ -412,21 +412,26 @@
                                     <div class="row">
                                         @foreach ($categoryTotals as $category => $items)
                                             <div class="col-md-6 mb-4">
-                                                <div class="card shadow-sm border-0 p-3">
-                                                    <h5 class="mb-3 text-capitalize">{{ ucfirst($category) }}</h5>
-                                                    <ul class="list-group list-group-flush">
-                                                        @foreach ($items as $key => $value)
-                                                            <li class="list-group-item d-flex justify-content-between">
-                                                                <span>{{ $key }}</span>
-                                                                <span>₹{{ number_format($value) }}</span>
-                                                                <input type="hidden" name="{{ $key }}" id="{{ $key }}" value="{{ number_format($value) }}">
-                                                            </li>
-                                                        @endforeach
-                                                    </ul>
+                                                <div class="card shadow-sm border-0">
+                                                    <div class="card-header bg-primary text-white">
+                                                        <h5 class="card-title mb-0 text-capitalize">{{ ucfirst($category) }}</h5>
+                                                    </div>
+                                                    <div class="card-body p-0">
+                                                        <ul class="list-group list-group-flush">
+                                                            @foreach ($items as $key => $value)
+                                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                                    <span class="text-muted">{{ ucwords(str_replace('_', ' ', $key)) }}</span>
+                                                                    <span class="fw-bold">₹{{ number_format($value) }}</span>
+                                                                    <input type="hidden" name="{{ $key }}" id="{{ $key }}" value="{{ number_format($value) }}">
+                                                                </li>
+                                                            @endforeach
+                                                        </ul>
+                                                    </div>
                                                 </div>
                                             </div>
                                         @endforeach
                                     </div>
+                                    
                                 </div>
 
 
@@ -526,7 +531,7 @@
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <td class="text-start fw-bold">Different Cash</td>
+                                                        <td class="text-start fw-bold">Discrepancy Cash</td>
                                                         <td class="text-end">
                                                             <input type="text" name="diffCash" id="diffCash" class="form-control" readonly>
                                                         </td>

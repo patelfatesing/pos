@@ -17,10 +17,10 @@ class ShiftClosingController extends Controller
         $validated = $request->validate([
             'opening_cash' => 'required',
             'closingCash' => 'required',
-            'diffCash' => 'nullable', // Cash discrepancy is optional but if provided, must be numeric
             
         ]);
-        
+        $user_id=auth()->id();
+
         // Get the branch_id from the authenticated user's info
         $branch_id = auth()->user()->userinfo->branch->id ?? null;
         // Save cash breakdown
@@ -36,10 +36,9 @@ class ShiftClosingController extends Controller
                         ->where('branch_id', $branch_id)
                         ->where('status', 'pending')
                         ->first();
-
-        if (!$shift) {
-            return redirect()->back()->withErrors(['status' => 'No active shift found for this user.']);
-        }
+                        if (!$shift) {
+                            return redirect()->back()->withErrors(['status' => 'No active shift found for this user.']);
+                        }
         // Update shift data
         $shift->user_id = $user_id;
         $shift->branch_id = $branch_id;
@@ -57,12 +56,11 @@ class ShiftClosingController extends Controller
         $shift->cash = str_replace(',', '', $request->diffCash); // Assuming you want to store the same cash discrepancy here
         $shift->status = 'completed';  // Assuming you want to mark it as closed after shift ends
         $shift->save();
+        
         $user = User::find($user_id);
         $user->is_login = 'No';
         $user->save();
         Auth::logout(); 
-        // Logout user after shift closure
-        Auth::logout();
 
         // Redirect to login with a status message
         return redirect('/login')->with('status', 'Shift closed. You have been logged out.');
@@ -104,6 +102,7 @@ class ShiftClosingController extends Controller
         // $user->is_login = 'No';
         // $user->save();
         // Auth::logout();
+     
         $cashNotes = [];
         $total = 0;
     
@@ -113,10 +112,12 @@ class ShiftClosingController extends Controller
                 $denomination = (string) end($parts); // Ensure it's a string
                 $count = (string) (int)$value;         // Convert to string after casting to int
     
-                $cashNotes[$denomination]['in'] = $count;
+                $cashNotes[@$parts[1]][$denomination]['out'] = $count;
                 $total += ((int)$denomination) * (int)$count;
             }
         }
+
+      
 
         // Save cash breakdown
         $CashBreakdown = CashBreakdown::create([
@@ -124,6 +125,8 @@ class ShiftClosingController extends Controller
             'branch_id' => $branch_id,
             'denominations' => json_encode($cashNotes),
             'total' => $total,
+            'type'=>"withdraw"
+
         ]);
         // Save shift close info
         $with = new WithdrawCash();
