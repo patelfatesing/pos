@@ -50,7 +50,7 @@
                                     <th>Product</th>
                                     <th>SKU</th>
                                     <th>Quantity</th>
-                                    <th>Reorder Level</th>
+                                    <th>Low Level Stock</th>
                                     <th>Sell Price</th>
                                     <th>Status</th>
                                 </tr>
