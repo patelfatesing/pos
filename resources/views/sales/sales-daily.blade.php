@@ -50,7 +50,7 @@
                                 <tr>
                                     <th>Date</th>
                                     <th>Branch Name</th>
-                                    <th>Total Orders</th>
+                                    <th>Total Transaction</th>
                                     <th>Total Items</th>
                                     <th>Total Sales (₹)</th>
                                 </tr>
