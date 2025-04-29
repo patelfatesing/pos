@@ -37,12 +37,11 @@ class CashInHandController extends Controller
         $start = date('Y-m-d H:i:s'); // current time
         $end = date('Y-m-d H:i:s', strtotime('+8 hours 30 minutes'));
         $cashNotes = json_encode($cashNotes) ?? [];
-        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
         // 💾 Save cash breakdown
         $cashBreakdown = \App\Models\CashBreakdown::create([
             'user_id' => auth()->id(),
             'branch_id' => $branch_id,
-            'type' =>'cashinhand',
+            'type' =>"cashinhand",
             'denominations' => $cashNotes,
             'total' => $request->amount,
         ]);
@@ -60,7 +59,8 @@ class CashInHandController extends Controller
             ]
         );
 
-        return redirect()->back()->with('notification-sucess', 'Cash in hand saved.');
+        return redirect()->route('items.cart')->with('notification-sucess', 'Cash in hand saved.');
+        // return redirect()->back()->with('notification-sucess', 'Cash in hand saved.');
     }
 
 }

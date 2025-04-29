@@ -12,14 +12,14 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-                
+
 
                 <!-- Date Filters -->
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                             <div>
-                                <h4 class="mb-3">Daily Order List</h4>
+                                <h4 class="mb-3">Daily Sales List</h4>
                             </div>
                         </div>
                     </div>
@@ -76,13 +76,13 @@
             // Initialize DataTable
             var table = $('#reportTable').DataTable({
                 processing: true,
-                serverSide: false,
+                serverSide: true, // <-- change to true
                 ajax: {
                     url: '{{ route('sales.branch.sales.report') }}',
                     data: function(d) {
                         d.start_date = $('#start_date').val();
                         d.end_date = $('#end_date').val();
-                        d.branch_id = $('#branch_id').val(); // <-- send branch filter also
+                        d.branch_id = $('#branch_id').val();
                     }
                 },
                 columns: [{
@@ -105,8 +105,10 @@
                         data: 'total_sales',
                         name: 'total_sales'
                     }
-                ]
+                ],
+                pageLength: 10, // Optional: default rows per page
             });
+
 
             // Reload table on button click
             $('#filter').click(function() {

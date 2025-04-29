@@ -989,9 +989,10 @@ class Shoppingcart extends Component
 
             // Fetch product with inventory
             $product = \App\Models\Product::with('inventorie')->find($id);
-            if ($product->inventorie->quantity <= 0) {
-            $this->dispatch('notiffication-error', ['message' => 'Product is out of stock and cannot be added to cart.']);
-            return;
+            
+            if (!$product->inventorie || $product->inventorie->quantity <= 0) {
+                $this->dispatch('notiffication-error', ['message' => 'Product is out of stock and cannot be added to cart.']);
+                return;
             }
 
             // $item = Cart::where('product_id', $id)

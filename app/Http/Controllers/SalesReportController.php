@@ -28,46 +28,74 @@ class SalesReportController extends Controller
     public function getData(Request $request)
     {
         $query = DB::table('invoices')
-        ->select('id', 'invoice_number', 'status', 'sub_total', 'tax', 'total', 'items', 'created_at');
-
+            ->select('id', 'invoice_number', 'status', 'sub_total', 'tax', 'total', 'items', 'created_at');
+    
         if ($request->start_date && $request->end_date) {
             $query->whereBetween('created_at', [
                 Carbon::parse($request->start_date)->startOfDay(),
                 Carbon::parse($request->end_date)->endOfDay(),
             ]);
         }
-
+    
         if ($request->branch_id) {
             $query->where('branch_id', $request->branch_id);
         }
-
+    
+        $totalRecords = $query->count(); // total records before filtering
+    
+        // Search
+        if ($request->search['value']) {
+            $searchValue = $request->search['value'];
+            $query->where(function($q) use ($searchValue) {
+                $q->where('invoice_number', 'like', "%{$searchValue}%")
+                  ->orWhere('status', 'like', "%{$searchValue}%");
+            });
+        }
+    
+        $filteredRecords = $query->count(); // after search filter
+    
+        // Sorting
+        if ($request->order) {
+            $columns = ['id', 'invoice_number', 'status', 'sub_total', 'tax', 'total', 'items', 'created_at'];
+            $orderColumn = $columns[$request->order[0]['column']] ?? 'created_at';
+            $orderDir = $request->order[0]['dir'] ?? 'desc';
+            $query->orderBy($orderColumn, $orderDir);
+        }
+    
+        // Pagination
+        $query->skip($request->start)
+              ->take($request->length);
+    
         $invoices = $query->get();
-
+    
         $data = [];
         foreach ($invoices as $invoice) {
             $items = json_decode($invoice->items, true);
             $itemCount = collect($items)->sum('quantity');
-
-            $action ='<div class="d-flex align-items-center list-action">
-                    <a class="badge badge-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                    href="' . url('/view-invoice/' . $invoice->id) . '">'.$invoice->invoice_number.'</a>
-            </div>';
-
+    
+            $action = '<div class="d-flex align-items-center list-action">
+                        <a class="badge badge-success mr-2" data-toggle="tooltip" data-placement="top" title="View"
+                        href="' . url('/view-invoice/' . $invoice->id) . '">' . $invoice->invoice_number . '</a>
+                       </div>';
+    
             $data[] = [
                 'invoice_number' => $action,
                 'status' => $invoice->status,
                 'sub_total' => number_format($invoice->sub_total, 2),
-                'tax' => number_format($invoice->tax, 2),
                 'total' => number_format($invoice->total, 2),
                 'items_count' => $itemCount,
                 'created_at' => Carbon::parse($invoice->created_at)->format('Y-m-d H:i:s'),
             ];
         }
-
-        return response()->json(['data' => $data]);
-
+    
+        return response()->json([
+            'draw' => intval($request->draw),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $filteredRecords,
+            'data' => $data,
+        ]);
     }
-
+    
     public function storeSummary()
     {
         $invoices = DB::table('invoices')
