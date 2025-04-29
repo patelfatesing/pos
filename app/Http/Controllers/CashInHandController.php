@@ -28,7 +28,7 @@ class CashInHandController extends Controller
                 $denomination = (string) end($parts); // Ensure it's a string
                 $count = (string) (int)$value;         // Convert to string after casting to int
     
-                $cashNotes[$denomination]['in'] = $count;
+                $cashNotes[$parts[1]][$denomination]['in'] = $count;
                 $total += ((int)$denomination) * (int)$count;
             }
         }
@@ -59,8 +59,8 @@ class CashInHandController extends Controller
                 'cash_break_id' => $cashBreakdown->id,
             ]
         );
-        
-        return redirect()->back()->with('success', 'Cash in hand saved.');
+
+        return redirect()->back()->with('notification-sucess', 'Cash in hand saved.');
     }
 
 }
