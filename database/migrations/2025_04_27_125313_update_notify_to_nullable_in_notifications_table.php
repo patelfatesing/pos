@@ -12,11 +12,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('notifications', function (Blueprint $table) {
-              // Make 'notify_to' nullable and update foreign key relationship
-              $table->unsignedBigInteger('notify_to')->nullable()->change();
-            
-              // Reapply the foreign key with 'nullable' behavior
-              $table->foreign('notify_to')->references('id')->on('branches')->onDelete('set null');
+            // Drop existing foreign key first to avoid duplicate key error
+            try {
+                $table->dropForeign(['notify_to']);
+            } catch (\Throwable $e) {
+                // Ignore if it doesn't exist
+            }
+
+            // Make column nullable
+            $table->unsignedBigInteger('notify_to')->nullable()->change();
+
+            // Add foreign key with 'on delete set null'
+            $table->foreign('notify_to')
+                  ->references('id')
+                  ->on('branches')
+                  ->onDelete('set null');
         });
     }
 
@@ -26,11 +36,21 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('notifications', function (Blueprint $table) {
-             // Revert the nullable change
-             $table->unsignedBigInteger('notify_to')->nullable(false)->change();
+            // Drop foreign key first to avoid duplicate
+            try {
+                $table->dropForeign(['notify_to']);
+            } catch (\Throwable $e) {
+                // Ignore if not present
+            }
 
-             // Revert the foreign key constraint
-             $table->foreign('notify_to')->references('id')->on('branches')->onDelete('cascade');
+            // Make column not nullable again
+            $table->unsignedBigInteger('notify_to')->nullable(false)->change();
+
+            // Reapply foreign key with original behavior (e.g., cascade)
+            $table->foreign('notify_to')
+                  ->references('id')
+                  ->on('branches')
+                  ->onDelete('cascade');
         });
     }
 };
