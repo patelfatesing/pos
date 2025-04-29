@@ -30,7 +30,6 @@
                             <th>Invoice #</th>
                             <th>Status</th>
                             <th>Sub Total</th>
-                            <th>Tax</th>
                             <th>Total</th>
                             <th>Item Count</th>
                             <th>Date</th>
@@ -85,10 +84,6 @@
                         name: 'sub_total'
                     },
                     {
-                        data: 'tax',
-                        name: 'tax'
-                    },
-                    {
                         data: 'total',
                         name: 'total'
                     },
@@ -105,7 +100,7 @@
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [2, 4, 6, 7] // make "action" column unsortable
+                    aTargets: [2, 3, 4, 5] // make "action" column unsortable
                 }],
                 columnDefs: [{
                         width: "10%",
@@ -127,14 +122,11 @@
                     }, {
                         width: "10%",
                         targets: 5
-                    }, {
-                        width: "10%",
-                        targets: 6
                     }
                 ],
                 autoWidth: false,
                 order: [
-                    [6, 'desc']
+                    [5, 'desc']
                 ], // 🟢 Sort by created_at DESC by default
                 dom: "Bfrtip",
                 lengthMenu: [

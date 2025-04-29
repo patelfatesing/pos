@@ -33,6 +33,7 @@ use App\Http\Controllers\SalesReportController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\DemandOrderController;
+use App\Http\Controllers\ProductImportController;
 
 Route::get('/shift-closing', ShiftClosingForm::class);
 Route::get('/cash-tender', [CashController::class, 'index']);
@@ -284,6 +285,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/demand-order/edit/{id}', [DemandOrderController::class, 'edit'])->name('demand-orders.edit');
     Route::get('/demand-order/create-pre', [DemandOrderController::class, 'createPrediction'])->name('demand-order.create.pre');
     
-    
+    Route::get('/products/import', [ProductImportController::class, 'showUploadForm'])->name('products.import');
+    Route::post('/products/upload', [ProductImportController::class, 'uploadFile'])->name('products.upload');
+    Route::post('/products/import-data', [ProductImportController::class, 'importData'])->name('products.import.data');
 
 require __DIR__.'/auth.php';
