@@ -53,7 +53,7 @@
                     <input type="text" wire:model.live.debounce.500ms="search" wire:keydown.enter="addToCartBarCode"
                         class="form-control" placeholder="Scan barcode here" autofocus>
 
-                    @if ($selectedProduct)
+                    {{-- @if ($selectedProduct)
                         <div class="search-results">
 
                             <div class="list-group-item list-group-item-action">
@@ -63,7 +63,7 @@
                                 <small>Stock: {{ $selectedProduct->quantity }}</small>
                             </div>
                         </div>
-                    @endif
+                    @endif --}}
 
                 </div>
 
@@ -90,7 +90,6 @@
                             <option value="">-- Select a Party Customer --</option>
                             @foreach ($partyUsers as $user)
                                 <option value="{{ $user->id }}">{{ $user->first_name . ' ' . $user->last_name }}
-                                    ({{ $user->credit_points }}pt)
                                 </option>
                             @endforeach
                         </select>
@@ -138,13 +137,13 @@
                                 <td style="width: 20%;">
                                     @if (auth()->user()->hasRole('cashier'))
                                         <div class="d-flex align-items-center justify-content-between">
-                                            {{-- <input type="number" min="1"
+                                            <input type="number" min="1"
                                                 class="form-control form-control-sm mx-2 text-center"
                                                 wire:model="quantities.{{ $item->id }}"
-                                                wire:change="updateQty({{ $item->id }})" readonly /> --}}
-                                                <input type="number" value="{{$this->quantities[$item->id]}}" wire:change="updateQty({{ $item->id }})" 
+                                                wire:change="updateQty({{ $item->id }})" readonly />
+                                                {{-- <input type="number" value="{{$this->quantities[$item->id]}}" wire:change="updateQty({{ $item->id }})" 
                                                 class="form-control form-control-sm mx-2 text-center"
-                                                readonly />
+                                                readonly /> --}}
 
                                         </div>
                                     @endif
@@ -168,11 +167,11 @@
                                 <td style="width: 10%;">
                                     @if (@$item->product->discount_price && $this->commissionAmount > 0)
                                         <span class="text-danger">
-                                            ₹{{ number_format(@$item->product->sell_price, 2) }}
+                                            ₹{{ number_format(@$item->product->discount_price, 2) }}
                                         </span>
                                         <br>
                                         <small class="text-muted">
-                                            <s>₹{{ number_format(@$item->product->discount_price, 2) }}</s>
+                                            <s>₹{{ number_format(@$item->product->sell_price, 2) }}</s>
                                         </small>
                                     @else
                                         <span class="text-danger">
@@ -411,7 +410,10 @@
                                     <hr>
                                     <div class="row">
                                         @foreach ($categoryTotals as $category => $items)
-                                            <div class="col-md-6 mb-4">
+                                        @php
+                                            $colClass = ($category=="summary") ? 'col-md-12 mb-4' : 'col-md-6 mb-4';
+                                        @endphp
+                                            <div class="{{$colClass}}">
                                                 <div class="card shadow-sm border-0">
                                                     <div class="card-header bg-primary text-white">
                                                         <h5 class="card-title mb-0 text-capitalize">{{ ucfirst($category) }}</h5>
@@ -866,70 +868,7 @@
             </form>
         </div>
       </div>
-      
-    <div class="modal fade no-print" id="cashInHand" tabindex="-1" aria-labelledby="captureModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog">
-            <form method="POST" action="{{ route('cash-in-hand') }}">
-                @csrf
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Cash In Hand Details</h5>
-                    </div>
-                    <div class="modal-body">
-
-                        <input type="hidden" name="amount" id="holdamountTotal" class="form-control mb-3"
-                            placeholder="Enter opening amount" readonly>
-
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Currency</th>
-                                    <th>Nos</th>
-                                    <th>Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($noteDenominations as $key => $denomination)
-                                    <tr>
-                                        <td>₹{{ $denomination }}</td>
-                                        <td>
-                                            <div class="input-group" style="max-width: 150px;">
-                                                <button class="btn btn-sm btn-danger btn-decrease" type="button"
-                                                    data-denomination="{{ $denomination }}"><i
-                                                        class="fa fa-minus"></i></button>
-                                                <input type="text"
-                                                    name="cashNotes.{{ $key }}.{{ $denomination }}"
-                                                    class="form-control text-center note-input"
-                                                    id="cashhandsum_{{ $denomination }}"
-                                                    data-denomination="{{ $denomination }}" value="0" readonly>
-                                                <button class="btn btn-sm btn-success btn-increase" type="button"
-                                                    data-denomination="{{ $denomination }}"><i
-                                                        class="fa fa-plus"></i></button>
-                                            </div>
-                                        </td>
-                                        <td id="cashhandsum_{{ $denomination }}">₹0</td>
-                                    </tr>
-                                @endforeach
-                                <tr>
-                                    <td colspan="2" class="text-end fw-bold">Total Cash</td>
-                                    <td id="totalNoteCashHand">₹0</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        @error('amount')
-                            <span class="text-red">{{ $message }}</span>
-                        @enderror
-
-
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary btn-sm mr-2">Save</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-
+   
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const inputs = document.querySelectorAll('.note-input');
@@ -1169,8 +1108,9 @@
                                 @endif
                                 @if ($partyAmount > 0)
                                     <div class="d-flex justify-content-between mb-2">
-                                        <strong>Point Deduction</strong>
-                                        <span>- ₹{{ number_format($partyAmount, 2) }}</span>
+                                        <strong>Credit</strong>
+                                        <input type="number" width="10%" wire:model.live.debounce.500ms="creditPay" wire:change="creditPayChanged" class="form-control"  style="width: 80px;" />
+
                                     </div>
                                 @endif
                                 <div class="d-flex justify-content-between">
@@ -1776,24 +1716,13 @@
             document.getElementById('step1').classList.remove('d-none');
             document.getElementById('step2').classList.add('d-none');
         });
-        Livewire.on('alert_remove', () => {
-            setTimeout(() => {
-                $(".toast").fadeOut("fast");
-            }, 2000);
-        });
-    });
-    $("#cashInHand").click(function() {
-        // e.preventDefault(); // prevent default form submission
-        $('#cashInHand').submit(); // submit the form
-        // Perform form submission using AJAX or any logic
-        // Example:
-        // $.post('/submit-url', $(this).serialize(), function(response) {
-        //   $('#myModal').modal('hide'); // hide modal after success
+        // Livewire.on('alert_remove', () => {
+        //     setTimeout(() => {
+        //         $(".toast").fadeOut("fast");
+        //     }, 2000);
         // });
-
-        // For demo purposes, simulate a successful submission
-
     });
+   
     document.addEventListener('DOMContentLoaded', function() {
         const inputs = document.querySelectorAll('.note-input');
         const totalCashDisplay = document.getElementById('totalNoteCash');
@@ -1854,11 +1783,11 @@
     });
 
     // Optional: Close numpad if clicked outside
-    document.addEventListener('click', (e) => {
-        if (!numpad.contains(e.target) && e.target !== input) {
-            numpad.style.display = 'none';
-        }
-    });
+    // document.addEventListener('click', (e) => {
+    //     if (!numpad.contains(e.target) && e.target !== input) {
+    //         numpad.style.display = 'none';
+    //     }
+    // });
 </script>
 <script>
     function updateNote(id, delta, denomination) {
@@ -1930,7 +1859,7 @@ window.addEventListener('order-saved', event => {
         const { type, title, message } = event.detail;
         Swal.fire({
             title:  'Success!',
-            text:  'Order completed successfully.' ,
+            text:  'Transaction completed successfully.' ,
             icon: type,  // 'success' or 'error'
             confirmButtonText: 'OK',
             timer: 3000,
