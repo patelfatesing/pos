@@ -669,7 +669,7 @@
             <div class="modal-content shadow-sm rounded-4 border-0">
                 <div class="modal-header bg-primary text-white rounded-top-4">
                     <h5 class="modal-title fw-semibold" id="cashout">
-                        <i class="bi bi-camera-video me-2"></i>Stock Request dfsdf
+                        <i class="bi bi-camera-video me-2"></i>Stock Request
 
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
