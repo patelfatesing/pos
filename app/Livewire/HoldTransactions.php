@@ -6,6 +6,8 @@ use Livewire\Component;
 use App\Models\Shoppingcart as Cart;
 use App\Models\Invoice;
 use App\Models\Product;
+use App\Models\UserShift;
+use Carbon\Carbon;
 
 class HoldTransactions extends Component
 {
@@ -15,8 +17,13 @@ class HoldTransactions extends Component
 
     public function loadHoldTransactions()
     {
-        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+        $today = Carbon::today();
 
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+        $currentShift = UserShift::whereDate('created_at', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' =>"pending"])->first();
+        $start_date = @$currentShift->start_time; // your start date (set manually)
+        $totalWith = \App\Models\WithdrawCash::where('user_id',  auth()->user()->id)
+        ->where('branch_id', $branch_id)->whereBetween('created_at', [$start_date, $currentShift->end_date])->sum('amount');
         $this->holdTransactions =  Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->get();
 
        // $this->holdTransactions = Cart::where('user_id', auth()->user()->id)->where('status', Cart::STATUS_HOLD)->get();
