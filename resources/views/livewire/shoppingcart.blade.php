@@ -16,10 +16,6 @@
             </div>
         </div>
 
-
-
-
-
         <div class="row">
             <div class="col-md-3">
                 <div class="mb-3">
@@ -100,16 +96,17 @@
             </div>
             @if ($selectedPartyUser || $selectedCommissionUser)
                 <div class="col-md-2">
-                    <button type="button" id="customer" class="btn btn-primary mr-2"
-                    data-toggle="modal" data-target="#captureModal" data-toggle="tooltip" data-placement="top" title="Take Picture">
-                    <i class="fa fa-camera"></i>
+                    <button type="button" id="customer" class="btn btn-primary mr-2" data-toggle="modal"
+                        data-target="#captureModal" data-toggle="tooltip" data-placement="top" title="Take Picture">
+                        <i class="fa fa-camera"></i>
                     </button>
-                
+
                 </div>
             @endif
         </div>
-        <div class="table-responsive mb-2" id="main_tb">
-            <div class="cart-table-scroll {{ count($itemCarts) > 5 ? '  scrollable' : '' }}">
+        <div class="table-responsive" id="main_tb">
+         
+            <div class=" {{ count($itemCarts) > 5 ? ' cart-table-scroll scrollable' : '' }}">
 
                 <table class="table table-bordered" id="cartTable">
                     <thead class="thead-light">
@@ -141,7 +138,7 @@
                                                 class="form-control form-control-sm mx-2 text-center"
                                                 wire:model="quantities.{{ $item->id }}"
                                                 wire:change="updateQty({{ $item->id }})" readonly />
-                                                {{-- <input type="number" value="{{$this->quantities[$item->id]}}" wire:change="updateQty({{ $item->id }})" 
+                                            {{-- <input type="number" value="{{$this->quantities[$item->id]}}" wire:change="updateQty({{ $item->id }})" 
                                                 class="form-control form-control-sm mx-2 text-center"
                                                 readonly /> --}}
 
@@ -177,13 +174,12 @@
                                         <span class="text-danger">
                                             ₹{{ number_format(@$item->product->sell_price, 2) }}
                                         </span>
-                                        @if( $this->partyAmount > 0)
+                                        @if ($this->partyAmount > 0)
+                                            <br>
+                                            <small class="text-muted">
 
-                                        <br>
-                                        <small class="text-muted">
-
-                                            <s>₹{{ number_format(@$this->partyAmount, 2) }}</s>
-                                        </small>
+                                                <s>₹{{ number_format(@$this->partyAmount, 2) }}</s>
+                                            </small>
                                         @endif
                                     @endif
                                 </td>
@@ -218,7 +214,7 @@
                     <thead class="">
                         <tr>
                             <th>Qty</th>
-                            <th>MRP</th>
+                            <th>Action</th>
                             <th>Rounded Off</th>
                             <th>Total Payable</th>
                         </tr>
@@ -230,8 +226,9 @@
                                 <input type="hidden" id="cartCount" value="{{ $this->cartCount }}">
                             </td>
                             <td>
-                                ₹{{ number_format($this->cashAmount, 2) }}
-                                <input type="hidden" id="mrp" value="{{ $this->cashAmount }}">
+                                <button wire:click="voidSale" class="btn btn-sm btn-primary w-100 shadow-">
+                                    Void Sale
+                                </button>
                             </td>
                             <td>
                                 ₹{{ number_format(round($this->cashAmount), 2) }}
@@ -255,13 +252,13 @@
                                 @endif
                             </td>
                             <td>
-                                <button class="btn btn-sm btn-primary w-100 shadow-sm">
-                                    <i class="fa fa-credit-card me-2"></i> Online
+                                <button wire:click="holdSale" class="btn btn-sm btn-primary w-100 shadow-">
+                                    <i class="fa fa-pause-circle me-2"></i> Hold
                                 </button>
                             </td>
                             <td>
-                                <button wire:click="holdSale" class="btn btn-sm btn-primary w-100 shadow-">
-                                    <i class="fa fa-pause-circle me-2"></i> Hold
+                                <button class="btn btn-sm btn-primary w-100 shadow-sm">
+                                    <i class="fa fa-credit-card me-2"></i> Online
                                 </button>
                             </td>
                             <td>
@@ -273,17 +270,13 @@
 
                         <tr>
                             <td>
-                                <button wire:click="voidSale" class="btn btn-sm btn-primary w-100 shadow-">
-                                    Void Sale
-                                </button>
+                                
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
-
-
     </div>
 
 
@@ -306,6 +299,7 @@
             </div>
         </div>
     </div>
+
     <!-- Single Modal -->
     <div class="modal fade no-print " id="captureModal" tabindex="-1" aria-labelledby="captureModalLabel"
         aria-hidden="true" data-backdrop="static" data-keyboard="false">
@@ -325,9 +319,8 @@
                     <div id="step1">
                         <h6 class="text-muted mb-3">Step 1: Capture Product Image</h6>
                         <div class="border rounded-3 overflow-hidden mb-3 text-center p-2 bg-light">
-                            <img src="{{ asset('assets/images/bottle.png') }}"
-                                alt="Sample Product" class="rounded-3 shadow-sm" width="200" height="150"
-                                id="productImagePreview">
+                            <img src="{{ asset('assets/images/bottle.png') }}" alt="Sample Product"
+                                class="rounded-3 shadow-sm" width="200" height="150" id="productImagePreview">
                             <canvas id="canvas1" class="d-none"></canvas>
                         </div>
                         <div class="border rounded-3 overflow-hidden mb-3">
@@ -366,6 +359,7 @@
             </div>
         </div>
     </div>
+
     <form action="{{ route('shift-close.store') }}" method="POST">
         @csrf
 
@@ -403,28 +397,34 @@
 
                             {{-- Sales Breakdown --}}
                             <div class="col-md-6">
-                               {{-- Assume $data is passed from the controller --}}
+                                {{-- Assume $data is passed from the controller --}}
 
                                 <div class="card p-4">
                                     <h4 class="mb-4">Sales Details</h4>
                                     <hr>
                                     <div class="row">
                                         @foreach ($categoryTotals as $category => $items)
-                                        @php
-                                            $colClass = ($category=="summary") ? 'col-md-12 mb-4' : 'col-md-6 mb-4';
-                                        @endphp
-                                            <div class="{{$colClass}}">
+                                            @php
+                                                $colClass = $category == 'summary' ? 'col-md-12 mb-4' : 'col-md-6 mb-4';
+                                            @endphp
+                                            <div class="{{ $colClass }}">
                                                 <div class="card shadow-sm border-0">
                                                     <div class="card-header bg-primary text-white">
-                                                        <h5 class="card-title mb-0 text-capitalize">{{ ucfirst($category) }}</h5>
+                                                        <h5 class="card-title mb-0 text-capitalize">
+                                                            {{ ucfirst($category) }}</h5>
                                                     </div>
                                                     <div class="card-body p-0">
                                                         <ul class="list-group list-group-flush">
                                                             @foreach ($items as $key => $value)
-                                                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                                    <span class="text-muted">{{ ucwords(str_replace('_', ' ', $key)) }}</span>
-                                                                    <span class="fw-bold">₹{{ number_format($value) }}</span>
-                                                                    <input type="hidden" name="{{ $key }}" id="{{ $key }}" value="{{ number_format($value) }}">
+                                                                <li
+                                                                    class="list-group-item d-flex justify-content-between align-items-center">
+                                                                    <span
+                                                                        class="text-muted">{{ ucwords(str_replace('_', ' ', $key)) }}</span>
+                                                                    <span
+                                                                        class="fw-bold">₹{{ number_format($value) }}</span>
+                                                                    <input type="hidden" name="{{ $key }}"
+                                                                        id="{{ $key }}"
+                                                                        value="{{ number_format($value) }}">
                                                                 </li>
                                                             @endforeach
                                                         </ul>
@@ -433,7 +433,7 @@
                                             </div>
                                         @endforeach
                                     </div>
-                                    
+
                                 </div>
 
 
@@ -491,14 +491,18 @@
                                                                 $totalNotes += $rowTotal;
                                                             @endphp
                                                             <tr>
-                                                                <td class="fw-bold">{{ number_format($denomination) }}</td>
+                                                                <td class="fw-bold">{{ number_format($denomination) }}
+                                                                </td>
                                                                 <td>{{ $quantity }}</td>
                                                                 <td>*</td>
                                                                 <td>{{ number_format($denomination) }}</td>
                                                                 <td>=</td>
-                                                                <td class="fw-bold">{{ number_format($rowTotal) }}</td>
+                                                                <td class="fw-bold">{{ number_format($rowTotal) }}
+                                                                </td>
                                                             </tr>
-                                                            <input type="hidden" name="cash_breakdown[{{ $denomination }}]['in']" value="{{ $quantity }}">
+                                                            <input type="hidden"
+                                                                name="cash_breakdown[{{ $denomination }}]['in']"
+                                                                value="{{ $quantity }}">
                                                         @endforeach
                                                     @endif
                                                 </tbody>
@@ -509,7 +513,7 @@
                                                     </tr>
                                                 </tfoot>
                                             </table>
-                                            
+
                                         </div>
 
                                         {{-- Summary Cash Totals --}}
@@ -529,13 +533,17 @@
                                                     <tr>
                                                         <td class="text-start fw-bold">Closing Cash</td>
                                                         <td class="text-end">
-                                                            <input type="text" name="closingCash" id="closingCash" class="form-control" oninput="calculateDifference({{@$totalNotes}})" required>
+                                                            <input type="text" name="closingCash" id="closingCash"
+                                                                class="form-control"
+                                                                oninput="calculateDifference({{ @$totalNotes }})"
+                                                                required>
                                                         </td>
                                                     </tr>
                                                     <tr>
                                                         <td class="text-start fw-bold">Discrepancy Cash</td>
                                                         <td class="text-end">
-                                                            <input type="text" name="diffCash" id="diffCash" class="form-control" readonly>
+                                                            <input type="text" name="diffCash" id="diffCash"
+                                                                class="form-control" readonly>
                                                         </td>
                                                     </tr>
                                                 </tbody>
@@ -654,9 +662,9 @@
             </div>
         </div>
     </div>
-  
-    <div class="modal fade no-print" id="storeStockRequest" tabindex="-1" aria-labelledby="storeStockRequest" aria-hidden="true"
-    data-backdrop="static" data-keyboard="false">
+
+    <div class="modal fade no-print" id="storeStockRequest" tabindex="-1" aria-labelledby="storeStockRequest"
+        aria-hidden="true" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-dialog-scrollable modal-mg">
             <div class="modal-content shadow-sm rounded-4 border-0">
                 <div class="modal-header bg-primary text-white rounded-top-4">
@@ -673,48 +681,48 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="card">
-                               
-                              
                                 <div class="card-body">
-    
                                     <form method="POST" action="{{ route('stock.store') }}">
                                         @csrf
-    
                                         {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
                                         <div class="mb-3">
-                                            <input type="hidden" name="store_id" value="{{ @$data->userInfo->branch_id }}">
+                                            <input type="hidden" name="store_id"
+                                                value="{{ @$data->userInfo->branch_id }}">
                                         </div>
-    
+                                       
                                         <div id="product-items">
                                             <h5>Products</h5>
                                             <div class="item-row mb-3">
-                                                <select name="items[0][product_id]" class="form-control d-inline w-50" required>
+                                                <select name="" class="form-control d-inline w-50"
+                                                    required>
                                                     <option value="">-- Select Product --</option>
                                                     @foreach ($products as $product)
                                                         <option value="{{ $product->id }}">{{ $product->name }}
-                                                            ({{ $product->sku }})
+                                                            ({{ $product->name }})
                                                         </option>
                                                     @endforeach
                                                 </select>
                                                 @error('items')
-                                                        <span class="text-danger">{{ $message }}</span>
-                                                    @enderror
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
                                                 <input type="number" name="items[0][quantity]"
-                                                    class="form-control d-inline w-25 ms-2" placeholder="Qty" min="1"
-                                                    required>
-                                                   
-                                                <button type="button" class="btn btn-danger btn-sm ms-2 remove-item">X</button>
+                                                    class="form-control d-inline w-25 ms-2" placeholder="Qty"
+                                                    min="1" required>
+
+                                                <button type="button"
+                                                    class="btn btn-danger btn-sm ms-2 remove-item">X</button>
                                             </div>
                                         </div>
-    
-                                        <button type="button" id="add-item" class="btn btn-secondary btn-sm mb-3">+ Add
+
+                                        <button type="button" id="add-item" class="btn btn-secondary btn-sm mb-3">+
+                                            Add
                                             Another Product</button>
-    
+
                                         <div class="mb-3">
                                             <label for="notes" class="form-label">Notes</label>
                                             <textarea name="notes" id="notes" class="form-control"></textarea>
                                         </div>
-    
+
                                         <button type="submit" class="btn btn-primary">Submit Request</button>
                                     </form>
                                 </div>
@@ -726,8 +734,8 @@
             </div>
         </div>
     </div>
-    <div class="modal fade no-print" id="warehouseStockRequest" tabindex="-1" aria-labelledby="warehouseStockRequest" aria-hidden="true"
-    data-backdrop="static" data-keyboard="false">
+    <div class="modal fade no-print" id="warehouseStockRequest" tabindex="-1"
+        aria-labelledby="warehouseStockRequest" aria-hidden="true" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-dialog-scrollable modal-mg">
             <div class="modal-content shadow-sm rounded-4 border-0">
                 <div class="modal-header bg-primary text-white rounded-top-4">
@@ -744,19 +752,19 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="card">
-    
+
                                 <div class="card-body">
-    
+
                                     <form method="POST" action="{{ route('stock.warehouse') }}">
                                         @csrf
-    
+
                                         {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
-    
-    
+
+
                                         <div id="product-items">
                                             <h5>Products</h5>
                                             <div class="item-row product_items mb-3">
-                                                <select name="items[0][product_id]"
+                                                <select name="itemss"
                                                     class="form-control d-inline w-50 product-select" required>
                                                     <option value="">-- Select Product --</option>
                                                     @foreach ($products as $product)
@@ -766,34 +774,36 @@
                                                     @endforeach
                                                 </select>
                                                 <input type="number" name="items[0][quantity]"
-                                                    class="form-control d-inline w-25 ms-2" placeholder="Qty" min="1"
-                                                    required>
-                                                <button type="button" class="btn btn-danger btn-sm ms-2 remove-item">X</button>
+                                                    class="form-control d-inline w-25 ms-2" placeholder="Qty"
+                                                    min="1" required>
+                                                <button type="button"
+                                                    class="btn btn-danger btn-sm ms-2 remove-item">X</button>
                                                 <div class="availability-container mt-2 small text-muted">
                                                     <!-- Filled dynamically with AJAX -->
                                                 </div>
                                             </div>
                                         </div>
-    
+
                                         <div class="mb-3">
                                             {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
                                             <div id="product-availability" class="mt-3">
                                                 <!-- Availability information will be displayed here -->
                                             </div>
-    
-    
+
+
                                         </div>
-    
-    
-    
-                                        <button type="button" id="add-item" class="btn btn-secondary btn-sm mb-3">+ Add
+
+
+
+                                        <button type="button" id="add-item" class="btn btn-secondary btn-sm mb-3">+
+                                            Add
                                             Another Product</button>
-    
+
                                         <div class="mb-3">
                                             <label for="notes" class="form-label">Notes</label>
                                             <textarea name="notes" id="notes" class="form-control"></textarea>
                                         </div>
-    
+
                                         <button type="submit" class="btn btn-primary">Submit Request</button>
                                     </form>
                                 </div>
@@ -806,7 +816,8 @@
         </div>
     </div>
     <!-- Modal HTML -->
-    <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"  data-backdrop="static" data-keyboard="false" wire:ignore.self>
+    <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
+        data-backdrop="static" data-keyboard="false" wire:ignore.self>
         <div class="modal-dialog">
             <form method="POST" action="{{ route('cash-in-hand') }}">
                 @csrf
@@ -867,8 +878,8 @@
                 </div>
             </form>
         </div>
-      </div>
-   
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const inputs = document.querySelectorAll('.note-input');
@@ -897,10 +908,77 @@
         });
     </script>
 
-
-
     <div class="col-md-5 no-print">
         {{-- @include('layouts.flash-message') --}}
+
+        <div class="card">
+            <div class="card-header">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="d-flex justify-content-end align-items-center flex-wrap gap-2">
+
+                            {{-- Livewire Notification --}}
+                            <livewire:notification />
+
+                            {{-- Cashier Button --}}
+                            @if (auth()->user()->hasRole('cashier'))
+                                <button type="button" class="btn btn-primary ml-2" data-toggle="modal"
+                                    data-target="#storeStockRequest" data-toggle="tooltip" data-placement="top"
+                                    title="Store Stock Request">
+                                    <i class="fas fa-store"></i>
+                                </button>
+                            @endif
+
+                            {{-- Warehouse Button --}}
+                            @if (auth()->user()->hasRole('warehouse'))
+                                <button type="button" class="btn btn-primary ml-2" data-toggle="modal"
+                                    data-target="#warehouseStockRequest" data-toggle="tooltip" data-placement="top"
+                                    title="Warehouse Stock Request">
+                                    <i class="fas fa-warehouse"></i>
+                                </button>
+                            @endif
+
+                            {{-- Show when item cart is empty --}}
+                            @if (count($itemCarts) == 0)
+                                <button type="button" class="btn btn-primary ml-2" data-toggle="modal"
+                                    data-target="#cashout" data-toggle="tooltip" data-placement="top"
+                                    title="Cash Out">
+                                    <i class="fas fa-cash-register"></i>
+                                </button>
+
+                                <button type="button" class="btn btn-primary ml-2" data-toggle="modal"
+                                    data-target="#holdTransactionsModal" data-toggle="tooltip" data-placement="top"
+                                    title="View Hold">
+                                    <i class="fas fa-hand-paper"></i>
+                                </button>
+                            @endif
+
+                            {{-- Close Shift --}}
+                            <button type="button" class="btn btn-primary ml-2" data-toggle="modal"
+                                data-target="#closeShiftModal" data-toggle="tooltip" data-placement="top"
+                                title="Close Shift">
+                                <i class="fas fa-door-closed"></i>
+                            </button>
+
+                            {{-- Logout --}}
+                            <button type="button" class="btn btn-outline-danger ml-2" data-toggle="tooltip"
+                                data-placement="top" title="Logout"
+                                onclick="document.getElementById('logout-form').submit();">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </button>
+
+                            {{-- Logout Form --}}
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST"
+                                style="display: none;">
+                                @csrf
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
 
         <div class="card">
             <div class="card-header">
@@ -908,53 +986,6 @@
                     <div class="col-md-6">
                         <h5 class="mb-3">{{ $this->headertitle }} Summary</h5>
                     </div>
-                    <div class="col-md-6 ">
-                     
-                        <livewire:notification />
-
-                        @if (auth()->user()->hasRole('cashier'))
-
-                        <button type="button" id="customer" class="btn btn-primary btn-sm mr-2"
-                            data-toggle="modal" data-target="#storeStockRequest" data-toggle="tooltip" data-placement="top" title="Store Stock Request">
-                            <i class="fas fa-store"></i>
-                        </button>
-                        @endif
-                        @if (auth()->user()->hasRole('warehouse'))
-        
-                        <button type="button" id="customer" class="btn btn-primary btn-sm mr-2"
-                            data-toggle="modal" data-target="#warehouseStockRequest" data-toggle="tooltip" data-placement="top" title="Warehouse Stock Request">
-                            <i class="fas fa-warehouse"></i>
-                        </button>
-                        @endif
-
-                        @if (count($itemCarts) == 0)
-                            <button type="button" id="customer" class="btn btn-primary btn-sm mr-2"
-                                data-toggle="modal" data-target="#cashout" data-toggle="tooltip" data-placement="top" title="Cash Out">
-                                <i class="fas fa-cash-register"></i>
-                            </button>
-                    
-                            <button type="button" class="btn btn-primary btn-sm mr-2"
-                                data-toggle="modal" data-target="#holdTransactionsModal" data-toggle="tooltip" data-placement="top" title="View Hold">
-                                <i class="fas fa-hand-paper"></i>
-                            </button>
-                        @endif
-                    
-                        <button type="button" id="closeShiftBtn" class="btn btn-primary btn-sm mr-2"
-                            data-toggle="modal" data-target="#closeShiftModal" data-toggle="tooltip" data-placement="top" title="Close Shift">
-                            <i class="fas fa-door-closed"></i>
-                        </button>
-                    
-                        <button type="button" class="btn btn-outline-danger ms-2" data-toggle="tooltip"
-                            data-placement="top" title="Logout"
-                            onclick="document.getElementById('logout-form').submit();">
-                            <i class="fas fa-sign-out-alt"></i>
-                        </button>
-                    
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                            @csrf
-                        </form>
-                    </div>
-                    
                 </div>
 
             </div>
@@ -1109,7 +1140,9 @@
                                 @if ($partyAmount > 0)
                                     <div class="d-flex justify-content-between mb-2">
                                         <strong>Credit</strong>
-                                        <input type="number" width="10%" wire:model.live.debounce.500ms="creditPay" wire:change="creditPayChanged" class="form-control"  style="width: 80px;" />
+                                        <input type="number" width="10%"
+                                        wire:model.live="creditPay" wire:input="creditPayChanged"
+                                        class="form-control" style="width: 80px;" />
 
                                     </div>
                                 @endif
@@ -1123,7 +1156,7 @@
                             <p id="result" class="mt-3 fw-bold text-success"></p>
                             <div class="mt-4">
 
-                                @if ($this->cashAmount == $totalIn - $totalOut)
+                                @if (($this->cashAmount == $totalIn - $totalOut) && $errorInCredit==false)
                                     <button id="paymentSubmit" class="btn btn-primary btn-sm mr-2 btn-block mt-4"
                                         wire:click="checkout" wire:loading.attr="disabled">
                                         Submit
@@ -1283,8 +1316,11 @@
                                 @endif
                                 @if ($partyAmount > 0)
                                     <div class="d-flex justify-content-between mb-2">
-                                        <strong>Point Deduction</strong>
-                                        <span>- ₹{{ number_format($partyAmount, 2) }}</span>
+                                        <strong>Credit</strong>
+                                        <input type="number" width="10%"
+                                            wire:model.live="creditPay" wire:input="creditPayChanged"
+                                            class="form-control" style="width: 80px;" />
+
                                     </div>
                                 @endif
                                 <div class="d-flex justify-content-between">
@@ -1722,7 +1758,7 @@
         //     }, 2000);
         // });
     });
-   
+
     document.addEventListener('DOMContentLoaded', function() {
         const inputs = document.querySelectorAll('.note-input');
         const totalCashDisplay = document.getElementById('totalNoteCash');
@@ -1827,40 +1863,46 @@
     // });
     // Function to display dynamic SweetAlert
     function showAlert(type, title, message) {
-    Swal.fire({
-        title: title || (type === 'success' ? 'Success!' : 'Error!'),
-        text: message || (type === 'success' ? 'Operation completed successfully.' : 'Something went wrong.'),
-        icon: type,  // 'success' or 'error'
-        confirmButtonText: 'OK',
-        timer: 2000,  // Auto-close after 2 seconds for small alert
-        showConfirmButton: true,  // Show the confirm button
-        position: 'center',  // Center the alert in the middle of the screen
-        toast: false,  // Disable toast style (centered alert)
-        timerProgressBar: true,  // Show progress bar
-        backdrop: true,  // Enable backdrop
-        allowOutsideClick: false,  // Prevent closing the alert by clicking outside
-        showCloseButton: true,  // Optional: Show a close button in the top-right corner
-        customClass: {
-            popup: 'small-alert'  // Apply custom class for small size
-        }
-    });
-}
-// Event listeners for success and error
-window.addEventListener('notiffication-sucess', (event) => {
-    // Success Example
-    showAlert('success', 'LiquorHub!', event.detail[0].message || 'Your cart has been voided successfully.');
-});
-
-window.addEventListener('notiffication-error', (event) => {
-    // Error Example
-    showAlert('error', 'LiquorHub!', event.detail[0].message || 'Failed to void the cart.');
-});
-window.addEventListener('order-saved', event => {
-        const { type, title, message } = event.detail;
         Swal.fire({
-            title:  'Success!',
-            text:  'Transaction completed successfully.' ,
-            icon: type,  // 'success' or 'error'
+            title: title || (type === 'success' ? 'Success!' : 'Error!'),
+            text: message || (type === 'success' ? 'Operation completed successfully.' :
+                'Something went wrong.'),
+            icon: type, // 'success' or 'error'
+            confirmButtonText: 'OK',
+            timer: 2000, // Auto-close after 2 seconds for small alert
+            showConfirmButton: true, // Show the confirm button
+            position: 'center', // Center the alert in the middle of the screen
+            toast: false, // Disable toast style (centered alert)
+            timerProgressBar: true, // Show progress bar
+            backdrop: true, // Enable backdrop
+            allowOutsideClick: false, // Prevent closing the alert by clicking outside
+            showCloseButton: true, // Optional: Show a close button in the top-right corner
+            customClass: {
+                popup: 'small-alert' // Apply custom class for small size
+            }
+        });
+    }
+    // Event listeners for success and error
+    window.addEventListener('notiffication-sucess', (event) => {
+        // Success Example
+        showAlert('success', 'LiquorHub!', event.detail[0].message ||
+            'Your cart has been voided successfully.');
+    });
+
+    window.addEventListener('notiffication-error', (event) => {
+        // Error Example
+        showAlert('error', 'LiquorHub!', event.detail[0].message || 'Failed to void the cart.');
+    });
+    window.addEventListener('order-saved', event => {
+        const {
+            type,
+            title,
+            message
+        } = event.detail;
+        Swal.fire({
+            title: 'Success!',
+            text: 'Transaction completed successfully.',
+            icon: type, // 'success' or 'error'
             confirmButtonText: 'OK',
             timer: 3000,
             showConfirmButton: true,
@@ -1875,7 +1917,7 @@ window.addEventListener('order-saved', event => {
             }
         }).then((result) => {
             if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
-                location.reload();  // reload after OK click or auto close
+                location.reload(); // reload after OK click or auto close
             }
         });
     });
@@ -1901,16 +1943,17 @@ window.addEventListener('order-saved', event => {
     });
 </script>
 <script>
-     function calculateDifference(expectedAmount) {
+    function calculateDifference(expectedAmount) {
         // Get the value entered in the closingCash input
         const closingCash = parseFloat(document.getElementById('closingCash').value) || 0;
-        
+
         // Calculate the difference (for example, assume a static value for calculation)
         const diffCash = closingCash - expectedAmount;
 
         // Update the diffCash input with the calculated value
         document.getElementById('diffCash').value = diffCash.toFixed(2);
     }
+
     function updateAmounts() {
         let total = 0;
         const amountInput = document.getElementById('holdamountTotal');

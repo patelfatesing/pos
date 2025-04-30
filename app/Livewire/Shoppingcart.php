@@ -46,7 +46,7 @@ class Shoppingcart extends Component
         'Other'
     ];
 
-
+    public $errorInCredit = false;
     public $changeAmount = 0;
     public $showBox = false;
     public $shoeCashUpi = false;
@@ -198,7 +198,18 @@ class Shoppingcart extends Component
     }
     public function creditPayChanged()
     {
-        $this->cashAmount=(Int)$this->cashAmount-(Int)$this->creditPay;
+        if($this->creditPay>0){
+            
+            if($this->creditPay > $this->cashAmount){
+                $this->errorInCredit = true;
+                $this->dispatch('notiffication-error', ['message' => 'Credit payment cannot be greater than cash amount']);
+                return;
+            }
+            $this->cashAmount=((Int)$this->sub_total-(Int)$this->partyAmount-(Int)$this->creditPay);
+        }else{
+            $this->cashAmount=((Int)$this->sub_total-(Int)$this->partyAmount);
+        }
+        
     }
 
     // Clear numpad value
@@ -406,7 +417,7 @@ class Shoppingcart extends Component
            $totalPaid     += (!empty($invoice->total)       && is_numeric($invoice->total)) ? (int)$invoice->total : 0;
         }
         if (isset($this->categoryTotals['Desi'])) {
-            $this->categoryTotals['DESHI SALES'] = $this->categoryTotals['Desi'];
+            $this->categoryTotals['DESHI'] = $this->categoryTotals['Desi'];
             unset($this->categoryTotals['Desi']);
         }
         $end_date = date('Y-m-d') . ' 23:59:59'; // today's date till end of day
@@ -489,7 +500,12 @@ class Shoppingcart extends Component
             //$this->cashAmount=$sum;
             //$this->basicPartyAmt=$user->credit_points*$mycart->quantity;
             // $this->partyAmount = $user->credit_points;
-        } 
+        }
+
+        $this->products = Product::all();
+
+        // dd($this->products);
+
         $UserShift = UserShift::whereDate('created_at', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' =>"pending"])->exists();
         if (empty($UserShift)) {
             $this->dispatch('openModal');
