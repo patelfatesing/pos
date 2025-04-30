@@ -111,11 +111,18 @@ class Shoppingcart extends Component
 
             $currentQty=$this->cartCount+1;
             // Fetch product with inventory
-            $product = \App\Models\Product::select('products.*', DB::raw('SUM(inventories.quantity) as total_quantity'))
-            ->leftJoin('inventories', 'products.id', '=', 'inventories.product_id')
-            ->where('products.id', $this->selectedProduct->id)
-            ->groupBy('products.id')
-            ->first();
+
+            $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
+            $product = Product::select('products.*', 'inventory_summary.total_quantity')
+                ->leftJoin(DB::raw('(
+                    SELECT product_id, SUM(quantity) as total_quantity
+                    FROM inventories where store_id = '.$branch_id.'
+                    GROUP BY product_id
+                ) as inventory_summary'), 'products.id', '=', 'inventory_summary.product_id')
+                ->where('products.id', $this->selectedProduct->id)
+                ->first();
+
             if ( $currentQty > $product['total_quantity']) {
                 $this->dispatch('notiffication-error', ['message' => 'Product is out of stock and cannot be added to cart.']);
                 return;
@@ -675,11 +682,17 @@ class Shoppingcart extends Component
         
         $currentQty=$this->cartCount+1;
         // Fetch product with inventory
-        $product = \App\Models\Product::select('products.*', DB::raw('SUM(inventories.quantity) as total_quantity'))
-        ->leftJoin('inventories', 'products.id', '=', 'inventories.product_id')
-        ->where('products.id', $getSignlecart->product_id)
-        ->groupBy('products.id')
-        ->first();
+        
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
+        $product = Product::select('products.*', 'inventory_summary.total_quantity')
+            ->leftJoin(DB::raw('(
+                SELECT product_id, SUM(quantity) as total_quantity
+                FROM inventories where store_id = '.$branch_id.'
+                GROUP BY product_id
+            ) as inventory_summary'), 'products.id', '=', 'inventory_summary.product_id')
+            ->where('products.id', $getSignlecart->product_id)
+            ->first();
 
         // Fetch product with inventory
         if ( $currentQty > $product['total_quantity']) {
@@ -1011,11 +1024,19 @@ class Shoppingcart extends Component
         if (auth()->user()) {
             $currentQty=$this->cartCount+1;
             // Fetch product with inventory
-            $product = \App\Models\Product::select('products.*', DB::raw('SUM(inventories.quantity) as total_quantity'))
-            ->leftJoin('inventories', 'products.id', '=', 'inventories.product_id')
-            ->where('products.id', $id)
-            ->groupBy('products.id')
-            ->first();
+         
+            $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
+            $product = Product::select('products.*', 'inventory_summary.total_quantity')
+                ->leftJoin(DB::raw('(
+                    SELECT product_id, SUM(quantity) as total_quantity
+                    FROM inventories where store_id = '.$branch_id.'
+                    GROUP BY product_id
+                ) as inventory_summary'), 'products.id', '=', 'inventory_summary.product_id')
+                ->where('products.id', $id)
+                ->first();
+
+            
             if ( $currentQty > $product['total_quantity']) {
                 $this->dispatch('notiffication-error', ['message' => 'Product is out of stock and cannot be added to cart.']);
                 return;
