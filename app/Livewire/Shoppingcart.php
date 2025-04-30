@@ -46,7 +46,7 @@ class Shoppingcart extends Component
         'Other'
     ];
 
-
+    public $errorInCredit = false;
     public $changeAmount = 0;
     public $showBox = false;
     public $shoeCashUpi = false;
@@ -198,7 +198,18 @@ class Shoppingcart extends Component
     }
     public function creditPayChanged()
     {
-        $this->cashAmount=(Int)$this->cashAmount-(Int)$this->creditPay;
+        if($this->creditPay>0){
+            
+            if($this->creditPay > $this->cashAmount){
+                $this->errorInCredit = true;
+                $this->dispatch('notiffication-error', ['message' => 'Credit payment cannot be greater than cash amount']);
+                return;
+            }
+            $this->cashAmount=((Int)$this->sub_total-(Int)$this->partyAmount-(Int)$this->creditPay);
+        }else{
+            $this->cashAmount=((Int)$this->sub_total-(Int)$this->partyAmount);
+        }
+        
     }
 
     // Clear numpad value

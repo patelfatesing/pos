@@ -104,8 +104,9 @@
                 </div>
             @endif
         </div>
-        <div class="table-responsive mb-2" id="main_tb">
-            <div class="cart-table-scroll {{ count($itemCarts) > 5 ? '  scrollable' : '' }}">
+        <div class="table-responsive" id="main_tb">
+         
+            <div class=" {{ count($itemCarts) > 5 ? ' cart-table-scroll scrollable' : '' }}">
 
                 <table class="table table-bordered" id="cartTable">
                     <thead class="thead-light">
@@ -213,7 +214,7 @@
                     <thead class="">
                         <tr>
                             <th>Qty</th>
-                            <th>MRP</th>
+                            <th>Action</th>
                             <th>Rounded Off</th>
                             <th>Total Payable</th>
                         </tr>
@@ -225,8 +226,9 @@
                                 <input type="hidden" id="cartCount" value="{{ $this->cartCount }}">
                             </td>
                             <td>
-                                ₹{{ number_format($this->cashAmount, 2) }}
-                                <input type="hidden" id="mrp" value="{{ $this->cashAmount }}">
+                                <button wire:click="voidSale" class="btn btn-sm btn-primary w-100 shadow-">
+                                    Void Sale
+                                </button>
                             </td>
                             <td>
                                 ₹{{ number_format(round($this->cashAmount), 2) }}
@@ -250,13 +252,13 @@
                                 @endif
                             </td>
                             <td>
-                                <button class="btn btn-sm btn-primary w-100 shadow-sm">
-                                    <i class="fa fa-credit-card me-2"></i> Online
+                                <button wire:click="holdSale" class="btn btn-sm btn-primary w-100 shadow-">
+                                    <i class="fa fa-pause-circle me-2"></i> Hold
                                 </button>
                             </td>
                             <td>
-                                <button wire:click="holdSale" class="btn btn-sm btn-primary w-100 shadow-">
-                                    <i class="fa fa-pause-circle me-2"></i> Hold
+                                <button class="btn btn-sm btn-primary w-100 shadow-sm">
+                                    <i class="fa fa-credit-card me-2"></i> Online
                                 </button>
                             </td>
                             <td>
@@ -268,9 +270,7 @@
 
                         <tr>
                             <td>
-                                <button wire:click="voidSale" class="btn btn-sm btn-primary w-100 shadow-">
-                                    Void Sale
-                                </button>
+                                
                             </td>
                         </tr>
                     </tbody>
@@ -689,9 +689,7 @@
                                             <input type="hidden" name="store_id"
                                                 value="{{ @$data->userInfo->branch_id }}">
                                         </div>
-                                        <?php
-                                                print_r($products);
-                                        ?>
+                                       
                                         <div id="product-items">
                                             <h5>Products</h5>
                                             <div class="item-row mb-3">
@@ -1143,8 +1141,8 @@
                                     <div class="d-flex justify-content-between mb-2">
                                         <strong>Credit</strong>
                                         <input type="number" width="10%"
-                                            wire:model.live.debounce.500ms="creditPay" wire:change="creditPayChanged"
-                                            class="form-control" style="width: 80px;" />
+                                        wire:model.live="creditPay" wire:input="creditPayChanged"
+                                        class="form-control" style="width: 80px;" />
 
                                     </div>
                                 @endif
@@ -1158,7 +1156,7 @@
                             <p id="result" class="mt-3 fw-bold text-success"></p>
                             <div class="mt-4">
 
-                                @if ($this->cashAmount == $totalIn - $totalOut)
+                                @if (($this->cashAmount == $totalIn - $totalOut) && $errorInCredit==false)
                                     <button id="paymentSubmit" class="btn btn-primary btn-sm mr-2 btn-block mt-4"
                                         wire:click="checkout" wire:loading.attr="disabled">
                                         Submit
@@ -1318,8 +1316,11 @@
                                 @endif
                                 @if ($partyAmount > 0)
                                     <div class="d-flex justify-content-between mb-2">
-                                        <strong>Point Deduction</strong>
-                                        <span>- ₹{{ number_format($partyAmount, 2) }}</span>
+                                        <strong>Credit</strong>
+                                        <input type="number" width="10%"
+                                            wire:model.live="creditPay" wire:input="creditPayChanged"
+                                            class="form-control" style="width: 80px;" />
+
                                     </div>
                                 @endif
                                 <div class="d-flex justify-content-between">
