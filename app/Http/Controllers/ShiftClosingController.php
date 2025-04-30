@@ -14,11 +14,18 @@ class ShiftClosingController extends Controller
 {
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'opening_cash' => 'required',
-            'closingCash' => 'required',
-            
-        ]);
+        
+        if (!$request->has('closingCash') || !is_numeric($request->closingCash)) {
+            return redirect()->back()->with('notification-error', 'Closing cash is required and must be numeric.');
+    
+        }
+        // $validated = $request->validate([
+        //     'opening_cash' => 'required',
+        //     'closingCash' => 'required',
+        //     'cash_discrepancy' => 'required|numeric',
+        //     'cash' => 'required|numeric',
+
+        // ]);
         $user_id=auth()->id();
 
         // Get the branch_id from the authenticated user's info
@@ -63,7 +70,8 @@ class ShiftClosingController extends Controller
         Auth::logout(); 
 
         // Redirect to login with a status message
-        return redirect('/login')->with('status', 'Shift closed. You have been logged out.');
+        return redirect('/login')->with('notification-sucess', 'Shift closed. You have been logged out.');
+
     }
     public function withdraw(Request $request){
         $data = $request->all();

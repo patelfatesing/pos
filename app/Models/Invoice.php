@@ -22,7 +22,8 @@ class Invoice extends Model
         'user_id',
         'branch_id',
         'upi_amount',
-        'cash_amount'
+        'cash_amount',
+        'creditpay'
     ];
 
     protected $casts = [

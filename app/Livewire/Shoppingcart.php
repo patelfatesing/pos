@@ -21,6 +21,8 @@ use App\Models\Branch;
 use App\Models\User;
 use App\Models\CreditHistory;
 use App\Models\DiscountHistory;
+use Illuminate\Support\Facades\DB;
+
 
 class Shoppingcart extends Component
 {
@@ -31,6 +33,7 @@ class Shoppingcart extends Component
     public $invoiceData;
     public $totalInvoicedAmount=0;
     public $cash = 0;
+    public $creditPay=0;
     public $upi = 0;
     public $updatingField = null;
     public $showCloseButton = false;
@@ -94,6 +97,7 @@ class Shoppingcart extends Component
     public $selectedProduct;
     public $holdTransactions=[];
     public $headertitle="";
+    
     public function updatedSearch($value)
     {
         $this->selectedProduct = Product::Where('barcode', 'like', "%{$value}%")
@@ -105,15 +109,16 @@ class Shoppingcart extends Component
         if (!$this->selectedProduct) return;
 
 
-
+            $currentQty=$this->cartCount+1;
             // Fetch product with inventory
-            $product = \App\Models\Product::with('inventorie')->find($this->selectedProduct->id);
-            //dd($product->inventorie->quantity);
-            if ($product->inventorie->quantity <= 0) {
-                // session()->flash('error', 'Product is out of stock and cannot be added to cart.');
-            $this->dispatch('notiffication-error', ['message' => 'Product is out of stock and cannot be added to cart']);
-
-            return;
+            $product = \App\Models\Product::select('products.*', DB::raw('SUM(inventories.quantity) as total_quantity'))
+            ->leftJoin('inventories', 'products.id', '=', 'inventories.product_id')
+            ->where('products.id', $this->selectedProduct->id)
+            ->groupBy('products.id')
+            ->first();
+            if ( $currentQty > $product['total_quantity']) {
+                $this->dispatch('notiffication-error', ['message' => 'Product is out of stock and cannot be added to cart.']);
+                return;
             }
             
             // $item = Cart::where('product_id', $id)
@@ -149,7 +154,7 @@ class Shoppingcart extends Component
             $item->save();
            // $this->updateQty($item->id);
             $this->dispatch('updateNewProductDetails');
-            $this->reset('searchTerm', 'searchResults', 'showSuggestions'.'search');
+            $this->reset('searchTerm', 'searchResults', 'showSuggestions','search');
           //  session()->flash('success', 'Product added to the cart successfully');
             $this->dispatch('notiffication-success', ['message' => 'Product added to the cart successfully']);
     }
@@ -183,6 +188,10 @@ class Shoppingcart extends Component
             data_set($this, $this->focusedField, $updated);
             $this->numpadValue = $updated ?: '0';
         }
+    }
+    public function creditPayChanged()
+    {
+        $this->cashAmount=(Int)$this->cashAmount-(Int)$this->creditPay;
     }
 
     // Clear numpad value
@@ -346,7 +355,7 @@ class Shoppingcart extends Component
         $end_date = date('Y-m-d') . ' 23:59:59'; // today's date till end of day
         $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])-> latest()->get();
         $discountTotal = $totalSales = $totalPaid = $totalCashPaid = $totalSubTotal=$totalUpiPaid = 0;
-        $sales = ['Desi', 'BEER SALES', 'ENGLISH SALES'];
+        $sales = ['Desi', 'BEER', 'ENGLISH'];
         $this->categoryTotals = [];
         $this->totalInvoicedAmount = \App\Models\Invoice::where('user_id', auth()->user()->id)
         ->where('branch_id', $branch_id)
@@ -398,13 +407,13 @@ class Shoppingcart extends Component
         $this->todayCash = $totalPaid;
         $totalWith = \App\Models\WithdrawCash::where('user_id',  auth()->user()->id)
         ->where('branch_id', $branch_id)->whereBetween('created_at', [$start_date, $end_date])->sum('amount');
+        
+        $this->categoryTotals['payment']['CASH'] =$totalCashPaid-$totalWith;
+        $this->categoryTotals['payment']['UPI PAYMENT'] = $totalUpiPaid;
         $this->categoryTotals['summary']['SUB TOTAL'] =$totalSubTotal+$discountTotal;
         $this->categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
         $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] = $totalWith*(-1);
         $this->categoryTotals['summary']['TOTAL SALES'] = $totalSales-$totalWith;
-
-        $this->categoryTotals['payment']['CASH'] =$totalCashPaid-$totalWith;
-        $this->categoryTotals['payment']['UPI PAYMENT'] = $totalUpiPaid;
         // $this->categoryTotals['TOTAL CASH'] =$this->shift->opening_cash+ $totalCashPaid-$totalWith;
 
         //TOTAL CASH
@@ -664,13 +673,18 @@ class Shoppingcart extends Component
         
         $getSignlecart = Cart::where(['user_id' => auth()->user()->id])->find($itemId);
         
+        $currentQty=$this->cartCount+1;
         // Fetch product with inventory
-        $product = \App\Models\Product::with('inventorie')->find($getSignlecart->product_id);
+        $product = \App\Models\Product::select('products.*', DB::raw('SUM(inventories.quantity) as total_quantity'))
+        ->leftJoin('inventories', 'products.id', '=', 'inventories.product_id')
+        ->where('products.id', $getSignlecart->product_id)
+        ->groupBy('products.id')
+        ->first();
 
-        if ($product->inventorie->quantity <= 0) {
+        // Fetch product with inventory
+        if ( $currentQty > $product['total_quantity']) {
             $this->dispatch('notiffication-error', ['message' => 'Product is out of stock and cannot be added to cart.']);
-
-        return;
+            return;
         }
         $quantity = (isset($this->quantities[$itemId])) ? (int) $this->quantities[$itemId] : 0;
         if ($quantity < 1) {
@@ -722,7 +736,8 @@ class Shoppingcart extends Component
         ->get();
         $user = Partyuser::find($this->selectedPartyUser);
         if (!empty($user)) {
-            $this->cashAmount = $this->cartitems->sum('net_amount')-$user->credit_points;
+            //$this->cashAmount = $this->cartitems->sum('net_amount')-$user->credit_points;
+            $this->cashAmount = $this->cartitems->sum('net_amount');
         }else{
 
             $this->cashAmount = $this->cartitems->sum('net_amount');
@@ -913,6 +928,15 @@ class Shoppingcart extends Component
         $sum=$partyCredit=0;
         $user = Partyuser::find($this->selectedPartyUser);
         if (!empty($user)) {
+            $mycarts = Cart::with(['product', 'product.inventorie'])->where('user_id', auth()->user()->id)->where('status', Cart::STATUS_PENDING)->get();
+            foreach ($mycarts as $key => $mycart) {
+               $mycart->net_amount=$mycart->net_amount-($mycart->product->discount_price*$mycart->quantity);
+               $mycart->discount=$mycart->product->discount_price*$mycart->quantity;
+               $mycart->save();
+               $sum=$sum+$mycart->net_amount;
+               $partyCredit=$partyCredit+$mycart->discount;
+
+            }
             // $mycarts = Cart::where('user_id', auth()->user()->id)->where('status', Cart::STATUS_PENDING)->get();
             // foreach ($mycarts as $key => $mycart) {
             //    $mycart->net_amount=$mycart->net_amount-($user->credit_points*$mycart->quantity);
@@ -922,7 +946,7 @@ class Shoppingcart extends Component
             // }
             
             //$this->basicPartyAmt=$user->credit_points*$mycart->quantity;
-            $this->partyAmount = $user->credit_points;
+            $this->partyAmount = $partyCredit;
         } else {
             $mycarts = Cart::where('user_id', auth()->user()->id)->where('status', Cart::STATUS_PENDING)->get();
             foreach ($mycarts as $key => $mycart) {
@@ -985,12 +1009,14 @@ class Shoppingcart extends Component
     {
         
         if (auth()->user()) {
-            
-
+            $currentQty=$this->cartCount+1;
             // Fetch product with inventory
-            $product = \App\Models\Product::with('inventorie')->find($id);
-            
-            if (!$product->inventorie || $product->inventorie->quantity <= 0) {
+            $product = \App\Models\Product::select('products.*', DB::raw('SUM(inventories.quantity) as total_quantity'))
+            ->leftJoin('inventories', 'products.id', '=', 'inventories.product_id')
+            ->where('products.id', $id)
+            ->groupBy('products.id')
+            ->first();
+            if ( $currentQty > $product['total_quantity']) {
                 $this->dispatch('notiffication-error', ['message' => 'Product is out of stock and cannot be added to cart.']);
                 return;
             }
@@ -1024,7 +1050,9 @@ class Shoppingcart extends Component
 
                 $user = Partyuser::find($this->selectedPartyUser);
                 if (!empty($user)) {
-                    $myCart=$user->credit_points;
+                   // $myCart=$user->credit_points;
+                   $myCart=$product->discount_price;
+
                 } else {
                     $myCart=0;
     
@@ -1271,6 +1299,7 @@ class Shoppingcart extends Component
                     'price' => $item->product->sell_price,
                 ]),
                 'upi_amount' => $this->upi,
+                'creditpay' => $this->creditPay,
                 'cash_amount' => $this->cash,
                 'sub_total' => $this->cashAmount,
                 'tax' => $this->tax,
@@ -1284,28 +1313,22 @@ class Shoppingcart extends Component
             if(!empty($commissionUser->id)){
                 
                 $discountHistory = DiscountHistory::create([
-                    'invoice_id'=>$invoice->id,
+                    'user_id' => auth()->id(),
                     'discount_amount' => $this->commissionAmount,
-                    'total_amount' => $this->cashAmount,
-                    'total_purchase_items'=>$totalQuantity,
-                    'commission_user_id' => $commissionUser->id ?? null,
-                    'store_id' => $branch_id,
-                    'created_by'=>auth()->id(),
+                    // 'total_amount' => $this->cashAmount,
+                    // 'total_purchase_items'=>$totalQuantity,
+                    // 'commission_user_id' => $commissionUser->id ?? null,
+                    // 'store_id' => $branch_id,
+                    // 'created_by'=>auth()->id(),
     
                 ]);
             }
             if(!empty($partyUser->id)){
             
                 $creditHistory = CreditHistory::create([
-                    'invoice_id'=>$invoice->id,
+                    'user_id' => auth()->id(),
                     'credit_amount' => $this->partyAmount,
-                    'total_amount' => $this->cashAmount,
-                    'total_purchase_items'=>$totalQuantity,
-                    'party_user_id' => $partyUser->id ?? null,
-                    'store_id' => $branch_id,
-                    'created_by'=>auth()->id(),
-
-    
+                   
                 ]);
             }
              // Only warehouse role gets invoice for printing

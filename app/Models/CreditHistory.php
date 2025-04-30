@@ -8,12 +8,8 @@ class CreditHistory extends Model
 {
     //
     protected $fillable = [
-        'invoice_id',
+        'user_id',
         'credit_amount',
-        'total_amount',
-        'total_purchase_items',
-        'party_user_id',
-        'store_id',
-        'created_by'
+       
     ];
 }
