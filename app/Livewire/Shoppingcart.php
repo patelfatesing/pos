@@ -1312,23 +1312,26 @@ class Shoppingcart extends Component
             ]);
             if(!empty($commissionUser->id)){
                 
-                $discountHistory = DiscountHistory::create([
-                    'user_id' => auth()->id(),
+                DiscountHistory::create([
+                    'invoice_id'=>$invoice->id,
                     'discount_amount' => $this->commissionAmount,
-                    // 'total_amount' => $this->cashAmount,
-                    // 'total_purchase_items'=>$totalQuantity,
-                    // 'commission_user_id' => $commissionUser->id ?? null,
-                    // 'store_id' => $branch_id,
-                    // 'created_by'=>auth()->id(),
-    
+                    'total_amount' => $this->cashAmount,
+                    'total_purchase_items'=>$totalQuantity,
+                    'commission_user_id' => $commissionUser->id ?? null,
+                    'store_id' => $branch_id,
+                    'created_by'=>auth()->id(),
                 ]);
             }
             if(!empty($partyUser->id)){
             
-                $creditHistory = CreditHistory::create([
-                    'user_id' => auth()->id(),
+                CreditHistory::create([
+                    'invoice_id'=>$invoice->id,
                     'credit_amount' => $this->partyAmount,
-                   
+                    'total_amount' => $this->cashAmount,
+                    'total_purchase_items'=>$totalQuantity,
+                    'party_user_id' => $partyUser->id ?? null,
+                    'store_id' => $branch_id,
+                    'created_by'=>auth()->id(),
                 ]);
             }
              // Only warehouse role gets invoice for printing
