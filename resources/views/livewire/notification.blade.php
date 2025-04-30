@@ -1,6 +1,6 @@
 <div>
     <!-- Notification Icon -->
-    <button wire:click="togglePopup" class="btn btn-primary btn-sm mr-2 position-relative">
+    <button wire:click="togglePopup" class="btn btn-primary mr-1 position-relative">
         <i class="fas fa-bell"></i> <!-- Bell Icon -->
         @if(count($notifications) > 0)
             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">

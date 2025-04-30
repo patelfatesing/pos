@@ -406,7 +406,7 @@ class Shoppingcart extends Component
            $totalPaid     += (!empty($invoice->total)       && is_numeric($invoice->total)) ? (int)$invoice->total : 0;
         }
         if (isset($this->categoryTotals['Desi'])) {
-            $this->categoryTotals['DESHI SALES'] = $this->categoryTotals['Desi'];
+            $this->categoryTotals['DESHI'] = $this->categoryTotals['Desi'];
             unset($this->categoryTotals['Desi']);
         }
         $end_date = date('Y-m-d') . ' 23:59:59'; // today's date till end of day
@@ -489,7 +489,12 @@ class Shoppingcart extends Component
             //$this->cashAmount=$sum;
             //$this->basicPartyAmt=$user->credit_points*$mycart->quantity;
             // $this->partyAmount = $user->credit_points;
-        } 
+        }
+
+        $this->products = Product::all();
+
+        // dd($this->products);
+
         $UserShift = UserShift::whereDate('created_at', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' =>"pending"])->exists();
         if (empty($UserShift)) {
             $this->dispatch('openModal');
