@@ -23,7 +23,7 @@ class HoldTransactions extends Component
         $currentShift = UserShift::whereDate('created_at', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' =>"pending"])->first();
         $start_date = @$currentShift->start_time; // your start date (set manually)
         $totalWith = \App\Models\WithdrawCash::where('user_id',  auth()->user()->id)
-        ->where('branch_id', $branch_id)->whereBetween('created_at', [$start_date, $currentShift->end_date])->sum('amount');
+        ->where('branch_id', $branch_id)->whereBetween('created_at', [$start_date, @$currentShift->end_date])->sum('amount');
         $this->holdTransactions =  Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->get();
 
        // $this->holdTransactions = Cart::where('user_id', auth()->user()->id)->where('status', Cart::STATUS_HOLD)->get();

@@ -14,14 +14,14 @@
                  $sumqty=0;
 
             @endphp
-            @foreach($holdTransactions as $transaction)
+            @foreach($holdTransactions as $sid => $transaction)
             @php
                 foreach ($transaction->items as $key =>$item) {
                    $sumqty+=$item['quantity'];
                 }
             @endphp
                 <tr>
-                    <td>HOLD-{{ $transaction->id }}</td>
+                    <td>HOLD-{{ $sid+1 }}</td>
                     <td>{{ $transaction->created_at->format('d-m-Y H:i') }}</td>
                     <td>{{ $sumqty }}</td>
                     <td>₹{{ number_format($transaction->total ?? 0, 2) }}</td>
