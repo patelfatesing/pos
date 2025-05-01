@@ -14,11 +14,16 @@ class ShiftClosingController extends Controller
 {
     public function store(Request $request)
     {
-        
-        if (!$request->has('closingCash') || !is_numeric($request->closingCash)) {
+        if (empty($request->closingCash)) {
+           
             return redirect()->back()->with('notification-error', 'Closing cash is required and must be numeric.');
-    
+            
         }
+        if (empty($request->start_time)) {
+            return redirect()->back()->with('notification-error', 'Start time is required and must be numeric.');
+        }
+      
+        
         // $validated = $request->validate([
         //     'opening_cash' => 'required',
         //     'closingCash' => 'required',
@@ -55,11 +60,11 @@ class ShiftClosingController extends Controller
         $shift->cash_discrepancy = str_replace(',', '', $request->diffCash);
         $shift->closing_cash = str_replace(',', '', $request->closingCash);
         $shift->cash_break_id = $CashBreakdown->id;
-        $shift->deshi_sales = str_replace(',', '', @$request->Desi); // Using @ to suppress any potential error (if variable is not set)
-        $shift->beer_sales = str_replace(',', '', $request->BEER_SALES);
-        $shift->english_sales = str_replace(',', '', $request->ENGLISH_SALES);
-        $shift->upi_payment = str_replace(',', '', $request->UPI_PAYMENT);
-        $shift->withdrawal_payment = str_replace(',', '', $request->WITHDRAWAL_PAYMENT);
+        $shift->deshi_sales = str_replace(',', '', @$request->DESI ?? 0); // Using @ to suppress any potential error (if variable is not set)
+        $shift->beer_sales = str_replace(',', '', @$request->BEER ?? 0);
+        $shift->english_sales = str_replace(',', '', $request->ENGLISH ?? 0);
+        $shift->upi_payment = str_replace(',', '', $request->UPI_PAYMENT ?? 0);
+        $shift->withdrawal_payment = str_replace(',', '', $request->WITHDRAWAL_PAYMENT ?? 0);
         $shift->cash = str_replace(',', '', $request->diffCash); // Assuming you want to store the same cash discrepancy here
         $shift->status = 'completed';  // Assuming you want to mark it as closed after shift ends
         $shift->save();
@@ -85,6 +90,8 @@ class ShiftClosingController extends Controller
         
         $shift = UserShift::where('user_id', $user_id)
         ->where('branch_id', $branch_id)
+        ->where('status', 'pending')
+        ->whereDate('start_time', now()->toDateString())
         ->first();
 
         if (!$shift) {
@@ -98,13 +105,13 @@ class ShiftClosingController extends Controller
         // check if withdraw exceeds available balance (after invoices)
         $availableBalance =$totalInvoicedAmount;
 
-        if ($withdrawAmount > $availableBalance) {
-            return redirect()->back()->with('error', 'Withdrawal exceeds available balance!');
+        // if ($withdrawAmount > $availableBalance) {
+        //     return redirect()->back()->with('error', 'Withdrawal exceeds available balance!');
 
-        }
+        // }
 
         // proceed with withdrawal
-        $shift->opening_cash -= $withdrawAmount;
+      //  $shift->opening_cash -= $withdrawAmount;
         $shift->save();
         // $user = User::find($user_id);
         // $user->is_login = 'No';

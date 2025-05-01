@@ -4,6 +4,11 @@
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 @section('page-content')
     <style>
+        .table-success, .table-success > th, .table-success > td {
+    background-color: #d9ede0;
+}
+
+
            .btn.rounded-circle {
         width: 40px;
         height: 40px;
