@@ -54,3 +54,10 @@ if (!function_exists('getNotificationsByCreatedBy')) {
                            ->get();
     }
 }
+if (!function_exists('format_inr')) {
+    function format_inr($amount)
+    {
+        $sign = $amount < 0 ? '-' : '';
+        return $sign . '₹' . number_format(abs($amount), 2);
+    }
+}
