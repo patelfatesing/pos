@@ -1040,13 +1040,14 @@ class Shoppingcart extends Component
 
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
         $getNotification=getNotificationsByNotifyTo(auth()->id(),$branch_id,10);
-      //  print_r($this->quantities);
+    //    dd($getNotification);
         return view('livewire.shoppingcart', [
             'itemCarts' => $itemCarts,
             'narrations' => $this->narrations,
             'searchResults' => $this->searchTerm,
             'stores'=>$stores,
             'products'=>$products,
+            'allProducts'=>$products,
             'data'=>$data,
             'getNotification'=>$getNotification,
 

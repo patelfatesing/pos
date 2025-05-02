@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'LiquorHub'),
 
     /*
     |--------------------------------------------------------------------------
@@ -122,6 +122,9 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
-    
+    'providers' => [
+    Maatwebsite\Excel\ExcelServiceProvider::class,
+],
+
 
 ];

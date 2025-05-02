@@ -12,7 +12,7 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between">
                                 <div class="header-title">
-                                    <h4 class="card-title">Add Product</h4>
+                                    <h4 class="card-title">Import Product</h4>
                                 </div>
                                 <div>
                                     <a href="{{ route('products.list') }}" class="btn btn-secondary">Back</a>
@@ -21,7 +21,7 @@
 
                             <div class="card-body">
                                 <div class="container">
-                                    <h2>Upload Excel File</h2>
+                                    <h2>Upload CSV File</h2>
 
                                     @if (session('success'))
                                         <div class="alert alert-success">{{ session('success') }}</div>
@@ -31,7 +31,7 @@
                                         enctype="multipart/form-data">
                                         @csrf
                                         <div class="form-group">
-                                            <label>Select Excel File</label>
+                                            <label>Select Csv File</label>
                                             <input type="file" name="file" class="form-control" required>
                                         </div>
                                         <button class="btn btn-primary mt-2" type="submit">Upload</button>

@@ -42,7 +42,7 @@
                                             </select>
                                             @error('items')
                                                     <span class="text-danger">{{ $message }}</span>
-                                                @enderror
+                                            @enderror
                                             <input type="number" name="items[0][quantity]"
                                                 class="form-control d-inline w-25 ms-2" placeholder="Qty" min="1"
                                                 required>

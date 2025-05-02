@@ -14,6 +14,9 @@ class StockRequest extends Model
 
     protected $casts = [
         'requested_at' => 'datetime',
+        'approved_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'
     ];
 
     public function branch(): BelongsTo {

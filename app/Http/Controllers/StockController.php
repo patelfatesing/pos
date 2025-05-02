@@ -151,9 +151,11 @@ class StockController extends Controller
                     ->where('users.id', Auth::id())
                     ->where('is_deleted', 'no')
                     ->firstOrFail();
+
     
         $branch_id = $data->userInfo->branch_id;
         
+
             $stockRequest = StockRequest::create([
                 'store_id' => 1,
                 'requested_by' => $branch_id,
@@ -172,10 +174,31 @@ class StockController extends Controller
                 ]);
             }
 
+            $items = $request->input('items');
+            // Total distinct products
+            $total_product = count($items);
+
+            // Total quantity
+            $total_quantity = collect($items)->sum('quantity');
+                    // 🔄 Update totals
+
+        $stockRequest->update([
+            'total_product' => $total_product,
+            'total_quantity' => $total_quantity
+        ]);
+
+        $stores = Branch::select('name')->find($branch_id);
+        
+
+        $arr['id'] = $stockRequest->id;
+        $arr['store_id'] = $branch_id;
+        sendNotification('request_stock', $stores->name.' some Product is stock request',null, $branch_id,json_encode($arr));
+               
             DB::commit();
-            return redirect()->route('stock.requestList')->with('success', 'Stock request submitted successfully.');
+            return redirect()->back()->with('success', 'Stock request submitted successfully.');
 
         } catch (\Exception $e) {
+            dd($e->getMessage());
             DB::rollback();
             return back()->with('error', 'Failed to submit stock request: ' . $e->getMessage());
         }
@@ -222,8 +245,9 @@ class StockController extends Controller
             $branch = Branch::where('id', $request['store_id'])->first();
 
             $arr['id'] = $stockRequest->id;
+            $arr['store_id'] = $request['store_id'];
 
-            sendNotification('request_stock', $branch->name.' store is stock request',null, Auth::id(),json_encode($arr));
+            sendNotification('request_stock', $branch->name.' store is stock request',null, $branch_id,json_encode($arr));
 
             DB::commit();
             return redirect()->route('stock.requestList')->with('success', 'Stock request submitted successfully.');
@@ -351,7 +375,6 @@ class StockController extends Controller
     public function view($id)
     {
         $stockRequest = StockRequest::with(['branch', 'user', 'items.product'])->findOrFail($id);
-        
         return view('stocks.view', compact('stockRequest'));
     }
 
@@ -733,12 +756,15 @@ class StockController extends Controller
                 }
             }
             
-
             $stockRequest->status = 'approved';
             $stockRequest->approved_by = Auth::id();
             $stockRequest->approved_at = now();
             $stockRequest->save();
 
+            $arr['id'] = $stockRequest->id;
+            // $arr['store_id'] = $branch_id;
+            sendNotification('approved_stock', 'Admin your stock request has been approved',$request->from_store_id, Auth::id(),json_encode($arr));
+          
             DB::commit();
             return response()->json(['status' => 'success', 'message' => 'Approved successfully.']);
         } catch (\Exception $e) {
