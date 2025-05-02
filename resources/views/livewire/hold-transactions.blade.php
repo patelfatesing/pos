@@ -10,12 +10,11 @@
             </tr>
         </thead>
         <tbody>
-            @php
-                 $sumqty=0;
-
-            @endphp
+           
             @foreach($holdTransactions as $sid => $transaction)
             @php
+                $sumqty=0;
+
                 foreach ($transaction->items as $key =>$item) {
                    $sumqty+=$item['quantity'];
                 }
@@ -26,8 +25,11 @@
                     <td>{{ $sumqty }}</td>
                     <td>₹{{ number_format($transaction->total ?? 0, 2) }}</td>
                     <td>
-                        <button wire:click="resumeTransaction({{ $transaction->id }})" class="btn btn-success btn-sm">
+                         <button wire:click="resumeTransaction({{ $transaction->id }})" class="btn btn-success btn-sm">
                             Resume
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="confirmDelete({{ $transaction->id }})">
+                            Delete
                         </button>
                     </td>
                 </tr>
@@ -35,3 +37,26 @@
         </tbody>
     </table>
 </div>
+
+<script>
+    function confirmDelete(transactionId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                @this.call('deleteTransaction', transactionId);
+                Swal.fire(
+                    'Deleted!',
+                    'The transaction has been deleted.',
+                    'success'
+                );
+            }
+        });
+    }
+</script>

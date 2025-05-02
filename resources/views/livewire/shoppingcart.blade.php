@@ -164,7 +164,7 @@
                                 <td style="width: 10%;">
                                     @if (@$item->product->discount_price && $this->commissionAmount > 0)
                                         <span class="text-danger">
-                                            ₹{{ number_format(@$item->product->discount_price, 2) }}
+                                            ₹{{ number_format(@$item->product->sell_price-$item->product->discount_price, 2) }}
                                         </span>
                                         <br>
                                         <small class="text-muted">
@@ -172,13 +172,12 @@
                                         </small>
                                     @else
                                         <span class="text-danger">
-                                            ₹{{ number_format(@$item->product->sell_price, 2) }}
+                                            ₹{{ number_format(@$item->product->sell_price-$this->partyAmount, 2) }}
                                         </span>
                                         @if ($this->partyAmount > 0)
                                             <br>
                                             <small class="text-muted">
-
-                                                <s>₹{{ number_format(@$this->partyAmount, 2) }}</s>
+                                                <s>₹{{ number_format(@$item->product->sell_price, 2) }}</s>
                                             </small>
                                         @endif
                                     @endif
@@ -416,12 +415,17 @@
                                                     <div class="card-body p-0">
                                                         <ul class="list-group list-group-flush">
                                                             @foreach ($items as $key => $value)
+                                                                @php
+                                                                    $grenClass = $key == 'TOTAL' ? 'table-success fw-bold' : '';
+
+                                                                @endphp
                                                                 <li
-                                                                    class="list-group-item d-flex justify-content-between align-items-center">
+                                                                    class="list-group-item d-flex justify-content-between align-items-center {{$grenClass}}">
                                                                     <span
                                                                         class="text-muted">{{ ucwords(str_replace('_', ' ', $key)) }}</span>
                                                                     <span
-                                                                        class="fw-bold">₹{{ number_format($value) }}</span>
+                                                                        class="fw-bold">
+                                                                        {{ format_inr($value) }}</span>
                                                                     <input type="hidden" name="{{ $key }}"
                                                                         id="{{ $key }}"
                                                                         value="{{ number_format($value) }}">
@@ -473,8 +477,8 @@
                                                 <thead class="table-light">
                                                     <tr>
                                                         <th>Denomination</th>
-                                                        <th>Qty</th>
-                                                        <th>*</th>
+                                                        <th>Notes</th>
+                                                        <th>x</th>
                                                         <th>Amount</th>
                                                         <th>=</th>
                                                         <th>Total</th>
@@ -493,8 +497,8 @@
                                                             <tr>
                                                                 <td class="fw-bold">{{ number_format($denomination) }}
                                                                 </td>
-                                                                <td>{{ $quantity }}</td>
-                                                                <td>*</td>
+                                                                <td>{{ abs($quantity) }}</td>
+                                                                <td>X</td>
                                                                 <td>{{ number_format($denomination) }}</td>
                                                                 <td>=</td>
                                                                 <td class="fw-bold">{{ number_format($rowTotal) }}
@@ -509,7 +513,8 @@
                                                 <tfoot class="table-light">
                                                     <tr>
                                                         <th colspan="5" class="text-end">Total</th>
-                                                        <th class="fw-bold">{{ number_format(@$totalNotes) }}</th>
+                                                        <th class="fw-bold">
+                                                            {{ format_inr(@$totalNotes) }}
                                                     </tr>
                                                 </tfoot>
                                             </table>
@@ -531,12 +536,23 @@
                                                         </td>
                                                     </tr>
                                                     <tr>
+                                                        <td class="text-start fw-bold">Total Cash Amount</td>
+                                                        <td class="text-end">{{ @$totalNotes+@$shift->opening_cash }}
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
                                                         <td class="text-start fw-bold">Closing Cash</td>
                                                         <td class="text-end">
-                                                            <input type="text" name="closingCash" id="closingCash"
-                                                                class="form-control"
-                                                                oninput="calculateDifference({{ @$totalNotes }})"
-                                                                required>
+                                                            <input type="number"
+                                                            name="closingCash"
+                                                            id="closingCash"
+                                                            class="form-control"
+                                                            oninput="calculateDifference({{ @$totalNotes+@$shift->opening_cash }})"
+                                                            min="0"
+                                                            step="0.01"
+                                                            placeholder="Enter closing cash"
+                                                            required>
+                                                     
                                                         </td>
                                                     </tr>
                                                     <tr>
@@ -594,7 +610,7 @@
                                             <thead class="table-light">
                                                 <tr>
                                                     <th>Currency</th>
-                                                    <th>Nos</th>
+                                                    <th>Notes</th>
                                                     <th>Amount</th>
                                                 </tr>
                                             </thead>
@@ -857,7 +873,7 @@
                                                         class="fa fa-plus"></i></button>
                                             </div>
                                         </td>
-                                        <td id="cashhandsum_{{ $denomination }}">₹0</td>
+                                        <td id="discashhandsum_{{ $denomination }}">₹0</td>
                                     </tr>
                                 @endforeach
                                 <tr>
@@ -1826,9 +1842,35 @@
     // });
 </script>
 <script>
+   
+   const encoded ="{{$this->availableNotes}}";
+    // Decode HTML entities
+    let decoded = new DOMParser().parseFromString(encoded, "text/html").documentElement.textContent;
+
+    // Now parse JSON
+    let availableNotes = JSON.parse(decoded);
+   
     function updateNote(id, delta, denomination) {
         const input = document.getElementById('withcashnotes_' + id);
         let current = parseInt(input.value || 0);
+
+        // Always treat denomination key as string
+        const key = denomination.toString();
+        const maxNotes = availableNotes[key];
+
+        // If delta > 0 (trying to add note) and either:
+        // 1. Note is not listed (undefined), or
+        // 2. Max notes is 0 or less, or
+        // 3. Already reached the limit
+        if (delta > 0 && (!maxNotes || current >= maxNotes)) {
+            Swal.fire({
+                title: 'Note Limit Reached',
+                text: `No more ₹${denomination} notes available.`,
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
 
         current += delta;
         if (current < 0) current = 0;
@@ -1944,15 +1986,53 @@
 </script>
 <script>
     function calculateDifference(expectedAmount) {
-        // Get the value entered in the closingCash input
-        const closingCash = parseFloat(document.getElementById('closingCash').value) || 0;
+    const closingCashInput = document.getElementById('closingCash');
+    const diffCashInput = document.getElementById('diffCash');
+    const closingCashValue = closingCashInput.value.trim();
 
-        // Calculate the difference (for example, assume a static value for calculation)
-        const diffCash = closingCash - expectedAmount;
-
-        // Update the diffCash input with the calculated value
-        document.getElementById('diffCash').value = diffCash.toFixed(2);
+    // Validate input
+    if (closingCashValue === '') {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Missing Input',
+            text: 'Please enter the closing cash amount.',
+        });
+        closingCashInput.focus();
+        diffCashInput.value = '';
+        return;
     }
+
+    const closingCash = parseFloat(closingCashValue);
+
+    if (isNaN(closingCash)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Input',
+            text: 'Closing cash must be a valid number.',
+        });
+        closingCashInput.focus();
+        diffCashInput.value = '';
+        return;
+    }
+
+    if (closingCash < 0) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Amount',
+            text: 'Closing cash cannot be negative.',
+        });
+        closingCashInput.focus();
+        diffCashInput.value = '';
+        return;
+    }
+
+    // Calculate the difference
+    const diffCash = closingCash - expectedAmount;
+
+    // Update the diffCash input with the calculated value
+    diffCashInput.value = diffCash.toFixed(2);
+}
+
 
     function updateAmounts() {
         let total = 0;
@@ -1961,6 +2041,9 @@
             const denomination = parseInt(input.dataset.denomination);
             const quantity = parseInt(input.value) || 0;
             const amount = denomination * quantity;
+            
+            document.getElementById('discashhandsum_' + denomination).innerText = '₹' + amount;
+
             document.getElementById('cashhandsum_' + denomination).innerText = '₹' + amount;
             total += amount;
             amountInput.value = total;
