@@ -3,5 +3,5 @@
 return [
     App\Providers\AppServiceProvider::class,
     Barryvdh\DomPDF\ServiceProvider::class,
-    Maatwebsite\Excel\ExcelServiceProvider::class,
+   // Maatwebsite\Excel\ExcelServiceProvider::class,
 ];
