@@ -1,8 +1,3 @@
-<style>
-    .popup-notifications {
-        z-index: 999;
-    }
-</style>
 <div class="row ">
 
     <div class="col-md-7 no-print">
@@ -16,7 +11,8 @@
 
             <!-- Right Side: Sidebar Toggle Button -->
             <div class="iq-menu-bt-sidebar">
-                <h4 class="text-right mb-0 font-weight-bold">Store Location: <span
+
+                <h4 class="text-right mb-0 font-weight-bold">{{ __('messages.store_location') }}<span
                         class="text-muted">{{ $this->branch_name }}</span></h4>
             </div>
         </div>
@@ -116,11 +112,11 @@
                 <table class="table table-bordered" id="cartTable">
                     <thead class="thead-light">
                         <tr>
-                            <th style="width: 40%;">Product</th>
-                            <th style="width: 20%;">Qty</th>
-                            <th style="width: 10%;">Price</th>
-                            <th style="width: 10%;">Total</th>
-                            <th style="width: 8%;">Actions</th>
+                            <th style="width: 40%;">{{ __('messages.product') }}</th>
+                            <th style="width: 20%;">{{ __('messages.qty') }}</th>
+                            <th style="width: 10%;">{{ __('messages.price') }}</th>
+                            <th style="width: 10%;">{{ __('messages.total') }}</th>
+                            <th style="width: 8%;">{{ __('messages.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -157,6 +153,7 @@
                                                 class="form-control form-control-sm mx-2 text-center"
                                                 wire:model="quantities.{{ $item->id }}"
                                                 wire:change="updateQty({{ $item->id }})" />
+                                                
                                             {{-- <div id="numpad" class="numpad" style="display: none;"></div> --}}
                                             {{-- <input type="number" value="{{$this->quantities[$item->id]}}" wire:change="updateQty({{ $item->id }})" 
                                             class="form-control form-control-sm mx-2 text-center"
@@ -217,10 +214,11 @@
                 <table class="table table-bordered text-center mb-0">
                     <thead class="">
                         <tr>
-                            <th>Qty</th>
-                            <th>Action</th>
-                            <th>Rounded Off</th>
-                            <th>Total Payable</th>
+                            <th>{{ __('messages.qty') }}</th>
+                            <th>{{ __('messages.actions') }}</th>
+                            <th>{{ __('messages.rounded_off') }}</th>
+                            <th>{{ __('messages.total_payable') }}</th>
+
                         </tr>
                     </thead>
                     <tbody>
@@ -530,19 +528,20 @@
                                         <div class="table-responsive mt-4">
                                             <table class="table table-sm">
                                                 <tbody>
-                                                    <tr>
+                                                    {{-- <tr>
                                                         <td class="text-start fw-bold">Opening Cash</td>
                                                         <td class="text-end">
                                                             {{ number_format($shift->opening_cash ?? 0, 2) }}</td>
-                                                    </tr>
+                                                    </tr> --}}
                                                     <tr>
-                                                        <td class="text-start fw-bold">System Cash</td>
-                                                        <td class="text-end">{{ number_format($totalNotes ?? 0, 2) }}
+                                                        <td class="text-start fw-bold">System Cash Sales</td>
+                                                        <td class="text-end">{{ format_inr($totalNotes ?? 0) }}
                                                         </td>
                                                     </tr>
                                                     <tr>
+                                                      
                                                         <td class="text-start fw-bold">Total Cash Amount</td>
-                                                        <td class="text-end">{{ @$totalNotes+@$shift->opening_cash }}
+                                                        <td class="text-end">{{ format_inr(@$this->categoryTotals['summary']['TOTAL']) }}
                                                         </td>
                                                     </tr>
                                                     <tr>
@@ -552,7 +551,7 @@
                                                             name="closingCash"
                                                             id="closingCash"
                                                             class="form-control"
-                                                            oninput="calculateDifference({{ @$totalNotes+@$shift->opening_cash }})"
+                                                            oninput="calculateDifference({{ @$this->categoryTotals['summary']['TOTAL'] }})"
                                                             min="0"
                                                             step="0.01"
                                                             placeholder="Enter closing cash"
@@ -614,9 +613,10 @@
                                         <table class="table table-bordered align-middle text-center">
                                             <thead class="table-light">
                                                 <tr>
-                                                    <th>Currency</th>
-                                                    <th>Notes</th>
-                                                    <th>Amount</th>
+                                                    <th>{{ __('messages.currency') }}</th>
+                                                    <th>{{ __('messages.notes') }}</th>
+                                                    <th>{{ __('messages.amount') }}</th>
+
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -904,33 +904,6 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const inputs = document.querySelectorAll('.note-input');
-            const totalCashDisplay = document.getElementById('totalNoteCashNew');
-            const amountInput = document.getElementById('amountTotal');
-
-            function updateTotals() {
-                let total = 0;
-                inputs.forEach(input => {
-                    const denom = parseInt(input.dataset.denomination);
-                    const qty = parseInt(input.value) || 0;
-                    const sum = denom * qty;
-                    document.getElementById(`cashsum_${denom}`).innerText = `₹${sum}`;
-                    total += sum;
-                });
-                totalCashDisplay.innerText = `₹${total}`;
-                amountInput.value = total;
-            }
-
-            inputs.forEach(input => {
-                input.addEventListener('input', updateTotals);
-            });
-
-            // Initial calculation
-            updateTotals();
-        });
-    </script>
 
     <div class="col-md-5 no-print">
         {{-- @include('layouts.flash-message') --}}
@@ -983,6 +956,7 @@
                                 title="Close Shift">
                                 <i class="fas fa-door-closed"></i>
                             </button>
+                            <livewire:language-switcher />
 
                             {{-- Logout --}}
                             <button type="button" class="btn btn-outline-danger ml-2" data-toggle="tooltip"
@@ -1008,7 +982,7 @@
             <div class="card-header">
                 <div class="row">
                     <div class="col-md-6">
-                        <h5 class="mb-3">{{ $this->headertitle }} Summary</h5>
+                        <h5 class="mb-3">{{ $this->headertitle }}  Summary</h5>
                     </div>
                 </div>
 
@@ -1381,7 +1355,9 @@
     </div>
 
     @if ($invoiceData)
-        @include('livewire.printinvoice')
+        <div class="print-only">
+            @include('livewire.printinvoice')
+        </div>
     @endif
 
 
@@ -1759,7 +1735,6 @@
             Livewire.dispatch('loadHoldTransactions');
         });
     });
-
     $(document).ready(function() {
 
         //  // Set your shift end time here
@@ -2094,8 +2069,10 @@
             updateAmounts();
         });
     });
+</script>
 
-    let itemIndex = 1;
+<script>
+        let itemIndex = 1;
     document.getElementById('add-item').addEventListener('click', function() {
         const row = document.querySelector('.item-row').cloneNode(true);
         row.querySelectorAll('select, input').forEach(el => {
@@ -2114,5 +2091,30 @@
                 e.target.closest('.item-row').remove();
             }
         }
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputs = document.querySelectorAll('.note-input');
+        const totalCashDisplay = document.getElementById('totalNoteCashNew');
+        const amountInput = document.getElementById('amountTotal');
+
+        function updateTotals() {
+            let total = 0;
+            inputs.forEach(input => {
+                const denom = parseInt(input.dataset.denomination);
+                const qty = parseInt(input.value) || 0;
+                const sum = denom * qty;
+                document.getElementById(`cashsum_${denom}`).innerText = `₹${sum}`;
+                total += sum;
+            });
+            totalCashDisplay.innerText = `₹${total}`;
+            amountInput.value = total;
+        }
+
+        inputs.forEach(input => {
+            input.addEventListener('input', updateTotals);
+        });
+
+        // Initial calculation
+        updateTotals();
     });
 </script>

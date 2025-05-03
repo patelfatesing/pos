@@ -35,7 +35,9 @@ class Product extends Model
 
     public function inventories()
     {
-        return $this->hasMany(Inventory::class);
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
+        return $this->hasMany(Inventory::class)->where('store_id', $branch_id);
     }
     public function inventorie()
     {
