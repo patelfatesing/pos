@@ -7,7 +7,9 @@
         .table-success, .table-success > th, .table-success > td {
     background-color: #d9ede0;
 }
-
+.popup-notifications {
+        z-index: 999;
+    }
 
            .btn.rounded-circle {
         width: 40px;

@@ -22,7 +22,8 @@ use App\Models\User;
 use App\Models\CreditHistory;
 use App\Models\DiscountHistory;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Session;
 
 class Shoppingcart extends Component
 {
@@ -45,7 +46,6 @@ class Shoppingcart extends Component
         'Travel Expenses',
         'Other'
     ];
-
     public $errorInCredit = false;
     public $changeAmount = 0;
     public $showBox = false;
@@ -98,6 +98,8 @@ class Shoppingcart extends Component
     public $selectedProduct;
     public $holdTransactions=[];
     public $headertitle="";
+    public $language;
+
     
     public function updatedSearch($value)
     {
@@ -364,8 +366,17 @@ class Shoppingcart extends Component
         }
         return $total;
     }
+    public function updatedLanguage($value)
+    {
+        Session::put('locale', $value);
+        App::setLocale($value);
+        $this->language = $value; // Update the language property
+        $this->dispatch('language-updated', ['language' => $value]); // Notify frontend
+    }
     public function mount()
     {
+        $this->language = Session::get('locale') ?? config('app.locale');
+
         $this->branch_name = (!empty(auth()->user()->userinfo->branch->name)) ? auth()->user()->userinfo->branch->name : "";
 
         $today = Carbon::today();
@@ -1301,15 +1312,57 @@ class Shoppingcart extends Component
             $partyUser = PartyUser::find($this->selectedPartyUser);
             $cartitems = $this->cartitems;
 
-            
-            $productQtyp=0;
-            foreach ($cartitems as $key => $cartitem) {
-                $product = $cartitem->product->inventorie;
-                $productQtyp+=$product->quantity;
-                if ($product && $cartitem->quantity <$product->quantity) {
-                 //   dd($product->quantity,$cartitem->quantity);
-                    $product->quantity -= $cartitem->quantity;
-                    $product->save();
+            // $productQtyp = 0;
+            // foreach ($cartitems as $key => $cartitem) {
+            //     $inventories = $cartitem->product->inventories;
+
+            //     foreach ($inventories as $inventory) {
+            //         if ($cartitem->quantity > 0 && $inventory->quantity > 0) {
+            //             $deductQty = min($cartitem->quantity, $inventory->quantity);
+            //             $inventory->quantity -= $deductQty;
+            //             $inventory->save();
+            //         }
+
+            //         if ($cartitem->quantity <= 0) {
+            //             break;
+            //         }
+            //     }
+            // }
+
+            // Group by product ID and sum total quantity
+            $groupedProducts = [];
+
+            foreach ($this->cartitems as $cartitem) {
+                
+                $productId = $cartitem->product_id;
+                if (!isset($groupedProducts[$productId])) {
+                    $groupedProducts[$productId] = 0;
+                }
+                $groupedProducts[$productId] += $cartitem->quantity;
+            }
+            // Loop through each product group and deduct from inventories
+            foreach ($groupedProducts as $productId => $totalQuantity) {
+                $product = $this->cartitems->firstWhere('product_id', $productId)->product;
+                $inventories = $product->inventories;
+
+                if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
+                    // Deduct only from the first inventory if it has enough quantity
+                    $inventories[0]->quantity -= $totalQuantity;
+                    $inventories[0]->save();
+                } else {
+                    // Deduct from all inventories if the first one doesn't have enough
+                    foreach ($inventories as $inventory) {
+                        if ($totalQuantity <= 0) {
+                            break;
+                        }
+
+                        if ($inventory->quantity > 0) {
+                            $deductQty = min($totalQuantity, $inventory->quantity);
+                            $inventory->quantity -= $deductQty;
+                            $inventory->save();
+                            $totalQuantity -= $deductQty;
+                        }
+                    }
                 }
             }
             if ($this->paymentType == "cash") {

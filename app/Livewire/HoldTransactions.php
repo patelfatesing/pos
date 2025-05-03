@@ -20,10 +20,9 @@ class HoldTransactions extends Component
         $today = Carbon::today();
 
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
-        $currentShift = UserShift::whereDate('created_at', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' =>"pending"])->first();
+        $currentShift = UserShift::whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' =>"pending"])->first();
         $start_date = @$currentShift->start_time; // your start date (set manually)
-        $end_date = $currentShift->end_date ??date('Y-m-d H:i:s')
-        ; // your start date (set manually)
+        $end_date = $currentShift->end_date ??date('Y-m-d H:i:s'); // your start date (set manually)
 
         $this->holdTransactions =  Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->whereBetween('created_at', [$start_date, $end_date])->get();
         
