@@ -1,3 +1,8 @@
+<style>
+    .popup-notifications {
+        z-index: 999;
+    }
+</style>
 <div class="row ">
 
     <div class="col-md-7 no-print">
@@ -706,15 +711,17 @@
                                                 value="{{ @$data->userInfo->branch_id }}">
                                         </div>
                                        
+
                                         <div id="product-items">
                                             <h5>Products</h5>
                                             <div class="item-row mb-3">
-                                                <select name="" class="form-control d-inline w-50"
+
+                                                <select name="items[0][product_id]" class="form-control d-inline w-50"
                                                     required>
                                                     <option value="">-- Select Product --</option>
-                                                    @foreach ($products as $product)
+                                                    @foreach ($allProducts as $product)
                                                         <option value="{{ $product->id }}">{{ $product->name }}
-                                                            ({{ $product->name }})
+                                                            ({{ $product->sku }})
                                                         </option>
                                                     @endforeach
                                                 </select>
@@ -750,6 +757,7 @@
             </div>
         </div>
     </div>
+
     <div class="modal fade no-print" id="warehouseStockRequest" tabindex="-1"
         aria-labelledby="warehouseStockRequest" aria-hidden="true" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-dialog-scrollable modal-mg">
@@ -1435,6 +1443,14 @@
     window.onafterprint = () => {
         window.location.reload();
     };
+
+    window.addEventListener('DOMContentLoaded', function() {
+        $('#storeStockRequest').modal('hide');
+    });
+    
+    window.addEventListener('DOMContentLoaded', function() {
+        $('#warehouseStockRequest').modal('hide');
+    });
 </script>
 
 <!-- Script to show modal -->
@@ -1743,6 +1759,7 @@
             Livewire.dispatch('loadHoldTransactions');
         });
     });
+
     $(document).ready(function() {
 
         //  // Set your shift end time here
@@ -2076,5 +2093,26 @@
         input.addEventListener('input', function() {
             updateAmounts();
         });
+    });
+
+    let itemIndex = 1;
+    document.getElementById('add-item').addEventListener('click', function() {
+        const row = document.querySelector('.item-row').cloneNode(true);
+        row.querySelectorAll('select, input').forEach(el => {
+            const name = el.getAttribute('name');
+            const updatedName = name.replace(/\[\d+\]/, `[${itemIndex}]`);
+            el.setAttribute('name', updatedName);
+            if (el.tagName === 'INPUT') el.value = '';
+        });
+        document.getElementById('product-items').appendChild(row);
+        itemIndex++;
+    });
+
+    document.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('remove-item')) {
+            if (document.querySelectorAll('.item-row').length > 1) {
+                e.target.closest('.item-row').remove();
+            }
+        }
     });
 </script>
