@@ -2,11 +2,23 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
 @section('page-content')
     <style>
         .table-success, .table-success > th, .table-success > td {
     background-color: #d9ede0;
 }
+.note-btn {
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        font-size: 14px;
+        border-radius: 50%;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
 .popup-notifications {
         z-index: 999;
     }
@@ -96,7 +108,22 @@
                 overflow-y: auto;
             }
         }
-        
+         #iframe-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            display: none; /* Initially hidden */
+            width: 100%;      /* Adjust width as needed */
+            height: 90vh;    /* Adjust height as needed */
+        }
     </style>
     <livewire:shoppingcart />
+    <div id="iframe-container"></div>
+
 @endsection
