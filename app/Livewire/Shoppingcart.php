@@ -355,18 +355,40 @@ class Shoppingcart extends Component
       }
     public function cashupitoggleBox()
     {
-        if (!empty($this->products->toArray())) {
-            $this->showBox = false;
-            $this->shoeCashUpi = true;
-            $this->paymentType = "cashupi";
-            $this->headertitle="Cash + UPI";
+        if (auth()->user()->hasRole('warehouse')) {
+            if (empty($this->selectedPartyUser)) {
+                $this->dispatch('notiffication-error', ['message' => 'Please selecte party customer.']);
+    
+            }else{
 
-            $this->total = $this->cashAmount;
-            
-
-        } else {
-            session()->flash('error', 'add minimum one product');
-            $this->dispatch('alert_remove');
+                if (!empty($this->products->toArray())) {
+                    $this->showBox = false;
+                    $this->shoeCashUpi = true;
+                    $this->paymentType = "cashupi";
+                    $this->headertitle="Cash + UPI";
+        
+                    $this->total = $this->cashAmount;
+                    
+        
+                } else {
+                    session()->flash('error', 'add minimum one product');
+                    $this->dispatch('alert_remove');
+                }
+            }
+        }else{
+            if (!empty($this->products->toArray())) {
+                $this->showBox = false;
+                $this->shoeCashUpi = true;
+                $this->paymentType = "cashupi";
+                $this->headertitle="Cash + UPI";
+    
+                $this->total = $this->cashAmount;
+                
+    
+            } else {
+                session()->flash('error', 'add minimum one product');
+                $this->dispatch('alert_remove');
+            }
         }
     }
     public function processRefund()

@@ -15,12 +15,15 @@
       <link rel="stylesheet" href="../assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css">
       <link rel="stylesheet" href="../assets/vendor/remixicon/fonts/remixicon.css"> 
     <style>
+      .card{
+        border-radius: 0% ! important;
+      }
       .text-red
       {
         color: red;
       }
         .content-page{
-            padding: 1%;
+            padding: 0%;
             margin: 0%
         }
         .toast {

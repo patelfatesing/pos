@@ -69,7 +69,6 @@
             border-collapse: separate;
             border-spacing: 0;
             border: 1px solid #ccc;
-            border-radius: 12px;
         }
 
         .cart-table-scroll.scrollable {
@@ -122,6 +121,18 @@
             width: 100%;      /* Adjust width as needed */
             height: 90vh;    /* Adjust height as needed */
         }
+        .small-table {
+        width: 200px;         /* Reduce overall width */
+        font-size: 12px;      /* Smaller font */
+        border-collapse: collapse;
+        }
+
+        .small-table th, .small-table td {
+        padding: 4px 8px;     /* Smaller cell padding */
+        height: 25px;         /* Decrease row height */
+        border: 1px solid #ccc;
+        }
+
     </style>
     <livewire:shoppingcart />
     <div id="iframe-container"></div>
