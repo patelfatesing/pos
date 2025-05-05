@@ -236,10 +236,11 @@ class Shoppingcart extends Component
                     $item->quantity = $value['quantity'];
                     $item->amount = $value['mrp'];
                     $item->discount = $this->selectedSalesReturn->party_amount;
-                    $item->net_amount = $this->selectedSalesReturn->cash_amount + $this->selectedSalesReturn->creditpay;
+                    $item->net_amount = ($value['price'] );
                     $item->save();
                 }
             }
+            //$this->cashAmount = $this->selectedSalesReturn->creditpay;
             // $this->updateQty($item->id);
             $this->dispatch('updateNewProductDetails');
         
@@ -882,6 +883,8 @@ class Shoppingcart extends Component
             }
             $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
             $invoice_number = 'Hold-' . strtoupper(Str::random(8));
+            $commissionUser = CommissionUser::find($this->selectedCommissionUser);
+            $partyUser = PartyUser::find($this->selectedPartyUser);
             $invoice = Invoice::create([
                 'user_id' => auth()->id(),
                 'branch_id' => $branch_id,
@@ -949,7 +952,12 @@ class Shoppingcart extends Component
         $getSignlecart = Cart::where(['user_id' => auth()->user()->id])->find($itemId);
         
         //$currentQty=$this->cartCount+1;
-        $currentQty=$this->quantities[$itemId] +1;
+        if(!empty($this->quantities[$itemId])){
+            $currentQty=$this->quantities[$itemId] +1;
+
+        }else{
+            $currentQty=1;
+        }
 
         // Fetch product with inventory
         
@@ -1099,7 +1107,9 @@ class Shoppingcart extends Component
             
         if ($item) {
             $curtDiscount=$item->discount/$item->quantity;
-            $totalQuantity = collect(@$this->selectedSalesReturn->items)->sum('quantity');
+            $totalQuantity = collect(@$this->selectedSalesReturn->items)
+                ->where('product_id', $item->product_id)
+                ->sum('quantity');
             if (!empty($this->selectedSalesReturn) && $item->quantity>= $totalQuantity) {
                 $this->dispatch('notiffication-error', [
                     'message' => 'Adding more items is not allowed in a refund transaction.'
@@ -1243,8 +1253,17 @@ class Shoppingcart extends Component
         if (!empty($user)) {
             $mycarts = Cart::with(['product', 'product.inventorie'])->where('user_id', auth()->user()->id)->where('status', Cart::STATUS_PENDING)->get();
             foreach ($mycarts as $key => $mycart) {
-               $mycart->net_amount=$mycart->net_amount-($mycart->product->discount_price*$mycart->quantity);
-               $mycart->discount=$mycart->product->discount_price*$mycart->quantity;
+
+    $curtDiscount=$mycart->product->discount_price;
+    $mycart->discount=$curtDiscount*($mycart->quantity);
+    $mycart->net_amount=($mycart->mrp*$mycart->quantity)-$mycart->discount;
+    
+
+               //$mycart->net_amount=$mycart->net_amount-($mycart->product->discount_price*$mycart->quantity);
+                //\Log::info('Net Amount: ' . $mycart->net_amount . ' Discount: ' . $mycart->product->discount_price. ' Quantity: ' . $mycart->quantity);
+                
+               //$mycart->discount=$mycart->product->discount_price*$mycart->quantity;
+
                $mycart->save();
                $sum=$sum+$mycart->net_amount;
                $partyCredit=$partyCredit+$mycart->discount;
