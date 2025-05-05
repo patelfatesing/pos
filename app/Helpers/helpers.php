@@ -61,3 +61,9 @@ if (!function_exists('format_inr')) {
         return $sign . '₹' . number_format(abs($amount), 2);
     }
 }
+if (!function_exists('round_up_to_nearest_10')) {
+    function round_up_to_nearest_10($number)
+    {
+        return ceil($number / 10) * 10;
+    }
+}

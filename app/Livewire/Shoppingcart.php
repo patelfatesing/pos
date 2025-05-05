@@ -24,7 +24,8 @@ use App\Models\DiscountHistory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Session;
-
+use App\Models\Refund;
+use App\Models\InvoiceHistory;
 class Shoppingcart extends Component
 {
 
@@ -50,6 +51,8 @@ class Shoppingcart extends Component
     public $changeAmount = 0;
     public $showBox = false;
     public $shoeCashUpi = false;
+    public $showRefund=false;
+    public $showSr = false;
     public $cashPayAmt;
     public $cashPaTenderyAmt;
     public $cashPayChangeAmt;
@@ -69,19 +72,24 @@ class Shoppingcart extends Component
     public $basicPartyAmt=0;
     public $productSearch = '';
     public $searchResults = [];
+    public $searchSalesResults = [];
+
     public $products = [];
     public $tenderedAmount = 0;
     public $showModal = false;
     public $availableNotes="";
     public $selectedUser = 0;
-    protected $listeners = ['updateProductList' => 'loadCartData','loadHoldTransactions','updateNewProductDetails'];
-    public $noteDenominations = [1,2,5,10, 20, 50, 100, 200,500];
+    protected $listeners = ['updateProductList' => 'loadCartData','loadHoldTransactions','updateNewProductDetails','resetData'];
+    public $noteDenominations = [10, 20, 50, 100, 200,500];
     public $remainingAmount = 0;
     public $totalBreakdown = [];
     public $searchTerm = '';
+    public $searchSalesReturn='';
     public $branch_name = '';
     public $quantities = [];
     public $showSuggestions = false;
+    public $showSuggestionsSales = false;
+
     public $selectedNote;
     public $cashNotes = [];
     public $todayCash = 0;
@@ -95,24 +103,41 @@ class Shoppingcart extends Component
     public $numpadValue = '0'; // Default value of numpad
     public $focusedField = null; // Track the currently focused input field
     public $search = '';
+
     public $selectedProduct;
+    public $selectedSalesReturn;
     public $holdTransactions=[];
     public $headertitle="";
     public $language;
-
+    public $refundDesc="";
     
     public function updatedSearch($value)
     {
-        $this->selectedProduct = Product::Where('barcode', 'like', "%{$value}%")
+        $this->selectedProduct = Product::where('barcode', $value)->first();
+    }
+    public function updatedSearchSalesReturn($value)
+    {
+        $this->selectedSalesReturn = Invoice::with('cashBreak')
+            ->where('invoice_number', $value)
+            ->where('user_id', auth()->id())
+            ->where('branch_id', auth()->user()->userinfo->branch->id ?? null)
             ->first();
+
+        
     }
 
     public function addToCartBarCode()
     {
         if (!$this->selectedProduct) return;
-
-
             $currentQty=$this->cartCount+1;
+            $totalQuantity = collect($this->selectedSalesReturn->items)->sum('quantity');
+            if (!empty($this->selectedSalesReturn) && $this->cartCount>= $totalQuantity) {
+                $this->dispatch('notiffication-error', [
+                    'message' => 'Adding more items is not allowed in a refund transaction.'
+                ]);
+                return;
+            }
+
             // Fetch product with inventory
 
             $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
@@ -175,7 +200,60 @@ class Shoppingcart extends Component
             $this->dispatch('updateNewProductDetails');
             $this->reset('searchTerm', 'searchResults', 'showSuggestions','search');
           //  session()->flash('success', 'Product added to the cart successfully');
-            $this->dispatch('notiffication-success', ['message' => 'Product added to the cart successfully']);
+            $this->dispatch('notiffication-sucess', ['message' => 'Product added to the cart successfully']);
+    }
+    public function addToSalesreturn()
+    {
+        if(@$this->selectedSalesReturn->status=="Paid"){
+           // $this->cashNotes = json_decode($this->selectedSalesReturn->cashBreak->denominations ?? 0, true);
+            $existingItem = Cart::where('user_id', auth()->id())
+                ->where('status', Cart::STATUS_PENDING)
+                ->first();
+        
+            if ($existingItem) {
+                $this->dispatch('notiffication-error', ['message' => 'Product already exists in the cart. Please clear it first.']);
+                return;
+            }
+            $this->selectedPartyUser = $this->selectedSalesReturn->party_user_id ?? 0;
+            $this->partyAmount = $this->selectedSalesReturn->party_amount ?? 0;
+            if (!empty($this->selectedSalesReturn->creditpay)) {
+                $this->creditPay = $this->selectedSalesReturn->creditpay;
+            }
+        
+            //$this->showBox = true;
+            $this->paymentType = "cash";
+        
+            // if (!$this->selectedProduct) return;
+            foreach ($this->selectedSalesReturn->items as $key => $value) {
+        
+                $product = Product::where('id', $value['product_id'])->first();
+                if (!empty($product)) {
+        
+                    $item = new Cart();
+                    $item->user_id = auth()->user()->id;
+                    $item->product_id = $product->id;
+                    $item->mrp = $value['mrp'];
+                    $item->quantity = $value['quantity'];
+                    $item->amount = $value['mrp'];
+                    $item->discount = $this->selectedSalesReturn->party_amount;
+                    $item->net_amount = $this->selectedSalesReturn->cash_amount + $this->selectedSalesReturn->creditpay;
+                    $item->save();
+                }
+            }
+            // $this->updateQty($item->id);
+            $this->dispatch('updateNewProductDetails');
+        
+            $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'search');
+            //  session()->flash('success', 'Product added to the cart successfully');
+            $this->dispatch('notiffication-sucess', ['message' => 'Product added to the cart successfully']);
+        
+
+        }else{
+            $this->dispatch('notiffication-error', ['message' => 'Product already refunded']);
+            return;
+        }
+
+
     }
         // Trigger numpad when an input field is clicked
         public function setFocusedField($field)
@@ -241,33 +319,169 @@ class Shoppingcart extends Component
     }
     public function toggleBox()
     {
-        if (!empty($this->products->toArray())) {
-            $this->headertitle="Cash";
-            $this->shoeCashUpi = false;
-            $this->showBox = true;
-            $this->paymentType = "cash";
-            $this->total = $this->cashAmount;
-            
-        } else {
-            session()->flash('error', 'add minimum one product');
-            $this->dispatch('alert_remove');
+        if (auth()->user()->hasRole('warehouse')) {
+            if (empty($this->selectedPartyUser)) {
+                $this->dispatch('notiffication-error', ['message' => 'Please selecte party customer.']);
+    
+            }else{
+    
+                if (!empty($this->products->toArray())) {
+                    $this->headertitle="Cash";
+                    $this->shoeCashUpi = false;
+                    $this->showBox = true;
+                    $this->paymentType = "cash";
+                    $this->total = $this->cashAmount;
+                    
+                } else {
+                    session()->flash('error', 'add minimum one product');
+                    $this->dispatch('alert_remove');
+                }
+            }
+        
+        }else{
+            if (!empty($this->products->toArray())) {
+                $this->headertitle="Cash";
+                $this->shoeCashUpi = false;
+                $this->showBox = true;
+                $this->paymentType = "cash";
+                $this->total = $this->cashAmount;
+                
+            } else {
+                session()->flash('error', 'add minimum one product');
+                $this->dispatch('alert_remove');
+            }
         }
-    }
+
+      }
     public function cashupitoggleBox()
     {
-        if (!empty($this->products->toArray())) {
-            $this->showBox = false;
-            $this->shoeCashUpi = true;
-            $this->paymentType = "cashupi";
-            $this->headertitle="Cash + UPI";
+        if (auth()->user()->hasRole('warehouse')) {
+            if (empty($this->selectedPartyUser)) {
+                $this->dispatch('notiffication-error', ['message' => 'Please selecte party customer.']);
+    
+            }else{
 
-            $this->total = $this->cashAmount;
-            
-
-        } else {
-            session()->flash('error', 'add minimum one product');
-            $this->dispatch('alert_remove');
+                if (!empty($this->products->toArray())) {
+                    $this->showBox = false;
+                    $this->shoeCashUpi = true;
+                    $this->paymentType = "cashupi";
+                    $this->headertitle="Cash + UPI";
+        
+                    $this->total = $this->cashAmount;
+                    
+        
+                } else {
+                    session()->flash('error', 'add minimum one product');
+                    $this->dispatch('alert_remove');
+                }
+            }
+        }else{
+            if (!empty($this->products->toArray())) {
+                $this->showBox = false;
+                $this->shoeCashUpi = true;
+                $this->paymentType = "cashupi";
+                $this->headertitle="Cash + UPI";
+    
+                $this->total = $this->cashAmount;
+                
+    
+            } else {
+                session()->flash('error', 'add minimum one product');
+                $this->dispatch('alert_remove');
+            }
         }
+    }
+    public function processRefund()
+    {
+        try {
+            $this->validate([
+                'cashNotes' => 'required',
+            ]);
+
+            $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
+            $cashNotes = json_encode($this->cashNotes) ?? [];
+            $cashBreakdown = CashBreakdown::create([
+                'user_id' => auth()->id(),
+                'branch_id' => $branch_id,
+                'denominations' => $cashNotes,
+                'total' => $this->cashAmount,
+            ]);
+
+            $refundInvoiceNumber = 'REF-' . strtoupper(Str::random(8));
+            $refundInvoice = Invoice::create([
+                'user_id' => auth()->id(),
+                'branch_id' => $branch_id,
+                'invoice_number' => $refundInvoiceNumber,
+                'items' => $this->cartitems->map(fn($item) => [
+                    'product_id' => $item->product->id,
+                    'name' => $item->product->name,
+                    'quantity' => $item->quantity,
+                    'price' => $item->net_amount,
+                    'mrp' => $item->mrp,
+                ]),
+                'cash_amount' => $this->cashAmount,
+                'status' => 'Refunded',
+                'total' => $this->cashAmount,
+                'cash_break_id' => $cashBreakdown->id,
+            ]);
+
+            foreach ($this->cartitems as $cartItem) {
+                $product = $cartItem->product;
+                $inventory = $product->inventories->first();
+                if ($inventory) {
+                    $inventory->quantity += $cartItem->quantity;
+                    $inventory->save();
+                }
+            }
+
+            Cart::where('user_id', auth()->id())->delete();
+            $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'cashNotes', 'cartitems', 'cartCount');
+            $this->dispatch('notiffication-sucess', ['message' => 'Refund processed successfully.']);
+        } catch (\Exception $e) {
+            Log::error('Refund processing failed: ' . $e->getMessage());
+            $this->dispatch('notiffication-error', ['message' => 'Failed to process refund.']);
+        }
+    }
+    public function refundoggleBox()
+    {
+        $this->showBox = true;
+        $this->shoeCashUpi = false;
+        $this->showRefund=false;
+        $this->paymentType = "refund";
+        $this->headertitle="Refund";
+        $this->paymentType="cash";
+
+        $this->total = $this->cashAmount;
+
+    }
+    public function srtoggleBox()
+    {
+        $invoice = Invoice::where('invoice_number', $this->searchSalesReturn)
+        ->where('user_id', auth()->id())
+        ->first();
+        if (!$invoice) {
+            $this->dispatch('notiffication-error', ['message' => 'Invoice not found.']);
+            return;
+        }
+
+        // Delete associated cash breakdown entry
+        if ($invoice->cash_break_id) {
+            CashBreakdown::where('id', $invoice->cash_break_id)->delete();
+        }
+        
+        $invoice->status = 'Returned';
+        $invoice->total = (Int)$invoice->total - $this->cashAmount;
+        $invoice->cash_amount = (Int)$invoice->cash_amount - $this->cashAmount;
+        $invoice->sub_total = (Int)$invoice->sub_total - $this->cashAmount;
+        $invoice->creditpay = 0;
+        $invoice->party_amount = 0;
+
+        $invoice->cash_break_id = null; // Clear the cash_break_id
+        $invoice->save();
+
+        $this->reset('searchTerm', 'searchResults', 'showSuggestions','cashAmount','shoeCashUpi','showBox','cashNotes','quantities','cartCount');
+        $this->dispatch('notiffication-sucess', ['message' => 'Sales return initiated.']);
     }
     public function updatedCash($value)
     {
@@ -386,7 +600,7 @@ class Shoppingcart extends Component
         if (empty($UserShift)) {
            //  $this->showModal = true;
         }
-        $this->shift = UserShift::with('cashBreakdown')->with('branch')->whereDate('created_at', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' =>"pending"])->first();
+        $this->shift = UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' =>"pending"])->first();
 
         $currentShift = UserShift::whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' =>"pending"])->first();
 
@@ -395,7 +609,7 @@ class Shoppingcart extends Component
         $start_date = @$currentShift->start_time; // your start date (set manually)
         $end_date = date('Y-m-d') . ' 23:59:59'; // today's date till end of day
         $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])-> latest()->get();
-        $discountTotal = $totalSales = $totalPaid = $totalCashPaid = $totalSubTotal=$totalUpiPaid = 0;
+        $discountTotal = $totalSales = $totalPaid = $totalRefund=$totalCashPaid = $totalSubTotal=$totalUpiPaid = 0;
         $sales = ['DESI', 'BEER', 'ENGLISH'];
         $this->categoryTotals = [];
         $this->totalInvoicedAmount = \App\Models\Invoice::where('user_id', auth()->user()->id)
@@ -437,6 +651,14 @@ class Shoppingcart extends Component
        
            $totalSales    += (!empty($invoice->sub_total)   && is_numeric($invoice->sub_total)) ? (int)$invoice->sub_total : 0;
            $totalPaid     += (!empty($invoice->total)       && is_numeric($invoice->total)) ? (int)$invoice->total : 0;
+           if ($invoice->status == "Refunded") {
+               $refund = Refund::where('invoice_id', $invoice->id)
+                   ->where('user_id', auth()->id())
+                   ->first();
+               if ($refund) {
+                $totalRefund     += (!empty($refund->amount)       && is_numeric($refund->amount)) ? (int)$refund->amount : 0;
+            }
+           }
         }
         // if (isset($this->categoryTotals['Desi'])) {
         //     $this->categoryTotals['DESHI'] = $this->categoryTotals['Desi'];
@@ -454,7 +676,8 @@ class Shoppingcart extends Component
         $this->categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
         $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] = $totalWith*(-1);
         $this->categoryTotals['summary']['UPI PAYMENT'] = $totalUpiPaid*(-1);
-        $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['OPENING CASH']+$this->categoryTotals['summary']['TOTAL SALES']+$this->categoryTotals['summary']['DISCOUNT']+$this->categoryTotals['summary']['WITHDRAWAL PAYMENT']+$this->categoryTotals['summary']['UPI PAYMENT'];
+       // $this->categoryTotals['summary']['REFUND'] = $totalRefund*(-1);
+        $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['OPENING CASH']+$this->categoryTotals['summary']['TOTAL SALES']+$this->categoryTotals['summary']['DISCOUNT']+$this->categoryTotals['summary']['WITHDRAWAL PAYMENT']+$this->categoryTotals['summary']['UPI PAYMENT']+@$this->categoryTotals['summary']['REFUND'];
         // $this->categoryTotals['TOTAL CASH'] =$this->shift->opening_cash+ $totalCashPaid-$totalWith;
 
         //TOTAL CASH
@@ -508,7 +731,7 @@ class Shoppingcart extends Component
             $this->quantities[$item->id] = $item->quantity;
         }
 
-        $this->holdTransactions =  Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->latest()->get();
+        $this->holdTransactions =  Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->whereBetween('created_at', [$start_date, $end_date])->get();
 
         if (empty($this->selectedPartyUser)) {
             $mycarts = Cart::where('user_id', auth()->user()->id)->where('status', Cart::STATUS_PENDING)->get();
@@ -698,7 +921,6 @@ class Shoppingcart extends Component
     {
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
         $holdTransactions= Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->latest()->get();
-
         //$holdTransactions = Cart::where('user_id', auth()->user()->id)->where('status', 'hold')->get();
         return view('transactions.hold_list', compact('holdTransactions'));
     }
@@ -723,10 +945,12 @@ class Shoppingcart extends Component
 
     public function updateQty($itemId)
     {
-        
+
         $getSignlecart = Cart::where(['user_id' => auth()->user()->id])->find($itemId);
         
-        $currentQty=$this->cartCount+1;
+        //$currentQty=$this->cartCount+1;
+        $currentQty=$this->quantities[$itemId] +1;
+
         // Fetch product with inventory
         
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
@@ -801,6 +1025,11 @@ class Shoppingcart extends Component
 
             $this->cashAmount = $this->cartitems->sum('net_amount');
         }
+        if (!empty($this->creditPay)) {
+            //$this->cashAmount = $this->cartitems->sum('net_amount')-$user->credit_points;
+            $this->cashAmount = $this->cashAmount-$this->creditPay;
+        }
+
         $this->calculateTotals();
 
         $this->getCartItemCount();
@@ -862,17 +1091,32 @@ class Shoppingcart extends Component
     //sanjay
     public function incrementQty($id,$amount=0)
     {
+       
         $item = Cart::with(['product'])->where('id', $id)
             ->where('user_id', auth()->id())
             ->where('status', Cart::STATUS_PENDING)
             ->first();
             
         if ($item) {
+            $curtDiscount=$item->discount/$item->quantity;
+            $totalQuantity = collect(@$this->selectedSalesReturn->items)->sum('quantity');
+            if (!empty($this->selectedSalesReturn) && $item->quantity>= $totalQuantity) {
+                $this->dispatch('notiffication-error', [
+                    'message' => 'Adding more items is not allowed in a refund transaction.'
+                ]);
+                return;
+            }
             $item->quantity++;
-            // $item->amount+=$item->net_amount*($item->quantity);
-            $item->net_amount=($item->mrp-$item->discount)*$item->quantity;
+            $item->discount=$curtDiscount*($item->quantity);
+            $item->net_amount=($item->mrp*$item->quantity)-$item->discount;
             $item->save();
-          //  $this->cashAmount=$item->net_amount;
+            if($this->selectedPartyUser){
+
+                $this->partyAmount = $item->discount;
+            }else{
+                $this->commissionAmount = $item->discount;
+
+            }          //  $this->cashAmount=$item->net_amount;
             if (isset($this->quantities[$id])) {
                 $this->quantities[$id]++;
                // $this->updateQty($id);
@@ -914,10 +1158,20 @@ class Shoppingcart extends Component
         ->where('status', Cart::STATUS_PENDING)
         ->first();
         if ($item && $item->quantity > 1) {
+            $curtDiscount=$item->discount/$item->quantity;
             $item->quantity--;
+            $item->discount=$curtDiscount*$item->quantity;
             $item->net_amount=($item->mrp-$item->discount)*$item->quantity;
-            
             $item->save();
+
+            if($this->selectedPartyUser){
+
+                $this->partyAmount = $item->discount;
+            }else{
+                $this->commissionAmount = $item->discount;
+
+            }
+
             //$this->cashAmount=$item->net_amount;
             if (isset($this->quantities[$id]) && $this->quantities[$id] > 1) {
                 $this->quantities[$id]--;
@@ -1027,6 +1281,18 @@ class Shoppingcart extends Component
 
     public function render()
     {
+        
+        if (strlen($this->searchSalesReturn) > 0) {
+            $this->searchSalesResults = Invoice::when($this->searchSalesReturn, function ($query) {
+                    $query->where('invoice_number', $this->searchSalesReturn);
+                })
+                ->where('user_id', auth()->id())
+                ->where('branch_id', auth()->user()->userinfo->branch->id ?? null)
+                ->get();
+            //$this->showSuggestionsSales = true;
+        } else {
+          //  $this->searchSalesResults = [];
+        }
 
         if (strlen($this->searchTerm) > 0) {
             $this->searchResults = Product::with('inventorie')
@@ -1060,6 +1326,7 @@ class Shoppingcart extends Component
             'products'=>$products,
             'allProducts'=>$products,
             'data'=>$data,
+            'searchSalesResults' => $this->searchSalesResults,
             'getNotification'=>$getNotification,
 
         ]);
@@ -1070,6 +1337,13 @@ class Shoppingcart extends Component
         
         if (auth()->user()) {
             $currentQty=$this->cartCount+1;
+            $totalQuantity = collect(@$this->selectedSalesReturn->items)->sum('quantity');
+            if (!empty($this->selectedSalesReturn) && $this->cartCount>= $totalQuantity) {
+                $this->dispatch('notiffication-error', [
+                    'message' => 'Adding more items is not allowed in a refund transaction.'
+                ]);
+                return;
+            }
             // Fetch product with inventory
          
             $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
@@ -1148,7 +1422,7 @@ class Shoppingcart extends Component
            // $this->updateQty($item->id);
             $this->dispatch('updateNewProductDetails');
             $this->reset('searchTerm', 'searchResults', 'showSuggestions');
-            $this->dispatch('notiffication-success', ['message' => 'Product added to the cart successfull.']);
+            $this->dispatch('notiffication-sucess', ['message' => 'Product added to the cart successfull.']);
 
 
         } else {
@@ -1285,26 +1559,27 @@ class Shoppingcart extends Component
     public function checkout()
     {
         try {
+
             if ($this->paymentType == "cash") {
 
                 $this->validate([
                     'cashNotes' => 'required',
                 ]);
-            }else{
+            } else {
                 $this->validate([
                     'cashupiNotes' => 'required',
                 ]);
             }
-          
+
 
             // if (!empty($this->commissionAmount)) {
             //     $this->total -= $this->commissionAmount;
-                
+
 
             // }
             // if (!empty($this->partyAmount)) {
             //     $this->total -= $this->partyAmount;
-                
+
 
             // }
 
@@ -1333,7 +1608,7 @@ class Shoppingcart extends Component
             $groupedProducts = [];
 
             foreach ($this->cartitems as $cartitem) {
-                
+
                 $productId = $cartitem->product_id;
                 if (!isset($groupedProducts[$productId])) {
                     $groupedProducts[$productId] = 0;
@@ -1368,14 +1643,16 @@ class Shoppingcart extends Component
             if ($this->paymentType == "cash") {
 
                 $cashNotes = json_encode($this->cashNotes) ?? [];
-            }else{
+            } else {
                 $cashNotes = json_encode($this->cashupiNotes) ?? [];
-
             }
-
+            if ($this->paymentType == "cash") {
+                $this->cash = $this->cashAmount;
+                $this->upi = 0;
+            }
             $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
             // 💾 Save cash breakdown
-            $cashBreakdownCash=($this->paymentType == "cash") ?$this->cashAmount:$this->cash;
+            $cashBreakdownCash = ($this->paymentType == "cash") ? $this->cashAmount : $this->cash;
             $cashBreakdown = \App\Models\CashBreakdown::create([
                 'user_id' => auth()->id(),
                 'branch_id' => $branch_id,
@@ -1383,29 +1660,23 @@ class Shoppingcart extends Component
                 'total' => $cashBreakdownCash,
             ]);
 
-            $invoice_number = 'INV-' . strtoupper(Str::random(8));
-            if (!empty($commissionUser)) {
-                $address = $commissionUser->address ?? null;
-            } else  if (!empty($partyUser)) {
-                $address = $partyUser->address ?? null;
-            }
-            if ($this->paymentType == "cash") {
-                $this->cash = $this->cashAmount;
-                $this->upi = 0;
-            }
             $totalQuantity = $cartitems->sum(fn($item) => $item->quantity);
-
+            $invoice_number = 'LHUB-' . strtoupper(Str::random(8));
             $invoice = Invoice::create([
                 'user_id' => auth()->id(),
                 'branch_id' => $branch_id,
                 'invoice_number' => $invoice_number,
                 'commission_user_id' => $commissionUser->id ?? null,
                 'party_user_id' => $partyUser->id ?? null,
+                'payment_mode' => $this->paymentType,
                 'items' => $cartitems->map(fn($item) => [
+                    'product_id' => $item->product->id,
                     'name' => $item->product->name,
                     'quantity' => $item->quantity,
                     'category' => $item->product->category->name,
                     'price' => $item->net_amount,
+                    'mrp' => $item->mrp,
+
                 ]),
                 'upi_amount' => $this->upi,
                 'creditpay' => $this->creditPay,
@@ -1419,52 +1690,243 @@ class Shoppingcart extends Component
                 'cash_break_id' => $cashBreakdown->id,
                 //'billing_address'=> $address,
             ]);
-            if(!empty($commissionUser->id)){
-                
+            InvoiceHistory::logFromInvoice($invoice, 'created', auth()->id());
+
+            if (!empty($commissionUser->id)) {
+
                 DiscountHistory::create([
-                    'invoice_id'=>$invoice->id,
+                    'invoice_id' => $invoice->id,
                     'discount_amount' => $this->commissionAmount,
                     'total_amount' => $this->cashAmount,
-                    'total_purchase_items'=>$totalQuantity,
+                    'total_purchase_items' => $totalQuantity,
                     'commission_user_id' => $commissionUser->id ?? null,
                     'store_id' => $branch_id,
-                    'created_by'=>auth()->id(),
+                    'created_by' => auth()->id(),
                 ]);
             }
-            if(!empty($partyUser->id)){
-            
+            if (!empty($partyUser->id)) {
+
                 CreditHistory::create([
-                    'invoice_id'=>$invoice->id,
+                    'invoice_id' => $invoice->id,
                     'credit_amount' => $this->partyAmount,
                     'total_amount' => $this->cashAmount,
-                    'total_purchase_items'=>$totalQuantity,
+                    'total_purchase_items' => $totalQuantity,
                     'party_user_id' => $partyUser->id ?? null,
                     'store_id' => $branch_id,
-                    'created_by'=>auth()->id(),
+                    'created_by' => auth()->id(),
                 ]);
             }
-            Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->delete();
-        
-             //return redirect()->route('invoice.show', $invoice->id);
-             Cart::where('user_id', auth()->user()->id)
-             ->where('status', '!=', Cart::STATUS_HOLD)
-             ->delete();
-             $this->reset('searchTerm', 'searchResults', 'showSuggestions','cashAmount','shoeCashUpi','showBox','cashNotes','quantities','cartCount');
-
-             if (auth()->user()->hasRole('warehouse')) {
+            if (auth()->user()->hasRole('warehouse')) {
                 $this->invoiceData = $invoice;
-                $this->dispatch('triggerPrint');
-            }else{
+               // $this->dispatch('triggerPrint');
+                 // Generate PDF and store it in local storage
+                 $pdf = App::make('dompdf.wrapper');
+                 $pdf->loadView('invoice', ['invoice' => $invoice,'items' => $invoice->items]);
+                 $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
+                 $pdf->save($pdfPath);
+                //  $this->dispatch('triggerPrint', [
+                //     'pdfPath' => route('print.pdf', $invoice->invoice_number)
+                // ]);
+                
+                 // Trigger print via browser event
+                 $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/' . $invoice->invoice_number . '.pdf')]);
+            } else {
                 $this->dispatch('order-saved');
             }
+            Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->delete();
 
+            //return redirect()->route('invoice.show', $invoice->id);
+            Cart::where('user_id', auth()->user()->id)
+                ->where('status', '!=', Cart::STATUS_HOLD)
+                ->delete();
+            $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount','selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             // 🔔 Flash message for Laravel Blade
             $this->dispatch('notiffication-error', ['message' => 'Something went wrong']);
 
-          //  return redirect()->back()->with('success', 'Withdraw amount successful.');
+            //  return redirect()->back()->with('success', 'Withdraw amount successful.');
 
         }
+    }
+    public function refund(){
+       // try {
+             // if ($this->paymentType == "cash") {
+
+                //     $this->validate([
+                //         'cashNotes' => 'required',
+                //     ]);
+                // } else {
+                //     $this->validate([
+                //         'cashupiNotes' => 'required',
+                //     ]);
+                // }
+
+
+                $commissionUser = CommissionUser::find($this->selectedCommissionUser);
+                $partyUser = PartyUser::find($this->selectedPartyUser);
+                $cartitems = $this->cartitems;
+                // Group by product ID and sum total quantity
+                $groupedProducts = [];
+
+                foreach ($this->cartitems as $cartitem) {
+
+                    $productId = $cartitem->product_id;
+                    if (!isset($groupedProducts[$productId])) {
+                        $groupedProducts[$productId] = 0;
+                    }
+                    $groupedProducts[$productId] += $cartitem->quantity;
+                }
+                // Loop through each product group and deduct from inventories
+                // foreach ($groupedProducts as $productId => $totalQuantity) {
+                //     $product = $this->cartitems->firstWhere('product_id', $productId)->product;
+                //     $inventories = $product->inventories;
+                    
+                //     if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
+                //         // Deduct only from the first inventory if it has enough quantity
+                //         $inventories[0]->quantity += $totalQuantity;
+                //         $inventories[0]->save();
+                //     } else {
+                //         // Deduct from all inventories if the first one doesn't have enough
+                //         foreach ($inventories as $inventory) {
+                //             if ($totalQuantity <= 0) {
+                //                 break;
+                //             }
+
+                //             if ($inventory->quantity > 0) {
+                //                 $deductQty = min($totalQuantity, $inventory->quantity);
+                //                 $inventory->quantity += $deductQty;
+                //                 $inventory->save();
+                //                 $totalQuantity -= $deductQty;
+                //             }
+                //         }
+                //     }
+                // }
+                $cashNotes = json_encode($this->cashNotes) ?? [];
+                $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+                // 💾 Save cash breakdown 
+                //full refund
+                if((int)$this->cashAmount === (int)$this->totalInvoicedAmount){
+                    $fullRefund=0;
+
+                }else{
+                    $fullRefund=$this->cashAmount;
+                }
+                $cashBreakdownCash = ($this->paymentType == "cash") ? $this->cashAmount : $this->cash;
+                $cashBreakdown = \App\Models\CashBreakdown::create([
+                    'user_id' => auth()->id(),
+                    'branch_id' => $branch_id,
+                    'denominations' => $cashNotes,
+                    'total' => $cashBreakdownCash,
+                ]);
+
+                $invoice_number =$this->selectedSalesReturn->invoice_number;
+              
+                if ($this->paymentType == "cash") {
+                    $this->cash = $this->cashAmount;
+                    $this->upi = 0;
+                }
+                $totalQuantity = $cartitems->sum(fn($item) => $item->quantity);
+
+                $invoice = Invoice::updateOrCreate(
+                    [
+                        'user_id' => auth()->id(),
+                        'branch_id' => $branch_id,
+                        'invoice_number' => $invoice_number,
+                    ],
+                    [
+                        'commission_user_id' => $commissionUser->id ?? null,
+                        'party_user_id' => $partyUser->id ?? null,
+                        'payment_mode' => $this->paymentType,
+                        'items' => $cartitems->map(fn($item) => [
+                            'product_id' => $item->product->id,
+                            'name' => $item->product->name,
+                            'quantity' => $item->quantity,
+                            'category' => $item->product->category->name,
+                            'price' => $fullRefund,
+                            'mrp' => $fullRefund,
+                        ]),
+                        'upi_amount' => $fullRefund,
+                        'creditpay' => $fullRefund,
+                        'cash_amount' => $fullRefund,
+                        'sub_total' => $fullRefund,
+                        'tax' => $fullRefund,
+                        'status' => "Refunded",
+                        'commission_amount' => $fullRefund,
+                        'party_amount' => $fullRefund,
+                        'total' => $fullRefund,
+                        'cash_break_id' => $cashBreakdown->id,
+                        //'billing_address'=> $address,
+                    ]
+                );
+                InvoiceHistory::logFromInvoice($invoice, 'refunded', auth()->id());
+
+                // if (!empty($commissionUser->id)) {
+                //     DiscountHistory::updateOrCreate(
+                //         [
+                //             'invoice_id' => $invoice->id,
+                //             'commission_user_id' => $commissionUser->id ?? null,
+                //         ],
+                //         [
+                //             'discount_amount' => $this->commissionAmount,
+                //             'total_amount' => $this->cashAmount,
+                //             'total_purchase_items' => $totalQuantity,
+                //             'store_id' => $branch_id,
+                //             'created_by' => auth()->id(),
+                //         ]
+                //     );
+                // }
+                // if (!empty($partyUser->id)) {
+                //     CreditHistory::updateOrCreate(
+                //         [
+                //             'invoice_id' => $invoice->id,
+                //             'party_user_id' => $partyUser->id ?? null,
+                //         ],
+                //         [
+                //             'credit_amount' => $this->partyAmount,
+                //             'total_amount' => $this->cashAmount,
+                //             'total_purchase_items' => $totalQuantity,
+                //             'store_id' => $branch_id,
+                //             'created_by' => auth()->id(),
+                //         ]
+                //     );
+                
+                // }
+                Refund::create([
+                    'amount' => $this->cashAmount,
+                    'description' => $this->refundDesc,
+                    'invoice_id' => $invoice->id,
+                    'store_id' => $branch_id,
+                    'user_id' => auth()->id(), // auto-assign current user
+                ]);
+        
+                
+
+                Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->delete();
+
+                //return redirect()->route('invoice.show', $invoice->id);
+                Cart::where('user_id', auth()->user()->id)
+                    ->where('status', '!=', Cart::STATUS_HOLD)
+                    ->delete();
+                $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount');
+                $this->invoiceData = $invoice;
+
+                $pdf = App::make('dompdf.wrapper');
+                $pdf->loadView('invoice', ['invoice' => $invoice,'items' => $invoice->items]);
+                $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
+                $pdf->save($pdfPath);
+            //     $this->dispatch('triggerPrint', [
+            //        'pdfPath' => route('print.pdf', $invoice->invoice_number)
+            //    ]);
+                $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/' . $invoice->invoice_number . '.pdf')]);
+
+        // } catch (\Throwable $th) {
+        //     $this->dispatch('notiffication-error', ['message' => 'Something went wrong']);
+
+        // }
+        
+    }
+    public function resetData(){
+        $this->reset();
     }
 }

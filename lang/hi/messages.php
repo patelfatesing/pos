@@ -65,4 +65,17 @@ return [
     'subtotal' => 'उप-योग',
     'submit' => 'जमा करें',
     'notes' => 'नोट्स',
+    'void_sales'=>'शून्य बिक्री',
+    'enter_product_name'=>'उत्पाद का नाम दर्ज करें',
+    'scan_barcode'=>'बारकोड स्कैन करें',
+    'select_party_customer'=>'एक पार्टी ग्राहक चुनें',
+    'scan_invoice_no'=>'चालान संख्या स्कैन करें',
+    'tendered_amount'=>'प्रस्तुत राशि',
+    'change_amount'=>'परिवर्तन राशि',
+    'total_payble'=>'कुल देय',
+    'credit'=>'क्रेडिट',
+    'in'=>'अंदर',
+    'out'=>'बाहर',
+    'amount'=>'मात्रा'
+
 ];

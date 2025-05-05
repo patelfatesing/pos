@@ -29,4 +29,29 @@ class Invoice extends Model
     protected $casts = [
         'items' => 'array',
     ];
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
+    public function commissionUser()
+    {
+        return $this->belongsTo(User::class, 'commission_user_id');
+    }
+    public function partyUser()
+    {
+        return $this->belongsTo(User::class, 'party_user_id');
+    }
+
+    public function cashBreak()
+    {
+        return $this->belongsTo(CashBreakdown::class, 'cash_break_id');
+    }
+    public function getTotalAttribute($value)
+    {
+        return number_format($value, 2);
+    }
 }
