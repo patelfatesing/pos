@@ -17,7 +17,7 @@
                         <th>Product</th>
                         <th>SKU</th>
                         <th>Brand</th>
-                        <th>Reorder Level</th>
+                        <th>Low Level Stock</th>
                         <th>Current Stock</th>
                         <th>Request Quantity</th> <!-- 🆕 -->
                     </tr>
@@ -44,7 +44,7 @@
                        
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center">✅ All products are above reorder level.</td>
+                            <td colspan="6" class="text-center">✅ All products are above Low Level Stock.</td>
                         </tr>
                     @endforelse
                    

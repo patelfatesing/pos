@@ -138,7 +138,7 @@
                                                             <th class="text-right text-sm font-medium text-gray-700">
                                                                 Current Stock</th>
                                                             <th class="text-right text-sm font-medium text-gray-700">
-                                                                Reorder Level</th>
+                                                                Low Level Stock</th>
                                                             <th class="text-right text-sm font-medium text-gray-700">
                                                                 Weekly Sales</th>
                                                             <th class="text-right text-sm font-medium text-gray-700">

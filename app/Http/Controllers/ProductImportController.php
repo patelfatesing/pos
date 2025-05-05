@@ -22,7 +22,7 @@ class ProductImportController extends Controller
         return view('products_import.import');
     }
     
-    public function uploadFile(Request $request)
+    public function import(Request $request)
     {
         $request->validate([
             'file' => 'required|file|mimes:csv,txt',
@@ -39,79 +39,71 @@ class ProductImportController extends Controller
         while (($row = fgetcsv($handle)) !== false) {
 
             $subcategories = SubCategory::where('name', $row[6])->first();
-
             $categories = Category::where('name', $row[5])->first();
-
-            $category_id = null;
-            $sub_category_id = null;
-            
-            if(!empty($subcategories)){
-                $sub_category_id = $subcategories->id;
-            }
-
-            if(!empty($categories)){
-                $category_id = $categories->id;
-            }
-            // dd($row);
-
-            // Skip duplicate check
-            $existing = DB::table('products')
-                ->join('inventories', 'products.id', '=', 'inventories.product_id')
-                ->where('products.name', $row[0])
-                ->where('inventories.batch_no', $row[2])
-                ->whereDate('inventories.expiry_date', $row[3])
-                ->first();
-    
-            if ($existing) {
-                $skipped++;
-                continue;
-            }
-    
-            // Insert product (or find existing by name)
-            $product = DB::table('products')->where('name', $row[0])->first();
-            $productId = null;
-    
-            if (!$product) {
-
-                $brand = preg_replace('/\s\d{2,4}ml\b/i', '', $row[0]);
-                $sku = Product::generateSku($brand, $row[0], $row[7]);
-           
-                $validatedData['sku'] = $sku;
-
-                $productId = DB::table('products')->insertGetId([
-                    'name' => $row[0],
-                    'brand' => $brand,
-                    'barcode' => $row[1],
-                    'size' => $row[7],
-                    'sku' => $sku,
-                    'category_id' => $category_id,
-                    'subcategory_id' => $sub_category_id,
-                    'created_at' => $created_at ?? now(),
-                    'cost_price' => $row[8],
-                    'sell_price' => $row[13],
-                    'discount_price' => $row[15],
-                    'discount_amt' => $row[16],
-                    'case_size' => $row[11],
-                    'box_unit' => $row[17],
-                    'secondary_unitx' => $row[18],
+        
+            $category_id = $categories?->id;
+            $sub_category_id = $subcategories?->id;
+        
+            if (!empty($sub_category_id) && !empty($category_id)) {
+        
+                // Check for duplicates
+                $existing = DB::table('products')
+                    ->join('inventories', 'products.id', '=', 'inventories.product_id')
+                    ->where('products.name', $row[0])
+                    ->where('inventories.batch_no', $row[2])
+                    ->whereDate('inventories.expiry_date', Carbon::createFromFormat('d-m-Y', $row[4])->format('Y-m-d'))
+                    ->first();
+        
+                if ($existing) {
+                    $skipped++;
+                    continue;
+                }
+        
+                // Insert or find product
+                $product = DB::table('products')->where('name', $row[0])->first();
+                $productId = null;
+        
+                if (!$product) {
+                    $brand = preg_replace('/\s\d{2,4}ml\b/i', '', $row[0]);
+                    $sku = Product::generateSku($brand, $row[0], $row[7]);
+        
+                    $productId = DB::table('products')->insertGetId([
+                        'name' => $row[0],
+                        'brand' => $brand,
+                        'barcode' => $row[1],
+                        'size' => $row[7],
+                        'sku' => $sku,
+                        'category_id' => $category_id,
+                        'subcategory_id' => $sub_category_id,
+                        'created_at' => now(),
+                        'cost_price' => $row[8],
+                        'sell_price' => $row[13],
+                        'discount_price' => $row[15],
+                        'discount_amt' => $row[16],
+                        'case_size' => $row[11],
+                        'box_unit' => $row[17],
+                        'secondary_unitx' => $row[18],
+                    ]);
+                } else {
+                    $productId = $product->id;
+                }
+        
+                // Insert inventory
+                DB::table('inventories')->insert([
+                    'product_id' => $productId,
+                    'store_id' => 1,
+                    'location_id' => 1,
+                    'batch_no' => $row[2],
+                    'expiry_date' => Carbon::createFromFormat('d-m-Y', $row[4])->format('Y-m-d'),
+                    'mfg_date' => Carbon::createFromFormat('d-m-Y', $row[3])->format('Y-m-d'),
+                    'quantity' => 0,
                 ]);
-            } else {
-                $productId = $product->id;
+        
+                // Only increment if insert actually happens
+                $inserted++;
             }
-    
-            // Insert inventory
-            DB::table('inventories')->insert([
-                'product_id' => $productId,
-                'store_id' => 1,
-                'location_id' => 1,
-                'batch_no' => $row[2],
-                'expiry_date' => Carbon::createFromFormat('d-m-Y', $row[4])->format('Y-m-d'),
-                'mfg_date' => Carbon::createFromFormat('d-m-Y', $row[3])->format('Y-m-d'),
-                'quantity' => $row[5],
-            ]);
-    
-            $inserted++;
         }
+        
     
         fclose($handle);
     

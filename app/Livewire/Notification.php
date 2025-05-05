@@ -10,6 +10,7 @@ use App\Models\StockRequest;
 class Notification extends Component
 {
     public $notifications = [];
+    public $readNotificationsCount = '';
     public $showPopup = false;
 
     public $selectedNotificationId = null;
@@ -22,10 +23,12 @@ class Notification extends Component
         $this->showPopup = !$this->showPopup;
     }
 
-    public function viewNotificationDetail($notificationId, $type,$red_id)
+    public function viewNotificationDetail($notificationId, $type,$red_id,$id)
     {
         $this->selectedNotificationId = $notificationId;
         $this->notificationType = $type;
+
+        updateUnreadNotificationsById($id);
 
         switch ($type) {
             case 'low_stock':
@@ -111,6 +114,9 @@ class Notification extends Component
         $branchId = auth()->user()->userinfo->branch->id ?? null;
 
         $getNotification = getNotificationsByNotifyTo(auth()->id(), $branchId, 5);
+
+        $count = getUnreadNotificationsByNotifyTo(auth()->id(), $branchId, 5);
+
         $notiAry = [];
 
         foreach ($getNotification as $key => $noti) {
@@ -131,12 +137,14 @@ class Notification extends Component
                 'message' => $noti->content,
                 'notify_to' => $noti->notify_to,
                 'type' => $noti->type,
+                'status' => $noti->status,
                 'time' => $noti->created_at->diffForHumans(),
                 'id' => $noti->id
             ];
         }
 
         $this->notifications = $notiAry;
+        $this->readNotificationsCount = $count;
 
         return view('livewire.notification');
     }

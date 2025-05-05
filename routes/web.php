@@ -264,6 +264,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/sales/stock-report', [SalesReportController::class, 'stockReport'])->name('sales.stock.report');
     Route::get('/sales/fetch-stock-data', [SalesReportController::class, 'fetchStockData'])->name('sales.fetch-stock-data');
     
+    Route::get('/sales/commission-report', [SalesReportController::class, 'commissionReport'])->name('sales.commission.report');
+    Route::get('/sales/fetch-commission-data', [SalesReportController::class, 'commissionInvoicesReport'])->name('sales.fetch-commission-data');
+    
     Route::get('/exp-category/list', [ExpenseCategoryController::class, 'index'])->name('exp_category.list');
     Route::post('/exp-category/get-data', [ExpenseCategoryController::class, 'getData'])->name('exp_category.getData');
     Route::get('/exp-category/create', [ExpenseCategoryController::class, 'create'])->name('exp_category.create');

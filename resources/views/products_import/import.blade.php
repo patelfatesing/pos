@@ -30,10 +30,19 @@
                                     <form method="POST" action="{{ route('products.upload') }}"
                                         enctype="multipart/form-data">
                                         @csrf
-                                        <div class="form-group">
-                                            <label>Select Csv File</label>
-                                            <input type="file" name="file" class="form-control" required>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="custom-file mb-3">
+                                                    <input type="file" class="custom-file-input" id="file"
+                                                        name="filename">
+                                                    <label class="custom-file-label" for="file">Choose file</label>
+                                                    @error('file')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                                </div>
+                                            </div>
                                         </div>
+
                                         <button class="btn btn-primary mt-2" type="submit">Upload</button>
                                     </form>
                                 </div>

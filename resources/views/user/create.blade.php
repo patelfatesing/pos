@@ -18,7 +18,7 @@
                                 </div>
                             </div>
                             <div class="card-body">
-                                <form action="{{ route('products.updatePrice') }}" method="POST" data-toggle="validator">
+                                <form action="{{ route('users.store') }}" method="POST" data-toggle="validator">
                                     @csrf
                                     <div class="row">
                                         <div class="col-lg-6">

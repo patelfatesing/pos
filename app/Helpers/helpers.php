@@ -54,6 +54,33 @@ if (!function_exists('getNotificationsByCreatedBy')) {
                            ->get();
     }
 }
+
+if (!function_exists('getUnreadNotificationsByNotifyTo')) {
+    function getUnreadNotificationsByNotifyTo($userId,$branch_id, $limit = 50)
+    {
+        if($branch_id != ""){
+            return Notification::where('status', 'unread')
+            ->where('notify_to', $branch_id)
+            ->count();
+        }else{
+            return Notification::where('notify_to', null)
+            ->where('status', 'unread')
+            ->count();
+        }
+
+    }
+}
+
+if (!function_exists('updateUnreadNotificationsById')) {
+    function updateUnreadNotificationsById($id)
+    {
+        return Notification::where('id', $id)
+            ->where('status', 'unread') // optional, to only update if unread
+            ->update(['status' => 'read']);
+    }
+}
+
+
 if (!function_exists('format_inr')) {
     function format_inr($amount)
     {
