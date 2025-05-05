@@ -35,7 +35,7 @@
 
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center">✅ All products are above reorder level.</td>
+                            <td colspan="6" class="text-center">✅ All products are above Low Level Stock.</td>
                         </tr>
                     @endforelse
                 </tbody>

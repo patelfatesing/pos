@@ -65,4 +65,16 @@ return [
     'currency' => 'Currency',
     'subtotal' => 'Subtotal',
     'submit' => 'Submit',
+    'void_sales' => 'Void Sales',
+    'enter_product_name' => 'Enter Product Name',
+    'scan_barcode' => 'Scan Barcode',
+    'select_party_customer' => 'Select Party Customer',
+    'scan_invoice_no' => 'Scan Invoice Number',
+    'tendered_amount' => 'Tendered Amount',
+    'change_amount' => 'Change Amount',
+    'total_payble' => 'Total Payable',
+    'credit' => 'Credit',
+    'in' => 'In',
+    'out' => 'Out',
+    'amount' => 'Amount'
 ];

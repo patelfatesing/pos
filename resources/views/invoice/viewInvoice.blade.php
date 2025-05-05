@@ -21,7 +21,7 @@
                     <div class="col-lg-12">
                         <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                             <div>
-                                <h4 class="mb-3">Order Invoice List</h4>
+                                <h4 class="mb-3">Trasaction Invoice List</h4>
                             </div>
                             <div>
                                 <a href="{{ route('sales.sales.list') }}" class="btn btn-secondary">Back</a>
@@ -58,9 +58,9 @@
                                             <table class="table">
                                                 <thead>
                                                     <tr>
-                                                        <th scope="col">Order Date</th>
-                                                        <th scope="col">Order Status</th>
-                                                        <th scope="col">Order ID</th>
+                                                        <th scope="col">Trasaction Date</th>
+                                                        <th scope="col">Trasaction Status</th>
+                                                        <th scope="col">Trasaction ID</th>
                                                         <th scope="col">Billing Address</th>
                                                         <th scope="col">Shipping Address</th>
                                                     </tr>
@@ -89,7 +89,7 @@
                                 </div>
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <h5 class="mb-3">Order Summary</h5>
+                                        <h5 class="mb-3">Trasaction Summary</h5>
                                         <div class="table-responsive-sm">
                                             <table class="table">
                                                 <thead>
@@ -126,7 +126,7 @@
                                     <div class="offset-lg-8 col-lg-4">
                                         <div class="or-detail rounded">
                                             <div class="p-3">
-                                                <h5 class="mb-3">Order Details</h5>
+                                                <h5 class="mb-3">Trasaction Details</h5>
                                                 <div class="mb-2">
                                                     <h6>Sub Total</h6>
                                                     <p>₹{{ number_format($invoice->sub_total, 2) }}</p>

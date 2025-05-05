@@ -106,9 +106,9 @@
 
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label>Reorder Level</label>
+                                                <label>Low Level Stock</label>
                                                 <input type="number" name="reorder_level" class="form-control"
-                                                    placeholder="Enter Reorder Level">
+                                                    placeholder="Enter Low Level Stock">
                                                 @error('reorder_level')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror

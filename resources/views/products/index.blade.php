@@ -9,16 +9,22 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-                <div class="col-lg-12">
-                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                        <div>
-                            <h4 class="mb-3">Product List</h4>
-                        </div>
-                        <a href="{{ route('products.create') }}" class="btn btn-primary add-list">
-                            <i class="las la-plus mr-3"></i>Create New Product
-                        </a>
-                    </div>
-                </div>
+            <div class="col-lg-12">
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+        <div>
+            <h4 class="mb-3">Product List</h4>
+        </div>
+        <div class="d-flex gap-2 ms-auto">
+            <a href="{{ route('products.import') }}" class="btn btn-primary add-list">
+                <i class="las la-file-import me-1"></i>Import Product
+            </a>
+            <a href="{{ route('products.create') }}" class="btn btn-primary add-list ml-2">
+                <i class="las la-plus me-1"></i>Create New Product
+            </a>
+        </div>
+    </div>
+</div>
+
 
                 <div class="col-lg-12">
                     <div class="table-responsive rounded mb-3">
