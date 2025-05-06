@@ -3,6 +3,7 @@
         <thead>
             <tr>
                 <th>Sales ID</th>
+                <th>Customer Name</th>
                 <th>Date</th>
                 <th>Quantity</th>
                 <th>Amount</th>
@@ -21,6 +22,13 @@
             @endphp
                 <tr>
                     <td>HOLD-{{ $sid+1 }}</td>
+                    @if (auth()->user()->hasRole('warehouse'))
+                    <td>{{ $transaction->partyUser->first_name." ".$transaction->partyUser->last_name }}</td>
+                    @else
+                    <td>{{ $transaction->commissionUser->first_name." ".$transaction->commissionUser->last_name }}</td>
+
+                    @endif
+
                     <td>{{ $transaction->created_at->format('d-m-Y H:i') }}</td>
                     <td>{{ $sumqty }}</td>
                     <td>₹{{ number_format($transaction->total ?? 0, 2) }}</td>

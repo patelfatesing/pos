@@ -24,7 +24,12 @@ class HoldTransactions extends Component
         $start_date = @$currentShift->start_time; // your start date (set manually)
         $end_date = $currentShift->end_date ??date('Y-m-d H:i:s'); // your start date (set manually)
 
-        $this->holdTransactions =  Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->whereBetween('created_at', [$start_date, $end_date])->get();
+        $this->holdTransactions = Invoice::with(['partyUser', 'commissionUser'])
+            ->where(['user_id' => auth()->user()->id])
+            ->where(['branch_id' => $branch_id])
+            ->where('status', 'Hold')
+            ->whereBetween('created_at', [$start_date, $end_date])
+            ->get();
         
        // $this->holdTransactions = Cart::where('user_id', auth()->user()->id)->where('status', Cart::STATUS_HOLD)->get();
 
