@@ -32,7 +32,6 @@ class StockTransferController extends Controller
     public function store(Request $request)
     {
 
-        // dd($request);
         $validated = $request->validate([
             'from_store_id' => 'required|exists:branches,id',
             'to_store_id' => 'required|exists:branches,id',
@@ -49,21 +48,21 @@ class StockTransferController extends Controller
 
             foreach($request->items as $key => $val){
 
-                // dd($val['product_id']);                    // Decrease from warehouse
-                    $inventories = Inventory::where('product_id', $val['product_id'])->orderBy('expiry_date')->get(); // optional: FIFO
+                    // Decrease from warehouse
+                    $inventories = Inventory::where('product_id', $val['product_id'])->where('store_id', 1)->orderBy('expiry_date')->get(); // optional: FIFO
+                
+                    $totalQuantity = (float)$inventories->sum('quantity');
+                    $quantity = (float)$val['quantity'];
 
-                    $totalQuantity = $inventories->sum('quantity');
-                    
-                    if ($totalQuantity < $val['product_id']) {
+                    if ($totalQuantity < $quantity) {
                         return response()->json([
                             'status' => 'error',
                             'message' => "Not enough stock for product"
                         ]);
                     }
 
-                    $remainingQty = $val['product_id'];
+                    $remainingQty = $val['quantity'];
 
-                    
                     foreach ($inventories as $inventory) {
                         if ($remainingQty <= 0) break;
 
@@ -75,7 +74,7 @@ class StockTransferController extends Controller
 
                         // Add to store inventory
                         $storeInventory = Inventory::firstOrNew([
-                            'store_id' => $request->from_store_id,
+                            'store_id' => $request->to_store_id,
                             'location_id'=> $request->to_store_id,
                             'product_id' => $val['product_id'],
                             'batch_no' => $inventory->batch_no,
@@ -103,7 +102,7 @@ class StockTransferController extends Controller
 
                         $remainingQty -= $deducted;
 
-                        StockTransfer::create([
+                       $transfer = StockTransfer::create([
                             'stock_request_id' => $request->request_id,
                             'transfer_number' => $transferNumber,
                             'from_branch_id' => $request->from_store_id,
@@ -117,9 +116,11 @@ class StockTransferController extends Controller
 
                     }
             }
-            
+
+            $arr['id'] = $transfer->id;
+            sendNotification('transfer_stock', 'Warehouse some Product is transfer',$request->to_store_id, Auth::id(),'');
             DB::commit();
-            return redirect()->route('stock.requestList')->with('success', 'Stock request submitted successfully.');
+            return redirect()->route('inventories.list')->with('success', 'Stock has beeb transfer successfully.');
 
         } catch (\Exception $e) {
             DB::rollback();

@@ -39,11 +39,11 @@ class Invoice extends Model
     }
     public function commissionUser()
     {
-        return $this->belongsTo(User::class, 'commission_user_id');
+        return $this->belongsTo(Commissionuser::class, 'commission_user_id');
     }
     public function partyUser()
     {
-        return $this->belongsTo(User::class, 'party_user_id');
+        return $this->belongsTo(Partyuser::class, 'party_user_id');
     }
 
     public function cashBreak()

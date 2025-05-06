@@ -62,7 +62,7 @@ Route::middleware(['permission:editor_permission'])->get('/editor-dashboard', fu
 });
 Route::get('/', function () {
     return redirect('/login');
-});
+})->name('login');
 Route::post('/shift-close/store', [ShiftClosingController::class, 'store'])->name('shift-close.store');
 Route::post('/shift-close/withdraw', [ShiftClosingController::class, 'withdraw'])->name('shift-close.withdraw');
 

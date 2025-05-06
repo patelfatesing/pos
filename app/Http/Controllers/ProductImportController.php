@@ -65,7 +65,7 @@ class ProductImportController extends Controller
         
                 if (!$product) {
                     $brand = preg_replace('/\s\d{2,4}ml\b/i', '', $row[0]);
-                    $sku = Product::generateSku($brand, $row[0], $row[7]);
+                    $sku = Product::generateSku($brand, $row[2], $row[7]);
         
                     $productId = DB::table('products')->insertGetId([
                         'name' => $row[0],

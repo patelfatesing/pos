@@ -56,16 +56,16 @@ class ShiftClosingController extends Controller
         $shift->branch_id = $branch_id;
         $shift->start_time = $request->start_time;
         $shift->end_time = $request->end_time;
-        $shift->opening_cash = str_replace(',', '', $request->opening_cash);
-        $shift->cash_discrepancy = str_replace(',', '', $request->diffCash);
-        $shift->closing_cash = str_replace(',', '', $request->closingCash);
+        $shift->opening_cash = str_replace([',', '₹'], '', $request->opening_cash);
+        $shift->cash_discrepancy = str_replace([',', '₹'], '', $request->diffCash);
+        $shift->closing_cash = str_replace([',', '₹'], '', $request->closingCash);
         $shift->cash_break_id = $CashBreakdown->id;
-        $shift->deshi_sales = str_replace(',', '', @$request->DESI ?? 0); // Using @ to suppress any potential error (if variable is not set)
-        $shift->beer_sales = str_replace(',', '', @$request->BEER ?? 0);
-        $shift->english_sales = str_replace(',', '', $request->ENGLISH ?? 0);
-        $shift->upi_payment = str_replace(',', '', $request->UPI_PAYMENT ?? 0);
-        $shift->withdrawal_payment = str_replace(',', '', $request->WITHDRAWAL_PAYMENT ?? 0);
-        $shift->cash = str_replace(',', '', $request->diffCash); // Assuming you want to store the same cash discrepancy here
+        $shift->deshi_sales = str_replace([',', '₹'], '', @$request->DESI ?? 0); // Using @ to suppress any potential error (if variable is not set)
+        $shift->beer_sales = str_replace([',', '₹'], '', @$request->BEER ?? 0);
+        $shift->english_sales = str_replace([',', '₹'], '', $request->ENGLISH ?? 0);
+        $shift->upi_payment = str_replace([',', '₹'], '', $request->UPI_PAYMENT ?? 0);
+        $shift->withdrawal_payment = str_replace([',', '₹'], '', $request->WITHDRAWAL_PAYMENT ?? 0);
+        $shift->cash = str_replace([',', '₹'], '', $request->diffCash); // Assuming you want to store the same cash discrepancy here
         $shift->status = 'completed';  // Assuming you want to mark it as closed after shift ends
         $shift->save();
         
@@ -73,9 +73,10 @@ class ShiftClosingController extends Controller
         $user->is_login = 'No';
         $user->save();
         Auth::logout(); 
+        return redirect()->route('login')->with('success', 'Shift closed. You have been logged out.');
 
         // Redirect to login with a status message
-        return redirect('/login')->with('notification-sucess', 'Shift closed. You have been logged out.');
+      //  return redirect('/login')->with('notification-sucess', 'Shift closed. You have been logged out.');
 
     }
     public function withdraw(Request $request){

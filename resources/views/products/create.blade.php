@@ -165,6 +165,17 @@
                                                 @enderror
                                             </div>
                                         </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Batch No</label>
+                                                <input type="text" name="batch_no" id="batch_no" class="form-control"
+                                                    value="{{ old('batch_no') }}" placeholder="Enter batch no"
+                                                    data-errors="Please Enter batch no.">
+                                                @error('batch_no')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <label>Description / Product Details</label>

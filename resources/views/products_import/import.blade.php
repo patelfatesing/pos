@@ -34,7 +34,7 @@
                                             <div class="col-sm-6">
                                                 <div class="custom-file mb-3">
                                                     <input type="file" class="custom-file-input" id="file"
-                                                        name="filename">
+                                                        name="file">
                                                     <label class="custom-file-label" for="file">Choose file</label>
                                                     @error('file')
                                                     <span class="text-danger">{{ $message }}</span>

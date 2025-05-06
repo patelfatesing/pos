@@ -2,6 +2,18 @@
 @section('page-content')
 <div class="row align-items-center justify-content-center height-self-center">
     <div class="col-lg-8">
+      @if(session('success'))
+         <div class="alert alert-success">
+            {{ session('success') }}
+         </div>
+      @endif
+
+      @if(session('error'))
+         <div class="alert alert-danger">
+            {{ session('error') }}
+         </div>
+      @endif
+
        <div class="card auth-card">
           <div class="card-body p-0">
              <div class="d-flex align-items-center auth-content">
@@ -53,5 +65,15 @@
        </div>
     </div>
  </div>
+ <script>
+   setTimeout(function() {
+       let alert = document.querySelector('.alert');
+       if (alert) {
+           alert.style.transition = 'opacity 0.5s ease-out';
+           alert.style.opacity = '0';
+           setTimeout(() => alert.remove(), 500);
+       }
+   }, 3000); // Hide after 3 seconds
+</script>
 
 @endsection
