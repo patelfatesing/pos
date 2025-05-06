@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\PartyUserImage;
 use Illuminate\Support\Facades\Validator;
 use App\Models\ProductPriceChangeHistory;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -160,7 +162,12 @@ class ProductController extends Controller
         // try {
 
         $pack_size = $request->size;
-            $sku = Product::generateSku($request->brand, $request->name, $request->size);
+        if ($request->has('size')) {
+            $sku = Product::generateSku($request->brand, $request->batch_no, $request->size);
+        }else{
+            $batchNumber = strtoupper($request->sku) . '-' . now()->format('Ymd') . '-' . Str::upper(Str::random(4));
+            $sku = Product::generateSku($request->brand, $batchNumber, $request->size);
+        }
            
             $validatedData['sku'] = $sku;
             
@@ -182,7 +189,14 @@ class ProductController extends Controller
             // \DB::tppransaction(function () use ($validatedData) {
                 $validatedData['size'] = $pack_size;
                 // dd($validatedData);
-                Product::create($validatedData);
+                $product =  Product::create($validatedData);
+
+                DB::table('inventories')->insert([
+                    'product_id' => $product->id,
+                    'store_id' => 1,
+                    'location_id' => 1,
+                    'quantity' => 0
+                ]);
             // });
     
             return redirect()->route('products.list')->with('success', 'Product has been added successfully!');

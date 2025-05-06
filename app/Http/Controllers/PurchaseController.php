@@ -119,40 +119,25 @@ class PurchaseController extends Controller
                 $batch = $product['batch'];
                 $expiryDatePlusOneYear = Carbon::parse($product['mfg_date'])->addYear();
 
-                $record = Product::with('inventories')->where('id', $product_id)->where('is_deleted', 'no')->firstOrFail();
+                $record = Product::with('inventorie')->where('id', $product_id)->where('is_deleted', 'no')->firstOrFail();
                 
                 $inventoryService = new \App\Services\InventoryService();
-        
-                if ($record->inventories->isEmpty()) {
+                
+                if (!empty($record->inventorie)) {
+                    
+                    // $product['qnt'] = $product['qnt'] + $record->inventorie[0]->quantity;
                     
                     $batchNumber = strtoupper($request->sku) . '-' . now()->format('Ymd') . '-' . Str::upper(Str::random(4));
-        
-                    $inventory = Inventory::firstOrCreate([
-                        'product_id'  => $product_id,
-                        'store_id'    => 1,
-                        'location_id'    => 1,
-                        'batch_no'    => $batch,
-                        'expiry_date' => $expiryDatePlusOneYear,
-                        'added_by' => Auth::id(),
-                        'quantity' => $product['qnt']
-                    ]);
+                        if ($record->inventorie->batch_no == $batch) {
 
-                    $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $product['qnt'],'add_stock');
-
-                } else {
+                            $inventory = Inventory::findOrFail($record->inventorie->id);
                     
-                    foreach($record->inventories as $key => $val){
-                        // dd($record->inventories);
-                        if ($val->batch_no == $batch) {
-
-                            $inventory = Inventory::findOrFail($val->id);
-                            
                             $qnt = $inventory->quantity + $product['qnt'];
                             $inventory->updated_at = now();
                             $inventory->quantity = $qnt;
                             $inventory->save();
 
-                            $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $product['qnt'],'add_stock');
+                            $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $qnt,'add_stock');
                                                 
                         }else{
 
@@ -168,7 +153,25 @@ class PurchaseController extends Controller
                             
                             $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $product['qnt'],'add_stock');
                         }
-                    }
+
+
+                    $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $product['qnt'],'add_stock');
+
+                } else {
+
+                
+                    $inventory = Inventory::firstOrCreate([
+                        'product_id'  => $product_id,
+                        'store_id'    => 1,
+                        'location_id'    => 1,
+                        'batch_no'    => $batch,
+                        'expiry_date' => $expiryDatePlusOneYear,
+                        'added_by' => Auth::id(),
+                        'quantity' => $product['qnt']
+                    ]);
+
+                    $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $product['qnt'],'add_stock');
+
                 }  
             }
 
