@@ -51,7 +51,7 @@
                                     <a href="#" class="list-group-item list-group-item-action"
                                         wire:click.prevent="addToCart({{ $product->id }})">
                                         <strong>{{ $product->name }} ({{ $product->size }})</strong><br>
-                                        <small>₹{{ number_format(@$product->sell_price, 2) }}</small>
+                                        <small>{{ format_inr(@$product->sell_price) }}</small>
                                     </a>
                                 @endforeach
                             </div>
@@ -82,7 +82,7 @@
 
             <div class="col-md-2">
                 <div class="mb-3">
-                    <input type="text" wire:model.live.debounce.500ms="search" wire:keydown.enter="addToCartBarCode"
+                    <input type="number" wire:model.live.debounce.500ms="search" wire:keydown.enter="addToCartBarCode"
                         class="form-control" placeholder=" {{ __('messages.scan_barcode') }}" autofocus>
 
                     {{-- @if ($selectedProduct)
@@ -91,7 +91,7 @@
                             <div class="list-group-item list-group-item-action">
                                 <strong>{{ $selectedProduct->name }}</strong>
                                 <small>Barcode: {{ $selectedProduct->barcode }}</small>
-                                <small>Price: ₹{{ $selectedProduct->sell_price }}</small>
+                                <small>Price: {{ $selectedProduct->sell_price }}</small>
                                 <small>Stock: {{ $selectedProduct->quantity }}</small>
                             </div>
                         </div>
@@ -223,29 +223,34 @@
                                     @endif
                                 </td>
                                 <td style="width: 10%;">
-                                    @if (@$item->product->discount_price && $this->commissionAmount > 0)
+                                    @if (@$item->product->discount_amt && $this->commissionAmount > 0)
+                                        
                                         <span class="text-danger">
-                                            ₹{{ number_format(@$item->product->sell_price-$item->product->discount_price, 2) }}
+                                            {{ format_inr(@$item->product->sell_price-$item->product->discount_amt) }}
                                         </span>
                                         <br>
                                         <small class="text-muted">
-                                            <s>₹{{ number_format(@$item->product->sell_price, 2) }}</s>
+                                            <s>{{ format_inr(@$item->product->sell_price) }}</s>
                                         </small>
                                     @else
                                         <span class="text-danger">
-                                            ₹{{ number_format(@$item->product->sell_price-$this->partyAmount, 2) }}
+                                            @if ($this->partyAmount > 0)
+                                            {{ format_inr(@$item->product->sell_price-$item->product->discount_amt) }}
+                                            @else
+                                            {{ format_inr(@$item->product->sell_price) }}
+                                            @endif
                                         </span>
                                         @if ($this->partyAmount > 0)
                                             <br>
                                             <small class="text-muted">
-                                                <s>₹{{ number_format(@$item->product->sell_price, 2) }}</s>
+                                                <s>{{ format_inr(@$item->product->sell_price) }}</s>
                                             </small>
                                         @endif
                                     @endif
                                 </td>
                                 <td style="width: 10%;">
 
-                                    ₹{{ number_format($item->net_amount, 2) }}
+                                    {{ format_inr($item->net_amount) }}
 
                                 </td>
                                 <td style="width: 8%; " class="text-center">
@@ -282,16 +287,16 @@
                     <tbody>
                         <tr>
                             <td>
-                                {{ number_format($this->cartCount, 0) }}
+                                {{ $this->cartCount }}
                                 <input type="hidden" id="cartCount" value="{{ $this->cartCount }}">
                             </td>
                          
                             <td>
-                                ₹{{ number_format(round($this->cashAmount), 2) }}
-                                <input type="hidden" id="roundedTotal" value="{{ round($this->cashAmount) }}">
+                                {{ format_inr($this->cashAmount) }}
+                                <input type="hidden" id="roundedTotal" value="{{ $this->cashAmount }}">
                             </td>
                             <td class="table-success fw-bold">
-                                ₹{{ number_format($this->cashAmount, 2) }}
+                                {{ format_inr($this->cashAmount) }}
                                 <input type="hidden" id="totalPayable" value="{{ $this->cashAmount }}">
                             </td>
                         </tr>
@@ -299,39 +304,39 @@
                             <td colspan="3">
                                 <div class="d-flex justify-content-center flex-wrap w-100">
                                     @if(!empty($this->selectedSalesReturn))
-                                        <button wire:click="refundoggleBox" class="btn btn-sm btn-primary m-0 flex-fill text-nowrap">
-                                            <i class="fa fa-hand-holding-usd me-2"></i> Refund
+                                        <button wire:click="refundoggleBox" class="btn btn-sm btn-primary m-2 flex-fill text-nowrap ">
+                                            <i class="fa fa-hand-holding-usd me-2 "></i> Refund
                                         </button>
-                                        <button wire:click="srtoggleBox" class="btn btn-sm btn-primary m-0 flex-fill text-nowrap">
+                                        <button wire:click="srtoggleBox" class="btn btn-sm btn-primary m-2 flex-fill text-nowrap">
                                             <i class="fa fa-hand-holding-usd me-2"></i> Sales Return
                                         </button>
                                     @else
                                         @if (($selectedPartyUser && count($itemCarts) > 0) || count($itemCarts) > 0)
-                                            <button wire:click="toggleBox" class="btn btn-sm btn-primary m-0 flex-fill text-nowrap">
+                                            <button wire:click="toggleBox" class="btn btn-sm btn-primary m-2 flex-fill text-nowrap">
                                                 <i class="fa fa-money-bill-wave me-2"></i>  {{ __('messages.cash') }}
                                             </button>
                                         @else
-                                            <button class="btn btn-sm btn-primary m-0 flex-fill text-nowrap" disabled>
+                                            <button class="btn btn-sm btn-primary m-2 flex-fill text-nowrap" disabled>
                                                 <i class="fa fa-money-bill-wave me-2"></i>  {{ __('messages.cash') }}
                                             </button>
                                         @endif
                                     @endif
                                     @if(empty($this->selectedSalesReturn))
 
-                                    <button wire:click="voidSale" class="btn btn-sm btn-primary m-0 flex-fill text-nowrap">
+                                    <button wire:click="voidSale" class="btn btn-sm btn-primary m-2 flex-fill text-nowrap">
                                         <i class="fa fa-ban me-2"></i>  {{ __('messages.void_sales') }}
                                     </button>
                             
-                                    <button wire:click="holdSale" class="btn btn-sm btn-primary m-0 flex-fill text-nowrap">
+                                    <button wire:click="holdSale" class="btn btn-sm btn-primary m-2 flex-fill text-nowrap">
                                         <i class="fa fa-pause-circle me-2"></i>  {{ __('messages.hold') }}
                                     </button>
                             
-                                    <button class="btn btn-sm btn-primary m-0 flex-fill text-nowrap">
+                                    <button class="btn btn-sm btn-primary m-2 flex-fill text-nowrap">
                                         <i class="fa fa-credit-card me-2"></i> 
                                         {{ __('messages.online') }}
                                     </button>
                             
-                                    <button wire:click="cashupitoggleBox" class="btn btn-sm btn-primary m-0 flex-fill text-nowrap">
+                                    <button wire:click="cashupitoggleBox" class="btn btn-sm btn-primary m-2 flex-fill text-nowrap">
                                         <i class="fa fa-hand-holding-usd me-2"></i> Cash + UPI
                                     </button>
                                     @endif
@@ -496,7 +501,7 @@
                                                                         {{ format_inr($value) }}</span>
                                                                     <input type="hidden" name="{{ $key }}"
                                                                         id="{{ $key }}"
-                                                                        value="{{ number_format($value) }}">
+                                                                        value="{{ format_inr($value) }}">
                                                                 </li>
                                                             @endforeach
                                                         </ul>
@@ -563,13 +568,13 @@
                                                                 $totalNotes += $rowTotal;
                                                             @endphp
                                                             <tr>
-                                                                <td class="fw-bold">{{ number_format($denomination) }}
+                                                                <td class="fw-bold">{{ format_inr($denomination) }}
                                                                 </td>
                                                                 <td>{{ abs($quantity) }}</td>
                                                                 <td>X</td>
-                                                                <td>{{ number_format($denomination) }}</td>
+                                                                <td>{{ format_inr($denomination) }}</td>
                                                                 <td>=</td>
-                                                                <td class="fw-bold">{{ number_format($rowTotal) }}
+                                                                <td class="fw-bold">{{ format_inr($rowTotal) }}
                                                                 </td>
                                                             </tr>
                                                             <input type="hidden"
@@ -596,7 +601,7 @@
                                                     {{-- <tr>
                                                         <td class="text-start fw-bold">Opening Cash</td>
                                                         <td class="text-end">
-                                                            {{ number_format($shift->opening_cash ?? 0, 2) }}</td>
+                                                            {{ format_inr($shift->opening_cash ?? 0) }}</td>
                                                     </tr> --}}
                                                     <tr>
                                                         <td class="text-start fw-bold">System Cash Sales</td>
@@ -687,7 +692,7 @@
                                             <tbody>
                                                 @foreach ($noteDenominations as $key => $denomination)
                                                     <tr>
-                                                        <td>₹{{ $denomination }} X</td>
+                                                        <td>{{ $denomination }} X</td>
                                                         <td>
                                                             <div
                                                                 class="d-flex justify-content-center align-items-center">
@@ -709,12 +714,12 @@
                                                             </div>
                                                         </td>
                                                         <td id="withcashsum_{{ $key }}_{{ $denomination }}">
-                                                            ₹0</td>
+                                                            0</td>
                                                     </tr>
                                                 @endforeach
                                                 <tr class="fw-bold">
                                                     <td colspan="2" class="text-end">Total Withdraw</td>
-                                                    <td id="totalNoteCashwith">₹0</td>
+                                                    <td id="totalNoteCashwith">0</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -905,8 +910,7 @@
         </div>
     </div>
     <!-- Modal HTML -->
-    <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
-        data-backdrop="static" data-keyboard="false" wire:ignore.self>
+    <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false" wire:ignore.self>
         <div class="modal-dialog">
             <form method="POST" action="{{ route('cash-in-hand') }}">
                 @csrf
@@ -930,7 +934,7 @@
                             <tbody>
                                 @foreach ($noteDenominations as $key => $denomination)
                                     <tr>
-                                        <td>₹{{ $denomination }}</td>
+                                        <td>{{ $denomination }}</td>
                                         <td>
                                             <div class="input-group" style="max-width: 150px;">
                                                 <button class="btn btn-sm btn-danger btn-decrease" type="button"
@@ -946,12 +950,12 @@
                                                         class="fa fa-plus"></i></button>
                                             </div>
                                         </td>
-                                        <td id="discashhandsum_{{ $denomination }}">₹0</td>
+                                        <td id="discashhandsum_{{ $denomination }}">0</td>
                                     </tr>
                                 @endforeach
                                 <tr>
                                     <td colspan="2" class="text-end fw-bold">Total Cash</td>
-                                    <td id="totalNoteCashHand">₹0</td>
+                                    <td id="totalNoteCashHand">0</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1014,6 +1018,7 @@
                                     <i class="fas fa-hand-paper"></i>
                                 </button>
                             @endif
+                            {{-- @livewire('button-timer', ['endTime' => '2025-05-07 12:45:00']) --}}
 
                             {{-- Close Shift --}}
                             <button type="button" class="btn btn-primary ml-2" data-toggle="modal"
@@ -1092,7 +1097,7 @@
                                                     $totalAmount += $rowAmount;
                                                 @endphp
                                                 <tr>
-                                                    <td>₹{{ $denomination }}</td>
+                                                    <td>{{ $denomination }}</td>
                                                     @if(empty($this->selectedSalesReturn))
                                                     <!-- IN Column -->
                                                     <td class="text-center">
@@ -1137,7 +1142,7 @@
 
 
                                                     <!-- Amount Column -->
-                                                    <td class="text-center fw-bold">₹{{ $rowAmount }}</td>
+                                                    <td class="text-center fw-bold">{{ format_inr($rowAmount) }}</td>
                                                 </tr>
                                             @endforeach
 
@@ -1151,10 +1156,10 @@
                                                 @endphp
                                                 <td class="text-center">Total</td>
                                                 @if(empty($this->selectedSalesReturn))
-                                                <td class="text-center">₹{{ $totalIn }}</td>
+                                                <td class="text-center">{{ format_inr($totalIn) }}</td>
                                                 @endif
-                                                <td class="text-center">₹{{ $totalOut }}</td>
-                                                <td class="text-center">₹{{ $totalAmount }}</td>
+                                                <td class="text-center">{{ format_inr($totalOut) }}</td>
+                                                <td class="text-center">{{ format_inr($totalAmount) }}</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -1203,13 +1208,13 @@
                             <div class="border p-1 rounded bg-light">
                                 <div class="d-flex justify-content-between mb-2">
                                     <strong>{{ __('messages.subtotal') }}</strong>
-                                    <span>₹{{ number_format($this->sub_total, 2) }}</span>
+                                    <span>{{ format_inr($this->sub_total) }}</span>
                                 </div>
 
                                 @if ($commissionAmount > 0)
                                     <div class="d-flex justify-content-between mb-2">
                                         <strong>Commission Deduction</strong>
-                                        <span>- ₹{{ number_format($commissionAmount, 2) }}</span>
+                                        <span>- {{ format_inr($commissionAmount) }}</span>
                                     </div>
                                 @endif
                                 @if ($partyAmount > 0 && empty($this->selectedSalesReturn))
@@ -1223,7 +1228,7 @@
                                 @endif
                                 <div class="d-flex justify-content-between">
                                     <strong>{{ __('messages.tendered_amount') }}</strong>
-                                    <span>₹{{ number_format($this->cashAmount, 2) }}</span>
+                                    <span>{{ format_inr($this->cashAmount) }}</span>
                                     <input type="text" id="total" value="{{ $this->cashAmount }}"
                                         class="d-none" />
                                 </div>
@@ -1293,7 +1298,7 @@
 
 
                                                 <tr>
-                                                    <td>₹{{ $denomination }}</td>
+                                                    <td>{{ $denomination }}</td>
                                                     
                                                     <!-- IN Column -->
                                                     <td class="text-center">
@@ -1337,7 +1342,7 @@
                                                     </td>
                                                     <td class="text-center fw-bold"
                                                         id="amount_{{ $denomination }}_new">
-                                                        ₹{{ $rowAmount }}
+                                                        {{ $rowAmount }}
                                                     </td>
                                                 </tr>
                                             @endforeach
@@ -1348,9 +1353,9 @@
                                                     $this->cashPayChangeAmt = $totalOut;
                                                 @endphp
                                                 <td class="text-center">Total</td>
-                                                <td class="text-center" id="total_in_new">₹{{ $totalIn }}</td>
-                                                <td class="text-center" id="total_out_new">₹{{ $totalOut }}</td>
-                                                <td class="text-center" id="total_amount_new">₹{{ $totalAmount }}
+                                                <td class="text-center" id="total_in_new">{{ $totalIn }}</td>
+                                                <td class="text-center" id="total_out_new">{{ $totalOut }}</td>
+                                                <td class="text-center" id="total_amount_new">{{ $totalAmount }}
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -1392,13 +1397,13 @@
                             <div class="border p-3 rounded bg-light">
                                 <div class="d-flex justify-content-between mb-2">
                                     <strong>Subtotal</strong>
-                                    <span>₹{{ number_format($sub_total, 2) }}</span>
+                                    <span>{{ format_inr($sub_total) }}</span>
                                 </div>
 
                                 @if ($commissionAmount > 0)
                                     <div class="d-flex justify-content-between mb-2">
                                         <strong>Commission Deduction</strong>
-                                        <span>- ₹{{ number_format($commissionAmount, 2) }}</span>
+                                        <span>- {{ format_inr($commissionAmount) }}</span>
                                     </div>
                                 @endif
                                 @if ($partyAmount > 0)
@@ -1412,7 +1417,7 @@
                                 @endif
                                 <div class="d-flex justify-content-between">
                                     <strong>Total Payable</strong>
-                                    <span>₹{{ number_format($this->cashAmount, 2) }}</span>
+                                    <span>{{ format_inr($this->cashAmount) }}</span>
                                     <input type="text" id="total" value="{{ $this->cashAmount }}"
                                         class="d-none" />
                                 </div>
@@ -1573,7 +1578,11 @@
 <script>
     document.addEventListener('livewire:init', () => {
         Livewire.on('openModal', () => {
-            var myModal = new bootstrap.Modal(document.getElementById('myModal'));
+         //   var myModal = new bootstrap.Modal(document.getElementById('myModal'));
+            const myModal = new bootstrap.Modal(document.getElementById('myModal'), {
+            backdrop: 'static',
+            keyboard: false
+        });
             myModal.show();
         });
     });
@@ -1626,7 +1635,7 @@
                 }
             });
         } else if (change < 0) {
-            breakdown = `Remaining amount to collect: ₹${Math.abs(change).toFixed(2)}`;
+            breakdown = `Remaining amount to collect: ${Math.abs(change).toFixed(2)}`;
         } else {
             breakdown = `Exact amount received. No change needed.`;
         }
@@ -1641,9 +1650,9 @@
     //     const total = (notes2000 * 2000) + (notes500 * 500);
 
     //     if (total === 4000) {
-    //         document.getElementById('result').innerText = `✅ Total is ₹${total}`;
+    //         document.getElementById('result').innerText = `✅ Total is ${total}`;
     //     } else {
-    //         document.getElementById('result').innerText = `❌ Total is ₹${total}, which is not ₹4000`;
+    //         document.getElementById('result').innerText = `❌ Total is ${total}, which is not 4000`;
     //     }
     // }
 
@@ -1689,10 +1698,10 @@
             total += subtotal;
             //console.log(subtotal);
 
-            document.getElementById(note.sumId).textContent = `₹${subtotal.toLocaleString()}`;
+            document.getElementById(note.sumId).textContent = `${subtotal.toLocaleString()}`;
         });
 
-        document.getElementById('totalNoteCash').textContent = ` ₹${total.toLocaleString()}`;
+        document.getElementById('totalNoteCash').textContent = ` ${total.toLocaleString()}`;
 
         total -= change;
 
@@ -1700,7 +1709,7 @@
         if (cash == total) {
             document.getElementById('paymentSubmit').style.display = 'block';
 
-            // document.getElementById('result').textContent = `Total Cash: ₹${total.toLocaleString()}`;
+            // document.getElementById('result').textContent = `Total Cash: ${total.toLocaleString()}`;
         }
     }
 
@@ -1747,17 +1756,17 @@
             total += subtotal;
             //console.log(subtotal);
 
-            document.getElementById(note.sumId).textContent = `₹${subtotal.toLocaleString()}`;
+            document.getElementById(note.sumId).textContent = `${subtotal.toLocaleString()}`;
         });
 
-        document.getElementById('totalNoteCash').textContent = ` ₹${total.toLocaleString()}`;
+        document.getElementById('totalNoteCash').textContent = ` ${total.toLocaleString()}`;
 
         console.log("Cash Amount: ", actualTotal);
         console.log("Actual Total: ", parseFloat(cashAmount) + parseFloat(onlineAmount));
 
         if (actualTotal == parseFloat(cashAmount) + parseFloat(onlineAmount)) {
             document.getElementById('paymentSubmit').style.display = 'block';
-            // document.getElementById('result').textContent = `Total Cash: ₹${total.toLocaleString()}`;
+            // document.getElementById('result').textContent = `Total Cash: ${total.toLocaleString()}`;
         }
     }
 
@@ -1905,11 +1914,11 @@
                 const denom = parseInt(input.dataset.denomination);
                 const qty = parseInt(input.value) || 0;
                 const sum = denom * qty;
-                document.getElementById(`cashsum_${denom}`).innerText = `₹${sum}`;
+                document.getElementById(`cashsum_${denom}`).innerText = `${sum}`;
                 total += sum;
             });
 
-            totalCashDisplay.innerText = `₹${total}`;
+            totalCashDisplay.innerText = `${total}`;
             amountInput.value = total;
         }
 
@@ -1984,7 +1993,7 @@
         if (delta > 0 && (!maxNotes || current >= maxNotes)) {
             Swal.fire({
                 title: 'Note Limit Reached',
-                text: `No more ₹${denomination} notes available.`,
+                text: `No more ${denomination} notes available.`,
                 icon: 'warning',
                 confirmButtonText: 'OK'
             });
@@ -1996,7 +2005,7 @@
 
         input.value = current;
         document.getElementById('display_' + id).innerText = current;
-        document.getElementById('withcashsum_' + id).innerText = '₹' + (current * denomination);
+        document.getElementById('withcashsum_' + id).innerText = '' + (current * denomination);
 
         calculateTotal();
     }
@@ -2010,7 +2019,7 @@
             total += count * denom;
         });
 
-        document.getElementById('totalNoteCashwith').innerText = '₹' + total;
+        document.getElementById('totalNoteCashwith').innerText = '' + total;
         document.getElementById('withamountTotal').value = total;
     }
     // window.addEventListener('cart-voided', (event) => {
@@ -2161,13 +2170,13 @@
             const quantity = parseInt(input.value) || 0;
             const amount = denomination * quantity;
             
-            document.getElementById('discashhandsum_' + denomination).innerText = '₹' + amount;
+            document.getElementById('discashhandsum_' + denomination).innerText = '' + amount;
 
-            document.getElementById('cashhandsum_' + denomination).innerText = '₹' + amount;
+            document.getElementById('cashhandsum_' + denomination).innerText = '' + amount;
             total += amount;
             amountInput.value = total;
         });
-        document.getElementById('totalNoteCashHand').innerText = '₹' + total;
+        document.getElementById('totalNoteCashHand').innerText = '' + total;
     }
 
     document.querySelectorAll('.btn-increase').forEach(function(button) {
@@ -2230,10 +2239,10 @@
                 const denom = parseInt(input.dataset.denomination);
                 const qty = parseInt(input.value) || 0;
                 const sum = denom * qty;
-                document.getElementById(`cashsum_${denom}`).innerText = `₹${sum}`;
+                document.getElementById(`cashsum_${denom}`).innerText = `${sum}`;
                 total += sum;
             });
-            totalCashDisplay.innerText = `₹${total}`;
+            totalCashDisplay.innerText = `${total}`;
             amountInput.value = total;
         }
 

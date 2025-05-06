@@ -7,9 +7,9 @@
         body {
             font-family: 'Courier New', Courier, monospace;
             font-size: 12px;
+            width: 280px; /* 80mm approx */
             margin: 0;
             padding: 10px;
-            width: 280px; /* For 80mm paper width */
         }
 
         .centered {
@@ -25,96 +25,97 @@
             margin: 5px 0;
         }
 
-        .item-row {
-            display: flex;
-            justify-content: space-between;
+        .table th,
+        .table td {
+            padding: 2px 0;
+            vertical-align: top;
         }
 
-        .totals {
-            margin-top: 10px;
+        .table {
+            width: 100%;
+            border-collapse: collapse;
         }
 
-        .footer {
-            text-align: center;
-            margin-top: 10px;
-            font-size: 11px;
+        .right {
+            text-align: right;
         }
 
-        .large-text {
-            font-size: 16px;
+        .left {
+            text-align: left;
+        }
+
+        .small {
+            font-size: 10px;
         }
     </style>
 </head>
 <body>
 
-    <div class="centered bold">
-        LiquorHub<br>
-        456 Retail Avenue<br>
-        City, 654321<br>
-        Phone: 1234567890
-    </div>
+<div class="centered bold">
+    LiquorHub<br>
+    {{ $branch->address }}<br>
+</div>
+<br>
+<div class="line"></div>
 
-    <div class="line"></div>
+<div>
+    <strong>Invoice:</strong> {{ $invoice->invoice_number }}<br>
+    <strong>Name:</strong> {{ $invoice->customer_name ?? 'Walk-in' }}<br>
+    <strong>Date:</strong> {{ $invoice->created_at->format('d/m/Y H:i') }}
+</div>
 
-    <div>
-        Invoice #: {{ $invoice->invoice_number }}<br>
-        Date: {{ $invoice->created_at->format('d-m-Y H:i') }}
-    </div>
+<div class="line"></div>
 
-    <div class="line"></div>
+<table class="table">
+    <thead class="bold">
+        <tr>
+            <th>#</th>
+            <th class="left">Item</th>
+            <th>Qty</th>
+            <th class="right">Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach($items as $index => $item)
+        <tr>
+            <td>{{ $index + 1 }}</td>
+            <td class="left">{{ $item['name'] }}</td>
+            <td>{{ number_format($item['quantity'], 2) }}</td>
+            <td class="right">{{ number_format($item['quantity'] * $item['price'], 2) }}</td>
+        </tr>
+        @endforeach
+    </tbody>
+</table>
 
-    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-        <thead>
-            <tr style="border-bottom: 1px dashed #000; font-weight: bold;">
-                <th style="text-align: left;">Name</th>
-                <th style="text-align: center;">QTY</th>
-                <th style="text-align: right;">Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($items as $item)
-                <tr>
-                    <td style="text-align: left;">{{ $item['name'] }}</td>
-                    <td style="text-align: center;">{{ $item['quantity'] }}</td>
-                    <td style="text-align: right;">{{ number_format($item['quantity'] * $item['price'], 2) }}</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+<div class="line"></div>
 
-    <div class="line"></div>
+<div>
+    <strong>ROUND OFF:</strong> {{ $invoice->total}}<br>
+    <strong>TOTAL:</strong> {{ $invoice->total}}<br>
+    DISCOUNT ITEMS: {{ $invoice->party_amount ?? 0}}<br>
+    TOTAL SAVINGS: {{ $invoice->total_savings ?? 0}}<br>
+    BY CASH: {{ $invoice->cash_amount}}<br>
+    BY UPI: {{ $invoice->cash_amount}}<br>
+</div>
 
-    <div class="totals">
-      
-        <div class="item-row bold large-text">
-            <div>Total</div>
-            <div>{{ number_format((Int)$invoice->total, 2) }}</div>
-        </div>
-    </div>
+<div class="line"></div>
 
-    {{-- <div class="line"></div>
+<div class="bold">Customer Details</div>
+Address: {{ $invoice->customer_address ?? ', Rajasthan, Gujarat' }}<br>
+PIECES PURCHASED: {{ count($items) }}
 
-    <div class="totals">
-        <div class="item-row">
-            <div>Open Balance</div>
-            <div>{{ number_format($invoice->open_balance, 2) }}</div>
-        </div>
-        <div class="item-row">
-            <div>Paid Cash</div>
-            <div>{{ number_format($invoice->paid_cash, 2) }}</div>
-        </div>
-        <div class="item-row bold">
-            <div>Close Balance</div>
-            <div>{{ number_format($invoice->close_balance, 2) }}</div>
-        </div>
-    </div> --}}
+<div class="line"></div>
 
-    <div class="line"></div>
+<div class="small centered">
+    E & O E.<br>
+    Printed On: {{ now()->format('d/m/Y h:i A') }}
+</div>
 
-    <div class="footer">
-        Thank you for shopping with us!<br>
-        Visit Again!
-    </div>
+<div class="line"></div>
+
+<div class="centered bold">
+    Thank you for shopping with us!
+</div>
 
 </body>
 </html>
