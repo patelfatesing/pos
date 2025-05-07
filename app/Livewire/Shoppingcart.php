@@ -130,8 +130,8 @@ class Shoppingcart extends Component
     {
         if (!$this->selectedProduct) return;
             $currentQty=$this->cartCount+1;
-            $totalQuantity = collect($this->selectedSalesReturn->items)->sum('quantity');
-            if (!empty($this->selectedSalesReturn) && $this->cartCount>= $totalQuantity) {
+            $totalQuantity = $this->selectedSalesReturn ? collect($this->selectedSalesReturn->items)->sum('quantity') : 0;
+            if (!empty($this->selectedSalesReturn) && $this->cartCount >= $totalQuantity) {
                 $this->dispatch('notiffication-error', [
                     'message' => 'Adding more items is not allowed in a refund transaction.'
                 ]);
@@ -465,7 +465,31 @@ class Shoppingcart extends Component
             $this->dispatch('notiffication-error', ['message' => 'Invoice not found.']);
             return;
         }
+        $groupedProducts = [];
 
+        foreach ($this->cartitems as $cartitem) {
+
+            $productId = $cartitem->product_id;
+            if (!isset($groupedProducts[$productId])) {
+                $groupedProducts[$productId] = 0;
+            }
+            $totalQuantity = collect($this->selectedSalesReturn->items)
+                ->where('product_id', $productId)
+                ->sum('quantity');
+            $groupedProducts[$productId] = $totalQuantity;
+        }
+        //Loop through each product group and deduct from inventories
+        foreach ($groupedProducts as $productId => $totalQuantity) {
+            
+            $product = $this->cartitems->firstWhere('product_id', $productId)->product;
+            $inventories = $product->inventories;
+            
+            if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
+                // Deduct only from the first inventory if it has enough quantity
+                $inventories[0]->quantity += $totalQuantity;
+                $inventories[0]->save();
+            }
+        }
         // Delete associated cash breakdown entry
         if ($invoice->cash_break_id) {
             CashBreakdown::where('id', $invoice->cash_break_id)->delete();
@@ -477,12 +501,13 @@ class Shoppingcart extends Component
         $invoice->sub_total = (Int)$invoice->sub_total - $this->cashAmount;
         $invoice->creditpay = 0;
         $invoice->party_amount = 0;
-
         $invoice->cash_break_id = null; // Clear the cash_break_id
         $invoice->save();
+        InvoiceHistory::logFromInvoice($invoice, 'returned', auth()->id());
 
-        $this->reset('searchTerm', 'searchResults', 'showSuggestions','cashAmount','shoeCashUpi','showBox','cashNotes','quantities','cartCount');
-        $this->dispatch('notiffication-sucess', ['message' => 'Sales return initiated.']);
+
+        $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount','selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown','cartitems');
+         $this->dispatch('notiffication-sucess', ['message' => 'Sales return initiated.']);
     }
     public function updatedCash($value)
     {
@@ -722,7 +747,7 @@ class Shoppingcart extends Component
         // Decode cash JSON to array
         $this->shiftcash = $noteCount;
         $this->availableNotes = json_encode($this->shiftcash);
-        $this->checkTime();
+        //$this->checkTime();
 
         // return view('shift_closing.show', compact('shift'));
         //$this->loadCartData();
@@ -1171,7 +1196,7 @@ class Shoppingcart extends Component
             $curtDiscount=$item->discount/$item->quantity;
             $item->quantity--;
             $item->discount=$curtDiscount*$item->quantity;
-            $item->net_amount=($item->mrp-$item->discount)*$item->quantity;
+            $item->net_amount=($item->mrp-$curtDiscount)*$item->quantity;
             $item->save();
 
             if($this->selectedPartyUser){
@@ -1214,13 +1239,13 @@ class Shoppingcart extends Component
             //     ->where(['user_id' => auth()->user()->id])
             //     ->where('status', '!=', Cart::STATUS_HOLD)
             //     ->get()
-            //     ->sum(fn($cart) => $cart->product->discount_price ?? 0);
+            //     ->sum(fn($cart) => $cart->product->discount_amt ?? 0);
             // $this->commissionAmount = $getDiscountAmt;
             $mycarts = Cart::with(['product', 'product.inventorie'])->where('user_id', auth()->user()->id)->where('status', Cart::STATUS_PENDING)->get();
 
             foreach ($mycarts as $key => $mycart) {
-               $mycart->net_amount=$mycart->net_amount-($mycart->product->discount_price*$mycart->quantity);
-               $mycart->discount=$mycart->product->discount_price*$mycart->quantity;
+               $mycart->net_amount=$mycart->net_amount-($mycart->product->discount_amt*$mycart->quantity);
+               $mycart->discount=$mycart->product->discount_amt*$mycart->quantity;
                $mycart->save();
                $sum=$sum+$mycart->net_amount;
                $commissionTotal=$commissionTotal+$mycart->discount;
@@ -1254,15 +1279,15 @@ class Shoppingcart extends Component
             $mycarts = Cart::with(['product', 'product.inventorie'])->where('user_id', auth()->user()->id)->where('status', Cart::STATUS_PENDING)->get();
             foreach ($mycarts as $key => $mycart) {
 
-    $curtDiscount=$mycart->product->discount_price;
-    $mycart->discount=$curtDiscount*($mycart->quantity);
-    $mycart->net_amount=($mycart->mrp*$mycart->quantity)-$mycart->discount;
+                $curtDiscount=$mycart->product->discount_amt;
+                $mycart->discount=$curtDiscount*($mycart->quantity);
+                $mycart->net_amount=($mycart->mrp*$mycart->quantity)-$mycart->discount;
     
 
-               //$mycart->net_amount=$mycart->net_amount-($mycart->product->discount_price*$mycart->quantity);
-                //\Log::info('Net Amount: ' . $mycart->net_amount . ' Discount: ' . $mycart->product->discount_price. ' Quantity: ' . $mycart->quantity);
+               //$mycart->net_amount=$mycart->net_amount-($mycart->product->discount_amt*$mycart->quantity);
+                //\Log::info('Net Amount: ' . $mycart->net_amount . ' Discount: ' . $mycart->product->discount_amt. ' Quantity: ' . $mycart->quantity);
                 
-               //$mycart->discount=$mycart->product->discount_price*$mycart->quantity;
+               //$mycart->discount=$mycart->product->discount_amt*$mycart->quantity;
 
                $mycart->save();
                $sum=$sum+$mycart->net_amount;
@@ -1293,7 +1318,7 @@ class Shoppingcart extends Component
             $this->partyAmount = 0;
         }
         $this->dispatch('updateNewProductDetails');
-
+        
        // $this->cashAmount=$sum;
         
     }
@@ -1356,7 +1381,7 @@ class Shoppingcart extends Component
         
         if (auth()->user()) {
             $currentQty=$this->cartCount+1;
-            $totalQuantity = collect(@$this->selectedSalesReturn->items)->sum('quantity');
+            $totalQuantity = $this->selectedSalesReturn ? collect($this->selectedSalesReturn->items)->sum('quantity') : 0;
             if (!empty($this->selectedSalesReturn) && $this->cartCount>= $totalQuantity) {
                 $this->dispatch('notiffication-error', [
                     'message' => 'Adding more items is not allowed in a refund transaction.'
@@ -1401,7 +1426,7 @@ class Shoppingcart extends Component
             if($this->selectedCommissionUser){
                 $commissionUser = CommissionUser::find($this->selectedCommissionUser);
                 if(!empty($commissionUser)){
-                    $myCart=$product->discount_price;
+                    $myCart=$product->discount_amt;
 
                 }else{
                     $myCart=0;
@@ -1412,7 +1437,7 @@ class Shoppingcart extends Component
                 $user = Partyuser::find($this->selectedPartyUser);
                 if (!empty($user)) {
                    // $myCart=$user->credit_points;
-                   $myCart=$product->discount_price;
+                   $myCart=$product->discount_amt;
 
                 } else {
                     $myCart=0;
@@ -1431,7 +1456,7 @@ class Shoppingcart extends Component
                 $item->product_id = $id;
                 $item->mrp = $product->sell_price;
                 $item->amount = $product->sell_price-$myCart;
-                $item->discount = $myCart;
+                $item->discount = $myCart ?? 0;
                 $item->net_amount = $product->sell_price-$myCart;
                 $item->save();
 
@@ -1740,7 +1765,7 @@ class Shoppingcart extends Component
                // $this->dispatch('triggerPrint');
                  // Generate PDF and store it in local storage
                  $pdf = App::make('dompdf.wrapper');
-                 $pdf->loadView('invoice', ['invoice' => $invoice,'items' => $invoice->items]);
+                 $pdf->loadView('invoice', ['invoice' => $invoice,'items' => $invoice->items,'branch'=>auth()->user()->userinfo->branch]);
                  $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
                  $pdf->save($pdfPath);
                 //  $this->dispatch('triggerPrint', [
@@ -1781,7 +1806,7 @@ class Shoppingcart extends Component
                 //     ]);
                 // }
 
-
+            
                 $commissionUser = CommissionUser::find($this->selectedCommissionUser);
                 $partyUser = PartyUser::find($this->selectedPartyUser);
                 $cartitems = $this->cartitems;
@@ -1794,33 +1819,24 @@ class Shoppingcart extends Component
                     if (!isset($groupedProducts[$productId])) {
                         $groupedProducts[$productId] = 0;
                     }
-                    $groupedProducts[$productId] += $cartitem->quantity;
+                    $totalQuantity = collect($this->selectedSalesReturn->items)
+                        ->where('product_id', $productId)
+                        ->sum('quantity');
+                    $groupedProducts[$productId] = $totalQuantity-$cartitem->quantity;
                 }
-                // Loop through each product group and deduct from inventories
-                // foreach ($groupedProducts as $productId => $totalQuantity) {
-                //     $product = $this->cartitems->firstWhere('product_id', $productId)->product;
-                //     $inventories = $product->inventories;
+                
+                //Loop through each product group and deduct from inventories
+                foreach ($groupedProducts as $productId => $totalQuantity) {
                     
-                //     if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
-                //         // Deduct only from the first inventory if it has enough quantity
-                //         $inventories[0]->quantity += $totalQuantity;
-                //         $inventories[0]->save();
-                //     } else {
-                //         // Deduct from all inventories if the first one doesn't have enough
-                //         foreach ($inventories as $inventory) {
-                //             if ($totalQuantity <= 0) {
-                //                 break;
-                //             }
-
-                //             if ($inventory->quantity > 0) {
-                //                 $deductQty = min($totalQuantity, $inventory->quantity);
-                //                 $inventory->quantity += $deductQty;
-                //                 $inventory->save();
-                //                 $totalQuantity -= $deductQty;
-                //             }
-                //         }
-                //     }
-                // }
+                    $product = $this->cartitems->firstWhere('product_id', $productId)->product;
+                    $inventories = $product->inventories;
+                    
+                    if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
+                        // Deduct only from the first inventory if it has enough quantity
+                        $inventories[0]->quantity += $totalQuantity;
+                        $inventories[0]->save();
+                    }
+                }
                 $cashNotes = json_encode($this->cashNotes) ?? [];
                 $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
                 // 💾 Save cash breakdown 
