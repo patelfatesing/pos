@@ -59,14 +59,14 @@
      $minDate = \Carbon\Carbon::today()->format('Y-m-d');
     @endphp
 
-    <div class="modal fade bd-example-modal-lg" id="approveModal" tabindex="-1" role="dialog"
-        aria-labelledby="approveModalLabel" aria-hidden="true">
+    <div class="modal fade bd-example-modal-lg" id="priceChangeModal" tabindex="-1" role="dialog"
+        aria-labelledby="priceChangeModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <form id="priceUpdateForm">
                     @csrf
                     <div class="modal-header">
-                        <h5 class="modal-title" id="approveModalLabel">Product Price Change</h5>
+                        <h5 class="modal-title" id="priceChangeModalLabel">Product Price Change</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -229,10 +229,10 @@
         }
 
         function product_price_change(id,sell_price) {
-
+                // alert(id);
             $('#old_price').val(sell_price);
             $('#product_id').val(id);
-            $('#approveModal').modal('show');
+            $('#priceChangeModal').modal('show');
         }
 
         $('#priceUpdateForm').on('submit', function(e) {
@@ -252,7 +252,7 @@
                 },
                 success: function(response) {
                     alert(response.message);
-                    $('#approveModal').modal('hide');
+                    $('#priceChangeModal').modal('hide');
                     location.reload(); // or update the DOM without reloading
                 },
                 error: function(xhr) {
