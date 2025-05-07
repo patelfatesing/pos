@@ -258,7 +258,7 @@ class ProductController extends Controller
         // 💡 Only log if price actually changes
         if ($product->sell_price != $request->new_price) {
             // 💾 Save price change history
-            ProductPriceChangeHistory::create([
+            $his_data = ProductPriceChangeHistory::create([
                 'product_id' => $product->id,
                 'old_price' => $product->sell_price,
                 'new_price' => $request->new_price,
@@ -269,6 +269,13 @@ class ProductController extends Controller
         // 🔁 Update product
         // $product->price = $request->price;
         // $product->save();
+
+        $stores = Branch::all();
+
+        foreach ($stores as $store) {
+            $arr['id'] = $his_data->id;
+            sendNotification('price_change', $product->name.' Product price is changed.',$store->id,Auth::id(),json_encode($arr), 0);
+        }
 
         return response()->json([
             'status' => 'success',

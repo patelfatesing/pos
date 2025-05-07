@@ -91,7 +91,25 @@ class Notification extends Component
                     ->orderBy('i.expiry_date')
                     ->get();
                 break;
-
+                case 'transfer_stock':
+                    $this->selectedNotificationData = DB::table('stock_transfers as i')
+                        ->join('products as p', 'i.product_id', '=', 'p.id')
+                        ->where('i.transfer_number', $red_id)
+                        ->select(
+                            'i.id as id',
+                            'i.product_id',
+                            'p.name as product_name',
+                            'p.brand',
+                            'i.transfer_number',
+                            'i.quantity',
+                            'p.sku',
+                            'p.barcode',
+                            'i.to_branch_id'
+                        )
+                        ->orderBy('i.created_at')
+                        ->get();
+                        // dd($this->selectedNotificationData);
+                    break;    
             default:
                 $this->selectedNotificationData = collect([
                     'message' => 'Notification not found.',

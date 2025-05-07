@@ -118,7 +118,8 @@ class StockTransferController extends Controller
             }
 
             $arr['id'] = $transfer->id;
-            sendNotification('transfer_stock', 'Warehouse some Product is transfer',$request->to_store_id, Auth::id(),'');
+            sendNotification('transfer_stock', 'Warehouse some Product is transfer',$request->to_store_id,Auth::id(),json_encode($arr), 0);
+
             DB::commit();
             return redirect()->route('inventories.list')->with('success', 'Stock has beeb transfer successfully.');
 
