@@ -25,7 +25,7 @@
                     @if (auth()->user()->hasRole('warehouse'))
                     <td>{{ !empty($transaction->partyUser) ? $transaction->partyUser->first_name." ".$transaction->partyUser->last_name : 'N/A' }}</td>
                     @else
-                    <td>{{ $transaction->commissionUser->first_name." ".$transaction->commissionUser->last_name }}</td>
+                    <td>{{ !empty($transaction->commissionUser) ? $transaction->commissionUser->first_name." ".$transaction->commissionUser->last_name : 'N/A' }}</td>
 
                     @endif
 
