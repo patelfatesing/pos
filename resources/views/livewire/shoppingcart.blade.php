@@ -21,7 +21,7 @@
         </div>
 
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <div class="mb-3">
                     <form wire:submit.prevent="searchTerm" class="mb-3">
                         {{-- <div class="input-group">
@@ -43,20 +43,7 @@
                         </div>
                         
                     </form>
-                    @if ($showSuggestions && count($searchResults) > 0)
-                        <div class="search-results">
-
-                            <div class="list-group mb-3 ">
-                                @foreach ($searchResults as $product)
-                                    <a href="#" class="list-group-item list-group-item-action"
-                                        wire:click.prevent="addToCart({{ $product->id }})">
-                                        <strong>{{ $product->name }} ({{ $product->size }})</strong><br>
-                                        <small>{{ format_inr(@$product->sell_price) }}</small>
-                                    </a>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
+                 
                     {{-- On-screen QWERTY Keypad --}}
                     <div id="text-keypad"
                         class="keypad-container position-fixed top-50 start-50 translate-middle bg-white border p-3 rounded-3 shadow-lg d-none"
@@ -80,7 +67,7 @@
                 </div>
             </div>
 
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <div class="mb-3">
                     <input type="number" wire:model.live.debounce.500ms="search" wire:keydown.enter="addToCartBarCode"
                         class="form-control" placeholder=" {{ __('messages.scan_barcode') }}" autofocus>
@@ -148,6 +135,20 @@
             @endif
 
         </div>
+        @if ($showSuggestions && count($searchResults) > 0)
+            <div class="search-results col-md-6">
+
+                <div class="list-group">
+                    @foreach ($searchResults as $product)
+                        <a href="#" class="list-group-item list-group-item-action"
+                            wire:click.prevent="addToCart({{ $product->id }})">
+                            <strong>{{ $product->name }} ({{ $product->size }})</strong><br>
+                            <small>{{ format_inr(@$product->sell_price) }}</small>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
         <div class="table-responsive" id="main_tb">
          
             <div class=" {{ count($itemCarts) > 5 ? ' cart-table-scroll scrollable' : '' }}">
@@ -197,7 +198,7 @@
                                                            class="form-control text-center number-input"
                                                            wire:model="quantities.{{ $item->id }}"
                                                            wire:change="updateQty({{ $item->id }})"
-                                                           data-item-id="{{ $item->id }}" readonly />
+                                                           data-item-id="{{ $item->id }}"  />
                                             
                                                     <!-- Shared Numpad for this input -->
                                                     <div id="numpad-{{ $item->id }}" class="numpad-container d-none position-absolute bg-white border p-2 mt-1 rounded shadow"
@@ -432,229 +433,7 @@
         </div>
     </div>
 
-    <form action="{{ route('shift-close.store') }}" method="POST">
-        @csrf
-
-        <div class="modal fade no-print" id="closeShiftModal" tabindex="-1" aria-labelledby="closeShiftModalLabel"
-            aria-hidden="true" data-backdrop="static" data-keyboard="false">
-            <div class="modal-dialog modal-dialog-scrollable modal-xl">
-                <div class="modal-content shadow-sm rounded-4 border-0">
-
-                    {{-- Modal Header --}}
-                    <div class="modal-header bg-primary text-white rounded-top-4">
-                        <div class="d-flex flex-column">
-                            <h5 class="modal-title fw-semibold" id="closeShiftModalLabel">
-                                <i class="bi bi-cash-coin me-2"></i> Shift Close Summary -
-                                {{ $branch_name ?? 'Shop' }}
-                            </h5>
-                        </div>
-
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">×</span>
-                        </button>
-                    </div>
-
-                    {{-- Modal Body --}}
-                    <div class="modal-body px-4 py-4">
-
-                        {{-- Hidden Fields --}}
-                        <input type="hidden" name="start_time" value="{{ $shift->start_time ?? '' }}">
-                        <input type="hidden" name="end_time" value="{{ $shift->end_time ?? '' }}">
-                        <input type="hidden" name="opening_cash" value="{{ $shift->opening_cash ?? '' }}">
-                        <input type="hidden" name="today_cash" value="{{ $todayCash ?? '' }}">
-                        <input type="hidden" name="total_payments" value="{{ $shift->total_payments ?? '' }}">
-
-                        {{-- Sales and Cash Section --}}
-                        <div class="row g-4 mb-4">
-
-                            {{-- Sales Breakdown --}}
-                            <div class="col-md-6">
-                                {{-- Assume $data is passed from the controller --}}
-
-                                <div class="card p-4">
-                                    <h4 class="mb-4">Sales Details</h4>
-                                    <hr>
-                                    <div class="row">
-                                        @foreach ($categoryTotals as $category => $items)
-                                            @php
-                                                $colClass = $category == 'summary' ? 'col-md-12 mb-4' : 'col-md-6 mb-4';
-                                            @endphp
-                                            <div class="{{ $colClass }}">
-                                                <div class="card shadow-sm border-0">
-                                                    <div class="card-header bg-primary text-white">
-                                                        <h5 class="card-title mb-0 text-capitalize">
-                                                            {{ ucfirst($category) }}</h5>
-                                                    </div>
-                                                    <div class="card-body p-0">
-                                                        <ul class="list-group list-group-flush">
-                                                            @foreach ($items as $key => $value)
-                                                                @php
-                                                                    $grenClass = $key == 'TOTAL' ? 'table-success fw-bold' : '';
-
-                                                                @endphp
-                                                                <li
-                                                                    class="list-group-item d-flex justify-content-between align-items-center {{$grenClass}}">
-                                                                    <span
-                                                                        class="text-muted">{{ ucwords(str_replace('_', ' ', $key)) }}</span>
-                                                                    <span
-                                                                        class="fw-bold">
-                                                                        {{ format_inr($value) }}</span>
-                                                                    <input type="hidden" name="{{ $key }}"
-                                                                        id="{{ $key }}"
-                                                                        value="{{ format_inr($value) }}">
-                                                                </li>
-                                                            @endforeach
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-
-                                </div>
-
-
-                            </div>
-
-                            {{-- Shift Timing and Cash Details --}}
-                            <div class="col-md-6">
-                                <div class="card shadow-sm rounded-3">
-                                    <div class="card-body p-4">
-
-                                        {{-- Shift Timing --}}
-                                        <div class="d-flex justify-content-between align-items-center mb-4">
-                                            <div>
-                                                <div class="row text-left mt-2">
-                                                    <div class="col-6 border-end">
-                                                        <div class="small text-muted">Start Time</div>
-                                                        <div class="fw-semibold">{{ $shift->start_time ?? '-' }}</div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="small text-muted">End Time</div>
-                                                        <div class="fw-semibold">{{ $shift->end_time ?? '-' }}</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {{-- Shift Close Button --}}
-                                            <div>
-                                                <button class="btn btn-success btn-sm mt-3" type="submit">
-                                                    <i class="bi bi-check-circle me-1"></i> Close Shift
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <hr>
-                                        {{-- Cash Breakdown --}}
-                                        <h5 class="card-title text-warning text-left mb-3">💵 Cash Details</h5>
-                                        <div class="table-responsive">
-                                            <table class="table table-bordered table-sm text-center align-middle mb-0">
-                                                <thead class="table-light">
-                                                    <tr>
-                                                        <th>Denomination</th>
-                                                        <th>Notes</th>
-                                                        <th>x</th>
-                                                        <th>Amount</th>
-                                                        <th>=</th>
-                                                        <th>Total</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @if (!empty($shiftcash))
-                                                        @php
-                                                            $totalNotes = 0;
-                                                        @endphp
-                                                        @foreach ($shiftcash as $denomination => $quantity)
-                                                            @php
-                                                                $rowTotal = $denomination * $quantity;
-                                                                $totalNotes += $rowTotal;
-                                                            @endphp
-                                                            <tr>
-                                                                <td class="fw-bold">{{ format_inr($denomination) }}
-                                                                </td>
-                                                                <td>{{ abs($quantity) }}</td>
-                                                                <td>X</td>
-                                                                <td>{{ format_inr($denomination) }}</td>
-                                                                <td>=</td>
-                                                                <td class="fw-bold">{{ format_inr($rowTotal) }}
-                                                                </td>
-                                                            </tr>
-                                                            <input type="hidden"
-                                                                name="cash_breakdown[{{ $denomination }}]['in']"
-                                                                value="{{ $quantity }}">
-                                                        @endforeach
-                                                    @endif
-                                                </tbody>
-                                                <tfoot class="table-light">
-                                                    <tr>
-                                                        <th colspan="5" class="text-end">Total</th>
-                                                        <th class="fw-bold">
-                                                            {{ format_inr(@$totalNotes) }}
-                                                    </tr>
-                                                </tfoot>
-                                            </table>
-
-                                        </div>
-
-                                        {{-- Summary Cash Totals --}}
-                                        <div class="table-responsive mt-4">
-                                            <table class="table table-sm">
-                                                <tbody>
-                                                    {{-- <tr>
-                                                        <td class="text-start fw-bold">Opening Cash</td>
-                                                        <td class="text-end">
-                                                            {{ format_inr($shift->opening_cash ?? 0) }}</td>
-                                                    </tr> --}}
-                                                    <tr>
-                                                        <td class="text-start fw-bold">System Cash Sales</td>
-                                                        <td class="text-end">{{ format_inr($totalNotes ?? 0) }}
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                      
-                                                        <td class="text-start fw-bold">Total Cash Amount</td>
-                                                        <td class="text-end">{{ format_inr(@$this->categoryTotals['summary']['TOTAL']) }}
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="text-start fw-bold">Closing Cash</td>
-                                                        <td class="text-end">
-                                                            <input type="number"
-                                                            name="closingCash"
-                                                            id="closingCash"
-                                                            class="form-control"
-                                                            oninput="calculateDifference({{ @$this->categoryTotals['summary']['TOTAL'] }})"
-                                                            min="0"
-                                                            step="0.01"
-                                                            placeholder="Enter closing cash"
-                                                            required>
-                                                     
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="text-start fw-bold">Discrepancy Cash</td>
-                                                        <td class="text-end">
-                                                            <input type="text" name="diffCash" id="diffCash"
-                                                                class="form-control" readonly>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-            </div>
-
-
-        </div>
-    </form>
-
+    
     {{-- <form action="{{ route('shift-close.withdraw') }}" method="POST">
         @csrf --}}
 
@@ -1018,18 +797,26 @@
                                     <i class="fas fa-hand-paper"></i>
                                 </button>
                             @endif
+                            <button wire:click="printLastInvoice" class="btn btn-primary ml-2" data-toggle="tooltip" data-placement="top" title="Print the last invoice">
+                                <i class="fas fa-print"></i>
+                            </button>
                             {{-- @livewire('button-timer', ['endTime' => '2025-05-07 12:45:00']) --}}
 
                             {{-- Close Shift --}}
-                            <button type="button" class="btn btn-primary ml-2" data-toggle="modal"
+                            {{-- <button type="button" class="btn btn-primary ml-2" data-toggle="modal"
                                 data-target="#closeShiftModal" data-toggle="tooltip" data-placement="top"
                                 title="Close Shift">
                                 <i class="fas fa-door-closed"></i>
-                            </button>
+                            </button> --}}
+                        
+                            {{-- dashboard.blade.php --}}
+                            @livewire('shift-close-modal')
+
                             @if (auth()->user()->hasRole('warehouse'))
 
                             <livewire:language-switcher />
                             @endif
+                            <!-- Modal -->
                             {{-- Logout --}}
                             <button type="button" class="btn btn-outline-danger ml-2" data-toggle="tooltip"
                                 data-placement="top" title="Logout"
@@ -1208,7 +995,7 @@
                             <div class="border p-1 rounded bg-light">
                                 <div class="d-flex justify-content-between mb-2">
                                     <strong>{{ __('messages.subtotal') }}</strong>
-                                    <span>{{ format_inr($this->sub_total) }}</span>
+                                    <span>{{ format_inr($this->cashAmount) }}</span>
                                 </div>
 
                                 @if ($commissionAmount > 0)
@@ -1217,14 +1004,21 @@
                                         <span>- {{ format_inr($commissionAmount) }}</span>
                                     </div>
                                 @endif
-                                @if ($partyAmount > 0 && empty($this->selectedSalesReturn))
+                                @if ($partyAmount > 0 )
+                                <div class=" mb-2">
+                                    <label class="-label" for="useCreditCheck">
+                                        <input type="checkbox" wire:click="toggleCheck" /> {{ __('messages.use_credit_to_pay') }}
+                                    </label>
+                                </div>
+                                
+                                @if($useCredit)
                                     <div class="d-flex justify-content-between mb-2">
                                         <strong>{{ __('messages.credit') }}</strong>
-                                        <input type="number" width="10%"
-                                        wire:model.live="creditPay" wire:input="creditPayChanged"
-                                        class="form-control" style="width: 80px;" />
-
+                                        <input type="number" wire:model="creditPay" wire:input="creditPayChanged"
+                                            class="form-control" style="width: 80px;" />
                                     </div>
+                                @endif
+                                    
                                 @endif
                                 <div class="d-flex justify-content-between">
                                     <strong>{{ __('messages.tendered_amount') }}</strong>
@@ -1778,6 +1572,23 @@
     });
 </script>
 <script>
+    // async function startCamera(type) {
+    //     const video = document.getElementById(type === 'product' ? 'video1' : 'video2');
+    //     try {
+    //         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    //         video.srcObject = stream;
+    //     } catch (error) {
+    //         console.error('Camera permission denied or not available.', error);
+    //         alert('Please allow camera access to capture an image.');
+    //     }
+    // }
+
+    // // Start the camera when the captureModal is opened
+    // document.addEventListener('DOMContentLoaded', function () {
+    //     $('#captureModal').on('shown.bs.modal', function () {
+    //         startCamera('product'); // Start camera for 'product' type
+    //     });
+    // });
     let stream;
 
     navigator.mediaDevices.getUserMedia({
@@ -2113,53 +1924,53 @@
     });
 </script>
 <script>
-    function calculateDifference(expectedAmount) {
-    const closingCashInput = document.getElementById('closingCash');
-    const diffCashInput = document.getElementById('diffCash');
-    const closingCashValue = closingCashInput.value.trim();
+//     function calculateDifference(expectedAmount) {
+//     const closingCashInput = document.getElementById('closingCash');
+//     const diffCashInput = document.getElementById('diffCash');
+//     const closingCashValue = closingCashInput.value.trim();
 
-    // Validate input
-    if (closingCashValue === '') {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Missing Input',
-            text: 'Please enter the closing cash amount.',
-        });
-        closingCashInput.focus();
-        diffCashInput.value = '';
-        return;
-    }
+//     // Validate input
+//     if (closingCashValue === '') {
+//         Swal.fire({
+//             icon: 'warning',
+//             title: 'Missing Input',
+//             text: 'Please enter the closing cash amount.',
+//         });
+//         closingCashInput.focus();
+//         diffCashInput.value = '';
+//         return;
+//     }
 
-    const closingCash = parseFloat(closingCashValue);
+//     const closingCash = parseFloat(closingCashValue);
 
-    if (isNaN(closingCash)) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Invalid Input',
-            text: 'Closing cash must be a valid number.',
-        });
-        closingCashInput.focus();
-        diffCashInput.value = '';
-        return;
-    }
+//     if (isNaN(closingCash)) {
+//         Swal.fire({
+//             icon: 'error',
+//             title: 'Invalid Input',
+//             text: 'Closing cash must be a valid number.',
+//         });
+//         closingCashInput.focus();
+//         diffCashInput.value = '';
+//         return;
+//     }
 
-    if (closingCash < 0) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Invalid Amount',
-            text: 'Closing cash cannot be negative.',
-        });
-        closingCashInput.focus();
-        diffCashInput.value = '';
-        return;
-    }
+//     if (closingCash < 0) {
+//         Swal.fire({
+//             icon: 'error',
+//             title: 'Invalid Amount',
+//             text: 'Closing cash cannot be negative.',
+//         });
+//         closingCashInput.focus();
+//         diffCashInput.value = '';
+//         return;
+//     }
 
-    // Calculate the difference
-    const diffCash = closingCash - expectedAmount;
+//     // Calculate the difference
+//     const diffCash = closingCash - expectedAmount;
 
-    // Update the diffCash input with the calculated value
-    diffCashInput.value = diffCash.toFixed(2);
-}
+//     // Update the diffCash input with the calculated value
+//     diffCashInput.value = diffCash.toFixed(2);
+// }
 
 
     function updateAmounts() {
@@ -2255,61 +2066,61 @@
     });
 </script>
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const inputs = document.querySelectorAll('.number-input');
+    // document.addEventListener('DOMContentLoaded', () => {
+    //     const inputs = document.querySelectorAll('.number-input');
 
-        inputs.forEach(input => {
-            input.addEventListener('focus', () => {
-                const itemId = input.dataset.itemId;
-                const numpad = document.getElementById('numpad-' + itemId);
-                closeAllNumpads();
-                positionNumpadBelow(input, numpad);
-                numpad.classList.remove('d-none');
-            });
-        });
+    //     inputs.forEach(input => {
+    //         input.addEventListener('focus', () => {
+    //             const itemId = input.dataset.itemId;
+    //             const numpad = document.getElementById('numpad-' + itemId);
+    //             closeAllNumpads();
+    //             positionNumpadBelow(input, numpad);
+    //             numpad.classList.remove('d-none');
+    //         });
+    //     });
 
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.numpad-container') && !e.target.classList.contains('number-input')) {
-                closeAllNumpads();
-            }
-        });
-    });
+    //     document.addEventListener('click', (e) => {
+    //         if (!e.target.closest('.numpad-container') && !e.target.classList.contains('number-input')) {
+    //             closeAllNumpads();
+    //         }
+    //     });
+    // });
 
-    function positionNumpadBelow(input, numpad) {
-        const rect = input.getBoundingClientRect();
-        numpad.style.top = (window.scrollY + rect.bottom + 4) + 'px';
-        numpad.style.left = (window.scrollX + rect.left) + 'px';
-    }
+    // function positionNumpadBelow(input, numpad) {
+    //     const rect = input.getBoundingClientRect();
+    //     numpad.style.top = (window.scrollY + rect.bottom + 4) + 'px';
+    //     numpad.style.left = (window.scrollX + rect.left) + 'px';
+    // }
 
-    function closeAllNumpads() {
-        document.querySelectorAll('.numpad-container').forEach(n => n.classList.add('d-none'));
-    }
+    // function closeAllNumpads() {
+    //     document.querySelectorAll('.numpad-container').forEach(n => n.classList.add('d-none'));
+    // }
 
-    function numpadInsert(itemId, num) {
-        const input = document.getElementById('numberInput-' + itemId);
-        input.value += num;
-        dispatchLivewireEvents(input);
-    }
+    // function numpadInsert(itemId, num) {
+    //     const input = document.getElementById('numberInput-' + itemId);
+    //     input.value += num;
+    //     dispatchLivewireEvents(input);
+    // }
 
-    function numpadBackspace(itemId) {
-        const input = document.getElementById('numberInput-' + itemId);
-        input.value = input.value.slice(0, -1);
-        dispatchLivewireEvents(input);
-    }
+    // function numpadBackspace(itemId) {
+    //     const input = document.getElementById('numberInput-' + itemId);
+    //     input.value = input.value.slice(0, -1);
+    //     dispatchLivewireEvents(input);
+    // }
 
-    function numpadClear(itemId) {
-        const input = document.getElementById('numberInput-' + itemId);
-        input.value = '1'; // Set to 1 instead of empty
-        dispatchLivewireEvents(input);
-    }
+    // function numpadClear(itemId) {
+    //     const input = document.getElementById('numberInput-' + itemId);
+    //     input.value = '1'; // Set to 1 instead of empty
+    //     dispatchLivewireEvents(input);
+    // }
 
 
-    function dispatchLivewireEvents(input) {
-        input.dispatchEvent(new Event('input'));
-        input.dispatchEvent(new Event('change'));
-    }
+    // function dispatchLivewireEvents(input) {
+    //     input.dispatchEvent(new Event('input'));
+    //     input.dispatchEvent(new Event('change'));
+    // }
 </script>
-<script>
+{{-- <script>
     document.addEventListener('DOMContentLoaded', () => {
         const input = document.getElementById('searchInput');
         const keypad = document.getElementById('text-keypad');
@@ -2355,5 +2166,5 @@
     function dispatchLivewireEvents(input) {
         input.dispatchEvent(new Event('input'));
         input.dispatchEvent(new Event('change'));
-    }
+    } --}}
 </script>

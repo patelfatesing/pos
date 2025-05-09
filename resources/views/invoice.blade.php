@@ -47,19 +47,32 @@
         .small {
             font-size: 10px;
         }
+
+        .total {
+            font-size: 16px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
 <div class="centered bold">
     LiquorHub<br>
-    {{ $branch->address }}<br>
+    {{ @$branch->address }}<br>
+    @if(@$duplicate == true)
+        <span style="color: red;">Duplicate Invoice</span><br>
+    @endif
+    @if(@$type == 'refund')
+        <span>Credit Note</span><br>
+    @else
+        <span>Invoice</span><br>
+    @endif
 </div>
 <br>
 <div class="line"></div>
 
 <div>
-    <strong>Invoice:</strong> {{ $invoice->invoice_number }}<br>
+    <strong>{{ @$type == 'refund' ? 'Refund' : 'Invoice' }}:</strong> {{ $invoice->invoice_number }}<br>
     <strong>Name:</strong> {{ $invoice->customer_name ?? 'Walk-in' }}<br>
     <strong>Date:</strong> {{ $invoice->created_at->format('d/m/Y H:i') }}
 </div>
@@ -71,7 +84,7 @@
         <tr>
             <th>#</th>
             <th class="left">Item</th>
-            <th>Qty</th>
+            <th class="centered">Qty</th>
             <th class="right">Amount</th>
         </tr>
     </thead>
@@ -79,36 +92,49 @@
         @foreach($items as $index => $item)
         <tr>
             <td>{{ $index + 1 }}</td>
-            <td class="left">{{ $item['name'] }}</td>
-            <td>{{ number_format($item['quantity'], 2) }}</td>
-            <td class="right">{{ number_format($item['quantity'] * $item['price'], 2) }}</td>
+            <td class="left">{{ substr($item['name'], 0, 10) }}...{{ substr($item['name'], -5) }}</td>
+            <td class="centered">{{ $item['quantity'] }}</td>
+            <td class="right">{{ number_format($item['price'], 2) }}</td>
         </tr>
         @endforeach
     </tbody>
 </table>
 
 <div class="line"></div>
-
 <div>
-    <strong>ROUND OFF:</strong> {{ $invoice->total}}<br>
-    <strong>TOTAL:</strong> {{ $invoice->total}}<br>
-    DISCOUNT ITEMS: {{ $invoice->party_amount ?? 0}}<br>
-    TOTAL SAVINGS: {{ $invoice->total_savings ?? 0}}<br>
-    BY CASH: {{ $invoice->cash_amount}}<br>
-    BY UPI: {{ $invoice->cash_amount}}<br>
-</div>
+    @php
+        $totalAmount = (float) str_replace(',', '', $invoice->total);
+        $discountAmount = (float) str_replace(',', '', $invoice->party_amount ?? 0);
 
-<div class="line"></div>
-
-<div class="bold">Customer Details</div>
-Address: {{ $invoice->customer_address ?? ', Rajasthan, Gujarat' }}<br>
-PIECES PURCHASED: {{ count($items) }}
-
-<div class="line"></div>
-
-<div class="small centered">
-    E & O E.<br>
-    Printed On: {{ now()->format('d/m/Y h:i A') }}
+        // Sum or subtract
+        $sunTot = $totalAmount + $discountAmount; // or $totalAmount - $discountAmount
+    @endphp 
+    <table class="table">
+        {{-- <tr>
+            <td class="left">ROUND OFF:</td>
+            <td class="right">{{ $sunTot }}</td>
+        </tr> --}}
+        <tr>
+            <td class="left">SUB TOTAL:</td>
+            <td class="right">{{$sunTot }}</td>
+        </tr>
+        <tr>
+            <td class="left">DISCOUNT ITEMS:</td>
+            <td class="right">{{ $invoice->party_amount ?? 0 }}</td>
+        </tr>
+        <tr class="total">
+            <td class="left"><strong>TOTAL:</strong></td>
+            <td class="right">{{ $invoice->total }}</td>
+        </tr>
+        <tr>
+            <td class="left">BY CASH:</td>
+            <td class="right">{{ $invoice->cash_amount }}</td>
+        </tr>
+        <tr>
+            <td class="left">BY UPI:</td>
+            <td class="right">{{ $invoice->upi_amount }}</td>
+        </tr>
+    </table>
 </div>
 
 <div class="line"></div>
