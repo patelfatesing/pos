@@ -110,7 +110,45 @@ class Shoppingcart extends Component
     public $headertitle="";
     public $language;
     public $refundDesc="";
-    
+    public bool $useCredit = false;  // Tracks checkbox state
+
+    // This method is triggered whenever the checkbox is checked or unchecked
+    public function updatedUseCredit($value)
+    {
+        dd("d");
+        // Reset the credit amount to 0 if the checkbox is unchecked
+        if (!$value) {
+            $this->creditPay = 0;  // Optional: Reset the amount if checkbox is unchecked
+        }
+    }
+    public function toggleCheck()
+    {
+        $this->useCredit = !$this->useCredit;
+     
+    }
+    public function printLastInvoice()
+    {
+        $invoice = \App\Models\Invoice::latest('id')->first();
+        $sunTot=(Int) $invoice->total+(Int)$invoice->party_amount;
+
+        if (!$invoice) {
+            // Handle case where no invoice exists
+            return;
+        }
+
+        $pdfPath = storage_path('app/public/invoices/duplicate_' . $invoice->invoice_number . '.pdf');
+
+        if (!file_exists($pdfPath)) {
+            $pdf = App::make('dompdf.wrapper');
+            $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'duplicate' => true]);
+            $pdf->save($pdfPath);
+        }
+        $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount','selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown','cartitems');
+        
+        $this->dispatch('triggerPrint', [
+            'pdfPath' => asset('storage/invoices/duplicate_' . $invoice->invoice_number . '.pdf')
+        ]);
+    }
     public function updatedSearch($value)
     {
         $this->selectedProduct = Product::where('barcode', $value)->first();
@@ -622,127 +660,29 @@ class Shoppingcart extends Component
         $today = Carbon::today();
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
-        $UserShift = UserShift::whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->exists();
-        if (empty($UserShift)) {
-           //  $this->showModal = true;
+       
+        $this->shift =$currentShift= UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' =>"pending"])->first();
+        //
+        if (empty($currentShift)) {
+            $this->dispatch('openModal');
         }
-        $this->shift = UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' =>"pending"])->first();
-
+        //
         $currentShift = UserShift::whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' =>"pending"])->first();
 
         $this->shiftEndTime = $this->shift->end_time ?? 0;
 
         $start_date = @$currentShift->start_time; // your start date (set manually)
         $end_date = date('Y-m-d') . ' 23:59:59'; // today's date till end of day
-        $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])-> latest()->get();
-        $discountTotal = $totalSales = $totalPaid = $totalRefund=$totalCashPaid = $totalSubTotal=$totalUpiPaid = 0;
-        $sales = ['DESI', 'BEER', 'ENGLISH'];
         $this->categoryTotals = [];
         $this->totalInvoicedAmount = \App\Models\Invoice::where('user_id', auth()->user()->id)
         ->where('branch_id', $branch_id)
+        ->whereBetween('created_at', [$start_date, $end_date])
         ->sum('total');
-        // ✅ Initialize totals to 0 for all expected categories
-        foreach ($sales as $category) {
-            $this->categoryTotals['sales'][$category] = 0;
-        }
-        foreach ($invoices as $invoice) {
-            $items = $invoice->items; // decode items from longtext JSON
-
-            if (is_string($items)) {
-                $items = json_decode($items, true); // decode if not already an array
-            }
-
-            if (is_array($items)) {
-                foreach ($items as $item) {
-                    $category = Str::upper($item['category'])  ?? 'Unknown';
-                    $amount = $item['price'] ?? 0;
-
-                    if (!isset($this->categoryTotals['sales'][$category])) {
-                        $this->categoryTotals['sales'][$category] = 0;
-                    }
-
-                    $this->categoryTotals['sales'][$category] += $amount;
-                }
-            }
-
-           // $discountTotal += ($invoice->commission_amount ?? 0) + ($invoice->party_amount ?? 0);
-           $discountTotal += (!empty($invoice->commission_amount) && is_numeric($invoice->commission_amount)) ? (int)$invoice->commission_amount : 0;
-           $discountTotal += (!empty($invoice->party_amount) && is_numeric($invoice->party_amount)) ? (int)$invoice->party_amount : 0;
-       
-           $totalCashPaid += (!empty($invoice->cash_amount) && is_numeric($invoice->cash_amount)) ? (int)$invoice->cash_amount : 0;
-
-           $totalSubTotal += (!empty($invoice->sub_total) && is_numeric($invoice->sub_total)) ? (int)$invoice->sub_total : 0;
-
-           $totalUpiPaid  += (!empty($invoice->upi_amount)  && is_numeric($invoice->upi_amount)) ? (int)$invoice->upi_amount  : 0;
-       
-           $totalSales    += (!empty($invoice->sub_total)   && is_numeric($invoice->sub_total)) ? (int)$invoice->sub_total : 0;
-           $totalPaid     += (!empty($invoice->total)       && is_numeric($invoice->total)) ? (int)$invoice->total : 0;
-           if ($invoice->status == "Refunded") {
-               $refund = Refund::where('invoice_id', $invoice->id)
-                   ->where('user_id', auth()->id())
-                   ->first();
-               if ($refund) {
-                $totalRefund     += (!empty($refund->amount)       && is_numeric($refund->amount)) ? (int)$refund->amount : 0;
-            }
-           }
-        }
-        // if (isset($this->categoryTotals['Desi'])) {
-        //     $this->categoryTotals['DESHI'] = $this->categoryTotals['Desi'];
-        //     unset($this->categoryTotals['Desi']);
-        // }
-        $end_date = date('Y-m-d') . ' 23:59:59'; // today's date till end of day
-        $start_date = @$currentShift->start_time; // your start date (set manually)
-        $this->todayCash = $totalPaid;
-        $totalWith = \App\Models\WithdrawCash::where('user_id',  auth()->user()->id)
-        ->where('branch_id', $branch_id)->whereBetween('created_at', [$start_date, $end_date])->sum('amount');
-        $this->categoryTotals['payment']['CASH'] =$totalCashPaid;
-        $this->categoryTotals['payment']['UPI PAYMENT'] = $totalUpiPaid;
-        $this->categoryTotals['summary']['OPENING CASH'] =@$currentShift->opening_cash;
-        $this->categoryTotals['summary']['TOTAL SALES'] =$totalSubTotal+$discountTotal;
-        $this->categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
-        $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] = $totalWith*(-1);
-        $this->categoryTotals['summary']['UPI PAYMENT'] = $totalUpiPaid*(-1);
-       // $this->categoryTotals['summary']['REFUND'] = $totalRefund*(-1);
-        $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['OPENING CASH']+$this->categoryTotals['summary']['TOTAL SALES']+$this->categoryTotals['summary']['DISCOUNT']+$this->categoryTotals['summary']['WITHDRAWAL PAYMENT']+$this->categoryTotals['summary']['UPI PAYMENT']+@$this->categoryTotals['summary']['REFUND'];
-        // $this->categoryTotals['TOTAL CASH'] =$this->shift->opening_cash+ $totalCashPaid-$totalWith;
-
-        //TOTAL CASH
+      
         $start_date = @$currentShift->start_time; // your start date (set manually)
         $end_date = date('Y-m-d') . ' 23:59:59'; // today's date till end of day
-        
-        $cashBreakdowns = CashBreakdown::where('user_id', auth()->id())
-            ->where('branch_id', $branch_id)
-           // ->where('type', '!=', 'cashinhand')
-            ->whereBetween('created_at', [$start_date, $end_date])
-            ->get();
-
         $noteCount = [];
-        
-        foreach ($cashBreakdowns as $breakdown) {
-            $denominations1 = json_decode($breakdown->denominations, true);
-            // echo "<pre>";
-            // print_r($denominations1);
-            if (is_array($denominations1)) {
-                foreach ($denominations1 as $denomination => $notes) {
-                    foreach ($notes as $noteValue => $action) {
-                        // Check for 'in' (added notes) and 'out' (removed notes)
-                        if (isset($action['in'])) {
-                            if (!isset($noteCount[$noteValue])) {
-                                $noteCount[$noteValue] = 0;
-                            }
-                            $noteCount[$noteValue] += $action['in'];
-                        }
-                        if (isset($action['out'])) {
-                            if (!isset($noteCount[$noteValue])) {
-                                $noteCount[$noteValue] = 0;
-                            }
-                            $noteCount[$noteValue] -= $action['out'];
-                        }
-                    }
-                }
-                
-            }
-        }
+    
        //print_r($noteCount);exit;
         // Decode cash JSON to array
         $this->shiftcash = $noteCount;
@@ -779,10 +719,7 @@ class Shoppingcart extends Component
 
         // dd($this->products);
 
-        $UserShift = UserShift::whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' =>"pending"])->exists();
-        if (empty($UserShift)) {
-            $this->dispatch('openModal');
-        }
+       
         if (session()->has('notification-sucess')) {
             $this->dispatch('notiffication-sucess', [
                 'message' => session('notification-sucess')
@@ -1705,7 +1642,7 @@ class Shoppingcart extends Component
             ]);
 
             $totalQuantity = $cartitems->sum(fn($item) => $item->quantity);
-            $invoice_number = 'LHUB-' . strtoupper(Str::random(8));
+            $invoice_number = 'LHUB' .'-' . rand(1000, 9999);
             $invoice = Invoice::create([
                 'user_id' => auth()->id(),
                 'branch_id' => $branch_id,
@@ -1841,6 +1778,7 @@ class Shoppingcart extends Component
                 $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
                 // 💾 Save cash breakdown 
                 //full refund
+                //dd($this);
                 if((int)$this->cashAmount === (int)$this->totalInvoicedAmount){
                     $fullRefund=0;
 
@@ -1862,7 +1800,6 @@ class Shoppingcart extends Component
                     $this->upi = 0;
                 }
                 $totalQuantity = $cartitems->sum(fn($item) => $item->quantity);
-
                 $invoice = Invoice::updateOrCreate(
                     [
                         'user_id' => auth()->id(),
@@ -1881,15 +1818,15 @@ class Shoppingcart extends Component
                             'price' => $fullRefund,
                             'mrp' => $fullRefund,
                         ]),
-                        'upi_amount' => $fullRefund,
-                        'creditpay' => $fullRefund,
+                       // 'upi_amount' => $fullRefund,
+                       // 'creditpay' => $fullRefund,
                         'cash_amount' => $fullRefund,
-                        'sub_total' => $fullRefund,
-                        'tax' => $fullRefund,
+                        'sub_total' => $this->cashAmount,
+                       // 'tax' => $fullRefund,
                         'status' => "Refunded",
-                        'commission_amount' => $fullRefund,
-                        'party_amount' => $fullRefund,
-                        'total' => $fullRefund,
+                      //  'commission_amount' => $fullRefund,
+                       // 'party_amount' => $fullRefund,
+                        'total' => $this->cashAmount,
                         'cash_break_id' => $cashBreakdown->id,
                         //'billing_address'=> $address,
                     ]
@@ -1947,7 +1884,7 @@ class Shoppingcart extends Component
                 $this->invoiceData = $invoice;
 
                 $pdf = App::make('dompdf.wrapper');
-                $pdf->loadView('invoice', ['invoice' => $invoice,'items' => $invoice->items]);
+                $pdf->loadView('invoice', ['invoice' => $invoice,'items' => $invoice->items,'branch'=>auth()->user()->userinfo->branch,'type'=>'refund']);
                 $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
                 $pdf->save($pdfPath);
             //     $this->dispatch('triggerPrint', [

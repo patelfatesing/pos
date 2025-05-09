@@ -61,9 +61,18 @@
         .card .card-header {
             padding: 11px 20px ! important;
         }
+        .list-group-item{
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125) !important;
+            border-left: 0px !important;
+            border-right: 0px !important;
+        }
     </style>
 
     <style>
+        .bg-gradient {
+    background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+}
+
 
         #cartTable{
             border-collapse: separate;

@@ -23,7 +23,7 @@
                 <tr>
                     <td>HOLD-{{ $sid+1 }}</td>
                     @if (auth()->user()->hasRole('warehouse'))
-                    <td>{{ $transaction->partyUser->first_name." ".$transaction->partyUser->last_name }}</td>
+                    <td>{{ !empty($transaction->partyUser) ? $transaction->partyUser->first_name." ".$transaction->partyUser->last_name : 'N/A' }}</td>
                     @else
                     <td>{{ $transaction->commissionUser->first_name." ".$transaction->commissionUser->last_name }}</td>
 
@@ -31,7 +31,7 @@
 
                     <td>{{ $transaction->created_at->format('d-m-Y H:i') }}</td>
                     <td>{{ $sumqty }}</td>
-                    <td>₹{{ number_format($transaction->total ?? 0, 2) }}</td>
+                    <td>₹{{ number_format((float)$transaction->total ?? 0, 2) }}</td>
                     <td>
                          <button wire:click="resumeTransaction({{ $transaction->id }})" class="btn btn-success btn-sm">
                             Resume
