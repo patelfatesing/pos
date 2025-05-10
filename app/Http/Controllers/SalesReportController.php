@@ -9,7 +9,7 @@ use App\Models\Invoice;
 use Carbon\Carbon;
 use App\Models\Inventory;
 use Illuminate\Support\Facades\DB;
-
+use App\Events\DrawerOpened;
 
 class SalesReportController extends Controller
 {
@@ -335,6 +335,9 @@ class SalesReportController extends Controller
 
     public function commissionReport()
     {
+
+        event(new DrawerOpened());
+
         $party_users = DB::table('party_users')->get(); // Adjust if you use a model
         return view('reports.commission_list', compact('party_users'));
     }
