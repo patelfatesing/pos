@@ -10,7 +10,7 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <h1>Invoice List</h1>
+                <h1>Trasaction List</h1>
                 <div class="col-lg-12">
                     <div class="table-responsive rounded mb-3">
                         <table class="table data-tables table-striped" id="invoice_table">
@@ -27,7 +27,7 @@
                     <thead class="bg-white text-uppercase">
 
                         <tr class="ligth ligth-data">
-                            <th>Invoice #</th>
+                            <th>Trasaction #</th>
                             <th>Status</th>
                             <th>Sub Total</th>
                             <th>Total</th>
