@@ -30,6 +30,7 @@ class ProductImportController extends Controller
     
         $file = $request->file('file');
         $path = $file->getRealPath();
+        
         $handle = fopen($path, 'r');
     
         $header = fgetcsv($handle); // read CSV header

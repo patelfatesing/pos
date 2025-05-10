@@ -335,8 +335,8 @@ class SalesReportController extends Controller
 
     public function commissionReport()
     {
-        $branches = DB::table('branches')->get(); // Adjust if you use a model
-        return view('reports.commission_list', compact('branches'));
+        $party_users = DB::table('party_users')->get(); // Adjust if you use a model
+        return view('reports.commission_list', compact('party_users'));
     }
 
     public function commissionInvoicesReport(Request $request)
@@ -366,21 +366,23 @@ class SalesReportController extends Controller
             'i.invoice_number',
             'i.created_at as invoice_date',
             'i.total as invoice_total',
-            'i.commission_amount',
-            'cu.id as commission_user_id',
+            'i.creditpay as commission_amount',
+            'cu.id as party_user_id',
             DB::raw("CONCAT(cu.first_name, ' ', cu.last_name) as commission_user_name"),
-            'cu.commission_type',
-            'cu.commission_value',
-            'cu.applies_to',
-            'cu.start_date',
-            'cu.end_date'
+            'cu.credit_points',
+            'ch.total_purchase_items',
+            'ch.credit_amount',
+            'ch.status',
+            'ch.id as commission_id',
+            
         )
-        ->leftJoin('commission_users as cu', 'i.commission_user_id', '=', 'cu.id')
-        ->whereNotNull('i.commission_user_id');
+        ->leftJoin('credit_histories as ch', 'i.id', '=', 'ch.invoice_id')
+        ->leftJoin('party_users as cu', 'ch.party_user_id', '=', 'cu.id')
+        ->whereNotNull('i.party_user_id');
 
     // Total record count before filters
     $recordsTotal = DB::table('invoices')
-        ->whereNotNull('commission_user_id')
+        ->whereNotNull('party_user_id')
         ->count();
 
     // Apply search filter
@@ -389,6 +391,10 @@ class SalesReportController extends Controller
             $q->where('i.invoice_number', 'like', "%$searchValue%")
               ->orWhere(DB::raw("CONCAT(cu.first_name, ' ', cu.last_name)"), 'like', "%$searchValue%");
         });
+    }
+
+    if ($request->branch_id) {
+        $query->where('cu.id', $request->customer_id);
     }
 
     // Count after filters
