@@ -906,7 +906,7 @@
                                                     </td>
                                                     @endif
                                 
-                                                    <td class="text-center">{{ $denomination }}</td>
+                                                    <td class="text-center">{{ format_inr($denomination) }}</td>
                                 
                                                     <td class="text-center">
                                                         <div class="d-flex justify-content-center align-items-center gap-2">
@@ -1103,7 +1103,7 @@
                                                     </td>
                                                     @endif
 
-                                                    <td class="text-center">{{ $denomination }}</td>
+                                                    <td class="text-center">{{ format_inr($denomination) }}</td>
 
                                                     <td class="text-center">
                                                         <div class="d-flex justify-content-center align-items-center gap-2">
