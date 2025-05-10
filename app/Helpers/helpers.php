@@ -84,9 +84,16 @@ if (!function_exists('updateUnreadNotificationsById')) {
 if (!function_exists('format_inr')) {
     function format_inr($amount)
     {
-        $sign = $amount < 0 ? '-' : '';
-        return $sign . '₹' . number_format(abs($amount), 2);
+        // Remove commas or non-numeric characters (except minus and decimal point)
+        $cleanAmount = preg_replace('/[^\d.-]/', '', $amount);
+    
+        // Convert to float
+        $numericAmount = (float) $cleanAmount;
+    
+        $sign = $numericAmount < 0 ? '-' : '';
+        return $sign . '₹' . number_format(abs($numericAmount), 2);
     }
+    
 }
 if (!function_exists('round_up_to_nearest_10')) {
     function round_up_to_nearest_10($number)
