@@ -7,6 +7,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qz-tray/qz-tray.js"></script>
+
 
     <!-- Wrapper Start -->
     <div class="wrapper">
@@ -20,6 +22,8 @@
                         <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                             <div>
                                 <h4 class="mb-3">Credit History</h4>
+                                <div class="btn"><a href="#" onClick="openCashDrawer()">print</a></div>
+
                             </div>
                         </div>
                     </div>
@@ -179,9 +183,10 @@
         });
 
         function payCredit(id) {
-            
+
             $('#commission_id').val(id);
             $('#payCreditModal').modal('show');
         }
+
     </script>
 @endsection
