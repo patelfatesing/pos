@@ -56,11 +56,14 @@
                                                                     @foreach ($items as $key => $value)
                                                                         @php
                                                                             $isTotal = strtoupper($key) === 'TOTAL';
+                                                                            $creditDetails = strtoupper($key) === 'CREDIT' || strtoupper($key) === 'REFUND_CREDIT' ? "(Excluded from Cash)" :"";
+
                                                                             $rowClass = $isTotal ? 'table-success fw-bold' : '';
                                                                         @endphp
                                                                         <tr class="{{ $rowClass }}">
                                                                             <td class="text-muted text-capitalize">
                                                                                 {{ str_replace('_', ' ', $key) }}
+                                                                                <small>{{@$creditDetails}}</small>
                                                                             </td>
                                                                             <td class="text-end fw-semibold">
                                                                                 {{ format_inr($value) }}
