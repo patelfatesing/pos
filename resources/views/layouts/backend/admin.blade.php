@@ -284,6 +284,11 @@
                                 <i class="las la-minus"></i><span>Stock Report</span>
                             </a>
                         </li>
+                        <li class="">
+                            <a href="{{ route('sales.commission.report') }}">
+                                <i class="las la-minus"></i><span>Commission Report</span>
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 <li class=" ">

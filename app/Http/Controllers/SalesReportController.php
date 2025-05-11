@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use App\Models\Inventory;
 use Illuminate\Support\Facades\DB;
 use App\Events\DrawerOpened;
+use Illuminate\Support\Facades\Auth;
 
 class SalesReportController extends Controller
 {
@@ -27,7 +28,7 @@ class SalesReportController extends Controller
 
     public function getData(Request $request)
     {
-        $query = DB::table('invoices')
+        $query = DB::table('invoices') 
             ->select('id', 'invoice_number', 'status', 'sub_total', 'tax', 'total', 'items', 'created_at');
     
         if ($request->start_date && $request->end_date) {
@@ -337,6 +338,13 @@ class SalesReportController extends Controller
     {
 
         event(new DrawerOpened());
+         // Optional: pass authenticated user
+    // $user = Auth()->user();
+
+    // Trigger the event
+    // event(new DrawerOpened($user));
+    event(new DrawerOpened('Cash drawer opened!'));
+
 
         $party_users = DB::table('party_users')->get(); // Adjust if you use a model
         return view('reports.commission_list', compact('party_users'));
