@@ -34,16 +34,6 @@
 
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
-                                                <label>Middle Name</label>
-                                                <input type="text" name="middle_name" class="form-control" value="{{ old('middle_name', $partyUser->middle_name) }}">
-                                                @error('middle_name')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-
-                                        <div class="col-lg-6">
-                                            <div class="floating-label form-group">
                                                 <label>Last Name</label>
                                                 <input type="text" name="last_name" class="form-control" value="{{ old('last_name', $partyUser->last_name) }}" required>
                                                 @error('last_name')

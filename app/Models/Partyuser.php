@@ -15,7 +15,6 @@ class Partyuser extends Model
         'reference_id',
         'is_active',
         'first_name',
-        'middle_name',
         'last_name',
         'email',
         'phone',
@@ -29,5 +28,11 @@ class Partyuser extends Model
     {
         return $this->hasMany(PartyUserImage::class, 'party_user_id');
     }
+
+    public function customerProductPrices()
+    {
+        return $this->hasMany(PartyCustomerProductsPrice::class);
+    }
+
 
 }

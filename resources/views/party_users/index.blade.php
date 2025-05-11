@@ -28,7 +28,6 @@
                                     <tr class="ligth ligth-data">
 
                                         <th>First Name</th>
-                                        <th>Middle Name</th>
                                         <th>Last Name</th>
                                         <th>Email</th>
                                         <th>Phone</th>
@@ -69,9 +68,6 @@
                             data: 'first_name'
                         },
                         {
-                            data: 'middle_name'
-                        },
-                        {
                             data: 'last_name'
                         },
                         {
@@ -91,7 +87,7 @@
                     ],
                     aoColumnDefs: [{
                         bSortable: false,
-                        aTargets: [5, 6] // make "action" column unsortable
+                        aTargets: [4, 5] // make "action" column unsortable
                     }],
                     order: [
                         [2, 'desc']
