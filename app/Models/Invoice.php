@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 // app/Models/Invoice.php
 class Invoice extends Model
@@ -10,6 +11,7 @@ class Invoice extends Model
     protected $fillable = [
         'invoice_number',
         'commission_user_id',
+        'payment_mode',
         'party_user_id',
         'items',
         'sub_total',
@@ -23,7 +25,11 @@ class Invoice extends Model
         'branch_id',
         'upi_amount',
         'cash_amount',
-        'creditpay'
+        'creditpay',
+        'total_item_qty',
+        'total_item_total',
+        'change_amount',
+        'online_amount',
     ];
 
     protected $casts = [
@@ -53,5 +59,19 @@ class Invoice extends Model
     public function getTotalAttribute($value)
     {
         return number_format($value, 2);
+    }
+
+    public static function generateInvoiceNumber(): string
+    {
+        $today = Carbon::now()->format('Ymd'); // e.g., 20250510
+        $datePrefix = 'LHUB-' . $today;
+
+        // Count how many invoices already created today
+        $countToday = Invoice::whereDate('created_at', Carbon::today())->count() + 1;
+
+        // Pad the number to 4 digits (e.g., 0001, 0002)
+        $invoiceNumber = $datePrefix . '-' . str_pad($countToday, 4, '0', STR_PAD_LEFT);
+
+        return $invoiceNumber;
     }
 }

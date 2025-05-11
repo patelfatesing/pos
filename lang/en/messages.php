@@ -78,4 +78,7 @@ return [
     'out' => 'OUT',
     'amount' => 'Amount',
     'use_credit_to_pay' => 'Use Credit to Pay',
+    'available_credit' => 'Available Credit',
+    'credit' => 'Credit',
+
 ];

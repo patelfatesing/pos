@@ -31,7 +31,7 @@
 
                     <td>{{ $transaction->created_at->format('d-m-Y H:i') }}</td>
                     <td>{{ $sumqty }}</td>
-                    <td>₹{{ number_format((float)$transaction->total ?? 0, 2) }}</td>
+                    <td>₹{{ $transaction->total}}</td>
                     <td>
                          <button wire:click="resumeTransaction({{ $transaction->id }})" class="btn btn-success btn-sm">
                             Resume
