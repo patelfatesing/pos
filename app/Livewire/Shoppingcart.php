@@ -2219,7 +2219,7 @@ class Shoppingcart extends Component
             ->where('party_user_id', $party_user_id)
             ->first();
         if ($product) {
-            $this->partyUserDiscountAmt = $product->discount_amt;
+            $this->partyUserDiscountAmt = $product->cust_discount_amt;
            // return $product->discount_amt;
         }
         //return null;
