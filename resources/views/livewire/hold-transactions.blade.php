@@ -59,18 +59,8 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 @this.call('deleteTransaction', transactionId);
-                Swal.fire({
-                    title: 'Deleted!',
-                    text: 'The transaction has been deleted.',
-                    icon: 'success'
-                }).then(() => {
-                    // Close your modal here
-                   
-                    $('#holdTransactionsModal').modal('hide');
-                    $('.modal-backdrop').remove(); // Removes the backdrop
-
-
-                });
+                $('#holdTransactionsModal').modal('hide');
+                $('.modal-backdrop').remove(); // Removes the backdrop
             }
         });
     }
