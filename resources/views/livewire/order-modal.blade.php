@@ -7,7 +7,7 @@
     <!-- Modal -->
     @if($showModal)
     <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" wire:keydown.escape="$set('showModal', false)">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Sales History</h5>
@@ -30,12 +30,12 @@
                                     <th>Action</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                           <tbody>
                                 @foreach($orders as $index => $order)
-                                    <tr>
+                                    <tr class="{{ $order->status === 'Refunded' ? 'table-warning' : '' }}">
                                         <td>{{ $index + 1 }}</td>
                                         <td>{{ $order->invoice_number }}</td>
-                                        <td>{{ $order->created_at->format('d M Y') }}</td>
+                                        <td>{{ $order->created_at->format('d/m/Y H:i' ) }}</td>
                                         <td>
                                             @if(auth()->user()->hasRole('warehouse'))
                                                 {{ optional($order->partyUser)->first_name }} {{ optional($order->partyUser)->last_name }}
@@ -53,6 +53,7 @@
                                     </tr>
                                 @endforeach
                             </tbody>
+
                         </table>
                     @else
                         <p class="text-muted">No Data found.</p>

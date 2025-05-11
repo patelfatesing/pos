@@ -101,3 +101,10 @@ if (!function_exists('round_up_to_nearest_10')) {
         return ceil($number / 10) * 10;
     }
 }
+if (!function_exists('parseCurrency')) {
+    function parseCurrency($value)
+    {
+        // Remove commas and convert to float or int
+        return (float) str_replace(',', '', $value);
+    }
+}

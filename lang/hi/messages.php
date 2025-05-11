@@ -78,5 +78,7 @@ return [
     'out'=>'बाहर',
     'amount'=>'मात्रा',
     'use_credit_to_pay'=>'भुगतान करने के लिए क्रेडिट का उपयोग करें',
+    'available_credit' => 'उपलब्ध उधार',
+    'credit' => 'उधार',
 
 ];

@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Session;
 use App\Models\Refund;
 use App\Models\InvoiceHistory;
+use App\Models\PartyCustomerProductsPrice;
 class Shoppingcart extends Component
 {
 
@@ -52,6 +53,7 @@ class Shoppingcart extends Component
     public $showBox = false;
     public $shoeCashUpi = false;
     public $showRefund=false;
+    public $showOnline=false;
     public $showSr = false;
     public $cashPayAmt;
     public $cashPaTenderyAmt;
@@ -111,18 +113,25 @@ class Shoppingcart extends Component
     public $language;
     public $refundDesc="";
     public bool $useCredit = false;  // Tracks checkbox state
+    public $partyUserDetails;
+    public $partyUserDiscountAmt=0;
 
     // This method is triggered whenever the checkbox is checked or unchecked
     public function updatedUseCredit($value)
     {
         // Reset the credit amount to 0 if the checkbox is unchecked
         if (!$value) {
-            $this->creditPay = 0;  // Optional: Reset the amount if checkbox is unchecked
+            $this->useCredit = false;  // Optional: Reset the amount if checkbox is unchecked
         }
     }
     public function toggleCheck()
     {
         $this->useCredit = !$this->useCredit;
+         if ($this->useCredit && $this->selectedPartyUser) {
+            $this->partyUserDetails = Partyuser::find($this->selectedPartyUser);
+        } else {
+            $this->partyUserDetails = null;
+        }
      
     }
     public function printLastInvoice()
@@ -246,7 +255,7 @@ class Shoppingcart extends Component
             $existingItem = Cart::where('user_id', auth()->id())
                 ->where('status', Cart::STATUS_PENDING)
                 ->first();
-        
+            //check
             if ($existingItem) {
                 $this->dispatch('notiffication-error', ['message' => 'Product already exists in the cart. Please clear it first.']);
                 return;
@@ -380,7 +389,7 @@ class Shoppingcart extends Component
                     $this->showBox = true;
                     $this->paymentType = "cash";
                     $this->total = $this->cashAmount;
-                    
+                    $this->useCredit=false;
                 } else {
                     session()->flash('error', 'add minimum one product');
                     $this->dispatch('alert_remove');
@@ -394,6 +403,7 @@ class Shoppingcart extends Component
                 $this->showBox = true;
                 $this->paymentType = "cash";
                 $this->total = $this->cashAmount;
+                $this->useCredit=false;
                 
             } else {
                 session()->flash('error', 'add minimum one product');
@@ -412,10 +422,11 @@ class Shoppingcart extends Component
 
                 if (!empty($this->products->toArray())) {
                     $this->showBox = false;
+                    $this->showOnline=false;
                     $this->shoeCashUpi = true;
                     $this->paymentType = "cashupi";
                     $this->headertitle="Cash + UPI";
-        
+                    $this->useCredit=false;
                     $this->total = $this->cashAmount;
                     
         
@@ -427,10 +438,50 @@ class Shoppingcart extends Component
         }else{
             if (!empty($this->products->toArray())) {
                 $this->showBox = false;
+                $this->showOnline=false;
                 $this->shoeCashUpi = true;
                 $this->paymentType = "cashupi";
                 $this->headertitle="Cash + UPI";
+                $this->useCredit=false;
+                $this->total = $this->cashAmount;
+                
     
+            } else {
+                session()->flash('error', 'add minimum one product');
+                $this->dispatch('alert_remove');
+            }
+        }
+        
+    }
+    public function onlinePayment()
+    {
+        if (auth()->user()->hasRole('warehouse')) {
+            if (empty($this->selectedPartyUser)) {
+                $this->dispatch('notiffication-error', ['message' => 'Please selecte party customer.']);
+    
+            }else{
+
+                if (!empty($this->products->toArray())) {
+                    $this->showBox = false;
+                    $this->shoeCashUpi = true;
+                    $this->paymentType = "online";
+                    $this->headertitle="Online";
+                    $this->showOnline=true;
+                    $this->total = $this->cashAmount;
+                    
+        
+                } else {
+                    session()->flash('error', 'add minimum one product');
+                    $this->dispatch('alert_remove');
+                }
+            }
+        }else{
+            if (!empty($this->products->toArray())) {
+                $this->showBox = false;
+                $this->shoeonline = true;
+                $this->paymentType = "cashupi";
+                $this->headertitle="Online";
+                $this->showOnline=true;
                 $this->total = $this->cashAmount;
                 
     
@@ -458,6 +509,9 @@ class Shoppingcart extends Component
             ]);
 
             $refundInvoiceNumber = 'REF-' . strtoupper(Str::random(8));
+            // $totalQuantity = $cartitems->sum(fn($item) => $item->quantity);
+            // $total_item_total = $cartitems->sum(fn($item) => $item->net_amount);
+
             $refundInvoice = Invoice::create([
                 'user_id' => auth()->id(),
                 'branch_id' => $branch_id,
@@ -981,13 +1035,18 @@ class Shoppingcart extends Component
             ) as inventory_summary'), 'products.id', '=', 'inventory_summary.product_id')
             ->where('products.id', $getSignlecart->product_id)
             ->first();
-
+        
         // Fetch product with inventory
         if ( $currentQty > $product['total_quantity']) {
             $this->dispatch('notiffication-error', ['message' => 'Product is out of stock and cannot be added to cart.']);
             return;
         }
         $quantity = (isset($this->quantities[$itemId])) ? (int) $this->quantities[$itemId] : 0;
+        if (!empty($this->selectedPartyUser)) {
+            $this->getDiscountPrice($getSignlecart->product_id,$this->selectedPartyUser);
+            //$this->cashAmount = $this->cartitems->sum('net_amount')-$user->credit_points;
+            $this->partyAmount =$quantity* $this->partyUserDiscountAmt;
+        }
         if ($quantity < 1) {
             $quantity = 1;
             $this->quantities[$itemId] = 1;
@@ -1010,8 +1069,12 @@ class Shoppingcart extends Component
             
             if ($item) {
                 if (isset($this->quantities[$itemId])) {
-                    $item->quantity = $this->quantities[$itemId];
-                    $item->net_amount=($item->mrp-$item->discount)*$this->quantities[$itemId];
+                    $curtDiscount=$item->discount/$item->quantity;
+                     $item->quantity = $this->quantities[$itemId];
+                    $item->discount=$curtDiscount*($this->quantities[$itemId]);
+                    $item->net_amount=($item->mrp*$this->quantities[$itemId])-$item->discount;
+                    // $item->quantity = $this->quantities[$itemId];
+                    // $item->net_amount=($item->mrp-$item->discount)*$this->quantities[$itemId];
                     $item->save();
                 }
 
@@ -1253,8 +1316,10 @@ class Shoppingcart extends Component
             $mycarts = Cart::with(['product', 'product.inventorie'])->where('user_id', auth()->user()->id)->where('status', Cart::STATUS_PENDING)->get();
 
             foreach ($mycarts as $key => $mycart) {
-               $mycart->net_amount=$mycart->net_amount-($mycart->product->discount_amt*$mycart->quantity);
-               $mycart->discount=$mycart->product->discount_amt*$mycart->quantity;
+               $this->getDiscountPrice($mycart->product->id,$this->selectedPartyUser);
+
+               $mycart->net_amount=$mycart->net_amount-($this->partyUserDiscountAmt*$mycart->quantity);
+               $mycart->discount=$this->partyUserDiscountAmt*$mycart->quantity;
                $mycart->save();
                $sum=$sum+$mycart->net_amount;
                $commissionTotal=$commissionTotal+$mycart->discount;
@@ -1287,16 +1352,17 @@ class Shoppingcart extends Component
         if (!empty($user)) {
             $mycarts = Cart::with(['product', 'product.inventorie'])->where('user_id', auth()->user()->id)->where('status', Cart::STATUS_PENDING)->get();
             foreach ($mycarts as $key => $mycart) {
+                $this->getDiscountPrice($mycart->product->id,$this->selectedPartyUser);
 
-                $curtDiscount=$mycart->product->discount_amt;
+                $curtDiscount=$this->partyUserDiscountAmt;
                 $mycart->discount=$curtDiscount*($mycart->quantity);
                 $mycart->net_amount=($mycart->mrp*$mycart->quantity)-$mycart->discount;
     
 
-               //$mycart->net_amount=$mycart->net_amount-($mycart->product->discount_amt*$mycart->quantity);
-                //\Log::info('Net Amount: ' . $mycart->net_amount . ' Discount: ' . $mycart->product->discount_amt. ' Quantity: ' . $mycart->quantity);
+               //$mycart->net_amount=$mycart->net_amount-($discountAmt*$mycart->quantity);
+                //\Log::info('Net Amount: ' . $mycart->net_amount . ' Discount: ' . $discountAmt. ' Quantity: ' . $mycart->quantity);
                 
-               //$mycart->discount=$mycart->product->discount_amt*$mycart->quantity;
+               //$mycart->discount=$discountAmt*$mycart->quantity;
 
                $mycart->save();
                $sum=$sum+$mycart->net_amount;
@@ -1722,7 +1788,9 @@ class Shoppingcart extends Component
             ]);
 
             $totalQuantity = $cartitems->sum(fn($item) => $item->quantity);
-            $invoice_number = 'LHUB' .'-' . rand(1000, 9999);
+            $total_item_total = $cartitems->sum(fn($item) => $item->net_amount);
+            
+            $invoice_number =Invoice::generateInvoiceNumber();
             $invoice = Invoice::create([
                 'user_id' => auth()->id(),
                 'branch_id' => $branch_id,
@@ -1739,10 +1807,15 @@ class Shoppingcart extends Component
                     'mrp' => $item->mrp,
 
                 ]),
+                'total_item_qty' => $totalQuantity,
+                'total_item_total' => $total_item_total,
                 'upi_amount' => $this->upi,
+                'change_amount' => $this->cashPayChangeAmt,
                 'creditpay' => $this->creditPay,
                 'cash_amount' => $this->cash,
-                'sub_total' => $this->cashAmount,
+               // 'sub_total' => $this->cashAmount,
+                'sub_total' => $this->sub_total,
+
                 'tax' => $this->tax,
                 'status' => "Paid",
                 'commission_amount' => $this->commissionAmount,
@@ -1777,12 +1850,13 @@ class Shoppingcart extends Component
                     'created_by' => auth()->id(),
                 ]);
             }
+            //dd($invoice);
             if (auth()->user()->hasRole('warehouse')) {
                 $this->invoiceData = $invoice;
                // $this->dispatch('triggerPrint');
                  // Generate PDF and store it in local storage
                  $pdf = App::make('dompdf.wrapper');
-                 $pdf->loadView('invoice', ['invoice' => $invoice,'items' => $invoice->items,'branch'=>auth()->user()->userinfo->branch]);
+                 $pdf->loadView('invoice', ['invoice' => $invoice,'items' => $invoice->items,'branch'=>auth()->user()->userinfo->branch, 'customer_name' => $partyUser->first_name.' '.$partyUser->last_name]);
                  $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
                  $pdf->save($pdfPath);
                 //  $this->dispatch('triggerPrint', [
@@ -1884,6 +1958,7 @@ class Shoppingcart extends Component
                     $this->upi = 0;
                 }
                 $totalQuantity = $cartitems->sum(fn($item) => $item->quantity);
+                $total_item_total = $cartitems->sum(fn($item) => $item->net_amount);
                 $invoice = Invoice::updateOrCreate(
                     [
                         'user_id' => auth()->id(),
@@ -1899,12 +1974,16 @@ class Shoppingcart extends Component
                             'name' => $item->product->name,
                             'quantity' => $item->quantity,
                             'category' => $item->product->category->name,
-                            'price' => $fullRefund,
-                            'mrp' => $fullRefund,
+                            'price' => $item->net_amount,
+                            'mrp' => $item->mrp,
+
                         ]),
                        // 'upi_amount' => $fullRefund,
                        // 'creditpay' => $fullRefund,
+                        'total_item_total' => $total_item_total,
+                        'total_item_qty' => $totalQuantity,
                         'cash_amount' => $fullRefund,
+
                   //      'sub_total' => $this->cashAmount,
                        // 'tax' => $fullRefund,
                         'status' => "Refunded",
@@ -1966,7 +2045,7 @@ class Shoppingcart extends Component
                     ->delete();
                 $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount');
                 $this->invoiceData = $invoice;
-
+                
                 $pdf = App::make('dompdf.wrapper');
                 $pdf->loadView('invoice', ['invoice' => $invoice,'items' => $invoice->items,'branch'=>auth()->user()->userinfo->branch,'type'=>'refund']);
                 $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
@@ -1984,5 +2063,165 @@ class Shoppingcart extends Component
     }
     public function resetData(){
         $this->reset();
+    }
+   
+    public function onlinePaymentCheckout()
+    {
+        try {
+            $commissionUser = CommissionUser::find($this->selectedCommissionUser);
+            $partyUser = PartyUser::find($this->selectedPartyUser);
+            if(!empty($partyUser)){
+                $partyUser->credit_points -= $this->creditPay;
+                $partyUser->save();
+            }
+
+            $cartitems = $this->cartitems;
+
+            // Group by product ID and sum total quantity
+            $groupedProducts = [];
+
+            foreach ($this->cartitems as $cartitem) {
+
+                $productId = $cartitem->product_id;
+                if (!isset($groupedProducts[$productId])) {
+                    $groupedProducts[$productId] = 0;
+                }
+                $groupedProducts[$productId] += $cartitem->quantity;
+            }
+            // Loop through each product group and deduct from inventories
+            foreach ($groupedProducts as $productId => $totalQuantity) {
+                $product = $this->cartitems->firstWhere('product_id', $productId)->product;
+                $inventories = $product->inventories;
+
+                if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
+                    // Deduct only from the first inventory if it has enough quantity
+                    $inventories[0]->quantity -= $totalQuantity;
+                    $inventories[0]->save();
+                } else {
+                    // Deduct from all inventories if the first one doesn't have enough
+                    foreach ($inventories as $inventory) {
+                        if ($totalQuantity <= 0) {
+                            break;
+                        }
+
+                        if ($inventory->quantity > 0) {
+                            $deductQty = min($totalQuantity, $inventory->quantity);
+                            $inventory->quantity -= $deductQty;
+                            $inventory->save();
+                            $totalQuantity -= $deductQty;
+                        }
+                    }
+                }
+            }
+          
+            $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+            // 💾 Save cash breakdown
+            $totalQuantity = $cartitems->sum(fn($item) => $item->quantity);
+            $total_item_total = $cartitems->sum(fn($item) => $item->net_amount);
+            
+            $invoice_number =Invoice::generateInvoiceNumber();
+            $invoice = Invoice::create([
+                'user_id' => auth()->id(),
+                'branch_id' => $branch_id,
+                'invoice_number' => $invoice_number,
+                'commission_user_id' => $commissionUser->id ?? null,
+                'party_user_id' => $partyUser->id ?? null,
+                'payment_mode' => $this->paymentType,
+                'items' => $cartitems->map(fn($item) => [
+                    'product_id' => $item->product->id,
+                    'name' => $item->product->name,
+                    'quantity' => $item->quantity,
+                    'category' => $item->product->category->name,
+                    'price' => $item->net_amount,
+                    'mrp' => $item->mrp,
+
+                ]),
+                'total_item_qty' => $totalQuantity,
+                'total_item_total' => $total_item_total,
+                'upi_amount' => 0,
+                'change_amount' => $this->cashAmount,
+                'creditpay' => $this->creditPay,
+                'cash_amount' => 0,
+                'online_amount' => $this->cashAmount,
+               // 'sub_total' => $this->cashAmount,
+                'sub_total' => $this->cashAmount,
+                'tax' => $this->tax,
+                'status' => "Paid",
+                'commission_amount' => $this->commissionAmount,
+                'party_amount' => $this->partyAmount,
+                'total' => $this->cashAmount,
+                'cash_break_id' => null,
+                //'billing_address'=> $address,
+            ]);
+            InvoiceHistory::logFromInvoice($invoice, 'created', auth()->id());
+
+            if (!empty($commissionUser->id)) {
+
+                DiscountHistory::create([
+                    'invoice_id' => $invoice->id,
+                    'discount_amount' => $this->commissionAmount,
+                    'total_amount' => $this->cashAmount,
+                    'total_purchase_items' => $totalQuantity,
+                    'commission_user_id' => $commissionUser->id ?? null,
+                    'store_id' => $branch_id,
+                    'created_by' => auth()->id(),
+                ]);
+            }
+            if (!empty($partyUser->id)) {
+
+                CreditHistory::create([
+                    'invoice_id' => $invoice->id,
+                    'credit_amount' => $this->creditPay,
+                    'total_amount' => $this->cashAmount,
+                    'total_purchase_items' => $totalQuantity,
+                    'party_user_id' => $partyUser->id ?? null,
+                    'store_id' => $branch_id,
+                    'created_by' => auth()->id(),
+                ]);
+            }
+            //dd($invoice);
+            if (auth()->user()->hasRole('warehouse')) {
+                $this->invoiceData = $invoice;
+               // $this->dispatch('triggerPrint');
+                 // Generate PDF and store it in local storage
+                 $pdf = App::make('dompdf.wrapper');
+                 $pdf->loadView('invoice', ['invoice' => $invoice,'items' => $invoice->items,'branch'=>auth()->user()->userinfo->branch, 'customer_name' => $partyUser->first_name.' '.$partyUser->last_name]);
+                 $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
+                 $pdf->save($pdfPath);
+                //  $this->dispatch('triggerPrint', [
+                //     'pdfPath' => route('print.pdf', $invoice->invoice_number)
+                // ]);
+                
+                 // Trigger print via browser event
+                 $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/' . $invoice->invoice_number . '.pdf')]);
+            } else {
+                $this->dispatch('order-saved');
+            }
+            Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->delete();
+
+            //return redirect()->route('invoice.show', $invoice->id);
+            Cart::where('user_id', auth()->user()->id)
+                ->where('status', '!=', Cart::STATUS_HOLD)
+                ->delete();
+            $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount','selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // 🔔 Flash message for Laravel Blade
+            $this->dispatch('notiffication-error', ['message' => 'Something went wrong']);
+
+            //  return redirect()->back()->with('success', 'Withdraw amount successful.');
+
+        }
+    }
+     public  function getDiscountPrice($product_id,$party_user_id)
+    {
+        $product = PartyCustomerProductsPrice::where('product_id', $product_id)
+            ->where('party_user_id', $party_user_id)
+            ->first();
+        if ($product) {
+            $this->partyUserDiscountAmt = $product->discount_amt;
+           // return $product->discount_amt;
+        }
+        //return null;
     }
 }

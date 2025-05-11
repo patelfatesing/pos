@@ -22,7 +22,13 @@ class OrderModal extends Component
 
         $start_date = @$currentShift->start_time; // your start date (set manually)
         $end_date = date('Y-m-d') . ' 23:59:59'; // today's date till end of day
-        $this->orders = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->get();
+        $this->orders = Invoice::where('user_id', auth()->user()->id)
+            ->where('branch_id', $branch_id)
+            ->whereIn('status', ['Refunded', 'Paid']) // <-- added condition
+            ->whereBetween('created_at', [$start_date, $end_date])
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
         $this->showModal = true;
 
         // Dispatch browser event to show modal
