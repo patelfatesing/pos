@@ -23,7 +23,7 @@
                             <div>
                                 <h4 class="mb-3">Credit History</h4>
                                 <div class="btn"><a href="#" onClick="openCashDrawer()">print</a></div>
-
+                                <button onclick="openDrawer()">Open Cash Drawer</button>
                             </div>
                         </div>
                     </div>
@@ -188,5 +188,27 @@
             $('#payCreditModal').modal('show');
         }
 
+        function openCashDrawer() {
+
+            qz.security.setCertificatePromise(() => Promise.resolve());
+            qz.security.setSignaturePromise(() => Promise.resolve());
+
+            qz.websocket.connect().then(() => {
+                return qz.printers.getDefault();
+            }).then((printer) => {
+                const config = qz.configs.create(printer);
+                const data = ['\x1B\x70\x00\x19\xFA'];
+                return qz.print(config, data);
+            }).catch(console.error);
+
+
+        }
+
+        // Trigger the drawer open event
+        function openDrawer() {
+            alert('Opening drawer...');
+            // This sends the 'open-drawer' event to Electron's main process
+            window.electron.send('open-drawer');
+        }
     </script>
 @endsection
