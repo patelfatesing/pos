@@ -14,8 +14,8 @@ class PartyCustomerProductsPrice extends Model
     protected $fillable = [
         'party_user_id',
         'product_id',
-        'discount_price',
-        'discount_amt',
+        'cust_discount_price',
+        'cust_discount_amt',
         'status',
         'created_by',
         'updated_by',

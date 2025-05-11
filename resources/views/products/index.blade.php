@@ -235,41 +235,5 @@
             $('#priceChangeModal').modal('show');
         }
 
-        $('#priceUpdateForm').on('submit', function(e) {
-            e.preventDefault();
-
-            // Clear previous errors
-            $('#old_price_error').text('');
-            $('#new_price_error').text('');
-            $('#changed_at_error').text('');
-
-            $.ajax({
-                url: "{{ route('products.updatePrice') }}", // define this route
-                method: 'POST',
-                data: $(this).serialize(),
-                headers: {
-                    'X-CSRF-TOKEN': $('input[name="_token"]').val()
-                },
-                success: function(response) {
-                    alert(response.message);
-                    $('#priceChangeModal').modal('hide');
-                    location.reload(); // or update the DOM without reloading
-                },
-                error: function(xhr) {
-                    if (xhr.status === 422) {
-                        let errors = xhr.responseJSON.errors;
-                        if (errors.old_price) {
-                            $('#old_price_error').text(errors.old_price[0]);
-                        }
-                        if (errors.new_price) {
-                            $('#new_price_error').text(errors.new_price[0]);
-                        }
-                        if (errors.changed_at) {
-                            $('#changed_at_error').text(errors.changed_at[0]);
-                        }
-                    }
-                }
-            });
-        });
     </script>
 @endsection

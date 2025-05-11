@@ -11,21 +11,23 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between">
                                 <div class="header-title">
-                                    <h4 class="card-title">Edit Party User</h4>
+                                    <h4 class="card-title">Edit Party Customer</h4>
                                 </div>
                                 <div>
                                     <a href="{{ route('party-users.list') }}" class="btn btn-secondary">Back</a>
                                 </div>
                             </div>
                             <div class="card-body">
-                                <form action="{{ route('party-users.update', $partyUser->id) }}" method="POST" enctype="multipart/form-data" data-toggle="validator">
+                                <form action="{{ route('party-users.update', $partyUser->id) }}" method="POST"
+                                    enctype="multipart/form-data" data-toggle="validator">
                                     @csrf
                                     @method('PUT')
                                     <div class="row">
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>First Name</label>
-                                                <input type="text" name="first_name" class="form-control" value="{{ old('first_name', $partyUser->first_name) }}" required>
+                                                <input type="text" name="first_name" class="form-control"
+                                                    value="{{ old('first_name', $partyUser->first_name) }}" required>
                                                 @error('first_name')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -35,7 +37,8 @@
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>Last Name</label>
-                                                <input type="text" name="last_name" class="form-control" value="{{ old('last_name', $partyUser->last_name) }}" required>
+                                                <input type="text" name="last_name" class="form-control"
+                                                    value="{{ old('last_name', $partyUser->last_name) }}" required>
                                                 @error('last_name')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -45,7 +48,8 @@
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>Email</label>
-                                                <input type="email" name="email" class="form-control" value="{{ old('email', $partyUser->email) }}" required>
+                                                <input type="email" name="email" class="form-control"
+                                                    value="{{ old('email', $partyUser->email) }}" required>
                                                 @error('email')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -55,7 +59,8 @@
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>Phone</label>
-                                                <input type="text" name="phone" class="form-control" value="{{ old('phone', $partyUser->phone) }}">
+                                                <input type="text" name="phone" class="form-control"
+                                                    value="{{ old('phone', $partyUser->phone) }}">
                                                 @error('phone')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -65,7 +70,8 @@
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>Address</label>
-                                                <input type="text" name="address" class="form-control" value="{{ old('address', $partyUser->address) }}">
+                                                <input type="text" name="address" class="form-control"
+                                                    value="{{ old('address', $partyUser->address) }}">
                                                 @error('address')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -74,25 +80,47 @@
 
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
-                                                <label>Credit Points</label>
-                                                <input type="number" step="0.01" name="credit_points" class="form-control" value="{{ old('credit_points', $partyUser->credit_points) }}" required>
+                                                <label>Credit</label>
+                                                <input type="number" step="0.01" name="credit_points"
+                                                    class="form-control"
+                                                    value="{{ old('credit_points', $partyUser->credit_points) }}" required>
                                                 @error('credit_points')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
                                         </div>
-                                        <div class="col-lg-12">
+                                        <div class="col-lg-6">
                                             <div class="form-group">
                                                 <label>Upload Images</label>
-                                                <input type="file" name="images[]" class="form-control" multiple>
+                                                <input type="file" name="images[]" class="form-control" multiple
+                                                    accept="image/*" onchange="previewImages()">
                                                 @error('images')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
+
+                                                {{-- Show existing images --}}
+                                                @if (!empty($partyUser->images))
+                                                    <div class="mt-3">
+                                                        <label>Existing Images</label>
+                                                        <div class="d-flex flex-wrap gap-2">
+                                                            @foreach ($partyUser->images as $img)
+                                                                <div class="me-2 mb-2">
+                                                                    <img src="{{ asset('storage/' .$img->image_path) }}"
+                                                                        alt="Image" class="img-thumbnail"
+                                                                        style="width: 100px; height: 100px; object-fit: cover;">
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+                                                @endif
+
+                                                {{-- New image preview --}}
+                                                <div id="imagePreview" class="d-flex flex-wrap gap-2 mt-2"></div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <button type="submit" class="btn btn-primary mr-2">Update Party User</button>
+                                    <button type="submit" class="btn btn-primary mr-2">Update Party Customer</button>
                                     <button type="reset" class="btn btn-danger">Reset</button>
                                 </form>
                             </div>
