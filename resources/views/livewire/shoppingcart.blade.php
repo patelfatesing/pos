@@ -69,7 +69,7 @@
 
             <div class="col-md-3">
                 <div class="mb-3">
-                    <input type="number" wire:model.live.debounce.500ms="search" wire:keydown.enter="addToCartBarCode"
+                    <input type="number" wire:model.live="search" wire:keydown.enter="addToCartBarCode"
                         class="form-control" placeholder=" {{ __('messages.scan_barcode') }}" autofocus>
 
                     {{-- @if ($selectedProduct)
