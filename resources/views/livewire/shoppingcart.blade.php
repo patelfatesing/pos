@@ -225,10 +225,11 @@
                                     @endif
                                 </td>
                                 <td style="width: 10%;">
-                                    @if (@$item->product->discount_amt && $this->commissionAmount > 0)
+                                   
+                                    @if (@$this->partyUserDiscountAmt && $this->commissionAmount > 0)
                                         
                                         <span class="text-danger">
-                                            {{ format_inr(@$item->product->sell_price-$item->product->discount_amt) }}
+                                            {{ format_inr(@$item->product->sell_price-$this->partyUserDiscountAmt) }}
                                         </span>
                                         <br>
                                         <small class="text-muted">
@@ -237,7 +238,7 @@
                                     @else
                                         <span class="text-danger">
                                             @if ($this->partyAmount > 0)
-                                            {{ format_inr(@$item->product->sell_price-$item->product->discount_amt) }}
+                                            {{ format_inr(@$item->product->sell_price-$this->partyUserDiscountAmt) }}
                                             @else
                                             {{ format_inr(@$item->product->sell_price) }}
                                             @endif
@@ -333,7 +334,7 @@
                                         <i class="fa fa-pause-circle me-2"></i>  {{ __('messages.hold') }}
                                     </button>
                             
-                                    <button class="btn btn-sm btn-primary m-2 flex-fill text-nowrap">
+                                    <button  wire:click="onlinePayment"  class="btn btn-sm btn-primary m-2 flex-fill text-nowrap">
                                         <i class="fa fa-credit-card me-2"></i> 
                                         {{ __('messages.online') }}
                                     </button>
@@ -356,7 +357,7 @@
 
     <!-- Bootstrap Modal -->
     <div class="modal fade" id="holdTransactionsModal" tabindex="-1" aria-labelledby="holdModalLabel"
-        aria-hidden="true" wire:ignore>
+        aria-hidden="true" >
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -999,17 +1000,27 @@
                                 {{-- @if ($partyAmount > 0 ) --}}
                                 <div class=" mb-2">
                                     <label class="-label" for="useCreditCheck">
-                                        <input type="checkbox"  wire:click="toggleCheck" /> {{ __('messages.use_credit_to_pay') }}
+                                        <input type="checkbox"  wire:click="toggleCheck" /> <strong>{{ __('messages.use_credit_to_pay') }}</strong>
                                     </label>
                                 </div>
                                 
                                 @if($useCredit)
-                                    <div class="d-flex justify-content-between mb-2">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="mb-0">
                                         <strong>{{ __('messages.credit') }}</strong>
-                                        <input type="number" wire:model="creditPay" wire:input="creditPayChanged"
-                                            class="form-control" style="width: 80px;" />
+                                    </label>
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-primary fs-6 me-2">
+                                            {{ __('messages.available_credit') }}: {{ number_format($this->partyUserDetails->credit_points, 2) }}
+                                        </span>
+                                        <input type="number"
+                                            wire:model="creditPay"
+                                            wire:input="creditPayChanged"
+                                            class="form-control"
+                                            style="width: 100px;" />
                                     </div>
-                                @endif
+                                </div>
+                            @endif
                                     
                                 {{-- @endif --}}
                                 <div class="d-flex justify-content-between">
@@ -1045,7 +1056,12 @@
                 @elseif($shoeCashUpi)
                     <div id="cashupi-payment">
                         <form onsubmit="event.preventDefault(); calculateCash();" class="needs-validation" novalidate>
-
+                             @php
+                                $totalIn = 0;
+                                $totalOut = 0;
+                                $totalAmount = 0;
+                            @endphp
+                            @if($this->showOnline==false)
                             {{-- <h6 class="mb-3">💵 Enter Cash Denominations</h6> --}}
                             <div class="row g-3">
                                 <div class="col-md-12">
@@ -1067,11 +1083,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @php
-                                                $totalIn = 0;
-                                                $totalOut = 0;
-                                                $totalAmount = 0;
-                                            @endphp
+                                           
 
                                             @foreach ($noteDenominations as $key => $denomination)
                                                 @php
@@ -1136,7 +1148,6 @@
                                     </table>
                                 </div>
                             </div>
-
                             <div class="row">
 
                                 <div class="col-md-6">
@@ -1163,8 +1174,9 @@
                                         max="{{ $this->cashAmount }}">
                                 </div>
                             </div>
-
                             <hr class="">
+                            @endif
+
 
 
                             <div class="border p-3 rounded bg-light">
@@ -1179,16 +1191,48 @@
                                         <span>- {{ format_inr($commissionAmount) }}</span>
                                     </div>
                                 @endif
-                                
-                                @if ($partyAmount > 0)
+                                 @if ($partyAmount > 0)
                                     <div class="d-flex justify-content-between mb-2">
+                                        <strong>Commission Deduction</strong>
+                                        <span>- {{ format_inr($partyAmount) }}</span>
+                                    </div>
+                                @endif
+                                {{-- @if ($partyAmount > 0) --}}
+                                    {{-- <div class="d-flex justify-content-between mb-2">
                                         <strong>Credit</strong>
                                         <input type="number" width="10%"
                                             wire:model.live="creditPay" wire:input="creditPayChanged"
                                             class="form-control" style="width: 80px;" />
 
+                                    </div> --}}
+                                   <div class="mb-2">
+                                        <label for="useCreditCheck">
+                                            <input type="checkbox" wire:click="toggleCheck" />
+                                            
+                                            <strong>{{ __('messages.use_credit_to_pay') }}</strong>
+                                        </label>
                                     </div>
-                                @endif
+
+                                    @if($useCredit)
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <label class="mb-0">
+                                                <strong>{{ __('messages.credit') }}</strong>
+                                            </label>
+                                            <div class="d-flex align-items-center">
+                                                <span class="badge bg-primary fs-6 me-2">
+                                                    {{ __('messages.available_credit') }}: {{ number_format($this->partyUserDetails->credit_points, 2) }}
+                                                </span>
+                                                <input type="number"
+                                                    wire:model="creditPay"
+                                                    wire:input="creditPayChanged"
+                                                    class="form-control"
+                                                    style="width: 100px;" />
+                                            </div>
+                                        </div>
+                                    @endif
+
+
+                                {{-- @endif --}}
                                 <div class="d-flex justify-content-between">
                                     <strong>Total Payable</strong>
                                     <span>{{ format_inr($this->cashAmount) }}</span>
@@ -1198,13 +1242,21 @@
                             </div>
                             <p id="result" class="mt-3 fw-bold text-success"></p>
                             <div class="mt-4">
-
-                                @if ($this->cashAmount == $cash + $upi)
+                                @if($this->showOnline==true)
                                     <button id="paymentSubmit" class="btn btn-primary btn-sm mr-2 btn-block mt-4"
-                                        wire:click="checkout" wire:loading.attr="disabled">
-                                        {{ __('messages.submit') }}
+                                    wire:click="onlinePaymentCheckout" wire:loading.attr="disabled">
+                                    {{ __('messages.submit') }}
                                     </button>
+                                @else
+
+                                    @if ($this->cashAmount == $cash + $upi)
+                                        <button id="paymentSubmit" class="btn btn-primary btn-sm mr-2 btn-block mt-4"
+                                            wire:click="checkout" wire:loading.attr="disabled">
+                                            {{ __('messages.submit') }}
+                                        </button>
+                                    @endif
                                 @endif
+
                                 <div wire:loading class=" text-muted">Processing payment...</div>
                             </div>
 

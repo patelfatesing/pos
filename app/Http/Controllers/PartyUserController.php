@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Partyuser;
 use App\Models\PartyUserImage;
+use Illuminate\Support\Facades\DB;
+use App\Models\PartyCustomerProductsPrice;
+use Illuminate\Support\Facades\Auth;
+
 class PartyUserController extends Controller
 {
     public function index()
@@ -29,7 +33,6 @@ class PartyUserController extends Controller
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('first_name', 'like', '%' . $searchValue . '%')
-                  ->orWhere('middle_name', 'like', '%' . $searchValue . '%')
                   ->orWhere('last_name', 'like', '%' . $searchValue . '%')
                   ->orWhere('commission_type', 'like', '%' . $searchValue . '%')
                   ->orWhere('applies_to', 'like', '%' . $searchValue . '%')
@@ -54,15 +57,18 @@ class PartyUserController extends Controller
             })->toArray();
 
             $action ='<div class="d-flex align-items-center list-action">
+            <a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
+                    href="#" onclick="party_cust_price_change(' . $partyUser->id . ')"><i class="ri-eye-line mr-0"></i></a>
+                    
             <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
                                         href="' . url('/party-users/edit/' . $partyUser->id) . '"><i class="ri-pencil-line mr-0"></i></a>
                                     <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
                                         href="#" onclick="delete_party_user(' . $partyUser->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
             </div>';
 
+            
             $records[] = [
                 'first_name' => $partyUser->first_name,
-                'middle_name' => $partyUser->middle_name,
                 'last_name' => $partyUser->last_name,
                 'email' => $partyUser->email,
                 'phone' => $partyUser->phone,
@@ -84,7 +90,6 @@ class PartyUserController extends Controller
         ]);
     }
 
-
     public function create()
     {
         return view('party_users.create');
@@ -94,7 +99,6 @@ class PartyUserController extends Controller
     {
         $data = $request->validate([
             'first_name' => 'required|string|max:255',
-            'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:party_users,email',
             'phone' => 'nullable|string|max:255',
@@ -129,7 +133,6 @@ class PartyUserController extends Controller
     {
         $data = $request->validate([
             'first_name' => 'required|string|max:255',
-            'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:party_users,email,' . $Partyuser->id . ',id',
             'phone' => 'nullable|string|max:255',
@@ -170,4 +173,117 @@ class PartyUserController extends Controller
 
         return redirect()->route('users.list')->with('success', 'Party User has been deleted successfully.');
     }
+
+    public function custProductPriceChangeForm($id)
+    {
+        $partyUser = Partyuser::select('first_name','last_name','id')->where('id', $id)->first();
+        
+            $products = DB::table('products')
+            ->select(
+                'products.id',
+                'products.name',
+                'products.sell_price',
+                DB::raw('IFNULL(party_customer_products_price.cust_discount_price, 0) as cust_discount_price') // Default to 0 if no discount
+            )
+            ->leftJoin('party_customer_products_price', function($join) use ($id) {
+                $join->on('products.id', '=', 'party_customer_products_price.product_id')
+                    ->where('party_customer_products_price.party_user_id', $id);
+            })
+            ->where('products.is_deleted', 'no')
+            ->where('products.is_active', 'yes')
+            ->groupBy(
+                'products.id',
+                'products.name',
+                'products.sell_price',
+                'party_customer_products_price.cust_discount_price',
+            )
+            ->get();
+
+            return view('party_users.product-form',compact('products','partyUser'));
+        
+        return response()->json(['error' => 'Form not found'], 404);
+    }
+
+    public function custPriceChange(Request $request)
+    {
+
+        $validated = $request->validate([
+            'cust_user_id' => 'required|exists:party_users,id',
+            'items' => 'required|array',
+            'items.*.sell_price' => 'required|numeric|min:1',
+            'items.*.cust_discount_price' => 'required|numeric|min:1',
+            'notes' => 'nullable|string',
+        ]);
+
+        // Manually check each item's discount price
+        $errors = [];
+        foreach ($request->items as $id => $item) {
+            if ($item['cust_discount_price'] > $item['sell_price']) {
+                $errors["items.$id.cust_discount_price"] = ['Discount price must be less than or equal to sell price.'];
+            }
+        }
+
+        if (!empty($errors)) {
+            return response()->json([
+                'message' => 'Validation error',
+                'errors' => $errors,
+            ], 422);
+        }
+
+        $cust_user_id = $request->cust_user_id;
+        DB::beginTransaction();
+
+        try {
+            // Perform your business logic (e.g., saving data, etc.)
+
+                foreach ($request['items'] as $key => $item) {
+    
+                    $cust_pro = PartyCustomerProductsPrice::where('id', $key)->where('party_user_id',$cust_user_id)->first();
+
+                    $cust_discount_price = 0;
+                    $cust_discount_amt = 0;
+
+                    if($item['cust_discount_price'] == $item['sell_price']){
+                        $cust_discount_price = $item['sell_price'];
+                        $cust_discount_amt = 0;
+                    }else{
+                        $cust_discount_price = $item['cust_discount_price'];
+                        $cust_discount_amt = $item['sell_price'] - $item['cust_discount_price'];
+                    }
+                    
+                    if(!empty($cust_pro)){
+                        $cust_pro->update([
+                            'cust_discount_price' => $cust_discount_price,
+                            'cust_discount_amt' => $cust_discount_amt,
+                            'status' => 'active',
+                            'updated_by' => Auth::id()
+                        ]);
+                    }else{
+                        PartyCustomerProductsPrice::create([
+                            'party_user_id' => $cust_user_id,
+                            'product_id' => $key,
+                            'cust_discount_price' => $cust_discount_price,
+                            'cust_discount_amt' => $cust_discount_amt,
+                            'status' => 'active',
+                            'created_by' => Auth::id()
+                        ]);
+                    }
+                }
+
+                DB::commit();
+            // If validation passes, send success response
+            if ($request->ajax()) {
+                return response()->json(['success' => 'Price changes submitted successfully!']);
+            }
+
+            return back()->with('success', 'Price change submitted successfully!');
+        } catch (\Exception $e) {
+            // Handle exceptions and send error response
+            if ($request->ajax()) {
+                return response()->json(['error' => 'An error occurred: ' . $e->getMessage()]);
+            }
+
+            return back()->with('error', 'An error occurred: ' . $e->getMessage());
+        }
+    } 
 }

@@ -6,6 +6,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
+
     <!-- Wrapper Start -->
     <div class="wrapper">
         <div class="content-page">
@@ -28,7 +29,6 @@
                                     <tr class="ligth ligth-data">
 
                                         <th>First Name</th>
-                                        <th>Middle Name</th>
                                         <th>Last Name</th>
                                         <th>Email</th>
                                         <th>Phone</th>
@@ -44,89 +44,153 @@
                 </div>
             </div>
         </div>
-        <!-- Wrapper End -->
+    </div>
+    <!-- Wrapper End -->
 
-        <script>
-            $(document).ready(function() {
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
+    <div class="modal fade bd-example-modal-lg" id="custPriceChangeModal" tabindex="-1" role="dialog"
+        aria-labelledby="custPriceChangeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content" id="custModalContent">
+            </div>
+        </div>
+    </div>
 
-                $('#party_users_table').DataTable().clear().destroy();
-
-                $('#party_users_table').DataTable({
-                    pageLength: 10,
-                    responsive: true,
-                    processing: true,
-                    serverSide: true,
-                    ajax: {
-                        url: '{{ url('party-users/get-data') }}',
-                        type: 'POST',
-                    },
-                    columns: [{
-                            data: 'first_name'
-                        },
-                        {
-                            data: 'middle_name'
-                        },
-                        {
-                            data: 'last_name'
-                        },
-                        {
-                            data: 'email'
-                        },
-                        {
-                            data: 'phone'
-                        },
-                        {
-                            data: 'credit_points'
-                        },
-                        {
-                            data: 'action',
-                            orderable: false,
-                            searchable: false
-                        }
-                    ],
-                    aoColumnDefs: [{
-                        bSortable: false,
-                        aTargets: [5, 6] // make "action" column unsortable
-                    }],
-                    order: [
-                        [2, 'desc']
-                    ], // 🟢 Sort by created_at DESC by default
-                    dom: "Bfrtip",
-                    buttons: ['pageLength'],
-                    lengthMenu: [
-                        [10, 25, 50],
-                        ['10 rows', '25 rows', '50 rows']
-                    ]
-                });
+    <script>
+        $(document).ready(function() {
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
             });
 
-            function delete_party_user(id) {
-                Swal.fire({
-                    title: "Are you sure?",
-                    text: "This action cannot be undone!",
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonText: "Yes, delete it!",
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            type: "DELETE",
-                            url: "{{ route('party-users.destroy', ':id') }}".replace(':id', id),
-                            success: function(response) {
-                                $('#party_users_table').DataTable().ajax.reload();
-                                Swal.fire("Deleted!", "The party user has been deleted.", "success");
-                            },
-                            error: function(xhr) {
-                                Swal.fire("Error!", "An error occurred while deleting.", "error");
-                            }
-                        });
+            $('#party_users_table').DataTable().clear().destroy();
+
+            $('#party_users_table').DataTable({
+                pageLength: 10,
+                responsive: true,
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ url('party-users/get-data') }}',
+                    type: 'POST',
+                },
+                columns: [{
+                        data: 'first_name'
+                    },
+                    {
+                        data: 'last_name'
+                    },
+                    {
+                        data: 'email'
+                    },
+                    {
+                        data: 'phone'
+                    },
+                    {
+                        data: 'credit_points'
+                    },
+                    {
+                        data: 'action',
+                        orderable: false,
+                        searchable: false
                     }
-                });
+                ],
+                aoColumnDefs: [{
+                    bSortable: false,
+                    aTargets: [4, 5] // make "action" column unsortable
+                }],
+                order: [
+                    [2, 'desc']
+                ], // 🟢 Sort by created_at DESC by default
+                dom: "Bfrtip",
+                buttons: ['pageLength'],
+                lengthMenu: [
+                    [10, 25, 50],
+                    ['10 rows', '25 rows', '50 rows']
+                ]
+            });
+
+            // Define the function that handles form submission via AJAX
+            function submitForm() {
+                const form = document.getElementById('custPriceChnageForm');
+                const submitButton = document.getElementById('submitButton');
+
+                submitButton.disabled = true; // Disable the submit button to prevent multiple clicks
+
+                // Prepare the form data
+                let formData = new FormData(form);
+
+                // Send AJAX request using fetch API
+                fetch(form.action, {
+                        method: 'POST', // Use POST method to submit the form
+                        body: formData, // Form data that includes CSRF token
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest' // Let the server know it's an AJAX request
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        submitButton.disabled = false; // Re-enable the submit button
+
+                        // Handle success response
+                        if (data.success) {
+                            alert(data.success);
+                            // You can close the modal or reload the page if necessary
+                            location.reload(); // Or close the modal
+                        } else if (data.error) {
+                            // Handle error response
+                            alert(data.error);
+                        }
+                    })
+                    .catch(error => {
+                        submitButton.disabled = false; // Re-enable the submit button in case of error
+                        alert('An error occurred: ' + error.message);
+                    });
             }
-        </script>
-    @endsection
+
+
+        });
+
+        function delete_party_user(id) {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "This action cannot be undone!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, delete it!",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "DELETE",
+                        url: "{{ route('party-users.destroy', ':id') }}".replace(':id', id),
+                        success: function(response) {
+                            $('#party_users_table').DataTable().ajax.reload();
+                            Swal.fire("Deleted!", "The party user has been deleted.", "success");
+                        },
+                        error: function(xhr) {
+                            Swal.fire("Error!", "An error occurred while deleting.", "error");
+                        }
+                    });
+                }
+            });
+        }
+
+        function party_cust_price_change(id) {
+
+            $.ajax({
+                url: '/cust-product-price-change/form/' + id,
+                type: 'GET',
+                success: function(response) {
+
+                    $('#custModalContent').html(response);
+                    $('#custPriceChangeModal').modal('show');
+                },
+                error: function() {
+                    alert('Failed to load form.');
+                }
+            });
+        }
+    </script>
+
+    <script></script>
+@endsection

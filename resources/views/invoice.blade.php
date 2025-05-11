@@ -11,7 +11,7 @@
 
         body {
             font-family: Arial, sans-serif;
-            font-size: 11px;
+            font-size: 13px;
             width: 100%;
             margin: 0;
             padding: 0;
@@ -27,7 +27,7 @@
 
         .line {
             border-top: 1px dashed #000;
-            margin: 6px 0;
+            margin: 10px 0;
         }
 
         .table {
@@ -37,9 +37,9 @@
 
         .table th,
         .table td {
-            padding: 4px 2px;
+            padding: 6px 4px;
             vertical-align: top;
-            font-size: 11px;
+            font-size: 13px;
         }
 
         .left {
@@ -55,36 +55,44 @@
         }
 
         .total {
-            font-size: 13px;
+            font-size: 15px;
             font-weight: bold;
         }
 
+        .section-title {
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
         .small {
-            font-size: 10px;
+            font-size: 11px;
         }
     </style>
 </head>
 <body>
 
 <div class="centered bold">
-    LiquorHub<br>
-    {{ @$branch->address }}<br>
+    <div style="font-size: 16px;">LiquorHub</div>
+    <div>{{ @$branch->address }}</div>
     @if(@$duplicate == true)
-        <span style="color: red;">Duplicate Invoice</span><br>
+        <div style="color: red; font-size: 14px;">Duplicate Invoice</div>
     @endif
-    @if(@$type == 'refund')
-        <span>Credit Note</span><br>
-    @else
-        <span>Invoice</span><br>
-    @endif
+    <div>
+        @if(@$type == 'refund')
+            <span style="font-size: 14px;">Refund Note</span>
+        @else
+            <span style="font-size: 14px;">Invoice</span>
+        @endif
+    </div>
 </div>
 
 <div class="line"></div>
 
 <div>
     <strong>{{ @$type == 'refund' ? 'Refund' : 'Invoice' }}:</strong> {{ $invoice->invoice_number }}<br>
-    <strong>Name:</strong> {{ $invoice->customer_name ?? 'Walk-in' }}<br>
-    <strong>Date:</strong> {{ $invoice->created_at->format('d/m/Y H:i') }}
+    <strong>Name:</strong> {{ $customer_name ?? '' }}<br>
+    <strong>Date:</strong> {{ now()->format('d/m/Y H:i') }}
 </div>
 
 <div class="line"></div>
@@ -94,6 +102,7 @@
         <tr>
             <th style="width: 5%;">#</th>
             <th style="width: 50%;" class="left">Item</th>
+            <th style="width: 15%;" class="center">Rate</th>
             <th style="width: 15%;" class="center">Qty</th>
             <th style="width: 30%;" class="right">Amount</th>
         </tr>
@@ -103,8 +112,9 @@
         <tr>
             <td>{{ $index + 1 }}</td>
             <td class="left">
-                {{ strlen($item['name']) > 15 ? substr($item['name'], 0, 12) . '...' : $item['name'] }}
+                {{ strlen($item['name']) > 10 ? substr($item['name'], 0, 10) . '...' . substr($item['name'], -5) : $item['name'] }}
             </td>
+            <td class="center">{{ $item['price']/ $item['quantity']}}</td>
             <td class="center">{{ $item['quantity'] }}</td>
             <td class="right">{{ number_format($item['price'], 2) }}</td>
         </tr>
@@ -121,31 +131,61 @@
 @endphp
 
 <table class="table">
-    <tr>
-        <td class="left">SUB TOTAL:</td>
-        <td class="right">{{ number_format($sunTot, 2) }}</td>
-    </tr>
-    <tr>
-        <td class="left">DISCOUNT:</td>
-        <td class="right">{{ number_format($invoice->party_amount ?? 0, 2) }}</td>
-    </tr>
     <tr class="total">
         <td class="left">TOTAL:</td>
-        <td class="right">{{ $invoice->total }}</td>
-    </tr>
-    <tr>
-        <td class="left">BY CASH:</td>
-        <td class="right">{{ $invoice->cash_amount }}</td>
-    </tr>
-    <tr>
-        <td class="left">BY UPI:</td>
-        <td class="right">{{ $invoice->upi_amount }}</td>
+        <td class="right">{{ $invoice->total_item_total }}</td>
     </tr>
 </table>
 
 <div class="line"></div>
 
-<div class="centered bold">
+<table class="table">
+    <tr>
+        <td class="left">Purchased:</td>
+        <td class="right">{{ $invoice->sub_total }}</td>
+    </tr>
+    <tr>
+        <td class="left">Purchased Items:</td>
+        <td class="right">{{ $invoice->total_item_qty }}</td>
+    </tr>
+    <tr>
+        <td class="left">Discount:</td>
+        <td class="right">{{ $invoice->party_amount }}</td>
+    </tr>
+    <tr>
+        <td class="left">Credit:</td>
+        <td class="right">{{ $invoice->creditpay ?? 0 }}</td>
+    </tr>
+    <tr>
+        <td class="left">Total Savings:</td>
+        <td class="right">{{ $invoice->sub_total - $totalAmount }}</td>
+    </tr>
+    <tr class="bold">
+        <td class="left">Total Paid:</td>
+        <td class="right">{{ $invoice->total }}</td>
+    </tr>
+</table>
+
+<div class="line"></div>
+
+<table class="table">
+    <tr>
+        <td class="left">By Cash:</td>
+        <td class="right">{{ $invoice->cash_amount }}</td>
+    </tr>
+    <tr>
+        <td class="left">By UPI:</td>
+        <td class="right">{{ $invoice->upi_amount }}</td>
+    </tr>
+     <tr>
+        <td class="left">By Online:</td>
+        <td class="right">{{ $invoice->online_amount }}</td>
+    </tr>
+</table>
+
+<div class="line"></div>
+
+<div class="centered bold" style="font-size: 14px;">
     Thank you for shopping with us!
 </div>
 

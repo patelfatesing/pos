@@ -228,6 +228,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/party-users/edit/{id}', [PartyUserController::class, 'edit'])->name('party-users.edit');
     Route::put('/party-users/{Partyuser}', [PartyUserController::class, 'update'])->name('party-users.update');
     Route::delete('/party-users/{Partyuser}', [PartyUserController::class, 'destroy'])->name('party-users.destroy');
+    Route::get('/cust-product-price-change/form/{id}', [PartyUserController::class, 'custProductPriceChangeForm']);
+    Route::post('/cust-product-price-change/price_change-store', [PartyUserController::class, 'custPriceChange'])->name('cust-product-price-change-store');
+
 // });
 
     Route::get('/stock-transfer/list', [StockTransferController::class, 'index'])->name('stock-transfer.list');
