@@ -984,13 +984,15 @@
                                     <strong>{{ __('messages.subtotal') }}</strong>
                                     <span>{{ format_inr($sub_total) }}</span>
                                 </div>
-
-                                @if ($commissionAmount > 0)
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <strong>Commission Deduction</strong>
-                                        <span>- {{ format_inr($commissionAmount) }}</span>
-                                    </div>
+                                @if (auth()->user()->hasRole('cashier'))
+                                    @if ($commissionAmount > 0)
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <strong>Commission Deduction</strong>
+                                            <span>- {{ format_inr($commissionAmount) }}</span>
+                                        </div>
+                                    @endif
                                 @endif
+                                @if (auth()->user()->hasRole('warehouse'))
                                 {{-- @if ($partyAmount > 0) --}}
                                     <div class="d-flex justify-content-between mb-2">
                                         <strong>Commission Deduction</strong>
@@ -1020,6 +1022,7 @@
                                             style="width: 100px;" />
                                     </div>
                                 </div>
+                            @endif
                             @endif
                                     
                                 {{-- @endif --}}
@@ -1205,6 +1208,7 @@
                                             class="form-control" style="width: 80px;" />
 
                                     </div> --}}
+                                     @if (auth()->user()->hasRole('warehouse'))
                                    <div class="mb-2">
                                         <label for="useCreditCheck">
                                             <input type="checkbox" wire:click="toggleCheck" />
@@ -1230,6 +1234,7 @@
                                             </div>
                                         </div>
                                     @endif
+                                     @endif
 
 
                                 {{-- @endif --}}

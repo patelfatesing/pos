@@ -54,6 +54,9 @@ class AuthenticatedSessionController extends Controller
         $user->is_login = 'No';
         $user->save();
         Auth::guard('web')->logout();
+        if (session()->has('checkout_images')) {
+            session()->forget('checkout_images');
+        }
 
         $request->session()->invalidate();
 
