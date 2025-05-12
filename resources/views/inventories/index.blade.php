@@ -78,7 +78,8 @@
                     }
                 },
                 aoColumns: [{
-                        data: 'name'
+                        data: 'name',
+                        orderable: false
                     },
                     {
                         data: 'location',
@@ -97,14 +98,16 @@
                         orderable: false
                     },
                     {
-                        data: 'expiry_date'
+                        data: 'expiry_date',
+                        orderable: false
                     },
                     {
                         data: 'reorder_level',
                         orderable: false
                     },
                     {
-                        data: 'created_at'
+                        data: 'updated_at',
+                        orderable: true
                     },
                     {
                         data: 'action',

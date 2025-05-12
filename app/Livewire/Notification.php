@@ -108,7 +108,6 @@ class Notification extends Component
                         )
                         ->orderBy('i.created_at')
                         ->get();
-                        // dd($this->selectedNotificationData);
                     break;    
             default:
                 $this->selectedNotificationData = collect([

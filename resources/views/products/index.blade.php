@@ -9,27 +9,27 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-            <div class="col-lg-12">
-    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-        <div>
-            <h4 class="mb-3">Product List</h4>
-        </div>
-        <div class="d-flex gap-2 ms-auto">
-            <a href="{{ route('products.import') }}" class="btn btn-primary add-list">
-                <i class="las la-file-import me-1"></i>Import Product
-            </a>
-            <a href="{{ route('products.create') }}" class="btn btn-primary add-list ml-2">
-                <i class="las la-plus me-1"></i>Create New Product
-            </a>
-        </div>
-    </div>
-</div>
+                <div class="col-lg-12">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+                        <div>
+                            <h4 class="mb-3">Product List</h4>
+                        </div>
+                        <div class="d-flex gap-2 ms-auto">
+                            <a href="{{ route('products.import') }}" class="btn btn-primary add-list">
+                                <i class="las la-file-import me-1"></i>Import Product
+                            </a>
+                            <a href="{{ route('products.create') }}" class="btn btn-primary add-list ml-2">
+                                <i class="las la-plus me-1"></i>Create New Product
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
 
                 <div class="col-lg-12">
                     <div class="table-responsive rounded mb-3">
                         <table class="table data-tables table-striped" id="products_table">
-                            <thead class="bg-white text-uppercase">
+                            <thead class="bg-white">
                                 <tr class="ligth ligth-data">
                                     <th>
                                         <b>N</b>ame
@@ -55,8 +55,8 @@
     </div>
 
     @php
-    // Calculate tomorrow's date
-     $minDate = \Carbon\Carbon::today()->format('Y-m-d');
+        // Calculate tomorrow's date
+$minDate = \Carbon\Carbon::today()->format('Y-m-d');
     @endphp
 
     <div class="modal fade bd-example-modal-lg" id="priceChangeModal" tabindex="-1" role="dialog"
@@ -95,7 +95,8 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Price Apply Date</label>
-                                    <input type="date" name="changed_at" min="{{ $minDate }}" class="form-control" id="changed_at">
+                                    <input type="date" name="changed_at" min="{{ $minDate }}" class="form-control"
+                                        id="changed_at">
                                     <span class="text-danger" id="changed_at_error"></span>
                                 </div>
                             </div>
@@ -185,6 +186,42 @@
                     bSortable: false,
                     aTargets: []
                 }],
+                columnDefs: [{
+                        width: "20%",
+                        targets: 0
+                    }, // set width of column 0
+                    {
+                        width: "7%",
+                        targets: 1
+                    }, // set width of column 1
+                    {
+                        width: "5%",
+                        targets: 2
+                    }, {
+                        width: "5%",
+                        targets: 3
+                    }, {
+                        width: "5%",
+                        targets: 4
+                    }, {
+                        width: "7%",
+                        targets: 5
+                    }, {
+                        width: "7%",
+                        targets: 6
+                    }, {
+                        width: "10%",
+                        targets: 7
+                    },
+                    {
+                        width: "5%",
+                        targets: 8
+                    }
+                ],
+                autoWidth: false,
+                order: [
+                    [7, 'desc']
+                ], // 🟢 Sort by created_at DESC by default
                 dom: "Bfrtip",
                 lengthMenu: [
                     [10, 25, 50],
@@ -228,12 +265,11 @@
 
         }
 
-        function product_price_change(id,sell_price) {
-                // alert(id);
+        function product_price_change(id, sell_price) {
+            // alert(id);
             $('#old_price').val(sell_price);
             $('#product_id').val(id);
             $('#priceChangeModal').modal('show');
         }
-
     </script>
 @endsection

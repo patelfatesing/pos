@@ -8,13 +8,19 @@
         <div class="container mt-1">
             <div class="card mb-4">
                 <div class="card-body">
-                    <p><strong>From:</strong> </p>
-                    <p><strong>Date:</strong> </p>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <p><strong>From:</strong> Warehouse</p>
+                        </div>
+                        <div class="col-lg-6">
+                            {{-- <p><strong>Date Time:</strong> Warehouse</p> --}}
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="card">
-                <div class="card-header"><strong>Requested Items</strong></div>
+                <div class="card-header"><strong>Transfer Items</strong></div>
                 <div class="card-body p-0">
                     <table class="table table-bordered mb-0">
                         <thead>
@@ -27,9 +33,8 @@
                                 <th>Quantity</th>
                             </tr>
                         </thead>
-                        <tbody>                            
+                        <tbody>
                             @foreach ($stockTransfer as $index => $item)
-
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $item->product_name }}</td>
