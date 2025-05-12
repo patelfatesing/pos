@@ -12,8 +12,6 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-
-
                 <!-- Date Filters -->
                 <div class="row">
                     <div class="col-lg-12">

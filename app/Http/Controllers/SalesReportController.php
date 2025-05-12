@@ -29,7 +29,7 @@ class SalesReportController extends Controller
     public function getData(Request $request)
     {
         $query = DB::table('invoices') 
-            ->select('id', 'invoice_number', 'status', 'sub_total', 'tax', 'total', 'items', 'created_at');
+            ->select('id', 'invoice_number', 'status', 'sub_total', 'tax','commission_amount','party_amount', 'total', 'items', 'created_at');
     
         if ($request->start_date && $request->end_date) {
             $query->whereBetween('created_at', [
@@ -57,7 +57,7 @@ class SalesReportController extends Controller
     
         // Sorting
         if ($request->order) {
-            $columns = ['id', 'invoice_number', 'status', 'sub_total', 'tax', 'total', 'items', 'created_at'];
+            $columns = ['id', 'invoice_number', 'status', 'sub_total', 'tax', 'total','commission_amount','party_amount', 'items', 'created_at'];
             $orderColumn = $columns[$request->order[0]['column']] ?? 'created_at';
             $orderDir = $request->order[0]['dir'] ?? 'desc';
             $query->orderBy($orderColumn, $orderDir);
@@ -84,6 +84,8 @@ class SalesReportController extends Controller
                 'status' => $invoice->status,
                 'sub_total' => number_format($invoice->sub_total, 2),
                 'total' => number_format($invoice->total, 2),
+                'commission_amount' =>number_format($invoice->commission_amount, 2),
+                'party_amount' =>number_format($invoice->party_amount, 2),
                 'items_count' => $itemCount,
                 'created_at' => Carbon::parse($invoice->created_at)->format('Y-m-d H:i:s'),
             ];
