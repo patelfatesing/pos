@@ -15,6 +15,7 @@
                                     <h4 class="card-title">Import Product</h4>
                                 </div>
                                 <div>
+                                    <a href="{{ route('products.download-sample') }}" class="btn btn-success mr-2">Sample File</a>
                                     <a href="{{ route('products.list') }}" class="btn btn-secondary">Back</a>
                                 </div>
                             </div>
@@ -37,8 +38,8 @@
                                                         name="file">
                                                     <label class="custom-file-label" for="file">Choose file</label>
                                                     @error('file')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                    @enderror
                                                 </div>
                                             </div>
                                         </div>

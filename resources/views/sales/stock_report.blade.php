@@ -12,8 +12,6 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-
-
                 <!-- Date Filters -->
                 <div class="row">
                     <div class="col-lg-12">
@@ -44,7 +42,7 @@
                 <div class="col-lg-12">
                     <div class="table-responsive rounded mb-3">
                         <table class="table table-striped" id="stock-table" style="width:100%">
-                            <thead class="bg-white text-uppercase">
+                            <thead class="bg-white">
                                 <tr>
                                     <th>Branch</th>
                                     <th>Product</th>
@@ -57,6 +55,13 @@
                             </thead>
                             <tbody>
                             </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="3" style="text-align:right">Total:</th>
+                                    <th id="total_quantity"></th>
+                                    <th colspan="3"></th>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
@@ -113,7 +118,27 @@
                         orderable: false,
                         searchable: false
                     },
-                ]
+                ],
+                aoColumnDefs: [{
+                    bSortable: false,
+                    aTargets: [2, 4, 5]
+                }],
+                order: [
+                    [3, 'desc']
+                ],
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    [10, 25, 50, "All"]
+                ],
+                pageLength: 10,
+                footerCallback: function(row, data, start, end, display) {
+                    var api = this.api();
+                    let total = 0;
+                    data.forEach(function(row) {
+                        total += parseFloat(row.quantity) || 0;
+                    });
+                    $(api.column(3).footer()).html(total);
+                }
             });
 
             // When filter button is clicked

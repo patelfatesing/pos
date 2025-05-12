@@ -47,7 +47,7 @@ class InventoryController extends Controller
                 $orderColumn = 'inventories.created_at';
                 break;
             default:
-                $orderColumn = 'inventories.created_at';
+                $orderColumn = 'inventories.updated_at';
         }
 
         $orderDirection = $request->input('order.0.dir', 'desc');
@@ -67,7 +67,7 @@ class InventoryController extends Controller
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('products.name', 'like', "%$searchValue%")
-                ->orWhere('inventories.cost_price', 'like', "%$searchValue%")
+                ->orWhere('products.cost_price', 'like', "%$searchValue%")
                 ->orWhere('inventories.batch_no', 'like', "%$searchValue%")
                 ->orWhere('branches.name', 'like', "%$searchValue%");
             });
@@ -99,8 +99,8 @@ class InventoryController extends Controller
 
         foreach ($data as $inventory) {
             $reorder_level = ($inventory->quantity < $inventory->reorder_level)
-                ? '<span class="badge bg-danger">Low Level ('.$inventory->quantity.')</span>'
-                : '<span class="badge bg-success">'.$inventory->quantity.'</span>';
+                ? '<span class="badge bg-danger">Low Level ('.$inventory->reorder_level.')</span>'
+                : '<span class="badge bg-success">'.$inventory->reorder_level.'</span>';
                 $status = ($inventory->status == 'Yes')
                 ? '<span class="badge bg-danger">Active</span>'
                 : '<span class="badge bg-success">Inactive</span>';
@@ -123,7 +123,7 @@ class InventoryController extends Controller
                 'expiry_date' => $inventory->expiry_date ? $inventory->expiry_date->format('d-m-Y') : '—',
                 'reorder_level' => $reorder_level,
                 'status' => $status,
-                'created_at' => $inventory->updated_at ? $inventory->updated_at->format('d-m-Y h:i A') : '—',
+                'updated_at' => $inventory->updated_at ? $inventory->updated_at->format('d-m-Y h:i A') : '—',
                 'action' => $action
             ];
         }

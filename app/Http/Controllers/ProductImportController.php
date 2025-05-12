@@ -39,9 +39,8 @@ class ProductImportController extends Controller
     
         while (($row = fgetcsv($handle)) !== false) {
 
-            $subcategories = SubCategory::where('name', $row[6])->first();
             $categories = Category::where('name', $row[5])->first();
-        
+            $subcategories = SubCategory::where('name', $row[6])->first();        
             $category_id = $categories?->id;
             $sub_category_id = $subcategories?->id;
         
@@ -108,7 +107,7 @@ class ProductImportController extends Controller
     
         fclose($handle);
     
-        return back()->with('success', "$inserted records inserted, $skipped duplicates skipped.");
+        return redirect()->route('products.list')->with('success', "$inserted records inserted, $skipped duplicates skipped.");
     }
 
     public function collection(Collection $rows)

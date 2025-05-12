@@ -107,7 +107,8 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Low Level Stock</label>
-                                                <input type="number" name="reorder_level" value="{{old('reorder_level')}}" class="form-control"
+                                                <input type="number" name="reorder_level"
+                                                    value="{{ old('reorder_level') }}" class="form-control"
                                                     placeholder="Enter Low Level Stock">
                                                 @error('reorder_level')
                                                     <span class="text-danger">{{ $message }}</span>
@@ -152,6 +153,9 @@
                                                 <label for="discount_price">Discount Price</label>
                                                 <input type="number" value="{{ old('discount_price') }}"
                                                     name="discount_price" step="0.01" class="form-control">
+                                                @error('discount_price')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
                                             </div>
                                         </div>
                                         <div class="col-md-6">
@@ -168,9 +172,9 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Batch No</label>
-                                                <input type="text" name="batch_no" id="batch_no" class="form-control"
-                                                    value="{{ old('batch_no') }}" placeholder="Enter batch no"
-                                                    data-errors="Please Enter batch no.">
+                                                <input type="text" name="batch_no" id="batch_no"
+                                                    class="form-control" value="{{ old('batch_no') }}"
+                                                    placeholder="Enter batch no" data-errors="Please Enter batch no.">
                                                 @error('batch_no')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror

@@ -38,9 +38,12 @@ class StockTransferController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
-            // 'notes' => 'nullable|string',
         ]);
 
+        if ($request->from_store_id == $request->to_store_id) {
+            return back()->withErrors(['to_store_id' => 'The destination store must be different from the source store.'])->withInput();
+        }
+        
         DB::beginTransaction();
         try {
 
@@ -117,7 +120,7 @@ class StockTransferController extends Controller
                     }
             }
 
-            $arr['id'] = $transfer->id;
+            $arr['id'] = $transferNumber;
             sendNotification('transfer_stock', 'Warehouse some Product is transfer',$request->to_store_id,Auth::id(),json_encode($arr), 0);
 
             DB::commit();
@@ -128,6 +131,4 @@ class StockTransferController extends Controller
             return back()->with('error', 'Failed to submit stock request: ' . $e->getMessage());
         }
     }    
-
-
 }

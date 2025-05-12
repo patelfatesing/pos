@@ -20,6 +20,7 @@ use App\Models\ProductPriceChangeHistory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
+
 class ProductController extends Controller
 {
     public function index()
@@ -84,7 +85,7 @@ class ProductController extends Controller
         foreach ($data as $product) {
             $action ='<div class="d-flex align-items-center list-action">
             <a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                    href="#" onclick="product_price_change(' . $product->id . ',' . $product->sell_price . ')"><i class="ri-eye-line mr-0"></i></a>
+                    href="#" onclick="product_price_change(' . $product->id . ',' . $product->sell_price . ')"><i class="ri-currency-line"></i></a>
                     
                     <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="' . url('/inventories/add-stock/' . $product->id) . '"><i class="ri-eye-line mr-0"></i></a>
@@ -98,7 +99,7 @@ class ProductController extends Controller
             $records[] = [
                 'name' => $product->name,
                 'category' => $product->category->name ?? 'N/A',
-                'sub_category' => $employee->subcategory->name ?? 'N/A',
+                'sub_category' => $product->subcategory->name ?? 'N/A',
                 'size' => $product->size,
                 'brand' => $product->brand,
                 'sku' => $product->sku,
@@ -145,7 +146,7 @@ class ProductController extends Controller
     public function store(Request $request)
     {
 
-        $validatedData = $request->validate([
+        $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'brand' => 'required|string',
             'category_id' => 'required|numeric',
@@ -158,6 +159,18 @@ class ProductController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'description' => 'nullable|string',
         ]);
+
+        $validator->after(function ($validator) use ($request) {
+            if (
+                $request->filled('discount_price') &&
+                $request->sell_price <= $request->discount_price
+            ) {
+                $validator->errors()->add('discount_price', 'Discount price must be less than sell price.');
+            }
+        });
+
+        $validatedData = $validator->validate();
+
         
         // try {
 
@@ -517,5 +530,18 @@ class ProductController extends Controller
         return response()->json($arr); 
 
         
+    }
+
+    public function sampleFileDownload()
+    {
+
+        $filePath = 'product_sample.csv'; // Stored in storage/app/public
+        $fileName = 'product_sample.csv';
+
+        if (!Storage::disk('public')->exists($filePath)) {
+            abort(404, 'Sample file not found.');
+        }
+
+        return Storage::disk('public')->download($filePath, $fileName);
     }
 }

@@ -123,6 +123,7 @@ Route::middleware('auth')->group(function () {
     // Route::post('/products/upload-pic', [ProductController::class, 'uploadPhotp'])->name('products.upload');
     Route::get('/products/availability/{id}', [ProductController::class, 'getAvailability']);
     Route::get('/products/get-availability-branch/{id}', [ProductController::class, 'getAvailabilityBranch']);
+    Route::get('/products/download-sample', [ProductController::class, 'sampleFileDownload'])->name('products.download-sample');
     
     Route::get('/stock/list', [StockController::class, 'index'])->name('stock.list');
     Route::post('/stock/get-data', [StockController::class, 'getData'])->name('stock.getData');

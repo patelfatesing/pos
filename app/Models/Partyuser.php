@@ -19,6 +19,8 @@ class Partyuser extends Model
         'email',
         'phone',
         'address',
+        'credit_points',
+        'left_credit'
        
     ];
     /**

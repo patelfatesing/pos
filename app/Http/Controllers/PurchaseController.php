@@ -132,9 +132,10 @@ class PurchaseController extends Controller
 
                             $inventory = Inventory::findOrFail($record->inventorie->id);
                     
-                            $qnt = $inventory->quantity + $product['qnt'];
+                            $qnt =  $product['qnt'] + $inventory->quantity;
                             $inventory->updated_at = now();
                             $inventory->quantity = $qnt;
+                            // $inventory->quantity = $qnt;
                             $inventory->save();
 
                             $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $qnt,'add_stock');

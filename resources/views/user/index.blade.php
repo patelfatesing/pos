@@ -26,7 +26,7 @@
                         <div class="table-responsive rounded mb-3">
                             <table class="table data-tables table-striped" id="users_table">
 
-                                <thead class="bg-white text-uppercase"> 
+                                <thead class="bg-white"> 
                                     <tr class="ligth ligth-data">
                                         <th>
                                             <b>N</b>ame
@@ -40,7 +40,7 @@
                                         <th>Action</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white text-uppercase">
+                                <tbody class="bg-white">
                                 </tbody>
                             </table>
                         </div>
@@ -108,8 +108,11 @@
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: []
+                    aTargets: [2,4,5,7]
                 }],
+                  order: [
+                    [6, 'desc']
+                ], // 🟢 Sort by created_at DESC by default
                 dom: "Bfrtip",
                 lengthMenu: [
                     [10, 25, 50],
