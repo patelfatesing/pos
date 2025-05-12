@@ -14,6 +14,7 @@ class PartyUserImage extends Model
         'party_user_id',
         'image_path',
         'type',
+        'transaction_id'
     ];
 
     /**

@@ -12,7 +12,8 @@
     <link rel="stylesheet" href="{{ asset('assets/vendor/@fortawesome/fontawesome-free/css/all.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendor/remixicon/fonts/remixicon.css') }}">
-    
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <style>
         /* Position the toast at the top-right corner */
         .toast {
@@ -32,7 +33,7 @@
     @include('layouts.flash-message')
 
     @auth
-        @if(auth()->user()->hasRole('cashier'))
+        @if (auth()->user()->hasRole('cashier'))
             @include('layouts.backend.cashierslidebar') <!-- Include header -->
         @elseif(auth()->user()->hasRole('warehouse'))
             @include('layouts.backend.warehouseslidebar') <!-- Include header -->
@@ -52,9 +53,9 @@
     <!-- loader END -->
     <!-- Wrapper Start -->
     <div class="wrapper">
-            <main>
-                @yield('page-content')
-            </main>
+        <main>
+            @yield('page-content')
+        </main>
     </div>
 
     @include('layouts.backend.footer') <!-- Include footer -->
