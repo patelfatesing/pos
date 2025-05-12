@@ -26,7 +26,7 @@
                                 </div>
                             </div>
 
-                            <thead class="bg-white text-uppercase">
+                            <thead class="bg-white">
 
                                 <tr class="ligth ligth-data">
                                     <th>Product</th>
@@ -35,7 +35,7 @@
                                     <th>Price</th>
                                     <th>Batch No</th>
                                     <th>Expiry Date</th>
-                                    <th>Low Stock Alert Level</th>
+                                    <th>Stock Low Level</th>
                                     <th data-type="date" data-format="YYYY/DD/MM">Last updated</th>
                                     <th>Action</th>
                                 </tr>
@@ -112,7 +112,7 @@
                     }
                 ],
                 columnDefs: [{
-                        width: "15%",
+                        width: "20%",
                         targets: 0
                     }, // set width of column 0
                     {
@@ -139,13 +139,13 @@
                         targets: 7
                     },
                     {
-                        width: "10%",
+                        width: "5%",
                         targets: 8
                     }
                 ],
                 autoWidth: false,
                 order: [
-                    [8, 'desc']
+                    [7, 'desc']
                 ], // 🟢 Sort by created_at DESC by default
                 dom: "Bfrtip",
                 lengthMenu: [

@@ -351,79 +351,79 @@ class SalesReportController extends Controller
     }
 
     public function commissionInvoicesReport(Request $request)
-{
-    $draw = $request->input('draw', 1);
-    $start = $request->input('start', 0);
-    $length = $request->input('length', 10);
-    $searchValue = $request->input('search.value', '');
-    $orderColumnIndex = $request->input('order.0.column', 0);
-    $orderDirection = $request->input('order.0.dir', 'desc');
+    {
+        $draw = $request->input('draw', 1);
+        $start = $request->input('start', 0);
+        $length = $request->input('length', 10);
+        $searchValue = $request->input('search.value', '');
+        $orderColumnIndex = $request->input('order.0.column', 0);
+        $orderDirection = $request->input('order.0.dir', 'desc');
 
-    $columns = [
-        'invoice_id', 'invoice_number', 'invoice_date', 'invoice_total',
-        'commission_amount', 'commission_user_id', 'commission_user_name',
-        'commission_type', 'commission_value', 'applies_to', 'start_date', 'end_date'
-    ];
+        $columns = [
+            'invoice_id', 'invoice_number', 'invoice_date', 'invoice_total',
+            'commission_amount', 'commission_user_id', 'commission_user_name',
+            'commission_type', 'commission_value', 'applies_to', 'start_date', 'end_date'
+        ];
 
-    $orderColumn = $columns[$orderColumnIndex] ?? 'invoice_date';
-    if (!in_array($orderDirection, ['asc', 'desc'])) {
-        $orderDirection = 'desc';
+        $orderColumn = $columns[$orderColumnIndex] ?? 'invoice_date';
+        if (!in_array($orderDirection, ['asc', 'desc'])) {
+            $orderDirection = 'desc';
+        }
+
+        // Base query
+        $query = DB::table('invoices as i')
+            ->select(
+                'i.id as invoice_id',
+                'i.invoice_number',
+                'i.created_at as invoice_date',
+                'i.total as invoice_total',
+                'i.creditpay as commission_amount',
+                'cu.id as party_user_id',
+                DB::raw("CONCAT(cu.first_name, ' ', cu.last_name) as commission_user_name"),
+                'cu.credit_points',
+                'ch.total_purchase_items',
+                'ch.credit_amount',
+                'ch.status',
+                'ch.id as commission_id',
+                
+            )
+            ->leftJoin('credit_histories as ch', 'i.id', '=', 'ch.invoice_id')
+            ->leftJoin('party_users as cu', 'ch.party_user_id', '=', 'cu.id')
+            ->whereNotNull('i.party_user_id');
+
+        // Total record count before filters
+        $recordsTotal = DB::table('invoices')
+            ->whereNotNull('party_user_id')
+            ->count();
+
+        // Apply search filter
+        if (!empty($searchValue)) {
+            $query->where(function ($q) use ($searchValue) {
+                $q->where('i.invoice_number', 'like', "%$searchValue%")
+                ->orWhere(DB::raw("CONCAT(cu.first_name, ' ', cu.last_name)"), 'like', "%$searchValue%");
+            });
+        }
+
+        if ($request->customer_id) {
+            $query->where('cu.id', $request->customer_id);
+        }
+
+        // Count after filters
+        $recordsFiltered = $query->count();
+
+        // Get data with order and pagination
+        $data = $query
+            ->orderBy($orderColumn, $orderDirection)
+            ->offset($start)
+            ->limit($length)
+            ->get();
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $data,
+        ]);
     }
-
-    // Base query
-    $query = DB::table('invoices as i')
-        ->select(
-            'i.id as invoice_id',
-            'i.invoice_number',
-            'i.created_at as invoice_date',
-            'i.total as invoice_total',
-            'i.creditpay as commission_amount',
-            'cu.id as party_user_id',
-            DB::raw("CONCAT(cu.first_name, ' ', cu.last_name) as commission_user_name"),
-            'cu.credit_points',
-            'ch.total_purchase_items',
-            'ch.credit_amount',
-            'ch.status',
-            'ch.id as commission_id',
-            
-        )
-        ->leftJoin('credit_histories as ch', 'i.id', '=', 'ch.invoice_id')
-        ->leftJoin('party_users as cu', 'ch.party_user_id', '=', 'cu.id')
-        ->whereNotNull('i.party_user_id');
-
-    // Total record count before filters
-    $recordsTotal = DB::table('invoices')
-        ->whereNotNull('party_user_id')
-        ->count();
-
-    // Apply search filter
-    if (!empty($searchValue)) {
-        $query->where(function ($q) use ($searchValue) {
-            $q->where('i.invoice_number', 'like', "%$searchValue%")
-              ->orWhere(DB::raw("CONCAT(cu.first_name, ' ', cu.last_name)"), 'like', "%$searchValue%");
-        });
-    }
-
-    if ($request->branch_id) {
-        $query->where('cu.id', $request->customer_id);
-    }
-
-    // Count after filters
-    $recordsFiltered = $query->count();
-
-    // Get data with order and pagination
-    $data = $query
-        ->orderBy($orderColumn, $orderDirection)
-        ->offset($start)
-        ->limit($length)
-        ->get();
-
-    return response()->json([
-        'draw' => $draw,
-        'recordsTotal' => $recordsTotal,
-        'recordsFiltered' => $recordsFiltered,
-        'data' => $data,
-    ]);
-}
 
 }

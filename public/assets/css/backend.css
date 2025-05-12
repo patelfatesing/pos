@@ -10626,7 +10626,7 @@ body.tab-horizontal .iq-footer {
   .table .ligth-body .list-action {
     justify-content: center; }
   .table td {
-    padding: 15px 20px !important;
+    padding: 5px 15px !important;
     border: 0px;
     border-bottom: 1px solid #DCDFE8;
     color: #110A57; }

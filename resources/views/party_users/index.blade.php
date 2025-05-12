@@ -110,44 +110,6 @@
                 ]
             });
 
-            // Define the function that handles form submission via AJAX
-            function submitForm() {
-                const form = document.getElementById('custPriceChnageForm');
-                const submitButton = document.getElementById('submitButton');
-
-                submitButton.disabled = true; // Disable the submit button to prevent multiple clicks
-
-                // Prepare the form data
-                let formData = new FormData(form);
-
-                // Send AJAX request using fetch API
-                fetch(form.action, {
-                        method: 'POST', // Use POST method to submit the form
-                        body: formData, // Form data that includes CSRF token
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest' // Let the server know it's an AJAX request
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        submitButton.disabled = false; // Re-enable the submit button
-
-                        // Handle success response
-                        if (data.success) {
-                            alert(data.success);
-                            // You can close the modal or reload the page if necessary
-                            location.reload(); // Or close the modal
-                        } else if (data.error) {
-                            // Handle error response
-                            alert(data.error);
-                        }
-                    })
-                    .catch(error => {
-                        submitButton.disabled = false; // Re-enable the submit button in case of error
-                        alert('An error occurred: ' + error.message);
-                    });
-            }
-
 
         });
 

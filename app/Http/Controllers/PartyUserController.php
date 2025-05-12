@@ -56,6 +56,9 @@ class PartyUserController extends Controller
                 return asset('storage/' . $image->image_path);
             })->toArray();
 
+            $first_name ='<div class="d-flex align-items-center list-action"><a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit" href="' . url('/party-users/view/' . $partyUser->id) . '">'.$partyUser->first_name.'</a></div>';
+            $last_name ='<div class="d-flex align-items-center list-action"><a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit" href="' . url('/party-users/view/' . $partyUser->id) . '">'.$partyUser->last_name.'</a></div>';
+
             $action ='<div class="d-flex align-items-center list-action">
             <a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="#" onclick="party_cust_price_change(' . $partyUser->id . ')"><i class="ri-eye-line mr-0"></i></a>
@@ -68,8 +71,8 @@ class PartyUserController extends Controller
 
             
             $records[] = [
-                'first_name' => $partyUser->first_name,
-                'last_name' => $partyUser->last_name,
+                'first_name' => $first_name,
+                'last_name' => $last_name,
                 'email' => $partyUser->email,
                 'phone' => $partyUser->phone,
                 'credit_points' => $partyUser->credit_points,
@@ -129,6 +132,13 @@ class PartyUserController extends Controller
         $partyUser = Partyuser::with('images')->where('id', $id)->firstOrFail();
         return view('party_users.edit', compact('partyUser'));
     }
+
+        public function view($id)
+    {
+        $partyUser = Partyuser::with('images')->where('id', $id)->firstOrFail();
+        return view('party_users.view', compact('partyUser'));
+    }
+
     public function update(Request $request, Partyuser $Partyuser)
     {
         $data = $request->validate([
@@ -286,4 +296,94 @@ class PartyUserController extends Controller
             return back()->with('error', 'An error occurred: ' . $e->getMessage());
         }
     } 
+
+    public function getDataCommission(Request $request)
+    {
+        $draw = $request->input('draw', 1);
+        $start = $request->input('start', 0);
+        $length = $request->input('length', 10);
+        $searchValue = $request->input('search.value', '');
+        $orderColumnIndex = $request->input('order.0.column', 0);
+        $orderDirection = $request->input('order.0.dir', 'desc');
+
+        $columns = [
+            'invoice_id', 'invoice_number', 'invoice_date', 'invoice_total',
+            'commission_amount', 'commission_user_id', 'commission_user_name',
+            'commission_type', 'commission_value', 'applies_to', 'start_date', 'end_date'
+        ];
+
+        $orderColumn = $columns[$orderColumnIndex] ?? 'invoice_date';
+        if (!in_array($orderDirection, ['asc', 'desc'])) {
+            $orderDirection = 'desc';
+        }
+
+        // Base query
+        $query = DB::table('invoices as i')
+            ->select(
+                'i.id as invoice_id',
+                'i.invoice_number',
+                'i.created_at as invoice_date',
+                'i.total as invoice_total',
+                'i.creditpay as commission_amount',
+                'cu.id as party_user_id',
+                DB::raw("CONCAT(cu.first_name, ' ', cu.last_name) as commission_user_name"),
+                'cu.credit_points',
+                'ch.total_purchase_items',
+                'ch.credit_amount',
+                'ch.status',
+                'ch.id as commission_id',
+                'pi.image_path',
+                'pi.id as party_user_image_id',
+                'pi.type',
+            )
+            ->leftJoin('credit_histories as ch', 'i.id', '=', 'ch.invoice_id')
+            ->leftJoin('party_users as cu', 'ch.party_user_id', '=', 'cu.id')
+            ->leftJoin('party_images as pi', 'i.id', '=', 'pi.transaction_id')
+            ->whereNotNull('i.party_user_id');
+
+        // Total record count before filters
+        $recordsTotal = DB::table('invoices')
+            ->whereNotNull('party_user_id')
+            ->count();
+
+        // Apply search filter
+        if (!empty($searchValue)) {
+            $query->where(function ($q) use ($searchValue) {
+                $q->where('i.invoice_number', 'like', "%$searchValue%")
+                ->orWhere(DB::raw("CONCAT(cu.first_name, ' ', cu.last_name)"), 'like', "%$searchValue%");
+            });
+        }
+
+        if ($request->customer_id) {
+            $query->where('cu.id', $request->customer_id);
+        }
+
+        // Count after filters
+        $recordsFiltered = $query->count();
+
+        // Get data with order and pagination
+        $data = $query
+            ->orderBy($orderColumn, $orderDirection)
+            ->offset($start)
+            ->limit($length)
+            ->get();
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $data,
+        ]);
+    }
+
+    public function custTrasactionPhoto($id)
+    {
+        $photos = PartyUserImage::select('image_path','type','id')->where('transaction_id', $id)->first();
+        
+
+        return view('party_users.cust-photo',compact('photos'));
+        
+        return response()->json(['error' => 'Form not found'], 404);
+    }
+
 }

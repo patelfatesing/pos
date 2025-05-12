@@ -120,7 +120,7 @@ class InventoryController extends Controller
                 'quantity' => $inventory->quantity,
                 'cost_price' => $inventory->cost_price,
                 'batch_no' => $inventory->batch_no,
-                'expiry_date' => $inventory->expiry_date,
+                'expiry_date' => $inventory->expiry_date ? $inventory->expiry_date->format('d-m-Y') : '—',
                 'reorder_level' => $reorder_level,
                 'status' => $status,
                 'created_at' => $inventory->updated_at ? $inventory->updated_at->format('d-m-Y h:i A') : '—',
