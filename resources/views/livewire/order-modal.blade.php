@@ -37,14 +37,18 @@
                                             <th>Date</th>
                                             <th>Customer Name</th>
                                             <th>Payment Mode</th>
+                                            <th>Qty</th>
                                             <th>Total Amount</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        @php
+                                            $j=1;
+                                        @endphp
                                         @foreach($orders->where('status', 'Paid') as $index => $order)
                                             <tr>
-                                                <td>{{ $index + 1 }}</td>
+                                                <td>{{ $j++ }}</td>
                                                 <td>{{ $order->invoice_number }}</td>
                                                 <td>{{ $order->created_at->format('d/m/Y H:i' ) }}</td>
                                                 <td>
@@ -54,8 +58,9 @@
                                                         {{ optional($order->commissionUser)->first_name }} {{ optional($order->commissionUser)->last_name }}
                                                     @endif
                                                 </td>
-                                                <td>Cash</td>
-                                                <td>{{ format_inr($order->total) }}</td>
+                                                <td>{{$order->payment_mode}}</td>
+                                                <td>{{ $order->total_item_qty }}</td>
+                                                 <td>{{ format_inr($order->total) }}</td>
                                                 <td class="text-center">
                                                     <a href="{{ asset('storage/invoices/' . $order->invoice_number . '.pdf') }}" class="btn btn-sm btn-secondary" target="_blank">
                                                         <i class="fa fa-file-pdf"></i>
@@ -81,14 +86,18 @@
                                             <th>Date</th>
                                             <th>Customer Name</th>
                                             <th>Payment Mode</th>
+                                             <th>Qty</th>
                                             <th>Total Amount</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        @php
+                                            $i=0;
+                                        @endphp
                                         @foreach($orders->where('status', 'Refunded') as $index => $order)
                                             <tr class="table-warning">
-                                                <td>{{ $index + 1 }}</td>
+                                                <td>{{ $i + 1 }}</td>
                                                 <td>{{ $order->invoice_number }}</td>
                                                 <td>{{ $order->created_at->format('d/m/Y H:i' ) }}</td>
                                                 <td>
@@ -98,7 +107,8 @@
                                                         {{ optional($order->commissionUser)->first_name }} {{ optional($order->commissionUser)->last_name }}
                                                     @endif
                                                 </td>
-                                                <td>Cash</td>
+                                                <td>{{$order->payment_mode}}</td>
+                                                <td>{{ $order->total_item_qty }}</td>
                                                 <td>{{ format_inr($order->total) }}</td>
                                                 <td class="text-center">
                                                     <a href="{{ asset('storage/invoices/' . $order->invoice_number . '.pdf') }}" class="btn btn-sm btn-secondary" target="_blank">

@@ -34,6 +34,21 @@ use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\DemandOrderController;
 use App\Http\Controllers\ProductImportController;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Response;
+
+Route::get('/logs', function () {
+    $file = storage_path('logs/laravel-' . now()->format('Y-m-d') . '.log');
+
+    if (!File::exists($file)) {
+        abort(404, 'Log file not found.');
+    }
+
+    return Response::make(nl2br(e(File::get($file))), 200, [
+        'Content-Type' => 'text/html',
+    ]);
+});
+
 
 Route::get('/shift-closing', ShiftClosingForm::class);
 Route::get('/cash-tender', [CashController::class, 'index']);

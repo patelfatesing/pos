@@ -3,7 +3,7 @@
         $this->cashAmount =round_up_to_nearest_10($this->cashAmount)  ?? 0;
     @endphp
 
-    <div class="col-md-7 no-print">
+    <div class="col-md-7">
         <div class="iq-sidebar-logo d-flex align-items-center justify-content-between">
             <!-- Left Side: Logo -->
             <a href="{{ route('items.cart') }}" class="header-logo d-flex align-items-center">
@@ -136,8 +136,8 @@
 
         </div>
         @if ($showSuggestions && count($searchResults) > 0)
-            <div class="search-results col-md-6">
-
+            <div id="search-suggestion-wrapper" class="search-results col-md-6">
+                
                 <div class="list-group">
                     @foreach ($searchResults as $product)
                         <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
@@ -376,8 +376,8 @@
     </div>
 
     <!-- Single Modal -->
-    <div class="modal fade no-print " id="captureModal" tabindex="-1" aria-labelledby="captureModalLabel"
-        aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    <div class="modal fade " id="captureModal" tabindex="-1" aria-labelledby="captureModalLabel"
+        aria-hidden="true" data-backdrop="static" data-keyboard="false" >
         <div class="modal-dialog modal-dialog-centered modal-mg">
             <div class="modal-content shadow-sm rounded-4 border-0">
                 <div class="modal-header bg-primary text-white rounded-top-4">
@@ -439,7 +439,7 @@
     {{-- <form action="{{ route('shift-close.withdraw') }}" method="POST">
         @csrf --}}
 
-    <div class="modal fade no-print" id="cashout" tabindex="-1" aria-labelledby="cashout" aria-hidden="true"
+    <div class="modal fade" id="cashout" tabindex="-1" aria-labelledby="cashout" aria-hidden="true"
         data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-dialog-scrollable modal-mg">
             <div class="modal-content shadow-sm rounded-4 border-0">
@@ -535,7 +535,7 @@
         </div>
     </div>
 
-    <div class="modal fade no-print" id="storeStockRequest" tabindex="-1" aria-labelledby="storeStockRequest"
+    <div class="modal fade" id="storeStockRequest" tabindex="-1" aria-labelledby="storeStockRequest"
         aria-hidden="true" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-dialog-scrollable modal-mg">
             <div class="modal-content shadow-sm rounded-4 border-0">
@@ -609,7 +609,7 @@
         </div>
     </div>
 
-    <div class="modal fade no-print" id="warehouseStockRequest" tabindex="-1"
+    <div class="modal fade" id="warehouseStockRequest" tabindex="-1"
         aria-labelledby="warehouseStockRequest" aria-hidden="true" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-dialog-scrollable modal-mg">
             <div class="modal-content shadow-sm rounded-4 border-0">
@@ -754,7 +754,7 @@
     </div>
 
 
-    <div class="col-md-5 no-print">
+    <div class="col-md-5">
         {{-- @include('layouts.flash-message') --}}
 
         <div class="card" style="margin-bottom: 0px; border: aliceblue;">
@@ -812,7 +812,7 @@
                             <livewire:order-modal />
 
                             @endif
-                            {{-- @livewire('button-timer', ['endTime' => '2025-05-07 12:45:00']) --}}
+                            @livewire('button-timer', ['endTime' => $this->shiftEndTime])
 
                             {{-- Close Shift --}}
                             {{-- <button type="button" class="btn btn-primary ml-2" data-toggle="modal"
@@ -822,7 +822,7 @@
                             </button> --}}
                         
                             {{-- dashboard.blade.php --}}
-                            @livewire('shift-close-modal')
+                            {{-- @livewire('shift-close-modal') --}}
 
                             @if (auth()->user()->hasRole('warehouse'))
 
@@ -1002,27 +1002,27 @@
                                 {{-- @if ($partyAmount > 0 ) --}}
                                 <div class=" mb-2">
                                     <label class="-label" for="useCreditCheck">
-                                        <input type="checkbox"  wire:click="toggleCheck" /> <strong>{{ __('messages.use_credit_to_pay') }}</strong>
+                                        <input type="checkbox"  wire:model="showCheckbox"  wire:click="toggleCheck" /> <strong>{{ __('messages.use_credit_to_pay') }}</strong>
                                     </label>
                                 </div>
                                 
-                                @if($useCredit)
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <label class="mb-0">
-                                        <strong>{{ __('messages.credit') }}</strong>
-                                    </label>
-                                    <div class="d-flex align-items-center">
-                                        <span class="badge bg-primary fs-6 me-2">
-                                            {{ __('messages.available_credit') }}: {{ number_format($this->partyUserDetails->credit_points, 2) }}
-                                        </span>
-                                        <input type="number"
-                                            wire:model="creditPay"
-                                            wire:input="creditPayChanged"
-                                            class="form-control"
-                                            style="width: 100px;" />
+                                @if($this->useCredit && $this->showCheckbox)
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label class="mb-0">
+                                            <strong>{{ __('messages.credit') }}</strong>
+                                        </label>
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge bg-primary fs-6 me-2">
+                                                {{ __('messages.available_credit') }}: {{ number_format($this->partyUserDetails->credit_points ?? 0, 2) }}
+                                            </span>
+                                            <input type="number"
+                                                wire:model="creditPay"
+                                                wire:input="creditPayChanged"
+                                                class="form-control"
+                                                style="width: 100px;" />
+                                        </div>
                                     </div>
-                                </div>
-                            @endif
+                                @endif
                             @endif
                                     
                                 {{-- @endif --}}
@@ -1671,7 +1671,9 @@
                             document.getElementById('step1').classList.add('d-none');
                             document.getElementById('step2').classList.remove('d-none');
                         } else if (type === 'user') {
-                            $('#captureModal').modal('hide');
+                            //$('#captureModal').modal('hide');
+                            document.getElementById('captureModal').style.display = 'none';
+
                             $('.modal-backdrop.show').remove();
                             //bootstrap.Modal.getInstance(document.getElementById('captureModal')).hide();
                             //document.getElementById('submitDiv').classList.remove('d-none');
@@ -1720,7 +1722,36 @@
         });
     });
     $(document).ready(function() {
+        $('#captureModal').on('shown.bs.modal', function () {
+                // Access camera stream
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function (stream) {
+                        // Attach the stream to the video element
+                        document.getElementById('video1').srcObject = stream;
+                    })
+                    .catch(function (err) {
+                        console.error("Camera access denied:", err);
+                         Swal.fire({
+                            icon: 'error',
+                            title: 'Camera Access Denied',
+                            text: 'Please grant camera permission to capture a picture.',
+                            confirmButtonText: 'OK'
+                        });
+                    });
+            });
 
+        // Optional: Stop the camera when the modal is closed
+        $('#captureModal').on('hidden.bs.modal', function () {
+            document.getElementById('step1').classList.remove('d-none');
+            document.getElementById('step2').classList.add('d-none');
+            const video = document.getElementById('video1');
+            const stream = video.srcObject;
+            if (stream) {
+                const tracks = stream.getTracks();
+                tracks.forEach(track => track.stop());
+                video.srcObject = null;
+            }
+        });
         //  // Set your shift end time here
         //  let shiftEnd = new Date("{{ $this->shiftEndTime }}"); // Example: 2025-04-23 18:00:00
 
@@ -1739,11 +1770,11 @@
 
         // Check every 30 seconds
         //setInterval(checkShiftTime, 30000);
-        $('#captureModal').on('hidden.bs.modal', function() {
-            // Reset to Step 1 when modal is closed
-            document.getElementById('step1').classList.remove('d-none');
-            document.getElementById('step2').classList.add('d-none');
-        });
+        // $('#captureModal').on('hidden.bs.modal', function() {
+        //     // Reset to Step 1 when modal is closed
+        //     document.getElementById('step1').classList.remove('d-none');
+        //     document.getElementById('step2').classList.add('d-none');
+        // });
         // Livewire.on('alert_remove', () => {
         //     setTimeout(() => {
         //         $(".toast").fadeOut("fast");
@@ -2211,5 +2242,13 @@
             keyboard: false
         });
         myModal.show();
+    });
+</script>
+<script>
+    document.addEventListener('click', function(event) {
+        const wrapper = document.getElementById('search-suggestion-wrapper');
+        if (wrapper && !wrapper.contains(event.target)) {
+            Livewire.dispatch('hideSuggestions');
+        }
     });
 </script>

@@ -41,6 +41,7 @@ class ShiftCloseModal extends Component
     public $upi = 0;
     public $updatingField = null;
     public $showCloseButton = false;
+    public $buttonEnabled = false;
 
     public $shift;
     public $shiftcash;

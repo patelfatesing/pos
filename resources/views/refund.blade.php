@@ -150,12 +150,13 @@
     </tr>
     <tr>
         <td class="left">Discount:</td>
-        <td class="right">-{{ number_format((float)($refund->party_amount ?? 0), 2) }}</td>
+        <td class="right">{{ number_format($refund->party_amount > 0 ? -($refund->party_amount) : $refund->party_amount ?? 0, 2) }}</td>
+
     </tr>
     <tr>
         <td class="left">Credit:</td>
         <td class="right">
-            -{{ $refund->refund_credit_amount }}
+            {{ $refund->refund_credit_amount > 0 ? '-' . $refund->refund_credit_amount : $refund->refund_credit_amount }}
         </td>
     </tr>
 
