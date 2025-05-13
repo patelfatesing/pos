@@ -354,8 +354,12 @@ class Shoppingcart extends Component
         if($this->creditPay>0){
             $user = Partyuser::find($this->selectedPartyUser);
 
-            
-            if($this->creditPay > $user->credit_points){
+            if($this->creditPay > $this->cashAmount){
+                $this->errorInCredit = true;
+                $this->dispatch('notiffication-error', ['message' => 'Credit payment cannot be greater than cash amount']);
+                $this->creditPay=0;
+                return;
+            }else if($this->creditPay > $user->credit_points){
                 $this->errorInCredit = true;
                 $this->dispatch('notiffication-error', ['message' => 'Credit payment cannot be greater than available credit.']);
                 $this->creditPay=0;
