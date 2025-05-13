@@ -27,6 +27,9 @@ use Illuminate\Support\Facades\Session;
 use App\Models\Refund;
 use App\Models\InvoiceHistory;
 use App\Models\PartyCustomerProductsPrice;
+use App\Models\CommissionUserImage;
+use App\Models\PartyUserImage;
+
 class Shoppingcart extends Component
 {
 
@@ -1293,8 +1296,13 @@ class Shoppingcart extends Component
 
     public function removeItem($id)
     {
+        $cartItem = Cart::count();
+        $newParty=$this->partyAmount/$cartItem;
+
         Cart::find($id)?->delete();
-       
+        $cartItem = Cart::count();
+        $this->partyAmount = $newParty*$cartItem;
+
         $this->showBox = false;
         $this->dispatch('updateNewProductDetails');
 
@@ -1786,11 +1794,12 @@ class Shoppingcart extends Component
                 'denominations' => $cashNotes,
                 'total' => $cashBreakdownCash,
             ]);
-
+            
             $totalQuantity = $cartitems->sum(fn($item) => $item->quantity);
             $total_item_total = $cartitems->sum(fn($item) => $item->net_amount);
-            
             $invoice_number =Invoice::generateInvoiceNumber();
+
+
             $invoice = Invoice::create([
                 'user_id' => auth()->id(),
                 'branch_id' => $branch_id,
@@ -1826,6 +1835,35 @@ class Shoppingcart extends Component
             ]);
             InvoiceHistory::logFromInvoice($invoice, 'created', auth()->id());
 
+            // Retrieve session data
+            $cashierImages = session('checkout_images.cashier', []);
+            $partyImages = session('checkout_images.party', []);
+
+            
+                // Store all cashier images
+                foreach ($cashierImages as $image) {
+                    CommissionUserImage::create([
+                        'commission_user_id' => $image['user_id'],
+                        'type' => $image['type'],
+                        'image_path' => $image['path'],
+                        'image_name' => $image['filename'],
+                        'transaction_id' => $invoice->id,
+                    ]);
+                }
+
+                // Store all party images
+                foreach ($partyImages as $image) {
+                    PartyUserImage::create([
+                        'party_user_id' => $image['user_id'],
+                        'type' => $image['type'],
+                        'image_path' => $image['path'],
+                        'image_name' => $image['filename'],
+                        'transaction_id' => $invoice->id,
+                    ]);
+                }
+
+            // Clear session
+            session()->forget('checkout_images');
             if (!empty($commissionUser->id)) {
 
                 DiscountHistory::create([
@@ -1937,12 +1975,12 @@ class Shoppingcart extends Component
                 // 💾 Save cash breakdown 
                 //full refund
                 //dd($this);
-                if((int)$this->cashAmount === (int)$this->totalInvoicedAmount){
-                    $fullRefund=0;
+                // if((int)$this->cashAmount === (int)$this->totalInvoicedAmount){
+                //     $fullRefund=0;
 
-                }else{
-                    $fullRefund=$this->cashAmount;
-                }
+                // }else{
+                //     $fullRefund=$this->cashAmount;
+                // }
                 $cashBreakdownCash = ($this->paymentType == "cash") ? $this->cashAmount : $this->cash;
                 $cashBreakdown = \App\Models\CashBreakdown::create([
                     'user_id' => auth()->id(),
@@ -1957,8 +1995,77 @@ class Shoppingcart extends Component
                     $this->cash = $this->cashAmount;
                     $this->upi = 0;
                 }
-                $totalQuantity = $cartitems->sum(fn($item) => $item->quantity);
-                $total_item_total = $cartitems->sum(fn($item) => $item->net_amount);
+                $lastInvoice = Invoice::with('cashBreak')
+                ->where('invoice_number', $invoice_number)
+                ->where('user_id', auth()->id())
+                ->where('branch_id', auth()->user()->userinfo->branch->id ?? null)
+                ->first();
+                $productDetails = $cartitems->map(function($item) {
+                return [
+                 'product_id' => $item->product->id,
+                'name' => $item->product->name,
+                'quantity' => $item->quantity,
+                'category' => $item->product->category->name,
+                'price' => $item->net_amount,
+                'mrp' => $item->mrp,
+
+                ];
+                })->toArray();
+                $invoiceItems = $lastInvoice->items;
+                $filteredArray = [];
+                $totalMrp=0;
+                foreach ($invoiceItems as $invoiceItem) {
+                    $productId = $invoiceItem['product_id'];
+                    $totalMrp += $invoiceItem['mrp'];
+                    $matchingCartItem = collect($productDetails)->firstWhere('product_id', $productId);
+
+                    if (!$matchingCartItem) {
+                        // No match, keep as is
+                        $filteredArray[] = $invoiceItem;
+                    } else {
+                        // Match found - compare quantity
+                        if ($invoiceItem['quantity'] > $matchingCartItem['quantity']) {
+                            // Subtract quantities and prices proportionally
+                            $remainingQty = $invoiceItem['quantity'] - $matchingCartItem['quantity'];
+                            $unitPrice = $invoiceItem['price'] / $invoiceItem['quantity'];
+                            $unitMrp = $invoiceItem['mrp'] / $invoiceItem['quantity'];
+
+                            $filteredArray[] = [
+                                'product_id' => $invoiceItem['product_id'],
+                                'name' => $invoiceItem['name'],
+                                'quantity' => $remainingQty,
+                                'category' => $invoiceItem['category'],
+                                'price' => round($unitPrice * $remainingQty, 2),
+                                'mrp' => round($unitMrp * $remainingQty, 2),
+                            ];
+                        }
+                        // If equal or less, item is removed (do not include)
+                    }
+                }
+
+               // dd($filteredArray);
+                // // Extract product_ids to be removed
+                // $removeIds = array_column($productDetails, 'product_id');
+
+                // // Filter main array
+                // $filteredArray = array_filter($invoiceItems, function ($item) use ($removeIds) {
+                // return !in_array($item['product_id'], $removeIds);
+                // });
+
+                // // Reindex array
+                // $filteredArray = array_values($filteredArray);
+                // dd($filteredArray);
+                $totalQuantity=$total_item_total=0;
+                foreach ($filteredArray as $key => $filteredItem) {
+                    $totalQuantity += $filteredItem['quantity'];
+                    $total_item_total += $filteredItem['price'];
+                }
+                $currentDis=parseCurrency($lastInvoice->party_amount) /$lastInvoice->total_item_qty;
+                $newPartyAmt=$currentDis*$totalQuantity;
+                $amountAfterRefund = (Integer) parseCurrency($lastInvoice->total) -(Integer) $this->cashAmount;
+              //  $amountafterParty =(Integer) $lastInvoice->party_amount - $this->partyAmount;
+              //  $totalQuantity = $filteredArray->sum(fn($item) => $item->quantity);
+                //$total_item_total = $filteredArray->sum(fn($item) => $item->net_amount);
                 $invoice = Invoice::updateOrCreate(
                     [
                         'user_id' => auth()->id(),
@@ -1969,28 +2076,21 @@ class Shoppingcart extends Component
                         'commission_user_id' => $commissionUser->id ?? null,
                         'party_user_id' => $partyUser->id ?? null,
                         'payment_mode' => $this->paymentType,
-                        'items' => $cartitems->map(fn($item) => [
-                            'product_id' => $item->product->id,
-                            'name' => $item->product->name,
-                            'quantity' => $item->quantity,
-                            'category' => $item->product->category->name,
-                            'price' => $item->net_amount,
-                            'mrp' => $item->mrp,
-
-                        ]),
+                        'items' => $filteredArray,
                        // 'upi_amount' => $fullRefund,
                        // 'creditpay' => $fullRefund,
                         'total_item_total' => $total_item_total,
                         'total_item_qty' => $totalQuantity,
-                        'cash_amount' => $fullRefund,
+                        'cash_amount' => $amountAfterRefund,
 
-                  //      'sub_total' => $this->cashAmount,
+                      'sub_total' => $totalMrp*$totalQuantity,
                        // 'tax' => $fullRefund,
                         'status' => "Refunded",
                       //  'commission_amount' => $fullRefund,
-                       // 'party_amount' => $fullRefund,
-                    //    'total' => $this->cashAmount,
+                        'party_amount' => $newPartyAmt,
+                        'total' => $amountAfterRefund,
                         'cash_break_id' => $cashBreakdown->id,
+                        'change_amount' => 0,
                         //'billing_address'=> $address,
                     ]
                 );
@@ -2027,10 +2127,29 @@ class Shoppingcart extends Component
                     );
                 
                 }
-                Refund::create([
+                $refund_item_qty = $cartitems->sum(fn($item) => $item->quantity);
+                $refund_item_amount = $cartitems->sum(fn($item) => $item->net_amount);
+                 $total_mrp = $cartitems->sum(fn($item) => $item->mrp);
+                $refundSub=$refund_item_amount/$refund_item_qty;
+                $refundMain=($refundSub-$totalMrp)*$refund_item_qty;
+                $refund=Refund::create([
                     'amount' => $this->cashAmount,
                     'description' => $this->refundDesc,
                     'invoice_id' => $invoice->id,
+                    'total_item_qty'=>$refund_item_qty,
+                    'total_item_price'=>$refund_item_amount,
+                    'total_mrp'=>$total_mrp,
+                    'party_amount'=>$refundMain,
+                    'items_refund'=> $cartitems->map(fn($item) => [
+                    'product_id' => $item->product->id,
+                    'name' => $item->product->name,
+                    'quantity' => $item->quantity,
+                    'category' => $item->product->category->name,
+                    'price' => $item->net_amount,
+                    'mrp' => $item->mrp,
+                    
+                    ]),
+                    'refund_credit_amount'=>$this->creditPay,
                     'store_id' => $branch_id,
                     'user_id' => auth()->id(), // auto-assign current user
                 ]);
@@ -2047,7 +2166,7 @@ class Shoppingcart extends Component
                 $this->invoiceData = $invoice;
                 
                 $pdf = App::make('dompdf.wrapper');
-                $pdf->loadView('invoice', ['invoice' => $invoice,'items' => $invoice->items,'branch'=>auth()->user()->userinfo->branch,'type'=>'refund']);
+                $pdf->loadView('refund', ['invoice' => $invoice,'items' => $refund->items_refund,'branch'=>auth()->user()->userinfo->branch,'type'=>'refund','refund'=>$refund]);
                 $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
                 $pdf->save($pdfPath);
             //     $this->dispatch('triggerPrint', [
@@ -2215,13 +2334,21 @@ class Shoppingcart extends Component
     }
      public  function getDiscountPrice($product_id,$party_user_id)
     {
-        $product = PartyCustomerProductsPrice::where('product_id', $product_id)
-            ->where('party_user_id', $party_user_id)
-            ->first();
-        if ($product) {
-            $this->partyUserDiscountAmt = $product->cust_discount_amt;
-           // return $product->discount_amt;
-        }
-        //return null;
+         if($this->selectedCommissionUser){
+            $product = Product::where('id', $product_id)
+                ->first();
+            if ($product) {
+                $this->partyUserDiscountAmt = $product->discount_amt;
+            }
+         }else{
+            $product = PartyCustomerProductsPrice::where('product_id', $product_id)
+                ->where('party_user_id', $party_user_id)
+                ->first();
+            if ($product) {
+                $this->partyUserDiscountAmt = $product->cust_discount_amt;
+               // return $product->discount_amt;
+            }
+         }
+       
     }
 }
