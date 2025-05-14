@@ -84,7 +84,7 @@ class Shoppingcart extends Component
     public $showModal = false;
     public $availableNotes="";
     public $selectedUser = 0;
-    protected $listeners = ['updateProductList' => 'loadCartData','loadHoldTransactions','updateNewProductDetails','resetData'];
+    protected $listeners = ['updateProductList' => 'loadCartData','loadHoldTransactions','updateNewProductDetails','resetData','hideSuggestions'];
     public $noteDenominations = [10, 20, 50, 100, 200,500];
     public $remainingAmount = 0;
     public $totalBreakdown = [];
@@ -94,7 +94,7 @@ class Shoppingcart extends Component
     public $quantities = [];
     public $showSuggestions = false;
     public $showSuggestionsSales = false;
-
+    public $showCheckbox=false;
     public $selectedNote;
     public $cashNotes = [];
     public $todayCash = 0;
@@ -291,11 +291,16 @@ class Shoppingcart extends Component
             }
           //  $this->partyAmount = $this->partyAmount*$sumQty;
             if (!empty($this->selectedSalesReturn->creditpay)) {
-                $this->toggleCheck();
-               // $this->useCredit=true;
+               // $this->toggleCheck();
+                  $this->useCredit=true;
+                  $this->showCheckbox=true;
+     
                 $this->creditPay = $this->selectedSalesReturn->creditpay;
                 //$this->creditPay = $this->selectedSalesReturn->creditpay/$sumQty;
 
+            }else{
+                $this->useCredit=false;
+                $this->showCheckbox=false;
             }
             //$this->cashAmount = $this->selectedSalesReturn->creditpay;
             // $this->updateQty($item->id);
@@ -349,12 +354,18 @@ class Shoppingcart extends Component
         if($this->creditPay>0){
             $user = Partyuser::find($this->selectedPartyUser);
 
-            
-            if($this->creditPay > $user->credit_points){
+            if($this->creditPay > $this->cashAmount){
+                $this->errorInCredit = true;
+                $this->dispatch('notiffication-error', ['message' => 'Credit payment cannot be greater than cash amount']);
+                $this->creditPay=0;
+                return;
+            }else if($this->creditPay > $user->credit_points){
                 $this->errorInCredit = true;
                 $this->dispatch('notiffication-error', ['message' => 'Credit payment cannot be greater than available credit.']);
                 $this->creditPay=0;
                 return;
+            }else{
+                $this->errorInCredit = false;
             }
             $this->cashAmount=((Int)$this->sub_total-(Int)$this->partyAmount-(Int)$this->creditPay);
             $this->clearCashNotes();
@@ -570,6 +581,28 @@ class Shoppingcart extends Component
             $this->dispatch('notiffication-error', ['message' => 'Invoice not found.']);
             return;
         }
+         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+        $partyUser = PartyUser::find($this->selectedPartyUser);
+        if(!empty($partyUser)){
+            $partyUser->credit_points += $this->creditPay;
+            $partyUser->save();
+        }
+         if (!empty($partyUser->id)) {
+            CreditHistory::create(
+                
+                [
+                    'invoice_id' => $invoice->id,
+                    'party_user_id' => $partyUser->id ?? null,
+                    'credit_amount' => 0.00,
+                    'debit_amount' => $this->creditPay,
+                    'total_amount' => $this->cashAmount,
+                    'total_purchase_items' => $this->cashAmount,
+                    'store_id' => $branch_id,
+                    'created_by' => auth()->id(),
+                ]
+            );
+        
+        }
         $groupedProducts = [];
 
         foreach ($this->cartitems as $cartitem) {
@@ -595,26 +628,35 @@ class Shoppingcart extends Component
                 $inventories[0]->save();
             }
         }
+        
         // Delete associated cash breakdown entry
         if ($invoice->cash_break_id) {
             CashBreakdown::where('id', $invoice->cash_break_id)->delete();
         }
         $this->useCredit=true;
-
         $invoice->status = 'Returned';
-        //$invoice->total = (Int)$invoice->total - $this->cashAmount;
-        $invoice->cash_amount = (Int)$invoice->cash_amount - $this->cashAmount;
-        //$invoice->sub_total = (Int)$invoice->sub_total - $this->cashAmount;
-        //$invoice->creditpay = 0;
-        //$invoice->party_amount = 0;
+        $invoice->total = 0;
+        $invoice->items = $this->cartitems->map(function ($item) {
+                return [
+                    'name' => $item->product->name ?? 'N/A',
+                    'quantity' => 0,
+                    'category' => $item->product->category->name ?? 'Uncategorized',
+                    'price' =>0,
+                ];
+            });
+
+        $invoice->cash_amount =0;
+        $invoice->sub_total =0;
+        $invoice->creditpay = 0;
+        $invoice->party_amount = 0;
         $invoice->cash_break_id = null; // Clear the cash_break_id
         $invoice->save();
-        $cartItems = Cart::where('user_id', $user_id)->delete(); // <-- get all matching rows
+        $cartItems = Cart::where('user_id', auth()->id())->delete(); // <-- get all matching rows
 
         InvoiceHistory::logFromInvoice($invoice, 'returned', auth()->id());
 
 
-        $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount','selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown','cartitems');
+        $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount','selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown','cartitems','searchSalesReturn');
          $this->dispatch('notiffication-sucess', ['message' => 'Sales return initiated.']);
     }
     public function updatedCash($value)
@@ -2162,7 +2204,7 @@ class Shoppingcart extends Component
                 Cart::where('user_id', auth()->user()->id)
                     ->where('status', '!=', Cart::STATUS_HOLD)
                     ->delete();
-                $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount');
+                $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount','searchSalesReturn');
                 $this->invoiceData = $invoice;
                 
                 $pdf = App::make('dompdf.wrapper');
@@ -2179,6 +2221,11 @@ class Shoppingcart extends Component
 
         // }
         
+    }
+
+    public function hideSuggestions()
+    {
+        $this->showSuggestions = false;
     }
     public function resetData(){
         $this->reset();
