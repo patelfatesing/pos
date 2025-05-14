@@ -41,6 +41,7 @@ class ShiftCloseModal extends Component
     public $upi = 0;
     public $updatingField = null;
     public $showCloseButton = false;
+    public $buttonEnabled = false;
 
     public $shift;
     public $shiftcash;
@@ -326,7 +327,10 @@ class ShiftCloseModal extends Component
             $user = User::find($user_id);
             $user->is_login = 'No';
             $user->save();
-            
+            if (session()->has('checkout_images')) {
+                session()->forget('checkout_images');
+            }
+
             Auth::logout();
 
             DB::commit();

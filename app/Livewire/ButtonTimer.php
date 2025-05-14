@@ -9,10 +9,12 @@ class ButtonTimer extends Component
 {
     public $endTime;
     public $buttonEnabled = false;
+    public bool $testing;
 
     public function mount($endTime)
     {
         Log::info('Mounting ButtonTimer component', ['endTime' => $endTime]);
+        $this->testing = config('app.shift_testing'); // or config('app.shift_testing')
         $this->endTime = Carbon::parse($endTime, 'Asia/Kolkata'); // Set timezone to IST
         $this->checkTime();
     }

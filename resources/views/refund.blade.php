@@ -116,7 +116,7 @@
             </td>
             <td class="center">{{ $item['price']/ $item['quantity']}}</td>
             <td class="center">{{ $item['quantity'] }}</td>
-            <td class="right">{{ number_format((float)$item['price'], 2) }}</td>
+            <td class="right">{{ number_format($item['price'], 2) }}</td>
         </tr>
         @endforeach
     </tbody>
@@ -133,7 +133,7 @@
 <table class="table">
     <tr class="total">
         <td class="left">TOTAL:</td>
-        <td class="right">{{ number_format((float)$invoice->total_item_total,2) }}</td>
+        <td class="right">{{ number_format((float)$refund->total_item_price,2 ) }}</td>
     </tr>
 </table>
 
@@ -141,28 +141,29 @@
 
 <table class="table">
     <tr>
-        <td class="left">Purchased:</td>
-        <td class="right">{{ number_format((float)$invoice->sub_total,2) }}</td>
+        <td class="left">Refunded:</td>
+        <td class="right">{{ $refund->total_mrp*$refund->total_item_qty }}</td>
     </tr>
     <tr>
-        <td class="left">Purchased Items:</td>
-        <td class="right">{{ $invoice->total_item_qty }}</td>
+        <td class="left">Refunded Items:</td>
+        <td class="right">{{ $refund->total_item_qty }}</td>
     </tr>
     <tr>
         <td class="left">Discount:</td>
-        <td class="right">{{ number_format((float)$invoice->party_amount,2) }}</td>
+        <td class="right">{{ number_format($refund->party_amount > 0 ? -($refund->party_amount) : $refund->party_amount ?? 0, 2) }}</td>
+
     </tr>
     <tr>
         <td class="left">Credit:</td>
-        <td class="right">{{number_format((float)$invoice->creditpay ?? 0,2)  }}</td>
+        <td class="right">
+            {{ $refund->refund_credit_amount > 0 ? '-' . $refund->refund_credit_amount : $refund->refund_credit_amount }}
+        </td>
     </tr>
-    <tr>
-        <td class="left">Total Savings:</td>
-        <td class="right">{{ number_format((float)$invoice->sub_total - $totalAmount,2 )}}</td>
-    </tr>
+
+  
     <tr class="bold">
         <td class="left">Total Paid:</td>
-        <td class="right">{{ number_format((float)$invoice->total ,2)}}</td>
+        <td class="right">{{ number_format((float)$refund->amount,2) }}</td>
     </tr>
 </table>
 
@@ -171,16 +172,16 @@
 <table class="table">
     <tr>
         <td class="left">By Cash:</td>
-        <td class="right">{{ number_format((float)$invoice->cash_amount,2) }}</td>
+        <td class="right">{{ number_format((float)$refund->amount,2) }}</td>
     </tr>
-    <tr>
+    {{-- <tr>
         <td class="left">By UPI:</td>
-        <td class="right">{{ number_format((float)$invoice->upi_amount,2) }}</td>
+        <td class="right">{{ $invoice->upi_amount }}</td>
     </tr>
      <tr>
         <td class="left">By Online:</td>
-        <td class="right">{{ number_format((float)$invoice->online_amount,2) }}</td>
-    </tr>
+        <td class="right">{{ $invoice->online_amount }}</td>
+    </tr> --}}
 </table>
 
 <div class="line"></div>

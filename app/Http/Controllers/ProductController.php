@@ -361,14 +361,29 @@ class ProductController extends Controller
             $modal->type = $request->type;
             $modal->image_path = $path;
             $modal->image_name = $filename;
-            $modal->save();
+           // $modal->save();
+            session()->push('checkout_images.cashier', [
+                'id' => $modal->id,
+                'user_id' => $modal->commission_user_id,
+                'type' => $modal->type,
+                'path' => $path,
+                'filename' => $filename,
+            ]);
         }else{
             $modal=new PartyUserImage();
             $modal->party_user_id = $request->selectedPartyUser;
             $modal->type = $request->type;
             $modal->image_path = $path;
            // $modal->image_name = $filename;
-            $modal->save();
+          //  $modal->save();
+              // Store in session
+            session()->push('checkout_images.party', [
+                'id' => $modal->id,
+                'user_id' => $modal->party_user_id,
+                'type' => $modal->type,
+                'path' => $path,
+                'filename' => $filename,
+            ]);
 
         }
 
