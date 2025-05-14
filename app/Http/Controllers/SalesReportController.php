@@ -29,7 +29,7 @@ class SalesReportController extends Controller
     public function getData(Request $request)
     {
         $query = DB::table('invoices') 
-            ->select('id', 'invoice_number', 'status', 'sub_total', 'tax','commission_amount','party_amount', 'total', 'items', 'created_at');
+            ->select('id', 'invoice_number', 'status', 'sub_total', 'tax','commission_amount','party_amount', 'total', 'items', 'branch_id','created_at');
     
         if ($request->start_date && $request->end_date) {
             $query->whereBetween('created_at', [
@@ -57,7 +57,7 @@ class SalesReportController extends Controller
     
         // Sorting
         if ($request->order) {
-            $columns = ['id', 'invoice_number', 'status', 'sub_total', 'tax', 'total','commission_amount','party_amount', 'items', 'created_at'];
+            $columns = ['id', 'invoice_number', 'status', 'sub_total', 'tax', 'total','commission_amount','branch_id','party_amount', 'items', 'created_at'];
             $orderColumn = $columns[$request->order[0]['column']] ?? 'created_at';
             $orderDir = $request->order[0]['dir'] ?? 'desc';
             $query->orderBy($orderColumn, $orderDir);
@@ -268,14 +268,31 @@ class SalesReportController extends Controller
         return view('sales.sales-daily', compact('branches'));
     }
 
-
     public function branchSalesReport(Request $request)
     {
+        $draw = $request->input('draw', 1);
+        $start = $request->input('start', 0);
+        $length = $request->input('length', 10);
+        $searchValue = $request->input('search.value', '');
+        $orderColumnIndex = $request->input('order.0.column', 0);
+        $orderDirection = $request->input('order.0.dir', 'desc');
+
+        // Define the columns to sort
+        $columns = [
+            'date', 'branch_name', 'total_orders', 'total_items', 'total_sales'
+        ];
+
+        $orderColumn = $columns[$orderColumnIndex] ?? 'date';
+        if (!in_array($orderDirection, ['asc', 'desc'])) {
+            $orderDirection = 'desc';
+        }
+
         $startDate = $request->start_date ?? now()->toDateString();
         $endDate = $request->end_date ?? now()->toDateString();
         $branchId = $request->branch_id;
-    
-        $reports = DB::table('invoices')
+
+        // Base query
+        $query = DB::table('invoices')
             ->select(
                 DB::raw('DATE(invoices.created_at) as date'),
                 'branches.name as branch_name',
@@ -290,12 +307,49 @@ class SalesReportController extends Controller
             ->when($branchId, function ($query) use ($branchId) {
                 $query->where('branches.id', $branchId);
             })
+            ->groupBy(DB::raw('DATE(invoices.created_at)'), 'branches.id', 'branches.name');
+
+        // Clone query for filtering count
+        $filteredQuery = clone $query;
+
+        // Apply search filter
+        if (!empty($searchValue)) {
+            $filteredQuery->having(function ($q) use ($searchValue) {
+                $q->where('branch_name', 'like', "%$searchValue%")
+                ->orWhere('date', 'like', "%$searchValue%");
+            });
+        }
+
+        $recordsFiltered = $filteredQuery->count();
+
+        // Total records before filters (not paginated)
+        $recordsTotal = DB::table('invoices')
+            ->join('branches', 'invoices.branch_id', '=', 'branches.id')
+            ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('invoices.created_at', [$startDate, $endDate]);
+            })
+            ->when($branchId, function ($query) use ($branchId) {
+                $query->where('branches.id', $branchId);
+            })
+            ->select(DB::raw('DATE(invoices.created_at)'))
             ->groupBy(DB::raw('DATE(invoices.created_at)'), 'branches.id', 'branches.name')
-            ->orderBy('date', 'desc')
+            ->get()
+            ->count();
+
+        // Apply ordering, pagination, and get data
+        $data = $filteredQuery
+            ->orderBy($orderColumn, $orderDirection)
+            ->offset($start)
+            ->limit($length)
             ->get();
-    
-        return response()->json(['data' => $reports]);
-    }   
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $data,
+        ]);
+    }
     
     public function stockReport()
     {
