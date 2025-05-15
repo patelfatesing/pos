@@ -136,7 +136,7 @@ class ShiftCloseModal extends Component
         // $this->shift = Shift::latest()->first();
         $this->branch_name = $this->shift->branch->name ?? 'Shop';
         $sales = ['DESI', 'BEER', 'ENGLISH'];
-        $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalSubTotal = $totalCreditPay=$totalUpiPaid = $totalRefundReturn=0;
+        $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalSubTotal = $totalCreditPay=$totalUpiPaid = $totalRefundReturn=$totalOnlinePaid=0;
 
         $this->categoryTotals = [];
         $this->totalInvoicedAmount = \App\Models\Invoice::where('user_id', auth()->user()->id)
@@ -153,7 +153,7 @@ class ShiftCloseModal extends Component
         ->selectRaw('SUM(credit_amount) as credit_total, SUM(debit_amount) as debit_total')
         ->first();
 
-        $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->latest()->get();
+        $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->where('status','!=', 'Hold')->where('invoice_number', 'not like', '%Hold%')->latest()->get();
         
         foreach ($invoices as $invoice) {
             $items = $invoice->items; // decode items from longtext JSON
@@ -183,6 +183,7 @@ class ShiftCloseModal extends Component
 
             $totalSubTotal += (!empty($invoice->total)) ?parseCurrency($invoice->total) : 0;
             $totalUpiPaid  += (!empty($invoice->upi_amount)  && is_numeric($invoice->upi_amount)) ? (int)$invoice->upi_amount  : 0;
+            $totalOnlinePaid  += (!empty($invoice->online_amount)  && is_numeric($invoice->online_amount)) ? (int)$invoice->online_amount  : 0;
             if ($invoice->status == "Returned") {
                 $totalRefundReturn += floatval(str_replace(',', '', $invoice->total));
             }
@@ -206,14 +207,16 @@ class ShiftCloseModal extends Component
         $totalWith = \App\Models\WithdrawCash::where('user_id',  auth()->user()->id)
             ->where('branch_id', $branch_id)->whereBetween('created_at', [$start_date, $end_date])->sum('amount');
         $this->categoryTotals['payment']['CASH'] = $totalCashPaid;
-        $this->categoryTotals['payment']['UPI PAYMENT'] = $totalUpiPaid;
+       // $this->categoryTotals['payment']['UPI PAYMENT'] = $totalUpiPaid;
         $this->categoryTotals['summary']['OPENING CASH'] = @$currentShift->opening_cash;
         $this->categoryTotals['summary']['TOTAL SALES'] = $totalSubTotal + $discountTotal;
         $this->categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
         $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] = $totalWith * (-1);
         $this->categoryTotals['summary']['UPI PAYMENT'] = $totalUpiPaid * (-1);
+        $this->categoryTotals['summary']['ONLINE PAYMENT'] = $totalOnlinePaid * (-1);
         // $this->categoryTotals['summary']['REFUND'] += $totalRefundReturn *(-1);
-        $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['OPENING CASH'] + $this->categoryTotals['summary']['TOTAL SALES'] + $this->categoryTotals['summary']['DISCOUNT'] + $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $this->categoryTotals['summary']['UPI PAYMENT'] + @$this->categoryTotals['summary']['REFUND'];
+        $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['OPENING CASH'] + $this->categoryTotals['summary']['TOTAL SALES'] + $this->categoryTotals['summary']['DISCOUNT'] + $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $this->categoryTotals['summary']['UPI PAYMENT'] + @$this->categoryTotals['summary']['REFUND']+
+        $this->categoryTotals['summary']['ONLINE PAYMENT'];
         $this->categoryTotals['summary']['REFUND'] = $totalRefund*(-1);
         $this->categoryTotals['summary']['CREDIT'] = $totals->credit_total;
         $this->categoryTotals['summary']['REFUND_CREDIT'] = $totals->debit_total;
@@ -281,7 +284,7 @@ class ShiftCloseModal extends Component
             ->where('branch_id', $branch_id)
             ->where('status', 'Hold')
             ->exists();
-
+            
             if ($holdInvoiceExists) {
                 DB::rollBack();
                 $this->dispatch('notiffication-error', ['message' => 'You have pending invoices on hold. Please clear them before closing the shift..']);
@@ -322,7 +325,7 @@ class ShiftCloseModal extends Component
             $shift->status = 'completed';
             $shift->save();
           //  Invoice::where(['user_id' => $user_id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->delete();
-           // $cartItems = Cart::where('user_id', $user_id)->delete(); // <-- get all matching rows
+            $cartItems = Cart::where('user_id', $user_id)->delete(); // <-- get all matching rows
             // Update user login status and logout
             $user = User::find($user_id);
             $user->is_login = 'No';

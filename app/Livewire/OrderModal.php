@@ -6,10 +6,13 @@ use Livewire\Component;
 use App\Models\Invoice;
 use Carbon\Carbon;
 use App\Models\UserShift;
+use App\Models\Refund;
+use Illuminate\Support\Facades\App;
 
 class OrderModal extends Component
 {
     public $orders = [];
+    public $refunds = [];
     public $showModal = false;
 
     public function openModal()
@@ -27,13 +30,46 @@ class OrderModal extends Component
             ->whereIn('status', ['Refunded', 'Paid']) // <-- added condition
             ->whereBetween('created_at', [$start_date, $end_date])
             ->orderBy('created_at', 'desc')
-            ->take(5)
+            ->take(10)
             ->get();
+        $this->refunds = Refund::with('invoice')
+        ->whereBetween('created_at', [$start_date, $end_date])
+        ->orderBy('created_at', 'desc')
+        ->take(10)
+        ->get();
+
         $this->showModal = true;
 
         // Dispatch browser event to show modal
         $this->dispatch('show-order-modal');
     }
+    public function printInvoice($id)
+    {
+       $invoice = \App\Models\Invoice::where("id",$id)->latest('id')->first();
+        
+       $sunTot=(Int) $invoice->total+(Int)$invoice->party_amount;
+
+        if (!$invoice) {
+            // Handle case where no invoice exists
+            return;
+        }
+
+        $pdfPath = storage_path('app/public/invoices/duplicate_' . $invoice->invoice_number . '.pdf');
+
+        if (!file_exists($pdfPath)) {
+            $pdf = App::make('dompdf.wrapper');
+            $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'duplicate' => true]);
+            $pdf->save($pdfPath);
+        }
+        
+        $this->dispatch('triggerPrint', [
+            'pdfPath' => asset('storage/invoices/duplicate_' . $invoice->invoice_number . '.pdf')
+        ]);
+    }
+      public function printRefundInvoice($pdfPath)
+        {
+            $this->dispatch('triggerPrint', ['pdfPath' => $pdfPath]);
+        }
 
     public function render()
     {

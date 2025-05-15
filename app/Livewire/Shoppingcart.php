@@ -249,7 +249,7 @@ class Shoppingcart extends Component
             $this->dispatch('updateNewProductDetails');
             $this->reset('searchTerm', 'searchResults', 'showSuggestions','search');
           //  session()->flash('success', 'Product added to the cart successfully');
-            $this->dispatch('notiffication-sucess', ['message' => 'Product added to the cart successfully']);
+           // $this->dispatch('notiffication-sucess', ['message' => 'Product added to the cart successfully']);
     }
     public function addToSalesreturn()
     {
@@ -1338,18 +1338,35 @@ class Shoppingcart extends Component
 
     public function removeItem($id)
     {
-        $cartItem = Cart::count();
-        $newParty=$this->partyAmount/$cartItem;
+        $userId = auth()->id(); // Get the currently authenticated user's ID
 
-        Cart::find($id)?->delete();
-        $cartItem = Cart::count();
-        $this->partyAmount = $newParty*$cartItem;
+        // Count only this user's cart items
+        $cartItem = Cart::where('user_id', $userId)->count();
+        
+        if ($cartItem === 0) {
+            return;
+        }
+
+        $newParty = $this->partyAmount / $cartItem;
+
+        // Find and delete the cart item belonging to the user
+        Cart::where('id', $id)->where('user_id', $userId)->first()?->delete();
+
+        // Recalculate cart item count after deletion
+        $cartItem = Cart::where('user_id', $userId)->count();
+
+        if ($cartItem == 0) {
+            $this->reset('selectedPartyUser', 'selectedCommissionUser');
+        }
+
+        $this->partyAmount = $newParty * $cartItem;
 
         $this->showBox = false;
         $this->dispatch('updateNewProductDetails');
 
-//        $this->loadCartData();
+    //    $this->loadCartData();
     }
+
 
     public function calculateCommission()
     {
@@ -1366,7 +1383,7 @@ class Shoppingcart extends Component
             $mycarts = Cart::with(['product', 'product.inventorie'])->where('user_id', auth()->user()->id)->where('status', Cart::STATUS_PENDING)->get();
 
             foreach ($mycarts as $key => $mycart) {
-               $this->getDiscountPrice($mycart->product->id,$this->selectedPartyUser);
+               $this->getDiscountPrice($mycart->product->id);
 
                $mycart->net_amount=$mycart->net_amount-($this->partyUserDiscountAmt*$mycart->quantity);
                $mycart->discount=$this->partyUserDiscountAmt*$mycart->quantity;
@@ -1554,10 +1571,12 @@ class Shoppingcart extends Component
             if($this->selectedCommissionUser){
                 $commissionUser = CommissionUser::find($this->selectedCommissionUser);
                 if(!empty($commissionUser)){
-                    $myCart=$product->discount_amt;
-
+                     $this->getDiscountPrice($id);
+                    $myCart=$this->partyUserDiscountAmt;
+                    $this->commissionAmount=$myCart;
                 }else{
                     $myCart=0;
+                    $this->commissionAmount=$myCart;
                 }
 
             }else{
@@ -1565,10 +1584,26 @@ class Shoppingcart extends Component
                 $user = Partyuser::find($this->selectedPartyUser);
                 if (!empty($user)) {
                    // $myCart=$user->credit_points;
-                   $myCart=$product->discount_amt;
+                   //$myCart=$product->discount_amt;
+                   //
+                    $this->getDiscountPrice($id,$user->id);
+                    //$this->cashAmount = $this->cartitems->sum('net_amount')-$user->credit_points;
+                    $myCart =$this->partyUserDiscountAmt;
+                   // $this->partyAmount=$myCart;   
+                    // $partyCustomerProductsPrice = PartyCustomerProductsPrice::where('product_id', $id)
+                    // ->where('party_user_id', $user->id)
+                    // ->first();
+                    // if ($partyCustomerProductsPrice) {
+                    //     $myCart = $partyCustomerProductsPrice->cust_discount_amt;
+                    //     // return $product->discount_amt;
+                    // }else{
+                    //      $myCart=0;
+                    // }
 
                 } else {
+                    
                     $myCart=0;
+                    //$this->partyAmount=$myCart;
     
                 }
             }
@@ -1590,11 +1625,11 @@ class Shoppingcart extends Component
 
             }
           
-         
+            
            // $this->updateQty($item->id);
             $this->dispatch('updateNewProductDetails');
             $this->reset('searchTerm', 'searchResults', 'showSuggestions');
-            $this->dispatch('notiffication-sucess', ['message' => 'Product added to the cart successfull.']);
+            //$this->dispatch('notiffication-sucess', ['message' => 'Product added to the cart successfull.']);
 
 
         } else {
@@ -2204,17 +2239,17 @@ class Shoppingcart extends Component
                 Cart::where('user_id', auth()->user()->id)
                     ->where('status', '!=', Cart::STATUS_HOLD)
                     ->delete();
-                $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount','searchSalesReturn');
+                 $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount','selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown','cartitems','searchSalesReturn');
                 $this->invoiceData = $invoice;
                 
                 $pdf = App::make('dompdf.wrapper');
-                $pdf->loadView('refund', ['invoice' => $invoice,'items' => $refund->items_refund,'branch'=>auth()->user()->userinfo->branch,'type'=>'refund','refund'=>$refund]);
-                $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
+                $pdf->loadView('refund', ['invoice' => $invoice,'items' => $refund->items_refund,'branch'=>auth()->user()->userinfo->branch,'type'=>'refund','refund'=>$refund,'customer_name' => $partyUser->first_name.' '.$partyUser->last_name]);
+                $pdfPath = storage_path('app/public/invoices/refund_' . $invoice->invoice_number . '.pdf');
                 $pdf->save($pdfPath);
             //     $this->dispatch('triggerPrint', [
             //        'pdfPath' => route('print.pdf', $invoice->invoice_number)
             //    ]);
-                $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/' . $invoice->invoice_number . '.pdf')]);
+                $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/refund_' . $invoice->invoice_number . '.pdf')]);
 
         // } catch (\Throwable $th) {
         //     $this->dispatch('notiffication-error', ['message' => 'Something went wrong']);
@@ -2379,23 +2414,29 @@ class Shoppingcart extends Component
 
         }
     }
-     public  function getDiscountPrice($product_id,$party_user_id)
+     public  function getDiscountPrice($product_id,$party_user_id="")
     {
          if($this->selectedCommissionUser){
             $product = Product::where('id', $product_id)
                 ->first();
             if ($product) {
-                $this->partyUserDiscountAmt = $product->discount_amt;
+                $discount=$product->sell_price-$product->discount_price;
+                $this->partyUserDiscountAmt=$this->commissionAmount = $discount;
             }
          }else{
-            $product = PartyCustomerProductsPrice::where('product_id', $product_id)
-                ->where('party_user_id', $party_user_id)
-                ->first();
-            if ($product) {
-                $this->partyUserDiscountAmt = $product->cust_discount_amt;
+            $partyCustomerProductsPrice = PartyCustomerProductsPrice::with('product')
+            ->where('product_id', $product_id)
+            ->where('party_user_id', $party_user_id)
+            ->first();
+            if ($partyCustomerProductsPrice) {
+                $discount=$partyCustomerProductsPrice->product->sell_price-$partyCustomerProductsPrice->cust_discount_price;
+                $this->partyAmount=$this->partyUserDiscountAmt = $discount;
                // return $product->discount_amt;
+            }else{
+                $this->partyAmount=$this->partyUserDiscountAmt=0;
             }
          }
+         Log::info("this->partyUserDiscountAmt::::".$this->partyUserDiscountAmt);
        
     }
 }

@@ -19,6 +19,11 @@ class CashInHandController extends Controller
            // 'cashNotes' => 'required|array',
         ]);
         $data = $request->all();
+
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+        if(empty($branch_id)){
+            return redirect('/login');
+        }
         $cashNotes = [];
         $total = 0;
     
