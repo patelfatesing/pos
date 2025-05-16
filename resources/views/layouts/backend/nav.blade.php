@@ -2,6 +2,7 @@
 use App\Models\Branch;
 $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
 ?>
+
 <style>
     .notification-wrapper {
         position: relative;
@@ -135,7 +136,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                         <li class="nav-item nav-icon dropdown">
 
                             <?php
-                            $getNotification = getNotificationsByNotifyTo(Auth::id(),null, 10);
+                            $getNotification = getNotificationsByNotifyTo(Auth::id(), null, 10);
                             $getCount = collect($getNotification)->where('status', 'unread')->count();
                             
                             $getTotalCount = count($getNotification);
@@ -367,6 +368,11 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pusher/7.2.0/pusher.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     $(document).on('click', '.open-form', function() {
         let type = $(this).data('type');
@@ -407,5 +413,40 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
         if (e.target === this) {
             $(this).fadeOut();
         }
+    });
+
+    var pusher = new Pusher("36ff0160ad86db49c893", {
+        cluster: "ap2",
+        encrypted: true,
+    });
+
+    var channel = pusher.subscribe('drawer-channel');
+    channel.bind('DrawerOpened', function(data) {
+
+        Swal.fire({
+            title: '📢 New Notification!',
+            text: `${data.message} (Customer: ${data.customer})`,
+            icon: 'info',
+            confirmButtonText: 'Okay'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // This code runs when "Okay" is clicked
+                console.log('User clicked Okay');
+
+                $.ajax({
+                    url: '/popup/form/' + data.type + "?id=" + data.value + "&nfid=" + data.nfid,
+                    type: 'GET',
+                    success: function(response) {
+
+                        $('#modalContent').html(response);
+
+                        $('#approveModal').modal('show');
+                    },
+                    error: function() {
+                        alert('Failed to load form.');
+                    }
+                });
+            }
+        });
     });
 </script>

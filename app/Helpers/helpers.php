@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Log;
 use App\Models\Notification;
+use App\Events\DrawerOpened;
 
 use App\Models\Product;
 use App\Models\PartyCustomerProductsPrice;
@@ -19,7 +20,7 @@ if (!function_exists('pre')) {
 if (!function_exists('sendNotification')) {
     function sendNotification($type, $content, $notifyTo, $createdBy, $details = null, $priority = 0)
     {
-        Notification::create([
+       $notification = Notification::create([
             'type' => $type,
             'content' => $content,
             'details' => $details,
@@ -27,6 +28,15 @@ if (!function_exists('sendNotification')) {
             'created_by' => $createdBy,
             'priority' => $priority,
         ]);
+
+        $data = json_decode($details);
+         event(new DrawerOpened([
+            'message' => $content,
+            'customer' => $notifyTo,
+            'type' => $type,
+            'value' => $data->id,
+            'nfid' => $notification->id, // You can pass real customer data here
+        ]));
     }
 }
 

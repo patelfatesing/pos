@@ -1,26 +1,43 @@
 <?php
 
+// app/Events/DrawerOpened.php
+
 namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Broadcasting\PresenceChannel;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
 class DrawerOpened implements ShouldBroadcast
 {
-    public $user;
+    use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public function __construct($user = null)
+    public $message;
+    public $customer;
+    public $type;
+    public $value;
+    public $nfid;
+
+    public function __construct($data)
     {
-        $this->user = $user;
+        $this->message = $data['message'];
+        $this->customer = $data['customer'];
+        $this->type = $data['type'];
+        $this->value = $data['value'];
+        $this->nfid = $data['nfid'];
     }
 
-    public function broadcastOn(): Channel
+    public function broadcastOn()
     {
         return new Channel('drawer-channel');
     }
 
-    public function broadcastAs(): string
+    public function broadcastAs()
     {
-        return 'drawer.opened';
+        return 'DrawerOpened';
     }
 }

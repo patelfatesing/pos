@@ -61,8 +61,6 @@
                                                         <th scope="col">Trasaction Date</th>
                                                         <th scope="col">Trasaction Status</th>
                                                         <th scope="col">Trasaction ID</th>
-                                                        <th scope="col">Billing Address</th>
-                                                        <th scope="col">Shipping Address</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -73,13 +71,6 @@
                                                                 class="badge badge-{{ $invoice->status == 'Paid' ? 'success' : 'danger' }}">
                                                                 {{ $invoice->status }}
                                                             </span>
-                                                        </td>
-                                                        <td>{{ $invoice->invoice_number }}</td>
-                                                        <td>
-                                                            <p class="mb-0">{{ $invoice->billing_address }}</p>
-                                                        </td>
-                                                        <td>
-                                                            <p class="mb-0">{{ $invoice->shipping_address }}</p>
                                                         </td>
                                                     </tr>
                                                 </tbody>
@@ -111,9 +102,9 @@
                                                             </td>
                                                             <td class="text-center">{{ $item['quantity'] }}</td>
                                                             <td class="text-center">
-                                                                ₹{{ number_format($item['price'], 2) }}</td>
+                                                                ₹{{ number_format($item['mrp'], 2) }}</td>
                                                             <td class="text-center">
-                                                                <b>₹{{ number_format($item['price'] * $item['quantity'], 2) }}</b>
+                                                                <b>₹{{ number_format($item['mrp'] * $item['quantity'], 2) }}</b>
                                                             </td>
                                                         </tr>
                                                     @endforeach
@@ -148,7 +139,7 @@
                                                 class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
                                                 <h6>Total</h6>
                                                 <h3 class="text-primary font-weight-700">
-                                                    ₹{{ number_format((float)$invoice->sub_total, 2) }}</h3>
+                                                    ₹{{ number_format((float)$invoice->sub_total - (float)$invoice->party_amount, 2) }}</h3>
                                             </div>
                                         </div>
                                     </div>

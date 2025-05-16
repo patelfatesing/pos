@@ -272,6 +272,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/vendor/get-product-details/{id}', [PurchaseController::class, 'getProductDetails'])->name('vendor.get-product-details');
 
     Route::get('/popup/form/{type}', [NotificationController::class, 'loadForm']);
+    Route::get('/notifications/index', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/fetch-data', [NotificationController::class, 'getData'])->name('notifications.fetch-data');
 
 
     // routes/web.php

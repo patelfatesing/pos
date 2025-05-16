@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use App\Models\Inventory;
 use Illuminate\Support\Facades\DB;
 use App\Events\DrawerOpened;
+use App\Events\NewCreditTransaction;
 use Illuminate\Support\Facades\Auth;
 
 class SalesReportController extends Controller
@@ -393,13 +394,21 @@ class SalesReportController extends Controller
     public function commissionReport()
     {
 
-        event(new DrawerOpened());
+        // event(new DrawerOpened());
          // Optional: pass authenticated user
     // $user = Auth()->user();
 
     // Trigger the event
     // event(new DrawerOpened($user));
-    event(new DrawerOpened('Cash drawer opened!'));
+    // event(new DrawerOpened([
+    //     'message' => 'New credit transaction added!',
+    //     'customer' => 'John Doe', // You can pass real customer data here
+    // ]));
+    
+    //   event(new NewCreditTransaction([
+    //     'message' => 'New credit transaction added!',
+    //     'customer' => 'John Doe', // You can pass real customer data here
+    // ]));
 
 
         $party_users = DB::table('party_users')->get(); // Adjust if you use a model

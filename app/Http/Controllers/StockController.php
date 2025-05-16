@@ -195,7 +195,7 @@ class StockController extends Controller
 
         $arr['id'] = $stockRequest->id;
         $arr['store_id'] = $branch_id;
-        sendNotification('request_stock', $stores->name.' some Product is stock request',null, $branch_id,json_encode($arr));
+        sendNotification('request_stock', $stores->name.' store some Product is stock request',null, $branch_id,json_encode($arr));
                
             DB::commit();
             return redirect()->back()->with('success', 'Stock request submitted successfully.');
