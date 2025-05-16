@@ -2,7 +2,7 @@
     @php
         $this->cashAmount =round_up_to_nearest_10($this->cashAmount)  ?? 0;
     @endphp
-
+    
     <div class="col-md-7">
         <div class="iq-sidebar-logo d-flex align-items-center justify-content-between">
             <!-- Left Side: Logo -->
@@ -229,7 +229,10 @@
                                     @if (@$this->partyUserDiscountAmt && $this->commissionAmount > 0)
                                         
                                         <span class="text-danger">
-                                            {{ format_inr(@$item->product->sell_price-$this->partyUserDiscountAmt) }}
+                                            @php
+                                                $data=getDiscountPrice($item->product->id,$this->selectedPartyUser,$this->selectedCommissionUser)
+                                            @endphp
+                                            {{ format_inr(@$data['partyUserDiscountAmt']) }}
                                         </span>
                                         <br>
                                         <small class="text-muted">
@@ -237,14 +240,20 @@
                                         </small>
                                     @else
                                         <span class="text-danger">
-                                            @if ($this->partyAmount > 0)
-                                            {{ format_inr(@$item->product->sell_price-$this->partyUserDiscountAmt) }}
+                                            @if ($this->selectedPartyUser)
+                                            {{ format_inr(@$item->net_amount/$this->quantities[$item->id]) }}
                                             @else
-                                            {{ format_inr(@$item->product->sell_price) }}
+                                            {{ format_inr(@$item->net_amount/$this->quantities[$item->id]) }}
                                             @endif
                                         </span>
-                                        @if ($this->partyAmount > 0)
+                                        @if ($this->selectedPartyUser)
                                             <br>
+                                            <small class="text-muted">
+                                                <s>{{ format_inr(@$item->product->sell_price) }}</s>
+                                            </small>
+                                        @endif
+                                         @if ($this->selectedCommissionUser)
+                                         <br>
                                             <small class="text-muted">
                                                 <s>{{ format_inr(@$item->product->sell_price) }}</s>
                                             </small>
@@ -357,7 +366,7 @@
 
     <!-- Bootstrap Modal -->
     <div class="modal fade" id="holdTransactionsModal" tabindex="-1" aria-labelledby="holdModalLabel"
-        aria-hidden="true" >
+        aria-hidden="true" wire:ignore.self>
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -633,21 +642,39 @@
                                     <form method="POST" action="{{ route('stock.warehouse') }}">
                                         @csrf
 
+                                        <div class="item-row2 product_items2 mb-3">
+
+                                            <select name="store_id" class="form-control d-inline w-50" required>
+                                                <option value="">-- Select Store --</option>
+                                                @foreach ($stores as $product)
+                                                    @if ($product->id != 1)
+                                                        <option value="{{ $product->id }}">{{ $product->name }}
+                                                        </option>
+                                                    @endif
+                                                @endforeach
+                                            </select>
+                                            @error('items')
+                                                <span class="text-danger">{{ $message }}</span>
+                                            @enderror
+
+                                        </div>
                                         {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
-
-
-                                        <div id="product-items">
+                                        <div id="product-items1">
                                             <h5>Products</h5>
-                                            <div class="item-row product_items mb-3">
-                                                <select name="itemss"
-                                                    class="form-control d-inline w-50 product-select" required>
+                                            <div class="item-row1 product_items1 mb-3">
+
+                                                <select name="items[0][product_id]" class="form-control d-inline w-50"
+                                                    required>
                                                     <option value="">-- Select Product --</option>
-                                                    @foreach ($products as $product)
+                                                    @foreach ($allProducts as $product)
                                                         <option value="{{ $product->id }}">{{ $product->name }}
                                                             ({{ $product->sku }})
                                                         </option>
                                                     @endforeach
                                                 </select>
+                                                @error('items')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
                                                 <input type="number" name="items[0][quantity]"
                                                     class="form-control d-inline w-25 ms-2" placeholder="Qty"
                                                     min="1" required>
@@ -830,15 +857,13 @@
                             @endif
                             <!-- Modal -->
                             {{-- Logout --}}
-                            <button type="button" class="btn btn-outline-danger ml-2" data-toggle="tooltip"
-                                data-placement="top" title="Logout"
-                                onclick="document.getElementById('logout-form').submit();">
+                           <button type="button" class="btn btn-outline-danger ml-2" data-toggle="tooltip"
+                                data-placement="top" title="Logout" onclick="confirmLogout()">
                                 <i class="fas fa-sign-out-alt"></i>
                             </button>
 
                             {{-- Logout Form --}}
-                            <form id="logout-form" action="{{ route('logout') }}" method="POST"
-                                style="display: none;">
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                                 @csrf
                             </form>
 
@@ -1253,8 +1278,9 @@
                                     {{ __('messages.submit') }}
                                     </button>
                                 @else
+                                     
 
-                                    @if ($this->cashAmount == $cash + $upi)
+                                    @if ($this->cashAmount == $this->cash + $this->upi && $this->upi >= 0)
                                         <button id="paymentSubmit" class="btn btn-primary btn-sm mr-2 btn-block mt-4"
                                             wire:click="checkout" wire:loading.attr="disabled">
                                             {{ __('messages.submit') }}
@@ -2107,6 +2133,21 @@
             }
         }
     });
+
+
+    let itemIndex1 = 1;
+    document.getElementById('add-item-wh').addEventListener('click', function() {
+        const row = document.querySelector('.item-row1').cloneNode(true);
+        row.querySelectorAll('select, input').forEach(el => {
+            const name = el.getAttribute('name');
+            const updatedName = name.replace(/\[\d+\]/, `[${itemIndex1}]`);
+            el.setAttribute('name', updatedName);
+            if (el.tagName === 'INPUT') el.value = '';
+        });
+        document.getElementById('product-items1').appendChild(row);
+        itemIndex1++;
+    });
+
     // document.addEventListener('DOMContentLoaded', function() {
     //     const inputs = document.querySelectorAll('.note-input');
     //     const totalCashDisplay = document.getElementById('totalNoteCashNew');
@@ -2245,10 +2286,44 @@
     });
 </script>
 <script>
-    document.addEventListener('click', function(event) {
-        const wrapper = document.getElementById('search-suggestion-wrapper');
-        if (wrapper && !wrapper.contains(event.target)) {
-            Livewire.dispatch('hideSuggestions');
+    
+    document.addEventListener('click', function (event) {
+        const searchContainer = document.getElementById('search-container');
+        const suggestionBox = document.getElementById('search-suggestion-wrapper');
+        const searchInput = document.getElementById('searchInput');
+
+        console.log(searchContainer);
+        console.log(suggestionBox);
+        if (suggestionBox) {
+            suggestionBox.style.display = 'none';
+            if (searchInput) {
+                searchInput.value = ''; // clear input field
+                // Optionally also trigger input event to notify Livewire
+                searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
         }
     });
+
+    // Optional: Show suggestions again on input focus
+    document.getElementById('searchInput').addEventListener('focus', function () {
+        const suggestionBox = document.getElementById('search-suggestion-wrapper');
+        if (suggestionBox && suggestionBox.innerHTML.trim() !== '') {
+            suggestionBox.style.display = 'block';
+        }
+    });
+     function confirmLogout() {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You will be logged out.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, logout',
+            cancelButtonText: 'No, cancel',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('logout-form').submit();
+            }
+        });
+    }
 </script>

@@ -61,10 +61,12 @@
                                                 <td>{{$order->payment_mode}}</td>
                                                 <td>{{ $order->total_item_qty }}</td>
                                                  <td>{{ format_inr($order->total) }}</td>
-                                                <td class="text-center">
-                                                    <a href="{{ asset('storage/invoices/' . $order->invoice_number . '.pdf') }}" class="btn btn-sm btn-secondary" target="_blank">
-                                                        <i class="fa fa-file-pdf"></i>
-                                                    </a>
+                                                    <td class="text-center">
+                                            <button class="btn btn-sm btn-secondary" wire:click="printInvoice('{{ $order->id }}')">
+                                            <i class="fa fa-file-pdf"></i>
+                                            </button>
+
+
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -77,56 +79,56 @@
 
                         <!-- Refunded Orders Tab -->
                         <div class="tab-pane fade" id="refunded" role="tabpanel" aria-labelledby="refunded-tab">
-                            @if($orders->where('status', 'Refunded')->count() > 0)
-                                <table class="table table-bordered table-hover">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Sr</th>
-                                            <th>Invoice No</th>
-                                            <th>Date</th>
-                                            <th>Customer Name</th>
-                                            <th>Payment Mode</th>
-                                             <th>Qty</th>
-                                            <th>Total Amount</th>
-                                            <th>Action</th>
+                        @if($refunds->count() > 0)
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Sr</th>
+                                        <th>Invoice No</th>
+                                        <th>Date</th>
+                                        <th>Customer Name</th>
+                                        <th>Payment Mode</th>
+                                        <th>Qty</th>
+                                        <th>Total Amount</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($refunds as $index => $refund)
+                                        @php $order = $refund->invoice; @endphp
+                                        <tr class="table-warning">
+                                            <td>{{ $index + 1 }}</td>
+                                            <td>{{ $order->invoice_number ?? '-' }}</td>
+                                            <td>{{ $refund->created_at?->format('d/m/Y H:i') ?? '-' }}</td>
+                                            <td>
+                                                @if(auth()->user()->hasRole('warehouse'))
+                                                    {{ optional($order->partyUser)->first_name }} {{ optional($order->partyUser)->last_name }}
+                                                @else
+                                                    {{ optional($order->commissionUser)->first_name }} {{ optional($order->commissionUser)->last_name }}
+                                                @endif
+                                            </td>
+                                            <td>{{ $order->payment_mode ?? '-' }}</td>
+                                            <td>{{ $refund->total_item_qty ?? 0 }}</td>
+                                            <td>{{ format_inr($refund->amount ?? 0) }}</td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-secondary" wire:click="printRefundInvoice('{{ asset('storage/invoices/refund_' . $order->invoice_number . '.pdf') }}')">
+                                                    <i class="fa fa-file-pdf"></i>
+                                                </button>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        @php
-                                            $i=0;
-                                        @endphp
-                                        @foreach($orders->where('status', 'Refunded') as $index => $order)
-                                            <tr class="table-warning">
-                                                <td>{{ $i + 1 }}</td>
-                                                <td>{{ $order->invoice_number }}</td>
-                                                <td>{{ $order->created_at->format('d/m/Y H:i' ) }}</td>
-                                                <td>
-                                                    @if(auth()->user()->hasRole('warehouse'))
-                                                        {{ optional($order->partyUser)->first_name }} {{ optional($order->partyUser)->last_name }}
-                                                    @else
-                                                        {{ optional($order->commissionUser)->first_name }} {{ optional($order->commissionUser)->last_name }}
-                                                    @endif
-                                                </td>
-                                                <td>{{$order->payment_mode}}</td>
-                                                <td>{{ $order->total_item_qty }}</td>
-                                                <td>{{ format_inr($order->total) }}</td>
-                                                <td class="text-center">
-                                                    <a href="{{ asset('storage/invoices/' . $order->invoice_number . '.pdf') }}" class="btn btn-sm btn-secondary" target="_blank">
-                                                        <i class="fa fa-file-pdf"></i>
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            @else
-                                <p class="text-muted">No Refunded Orders found.</p>
-                            @endif
-                        </div>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        @else
+                            <p class="text-muted">No Refunded Orders found.</p>
+                        @endif
+                    </div>
+
                     </div>
                 </div>
             </div>
         </div>
     </div>
     @endif
+    
 </div>

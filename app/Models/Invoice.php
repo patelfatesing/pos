@@ -60,18 +60,32 @@ class Invoice extends Model
     {
         return number_format($value, 2);
     }
-
-    public static function generateInvoiceNumber(): string
+     public function refunds()
     {
-        $today = Carbon::now()->format('Ymd'); // e.g., 20250510
-        $datePrefix = 'LHUB-' . $today;
+        return $this->hasMany(Refund::class);
+    }
+  public static function generateInvoiceNumber(): string
+    {
+        $today = Carbon::now()->format('Ymd'); // e.g., 20250516
+        $datePrefix = 'LHUB' . $today;
 
-        // Count how many invoices already created today
-        $countToday = Invoice::whereDate('created_at', Carbon::today())->count() + 1;
+        // Find the latest invoice number for today
+        $latestInvoice = Invoice::where('invoice_number', 'like', $datePrefix . '%')
+            ->orderBy('invoice_number', 'desc')
+            ->first();
 
-        // Pad the number to 4 digits (e.g., 0001, 0002)
-        $invoiceNumber = $datePrefix . '-' . str_pad($countToday, 4, '0', STR_PAD_LEFT);
+        if ($latestInvoice) {
+            // Extract the number part (e.g., from LHUB-20250516-0003 get 0003)
+            $lastNumber = (int)substr($latestInvoice->invoice_number, -4);
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        // Pad the number to 4 digits (e.g., 0001)
+        $invoiceNumber = $datePrefix . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 
         return $invoiceNumber;
     }
+
 }

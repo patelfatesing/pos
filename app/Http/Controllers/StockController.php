@@ -54,25 +54,28 @@ class StockController extends Controller
      */
     public function storeWarehouse(Request $request)
     {
-        $validated = $request->validate([
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|numeric|min:1',
-            'items.*.branches' => 'required|array|min:1',
-            'items.*.branch_quantities' => 'required|array',
-            'notes' => 'nullable|string',
-        ]);
+        
+        // $validated = $request->validate([
+        //     'items' => 'required|array|min:1',
+        //     'items.*.product_id' => 'required|exists:products,id',
+        //     'items.*.quantity' => 'required|numeric|min:1',
+        //     'items.*.branches' => 'required|array|min:1',
+        //     'items.*.branch_quantities' => 'required|array',
+        //     'notes' => 'nullable|string',
+        // ]);
 
         $data = User::with('userInfo')
         ->where('users.id', Auth::id())
         ->where('is_deleted', 'no')
         ->firstOrFail();
+       
+         $store_id = $request->store_id;
 
         $branch_id = $data->userInfo->branch_id;
 
         $stockRequest = StockRequest::create([
             'store_id' => 1,
-            'requested_by' => $branch_id,
+            'requested_by' => $store_id,
             'notes' => $request->notes,
             'requested_at' => now(),
             'created_by' => Auth::id(),
@@ -192,7 +195,7 @@ class StockController extends Controller
 
         $arr['id'] = $stockRequest->id;
         $arr['store_id'] = $branch_id;
-        sendNotification('request_stock', $stores->name.' some Product is stock request',null, $branch_id,json_encode($arr));
+        sendNotification('request_stock', $stores->name.' store some Product is stock request',null, $branch_id,json_encode($arr));
                
             DB::commit();
             return redirect()->back()->with('success', 'Stock request submitted successfully.');

@@ -2,6 +2,10 @@
 
 use Illuminate\Support\Facades\Log;
 use App\Models\Notification;
+use App\Events\DrawerOpened;
+
+use App\Models\Product;
+use App\Models\PartyCustomerProductsPrice;
 
 if (!function_exists('pre')) {
     function pre($data)
@@ -16,7 +20,7 @@ if (!function_exists('pre')) {
 if (!function_exists('sendNotification')) {
     function sendNotification($type, $content, $notifyTo, $createdBy, $details = null, $priority = 0)
     {
-        Notification::create([
+       $notification = Notification::create([
             'type' => $type,
             'content' => $content,
             'details' => $details,
@@ -24,6 +28,15 @@ if (!function_exists('sendNotification')) {
             'created_by' => $createdBy,
             'priority' => $priority,
         ]);
+
+        $data = json_decode($details);
+         event(new DrawerOpened([
+            'message' => $content,
+            'customer' => $notifyTo,
+            'type' => $type,
+            'value' => $data->id,
+            'nfid' => $notification->id, // You can pass real customer data here
+        ]));
     }
 }
 
@@ -106,5 +119,38 @@ if (!function_exists('parseCurrency')) {
     {
         // Remove commas and convert to float or int
         return (float) str_replace(',', '', $value);
+    }
+}
+
+if (!function_exists('getDiscountPrice')) {
+    function getDiscountPrice($product_id, $party_user_id, $selectedCommissionUser = false)
+    {
+        $partyUserDiscountAmt = 0;
+        $commissionAmount = 0;
+        $partyAmount = 0;
+
+        if ($selectedCommissionUser) {
+            $product = Product::find($product_id);
+            if ($product) {
+                $partyUserDiscountAmt = $commissionAmount = $product->discount_price;
+            }
+        } else {
+            $partyCustomerProductsPrice = PartyCustomerProductsPrice::with('product')
+            ->where('product_id', $product_id)
+            ->where('party_user_id', $party_user_id)
+            ->first();
+            if ($partyCustomerProductsPrice) {
+                $discount=$partyCustomerProductsPrice->product->sell_price-$partyCustomerProductsPrice->cust_discount_price;
+                $partyUserDiscountAmt = $partyAmount = $discount;
+            }
+        }
+
+        Log::info("partyUserDiscountAmt::::" . $partyUserDiscountAmt);
+
+        return [
+            'partyUserDiscountAmt' => $partyUserDiscountAmt,
+            'commissionAmount' => $commissionAmount,
+            'partyAmount' => $partyAmount,
+        ];
     }
 }

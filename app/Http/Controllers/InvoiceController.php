@@ -25,8 +25,10 @@ class InvoiceController extends Controller
         $partyUser = Partyuser::find($invoice->party_user_id);
         
         $pdf = PDF::loadView('invoice', [
+            'invoice' => $invoice,
             'invoice_number' => $invoice->invoice_number,
             'cartitems' => collect($invoice->items),
+            'items' => collect($invoice->items),
             'sub_total' => $invoice->sub_total,
             'tax' => $invoice->tax,
             'commissionAmount' => $invoice->commission_amount,
@@ -41,6 +43,7 @@ class InvoiceController extends Controller
     public function viewInvoice(Invoice $invoice)
     {
         $commissionUser = Commissionuser::find($invoice->commission_user_id);
+        // dd($invoice);
         $partyUser = Partyuser::find($invoice->party_user_id);
         return view('invoice.viewInvoice', compact('invoice', 'commissionUser', 'partyUser'));
     }

@@ -37,9 +37,10 @@
 
         .table th,
         .table td {
-            padding: 6px 4px;
+            padding: 2px 3px;
             vertical-align: top;
-            font-size: 13px;
+            font-size: 12px;
+            line-height: 1.2;
         }
 
         .left {
@@ -55,7 +56,7 @@
         }
 
         .total {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: bold;
         }
 
@@ -76,7 +77,7 @@
     <div style="font-size: 16px;">LiquorHub</div>
     <div>{{ @$branch->address }}</div>
     @if(@$duplicate == true)
-        <div style="color: red; font-size: 14px;">Duplicate Invoice</div>
+        <div style="font-size: 14px;">( Duplicate )</div>
     @endif
     <div>
         @if(@$type == 'refund')
@@ -102,8 +103,8 @@
         <tr>
             <th style="width: 5%;">#</th>
             <th style="width: 50%;" class="left">Item</th>
-            <th style="width: 15%;" class="center">Rate</th>
             <th style="width: 15%;" class="center">Qty</th>
+            <th style="width: 15%;" class="center">Rate</th>
             <th style="width: 30%;" class="right">Amount</th>
         </tr>
     </thead>
@@ -114,8 +115,8 @@
             <td class="left">
                 {{ strlen($item['name']) > 10 ? substr($item['name'], 0, 10) . '...' . substr($item['name'], -5) : $item['name'] }}
             </td>
-            <td class="center">{{ $item['price']/ $item['quantity']}}</td>
             <td class="center">{{ $item['quantity'] }}</td>
+            <td class="center">{{ $item['price'] / $item['quantity'] }}</td>
             <td class="right">{{ number_format((float)$item['price'], 2) }}</td>
         </tr>
         @endforeach
@@ -124,16 +125,13 @@
 
 <div class="line"></div>
 
-@php
-    $totalAmount = (float) str_replace(',', '', $invoice->total);
-    $discountAmount = (float) str_replace(',', '', $invoice->party_amount ?? 0);
-    $sunTot = $totalAmount + $discountAmount;
-@endphp
-
 <table class="table">
     <tr class="total">
         <td class="left">TOTAL:</td>
-        <td class="right">{{ number_format((float)$invoice->total_item_total,2) }}</td>
+        <td></td>
+        <td></td>
+        <td class="center">{{ $invoice->total_item_qty }}</td>
+        <td class="right">{{ number_format((float)$invoice->total_item_total, 2) }}</td>
     </tr>
 </table>
 
@@ -142,27 +140,23 @@
 <table class="table">
     <tr>
         <td class="left">Purchased:</td>
-        <td class="right">{{ number_format((float)$invoice->sub_total,2) }}</td>
-    </tr>
-    <tr>
-        <td class="left">Purchased Items:</td>
-        <td class="right">{{ $invoice->total_item_qty }}</td>
+        <td class="right">{{ number_format((float)$invoice->sub_total, 2) }}</td>
     </tr>
     <tr>
         <td class="left">Discount:</td>
-        <td class="right">{{ number_format((float)$invoice->party_amount,2) }}</td>
+        <td class="right">{{ number_format((float)$invoice->party_amount, 2) }}</td>
     </tr>
     <tr>
         <td class="left">Credit:</td>
-        <td class="right">{{number_format((float)$invoice->creditpay ?? 0,2)  }}</td>
+        <td class="right">{{ number_format((float)$invoice->creditpay ?? 0, 2) }}</td>
     </tr>
     <tr>
         <td class="left">Total Savings:</td>
-        <td class="right">{{ number_format((float)$invoice->sub_total - $totalAmount,2 )}}</td>
+        <td class="right">{{ number_format((float)$invoice->sub_total - (float)$invoice->total, 2) }}</td>
     </tr>
     <tr class="bold">
         <td class="left">Total Paid:</td>
-        <td class="right">{{ number_format((float)$invoice->total ,2)}}</td>
+        <td class="right">{{ number_format((float)$invoice->total, 2) }}</td>
     </tr>
 </table>
 
@@ -171,15 +165,15 @@
 <table class="table">
     <tr>
         <td class="left">By Cash:</td>
-        <td class="right">{{ number_format((float)$invoice->cash_amount,2) }}</td>
+        <td class="right">{{ number_format((float)$invoice->cash_amount, 2) }}</td>
     </tr>
     <tr>
         <td class="left">By UPI:</td>
-        <td class="right">{{ number_format((float)$invoice->upi_amount,2) }}</td>
+        <td class="right">{{ number_format((float)$invoice->upi_amount, 2) }}</td>
     </tr>
-     <tr>
+    <tr>
         <td class="left">By Online:</td>
-        <td class="right">{{ number_format((float)$invoice->online_amount,2) }}</td>
+        <td class="right">{{ number_format((float)$invoice->online_amount, 2) }}</td>
     </tr>
 </table>
 

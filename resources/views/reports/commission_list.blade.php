@@ -9,21 +9,22 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qz-tray/qz-tray.js"></script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pusher/7.2.0/pusher.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4/toastr.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css">
 
     <!-- Wrapper Start -->
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-
-
                 <!-- Date Filters -->
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                             <div>
                                 <h4 class="mb-3">Credit History</h4>
-                                <div class="btn"><a href="#" onClick="openCashDrawer()">print</a></div>
-                                <button onclick="openDrawer()">Open Cash Drawer</button>
+                                {{-- <div class="btn"><a href="#" onClick="openCashDrawer()">print</a></div>
+                                <button onclick="openDrawer()">Open Cash Drawer</button> --}}
                             </div>
                         </div>
                     </div>
@@ -206,9 +207,20 @@
 
         // Trigger the drawer open event
         function openDrawer() {
-            alert('Opening drawer...');
-            // This sends the 'open-drawer' event to Electron's main process
-            window.electron.send('open-drawer');
+            Pusher.logToConsole = true;
+
+            const pusher = new Pusher('{{ env('PUSHER_APP_KEY') }}', {
+                cluster: '{{ env('PUSHER_APP_CLUSTER') }}',
+                encrypted: true
+            });
+
+            const channel = pusher.subscribe('drawer-channel');
+
+            channel.bind('nedrawer.opened', function(data) {
+                toastr.success(data.message + ' (Customer: ' + data.customer + ')', 'New Credit');
+            });
         }
     </script>
+
+    <script></script>
 @endsection

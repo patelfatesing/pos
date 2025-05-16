@@ -93,4 +93,60 @@ class NotificationController extends Controller
         return response()->json(['error' => 'Form not found'], 404);
     }
 
+    public function index()
+    {
+        $notifications = Notification::latest()->get();
+        return view('notification.list', compact('notifications'));
+    }
+    
+    public function getData(Request $request)
+    {
+        $draw = $request->input('draw', 1);
+        $start = $request->input('start', 0);
+        $length = $request->input('length', 10);
+        $searchValue = $request->input('search.value', '');
+        $orderColumnIndex = $request->input('order.0.column', 0);
+        $orderColumn = $request->input('columns.' . $orderColumnIndex . '.data', 'id');
+        $orderDirection = $request->input('order.0.dir', 'asc');
+
+        $query = Notification::query();
+
+        // **Search filter**
+        if (!empty($searchValue)) {
+            $query->where(function ($q) use ($searchValue) {
+                $q->where('type', 'like', '%' . $searchValue . '%')
+                  ->orWhere('content', 'like', '%' . $searchValue . '%')
+                  ->orWhere('notify_to', 'like', '%' . $searchValue . '%');
+            });
+        }
+
+        $recordsTotal = Notification::count();
+        $recordsFiltered = $query->count();
+
+        $data = $query->orderBy($orderColumn, $orderDirection)
+            ->offset($start)
+            ->limit($length)
+            ->get();
+
+        $records = [];
+
+        foreach ($data as $partyUser) {
+            
+            $records[] = [
+                'type' => $partyUser->type,
+                'content' => $partyUser->content,
+                'notify_to' => $partyUser->notify_to,
+                'status' => $partyUser->status,
+                'created_at' => Carbon::parse($partyUser->created_at)->format('Y-m-d H:i:s'),
+            ];
+        }
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $records
+        ]);
+    }
+
 }
