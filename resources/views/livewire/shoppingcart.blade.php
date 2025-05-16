@@ -192,11 +192,11 @@
                                     @endif
                                     @if (auth()->user()->hasRole('warehouse'))
                                         <div class="d-flex align-items-center justify-content-between">
-                                            <button class="btn btn-sm btn-outline-success"
+                                            <button class="btn btn-sm btn-danger custom-btn"
                                                 wire:click="decrementQty({{ $item->id }})">−</button>
                                                 <div class="relative">
                                                     <input id="numberInput-{{ $item->id }}" type="number" min="1"
-                                                           class="form-control text-center number-input"
+                                                           class="custom-input form-control text-center number-input"
                                                            wire:model.lazy="quantities.{{ $item->id }}"
                                                            wire:keydown="updateQty({{ $item->id }})"
                                                            data-item-id="{{ $item->id }}"  />
@@ -209,7 +209,7 @@
                                                                 <button type="button" class="btn btn-sm btn-light" onclick="numpadInsert('{{ $item->id }}', '{{ $num }}')">{{ $num }}</button>
                                                             @endforeach
                                                             <button type="button" class="btn btn-sm btn-warning" onclick="numpadBackspace('{{ $item->id }}')">←</button>
-                                                            <button type="button" class="btn btn-sm btn-outline-success" onclick="numpadClear('{{ $item->id }}')">C</button>
+                                                            <button type="button" class="btn btn-sm btn-danger custom-btn" onclick="numpadClear('{{ $item->id }}')">C</button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -219,7 +219,7 @@
                                             {{-- <input type="number" value="{{$this->quantities[$item->id]}}" wire:change="updateQty({{ $item->id }})" 
                                             class="form-control  mx-2 text-center"
                                             readonly /> --}}
-                                            <button class="btn btn-sm btn-outline-warning"
+                                            <button class="btn btn-sm btn-success custom-btn"
                                                 wire:click="incrementQty({{ $item->id }}, {{ $finalAmount }})">+</button>
                                         </div>
                                     @endif
@@ -246,7 +246,7 @@
                                             {{ format_inr(@$item->net_amount/$this->quantities[$item->id]) }}
                                             @endif
                                         </span>
-                                        @if ($this->selectedPartyUser)
+                                        @if ($this->selectedPartyUser && $item->net_amount/$this->quantities[$item->id]!=$item->product->sell_price)
                                             <br>
                                             <small class="text-muted">
                                                 <s>{{ format_inr(@$item->product->sell_price) }}</s>
@@ -486,14 +486,14 @@
                                                         <td>
                                                             <div
                                                                 class="d-flex justify-content-center align-items-center">
-                                                                <button type="button" class="btn btn-sm btn-outline-success"
+                                                                <button type="button" class="btn btn-sm btn-danger custom-btn"
                                                                     onclick="updateNote('{{ $key }}_{{ $denomination }}', -1, {{ $denomination }})">
                                                                     <i class="fas fa-minus"></i>
                                                                 </button>
                                                                 <span
                                                                     id="display_{{ $key }}_{{ $denomination }}"
                                                                     class="mx-3">0</span>
-                                                                <button type="button" class="btn btn-sm btn-outline-warning"
+                                                                <button type="button" class="btn btn-sm btn-success custom-btn"
                                                                     onclick="updateNote('{{ $key }}_{{ $denomination }}', 1, {{ $denomination }})">
                                                                     +
                                                                 </button>
@@ -745,7 +745,7 @@
                                         <td>{{ $denomination }}</td>
                                         <td>
                                             <div class="input-group" style="max-width: 150px;">
-                                                <button class="btn btn-sm btn-outline-success btn-decrease" type="button"
+                                                <button class="btn btn-sm btn-danger custom-btn btn-decrease" type="button"
                                                     data-denomination="{{ $denomination }}"><i
                                                         class="fa fa-minus"></i></button>
                                                 <input type="text"
@@ -753,7 +753,7 @@
                                                     class="form-control text-center note-input"
                                                     id="cashhandsum_{{ $denomination }}"
                                                     data-denomination="{{ $denomination }}" value="0" readonly>
-                                                <button class="btn btn-sm btn-outline-warning btn-increase" type="button"
+                                                <button class="btn btn-sm btn-success custom-btn btn-increase" type="button"
                                                     data-denomination="{{ $denomination }}">+</button>
                                             </div>
                                         </td>
@@ -919,12 +919,12 @@
                                                     <td class="text-center fw-bold">{{ format_inr($inValue*$denomination) }}</td>
                                                     <td class="text-center">
                                                         <div class="d-flex justify-content-center align-items-center gap-2">
-                                                            <button class="btn btn-sm btn-outline-success"
+                                                            <button class="btn btn-sm btn-danger custom-btn"
                                                                 wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'in')">
                                                                 -
                                                             </button>
                                                             <input type="number" class="form-control  text-center" value="{{ $inValue }}" readonly style="width: 60px;">
-                                                            <button class="btn btn-sm btn-outline-warning"
+                                                            <button class="btn btn-sm btn-success custom-btn"
                                                                 wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'in')">
                                                                 +
                                                             </button>
@@ -936,12 +936,12 @@
                                 
                                                     <td class="text-center">
                                                         <div class="d-flex justify-content-center align-items-center gap-2">
-                                                            <button class="btn btn-sm btn-outline-success"
+                                                            <button class="btn btn-sm btn-danger custom-btn"
                                                                 wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'out')">
                                                                 -
                                                             </button>
                                                             <input type="number" class="form-control  text-center" value="{{ $outValue }}" readonly style="width: 60px;">
-                                                            <button class="btn btn-sm btn-outline-warning"
+                                                            <button class="btn btn-sm btn-success custom-btn"
                                                                 wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'out')">
                                                                 +
                                                             </button>
@@ -1083,7 +1083,7 @@
                     </div>
                 @elseif($shoeCashUpi)
                     <div id="cashupi-payment">
-                        <form onsubmit="event.preventDefault(); calculateCash();" class="needs-validation" novalidate>
+                        <form onsubmit="event.preventDefault(); " class="needs-validation" novalidate>
                              @php
                                 $totalIn = 0;
                                 $totalOut = 0;
@@ -1104,7 +1104,7 @@
                                                 <th class="text-center">{{ __('messages.out') }}</th>
                                                 <th class="text-center">
                                                     {{ __('messages.amount') }}
-                                                    <button wire:click="clearCashNotes" class="btn btn-danger btn-sm">
+                                                    <button wire:click="clearCashUpiNotes" class="btn btn-danger btn-sm">
                                                         <i class="fa fa-eraser"></i>
                                                     </button>
                                                 </th>
@@ -1130,12 +1130,12 @@
                                                     @if(empty($this->selectedSalesReturn))
                                                     <td class="text-center">
                                                         <div class="d-flex justify-content-center align-items-center gap-2">
-                                                            <button class="btn btn-sm btn-outline-success"
+                                                            <button class="btn btn-sm btn-danger custom-btn"
                                                                 wire:click="decrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'in')">
                                                                 -
                                                             </button>
                                                             <input type="number" class="form-control text-center" value="{{ $inValue }}" readonly style="width: 60px;">
-                                                            <button class="btn btn-sm btn-outline-warning"
+                                                            <button class="btn btn-sm btn-success custom-btn"
                                                                 wire:click="incrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'in')">
                                                                 +
                                                             </button>
@@ -1147,12 +1147,12 @@
 
                                                     <td class="text-center">
                                                         <div class="d-flex justify-content-center align-items-center gap-2">
-                                                            <button class="btn btn-sm btn-outline-success"
+                                                            <button class="btn btn-sm btn-danger custom-btn"
                                                                 wire:click="decrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'out')">
                                                                 -
                                                             </button>
                                                             <input type="number" class="form-control text-center" value="{{ $outValue }}" readonly style="width: 60px;">
-                                                            <button class="btn btn-sm btn-outline-warning"
+                                                            <button class="btn btn-sm btn-success custom-btn"
                                                                 wire:click="incrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'out')">
                                                                 +
                                                             </button>
@@ -1968,6 +1968,10 @@
         // Error Example
         showAlert('error', 'LiquorHub!', event.detail[0].message || 'Failed to void the cart.');
     });
+     window.addEventListener('notiffication-error-close-shift', (event) => {
+        // Error Example
+        showAlert('error', 'LiquorHub!', event.detail[0].message || 'Failed to void the cart.');
+    });
     window.addEventListener('order-saved', event => {
         const {
             type,
@@ -1996,6 +2000,30 @@
             }
         });
     });
+     window.addEventListener('close-shift-error', event => {
+        const {
+            type,
+            title,
+            message
+        } = event.detail;
+            Swal.fire({
+            title: 'Error!',
+            text: 'You have pending invoices on hold. Please clear them before closing the shift.',
+            icon: 'error', // Explicitly set to 'error'
+            confirmButtonText: 'OK',
+            showConfirmButton: true,
+            position: 'center',
+            toast: false,
+            timerProgressBar: false,
+            backdrop: true,
+            allowOutsideClick: false,
+            showCloseButton: true,
+            customClass: {
+                popup: 'small-alert'
+            }
+        });
+
+    });
 </script>
 <script>
     // window.addEventListener('show-numpad-modal', () => {
@@ -2008,9 +2036,8 @@
 
     // });
     window.addEventListener('close-hold-modal', function() {
+        document.getElementById('holdTransactionsModal').style.display = 'none';
         $('.modal-backdrop.show').remove();
-
-        $('#holdTransactionsModal').modal('hide'); // jQuery way to close Bootstrap modal
     });
     window.addEventListener('product-added', () => {
         // optional: play sound or flash success
@@ -2135,18 +2162,18 @@
     });
 
 
-    let itemIndex1 = 1;
-    document.getElementById('add-item-wh').addEventListener('click', function() {
-        const row = document.querySelector('.item-row1').cloneNode(true);
-        row.querySelectorAll('select, input').forEach(el => {
-            const name = el.getAttribute('name');
-            const updatedName = name.replace(/\[\d+\]/, `[${itemIndex1}]`);
-            el.setAttribute('name', updatedName);
-            if (el.tagName === 'INPUT') el.value = '';
-        });
-        document.getElementById('product-items1').appendChild(row);
-        itemIndex1++;
-    });
+    // let itemIndex1 = 1;
+    // document.getElementById('add-item-wh').addEventListener('click', function() {
+    //     const row = document.querySelector('.item-row1').cloneNode(true);
+    //     row.querySelectorAll('select, input').forEach(el => {
+    //         const name = el.getAttribute('name');
+    //         const updatedName = name.replace(/\[\d+\]/, `[${itemIndex1}]`);
+    //         el.setAttribute('name', updatedName);
+    //         if (el.tagName === 'INPUT') el.value = '';
+    //     });
+    //     document.getElementById('product-items1').appendChild(row);
+    //     itemIndex1++;
+    // });
 
     // document.addEventListener('DOMContentLoaded', function() {
     //     const inputs = document.querySelectorAll('.note-input');

@@ -118,6 +118,7 @@ class Shoppingcart extends Component
     public bool $useCredit = false;  // Tracks checkbox state
     public $partyUserDetails;
     public $partyUserDiscountAmt=0;
+    public $finalDiscountPartyAmount=0;
 
     // This method is triggered whenever the checkbox is checked or unchecked
     public function updatedUseCredit($value)
@@ -243,7 +244,12 @@ class Shoppingcart extends Component
 
             }
 
-          
+            $this->finalDiscountParty();
+            if($this->selectedCommissionUser){
+                $this->commissionAmount = $this->finalDiscountPartyAmount;
+            }else{
+                $this->partyAmount = $this->finalDiscountPartyAmount;
+            }  
             
            // $this->updateQty($item->id);
             $this->dispatch('updateNewProductDetails');
@@ -265,7 +271,9 @@ class Shoppingcart extends Component
             }
             $this->selectedPartyUser = $this->selectedSalesReturn->party_user_id ?? 0;
             
-            $this->partyAmount = $this->selectedSalesReturn->party_amount ?? 0;
+          
+
+            //$this->partyAmount = $this->selectedSalesReturn->party_amount ?? 0;
           
         
             //$this->showBox = true;
@@ -277,18 +285,21 @@ class Shoppingcart extends Component
                 $product = Product::where('id', $value['product_id'])->first();
                 if (!empty($product)) {
                     $sumQty+=$value['quantity'];
-
+                    $this->getDiscountPrice($value['product_id'],$this->selectedPartyUser);
                     $item = new Cart();
                     $item->user_id = auth()->user()->id;
                     $item->product_id = $product->id;
                     $item->mrp = $value['mrp'];
                     $item->quantity = $value['quantity'];
                     $item->amount = $value['mrp'];
-                    $item->discount = $this->selectedSalesReturn->party_amount;
-                    $item->net_amount = ($value['price'] );
+                    $item->discount=$this->partyUserDiscountAmt*$item->quantity;
+                     $item->net_amount = ($value['price'] );
                     $item->save();
                 }
             }
+              $this->finalDiscountParty();
+
+            $this->partyAmount = $this->finalDiscountPartyAmount;
           //  $this->partyAmount = $this->partyAmount*$sumQty;
             if (!empty($this->selectedSalesReturn->creditpay)) {
                // $this->toggleCheck();
@@ -405,8 +416,7 @@ class Shoppingcart extends Component
                     $this->total = $this->cashAmount;
                     $this->useCredit=false;
                 } else {
-                    session()->flash('error', 'add minimum one product');
-                    $this->dispatch('alert_remove');
+                    $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                 }
             }
         
@@ -420,8 +430,7 @@ class Shoppingcart extends Component
                 $this->useCredit=false;
                 
             } else {
-                session()->flash('error', 'add minimum one product');
-                $this->dispatch('alert_remove');
+                $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
             }
         }
 
@@ -445,8 +454,7 @@ class Shoppingcart extends Component
                     
         
                 } else {
-                    session()->flash('error', 'add minimum one product');
-                    $this->dispatch('alert_remove');
+                    $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                 }
             }
         }else{
@@ -461,8 +469,7 @@ class Shoppingcart extends Component
                 
     
             } else {
-                session()->flash('error', 'add minimum one product');
-                $this->dispatch('alert_remove');
+                $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
             }
         }
         
@@ -485,23 +492,21 @@ class Shoppingcart extends Component
                     
         
                 } else {
-                    session()->flash('error', 'add minimum one product');
-                    $this->dispatch('alert_remove');
+                    $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                 }
             }
         }else{
             if (!empty($this->products->toArray())) {
                 $this->showBox = false;
-                $this->shoeonline = true;
-                $this->paymentType = "cashupi";
+                $this->shoeCashUpi = true;
+                $this->paymentType = "online";
                 $this->headertitle="Online";
                 $this->showOnline=true;
                 $this->total = $this->cashAmount;
                 
     
             } else {
-                session()->flash('error', 'add minimum one product');
-                $this->dispatch('alert_remove');
+                $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
             }
         }
     }
@@ -635,7 +640,7 @@ class Shoppingcart extends Component
         }
         $this->useCredit=true;
         $invoice->status = 'Returned';
-        $invoice->total = 0;
+        //$invoice->total = 0;
         $invoice->items = $this->cartitems->map(function ($item) {
                 return [
                     'name' => $item->product->name ?? 'N/A',
@@ -951,6 +956,15 @@ class Shoppingcart extends Component
             foreach ($denominations as $denomination => $values) {
                 $this->cashNotes[$key][$denomination]['in'] = 0;
                 $this->cashNotes[$key][$denomination]['out'] = 0;
+            }
+        }
+    }
+    public function clearCashUpiNotes()
+    {
+        foreach ($this->cashupiNotes as $key => $denominations) {
+            foreach ($denominations as $denomination => $values) {
+                $this->cashupiNotes[$key][$denomination]['in'] = 0;
+                $this->cashupiNotes[$key][$denomination]['out'] = 0;
             }
         }
     }
@@ -1338,6 +1352,7 @@ class Shoppingcart extends Component
 
     public function removeItem($id)
     {
+       // dd($this);
         $userId = auth()->id(); // Get the currently authenticated user's ID
 
         // Count only this user's cart items
@@ -1351,23 +1366,34 @@ class Shoppingcart extends Component
 
         // Find and delete the cart item belonging to the user
         Cart::where('id', $id)->where('user_id', $userId)->first()?->delete();
-
         // Recalculate cart item count after deletion
         $cartItem = Cart::where('user_id', $userId)->count();
-
         if ($cartItem == 0) {
             $this->reset('selectedPartyUser', 'selectedCommissionUser');
         }
-
-        $this->partyAmount = $newParty * $cartItem;
-
+       //  $this->getDiscountPrice($cartDetails->product_id,$this->selectedPartyUser);
+        //dd($this->partyAmount,$this->partyUserDiscountAmt);
+        $this->finalDiscountParty();
         $this->showBox = false;
         $this->dispatch('updateNewProductDetails');
-
+        if($this->selectedCommissionUser){
+            $this->commissionAmount = $this->finalDiscountPartyAmount;
+        }else{
+            $this->partyAmount = $this->finalDiscountPartyAmount;
+        }
+        
     //    $this->loadCartData();
     }
 
-
+    public function finalDiscountParty(){
+        $partyAmtTotal=0;
+        $userId = auth()->id(); // Get the currently authenticated user's ID
+        $cartDetails = Cart::where('user_id', $userId)->get();
+        foreach ($cartDetails as $key => $cartDetailNew) {
+            $partyAmtTotal+=$cartDetailNew->discount;
+        }
+        $this->finalDiscountPartyAmount=$partyAmtTotal;
+    }
     public function calculateCommission()
     {
         $this->dispatch('user-selection-updated', ['userId' => $this->selectedUser]);
@@ -1624,7 +1650,12 @@ class Shoppingcart extends Component
                 $item->save();
 
             }
-          
+            $this->finalDiscountParty();
+            if($this->selectedCommissionUser){
+                $this->commissionAmount = $this->finalDiscountPartyAmount;
+            }else{
+                $this->partyAmount = $this->finalDiscountPartyAmount;
+            }  
             
            // $this->updateQty($item->id);
             $this->dispatch('updateNewProductDetails');
@@ -2209,14 +2240,19 @@ class Shoppingcart extends Component
                  $total_mrp = $cartitems->sum(fn($item) => $item->mrp);
                 $refundSub=$refund_item_amount/$refund_item_qty;
                 $refundMain=($refundSub-$totalMrp)*$refund_item_qty;
-                $refund=Refund::create([
+                    $this->finalDiscountParty();
+                    if($this->selectedCommissionUser){
+                        $this->commissionAmount = $this->finalDiscountPartyAmount;
+                    }else{
+                        $this->partyAmount = $this->finalDiscountPartyAmount;
+                    }                $refund=Refund::create([
                     'amount' => $this->cashAmount,
                     'description' => $this->refundDesc,
                     'invoice_id' => $invoice->id,
                     'total_item_qty'=>$refund_item_qty,
                     'total_item_price'=>$refund_item_amount,
                     'total_mrp'=>$total_mrp,
-                    'party_amount'=>$refundMain,
+                    'party_amount'=>$this->partyAmount,
                     'items_refund'=> $cartitems->map(fn($item) => [
                     'product_id' => $item->product->id,
                     'name' => $item->product->name,

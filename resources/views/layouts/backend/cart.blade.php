@@ -275,6 +275,10 @@
     margin-right: 0px !important;
   
 }
+.custom-input,.custom-btn{
+        border-radius: 0px ! important;
+
+}
     </style>
     @livewireStyles
     </head>
