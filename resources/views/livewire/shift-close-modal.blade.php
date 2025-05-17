@@ -39,10 +39,10 @@
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h4 class="mb-0">Sales Details</h4>
 
-                                            <button wire:click="openClosingStocksModal" class="btn btn-secondary btn-sm"
-                                                title="View Stock Status">
-                                                View Stock Status
+                                            <button wire:click="openClosingStocksModal" class="btn btn-secondary btn-sm" title="View Stock Status">
+                                            View Stock Status
                                             </button>
+
                                         </div>
 
                                         <hr class="mb-4">
@@ -232,4 +232,63 @@
         {{-- Modal backdrop --}}
         <div class="modal-backdrop fade show"></div>
     @endif
+    @if ($showStockModal)
+    <div class="modal fade @if($showStockModal) show d-block @endif" tabindex="-1" style="z-index: 1056;" @if($showStockModal) style="display: block;" @endif>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content shadow rounded-3">
+
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title">Closing Stock Status</h5>
+                 <button type="button" class="close" wire:click="$set('showStockModal', false)">
+                            <span aria-hidden="true">×</span>
+                        </button>
+            </div>
+
+            <div class="modal-body">
+                @if (!empty($this->stockStatus))
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                     <th>Item</th>
+                                    <th>Opening</th>
+                                    <th>Added</th>
+                                    <th>Transferred</th>
+                                    <th>Sold</th>
+                                    <th>Closing</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($this->stockStatus as $index => $item)
+                                    <tr>
+                                        <td>{{ $index + 1 }}</td>
+                                        <td>{{ $item['product']['name'] }}</td>
+                                        <td>{{ $item['opening_stock'] }}</td>
+                                        <td>{{ $item['added_stock'] }}</td>
+                                        <td>{{ $item['transferred_stock'] }}</td>
+                                        <td>{{ $item['sold_stock'] }}</td>
+                                        <td>{{ $item['closing_stock'] }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <p class="text-muted">No stock data available.</p>
+                @endif
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" wire:click="closeStockModal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    {{-- Backdrop --}}
+    <div class="modal-backdrop fade show"></div>
+@endif
+
 </div>
