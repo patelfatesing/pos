@@ -234,7 +234,7 @@
     @endif
     @if ($showStockModal)
     <div class="modal fade @if($showStockModal) show d-block @endif" tabindex="-1" style="z-index: 1056;" @if($showStockModal) style="display: block;" @endif>
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
         <div class="modal-content shadow rounded-3">
 
             <div class="modal-header bg-secondary text-white">
