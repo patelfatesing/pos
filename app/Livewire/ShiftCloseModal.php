@@ -50,6 +50,7 @@ class ShiftCloseModal extends Component
         'Travel Expenses',
         'Other'
     ];
+    public $stockStatus = [];
     public $errorInCredit = false;
     public $changeAmount = 0;
     public $showBox = false;
@@ -115,6 +116,7 @@ class ShiftCloseModal extends Component
     public $refundDesc = "";
     public $closingCash = "";
     public $diffCash = 0;
+    public bool $showStockModal = false;
 
     protected $rules = [
         'closingCash' => 'required|numeric|min:0',
@@ -271,14 +273,16 @@ class ShiftCloseModal extends Component
     {
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
-        $this->productStock = DailyProductStock::with('product')
-            ->where('branch_id', $branch_id)
-            ->whereDate('date', Carbon::yesterday())
-            ->get();
-            // dd('df');
-        $this->showCloseModal = true;
+         $this->showStockModal = true;
+        $this->stockStatus = DailyProductStock::with('product')
+        ->where('branch_id', $branch_id)
+        //->whereDate('date', Carbon::yesterday())
+        ->get()->toArray();
     }
-
+    public function closeStockModal()
+    {
+        $this->showStockModal = false;
+    }
     public function updatedClosingCash()
     {
         $expected = $this->categoryTotals['summary']['TOTAL'] ?? 0;
@@ -361,6 +365,11 @@ class ShiftCloseModal extends Component
             Log::error('Error closing shift', ['error' => $e->getMessage()]);
             $this->addError('general', 'An error occurred while closing the shift. Please try again.');
         }
+    }
+    public function getStockStatus(): array
+    {
+        // Example DB fetch, adapt to your DB structure
+        return \App\Models\Product::select('name', 'quantity', 'price')->get()->toArray();
     }
     public function calculateDiscrepancy()
     {
