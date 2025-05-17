@@ -8,7 +8,7 @@
                 <div class="col-lg-7 align-self-center">
                    <div class="p-3">
                       <h2 class="mb-2">Sign Up</h2>
-                      <p>Create your POSDash account.</p>
+                      <p>Create your LiquorHub account.</p>
                       <form>
                          <div class="row">
                             <div class="col-lg-6">

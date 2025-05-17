@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\Session;
 use App\Models\Refund;
 use App\Models\InvoiceHistory;
 use Illuminate\Support\Facades\Auth;
-
+use App\Models\DailyProductStock;
 
 class ShiftCloseModal extends Component
 {
@@ -125,6 +125,8 @@ class ShiftCloseModal extends Component
         'closingCash.numeric' => 'Closing cash must be a number.',
         'closingCash.min' => 'Closing cash cannot be negative.',
     ];
+    public $productStock = [];
+    public $showCloseModal = false;
 
     public function openModal()
     {
@@ -263,6 +265,18 @@ class ShiftCloseModal extends Component
         $this->availableNotes = json_encode($this->shiftcash);
 
         $this->showModal = true;
+    }
+
+    public function openClosingStocksModal()
+    {
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
+        $this->productStock = DailyProductStock::with('product')
+            ->where('branch_id', $branch_id)
+            ->whereDate('date', Carbon::yesterday())
+            ->get();
+            // dd('df');
+        $this->showCloseModal = true;
     }
 
     public function updatedClosingCash()

@@ -16,22 +16,76 @@
                                 </div>
                             </div>
                             <div class="card-body">
-                                <form action="{{ route('exp.update', $record->id) }}" method="POST">
+                                <form action="{{ route('exp.update') }}" method="POST">
                                     @csrf
                                     @method('POST')
-                                    <input type="hidden" name="id" value="{{ $record->id }}">
+                                    <input type="hidden" name="id" value="{{ $expense->id }}">
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label>Name *</label>
-                                                <input type="text" name="name" value="{{ $record->name }}"
-                                                    class="form-control" placeholder="Enter Name" required>
-                                                @error('name')
+                                                <label for="expense_category_id">Expense Category *</label>
+                                                <select name="expense_category_id" class="form-control">
+                                                    <option value="">Select Category</option>
+                                                    @foreach ($categories as $id => $name)
+                                                        <option value="{{ $id }}"
+                                                            {{ old('expense_category_id', $expense->expense_category_id) == $id ? 'selected' : '' }}>
+                                                            {{ $name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                @error('expense_category_id')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="title">Title *</label>
+                                                <input name="title" type="text" class="form-control"
+                                                    placeholder="Enter Expense Title"
+                                                    value="{{ old('title', $expense->title) }}">
+                                                @error('title')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="amount">Amount *</label>
+                                                <input name="amount" type="number" step="0.01" class="form-control"
+                                                    placeholder="Enter Amount"
+                                                    value="{{ old('amount',$expense->amount) }}"
+>
+                                                @error('amount')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="expense_date">Expense Date *</label>
+                                                <input name="expense_date" type="date" class="form-control"
+                                                    value="{{ old('expense_date', $expense->expense_date ? $expense->expense_date->format('Y-m-d') : '') }}">
+                                                @error('expense_date')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label for="description">Description</label>
+                                                <textarea name="description" class="form-control" rows="3" placeholder="Enter description (optional)">{{ old('description', $expense->description) }}</textarea>
+                                                @error('description')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
                                         </div>
                                     </div>
+
                                     <button type="submit" class="btn btn-primary mr-2">Update Expense</button>
                                     <button type="reset" class="btn btn-danger">Reset</button>
                                 </form>

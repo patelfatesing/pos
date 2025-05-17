@@ -15,6 +15,7 @@
                             </h5>
                         </div>
 
+
                         <button type="button" class="close" wire:click="$set('showModal', false)">
                             <span aria-hidden="true">×</span>
                         </button>
@@ -35,20 +36,29 @@
                                 {{-- Sales Breakdown --}}
                                 <div class="col-md-6">
                                     <div class="card p-4">
-                                        <h4 class="mb-3">Sales Details</h4>
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h4 class="mb-0">Sales Details</h4>
+
+                                            <button wire:click="openClosingStocksModal" class="btn btn-secondary btn-sm"
+                                                title="View Stock Status">
+                                                View Stock Status
+                                            </button>
+                                        </div>
+
                                         <hr class="mb-4">
-                                    
+
                                         <div class="row">
                                             @foreach ($categoryTotals as $category => $items)
                                                 @php
                                                     $isSummary = $category == 'summary';
                                                     $colClass = $isSummary ? 'col-12 mb-4' : 'col-md-6 mb-4';
                                                 @endphp
-                                    
+
                                                 <div class="{{ $colClass }}">
                                                     <div class="card h-100 border-0 shadow-sm">
                                                         <div class="card-header bg-gradient bg-primary text-white">
-                                                            <h5 class="mb-0 text-capitalize">{{ ucfirst($category) }}</h5>
+                                                            <h5 class="mb-0 text-capitalize">{{ ucfirst($category) }}
+                                                            </h5>
                                                         </div>
                                                         <div class="card-body p-0">
                                                             <table class="table mb-0">
@@ -56,14 +66,20 @@
                                                                     @foreach ($items as $key => $value)
                                                                         @php
                                                                             $isTotal = strtoupper($key) === 'TOTAL';
-                                                                            $creditDetails = strtoupper($key) === 'CREDIT' || strtoupper($key) === 'REFUND_CREDIT' ? "(Excluded from Cash)" :"";
+                                                                            $creditDetails =
+                                                                                strtoupper($key) === 'CREDIT' ||
+                                                                                strtoupper($key) === 'REFUND_CREDIT'
+                                                                                    ? '(Excluded from Cash)'
+                                                                                    : '';
 
-                                                                            $rowClass = $isTotal ? 'table-success fw-bold' : '';
+                                                                            $rowClass = $isTotal
+                                                                                ? 'table-success fw-bold'
+                                                                                : '';
                                                                         @endphp
                                                                         <tr class="{{ $rowClass }}">
                                                                             <td class="text-muted text-capitalize">
                                                                                 {{ str_replace('_', ' ', $key) }}
-                                                                                <small>{{@$creditDetails}}</small>
+                                                                                <small>{{ @$creditDetails }}</small>
                                                                             </td>
                                                                             <td class="text-end fw-semibold">
                                                                                 {{ format_inr($value) }}
@@ -78,7 +94,7 @@
                                             @endforeach
                                         </div>
                                     </div>
-                                    
+
                                 </div>
 
                                 {{-- Shift Timing and Cash Details --}}
@@ -91,7 +107,8 @@
                                                     <div class="row text-left mt-2">
                                                         <div class="col-6 border-end">
                                                             <div class="small text-muted">Start Time</div>
-                                                            <div class="fw-semibold">{{ $shift->start_time ?? '-' }}</div>
+                                                            <div class="fw-semibold">{{ $shift->start_time ?? '-' }}
+                                                            </div>
                                                         </div>
                                                         <div class="col-6">
                                                             <div class="small text-muted">End Time</div>
@@ -109,8 +126,10 @@
                                             <hr>
                                             {{-- Cash Breakdown --}}
                                             <h5 class="card-title text-warning text-left mb-3">💵 Cash Details</h5>
+
                                             <div class="table-responsive">
-                                                <table class="table table-bordered table-sm text-center align-middle mb-0">
+                                                <table
+                                                    class="table table-bordered table-sm text-center align-middle mb-0">
                                                     <thead class="table-light">
                                                         <tr>
                                                             <th>Denomination</th>
@@ -166,20 +185,19 @@
                                                         </tr>
                                                         <tr>
                                                             <td class="text-start fw-bold">Total Cash Amount</td>
-                                                            <td class="text-end">{{ format_inr(@$this->categoryTotals['summary']['TOTAL']) }}
+                                                            <td class="text-end">
+                                                                {{ format_inr(@$this->categoryTotals['summary']['TOTAL']) }}
                                                             </td>
                                                         </tr>
                                                         <tr>
                                                             <td class="text-start fw-bold">Closing Cash</td>
                                                             <td class="text-end">
                                                                 <input type="number"
-                                                                wire:model.live.debounce.500ms="closingCash"
+                                                                    wire:model.live.debounce.500ms="closingCash"
                                                                     wire:change="calculateDiscrepancy"
                                                                     class="form-control @error('closingCash') is-invalid @enderror"
-                                                                    min="0"
-                                                                    step="0.01"
-                                                                    placeholder="Enter closing cash"
-                                                                >
+                                                                    min="0" step="0.01"
+                                                                    placeholder="Enter closing cash">
                                                                 @error('closingCash')
                                                                     <div class="invalid-feedback">
                                                                         {{ $message }}
@@ -194,7 +212,7 @@
                                                                     class="form-control" readonly>
                                                             </td>
                                                         </tr>
-                                                        
+
                                                     </tbody>
                                                 </table>
                                             </div>

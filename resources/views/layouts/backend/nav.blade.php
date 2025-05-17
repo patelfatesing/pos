@@ -31,6 +31,11 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
         line-height: 1;
         box-shadow: 0 0 0 2px white;
     }
+
+    .scrollable-container {
+        height: 400px;
+        overflow-y: auto;
+    }
 </style>
 <div class="iq-top-navbar">
     <div class="iq-navbar-custom">
@@ -216,7 +221,8 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                 id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
                                 aria-expanded="false">
                                 <i class="fas fa-bell notification-icon"></i>
-                                <div class="notification-count">{{ $getCount }}</div>
+                                <div class="notification-count" id="all_unread_notificationCount">{{ $getCount }}
+                                </div>
                                 <span class="bg-primary"></span>
                             </a>
                             <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
@@ -225,84 +231,18 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                         <div class="cust-title p-3">
                                             <div class="d-flex align-items-center justify-content-between">
                                                 <h5 class="mb-0">Notifications</h5>
-                                                <a class="badge badge-primary badge-card"
+                                                <a class="badge badge-primary badge-card" id="all_notificationCount"
                                                     href="#">{{ $getTotalCount }}</a>
                                             </div>
                                         </div>
-                                        <div class="px-3 pt-0 pb-0 sub-card">
-
-                                            @foreach ($getNotification as $key => $item)
-                                                <?php
-                                                $id = '';
-                                                if (!empty($item->details)) {
-                                                    $data = json_decode($item->details);
-                                                    $id = $data->id;
-                                                }
-                                                ?>
-                                                <a href="#" data-id="{{ $id }}"
-                                                    class="iq-sub-card open-form mb-1 {{ $item->status == 'read' ? 'msg_read' : 'msg_unread' }}"
-                                                    data-type="{{ $item->type }}" id="{{ $item->id }}"
-                                                    data-nfid="{{ $item->id }}">
-                                                    <div class="media align-items-center cust-card py-3 border-bottom">
-                                                        <div class="">
-                                                            <img class="avatar-50 rounded-small"
-                                                                src="{{ asset('assets/images/user/notification.png') }}"
-                                                                alt="01" />
-
-                                                        </div>
-                                                        <div class="media-body ml-3">
-                                                            <div
-                                                                class="d-flex align-items-center justify-content-between">
-                                                                <h6 class="mb-0">
-                                                                    {{ ucwords(str_replace('_', ' ', $item->type)) }}
-                                                                </h6>
-                                                            </div>
-
-                                                            <input type="hidden" id=""
-                                                                value="{{ $id }}" name="id" />
-                                                            <small class="mb-0 mt-1 mb-1">{{ $item->content }}</small>
-                                                            <div
-                                                                class="d-flex align-items-center justify-content-between">
-                                                                <small
-                                                                    class="text-dark"><b>{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y, h:i A') }}</b></small>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </a>
-                                            @endforeach
-                                            {{-- <a href="#" class="iq-sub-card">
-                                                <div class="media align-items-center cust-card py-3 border-bottom">
-                                                    <div class="">
-                                                        <img class="avatar-50 rounded-small"
-                                                            src="{{ asset('assets/images/user/02.jpg') }}"
-                                                            alt="02" />
-                                                    </div>
-                                                    <div class="media-body ml-3">
-                                                        <div class="d-flex align-items-center justify-content-between">
-                                                            <h6 class="mb-0">Ashlynn Franci</h6>
-                                                            <small class="text-dark"><b>11 : 30 pm</b></small>
-                                                        </div>
-                                                        <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                    </div>
-                                                </div>
-                                            </a>
-                                            <a href="#" class="iq-sub-card">
-                                                <div class="media align-items-center cust-card py-3">
-                                                    <div class="">
-                                                        <img class="avatar-50 rounded-small"
-                                                            src="{{ asset('assets/images/user/03.jpg') }}"
-                                                            alt="03" />
-                                                    </div>
-                                                    <div class="media-body ml-3">
-                                                        <div class="d-flex align-items-center justify-content-between">
-                                                            <h6 class="mb-0">Kianna Carder</h6>
-                                                            <small class="text-dark"><b>11 : 21 pm</b></small>
-                                                        </div>
-                                                        <small class="mb-0">Lorem ipsum dolor sit amet</small>
-                                                    </div>
-                                                </div>
-                                            </a> --}}
+                                        <div class="px-3 pt-0 pb-0 sub-card scrollable-container"
+                                            id="notificationList"></div>
+                                        <div id="showAllWrapper" class="text-center mt-2" style="display: none;">
+                                            <a href="{{ route('notifications.index') }}"
+                                                class="btn btn-sm btn-primary">Show All</a>
                                         </div>
+
+
                                         {{-- <a class="right-ic btn btn-primary btn-block position-relative p-2"
                                             href="#" role="button">
                                             View All
@@ -415,8 +355,8 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
         }
     });
 
-    var pusher = new Pusher("36ff0160ad86db49c893", {
-        cluster: "ap2",
+    var pusher = new Pusher("{{ config('broadcasting.connections.pusher.key') }}", {
+        cluster: "{{ config('broadcasting.connections.pusher.options.cluster') }}",
         encrypted: true,
     });
 
@@ -425,7 +365,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
 
         Swal.fire({
             title: '📢 New Notification!',
-            text: `${data.message} (Customer: ${data.customer})`,
+            text: `${data.message} (Notify By: ${data.customer})`,
             icon: 'info',
             confirmButtonText: 'Okay'
         }).then((result) => {
@@ -434,7 +374,8 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                 console.log('User clicked Okay');
 
                 $.ajax({
-                    url: '/popup/form/' + data.type + "?id=" + data.value + "&nfid=" + data.nfid,
+                    url: '/popup/form/' + data.type + "?id=" + data.value + "&nfid=" + data
+                        .nfid,
                     type: 'GET',
                     success: function(response) {
 
@@ -449,4 +390,82 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
             }
         });
     });
+
+    function fetchNotifications() {
+        fetch('{{ route('notifications.get-notication') }}')
+            .then(response => response.json())
+            .then(data => {
+                
+                let get_data = data.data;
+                let all_count = data.res_all;
+
+                // Display or hide "Show All" button
+                if (data.res_all > 10) {
+                    showAllWrapper.style.display = 'block';
+                } else {
+                    showAllWrapper.style.display = 'none';
+                }
+
+                document.getElementById("all_notificationCount").innerText = data.res_all_unread;
+                document.getElementById("all_notificationCount").innerText = data.res_all;
+                const container = document.getElementById("notificationList");
+                container.innerHTML = ''; // Clear existing content
+
+                get_data.forEach(item => {
+                    let id = '';
+                    if (item.details) {
+                        try {
+                            const parsedDetails = JSON.parse(item.details);
+                            id = parsedDetails.id || '';
+                        } catch (e) {
+                            console.error('Error parsing details:', e);
+                        }
+                    }
+
+                    const isRead = item.status === 'read' ? 'msg_read' : 'msg_unread';
+                    const type = item.type.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+                    const createdAt = new Date(item.created_at);
+                    const formattedDate = createdAt.toLocaleString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                    });
+
+                    const html = `
+                    <a href="#" data-id="${id}" class="iq-sub-card open-form mb-1 ${isRead}"
+                        data-type="${item.type}" id="${item.id}" data-nfid="${item.id}">
+                        <div class="media align-items-center cust-card py-3 border-bottom">
+                            <div>
+                                <img class="avatar-50 rounded-small" src="/assets/images/user/notification.png" alt="01" />
+                            </div>
+                            <div class="media-body ml-3">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h6 class="mb-0">${type}</h6>
+                                </div>
+                                <input type="hidden" value="${id}" name="id" />
+                                <small class="mb-0 mt-1 mb-1">${item.content}</small>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <small class="text-dark"><b>${formattedDate}</b></small>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                `;
+
+                    container.insertAdjacentHTML('beforeend', html);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching notifications:', error);
+            });
+    }
+
+
+    // Call every 30 seconds
+    // setInterval(fetchNotifications, 3000);
+    // Fetch immediately on page load
+    fetchNotifications();
 </script>
