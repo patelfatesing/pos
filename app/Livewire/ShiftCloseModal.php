@@ -217,7 +217,8 @@ class ShiftCloseModal extends Component
         // $this->categoryTotals['summary']['REFUND'] += $totalRefundReturn *(-1);
         $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['OPENING CASH'] + $this->categoryTotals['summary']['TOTAL SALES'] + $this->categoryTotals['summary']['DISCOUNT'] + $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $this->categoryTotals['summary']['UPI PAYMENT'] + @$this->categoryTotals['summary']['REFUND']+
         $this->categoryTotals['summary']['ONLINE PAYMENT'];
-        $this->categoryTotals['summary']['REFUND'] = $totalRefund*(-1);
+        $this->categoryTotals['summary']['REFUND'] = $totalRefund*(-1)+$totalRefundReturn*(-1);
+        //$this->categoryTotals['summary']['REFUND RETURN'] = $totalRefundReturn*(-1);
         $this->categoryTotals['summary']['CREDIT'] = $totals->credit_total;
         $this->categoryTotals['summary']['REFUND_CREDIT'] = $totals->debit_total;
         if (!empty($this->categoryTotals['summary']['REFUND_CREDIT'])) {
@@ -287,7 +288,7 @@ class ShiftCloseModal extends Component
             
             if ($holdInvoiceExists) {
                 DB::rollBack();
-                $this->dispatch('notiffication-error', ['message' => 'You have pending invoices on hold. Please clear them before closing the shift..']);
+                $this->dispatch('close-shift-error');
                 return;
             }
 

@@ -59,8 +59,8 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 @this.call('deleteTransaction', transactionId);
-                $('#holdTransactionsModal').modal('hide');
-                $('.modal-backdrop').remove(); // Removes the backdrop
+                document.getElementById('holdTransactionsModal').style.display = 'none';
+                $('.modal-backdrop.show').remove();
             }
         });
     }
