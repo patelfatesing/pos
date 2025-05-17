@@ -29,6 +29,7 @@ use App\Models\InvoiceHistory;
 use App\Models\PartyCustomerProductsPrice;
 use App\Models\CommissionUserImage;
 use App\Models\PartyUserImage;
+use App\Models\DailyProductStock;
 
 class Shoppingcart extends Component
 {
@@ -119,6 +120,7 @@ class Shoppingcart extends Component
     public $partyUserDetails;
     public $partyUserDiscountAmt=0;
     public $finalDiscountPartyAmount=0;
+    public $productStock = [];
 
     // This method is triggered whenever the checkbox is checked or unchecked
     public function updatedUseCredit($value)
@@ -128,6 +130,7 @@ class Shoppingcart extends Component
             $this->useCredit = false;  // Optional: Reset the amount if checkbox is unchecked
         }
     }
+
     public function toggleCheck()
     {
         $this->useCredit = !$this->useCredit;
@@ -138,6 +141,7 @@ class Shoppingcart extends Component
         }
      
     }
+
     public function printLastInvoice()
     {
         $invoice = \App\Models\Invoice::latest('id')->first();
@@ -161,10 +165,12 @@ class Shoppingcart extends Component
             'pdfPath' => asset('storage/invoices/duplicate_' . $invoice->invoice_number . '.pdf')
         ]);
     }
+
     public function updatedSearch($value)
     {
         $this->selectedProduct = Product::where('barcode', $value)->first();
     }
+
     public function updatedSearchSalesReturn($value)
     {
         $this->selectedSalesReturn = Invoice::with('cashBreak')
@@ -172,8 +178,6 @@ class Shoppingcart extends Component
             ->where('user_id', auth()->id())
             ->where('branch_id', auth()->user()->userinfo->branch->id ?? null)
             ->first();
-
-        
     }
 
     public function addToCartBarCode()
@@ -257,6 +261,7 @@ class Shoppingcart extends Component
           //  session()->flash('success', 'Product added to the cart successfully');
            // $this->dispatch('notiffication-sucess', ['message' => 'Product added to the cart successfully']);
     }
+
     public function addToSalesreturn()
     {
         if(@$this->selectedSalesReturn->status=="Paid"){
@@ -329,6 +334,7 @@ class Shoppingcart extends Component
 
 
     }
+
         // Trigger numpad when an input field is clicked
         public function setFocusedField($field)
         {
@@ -360,6 +366,7 @@ class Shoppingcart extends Component
             $this->numpadValue = $updated ?: '0';
         }
     }
+
     public function creditPayChanged()
     {
         if($this->creditPay>0){
@@ -400,6 +407,7 @@ class Shoppingcart extends Component
     {
         $this->dispatch('hide-numpad-modal'); // Close modal when 'OK' is clicked
     }
+
     public function toggleBox()
     {
         if (auth()->user()->hasRole('warehouse')) {
@@ -434,7 +442,8 @@ class Shoppingcart extends Component
             }
         }
 
-      }
+    }
+
     public function cashupitoggleBox()
     {
         if (auth()->user()->hasRole('warehouse')) {
@@ -474,6 +483,7 @@ class Shoppingcart extends Component
         }
         
     }
+
     public function onlinePayment()
     {
         if (auth()->user()->hasRole('warehouse')) {
@@ -510,6 +520,7 @@ class Shoppingcart extends Component
             }
         }
     }
+
     public function processRefund()
     {
         try {
@@ -565,6 +576,7 @@ class Shoppingcart extends Component
             $this->dispatch('notiffication-error', ['message' => 'Failed to process refund.']);
         }
     }
+
     public function refundoggleBox()
     {
         $this->showBox = true;
@@ -577,6 +589,7 @@ class Shoppingcart extends Component
         $this->total = $this->cashAmount;
 
     }
+
     public function srtoggleBox()
     {
         $invoice = Invoice::where('invoice_number', $this->searchSalesReturn)
@@ -664,6 +677,7 @@ class Shoppingcart extends Component
         $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount','selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown','cartitems','searchSalesReturn');
          $this->dispatch('notiffication-sucess', ['message' => 'Sales return initiated.']);
     }
+
     public function updatedCash($value)
     {
         if ($this->updatingField !== 'upi') {
@@ -685,8 +699,6 @@ class Shoppingcart extends Component
             $this->cash = $this->cashAmount - $this->upi;
             $this->updatingField = null;
             $this->total = $this->cashAmount;
-            
-
         }
     }
 
@@ -713,6 +725,7 @@ class Shoppingcart extends Component
 
         //$this->remainingAmount = $this->cashAmount - $total;
     }
+
     public function getTotalCash()
     {
         $total = 0;
@@ -724,11 +737,8 @@ class Shoppingcart extends Component
                 $total += ($in - $out) * $denomination;
             }
         }
-        
-
         return $total;
     }
-
 
     public function selectNote($key, $denomination, $type)
     {
@@ -761,6 +771,7 @@ class Shoppingcart extends Component
         }
         return $total;
     }
+
     public function updatedLanguage($value)
     {
         Session::put('locale', $value);
@@ -768,6 +779,7 @@ class Shoppingcart extends Component
         $this->language = $value; // Update the language property
         $this->dispatch('language-updated', ['language' => $value]); // Notify frontend
     }
+
     public function mount()
     {
         $this->language = Session::get('locale') ?? config('app.locale');
@@ -867,7 +879,13 @@ class Shoppingcart extends Component
 
         $this->products = Product::all();
 
-        // dd($this->products);
+        // $date = Carbon::yesterday();
+      
+        $this->productStock = DailyProductStock::with('product')
+                        ->where('branch_id', $branch_id)
+                        ->whereDate('date', Carbon::yesterday())
+                        ->get();
+
         foreach ($this->noteDenominations as $index => $denomination) {
             $this->cashNotes[$index][$denomination] = ['in' => 0, 'out' => 0];
         }
@@ -959,6 +977,7 @@ class Shoppingcart extends Component
             }
         }
     }
+
     public function clearCashUpiNotes()
     {
         foreach ($this->cashupiNotes as $key => $denominations) {
@@ -1869,7 +1888,16 @@ class Shoppingcart extends Component
             foreach ($groupedProducts as $productId => $totalQuantity) {
                 $product = $this->cartitems->firstWhere('product_id', $productId)->product;
                 $inventories = $product->inventories;
+                $inventory =$product->inventorie;
+                
+                if ($inventory && $inventory->quantity < $inventory->product->reorder_level) {
+                    // You can use your custom function like sendNotification, or better use Laravel Notification system
 
+                    // Example with your function:
+                    $arr['id'] = $inventory->product->id;
+                    sendNotification('low_stock', 'Store stock request', null, auth()->id(),json_encode($arr));
+
+                }
                 if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
                     // Deduct only from the first inventory if it has enough quantity
                     $inventories[0]->quantity -= $totalQuantity;

@@ -29,69 +29,85 @@ class SalesReportController extends Controller
 
     public function getData(Request $request)
     {
-        $query = DB::table('invoices') 
-            ->select('id', 'invoice_number', 'status', 'sub_total', 'tax','commission_amount','party_amount', 'total', 'items', 'branch_id','created_at');
-    
+        $query = DB::table('invoices')
+            ->join('branches', 'invoices.branch_id', '=', 'branches.id')
+            ->select(
+                'invoices.id',
+                'invoices.invoice_number',
+                'invoices.status',
+                'invoices.sub_total',
+                'invoices.tax',
+                'invoices.commission_amount',
+                'invoices.party_amount',
+                'invoices.total',
+                'invoices.items',
+                'invoices.branch_id',
+                'branches.name as branch_name',
+                'invoices.created_at'
+            );
+
         if ($request->start_date && $request->end_date) {
-            $query->whereBetween('created_at', [
+            $query->whereBetween('invoices.created_at', [
                 Carbon::parse($request->start_date)->startOfDay(),
                 Carbon::parse($request->end_date)->endOfDay(),
             ]);
         }
-    
-        if ($request->branch_id) {
-            $query->where('branch_id', $request->branch_id);
+
+        if (!empty($request->branch_id)) {
+            $query->where('invoices.branch_id', $request->branch_id);
         }
-    
-        $totalRecords = $query->count(); // total records before filtering
-    
+
+        $totalRecords = $query->count();
+
         // Search
-        if ($request->search['value']) {
+        if (!empty($request->search['value'])) {
             $searchValue = $request->search['value'];
-            $query->where(function($q) use ($searchValue) {
-                $q->where('invoice_number', 'like', "%{$searchValue}%")
-                  ->orWhere('status', 'like', "%{$searchValue}%");
+            $query->where(function ($q) use ($searchValue) {
+                $q->where('invoices.invoice_number', 'like', "%{$searchValue}%")
+                    ->orWhere('invoices.status', 'like', "%{$searchValue}%")
+                    ->orWhere('branches.name', 'like', "%{$searchValue}%");
             });
         }
-    
-        $filteredRecords = $query->count(); // after search filter
-    
+
+        $filteredRecords = $query->count();
+
         // Sorting
         if ($request->order) {
-            $columns = ['id', 'invoice_number', 'status', 'sub_total', 'tax', 'total','commission_amount','branch_id','party_amount', 'items', 'created_at'];
-            $orderColumn = $columns[$request->order[0]['column']] ?? 'created_at';
+            $columns = ['invoices.id', 'invoices.invoice_number', 'invoices.status', 'invoices.sub_total', 'invoices.tax', 'invoices.total', 'invoices.commission_amount', 'invoices.branch_id', 'invoices.party_amount', 'invoices.items', 'invoices.created_at', 'branches.name'];
+            $orderColumn = $columns[$request->order[0]['column']] ?? 'invoices.created_at';
             $orderDir = $request->order[0]['dir'] ?? 'desc';
             $query->orderBy($orderColumn, $orderDir);
         }
-    
+
         // Pagination
         $query->skip($request->start)
-              ->take($request->length);
-    
+            ->take($request->length);
+
         $invoices = $query->get();
-    
+
         $data = [];
         foreach ($invoices as $invoice) {
             $items = json_decode($invoice->items, true);
             $itemCount = collect($items)->sum('quantity');
-    
+
             $action = '<div class="d-flex align-items-center list-action">
                         <a class="badge badge-success mr-2" data-toggle="tooltip" data-placement="top" title="View"
                         href="' . url('/view-invoice/' . $invoice->id) . '">' . $invoice->invoice_number . '</a>
-                       </div>';
-    
+                    </div>';
+
             $data[] = [
                 'invoice_number' => $action,
                 'status' => $invoice->status,
                 'sub_total' => number_format($invoice->sub_total, 2),
                 'total' => number_format($invoice->total, 2),
-                'commission_amount' =>number_format($invoice->commission_amount, 2),
-                'party_amount' =>number_format($invoice->party_amount, 2),
+                'commission_amount' => number_format($invoice->commission_amount, 2),
+                'party_amount' => number_format($invoice->party_amount, 2),
                 'items_count' => $itemCount,
+                'branch_name' => $invoice->branch_name,
                 'created_at' => Carbon::parse($invoice->created_at)->format('Y-m-d H:i:s'),
             ];
         }
-    
+
         return response()->json([
             'draw' => intval($request->draw),
             'recordsTotal' => $totalRecords,
@@ -99,7 +115,7 @@ class SalesReportController extends Controller
             'data' => $data,
         ]);
     }
-    
+
     public function storeSummary()
     {
         $invoices = DB::table('invoices')

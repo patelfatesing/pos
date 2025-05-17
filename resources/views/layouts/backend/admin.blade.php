@@ -137,7 +137,7 @@
                             </a>
                         </li>
                         <li class="">
-                            <a href="#">
+                            <a href="{{ route('shift-manage.list') }}">
                                 <i class="las la-minus"></i><span>Shift Manage</span>
                             </a>
                         </li>

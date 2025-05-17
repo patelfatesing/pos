@@ -17,7 +17,7 @@
                         <span class="ml-4">Dashboards</span>
                     </a>
                 </li>
-                <li class=" ">
+                {{-- <li class=" ">
                     <a href="#inventory" class="collapsed" data-toggle="collapse" aria-expanded="false">
                         <svg class="svg-icon" id="p-dash2" width="20" height="20"
                             xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -81,7 +81,7 @@
                         </li>
 
                     </ul>
-                </li>
+                </li> --}}
             </ul>
         </nav>
         {{-- <div id="sidebar-bottom" class="position-relative sidebar-bottom">

@@ -6,7 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\UserShift;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
- 
+use App\Models\DailyProductStock;
+
 
 class CashInHandController extends Controller
 {
@@ -18,6 +19,8 @@ class CashInHandController extends Controller
             'amount' => 'required|numeric',
            // 'cashNotes' => 'required|array',
         ]);
+
+
         $data = $request->all();
 
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
@@ -50,6 +53,7 @@ class CashInHandController extends Controller
             'denominations' => $cashNotes,
             'total' => $request->amount,
         ]);
+
         UserShift::updateOrCreate(
             [
                 'user_id' => auth()->id(),
@@ -63,6 +67,23 @@ class CashInHandController extends Controller
                 'cash_break_id' => $cashBreakdown->id,
             ]
         );
+
+        $stocks = DailyProductStock::with('product')
+            ->where('branch_id', $branch_id)
+            ->whereDate('date', Carbon::yesterday())
+            ->get();
+
+            foreach($stocks as $key){
+
+                DailyProductStock::updateOrCreate(
+                                            [
+                                                'product_id' => $key->product_id,
+                                                'branch_id' => $branch_id,
+                                                'date' => Carbon::today(),
+                                                'opening_stock' => $key->closing_stock,
+                                            ]
+                                        );
+            }
 
         //return redirect()->route('items.cart')->with('notification-sucess', 'Cash in hand saved.');
          return redirect()->back()->with('notification-sucess', 'Cash in hand saved.');

@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Log;
 use App\Models\Notification;
 use App\Events\DrawerOpened;
-
+use App\Models\User;
 use App\Models\Product;
 use App\Models\PartyCustomerProductsPrice;
 
@@ -20,6 +20,9 @@ if (!function_exists('pre')) {
 if (!function_exists('sendNotification')) {
     function sendNotification($type, $content, $notifyTo, $createdBy, $details = null, $priority = 0)
     {
+ 
+      $userData = User::with(['userInfo'])->where('users.id', $createdBy)->where('is_deleted', 'no')->firstOrFail();
+        
        $notification = Notification::create([
             'type' => $type,
             'content' => $content,
@@ -32,7 +35,7 @@ if (!function_exists('sendNotification')) {
         $data = json_decode($details);
          event(new DrawerOpened([
             'message' => $content,
-            'customer' => $notifyTo,
+            'customer' => $userData->name,
             'type' => $type,
             'value' => $data->id,
             'nfid' => $notification->id, // You can pass real customer data here
@@ -59,7 +62,7 @@ if (!function_exists('getNotificationsByNotifyTo')) {
 }
 
 if (!function_exists('getNotificationsByCreatedBy')) {
-    function getNotificationsByCreatedBy($userId, $limit = 50)
+    function getNotificationsByCreatedBy($userId, $limit = 10)
     {
         return Notification::where('created_by', $userId)
                            ->orderBy('created_at', 'desc')

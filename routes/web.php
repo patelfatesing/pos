@@ -34,6 +34,7 @@ use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\DemandOrderController;
 use App\Http\Controllers\ProductImportController;
+use App\Http\Controllers\ShiftManageController;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
 
@@ -274,7 +275,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/popup/form/{type}', [NotificationController::class, 'loadForm']);
     Route::get('/notifications/index', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/fetch-data', [NotificationController::class, 'getData'])->name('notifications.fetch-data');
-
+    Route::get('/notifications/get-notification', [NotificationController::class, 'getNotication'])->name('notifications.get-notication');
+    
 
     // routes/web.php
     Route::get('sales/sales-list', [SalesReportController::class, 'salasList'])->name('sales.sales.list');
@@ -305,6 +307,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/exp/create', [ExpenseController::class, 'create'])->name('exp.create');
     Route::post('/exp/store', [ExpenseController::class, 'store'])->name('exp.store');
     Route::get('/exp/edit/{id}', [ExpenseController::class, 'edit'])->name('exp.edit');
+    Route::post('/exp/update', [ExpenseController::class, 'update'])->name('exp.update');
 
     Route::get('/demand-order/list', [DemandOrderController::class, 'index'])->name('demand-order.list');
     Route::post('/demand-order/get-data', [DemandOrderController::class, 'getData'])->name('demand-order.getData');
@@ -316,5 +319,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/products/import', [ProductImportController::class, 'showUploadForm'])->name('products.import');
     Route::post('/products/upload', [ProductImportController::class, 'import'])->name('products.upload');
     Route::post('/products/import-data', [ProductImportController::class, 'importData'])->name('products.import.data');
+
+    Route::get('/shift-manage/list', [ShiftManageController::class, 'index'])->name('shift-manage.list');
+    Route::post('/shift-manage/get-data', [ShiftManageController::class, 'getShiftClosingsData'])->name('shift-manage.getData');
+    Route::post('shift-manage/invoices-by-branch', [ShiftManageController::class, 'getInvoicesByBranch'])->name('shift-manage.invoices-by-branch');
+    Route::post('shift-manage/close-shift/{id}', [ShiftManageController::class, 'closeShift'])->name('shift-manage.close-shift');
+
 
 require __DIR__.'/auth.php';

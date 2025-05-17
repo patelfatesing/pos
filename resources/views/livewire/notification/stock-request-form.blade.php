@@ -56,7 +56,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>Status: </label>
+                                <label>Notes: </label>
                                 <span class="ml-2"> {{ $stockRequest->notes ?? '-' }}</span>
                             </div>
                         </div>

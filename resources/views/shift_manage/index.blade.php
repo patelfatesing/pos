@@ -1,0 +1,301 @@
+@extends('layouts.backend.layouts')
+
+@section('page-content')
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <!-- Wrapper Start -->
+    <div class="wrapper">
+
+        <div class="content-page">
+            <div class="container-fluid">
+                <div class="col-lg-12">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+                        <div>
+                            <h4 class="mb-3">Shift Manage</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive rounded mb-3">
+                    <table class="table data-tables table-striped" id="shift_tbl">
+                        <thead class="bg-white text-uppercase">
+                            <tr class="ligth ligth-data">
+                                <th>Store</th>
+                                <th>Cashier</th>
+                                <th>Shift Start</th>
+                                <th>Shift End</th>
+                                <th>Opening Cash</th>
+                                <th>Status</th>
+                                <th>Total Transaction</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Page end  -->
+            </div>
+        </div>
+    </div>
+    <!-- Wrapper End-->
+
+    <!-- Transactions Modal -->
+    <div class="modal fade" id="transactionsModal" tabindex="-1" aria-labelledby="transactionsModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="transactionsModalLabel">Transactions for Store: <span
+                            id="modal-branch-name"></span></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="invoice_table_modal">
+                            <thead>
+                                <tr>
+                                    <th>Invoice No</th>
+                                    <th>Cash Amount</th>
+                                    <th>UPI Amount</th>
+                                    <th>Online Amount</th>
+                                    <th>Credit Pay</th>
+                                    <th>Payment Mode</th>
+                                    <th>Total Items</th>
+                                    <th>Sub Total</th>
+                                    <th>Tax</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Created At</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="12" class="text-center">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            $('#shift_tbl').DataTable().clear().destroy();
+
+            $('#shift_tbl').DataTable({
+                pageLength: 10,
+                responsive: true,
+                processing: true,
+                ordering: true,
+                bLengthChange: true,
+                serverSide: true,
+
+                ajax: {
+                    url: '{{ url('shift-manage/get-data') }}',
+                    type: 'POST',
+                    data: function(d) {
+                        // Add any extra data if needed
+                    },
+                },
+                columns: [{
+                        data: 'branch_name',
+                        name: 'branch_name'
+                    },
+                    {
+                        data: 'user_name',
+                        name: 'user_name'
+                    },
+                    {
+                        data: 'start_time',
+                        name: 'start_time'
+                    },
+                    {
+                        data: 'end_time',
+                        name: 'end_time'
+                    },
+                    {
+                        data: 'opening_cash',
+                        name: 'opening_cash',
+                        render: function(data, type, row) {
+                            return '₹' + parseFloat(data).toFixed(2);
+                        }
+                    },
+                    {
+                        data: 'status',
+                        name: 'status'
+                    },
+                    {
+                        data: 'total_transaction',
+                        name: 'total_transaction'
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false
+                    },
+                ],
+                aoColumnDefs: [{
+                    bSortable: false,
+                    aTargets: [1, 3, 4, 5, 6, 7] // make "action" column unsortable
+                }],
+                order: [
+                    [2, 'desc']
+                ], // Default order on shift_start DESC
+                dom: "Bfrtip",
+                lengthMenu: [
+                    [10, 25, 50],
+                    ['10 rows', '25 rows', '50 rows']
+                ],
+                buttons: ['pageLength']
+            });
+
+        });
+
+        // Use event delegation for dynamically created elements:
+        $('#shift_tbl tbody').on('click', '.view-transactions', function() {
+            var branchId = $(this).data('branch-id');
+            var branchName = $(this).data('branch-name');
+
+            $('#modal-branch-name').text(branchName);
+            var $tbody = $('#invoice_table_modal tbody');
+            $tbody.html('<tr><td colspan="12" class="text-center">Loading...</td></tr>');
+
+            // Show the modal
+            var myModal = new bootstrap.Modal(document.getElementById('transactionsModal'));
+            myModal.show();
+
+            $.ajax({
+                url: '{{ url('shift-manage/invoices-by-branch') }}',
+                method: 'POST',
+                data: {
+                    branch_id: branchId,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.data && response.data.length > 0) {
+                        var rows = '';
+                        var totalCash = 0,
+                            totalUPI = 0,
+                            totalOnline = 0,
+                            totalCredit = 0;
+                        var totalSubtotal = 0,
+                            totalTax = 0,
+                            totalTotal = 0,
+                            totalQty = 0;
+
+                        $.each(response.data, function(i, invoice) {
+                            var cash = parseFloat(invoice.cash_amount);
+                            var upi = parseFloat(invoice.upi_amount);
+                            var online = parseFloat(invoice.online_amount);
+                            var credit = parseFloat(invoice.creditpay);
+                            var subtotal = parseFloat(invoice.sub_total);
+                            var tax = parseFloat(invoice.tax);
+                            var total = parseFloat(invoice.total);
+                            var qty = parseInt(invoice.total_item_qty);
+
+                            totalCash += cash;
+                            totalUPI += upi;
+                            totalOnline += online;
+                            totalCredit += credit;
+                            totalSubtotal += subtotal;
+                            totalTax += tax;
+                            totalTotal += total;
+                            totalQty += qty;
+
+                            rows += '<tr>' +
+                                '<td>' + invoice.invoice_number + '</td>' +
+                                '<td>₹' + cash.toFixed(2) + '</td>' +
+                                '<td>₹' + upi.toFixed(2) + '</td>' +
+                                '<td>₹' + online.toFixed(2) + '</td>' +
+                                '<td>₹' + credit.toFixed(2) + '</td>' +
+                                '<td>' + invoice.payment_mode + '</td>' +
+                                '<td>' + qty + '</td>' +
+                                '<td>₹' + subtotal.toFixed(2) + '</td>' +
+                                '<td>₹' + tax.toFixed(2) + '</td>' +
+                                '<td>₹' + total.toFixed(2) + '</td>' +
+                                '<td>' + invoice.status + '</td>' +
+                                '<td>' + invoice.created_at + '</td>' +
+                                '</tr>';
+                        });
+
+                        // Add totals row
+                        rows += '<tr style="font-weight: bold; background: #f8f9fa;">' +
+                            '<td class="text-end">Total:</td>' +
+                            '<td>₹' + totalCash.toFixed(2) + '</td>' +
+                            '<td>₹' + totalUPI.toFixed(2) + '</td>' +
+                            '<td>₹' + totalOnline.toFixed(2) + '</td>' +
+                            '<td>₹' + totalCredit.toFixed(2) + '</td>' +
+                            '<td></td>' +
+                            '<td>' + totalQty + '</td>' +
+                            '<td>₹' + totalSubtotal.toFixed(2) + '</td>' +
+                            '<td>₹' + totalTax.toFixed(2) + '</td>' +
+                            '<td>₹' + totalTotal.toFixed(2) + '</td>' +
+                            '<td colspan="2"></td>' +
+                            '</tr>';
+
+                        $tbody.html(rows);
+                    } else {
+                        $tbody.html(
+                            '<tr><td colspan="12" class="text-center">No transactions found.</td></tr>'
+                        );
+                    }
+                },
+                error: function() {
+                    $tbody.html(
+                        '<tr><td colspan="12" class="text-center text-danger">Error loading transactions.</td></tr>'
+                    );
+                }
+            });
+        });
+
+        // Close Shift button click (event delegation)
+        $('#shift_tbl tbody').on('click', '.close-shift', function() {
+            var shiftId = $(this).data('shift-id');
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "Do you want to close this shift?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, close it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '{{ url('shift-manage/close-shift') }}/' + shiftId,
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            Swal.fire('Closed!', 'Shift has been closed.', 'success');
+                            $('#shift_tbl').DataTable().ajax.reload(null, false);
+                        },
+                        error: function() {
+                            Swal.fire('Error!', 'Failed to close shift.', 'error');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+@endsection

@@ -7,6 +7,8 @@ use App\Models\Notification;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\StockRequest;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
@@ -99,6 +101,7 @@ class NotificationController extends Controller
         return view('notification.list', compact('notifications'));
     }
     
+
     public function getData(Request $request)
     {
         $draw = $request->input('draw', 1);
@@ -109,18 +112,29 @@ class NotificationController extends Controller
         $orderColumn = $request->input('columns.' . $orderColumnIndex . '.data', 'id');
         $orderDirection = $request->input('order.0.dir', 'asc');
 
-        $query = Notification::query();
+        $query = Notification::query()
+            ->leftJoin('users', 'notifications.created_by', '=', 'users.id')
+            ->select(
+                'notifications.id',
+                'notifications.type',
+                'notifications.content',
+                'notifications.status',
+                'notifications.created_at',
+                'users.name as created_by_name'
+            )
+            ->whereNull('notifications.notify_to');
 
         // **Search filter**
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
-                $q->where('type', 'like', '%' . $searchValue . '%')
-                  ->orWhere('content', 'like', '%' . $searchValue . '%')
-                  ->orWhere('notify_to', 'like', '%' . $searchValue . '%');
+                $q->where('notifications.type', 'like', '%' . $searchValue . '%')
+                ->orWhere('notifications.content', 'like', '%' . $searchValue . '%')
+                ->orWhere('notifications.notify_to', 'like', '%' . $searchValue . '%')
+                ->orWhere('users.name', 'like', '%' . $searchValue . '%'); // add search on user name
             });
         }
 
-        $recordsTotal = Notification::count();
+        $recordsTotal = Notification::whereNull('notify_to')->count();
         $recordsFiltered = $query->count();
 
         $data = $query->orderBy($orderColumn, $orderDirection)
@@ -130,14 +144,13 @@ class NotificationController extends Controller
 
         $records = [];
 
-        foreach ($data as $partyUser) {
-            
+        foreach ($data as $notification) {
             $records[] = [
-                'type' => $partyUser->type,
-                'content' => $partyUser->content,
-                'notify_to' => $partyUser->notify_to,
-                'status' => $partyUser->status,
-                'created_at' => Carbon::parse($partyUser->created_at)->format('Y-m-d H:i:s'),
+                'type' => $notification->type,
+                'content' => $notification->content,
+                'created_by' => $notification->created_by_name ?? 'System',
+                'status' => $notification->status,
+                'created_at' => Carbon::parse($notification->created_at)->format('Y-m-d H:i:s'),
             ];
         }
 
@@ -148,5 +161,57 @@ class NotificationController extends Controller
             'data' => $records
         ]);
     }
+
+    public function getNotication()
+    {
+
+        
+        if(session('role_name') == "admin"){
+         $res_date =  Notification::where('notify_to', null)
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
+            $res_all = Notification::where('notify_to', null)
+            ->orderBy('created_at', 'desc')
+            // ->limit(10)
+            ->count();
+
+            $res_all_unread = Notification::where('notify_to', null)
+            ->where('status', 'unread')
+            ->orderBy('created_at', 'desc')
+            ->count();
+        }else{
+
+        $data = User::with('userInfo')  
+                ->where('users.id', Auth::id())
+                ->where('is_deleted', 'no')
+                ->firstOrFail();
+        
+            $branch_id = $data->userInfo->branch_id;
+
+             $res_date = Notification::where('notify_to', $branch_id)
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
+            $res_all_unread = Notification::where('notify_to', null)
+            ->where('status', 'unread')
+            ->orderBy('created_at', 'desc')
+            
+            ->count();
+
+            $res_all = Notification::where('notify_to', $branch_id)
+            ->orderBy('created_at', 'desc')
+            ->count();
+        }
+
+        $data['data'] = $res_date;
+        $data['res_all_unread'] = $res_all_unread;
+                $data['res_all'] = $res_all;
+                return response()->json($data, 201);
+        
+    }
+
 
 }

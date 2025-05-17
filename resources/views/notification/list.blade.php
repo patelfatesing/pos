@@ -22,13 +22,13 @@
                     <div class="col-lg-12">
                         <div class="table-responsive rounded mb-3">
                             <table class="table data-tables table-striped" id="notification_table">
-                                <thead class="bg-white text-uppercase"> 
+                                <thead class="bg-white text-uppercase">
                                     <tr class="ligth ligth-data">
                                         <th>
                                             Type
                                         </th>
                                         <th>Content</th>
-                                        <th>Notify To </th>
+                                        <th>Notify By </th>
                                         <th>Status</th>
                                         <th>Created At</th>
                                     </tr>
@@ -57,28 +57,27 @@
             $('#notification_table').DataTable().clear().destroy();
 
             $('#notification_table').DataTable({
-                pagelength: 10,
+                pageLength: 10, // default number of rows per page
                 responsive: true,
                 processing: true,
                 ordering: true,
-                bLengthChange: true,
+                lengthChange: true, // shows the dropdown to select limit
                 serverSide: true,
 
-                "ajax": {
-                    "url": '{{ url('notifications/fetch-data') }}',
-                    "type": "post",
-                    "data": function(d) {},
+                ajax: {
+                    url: '{{ url('notifications/fetch-data') }}',
+                    type: 'POST',
+                    data: function(d) {}
                 },
-                aoColumns: [
 
-                    {
+                columns: [{
                         data: 'type'
                     },
                     {
                         data: 'content'
                     },
                     {
-                        data: 'notify_to'
+                        data: 'created_by'
                     },
                     {
                         data: 'status'
@@ -86,23 +85,24 @@
                     {
                         data: 'created_at'
                     }
-                    // Define more columns as per your table structure
-
                 ],
-                aoColumnDefs: [{
-                    bSortable: false,
-                    aTargets: []
+
+                // Disable sorting on columns 0, 1, 2 (type, content, created_by)
+                columnDefs: [{
+                    orderable: false,
+                    targets: [0, 1, 2]
                 }],
-                dom: "Bfrtip",  
+
+                dom: "Bfrtip",
+                
                 lengthMenu: [
-                    [10, 25, 50],
+                    [10, 25, 50, -1],
                     ['10 rows', '25 rows', '50 rows', 'All']
                 ],
                 buttons: ['pageLength']
-
             });
 
-        });
 
+        });
     </script>
 @endsection
