@@ -1265,6 +1265,13 @@ class Shoppingcart extends Component
             }
               //  $this->calculateParty();
             $this->dispatch('updateNewProductDetails');
+            $this->finalDiscountParty();
+            if($this->selectedCommissionUser){
+                $this->commissionAmount = $this->finalDiscountPartyAmount;
+            }else{
+                $this->partyAmount = $this->finalDiscountPartyAmount;
+            }  
+            
            // $this->dispatch('updateProductList');
         }
     }
