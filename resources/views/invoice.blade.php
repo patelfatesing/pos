@@ -156,7 +156,7 @@
     </tr>
     <tr class="bold">
         <td class="left">Total Paid:</td>
-        <td class="right">{{ number_format((float)$invoice->total, 2) }}</td>
+        <td class="right">{{ $invoice->total }}</td>
     </tr>
 </table>
 
