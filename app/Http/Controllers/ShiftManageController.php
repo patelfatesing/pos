@@ -28,19 +28,21 @@ class ShiftManageController extends Controller
             $orderDirection = 'asc';
         }
 
-        $query = \DB::table('shift_closings')
-            ->leftJoin('branches', 'shift_closings.branch_id', '=', 'branches.id')
-            ->leftJoin('users', 'shift_closings.user_id', '=', 'users.id')
-            ->select(
-                'shift_closings.id',
-                'shift_closings.branch_id',
-                'branches.name as branch_name',
-                'users.name as user_name',
-                'shift_closings.start_time',
-                'shift_closings.end_time',
-                'shift_closings.opening_cash',
-                'shift_closings.created_at'
-            );
+            $query = \DB::table('shift_closings')
+                ->leftJoin('branches', 'shift_closings.branch_id', '=', 'branches.id')
+                ->leftJoin('users', 'shift_closings.user_id', '=', 'users.id')
+                ->select(
+                    'shift_closings.id',
+                    'shift_closings.branch_id',
+                    'branches.name as branch_name',
+                    'users.name as user_name',
+                    'shift_closings.start_time',
+                    'shift_closings.end_time',
+                    'shift_closings.opening_cash',
+                    'shift_closings.created_at'
+                )
+                ->whereDate('shift_closings.created_at', \Carbon\Carbon::today()); // ← Add this line
+
 
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
