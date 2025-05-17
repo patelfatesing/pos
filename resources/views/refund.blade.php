@@ -142,7 +142,7 @@
 <table class="table">
     <tr>
         <td class="left">Refunded:</td>
-        <td class="right">{{ $refund->total_mrp*$refund->total_item_qty }}</td>
+        <td class="right">{{ $refund->total_mrp }}</td>
     </tr>
     <tr>
         <td class="left">Refunded Items:</td>
