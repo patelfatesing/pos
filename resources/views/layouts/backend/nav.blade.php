@@ -361,41 +361,44 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
     });
 
     var channel = pusher.subscribe('drawer-channel');
+    
     channel.bind('DrawerOpened', function(data) {
 
-        Swal.fire({
-            title: '📢 New Notification!',
-            text: `${data.message} (Notify By: ${data.customer})`,
-            icon: 'info',
-            confirmButtonText: 'Okay'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // This code runs when "Okay" is clicked
-                console.log('User clicked Okay');
+        if (data.notify_to == null) {
+            Swal.fire({
+                title: '📢 New Notification!',
+                text: `${data.message} (Notify By: ${data.customer})`,
+                icon: 'info',
+                confirmButtonText: 'Okay'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // This code runs when "Okay" is clicked
+                    console.log('User clicked Okay');
 
-                $.ajax({
-                    url: '/popup/form/' + data.type + "?id=" + data.value + "&nfid=" + data
-                        .nfid,
-                    type: 'GET',
-                    success: function(response) {
+                    $.ajax({
+                        url: '/popup/form/' + data.type + "?id=" + data.value + "&nfid=" + data
+                            .nfid,
+                        type: 'GET',
+                        success: function(response) {
 
-                        $('#modalContent').html(response);
+                            $('#modalContent').html(response);
 
-                        $('#approveModal').modal('show');
-                    },
-                    error: function() {
-                        alert('Failed to load form.');
-                    }
-                });
-            }
-        });
+                            $('#approveModal').modal('show');
+                        },
+                        error: function() {
+                            alert('Failed to load form.');
+                        }
+                    });
+                }
+            });
+        }
     });
 
     function fetchNotifications() {
         fetch('{{ route('notifications.get-notication') }}')
             .then(response => response.json())
             .then(data => {
-                
+
                 let get_data = data.data;
                 let all_count = data.res_all;
 
@@ -465,7 +468,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
 
 
     // Call every 30 seconds
-    // setInterval(fetchNotifications, 3000);
+    setInterval(fetchNotifications, 3000);
     // Fetch immediately on page load
     fetchNotifications();
 </script>

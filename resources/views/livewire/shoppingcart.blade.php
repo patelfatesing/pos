@@ -707,13 +707,8 @@
                                             <div id="product-availability" class="mt-3">
                                                 <!-- Availability information will be displayed here -->
                                             </div>
-
-
                                         </div>
-
-
-
-                                        <button type="button" id="add-item" class="btn btn-secondary btn-sm mb-3">+
+                                        <button type="button" id="add-item-wh" class="btn btn-secondary btn-sm mb-3">+
                                             Add
                                             Another Product</button>
 
@@ -2251,18 +2246,18 @@
     });
 
 
-    // let itemIndex1 = 1;
-    // document.getElementById('add-item-wh').addEventListener('click', function() {
-    //     const row = document.querySelector('.item-row1').cloneNode(true);
-    //     row.querySelectorAll('select, input').forEach(el => {
-    //         const name = el.getAttribute('name');
-    //         const updatedName = name.replace(/\[\d+\]/, `[${itemIndex1}]`);
-    //         el.setAttribute('name', updatedName);
-    //         if (el.tagName === 'INPUT') el.value = '';
-    //     });
-    //     document.getElementById('product-items1').appendChild(row);
-    //     itemIndex1++;
-    // });
+    let itemIndex1 = 1;
+    document.getElementById('add-item-wh').addEventListener('click', function() {
+        const row = document.querySelector('.item-row1').cloneNode(true);
+        row.querySelectorAll('select, input').forEach(el => {
+            const name = el.getAttribute('name');
+            const updatedName = name.replace(/\[\d+\]/, `[${itemIndex1}]`);
+            el.setAttribute('name', updatedName);
+            if (el.tagName === 'INPUT') el.value = '';
+        });
+        document.getElementById('product-items1').appendChild(row);
+        itemIndex1++;
+    });
 
     // document.addEventListener('DOMContentLoaded', function() {
     //     const inputs = document.querySelectorAll('.note-input');

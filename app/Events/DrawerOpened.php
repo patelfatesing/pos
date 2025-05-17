@@ -15,7 +15,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 class DrawerOpened implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
-
+    public $notify_to;
     public $message;
     public $customer;
     public $type;
@@ -29,6 +29,7 @@ class DrawerOpened implements ShouldBroadcast
         $this->type = $data['type'];
         $this->value = $data['value'];
         $this->nfid = $data['nfid'];
+        $this->notify_to = $data['notify_to'];
     }
 
     public function broadcastOn()

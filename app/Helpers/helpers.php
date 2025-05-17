@@ -34,6 +34,7 @@ if (!function_exists('sendNotification')) {
 
         $data = json_decode($details);
          event(new DrawerOpened([
+            'notify_to' => $notifyTo,
             'message' => $content,
             'customer' => $userData->name,
             'type' => $type,
