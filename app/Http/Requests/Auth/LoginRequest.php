@@ -50,6 +50,20 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if (Auth::check() && Auth::user()->is_deleted == 'yes') {
+            Auth::logout(); // Force logout immediately
+            throw ValidationException::withMessages([
+                'email' => 'You account is deleted, Please contact admin.',
+            ]);
+        }
+
+        if (Auth::check() && Auth::user()->is_active != 'yes') {
+            Auth::logout(); // Force logout immediately
+            throw ValidationException::withMessages([
+                'email' => 'You account is inactive, Please contact admin.',
+            ]);
+        }
+
         if (Auth::check() && Auth::user()->is_login === 'Yes') {
             Auth::logout(); // Force logout immediately
             throw ValidationException::withMessages([

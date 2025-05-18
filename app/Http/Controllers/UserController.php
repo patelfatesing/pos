@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-          /**
+    /**
      * Display a listing of the resource.
      */
     public function index()
@@ -31,22 +31,22 @@ class UserController extends Controller
         $orderColumn = $request->input('columns' . $orderColumnIndex . 'data', 'id');
         $orderDirection = $request->input('order.0.dir', 'asc');
 
-        $query = User::select('users.*', 'first_name','last_name','branches.name as branch_name', 'roles.name as role_name','user_info.phone_number')
-        ->leftJoin('user_info', 'users.id', '=', 'user_info.user_id')
-        ->leftJoin('branches', 'user_info.branch_id', '=', 'branches.id')
-        ->leftJoin('roles', 'users.role_id', '=', 'roles.id')->where('users.is_deleted', '!=', 'yes');
-    
-    
+        $query = User::select('users.*', 'first_name', 'last_name', 'branches.name as branch_name', 'roles.name as role_name', 'user_info.phone_number')
+            ->leftJoin('user_info', 'users.id', '=', 'user_info.user_id')
+            ->leftJoin('branches', 'user_info.branch_id', '=', 'branches.id')
+            ->leftJoin('roles', 'users.role_id', '=', 'roles.id')->where('users.is_deleted', '!=', 'yes');
+
+
         // **Search filter**
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('users.name', 'like', '%' . $searchValue . '%')
-                ->orWhere('users.email', 'like', '%' . $searchValue . '%')
-                ->orWhere('branches.name', 'like', '%' . $searchValue . '%')
-                ->orWhere('roles.name', 'like', '%' . $searchValue . '%');
+                    ->orWhere('users.email', 'like', '%' . $searchValue . '%')
+                    ->orWhere('branches.name', 'like', '%' . $searchValue . '%')
+                    ->orWhere('roles.name', 'like', '%' . $searchValue . '%');
             });
         }
-    
+
         $recordsTotal = User::where('is_deleted', '!=', 'yes')->count();
         $recordsFiltered = $query->count();
 
@@ -64,18 +64,20 @@ class UserController extends Controller
             // $action .= "<a href='" . $url . "/users/edit/" . $employee->id . "' class='btn btn-info mr_2'>Edit</a>";
             // $action .= '<button type="button" onclick="delete_user(' . $employee->id . ')" class="btn btn-danger ml-2">Delete</button>';
 
-            $action ='<div class="d-flex align-items-center list-action">
+            $action = '<div class="d-flex align-items-center list-action">
                                     <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
                                         href="' . url('/users/edit/' . $employee->id) . '"><i class="ri-pencil-line mr-0"></i></a>
                                    </div>';
 
             $records[] = [
-                'name' => $employee->first_name.' '.$employee->last_name,
+                'name' => $employee->first_name . ' ' . $employee->last_name,
                 'email' => $employee->email,
                 'phone_number' => $employee->phone_number,
                 'role_name' => $employee->role_name,
                 'branch_name' => $employee->branch_name,
-                'is_active' => ($employee->is_active ? '<div class="badge badge-success">Active</div>':'<div class="badge badge-success">Inactive</div>'),
+                'is_active' => $employee->is_active == 'yes'
+                    ? '<span onclick=\'statusChange("' . $employee->id . '", "no")\'><div class="badge badge-success" style="cursor:pointer">Active</div></span>'
+                    : '<span onclick=\'statusChange("' . $employee->id . '", "yes")\'><div class="badge badge-danger" style="cursor:pointer">Inactive</div></span>',
                 'created_at' => date('d-m-Y h:s', strtotime($employee->created_at)),
                 'action' => $action
             ];
@@ -122,9 +124,9 @@ class UserController extends Controller
             'branch_id.required' => 'Please select store.'
         ]);
 
-         // Create the user
-         $user = User::create([
-            'name' => $request->first_name.' '.$request->last_name,
+        // Create the user
+        $user = User::create([
+            'name' => $request->first_name . ' ' . $request->last_name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role_id' => $request->role_id,
@@ -141,7 +143,7 @@ class UserController extends Controller
             'phone_number' => $request->phone_number
         ]);
 
-        return redirect()->route('users.list')->with('success', 'Record created successfully.');
+        return redirect()->route('users.list')->with('success', 'User has been created');
     }
 
     /**
@@ -158,8 +160,8 @@ class UserController extends Controller
         $roles = Roles::where('is_deleted', 'no')->pluck('name', 'id');
         $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
         $record = User::with(['userInfo'])->where('users.id', $id)->where('is_deleted', 'no')->firstOrFail();
-        
-        return view('user.edit', compact('record','roles','branch'));
+
+        return view('user.edit', compact('record', 'roles', 'branch'));
     }
 
     // Update a record
@@ -215,5 +217,14 @@ class UserController extends Controller
         $record->update(['is_deleted' => 'yes']);
 
         return redirect()->route('users.list')->with('success', 'Record deleted successfully.');
+    }
+
+    public function statusChange(Request $request)
+    {
+        $user = User::findOrFail($request->id);
+        $user->is_active = $request->status;
+        $user->save();
+
+        return response()->json(['message' => 'Status updated successfully']);
     }
 }
