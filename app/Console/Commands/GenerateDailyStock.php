@@ -30,7 +30,7 @@ class GenerateDailyStock extends Command
      */
     public function handle()
     {
-        $date = Carbon::today();
+        $date = Carbon::yesterday();
 
         $branches = Branch::all();
         $products = Product::all();

@@ -287,8 +287,8 @@ class ShiftCloseModal extends Component
                 $item['sold_stock'];
             return $item;
         }, $rawStockData);
-        
     }
+
     public function closeStockModal()
     {
         $this->showStockModal = false;
@@ -359,6 +359,27 @@ class ShiftCloseModal extends Component
             $user = User::find($user_id);
             $user->is_login = 'No';
             $user->save();
+
+            $stocks = DailyProductStock::with('product')
+                ->where('branch_id', $branch_id)
+                ->whereDate('date', Carbon::today())
+                ->get();
+
+            foreach ($stocks as $stock) {
+
+                // Calculate closing_stock using the formula
+                $closingStock = $stock->opening_stock
+                    + $stock->added_stock
+                    - $stock->transferred_stock
+                    - $stock->sold_stock;
+
+                // Optionally, save closing_stock if it's not saved yet
+                if ($stock->closing_stock !== $closingStock) {
+                    $stock->closing_stock = $closingStock;
+                    $stock->save();
+                }
+            }
+
             if (session()->has('checkout_images')) {
                 session()->forget('checkout_images');
             }

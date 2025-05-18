@@ -237,6 +237,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/commission-users/{Commissionuser}', [CommissionUserController::class, 'destroy'])->name('commission-users.destroy');
     Route::get('/commission-cust/view/{id}', [CommissionUserController::class, 'view'])->name('commission-cust.view');
     Route::get('/commission-cust/trasaction-photo-view/{id}', [CommissionUserController::class, 'custTrasactionPhoto'])->name('commission-cust.trasaction-photo-view');
+    Route::post('/commission-cust/get-commission-data', [CommissionUserController::class, 'getDataCommission'])->name('commission-cust.get.commission.data');
     
     // });
 

@@ -32,7 +32,8 @@
                                         <th>Last Name</th>
                                         <th>Email</th>
                                         <th>Phone</th>
-                                        <th>Points</th>
+                                        <th>Credit</th>
+                                        <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -88,6 +89,9 @@
                     },
                     {
                         data: 'credit_points'
+                    },
+                    {
+                        data: 'status'
                     },
                     {
                         data: 'action',

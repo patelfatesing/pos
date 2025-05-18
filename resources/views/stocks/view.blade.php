@@ -10,30 +10,45 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <h1>Stock Request Detail</h1>
 
-                <h4 class="mb-4">Stock Request #{{ $stockRequest->id }}</h4>
-                <div>
-                    <a href="{{ route('stock.requestList') }}" class="btn btn-secondary">Back</a>
+                <div class="card-header d-flex justify-content-between">
+                    <div class="header-title">
+                        <h4 class="card-title">Stock Request Detail</h4>
+                    </div>
+                    <div>
+                        <a href="{{ route('stock.requestList') }}" class="btn btn-secondary">Back</a>
+                    </div>
                 </div>
 
                 <div class="card mb-4">
                     <div class="card-body">
-                        <p><strong>Store:</strong> {{ $stockRequest->store->name ?? 'warehouse' }}</p>
-                        <p><strong>Requested By:</strong> {{ $stockRequest->user->name ?? 'N/A' }}</p>
-                        <p><strong>Date:</strong> {{ $stockRequest->requested_at->format('d M Y h:i A') }}</p>
-                        <p><strong>Status:</strong>
-                            <span
-                                class="badge 
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <p><strong>Store:</strong> {{ $stockRequest->store->name ?? 'warehouse' }}</p>
+                            </div>
+                            <div class="col-sm-4">
+                                <p><strong>Requested By:</strong> {{ $stockRequest->user->name ?? 'N/A' }}</p>
+                            </div>
+                            <div class="col-sm-4">
+                                <p><strong>Date:</strong> {{ $stockRequest->requested_at->format('d M Y h:i A') }}</p>
+                            </div>
+                            <div class="col-sm-4">
+                                <p><strong>Status:</strong>
+                                    <span
+                                        class="badge 
                                 {{ $stockRequest->status === 'pending'
                                     ? 'bg-warning'
                                     : ($stockRequest->status === 'approved'
                                         ? 'bg-success'
                                         : 'bg-danger') }}">
-                                {{ ucfirst($stockRequest->status) }}
-                            </span>
-                        </p>
-                        <p><strong>Notes:</strong> {{ $stockRequest->notes ?? '-' }}</p>
+                                        {{ ucfirst($stockRequest->status) }}
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="col-sm-4">
+                                <p><strong>Notes:</strong> {{ $stockRequest->notes ?? '-' }}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

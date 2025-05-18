@@ -22,7 +22,7 @@ class StockController extends Controller
     public function index()
     {
 
-        $data =Inventory::with('product')->get();
+        $data = Inventory::with('product')->get();
         return view('stocks.index', compact('data'));
     }
 
@@ -34,18 +34,18 @@ class StockController extends Controller
         $stores = Branch::all();
         $products = Product::all();
         $data = User::with('userInfo')
-        ->where('users.id', Auth::id())
-        ->where('is_deleted', 'no')
-        ->firstOrFail();
-    
-        return view('stocks.create', compact('stores', 'products','data'));
+            ->where('users.id', Auth::id())
+            ->where('is_deleted', 'no')
+            ->firstOrFail();
+
+        return view('stocks.create', compact('stores', 'products', 'data'));
     }
 
     public function addWarehouse()
     {
         $stores = Branch::all();
         $products = Product::all();
-    
+
         return view('stocks.create_warehouse', compact('stores', 'products'));
     }
 
@@ -54,7 +54,7 @@ class StockController extends Controller
      */
     public function storeWarehouse(Request $request)
     {
-        
+
         // $validated = $request->validate([
         //     'items' => 'required|array|min:1',
         //     'items.*.product_id' => 'required|exists:products,id',
@@ -65,11 +65,11 @@ class StockController extends Controller
         // ]);
 
         $data = User::with('userInfo')
-        ->where('users.id', Auth::id())
-        ->where('is_deleted', 'no')
-        ->firstOrFail();
-       
-         $store_id = $request->store_id;
+            ->where('users.id', Auth::id())
+            ->where('is_deleted', 'no')
+            ->firstOrFail();
+
+        $store_id = $request->store_id;
 
         $branch_id = $data->userInfo->branch_id;
 
@@ -84,7 +84,7 @@ class StockController extends Controller
         $totalProductCount = 0;
         $totalQuantitySum = 0;
         $uniqueProductIds = [];
-        
+
         foreach ($request['items'] as $item) {
             $productId = $item['product_id'];
             $totalQty = (int) $item['quantity'];
@@ -105,26 +105,26 @@ class StockController extends Controller
             //     return back()->withErrors(['items' => "Total quantity for product ID $productId is less than sum of branch quantities."])->withInput();
             // }
 
-             // Track unique product and sum quantity
+            // Track unique product and sum quantity
             // if ($sum > 0) {
-                if (!in_array($productId, $uniqueProductIds)) {
-                    $uniqueProductIds[] = $productId;
-                }
-                $totalQuantitySum += $sum;
+            if (!in_array($productId, $uniqueProductIds)) {
+                $uniqueProductIds[] = $productId;
+            }
+            $totalQuantitySum += $sum;
             // }
 
             // foreach ($branches as $branch => $checked) {
 
             //     $quantity = $item['branch_quantities'][$branch] ?? null;
-        
-                StockRequestItem::create([
-                    'request_to_location_id' =>$store_id,
-                    'stock_request_id' => $stockRequest->id,
-                    'product_id' => $productId,
-                    'quantity' => $totalQty
-                ]);
+
+            StockRequestItem::create([
+                'request_to_location_id' => $store_id,
+                'stock_request_id' => $stockRequest->id,
+                'product_id' => $productId,
+                'quantity' => $totalQty
+            ]);
             // }
-            
+
         }
 
         // 🔄 Update totals
@@ -138,7 +138,7 @@ class StockController extends Controller
 
     public function storeWarehouse_ori(Request $request)
     {
-        
+
         // $validated = $request->validate([
         //     'items' => 'required|array|min:1',
         //     'items.*.product_id' => 'required|exists:products,id',
@@ -149,11 +149,11 @@ class StockController extends Controller
         // ]);
 
         $data = User::with('userInfo')
-        ->where('users.id', Auth::id())
-        ->where('is_deleted', 'no')
-        ->firstOrFail();
-       
-         $store_id = $request->store_id;
+            ->where('users.id', Auth::id())
+            ->where('is_deleted', 'no')
+            ->firstOrFail();
+
+        $store_id = $request->store_id;
 
         $branch_id = $data->userInfo->branch_id;
 
@@ -168,7 +168,7 @@ class StockController extends Controller
         $totalProductCount = 0;
         $totalQuantitySum = 0;
         $uniqueProductIds = [];
-        
+
         foreach ($validated['items'] as $item) {
             $productId = $item['product_id'];
             $totalQty = (int) $item['quantity'];
@@ -189,7 +189,7 @@ class StockController extends Controller
                 return back()->withErrors(['items' => "Total quantity for product ID $productId is less than sum of branch quantities."])->withInput();
             }
 
-             // Track unique product and sum quantity
+            // Track unique product and sum quantity
             if ($sum > 0) {
                 if (!in_array($productId, $uniqueProductIds)) {
                     $uniqueProductIds[] = $productId;
@@ -200,15 +200,14 @@ class StockController extends Controller
             foreach ($branches as $branch => $checked) {
 
                 $quantity = $item['branch_quantities'][$branch] ?? null;
-        
+
                 StockRequestItem::create([
-                    'request_to_location_id' =>$branch,
+                    'request_to_location_id' => $branch,
                     'stock_request_id' => $stockRequest->id,
                     'product_id' => $productId,
                     'quantity' => $quantity
                 ]);
             }
-            
         }
 
         // 🔄 Update totals
@@ -235,13 +234,13 @@ class StockController extends Controller
         try {
 
             $data = User::with('userInfo')
-                    ->where('users.id', Auth::id())
-                    ->where('is_deleted', 'no')
-                    ->firstOrFail();
+                ->where('users.id', Auth::id())
+                ->where('is_deleted', 'no')
+                ->firstOrFail();
 
-    
-        $branch_id = $data->userInfo->branch_id;
-        
+
+            $branch_id = $data->userInfo->branch_id;
+
 
             $stockRequest = StockRequest::create([
                 'store_id' => 1,
@@ -255,7 +254,7 @@ class StockController extends Controller
             foreach ($validated['items'] as $item) {
                 StockRequestItem::create([
                     'stock_request_id' => $stockRequest->id,
-                    'request_to_location_id' =>1,
+                    'request_to_location_id' => 1,
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
                 ]);
@@ -267,29 +266,28 @@ class StockController extends Controller
 
             // Total quantity
             $total_quantity = collect($items)->sum('quantity');
-                    // 🔄 Update totals
+            // 🔄 Update totals
 
-        $stockRequest->update([
-            'total_product' => $total_product,
-            'total_quantity' => $total_quantity
-        ]);
+            $stockRequest->update([
+                'total_product' => $total_product,
+                'total_quantity' => $total_quantity
+            ]);
 
-        $stores = Branch::select('name')->find($branch_id);
-        
+            $stores = Branch::select('name')->find($branch_id);
 
-        $arr['id'] = $stockRequest->id;
-        $arr['store_id'] = $branch_id;
-        sendNotification('request_stock', $stores->name.' store some Product is stock request',null, $branch_id,json_encode($arr));
-               
+
+            $arr['id'] = $stockRequest->id;
+            $arr['store_id'] = $branch_id;
+            sendNotification('request_stock', $stores->name . ' store some Product is stock request', null, $branch_id, json_encode($arr));
+
             DB::commit();
             return redirect()->back()->with('success', 'Stock request submitted successfully.');
-
         } catch (\Exception $e) {
             dd($e->getMessage());
             DB::rollback();
             return back()->with('error', 'Failed to submit stock request: ' . $e->getMessage());
         }
-    }    
+    }
 
     public function stockRequestFromStore(Request $request)
     {
@@ -305,12 +303,12 @@ class StockController extends Controller
         try {
 
             $data = User::with('userInfo')
-                    ->where('users.id', Auth::id())
-                    ->where('is_deleted', 'no')
-                    ->firstOrFail();
-    
-        $branch_id = $data->userInfo->branch_id;
-        
+                ->where('users.id', Auth::id())
+                ->where('is_deleted', 'no')
+                ->firstOrFail();
+
+            $branch_id = $data->userInfo->branch_id;
+
             $stockRequest = StockRequest::create([
                 'store_id' => 1,
                 'requested_by' => $request['store_id'],
@@ -323,7 +321,7 @@ class StockController extends Controller
             foreach ($request['items'] as $item) {
                 StockRequestItem::create([
                     'stock_request_id' => $stockRequest->id,
-                    'request_to_location_id' =>1,
+                    'request_to_location_id' => 1,
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
                 ]);
@@ -334,16 +332,15 @@ class StockController extends Controller
             $arr['id'] = $stockRequest->id;
             $arr['store_id'] = $request['store_id'];
 
-            sendNotification('request_stock', $branch->name.' store is stock request',null, $branch_id,json_encode($arr));
+            sendNotification('request_stock', $branch->name . ' store is stock request', null, $branch_id, json_encode($arr));
 
             DB::commit();
             return redirect()->route('stock.requestList')->with('success', 'Stock request submitted successfully.');
-
         } catch (\Exception $e) {
             DB::rollback();
             return back()->with('error', 'Failed to submit stock request: ' . $e->getMessage());
         }
-    }  
+    }
 
     /**
      * Display the specified resource.
@@ -362,7 +359,7 @@ class StockController extends Controller
         $searchValue = $request->input('search.value', '');
         $orderColumnIndex = $request->input('order.0.column', 0);
         $orderColumn = $request->input("columns.$orderColumnIndex.data", 'id');
-    
+
         // Map frontend column names to actual DB columns
         switch ($orderColumn) {
             case 'name':
@@ -374,69 +371,69 @@ class StockController extends Controller
             default:
                 $orderColumn = 'inventories.created_at';
         }
-    
+
         $orderDirection = $request->input('order.0.dir', 'desc');
-    
+
         // Query with joins: products + inventories + branches
         $query = \App\Models\Inventory::select(
-                'inventories.*',
-                'products.name as product_name',
-                'products.cost_price',
-                'branches.name as branch_name'
-            )
+            'inventories.*',
+            'products.name as product_name',
+            'products.cost_price',
+            'branches.name as branch_name'
+        )
             ->join('products', 'products.id', '=', 'inventories.product_id')
             ->leftJoin('branches', 'inventories.store_id', '=', 'branches.id');
-    
+
         // Search filter
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('products.name', 'like', "%$searchValue%")
-                  ->orWhere('products.cost_price', 'like', "%$searchValue%")
-                  ->orWhere('inventories.batch_no', 'like', "%$searchValue%")
-                  ->orWhere('branches.name', 'like', "%$searchValue%");
+                    ->orWhere('products.cost_price', 'like', "%$searchValue%")
+                    ->orWhere('inventories.batch_no', 'like', "%$searchValue%")
+                    ->orWhere('branches.name', 'like', "%$searchValue%");
             });
         }
-    
+
         if (in_array(session('role_name'), ['cashier', 'warehouse'])) {
             $data = User::with('userInfo')
-            ->where('users.id', Auth::id())
-            ->where('is_deleted', 'no')
-            ->firstOrFail();
+                ->where('users.id', Auth::id())
+                ->where('is_deleted', 'no')
+                ->firstOrFail();
 
             $branch_id = $data->userInfo->branch_id;
-            
+
             $query->where(function ($q) use ($branch_id) {
                 $q->where('store_id', $branch_id);
             });
         }
-    
+
         // if (in_array(session('role_name'), ['admin', 'owner', 'warehouse'])) {
         //     $query->where(function ($q) {
         //         $q->where('store_id', Auth::user()->branch_id)
         //           ->orWhere('requested_by', Auth::id());
         //     });
         // }
-        
+
         $recordsTotal = \App\Models\Inventory::count();
         $recordsFiltered = $query->count();
-    
+
         $data = $query->orderBy($orderColumn, $orderDirection)
             ->offset($start)
             ->limit($length)
             ->get();
-    
+
         $records = [];
         $url = url('/');
-    
+
         foreach ($data as $inventory) {
             $status = ($inventory->quantity < $inventory->reorder_level)
                 ? '<span class="badge bg-danger">Low Stock</span>'
                 : '<span class="badge bg-success">OK</span>';
-    
+
             $action = "";
             // $action .= "<a href='" . $url . "/inventory/edit/" . $inventory->id . "' class='btn btn-info mr-2'>Edit</a>";
             // $action .= '<button type="button" onclick="delete_inventory(' . $inventory->id . ')" class="btn btn-danger">Delete</button>';
-    
+
             $records[] = [
                 'name' => $inventory->product_name ?? 'N/A',
                 'location' => $inventory->branch_name ?? '—',
@@ -450,7 +447,7 @@ class StockController extends Controller
                 'action' => $action
             ];
         }
-    
+
         return response()->json([
             'draw' => $draw,
             'recordsTotal' => $recordsTotal,
@@ -474,53 +471,54 @@ class StockController extends Controller
         $orderColumnIndex = $request->input('order.0.column', 0);
         $orderColumn = $request->input("columns.$orderColumnIndex.data", 'id');
         $orderDirection = $request->input('order.0.dir', 'asc');
-        
+
         $orderColumn = match ($orderColumn) {
             'store' => 'stock_requests.id',
             'created_at' => 'stock_requests.updated_at',
             default => 'stock_requests.' . $orderColumn,
         };
-        
+
         $query = StockRequest::select(
-                'stock_requests.status','stock_requests.id',
-                'stock_requests.notes',
-                'stock_requests.requested_at',
-                'total_product',
-                'total_quantity',
-                'users.name as created_by_name',
-                'users.email as created_by_email',
-                'branches.name as branch_name'
-            )
+            'stock_requests.status',
+            'stock_requests.id',
+            'stock_requests.notes',
+            'stock_requests.requested_at',
+            'total_product',
+            'total_quantity',
+            'users.name as created_by_name',
+            'users.email as created_by_email',
+            'branches.name as branch_name'
+        )
             ->join('users', 'stock_requests.created_by', '=', 'users.id')
             ->join('branches', 'stock_requests.requested_by', '=', 'branches.id');
-            // ->where('stock_requests.created_by', Auth::id()); // static condition from the SQL
-        
+        // ->where('stock_requests.created_by', Auth::id()); // static condition from the SQL
+
         // Optional search
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('stock_requests.notes', 'like', "%$searchValue%")
-                ->orWhere('branches.name', 'like', "%$searchValue%")
-                ->orWhere('users.name', 'like', "%$searchValue%");
+                    ->orWhere('branches.name', 'like', "%$searchValue%")
+                    ->orWhere('users.name', 'like', "%$searchValue%");
             });
         }
-        
+
         // Role-based filtering (keep your existing logic here)
         if (in_array(session('role_name'), ['cashier', 'warehouse'])) {
             $data = User::with('userInfo')
                 ->where('users.id', Auth::id())
                 ->where('is_deleted', 'no')
                 ->firstOrFail();
-        
+
             $branch_id = $data->userInfo->branch_id;
-        
+
             $query->where(function ($q) use ($branch_id) {
                 $q->where('stock_requests.store_id', $branch_id);
             });
         }
-        
+
         $recordsTotal = StockRequest::count();
         $recordsFiltered = $query->count();
-        
+
         $data = $query->orderBy($orderColumn, $orderDirection)
             ->offset($start)
             ->limit($length)
@@ -531,10 +529,10 @@ class StockController extends Controller
 
         foreach ($data as $requestItem) {
             $action = "";
-            $action ='<div class="d-flex align-items-center list-action">
+            $action = '<div class="d-flex align-items-center list-action">
                     <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="' . url('/stock/view/' . $requestItem->id) . '"><i class="ri-eye-line mr-0"></i></a>';
-           
+
             if (in_array(session('role_name'), ['admin', 'warehouse'])) {
                 if ($requestItem->status === 'pending') {
                     $action .= "<button class='btn btn-success btn-sm ml-1 open-approve-modal' data-id='{$requestItem->id}'>Approve</button>";
@@ -542,13 +540,13 @@ class StockController extends Controller
                 }
             }
             $action .= '</div>';
-                
+
             $records[] = [
                 'id' => $requestItem->id,
                 'store' => $requestItem->branch_name,
                 'requested_at' => optional($requestItem->requested_at)->format('d-m-Y H:i'),
-                'total_quantity'=>$requestItem->total_quantity,
-                'total_product'=>$requestItem->total_product,
+                'total_quantity' => $requestItem->total_quantity,
+                'total_product' => $requestItem->total_product,
                 'status' => ucfirst($requestItem->status),
                 'action' => $action
             ];
@@ -584,50 +582,50 @@ class StockController extends Controller
             'created_at' => 'stock_requests.updated_at',
             default => 'stock_requests.' . $orderColumn,
         };
-        
+
         $query = StockRequest::select(
-                'stock_requests.status',
-                'stock_requests.notes',
-                'users.name as created_by_name',
-                'users.email as created_by_email',
-                'branches.name as branch_name'
-            )
+            'stock_requests.status',
+            'stock_requests.notes',
+            'users.name as created_by_name',
+            'users.email as created_by_email',
+            'branches.name as branch_name'
+        )
             ->join('users', 'stock_requests.created_by', '=', 'users.id')
             ->join('branches', 'stock_requests.requested_by', '=', 'branches.id')
             ->where('stock_requests.created_by', 3); // static condition from the SQL
-        
+
         // Optional search
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('stock_requests.notes', 'like', "%$searchValue%")
-                ->orWhere('branches.name', 'like', "%$searchValue%")
-                ->orWhere('users.name', 'like', "%$searchValue%");
+                    ->orWhere('branches.name', 'like', "%$searchValue%")
+                    ->orWhere('users.name', 'like', "%$searchValue%");
             });
         }
-        
+
         // Role-based filtering (keep your existing logic here)
         if (in_array(session('role_name'), ['cashier', 'warehouse'])) {
             $data = User::with('userInfo')
                 ->where('users.id', Auth::id())
                 ->where('is_deleted', 'no')
                 ->firstOrFail();
-        
+
             $branch_id = $data->userInfo->branch_id;
-        
+
             $query->where(function ($q) use ($branch_id) {
                 $q->where('stock_requests.created_by', Auth::id());
             });
         }
-        
+
         $recordsTotal = StockRequest::count();
         $recordsFiltered = $query->count();
-        
+
         $data = $query->orderBy($orderColumn, $orderDirection)
             ->offset($start)
             ->limit($length)
             ->get();
 
-        
+
 
         $records = [];
         $url = url('/');
@@ -679,18 +677,17 @@ class StockController extends Controller
                 return response()->json(['status' => 'error', 'message' => 'Request already processed.']);
             }
 
-            if($from_store_id == 1){
-                foreach($request->items as $key => $val){
+            if ($from_store_id == 1) {
+                foreach ($request->items as $key => $val) {
                     $to_store_id = $key;
-                    foreach($val as $product_id => $product_qun){
+                    foreach ($val as $product_id => $product_qun) {
                         // Decrease from warehouse
-                        if(!empty($product_qun)){
-                        
+                        if (!empty($product_qun)) {
 
-                            $inventories = Inventory::where('product_id', $product_id)->where('store_id',$to_store_id)->orderBy('expiry_date')->get(); // optional: FIFO
-                            
+                            $inventories = Inventory::where('product_id', $product_id)->where('store_id', $to_store_id)->orderBy('expiry_date')->get(); // optional: FIFO
+
                             $totalQuantity = $inventories->sum('quantity');
-                            
+
                             if ($totalQuantity < $product_qun) {
                                 return response()->json([
                                     'status' => 'error',
@@ -712,7 +709,7 @@ class StockController extends Controller
                                 // Add to store inventory
                                 $storeInventory = Inventory::firstOrNew([
                                     'store_id' => $stockRequest->requested_by,
-                                    'location_id'=> $from_store_id,
+                                    'location_id' => $from_store_id,
                                     'product_id' => $product_id,
                                     'batch_no' => $inventory->batch_no,
                                     'expiry_date' => $inventory->expiry_date,
@@ -743,6 +740,9 @@ class StockController extends Controller
 
                                 $remainingQty -= $deducted;
 
+                                stockStatusChange($product_id, $from_store_id, $product_qun, 'transfer_stock');
+                                stockStatusChange($product_id, $key, $product_qun, 'add_stock');
+
                                 StockTransfer::create([
                                     'stock_request_id' => $request->request_id,
                                     'transfer_number' => $transferNumber,
@@ -754,28 +754,26 @@ class StockController extends Controller
                                     'transfer_by' => Auth::id(),
                                     'transferred_at' => now(),
                                 ]);
-
-                            } 
-                        }  else{
-                            $stockItem = StockRequestItem::where('product_id', $product_id)->where('stock_request_id',$id)->firstOrFail(); // optional: FIFO
+                            }
+                        } else {
+                            $stockItem = StockRequestItem::where('product_id', $product_id)->where('stock_request_id', $id)->firstOrFail(); // optional: FIFO
                             $stockItem->quantity = 0;
                             $stockItem->save();
-                        
-                        }    
+                        }
                     }
                 }
-            }else{
-                // dd($request->items);
-                foreach($request->items as $key => $val){
-                    foreach($val as $product_id => $product_qun){
+            } else {
+
+                foreach ($request->items as $key => $val) {
+                    foreach ($val as $product_id => $product_qun) {
                         // Decrease from warehouse
-                        
-                        if(!empty($product_qun)){
-                       
+
+                        if (!empty($product_qun)) {
+
                             $inventories = Inventory::where('product_id', $product_id)->orderBy('expiry_date')->get(); // optional: FIFO
-                            
+
                             $totalQuantity = $inventories->sum('quantity');
-                            
+
                             if ($totalQuantity < $product_qun) {
                                 return response()->json([
                                     'status' => 'error',
@@ -785,7 +783,7 @@ class StockController extends Controller
 
                             $remainingQty = $product_qun;
 
-                            
+
                             foreach ($inventories as $inventory) {
                                 if ($remainingQty <= 0) break;
 
@@ -798,7 +796,7 @@ class StockController extends Controller
                                 // Add to store inventory
                                 $storeInventory = Inventory::firstOrNew([
                                     'store_id' => $stockRequest->requested_by,
-                                    'location_id'=> $from_store_id,
+                                    'location_id' => $from_store_id,
                                     'product_id' => $product_id,
                                     'batch_no' => $inventory->batch_no,
                                     'expiry_date' => $inventory->expiry_date,
@@ -829,6 +827,9 @@ class StockController extends Controller
 
                                 $remainingQty -= $deducted;
 
+                                stockStatusChange($product_id, $from_store_id, $product_qun, 'transfer_stock');
+                                stockStatusChange($product_id, $key, $product_qun, 'add_stock');
+
                                 StockTransfer::create([
                                     'stock_request_id' => $request->request_id,
                                     'transfer_number' => $transferNumber,
@@ -840,21 +841,17 @@ class StockController extends Controller
                                     'transfer_by' => Auth::id(),
                                     'transferred_at' => now(),
                                 ]);
-
                             }
-                        }else{
-                                
-                            $stockItem = StockRequestItem::where('product_id', $product_id)->where('stock_request_id',$id)->firstOrFail(); // optional: FIFO
+                        } else {
+
+                            $stockItem = StockRequestItem::where('product_id', $product_id)->where('stock_request_id', $id)->firstOrFail(); // optional: FIFO
                             $stockItem->quantity = 0;
                             $stockItem->save();
-                        
                         }
-                        
                     }
-                    
                 }
             }
-            
+
             $stockRequest->status = 'approved';
             $stockRequest->approved_by = Auth::id();
             $stockRequest->approved_at = now();
@@ -862,15 +859,14 @@ class StockController extends Controller
 
             $arr['id'] = $stockRequest->id;
             // $arr['store_id'] = $branch_id;
-            sendNotification('approved_stock', 'Admin your stock request has been approved',$request->from_store_id, Auth::id(),json_encode($arr));
-          
+            sendNotification('approved_stock', 'Admin your stock request has been approved', $request->from_store_id, Auth::id(), json_encode($arr));
+
             DB::commit();
             return response()->json(['status' => 'success', 'message' => 'Approved successfully.']);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
         }
-
     }
 
     public function approve_backup(Request $request, $id)
@@ -899,7 +895,7 @@ class StockController extends Controller
                 $inventories = Inventory::where('product_id', $item->product_id)->orderBy('expiry_date')->get(); // optional: FIFO
 
                 $totalQuantity = $inventories->sum('quantity');
-                
+
                 if ($totalQuantity < $updatedQty) {
                     return response()->json([
                         'status' => 'error',
@@ -921,7 +917,7 @@ class StockController extends Controller
                     // Add to store inventory
                     $storeInventory = Inventory::firstOrNew([
                         'store_id' => $stockRequest->requested_by,
-                        'location_id'=> Auth::id(),
+                        'location_id' => Auth::id(),
                         'product_id' => $item->product_id,
                         'batch_no' => $inventory->batch_no,
                         'expiry_date' => $inventory->expiry_date,
@@ -966,14 +962,13 @@ class StockController extends Controller
             DB::rollBack();
             return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
         }
-
     }
 
     public function stockShow($id)
     {
 
         $stockRequest = StockRequest::with(['branch', 'items.product'])->findOrFail($id);
-        
+
         $arr_val = [];
         $storeWiseData = [];
 
@@ -983,7 +978,7 @@ class StockController extends Controller
             // Initialize group if not already
             if (!isset($storeWiseData[$storeId])) {
                 $store = Branch::select('name')->find($storeId);
-                
+
                 $storeWiseData[$storeId] = [
                     'store_id' => $storeId,
                     'store_name' => $store?->name ?? 'N/A',
@@ -1009,8 +1004,8 @@ class StockController extends Controller
 
         $data['stockRequest']['store_id'] = $stockRequest->branch->id;
         $data['stockRequest']['branch_name'] = $stockRequest->branch->name;
-        $data['items_by_store'] =$storeWiseData;
-    
+        $data['items_by_store'] = $storeWiseData;
+
         return response()->json($data);
     }
 
