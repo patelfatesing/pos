@@ -52,9 +52,9 @@
                                                     <option value="fixed"
                                                         {{ old('commission_type', $commissionUser->commission_type) == 'fixed' ? 'selected' : '' }}>
                                                         Fixed</option>
-                                                    <option value="percentage"
+                                                    {{-- <option value="percentage"
                                                         {{ old('commission_type', $commissionUser->commission_type) == 'percentage' ? 'selected' : '' }}>
-                                                        Percentage</option>
+                                                        Percentage</option> --}}
                                                 </select>
                                                 @error('commission_type')
                                                     <span class="text-danger">{{ $message }}</span>
@@ -79,12 +79,12 @@
                                             <div class="floating-label form-group">
                                                 <label>Applies To</label>
                                                 <select name="applies_to" class="form-control">
-                                                    <option value="all"
+                                                    {{-- <option value="all"
                                                         {{ old('applies_to', $commissionUser->applies_to) == 'all' ? 'selected' : '' }}>
-                                                        All</option>
-                                                    <option value="category"
+                                                        All</option> --}}
+                                                    {{-- <option value="category"
                                                         {{ old('applies_to', $commissionUser->applies_to) == 'category' ? 'selected' : '' }}>
-                                                        Category</option>
+                                                        Category</option> --}}
                                                     <option value="product"
                                                         {{ old('applies_to', $commissionUser->applies_to) == 'product' ? 'selected' : '' }}>
                                                         Product</option>
@@ -121,22 +121,6 @@
                                         </div>
 
                                         <div class="col-lg-6">
-                                            <div class="floating-label form-group">
-                                                <label>Start Date</label>
-                                                <input type="date" name="start_date" class="form-control"
-                                                    value="{{ old('start_date', $commissionUser->start_date) }}">
-                                            </div>
-                                        </div>
-
-                                        <div class="col-lg-6">
-                                            <div class="floating-label form-group">
-                                                <label>End Date</label>
-                                                <input type="date" name="end_date" class="form-control"
-                                                    value="{{ old('end_date', $commissionUser->end_date) }}">
-                                            </div>
-                                        </div>
-
-                                        <div class="col-lg-6">
                                             <div class="form-group">
                                                 <label>Upload Images</label>
                                                 <input type="file" name="images[]" class="form-control" multiple>
@@ -146,21 +130,19 @@
                                             </div>
                                         </div>
 
-                                        {{-- Show existing images --}}
-                                        @if (!empty($commissionUser->images))
-                                            <div class="mt-3">
-                                                <label>Existing Images</label>
-                                                <div class="d-flex flex-wrap gap-2">
-                                                    @foreach ($commissionUser->images as $img)
-                                                        <div class="me-2 mb-2">
-                                                            <img src="{{ asset('storage/' . $img->image_path) }}"
-                                                                alt="Image" class="img-thumbnail"
-                                                                style="width: 100px; height: 100px; object-fit: cover;">
+                                                {{-- Show existing images --}}
+                                                @if (!empty($commissionUser->photo))
+                                                    <div class="mt-3">
+                                                        <label>Existing Images</label>
+                                                        <div class="d-flex flex-wrap gap-2">
+                                                                <div class="me-2 mb-2">
+                                                                    <img src="{{ asset('storage/' .$commissionUser->photo) }}"
+                                                                        alt="Image" class="img-thumbnail"
+                                                                        style="width: 100px; height: 100px; object-fit: cover;">
+                                                                </div>
                                                         </div>
-                                                    @endforeach
-                                                </div>
-                                            </div>
-                                        @endif
+                                                    </div>
+                                                @endif
 
                                         {{-- New image preview --}}
                                         <div id="imagePreview" class="d-flex flex-wrap gap-2 mt-2"></div>

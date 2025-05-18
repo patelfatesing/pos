@@ -74,6 +74,90 @@ class StockController extends Controller
         $branch_id = $data->userInfo->branch_id;
 
         $stockRequest = StockRequest::create([
+            'store_id' => $store_id,
+            'requested_by' => 1,
+            'notes' => $request->notes,
+            'requested_at' => now(),
+            'created_by' => Auth::id(),
+        ]);
+
+        $totalProductCount = 0;
+        $totalQuantitySum = 0;
+        $uniqueProductIds = [];
+        
+        foreach ($request['items'] as $item) {
+            $productId = $item['product_id'];
+            $totalQty = (int) $item['quantity'];
+            // $branches = $item['branches'] ?? [];
+            // $quantities = $item['branch_quantities'] ?? [];
+
+            // Filter out unchecked branches
+            // $branchQuantities = [];
+            // foreach ($branches as $branch => $checked) {
+            //     if (isset($quantities[$branch])) {
+            //         $branchQuantities[$branch] = (int) $quantities[$branch];
+            //     }
+            // }
+
+            // Optional: validate that branch total matches or doesn't exceed total
+            $sum = $totalQty;
+            // if ($sum > $totalQty) {
+            //     return back()->withErrors(['items' => "Total quantity for product ID $productId is less than sum of branch quantities."])->withInput();
+            // }
+
+             // Track unique product and sum quantity
+            // if ($sum > 0) {
+                if (!in_array($productId, $uniqueProductIds)) {
+                    $uniqueProductIds[] = $productId;
+                }
+                $totalQuantitySum += $sum;
+            // }
+
+            // foreach ($branches as $branch => $checked) {
+
+            //     $quantity = $item['branch_quantities'][$branch] ?? null;
+        
+                StockRequestItem::create([
+                    'request_to_location_id' =>$store_id,
+                    'stock_request_id' => $stockRequest->id,
+                    'product_id' => $productId,
+                    'quantity' => $totalQty
+                ]);
+            // }
+            
+        }
+
+        // 🔄 Update totals
+        $stockRequest->update([
+            'total_product' => count($uniqueProductIds),
+            'total_quantity' => $totalQuantitySum
+        ]);
+
+        return redirect()->route('items.cart')->with('success', 'Stock request submitted successfully.');
+    }
+
+    public function storeWarehouse_ori(Request $request)
+    {
+        
+        // $validated = $request->validate([
+        //     'items' => 'required|array|min:1',
+        //     'items.*.product_id' => 'required|exists:products,id',
+        //     'items.*.quantity' => 'required|numeric|min:1',
+        //     'items.*.branches' => 'required|array|min:1',
+        //     'items.*.branch_quantities' => 'required|array',
+        //     'notes' => 'nullable|string',
+        // ]);
+
+        $data = User::with('userInfo')
+        ->where('users.id', Auth::id())
+        ->where('is_deleted', 'no')
+        ->firstOrFail();
+       
+         $store_id = $request->store_id;
+
+        $branch_id = $data->userInfo->branch_id;
+
+        $stockRequest = StockRequest::create([
             'store_id' => 1,
             'requested_by' => $store_id,
             'notes' => $request->notes,
@@ -889,7 +973,7 @@ class StockController extends Controller
     {
 
         $stockRequest = StockRequest::with(['branch', 'items.product'])->findOrFail($id);
-
+        
         $arr_val = [];
         $storeWiseData = [];
 

@@ -19,7 +19,7 @@
                             </div>
                             <div class="card-body">
                                 <form action="{{ route('commission-users.store') }}" method="POST"
-                                    enctype="multipart/form-data" data-toggle="validator">
+                                    enctype="multipart/form-data">
                                     @csrf
                                     <div class="row">
                                         <div class="col-lg-6">
@@ -61,9 +61,9 @@
                                                     <option value="fixed"
                                                         {{ old('commission_type') == 'fixed' ? 'selected' : '' }}>Fixed
                                                     </option>
-                                                    <option value="percentage"
+                                                    {{-- <option value="percentage"
                                                         {{ old('commission_type') == 'percentage' ? 'selected' : '' }}>
-                                                        Percentage</option>
+                                                        Percentage</option> --}}
                                                 </select>
                                                 @error('commission_type')
                                                     <span class="text-danger">{{ $message }}</span>
@@ -71,7 +71,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-lg-6">
+                                        {{-- <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>Commission Value</label>
                                                 <input type="number" step="0.01" name="commission_value"
@@ -80,17 +80,17 @@
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
-                                        </div>
+                                        </div> --}}
 
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>Applies To</label>
                                                 <select name="applies_to" class="form-control">
-                                                    <option value="all"
+                                                    {{-- <option value="all"
                                                         {{ old('applies_to') == 'all' ? 'selected' : '' }}>All</option>
                                                     <option value="category"
                                                         {{ old('applies_to') == 'category' ? 'selected' : '' }}>Category
-                                                    </option>
+                                                    </option> --}}
                                                     <option value="product"
                                                         {{ old('applies_to') == 'product' ? 'selected' : '' }}>Product
                                                     </option>
@@ -125,25 +125,9 @@
                                         </div>
 
                                         <div class="col-lg-6">
-                                            <div class="floating-label form-group">
-                                                <label>Start Date</label>
-                                                <input type="date" name="start_date" class="form-control"
-                                                    value="{{ old('start_date') }}">
-                                            </div>
-                                        </div>
-
-                                        <div class="col-lg-6">
-                                            <div class="floating-label form-group">
-                                                <label>End Date</label>
-                                                <input type="date" name="end_date" class="form-control"
-                                                    value="{{ old('end_date') }}">
-                                            </div>
-                                        </div>
-
-                                        <div class="col-lg-12">
                                             <div class="form-group">
                                                 <label>Upload Images</label>
-                                                <input type="file" name="images[]" class="form-control" multiple>
+                                                <input type="file" name="images" class="form-control" multiple>
                                                 @error('images')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror

@@ -1846,6 +1846,7 @@ class Shoppingcart extends Component
 
 
             // }
+            $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
             $commissionUser = CommissionUser::find($this->selectedCommissionUser);
             $partyUser = PartyUser::find($this->selectedPartyUser);
@@ -1898,6 +1899,9 @@ class Shoppingcart extends Component
                     sendNotification('low_stock', 'Store stock request', null, auth()->id(),json_encode($arr));
 
                 }
+
+                stockStatusChange($inventory->product->id,$branch_id,$totalQuantity,'sold_stock');
+
                 if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
                     // Deduct only from the first inventory if it has enough quantity
                     $inventories[0]->quantity -= $totalQuantity;
@@ -1928,7 +1932,7 @@ class Shoppingcart extends Component
                 $this->cash = $this->cashAmount;
                 $this->upi = 0;
             }
-            $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
             // 💾 Save cash breakdown
             $cashBreakdownCash = ($this->paymentType == "cash") ? $this->cashAmount : $this->cash;
             $cashBreakdown = \App\Models\CashBreakdown::create([

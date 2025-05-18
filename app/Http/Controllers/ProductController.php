@@ -448,6 +448,7 @@ class ProductController extends Controller
         $product->sell_price     = $request->sell_price;
         $product->discount_price = $request->discount_price;
         $product->reorder_level  = $request->reorder_level;
+        $product->barcode    = $request->barcode;
         $product->description    = $request->description;
         $product->image    = $image;
 

@@ -50,17 +50,36 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        // if (Auth::check() && Auth::user()->is_login === 'Yes') {
-        //     Auth::logout(); // Force logout immediately
-        //     throw ValidationException::withMessages([
-        //         'email' => 'You are already logged in from another device.',
-        //     ]);
-        // } else {
-        //     $user = User::find(Auth::id());
-        //     $user->is_login = 'Yes';
-        //     $user->save();
-        // }
-        
+        if (Auth::check() && Auth::user()->is_login === 'Yes') {
+            Auth::logout(); // Force logout immediately
+            throw ValidationException::withMessages([
+                'email' => 'You are already logged in from another device.',
+            ]);
+        } else {
+
+            $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
+            $users = User::select('users.*', 'branches.name as branch_name')
+                ->join('user_info', 'users.id', '=', 'user_info.user_id')
+                ->join('branches', 'user_info.branch_id', '=', 'branches.id')
+                ->where('branches.id', $branch_id)
+                ->where('users.is_login', 'Yes')
+                ->where('users.id', '!=', auth()->user()->id)
+                ->get();
+
+            if ($users->count() > 0) {
+                // Another user in the same branch is logged in
+                Auth::logout();
+                throw ValidationException::withMessages([
+                    'email' => 'This store is already logged.',
+                ]);
+            }
+
+            $user = User::find(Auth::id());
+            $user->is_login = 'Yes';
+            $user->save();
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 
@@ -92,6 +111,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        return Str::transliterate(Str::lower($this->string('email')) . '|' . $this->ip());
     }
 }

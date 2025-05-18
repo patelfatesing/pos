@@ -32,8 +32,6 @@
                                         <th>Commission Type</th>
                                         <th>Commission Value</th>
                                         <th>Applies To</th>
-                                        <th>Start Date</th>
-                                        <th>End Date</th>
                                         <th>Created Date</th>
                                         <th>Action</th>
                                     </tr>
@@ -89,12 +87,6 @@
                             data: 'applies_to'
                         },
                         {
-                            data: 'start_date'
-                        },
-                        {
-                            data: 'end_date'
-                        },
-                        {
                             data: 'created_at'
                         },
                         {
@@ -103,10 +95,10 @@
                     ],
                     aoColumnDefs: [{
                         bSortable: false,
-                        aTargets: [4, 5] // make "action" column unsortable
+                        aTargets: [2,3,4,6] // make "action" column unsortable
                     }],
                     order: [
-                        [2, 'desc']
+                        [5, 'desc']
                     ], // 🟢 Sort by created_at DESC by default
                     dom: "Bfrtip",
                     lengthMenu: [

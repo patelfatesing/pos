@@ -140,7 +140,7 @@ class ShiftCloseModal extends Component
         // $this->shift = Shift::latest()->first();
         $this->branch_name = $this->shift->branch->name ?? 'Shop';
         $sales = ['DESI', 'BEER', 'ENGLISH'];
-        $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalSubTotal = $totalCreditPay=$totalUpiPaid = $totalRefundReturn=$totalOnlinePaid=0;
+        $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = 0;
 
         $this->categoryTotals = [];
         $this->totalInvoicedAmount = \App\Models\Invoice::where('user_id', auth()->user()->id)
@@ -153,12 +153,12 @@ class ShiftCloseModal extends Component
         $start_date = @$currentShift->start_time; // your start date (set manually)
         $end_date = date('Y-m-d') . ' 23:59:59'; // today's date till end of day
         $totals = CreditHistory::whereBetween('created_at', [$start_date, $end_date])
-        ->where('store_id', $branch_id)
-        ->selectRaw('SUM(credit_amount) as credit_total, SUM(debit_amount) as debit_total')
-        ->first();
+            ->where('store_id', $branch_id)
+            ->selectRaw('SUM(credit_amount) as credit_total, SUM(debit_amount) as debit_total')
+            ->first();
 
-        $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->where('status','!=', 'Hold')->where('invoice_number', 'not like', '%Hold%')->latest()->get();
-        
+        $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->where('status', '!=', 'Hold')->where('invoice_number', 'not like', '%Hold%')->latest()->get();
+
         foreach ($invoices as $invoice) {
             $items = $invoice->items; // decode items from longtext JSON
 
@@ -185,14 +185,14 @@ class ShiftCloseModal extends Component
 
             $totalCashPaid += (!empty($invoice->cash_amount) && is_numeric($invoice->cash_amount)) ? (int)$invoice->cash_amount : 0;
 
-            $totalSubTotal += (!empty($invoice->total)) ?parseCurrency($invoice->total) : 0;
+            $totalSubTotal += (!empty($invoice->total)) ? parseCurrency($invoice->total) : 0;
             $totalUpiPaid  += (!empty($invoice->upi_amount)  && is_numeric($invoice->upi_amount)) ? (int)$invoice->upi_amount  : 0;
             $totalOnlinePaid  += (!empty($invoice->online_amount)  && is_numeric($invoice->online_amount)) ? (int)$invoice->online_amount  : 0;
             if ($invoice->status == "Returned") {
                 $totalRefundReturn += floatval(str_replace(',', '', $invoice->total));
             }
 
-            
+
 
             $totalCreditPay  += (!empty($invoice->creditpay)  && is_numeric($invoice->creditpay)) ? (int)$invoice->creditpay  : 0;
 
@@ -211,7 +211,7 @@ class ShiftCloseModal extends Component
         $totalWith = \App\Models\WithdrawCash::where('user_id',  auth()->user()->id)
             ->where('branch_id', $branch_id)->whereBetween('created_at', [$start_date, $end_date])->sum('amount');
         $this->categoryTotals['payment']['CASH'] = $totalCashPaid;
-       // $this->categoryTotals['payment']['UPI PAYMENT'] = $totalUpiPaid;
+        // $this->categoryTotals['payment']['UPI PAYMENT'] = $totalUpiPaid;
         $this->categoryTotals['summary']['OPENING CASH'] = @$currentShift->opening_cash;
         $this->categoryTotals['summary']['TOTAL SALES'] = $totalSubTotal + $discountTotal;
         $this->categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
@@ -219,14 +219,14 @@ class ShiftCloseModal extends Component
         $this->categoryTotals['summary']['UPI PAYMENT'] = $totalUpiPaid * (-1);
         $this->categoryTotals['summary']['ONLINE PAYMENT'] = $totalOnlinePaid * (-1);
         // $this->categoryTotals['summary']['REFUND'] += $totalRefundReturn *(-1);
-        $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['OPENING CASH'] + $this->categoryTotals['summary']['TOTAL SALES'] + $this->categoryTotals['summary']['DISCOUNT'] + $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $this->categoryTotals['summary']['UPI PAYMENT'] + @$this->categoryTotals['summary']['REFUND']+
-        $this->categoryTotals['summary']['ONLINE PAYMENT'];
-        $this->categoryTotals['summary']['REFUND'] = $totalRefund*(-1)+$totalRefundReturn*(-1);
+        $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['OPENING CASH'] + $this->categoryTotals['summary']['TOTAL SALES'] + $this->categoryTotals['summary']['DISCOUNT'] + $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $this->categoryTotals['summary']['UPI PAYMENT'] + @$this->categoryTotals['summary']['REFUND'] +
+            $this->categoryTotals['summary']['ONLINE PAYMENT'];
+        $this->categoryTotals['summary']['REFUND'] = $totalRefund * (-1) + $totalRefundReturn * (-1);
         //$this->categoryTotals['summary']['REFUND RETURN'] = $totalRefundReturn*(-1);
         $this->categoryTotals['summary']['CREDIT'] = $totals->credit_total;
         $this->categoryTotals['summary']['REFUND_CREDIT'] = $totals->debit_total;
         if (!empty($this->categoryTotals['summary']['REFUND_CREDIT'])) {
-            $this->categoryTotals['summary']['REFUND_CREDIT'] = (Int)$this->categoryTotals['summary']['REFUND_CREDIT']*(-1);
+            $this->categoryTotals['summary']['REFUND_CREDIT'] = (int)$this->categoryTotals['summary']['REFUND_CREDIT'] * (-1);
         }
 
         $cashBreakdowns = CashBreakdown::where('user_id', auth()->id())
@@ -273,11 +273,21 @@ class ShiftCloseModal extends Component
     {
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
-         $this->showStockModal = true;
-        $this->stockStatus = DailyProductStock::with('product')
-        ->where('branch_id', $branch_id)
-        //->whereDate('date', Carbon::yesterday())
-        ->get()->toArray();
+        $this->showStockModal = true;
+        $rawStockData = DailyProductStock::with('product')
+            ->where('branch_id', $branch_id)
+            ->whereDate('date', Carbon::today())
+            ->get()->toArray();
+
+        $this->stockStatus = array_map(function ($item) {
+            $item['closing_stock'] =
+                $item['opening_stock'] +
+                $item['added_stock'] -
+                $item['transferred_stock'] -
+                $item['sold_stock'];
+            return $item;
+        }, $rawStockData);
+        
     }
     public function closeStockModal()
     {
@@ -286,7 +296,7 @@ class ShiftCloseModal extends Component
     public function updatedClosingCash()
     {
         $expected = $this->categoryTotals['summary']['TOTAL'] ?? 0;
-        $this->diffCash = (Int)$this->closingCash -(Int) $expected;
+        $this->diffCash = (int)$this->closingCash - (int) $expected;
     }
 
     public function submit()
@@ -296,14 +306,14 @@ class ShiftCloseModal extends Component
         DB::beginTransaction();
 
         try {
-            
+
             $user_id = auth()->id();
             $branch_id = auth()->user()->userinfo->branch->id ?? null;
             $holdInvoiceExists = Invoice::where('user_id', $user_id)
-            ->where('branch_id', $branch_id)
-            ->where('status', 'Hold')
-            ->exists();
-            
+                ->where('branch_id', $branch_id)
+                ->where('status', 'Hold')
+                ->exists();
+
             if ($holdInvoiceExists) {
                 DB::rollBack();
                 $this->dispatch('close-shift-error');
@@ -343,7 +353,7 @@ class ShiftCloseModal extends Component
             $shift->cash = str_replace([',', '₹'], '', $this->closingCash ?? 0);
             $shift->status = 'completed';
             $shift->save();
-          //  Invoice::where(['user_id' => $user_id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->delete();
+            //  Invoice::where(['user_id' => $user_id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->delete();
             $cartItems = Cart::where('user_id', $user_id)->delete(); // <-- get all matching rows
             // Update user login status and logout
             $user = User::find($user_id);
