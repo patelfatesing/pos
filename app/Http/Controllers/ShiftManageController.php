@@ -155,7 +155,7 @@ class ShiftManageController extends Controller
         $shift = ShiftClosing::findOrFail($id);
         if (!$shift->closing_shift_time) {
             $shift->closing_shift_time = now();
-            $shift->status = 'closing';
+            $shift->status = 'completed';
             $shift->save();
             return response()->json(['message' => 'Shift closed successfully']);
         }

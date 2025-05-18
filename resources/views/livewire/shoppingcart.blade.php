@@ -797,7 +797,7 @@
 
     <div class="modal fade" id="stockStatusModal" tabindex="-1" aria-labelledby="stockStatusModalLabel"
         aria-hidden="true" data-backdrop="static" data-keyboard="false" wire:ignore.self>
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h6 class="mt-4 mb-2">Product Opening Stock</h6>

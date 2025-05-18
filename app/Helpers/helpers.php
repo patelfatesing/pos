@@ -6,6 +6,8 @@ use App\Events\DrawerOpened;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\PartyCustomerProductsPrice;
+use App\Models\DailyProductStock;
+use Carbon\Carbon;
 
 if (!function_exists('pre')) {
     function pre($data)
@@ -97,7 +99,6 @@ if (!function_exists('updateUnreadNotificationsById')) {
     }
 }
 
-
 if (!function_exists('format_inr')) {
     function format_inr($amount)
     {
@@ -112,12 +113,14 @@ if (!function_exists('format_inr')) {
     }
     
 }
+
 if (!function_exists('round_up_to_nearest_10')) {
     function round_up_to_nearest_10($number)
     {
         return ceil($number / 10) * 10;
     }
 }
+
 if (!function_exists('parseCurrency')) {
     function parseCurrency($value)
     {
@@ -157,4 +160,72 @@ if (!function_exists('getDiscountPrice')) {
             'partyAmount' => $partyAmount,
         ];
     }
+}
+
+if (!function_exists('stockStatusChange')) {
+    function stockStatusChange($product_id, $branch_id, $qty, $type)
+        {
+            $date = Carbon::today();
+
+            if ($type == "add_stock") {
+
+                $existing = DailyProductStock::where('branch_id', $branch_id)
+                    ->where('product_id', $product_id)
+                    ->whereDate('date', $date)
+                    ->first();
+
+                if (!empty($existing)) {
+                    $existing->added_stock += $qty;
+                    $existing->save();
+                } else {
+                    DailyProductStock::create([
+                            'branch_id' => $branch_id,
+                            'product_id' => $product_id,
+                            'date' => $date,
+                            'added_stock' => $qty
+                        ]);
+                }
+            }
+
+            if ($type == "transfer_stock") {
+
+                $existing = DailyProductStock::where('branch_id', $branch_id)
+                    ->where('product_id', $product_id)
+                    ->whereDate('date', $date)
+                    ->first();
+
+                if (! empty($existing)) {
+                    $existing->transferred_stock += $qty;
+                    $existing->save();
+                } else {
+                    DailyProductStock::create([
+                            'branch_id' => $branch_id,
+                            'product_id' => $product_id,
+                            'date' => $date,
+                            'transferred_stock' => $qty
+                        ]);
+                }
+            }
+
+            if ($type == "sold_stock") {
+
+                $existing = DailyProductStock::where('branch_id', $branch_id)
+                    ->where('product_id', $product_id)
+                    ->whereDate('date', $date)
+                    ->first();
+
+                if (! empty($existing)) {
+                    $existing->sold_stock += $qty;
+                    $existing->save();
+                } else {
+                    DailyProductStock::create([
+                            'branch_id' => $branch_id,
+                            'product_id' => $product_id,
+                            'date' => $date,
+                            'sold_stock' => $qty
+                        ]);
+                }
+            }
+
+        }
 }

@@ -20,7 +20,7 @@ class PurchaseController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-    {    
+    {
         return view('purchase.index');
     }
 
@@ -30,7 +30,7 @@ class PurchaseController extends Controller
     public function create()
     {
         $vendors = VendorList::where('is_active', true)->get();
-        $products = Product::select('id','name')->where('is_deleted', 'no')->get();
+        $products = Product::select('id', 'name')->where('is_deleted', 'no')->get();
 
         // $products = Product::select('products.id', 'products.name', DB::raw('SUM(inventories.quantity) as total_quantity'))
         // ->join('inventories', 'products.id', '=', 'inventories.product_id')
@@ -39,7 +39,7 @@ class PurchaseController extends Controller
         // ->orderBy('inventories.id', 'asc')
         // ->get();
 
-        return view('purchase.create', compact('vendors','products'));
+        return view('purchase.create', compact('vendors', 'products'));
     }
 
     /**
@@ -120,47 +120,45 @@ class PurchaseController extends Controller
                 $expiryDatePlusOneYear = Carbon::parse($product['mfg_date'])->addYear();
 
                 $record = Product::with('inventorie')->where('id', $product_id)->where('is_deleted', 'no')->firstOrFail();
-                
+
                 $inventoryService = new \App\Services\InventoryService();
-                
+
                 if (!empty($record->inventorie)) {
-                    
+
                     // $product['qnt'] = $product['qnt'] + $record->inventorie[0]->quantity;
-                    
+
                     $batchNumber = strtoupper($request->sku) . '-' . now()->format('Ymd') . '-' . Str::upper(Str::random(4));
-                        if ($record->inventorie->batch_no == $batch) {
+                    if ($record->inventorie->batch_no == $batch) {
 
-                            $inventory = Inventory::findOrFail($record->inventorie->id);
-                    
-                            $qnt =  $product['qnt'] + $inventory->quantity;
-                            $inventory->updated_at = now();
-                            $inventory->quantity = $qnt;
-                            // $inventory->quantity = $qnt;
-                            $inventory->save();
+                        $inventory = Inventory::findOrFail($record->inventorie->id);
 
-                            $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $qnt,'add_stock');
-                                                
-                        }else{
+                        $qnt =  $product['qnt'] + $inventory->quantity;
+                        $inventory->updated_at = now();
+                        $inventory->quantity = $qnt;
+                        // $inventory->quantity = $qnt;
+                        $inventory->save();
 
-                            $inventory = Inventory::firstOrCreate([
-                                'product_id'  => $product_id,
-                                'store_id'    => 1,
-                                'location_id'    => 1,
-                                'batch_no'    => $batch,
-                                'expiry_date' => $expiryDatePlusOneYear,
-                                'quantity' => $product['qnt'],
-                                'added_by' => Auth::id(),
-                            ]);
-                            
-                            $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $product['qnt'],'add_stock');
-                        }
+                        stockStatusChange($product_id, 1, $product['qnt'], 'add_stock');
+                        $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $qnt, 'add_stock');
+                    } else {
 
+                        $inventory = Inventory::firstOrCreate([
+                            'product_id'  => $product_id,
+                            'store_id'    => 1,
+                            'location_id'    => 1,
+                            'batch_no'    => $batch,
+                            'expiry_date' => $expiryDatePlusOneYear,
+                            'quantity' => $product['qnt'],
+                            'added_by' => Auth::id(),
+                        ]);
+                        stockStatusChange($product_id, 1, $product['qnt'], 'add_stock');
+                        $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $product['qnt'], 'add_stock');
+                    }
 
-                    $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $product['qnt'],'add_stock');
-
+                    $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $product['qnt'], 'add_stock');
                 } else {
 
-                
+
                     $inventory = Inventory::firstOrCreate([
                         'product_id'  => $product_id,
                         'store_id'    => 1,
@@ -171,9 +169,9 @@ class PurchaseController extends Controller
                         'quantity' => $product['qnt']
                     ]);
 
-                    $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $product['qnt'],'add_stock');
-
-                }  
+                    stockStatusChange($product_id, 1, $product['qnt'], 'add_stock');
+                    $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $product['qnt'], 'add_stock');
+                }
             }
 
             DB::commit();
@@ -210,9 +208,9 @@ class PurchaseController extends Controller
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('bill_no', 'like', '%' . $searchValue . '%')
-                ->orWhereHas('vendor', function ($q2) use ($searchValue) {
-                    $q2->where('name', 'like', '%' . $searchValue . '%');
-                });
+                    ->orWhereHas('vendor', function ($q2) use ($searchValue) {
+                        $q2->where('name', 'like', '%' . $searchValue . '%');
+                    });
             });
         }
 
@@ -268,20 +266,20 @@ class PurchaseController extends Controller
             'products.sell_price',
             DB::raw('SUM(COALESCE(inventories.quantity, 0)) as total_quantity')
         )
-        ->leftJoin('inventories', 'products.id', '=', 'inventories.product_id')
-        ->where('products.is_deleted', 'no')
-        ->where('products.id', $id)
-        ->groupBy(
-            'products.id',
-            'products.name',
-            'products.brand',
-            'inventories.batch_no',
-            'inventories.mfg_date',
-            'products.cost_price',
-            'products.sell_price'
-        )
-        ->orderBy('total_quantity', 'asc')
-        ->first();
+            ->leftJoin('inventories', 'products.id', '=', 'inventories.product_id')
+            ->where('products.is_deleted', 'no')
+            ->where('products.id', $id)
+            ->groupBy(
+                'products.id',
+                'products.name',
+                'products.brand',
+                'inventories.batch_no',
+                'inventories.mfg_date',
+                'products.cost_price',
+                'products.sell_price'
+            )
+            ->orderBy('total_quantity', 'asc')
+            ->first();
 
         return json_decode($record);
     }

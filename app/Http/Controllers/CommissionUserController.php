@@ -54,6 +54,10 @@ class CommissionUserController extends Controller
                 return asset('storage/' . $image->image_path);
             })->toArray();
 
+            $first_name ='<div class="d-flex align-items-center list-action"><a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit" href="' . url('/commission-cust/view/' . $commissionUser->id) . '">'.$commissionUser->first_name.'</a></div>';
+            $last_name ='<div class="d-flex align-items-center list-action"><a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit" href="' . url('/commission-cust/view/' . $commissionUser->id) . '">'.$commissionUser->last_name.'</a></div>';
+
+
             $action ='<div class="d-flex align-items-center list-action">
                                     <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
                                         href="' . url('/commission-users/edit/' . $commissionUser->id) . '"><i class="ri-pencil-line mr-0"></i></a>
@@ -62,9 +66,8 @@ class CommissionUserController extends Controller
             </div>';
 
             $records[] = [
-                'first_name' => $commissionUser->first_name,
-                'middle_name' => $commissionUser->middle_name,
-                'last_name' => $commissionUser->last_name,
+                'first_name' => $first_name,
+                'last_name' => $last_name,
                 'commission_type' => $commissionUser->commission_type,
                 'commission_value' => $commissionUser->commission_value,
                 'applies_to' => $commissionUser->applies_to,
@@ -97,32 +100,37 @@ class CommissionUserController extends Controller
     {
         $data = $request->validate([
             'first_name' => 'required|string|max:255',
-            'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:commission_users,email',
             'commission_type' => 'required|in:fixed,percentage',
-            'commission_value' => 'required|numeric',
+            // 'commission_value' => 'required|numeric',
             'applies_to' => 'required|in:all,category,product',
             'reference_id' => 'nullable|integer',
             'is_active' => 'required|boolean',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date',
+            // 'start_date' => 'nullable|date',
+            // 'end_date' => 'nullable|date',
             'images.*' => 'nullable|image|max:2048',
         ]);
+
+
+        if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('commission_images', 'public');
+                $data['photo'] = $imagePath;
+        }
 
         $commissionUser = Commissionuser::create($data);
 
         // Save images if any
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
-                $path = $image->store('commission_images', 'public');
-                CommissionUserImage::create([
-                    'commission_user_id' => $commissionUser->id,
-                    'image_path' => $path,
-                    'image_name' => $image->getClientOriginalName(),
-                ]);
-            }
-        }
+        // if ($request->hasFile('images')) {
+        //     foreach ($request->file('images') as $image) {
+        //         $path = $image->store('commission_images', 'public');
+        //         CommissionUserImage::create([
+        //             'commission_user_id' => $commissionUser->id,
+        //             'image_path' => $path,
+        //             'image_name' => $image->getClientOriginalName(),
+        //         ]);
+        //     }
+        // }
 
         return redirect()->route('commission-users.list')->with('success', 'Commission User Created');
     }
@@ -133,46 +141,62 @@ class CommissionUserController extends Controller
         return view('commission_users.edit', compact('commissionUser'));
     }
 
-public function update(Request $request, Commissionuser $Commissionuser)
+    public function view($id)
     {
-        //print_r($Commissionuser);exit;
-       // $commissionUser = Commissionuser::findOrFail($id);
+        $partyUser = Commissionuser::with('images')->where('id', $id)->firstOrFail();
+        return view('commission_users.view', compact('partyUser'));
+    }
 
-        $data = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'middle_name' => 'nullable|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'commission_type' => 'required|in:fixed,percentage',
-            'commission_value' => 'required|numeric',
-            'applies_to' => 'required|in:all,category,product',
-            'reference_id' => 'nullable|integer',
-            'is_active' => 'required|boolean',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date',
-            'images.*' => 'nullable|image|max:2048',
-        ]);
+    public function custTrasactionPhoto($id)
+    {
+        $photos = CommissionUserImage::select('image_path','type','id')->where('transaction_id', $id)->first();
+        
 
-        $Commissionuser->update($data);
+        return view('commission_users.cust-photo',compact('photos'));
+        
+        return response()->json(['error' => 'Form not found'], 404);
+    }
 
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
-                $path = $image->store('commission_images', 'public');
-                CommissionUserImage::create([
-                    'commission_user_id' => $Commissionuser->id,
-                    'image_path' => $path,
-                    'image_name' => $image->getClientOriginalName(),
-                ]);
+    public function update(Request $request, Commissionuser $Commissionuser)
+        {
+            //print_r($Commissionuser);exit;
+        // $commissionUser = Commissionuser::findOrFail($id);
+
+            $data = $request->validate([
+                'first_name' => 'required|string|max:255',
+                'middle_name' => 'nullable|string|max:255',
+                'last_name' => 'required|string|max:255',
+                'commission_type' => 'required|in:fixed,percentage',
+                'commission_value' => 'required|numeric',
+                'applies_to' => 'required|in:all,category,product',
+                'reference_id' => 'nullable|integer',
+                'is_active' => 'required|boolean',
+                'start_date' => 'nullable|date',
+                'end_date' => 'nullable|date',
+                'images.*' => 'nullable|image|max:2048',
+            ]);
+
+            $Commissionuser->update($data);
+
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $image) {
+                    $path = $image->store('commission_images', 'public');
+                    CommissionUserImage::create([
+                        'commission_user_id' => $Commissionuser->id,
+                        'image_path' => $path,
+                        'image_name' => $image->getClientOriginalName(),
+                    ]);
+                }
             }
+
+            return redirect()->route('commission-users.list')->with('success', 'Commission User Updated');
         }
 
-        return redirect()->route('commission-users.list')->with('success', 'Commission User Updated');
-    }
 
-
-    public function destroy(Commissionuser $Commissionuser)
-    {
-        $Commissionuser->delete();
-        return response()->json(['success' => true, 'message' => 'Commission User Deleted']);
+        public function destroy(Commissionuser $Commissionuser)
+        {
+            $Commissionuser->delete();
+            return response()->json(['success' => true, 'message' => 'Commission User Deleted']);
+        }
     }
-}
 

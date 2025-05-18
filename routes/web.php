@@ -235,7 +235,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/commission-users/edit/{id}', [CommissionUserController::class, 'edit'])->name('commission-users.edit');
     Route::put('/commission-users/{Commissionuser}', [CommissionUserController::class, 'update'])->name('commission-users.update');
     Route::delete('/commission-users/{Commissionuser}', [CommissionUserController::class, 'destroy'])->name('commission-users.destroy');
-// });
+    Route::get('/commission-cust/view/{id}', [CommissionUserController::class, 'view'])->name('commission-cust.view');
+    Route::get('/commission-cust/trasaction-photo-view/{id}', [CommissionUserController::class, 'custTrasactionPhoto'])->name('commission-cust.trasaction-photo-view');
+    
+    // });
 
 // Route::middleware(['auth', 'admin'])->prefix('party-users')->name('party-users.')->group(function () {
     Route::get('/party-users/list', [PartyUserController::class, 'index'])->name('party-users.list');

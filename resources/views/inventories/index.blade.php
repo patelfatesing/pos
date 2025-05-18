@@ -99,7 +99,7 @@
                     },
                     {
                         data: 'expiry_date',
-                        orderable: false
+                        orderable: true
                     },
                     {
                         data: 'reorder_level',

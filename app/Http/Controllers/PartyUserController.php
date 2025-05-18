@@ -133,7 +133,7 @@ class PartyUserController extends Controller
         return view('party_users.edit', compact('partyUser'));
     }
 
-        public function view($id)
+    public function view($id)
     {
         $partyUser = Partyuser::with('images')->where('id', $id)->firstOrFail();
         return view('party_users.view', compact('partyUser'));

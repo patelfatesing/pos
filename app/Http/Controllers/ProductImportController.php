@@ -21,31 +21,42 @@ class ProductImportController extends Controller
 
         return view('products_import.import');
     }
-    
+
     public function import(Request $request)
     {
         $request->validate([
             'file' => 'required|file|mimes:csv,txt',
         ]);
-    
+
         $file = $request->file('file');
         $path = $file->getRealPath();
-        
+
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+
+            // Generate new filename with current date and time
+            $filename = now()->format('dmYHis') . '.' . $file->getClientOriginalExtension();
+
+            // Store the file in 'product_import' folder with the new name
+            $file->storeAs('product_import', $filename, 'public');
+        }
+
+
         $handle = fopen($path, 'r');
-    
+
         $header = fgetcsv($handle); // read CSV header
         $inserted = 0;
         $skipped = 0;
-    
+
         while (($row = fgetcsv($handle)) !== false) {
 
             $categories = Category::where('name', $row[5])->first();
-            $subcategories = SubCategory::where('name', $row[6])->first();        
+            $subcategories = SubCategory::where('name', $row[6])->first();
             $category_id = $categories?->id;
             $sub_category_id = $subcategories?->id;
-        
+
             if (!empty($sub_category_id) && !empty($category_id)) {
-        
+
                 // Check for duplicates
                 $existing = DB::table('products')
                     ->join('inventories', 'products.id', '=', 'inventories.product_id')
@@ -53,20 +64,20 @@ class ProductImportController extends Controller
                     ->where('inventories.batch_no', $row[2])
                     ->whereDate('inventories.expiry_date', Carbon::createFromFormat('d-m-Y', $row[4])->format('Y-m-d'))
                     ->first();
-        
+
                 if ($existing) {
                     $skipped++;
                     continue;
                 }
-        
+
                 // Insert or find product
                 $product = DB::table('products')->where('name', $row[0])->first();
                 $productId = null;
-        
+
                 if (!$product) {
                     $brand = preg_replace('/\s\d{2,4}ml\b/i', '', $row[0]);
                     $sku = Product::generateSku($brand, $row[2], $row[7]);
-        
+
                     $productId = DB::table('products')->insertGetId([
                         'name' => $row[0],
                         'brand' => $brand,
@@ -78,6 +89,7 @@ class ProductImportController extends Controller
                         'created_at' => now(),
                         'cost_price' => $row[8],
                         'sell_price' => $row[13],
+                        'reorder_level' => $row[14],
                         'discount_price' => $row[15],
                         'discount_amt' => $row[16],
                         'case_size' => $row[11],
@@ -85,9 +97,18 @@ class ProductImportController extends Controller
                         'secondary_unitx' => $row[18],
                     ]);
                 } else {
-                    $productId = $product->id;
+
+                    if ($product->barcode != $row[1] || $product->sell_price != $row[13]) {
+                        $product_data = Product::findOrFail($id);
+                        $product_data->barcode = $row[1];
+                        $product_data->cost_price = $row[8];
+                        $product_data->sell_price = $row[13];
+                        $product_data->discount_price = $row[15];
+                        $product_data->discount_amt = $row[16];
+                        $product_data->save();
+                    }
                 }
-        
+
                 // Insert inventory
                 DB::table('inventories')->insert([
                     'product_id' => $productId,
@@ -98,15 +119,15 @@ class ProductImportController extends Controller
                     'mfg_date' => Carbon::createFromFormat('d-m-Y', $row[3])->format('Y-m-d'),
                     'quantity' => 0,
                 ]);
-        
+
                 // Only increment if insert actually happens
                 $inserted++;
             }
         }
-        
-    
+
+
         fclose($handle);
-    
+
         return redirect()->route('products.list')->with('success', "$inserted records inserted, $skipped duplicates skipped.");
     }
 
@@ -160,7 +181,7 @@ class ProductImportController extends Controller
         }
     }
 
-    
+
     public function uploadFile_old(Request $request)
     {
         dd("sdfsdf");

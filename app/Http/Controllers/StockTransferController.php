@@ -27,7 +27,6 @@ class StockTransferController extends Controller
     
         return view('stocks_transfer.create', compact('stores', 'products','data'));
     }
-
     
     public function store(Request $request)
     {
@@ -89,6 +88,9 @@ class StockTransferController extends Controller
 
                         $storeInventory->quantity += $deducted;
                         $storeInventory->save();
+
+                        stockStatusChange($val['product_id'],$request->from_store_id,$val['quantity'],'transfer_stock');
+                        stockStatusChange($val['product_id'],$request->to_store_id,$val['quantity'],'add_stock');
 
                         // Transfer log
                         $inventoryService = new \App\Services\InventoryService();

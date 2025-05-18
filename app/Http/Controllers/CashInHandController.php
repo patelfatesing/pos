@@ -83,7 +83,7 @@ class CashInHandController extends Controller
                                                 'opening_stock' => $key->closing_stock,
                                             ]
                                         );
-            }
+        }
 
         //return redirect()->route('items.cart')->with('notification-sucess', 'Cash in hand saved.');
          return redirect()->back()->with('notification-sucess', 'Cash in hand saved.');

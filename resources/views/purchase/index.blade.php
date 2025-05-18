@@ -14,7 +14,7 @@
                     <div class="col-lg-12">
                         <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                             <div>
-                                <h4 class="mb-3">Order Invoice List</h4>
+                                <h4 class="mb-3">Order Invoice</h4>
                             </div>
                             <a href="{{ route('purchase.create') }}" class="btn btn-primary add-list">
                                 <i class="las la-plus mr-3"></i>Add New Order Invoice
@@ -90,10 +90,10 @@
                 
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [4] // make "action" column unsortable
+                    aTargets: [] // make "action" column unsortable
                 }],
                 order: [
-                    [3, 'desc']
+                    [4, 'desc']
                 ], // 🟢 Sort by created_at DESC by default
                 dom: 'Bfrtip',
                 buttons: ['pageLength'],

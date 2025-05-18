@@ -11,7 +11,7 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between">
                                 <div class="header-title">
-                                    <h4 class="card-title">Delivery Order</h4>
+                                    <h4 class="card-title">Delivery Invoice</h4>
                                 </div>
                                 <div>
                                     <a href="{{ route('purchase.list') }}" class="btn btn-secondary">Back</a>
@@ -43,7 +43,7 @@
                                                 </div>
                                                 <div class="col-md-4">
                                                     <div class="form-group">
-                                                        <label for="vendor_id">Party Name</label>
+                                                        <label for="vendor_id">Vendor Name</label>
                                                         <select name="vendor_id" id="vendor_id" class="form-control">
                                                             <option value="">-- Select Party --</option>
                                                             @foreach ($vendors as $vendor)
