@@ -243,6 +243,15 @@ class CommissionUserController extends Controller
         ]);
     }
 
+    public function statusChange(Request $request)
+    {
+        $user = Commissionuser::findOrFail($request->id);
+        $user->is_active = $request->status;
+        $user->save();
+
+        return response()->json(['message' => 'Status updated successfully']);
+    }
+
     public function update(Request $request, Commissionuser $Commissionuser)
     {
         //print_r($Commissionuser);exit;

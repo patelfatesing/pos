@@ -26,7 +26,7 @@
                         <div class="table-responsive rounded mb-3">
                             <table class="table data-tables table-striped" id="users_table">
 
-                                <thead class="bg-white"> 
+                                <thead class="bg-white">
                                     <tr class="ligth ligth-data">
                                         <th>
                                             <b>N</b>ame
@@ -108,9 +108,9 @@
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [2,4,5,7]
+                    aTargets: [2, 4, 5, 7]
                 }],
-                  order: [
+                order: [
                     [6, 'desc']
                 ], // 🟢 Sort by created_at DESC by default
                 dom: "Bfrtip",
@@ -144,8 +144,10 @@
                             id: id
                         },
                         success: function(response) {
-                            swal("Deleted!", "The store has been deleted.", "success")
-                                .then(() => location.reload());
+                            Swal.fire("Deleted!", "The user has been deleted.", "success").then(() => {
+                                $('#users_table').DataTable().ajax.reload(null,
+                                false); // ✅ Only reload DataTable
+                            });
                         },
                         error: function(xhr) {
                             swal("Error!", "Something went wrong.", "error");
@@ -154,6 +156,39 @@
                 }
             });
 
+        }
+
+        function statusChange(id, newStatus) {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "Do you want to change the status?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, change it!",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ url('users/status-change') }}", // Update this to your route
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        data: {
+                            id: id,
+                            status: newStatus
+                        },
+                        success: function(response) {
+                            Swal.fire("Success!", "Status has been changed.", "success").then(() => {
+                                $('#users_table').DataTable().ajax.reload(null,
+                                    false); // ✅ Only reload DataTable
+                            });
+                        },
+                        error: function(xhr) {
+                            Swal.fire("Error!", "Something went wrong.", "error");
+                        }
+                    });
+                }
+            });
         }
     </script>
 @endsection

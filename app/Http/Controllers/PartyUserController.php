@@ -394,4 +394,13 @@ class PartyUserController extends Controller
 
         return response()->json(['error' => 'Form not found'], 404);
     }
+
+    public function statusChange(Request $request)
+    {
+        $user = Partyuser::findOrFail($request->id);
+        $user->status = $request->status;
+        $user->save();
+
+        return response()->json(['message' => 'Status updated successfully']);
+    }
 }

@@ -13,12 +13,15 @@ use App\Models\Category;
 use App\Models\SubCategory;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\Branch;
+use App\Models\Inventory;
+use App\Models\DailyProductStock;
+use Illuminate\Support\Facades\Auth;
 
 class ProductImportController extends Controller
 {
     public function showUploadForm()
     {
-
         return view('products_import.import');
     }
 
@@ -181,7 +184,6 @@ class ProductImportController extends Controller
         }
     }
 
-
     public function uploadFile_old(Request $request)
     {
         dd("sdfsdf");
@@ -260,5 +262,96 @@ class ProductImportController extends Controller
         Session::forget('import_data');
 
         return redirect()->route('products.import')->with('success', 'Products imported successfully.');
+    }
+
+    public function addStocks()
+    {
+        $products = Product::with('inventories')
+            ->orderBy('id', 'asc')
+            ->get();
+        $stores = Branch::where('is_active', 'yes')->where('is_deleted', 'no')->latest()->get();
+
+        return view('products_import.add_stocks', compact('products', 'stores'));
+    }
+
+    public function importStocks(Request $request)
+    {
+        $request->validate([
+            'from_store_id' => 'required|exists:branches,id',
+            'items' => 'required|array',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
+        ]);
+
+        $from_store_id = $request->from_store_id;
+
+        $inventoryService = new \App\Services\InventoryService();
+
+
+        foreach ($request->items as $product_id => $product) {
+
+            $record = Product::with('inventorie')->where('id', $product_id)->where('is_deleted', 'no')->firstOrFail();
+
+            $inventory = Inventory::findOrFail($record->inventorie->id);
+
+            if ($from_store_id == 1) {
+
+                if (!empty($inventory['quantity'])) {
+                    $qnt =  $inventory['quantity'] + $product['quantity'];
+                } else {
+                    $qnt =  $product['quantity'];
+                }
+
+                $inventory->updated_at = now();
+                $inventory->quantity = $qnt;
+
+                $inventory->save();
+            } else {
+
+                $inventory_branch = Inventory::where('product_id', $product_id)->where('store_id', $from_store_id)->first();
+
+                if (!empty($inventory_branch)) {
+
+                    if (!empty($inventory_branch['quantity'])) {
+                        $qnt =  $inventory_branch['qnquantityt'] + $product['quantity'];
+                    } else {
+                        $qnt =  $product['quantity'];
+                    }
+
+                    $inventory_branch->updated_at = now();
+                    $inventory_branch->quantity = $qnt;
+                    $inventory_branch->save();
+                } else {
+
+                    Inventory::updateOrCreate(
+                        [
+                            'product_id' => $product_id,
+                            'store_id' => $from_store_id,
+                            'batch_no' => $inventory->batch_no,
+                            'location_id' => $from_store_id,
+                            'expiry_date' => $inventory->expiry_date,
+                            'mfg_date' => $inventory->mfg_date,
+                            'quantity' => $product['quantity'],
+                            'added_by' => Auth::id()
+                        ]
+                    );
+                }
+            }
+
+            $date = Carbon::today();
+
+            DailyProductStock::updateOrCreate(
+                [
+                    'product_id' => $product_id,
+                    'branch_id' => $from_store_id,
+                    'date' => $date,
+                    'opening_stock' => $product['quantity'],
+                ]
+            );
+
+            $inventoryService->transferProduct($product_id, $inventory->id, $from_store_id, '', $product['quantity'], 'add_stock');
+        }
+
+        return redirect()->route('inventories.list')->with('success', 'Opening Stock has beeb added successfully.');
     }
 }
