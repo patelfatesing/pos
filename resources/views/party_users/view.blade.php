@@ -246,7 +246,7 @@
                     render: function(data, type, row) {
                         if (data != '') {
                             return `<span class="badge bg-danger">
-                                <a href="#" onClick="showPhoto(${row.party_user_image_id})" style="color:white;">Show</a>
+                                <a href="#" onClick="showPhoto(${row.transaction_id})" style="color:white;">Show</a>
                             </span>`;
                         } else {
                             return `<span class="badge bg-success">Paid</span>`;

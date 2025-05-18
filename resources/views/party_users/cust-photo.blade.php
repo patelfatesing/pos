@@ -10,12 +10,12 @@
             <div class="row">
                 <div class="col-md-6 text-center">
                     <h6>Customer Photo</h6>
-                    <img id="customerPhoto" src="{{ asset('storage/' . $photos->image_path) }}"
+                    <img id="customerPhoto" src="{{ asset('storage/' . $photos[1]->image_path) }}"
                         class="img-fluid rounded" alt="Customer Photo" />
                 </div>
                 <div class="col-md-6 text-center">
                     <h6>Product Photo</h6>
-                    <img id="productPhoto" src="{{ asset('storage/' . $photos->image_path) }}" class="img-fluid rounded"
+                    <img id="productPhoto" src="{{ asset('storage/' . $photos[0]->image_path) }}" class="img-fluid rounded"
                         alt="Product Photo" />
                 </div>
             </div>
