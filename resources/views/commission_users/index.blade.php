@@ -33,6 +33,7 @@
                                         <th>Commission Value</th>
                                         <th>Applies To</th>
                                         <th>Created Date</th>
+                                        <th>Status</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -88,6 +89,9 @@
                         },
                         {
                             data: 'created_at'
+                        },
+                        {
+                            data: 'is_active'
                         },
                         {
                             data: 'action'

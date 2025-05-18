@@ -218,12 +218,12 @@
                     <ul id="customer" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                         <li class="">
                             <a href="{{ route('commission-users.list') }}">
-                                <i class="las la-minus"></i><span>Commission Customer List</span>
+                                <i class="las la-minus"></i><span>Commission Customer</span>
                             </a>
                         </li>
                         <li class="">
                             <a href="{{ route('party-users.list') }}">
-                                <i class="las la-minus"></i><span>Party Customer List</span>
+                                <i class="las la-minus"></i><span>Party Customer</span>
                             </a>
                         </li>
                     </ul>
@@ -244,7 +244,7 @@
                     <ul id="expenses" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                         <li class="">
                             <a href="{{ route('exp.list') }}">
-                                <i class="las la-minus"></i><span>Expense List</span>
+                                <i class="las la-minus"></i><span>Expense</span>
                             </a>
                         </li>
                         <li class="">

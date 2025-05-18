@@ -23,10 +23,10 @@
                                 <div class="card">
                                     <div class="card-header d-flex justify-content-between">
                                         <div class="header-title">
-                                            <h4 class="card-title">Party Customer Information</h4>
+                                            <h4 class="card-title">Commission Customer Information</h4>
                                         </div>
                                         <div>
-                                            <a href="{{ route('party-users.list') }}" class="btn btn-secondary">Back</a>
+                                            <a href="{{ route('commission-users.list') }}" class="btn btn-secondary">Back</a>
                                         </div>
                                     </div>
                                     <div class="card-body">
@@ -39,7 +39,7 @@
                                             <li class="nav-item">
                                                 <a class="nav-link" id="pills-profile-tab-fill" data-toggle="pill"
                                                     href="#pills-profile-fill" role="tab" aria-controls="pills-profile"
-                                                    aria-selected="false"><span class="text-dark">Credit/Trasaction
+                                                    aria-selected="false"><span class="text-dark">Discount/Trasaction
                                                         History</span></a>
                                             </li>
 
@@ -54,8 +54,8 @@
                                                                 <div class="d-flex align-items-center mb-3">
 
                                                                     <div class="ml-3">
-                                                                        <h4 class="mb-1">{{ $partyUser->first_name }}
-                                                                            {{ $partyUser->last_name }}
+                                                                        <h4 class="mb-1">{{ $commissionUser->first_name }}
+                                                                            {{ $commissionUser->last_name }}
                                                                     </div>
                                                                 </div>
 
@@ -69,27 +69,9 @@
                                                                                 stroke="currentColor">
                                                                                 <path stroke-linecap="round"
                                                                                     stroke-linejoin="round" stroke-width="2"
-                                                                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                                                <path stroke-linecap="round"
-                                                                                    stroke-linejoin="round" stroke-width="2"
-                                                                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                                            </svg>
-                                                                            <p class="mb-0">{{ $partyUser->address }}</p>
-                                                                        </div>
-                                                                    </li>
-
-                                                                    <li class="mb-2">
-                                                                        <div class="d-flex align-items-center">
-                                                                            <svg class="svg-icon mr-3" height="16"
-                                                                                width="16"
-                                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                                fill="none" viewBox="0 0 24 24"
-                                                                                stroke="currentColor">
-                                                                                <path stroke-linecap="round"
-                                                                                    stroke-linejoin="round" stroke-width="2"
                                                                                     d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                                                             </svg>
-                                                                            <p class="mb-0">{{ $partyUser->phone }}</p>
+                                                                            <p class="mb-0">{{ $commissionUser->mobile_number }}</p>
                                                                         </div>
                                                                     </li>
                                                                     <li>
@@ -103,7 +85,7 @@
                                                                                     stroke-linejoin="round" stroke-width="2"
                                                                                     d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                                                             </svg>
-                                                                            <p class="mb-0">{{ $partyUser->email }}</p>
+                                                                            <p class="mb-0">{{ $commissionUser->email }}</p>
                                                                         </div>
                                                                     </li>
                                                                 </ul>
@@ -114,31 +96,11 @@
                                                                 <ul class="list-inline p-0 m-0">
                                                                     <li class="mb-2">
                                                                         <div class="d-flex align-items-center">
-                                                                            <strong>Total Credit:-</strong>
+                                                                            <strong>Applies To:-</strong>
                                                                             <p class="mb-0">
-                                                                                {{ format_inr($partyUser->credit_points) }}
+                                                                                {{$commissionUser->applies_to }}
                                                                             </p>
                                                                         </div>
-                                                                    </li>
-
-                                                                    <li class="mb-2">
-                                                                        <div class="d-flex align-items-center">
-                                                                            <strong>Remaining Credit:-</strong>
-                                                                            <p class="mb-0">
-                                                                                {{ format_inr($partyUser->left_credit) }}
-                                                                            </p>
-                                                                        </div>
-
-                                                                    </li>
-
-                                                                    <li class="mb-2">
-                                                                        <div class="d-flex align-items-center">
-                                                                            <strong>Used Credit:-</strong>
-                                                                            <p class="mb-0">
-                                                                                {{ format_inr($partyUser->credit_points - $partyUser->left_credit) }}
-                                                                            </p>
-                                                                        </div>
-
                                                                     </li>
                                                                 </ul>
                                                             </div>
@@ -157,7 +119,7 @@
                                                             <tr class="ligth ligth-data">
                                                                 <th>Trasaction Number</th>
                                                                 <th>Trasaction Date</th>
-                                                                <th>Credit Amount</th>
+                                                                <th>Discount Amount</th>
                                                                 <th>Trasaction Total</th>
                                                                 <th>Photos</th>
                                                                 <th>Status</th>
@@ -200,7 +162,7 @@
 <script>
     $(document).ready(function() {
 
-        const customer_id = {{ $partyUser->id }};
+        const customer_id = {{ $commissionUser->id }};
 
         $.ajaxSetup({
             headers: {
@@ -218,7 +180,7 @@
             processing: true,
             serverSide: true,
             ajax: {
-                url: '{{ url('party-users/get-commission-data') }}',
+                url: '{{ url('commission-cust/get-commission-data') }}',
                 type: 'POST',
                 data: function(d) {
                     d.customer_id = customer_id;
@@ -233,8 +195,8 @@
                     name: 'invoice_date'
                 },
                 {
-                    data: 'credit_amount',
-                    name: 'credit_amount'
+                    data: 'discount_amount',
+                    name: 'discount_amount'
                 },
                 {
                     data: 'invoice_total',
@@ -246,7 +208,7 @@
                     render: function(data, type, row) {
                         if (data != '') {
                             return `<span class="badge bg-danger">
-                                <a href="#" onClick="showPhoto(${row.party_user_image_id})" style="color:white;">Show</a>
+                                <a href="#" onClick="showPhoto(${row.commission_user_image_id})" style="color:white;">Show</a>
                             </span>`;
                         } else {
                             return `<span class="badge bg-success">Paid</span>`;

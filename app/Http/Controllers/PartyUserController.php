@@ -16,7 +16,7 @@ class PartyUserController extends Controller
         $partyUsers = Partyuser::with('images')->latest()->get();
         return view('party_users.index', compact('partyUsers'));
     }
-    
+
     public function getData(Request $request)
     {
         $draw = $request->input('draw', 1);
@@ -33,10 +33,10 @@ class PartyUserController extends Controller
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('first_name', 'like', '%' . $searchValue . '%')
-                  ->orWhere('last_name', 'like', '%' . $searchValue . '%')
-                  ->orWhere('commission_type', 'like', '%' . $searchValue . '%')
-                  ->orWhere('applies_to', 'like', '%' . $searchValue . '%')
-                  ->orWhere('commission_value', 'like', '%' . $searchValue . '%');
+                    ->orWhere('last_name', 'like', '%' . $searchValue . '%')
+                    ->orWhere('commission_type', 'like', '%' . $searchValue . '%')
+                    ->orWhere('applies_to', 'like', '%' . $searchValue . '%')
+                    ->orWhere('commission_value', 'like', '%' . $searchValue . '%');
             });
         }
 
@@ -56,10 +56,10 @@ class PartyUserController extends Controller
                 return asset('storage/' . $image->image_path);
             })->toArray();
 
-            $first_name ='<div class="d-flex align-items-center list-action"><a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit" href="' . url('/party-users/view/' . $partyUser->id) . '">'.$partyUser->first_name.'</a></div>';
-            $last_name ='<div class="d-flex align-items-center list-action"><a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit" href="' . url('/party-users/view/' . $partyUser->id) . '">'.$partyUser->last_name.'</a></div>';
+            $first_name = '<div class="d-flex align-items-center list-action"><a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit" href="' . url('/party-users/view/' . $partyUser->id) . '">' . $partyUser->first_name . '</a></div>';
+            $last_name = '<div class="d-flex align-items-center list-action"><a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit" href="' . url('/party-users/view/' . $partyUser->id) . '">' . $partyUser->last_name . '</a></div>';
 
-            $action ='<div class="d-flex align-items-center list-action">
+            $action = '<div class="d-flex align-items-center list-action">
             <a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="#" onclick="party_cust_price_change(' . $partyUser->id . ')"><i class="ri-eye-line mr-0"></i></a>
                     
@@ -69,7 +69,7 @@ class PartyUserController extends Controller
                                         href="#" onclick="delete_party_user(' . $partyUser->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
             </div>';
 
-            
+
             $records[] = [
                 'first_name' => $first_name,
                 'last_name' => $last_name,
@@ -79,7 +79,7 @@ class PartyUserController extends Controller
                 'images' => implode(', ', array_map(function ($image) {
                     return "<img src='{$image}' alt='Image' style='width:50px;height:50px;'>";
                 }, $images)),
-                
+                'status' => ($partyUser->status == 'Active' ? '<div class="badge badge-success">Active</div>' : '<div class="badge badge-success">Inactive</div>'),
                 'created_at' => date('d-m-Y h:i', strtotime($partyUser->created_at)),
                 'action' => $action
             ];
@@ -186,16 +186,16 @@ class PartyUserController extends Controller
 
     public function custProductPriceChangeForm($id)
     {
-        $partyUser = Partyuser::select('first_name','last_name','id')->where('id', $id)->first();
-        
-            $products = DB::table('products')
+        $partyUser = Partyuser::select('first_name', 'last_name', 'id')->where('id', $id)->first();
+
+        $products = DB::table('products')
             ->select(
                 'products.id',
                 'products.name',
                 'products.sell_price',
                 DB::raw('IFNULL(party_customer_products_price.cust_discount_price, 0) as cust_discount_price') // Default to 0 if no discount
             )
-            ->leftJoin('party_customer_products_price', function($join) use ($id) {
+            ->leftJoin('party_customer_products_price', function ($join) use ($id) {
                 $join->on('products.id', '=', 'party_customer_products_price.product_id')
                     ->where('party_customer_products_price.party_user_id', $id);
             })
@@ -209,8 +209,8 @@ class PartyUserController extends Controller
             )
             ->get();
 
-            return view('party_users.product-form',compact('products','partyUser'));
-        
+        return view('party_users.product-form', compact('products', 'partyUser'));
+
         return response()->json(['error' => 'Form not found'], 404);
     }
 
@@ -246,41 +246,41 @@ class PartyUserController extends Controller
         try {
             // Perform your business logic (e.g., saving data, etc.)
 
-                foreach ($request['items'] as $key => $item) {
-    
-                    $cust_pro = PartyCustomerProductsPrice::where('id', $key)->where('party_user_id',$cust_user_id)->first();
+            foreach ($request['items'] as $key => $item) {
 
-                    $cust_discount_price = 0;
+                $cust_pro = PartyCustomerProductsPrice::where('id', $key)->where('party_user_id', $cust_user_id)->first();
+
+                $cust_discount_price = 0;
+                $cust_discount_amt = 0;
+
+                if ($item['cust_discount_price'] == $item['sell_price']) {
+                    $cust_discount_price = $item['sell_price'];
                     $cust_discount_amt = 0;
-
-                    if($item['cust_discount_price'] == $item['sell_price']){
-                        $cust_discount_price = $item['sell_price'];
-                        $cust_discount_amt = 0;
-                    }else{
-                        $cust_discount_price = $item['cust_discount_price'];
-                        $cust_discount_amt = $item['sell_price'] - $item['cust_discount_price'];
-                    }
-                    
-                    if(!empty($cust_pro)){
-                        $cust_pro->update([
-                            'cust_discount_price' => $cust_discount_price,
-                            'cust_discount_amt' => $cust_discount_amt,
-                            'status' => 'active',
-                            'updated_by' => Auth::id()
-                        ]);
-                    }else{
-                        PartyCustomerProductsPrice::create([
-                            'party_user_id' => $cust_user_id,
-                            'product_id' => $key,
-                            'cust_discount_price' => $cust_discount_price,
-                            'cust_discount_amt' => $cust_discount_amt,
-                            'status' => 'active',
-                            'created_by' => Auth::id()
-                        ]);
-                    }
+                } else {
+                    $cust_discount_price = $item['cust_discount_price'];
+                    $cust_discount_amt = $item['sell_price'] - $item['cust_discount_price'];
                 }
 
-                DB::commit();
+                if (!empty($cust_pro)) {
+                    $cust_pro->update([
+                        'cust_discount_price' => $cust_discount_price,
+                        'cust_discount_amt' => $cust_discount_amt,
+                        'status' => 'active',
+                        'updated_by' => Auth::id()
+                    ]);
+                } else {
+                    PartyCustomerProductsPrice::create([
+                        'party_user_id' => $cust_user_id,
+                        'product_id' => $key,
+                        'cust_discount_price' => $cust_discount_price,
+                        'cust_discount_amt' => $cust_discount_amt,
+                        'status' => 'active',
+                        'created_by' => Auth::id()
+                    ]);
+                }
+            }
+
+            DB::commit();
             // If validation passes, send success response
             if ($request->ajax()) {
                 return response()->json(['success' => 'Price changes submitted successfully!']);
@@ -295,7 +295,7 @@ class PartyUserController extends Controller
 
             return back()->with('error', 'An error occurred: ' . $e->getMessage());
         }
-    } 
+    }
 
     public function getDataCommission(Request $request)
     {
@@ -307,9 +307,18 @@ class PartyUserController extends Controller
         $orderDirection = $request->input('order.0.dir', 'desc');
 
         $columns = [
-            'invoice_id', 'invoice_number', 'invoice_date', 'invoice_total',
-            'commission_amount', 'commission_user_id', 'commission_user_name',
-            'commission_type', 'commission_value', 'applies_to', 'start_date', 'end_date'
+            'invoice_id',
+            'invoice_number',
+            'invoice_date',
+            'invoice_total',
+            'commission_amount',
+            'commission_user_id',
+            'commission_user_name',
+            'commission_type',
+            'commission_value',
+            'applies_to',
+            'start_date',
+            'end_date'
         ];
 
         $orderColumn = $columns[$orderColumnIndex] ?? 'invoice_date';
@@ -350,7 +359,7 @@ class PartyUserController extends Controller
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('i.invoice_number', 'like', "%$searchValue%")
-                ->orWhere(DB::raw("CONCAT(cu.first_name, ' ', cu.last_name)"), 'like', "%$searchValue%");
+                    ->orWhere(DB::raw("CONCAT(cu.first_name, ' ', cu.last_name)"), 'like', "%$searchValue%");
             });
         }
 
@@ -378,12 +387,11 @@ class PartyUserController extends Controller
 
     public function custTrasactionPhoto($id)
     {
-        $photos = PartyUserImage::select('image_path','type','id')->where('transaction_id', $id)->first();
-        
+        $photos = PartyUserImage::select('image_path', 'type', 'id')->where('transaction_id', $id)->first();
 
-        return view('party_users.cust-photo',compact('photos'));
-        
+
+        return view('party_users.cust-photo', compact('photos'));
+
         return response()->json(['error' => 'Form not found'], 404);
     }
-
 }
