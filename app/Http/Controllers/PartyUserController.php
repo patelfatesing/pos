@@ -343,6 +343,7 @@ class PartyUserController extends Controller
                 'ch.id as commission_id',
                 'pi.image_path',
                 'pi.id as party_user_image_id',
+                'pi.transaction_id',
                 'pi.type',
             )
             ->leftJoin('credit_histories as ch', 'i.id', '=', 'ch.invoice_id')
@@ -387,8 +388,7 @@ class PartyUserController extends Controller
 
     public function custTrasactionPhoto($id)
     {
-        $photos = PartyUserImage::select('image_path', 'type', 'id')->where('transaction_id', $id)->first();
-
+        $photos = PartyUserImage::select('image_path', 'type', 'id')->where('transaction_id', $id)->get();
 
         return view('party_users.cust-photo', compact('photos'));
 
