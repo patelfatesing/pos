@@ -17,25 +17,25 @@ class CashInHandController extends Controller
     {
         $request->validate([
             'amount' => 'required|numeric',
-           // 'cashNotes' => 'required|array',
+            // 'cashNotes' => 'required|array',
         ]);
 
 
         $data = $request->all();
 
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
-        if(empty($branch_id)){
+        if (empty($branch_id)) {
             return redirect('/login');
         }
         $cashNotes = [];
         $total = 0;
-    
+
         foreach ($data as $key => $value) {
             if (Str::startsWith($key, 'cashNotes_')) {
                 $parts = explode('_', $key);
                 $denomination = (string) end($parts); // Ensure it's a string
                 $count = (string) (int)$value;         // Convert to string after casting to int
-    
+
                 $cashNotes[$parts[1]][$denomination]['in'] = $count;
                 $total += ((int)$denomination) * (int)$count;
             }
@@ -49,7 +49,7 @@ class CashInHandController extends Controller
         $cashBreakdown = \App\Models\CashBreakdown::create([
             'user_id' => auth()->id(),
             'branch_id' => $branch_id,
-            'type' =>"cashinhand",
+            'type' => "cashinhand",
             'denominations' => $cashNotes,
             'total' => $request->amount,
         ]);
@@ -58,7 +58,7 @@ class CashInHandController extends Controller
             [
                 'user_id' => auth()->id(),
                 'branch_id' => $branch_id,
-                'status'=>'pending'
+                'status' => 'pending'
             ],
             [
                 'start_time' => $start,
@@ -73,20 +73,19 @@ class CashInHandController extends Controller
             ->whereDate('date', Carbon::yesterday())
             ->get();
 
-            foreach($stocks as $key){
+        foreach ($stocks as $key) {
 
-                DailyProductStock::updateOrCreate(
-                                            [
-                                                'product_id' => $key->product_id,
-                                                'branch_id' => $branch_id,
-                                                'date' => Carbon::today(),
-                                                'opening_stock' => $key->closing_stock,
-                                            ]
-                                        );
+            DailyProductStock::updateOrCreate(
+                [
+                    'product_id' => $key->product_id,
+                    'branch_id' => $branch_id,
+                    'date' => Carbon::today(),
+                    'opening_stock' => $key->closing_stock,
+                ]
+            );
         }
 
         //return redirect()->route('items.cart')->with('notification-sucess', 'Cash in hand saved.');
-         return redirect()->back()->with('notification-sucess', 'Cash in hand saved.');
+        return redirect()->back()->with('notification-sucess', 'Cash in hand saved.');
     }
-
 }
