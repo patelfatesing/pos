@@ -30,7 +30,7 @@
 
                                 <tr class="ligth ligth-data">
                                     <th>Product</th>
-                                    <th>Location</th>
+                                    <th>Store</th>
                                     <th>Quantity</th>
                                     <th>Price</th>
                                     <th>Batch No</th>

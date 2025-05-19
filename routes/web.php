@@ -324,6 +324,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/products/import-data', [ProductImportController::class, 'importData'])->name('products.import.data');
     Route::get('/products/add-stocks', [ProductImportController::class, 'addStocks'])->name('products.add-stocks');
     Route::post('/products/import-stocks', [ProductImportController::class, 'importStocks'])->name('products.import.stocks');
+    Route::post('/csv-preview', [ProductImportController::class, 'preview'])->name('csv.preview');
 
     Route::get('/shift-manage/list', [ShiftManageController::class, 'index'])->name('shift-manage.list');
     Route::post('/shift-manage/get-data', [ShiftManageController::class, 'getShiftClosingsData'])->name('shift-manage.getData');
