@@ -168,7 +168,7 @@
                 if (result.isConfirmed) {
                     $.ajax({
                         type: "POST",
-                        url: "{{ url('users/status-change') }}", // Update this to your route
+                        url: "{{ url('party-users/status-change') }}", // Update this to your route
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },

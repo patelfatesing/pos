@@ -224,112 +224,113 @@ Route::middleware('auth')->group(function () {
     Route::get('/pack-size/edit/{id}', [PackSizeController::class, 'edit'])->name('packsize.edit');
     Route::post('/pack-size/update', [PackSizeController::class, 'update'])->name('packsize.update');
     Route::delete('/pack-size/delete/{id}', [PackSizeController::class, 'destroy'])->name('packsize.destroy');
+
+    // Route::middleware(['auth', 'admin'])->prefix('commission-users')->name('commission-users.')->group(function () {
+
+    Route::get('/commission-users/list', [CommissionUserController::class, 'index'])->name('commission-users.list');
+    Route::post('/commission-users/get-data', [CommissionUserController::class, 'getData'])->name('commission-users.getData');
+    Route::get('/commission-users/create', [CommissionUserController::class, 'create'])->name('commission-users.create');
+    Route::post('/commission-users/', [CommissionUserController::class, 'store'])->name('commission-users.store');
+    Route::get('/commission-users/edit/{id}', [CommissionUserController::class, 'edit'])->name('commission-users.edit');
+    Route::put('/commission-users/{Commissionuser}', [CommissionUserController::class, 'update'])->name('commission-users.update');
+    Route::delete('/commission-users/{Commissionuser}', [CommissionUserController::class, 'destroy'])->name('commission-users.destroy');
+    Route::get('/commission-cust/view/{id}', [CommissionUserController::class, 'view'])->name('commission-cust.view');
+    Route::get('/commission-cust/trasaction-photo-view/{id}', [CommissionUserController::class, 'custTrasactionPhoto'])->name('commission-cust.trasaction-photo-view');
+    Route::post('/commission-cust/get-commission-data', [CommissionUserController::class, 'getDataCommission'])->name('commission-cust.get.commission.data');
+    Route::post('/commission-cust/status-change', [CommissionUserController::class, 'statusChange'])->name('commission-cust.status-change');
+    // });
+
+    // Route::middleware(['auth', 'admin'])->prefix('party-users')->name('party-users.')->group(function () {
+    Route::get('/party-users/list', [PartyUserController::class, 'index'])->name('party-users.list');
+    Route::post('/party-users/get-data', [PartyUserController::class, 'getData'])->name('party-users.getData');
+    Route::get('/party-users/create', [PartyUserController::class, 'create'])->name('party-users.create');
+    Route::post('/party-users/', [PartyUserController::class, 'store'])->name('party-users.store');
+    Route::get('/party-users/edit/{id}', [PartyUserController::class, 'edit'])->name('party-users.edit');
+    Route::get('/party-users/view/{id}', [PartyUserController::class, 'view'])->name('party-users.view');
+    Route::put('/party-users/{Partyuser}', [PartyUserController::class, 'update'])->name('party-users.update');
+    Route::delete('/party-users/{Partyuser}', [PartyUserController::class, 'destroy'])->name('party-users.destroy');
+    Route::get('/cust-product-price-change/form/{id}', [PartyUserController::class, 'custProductPriceChangeForm']);
+    Route::post('/cust-product-price-change/price_change-store', [PartyUserController::class, 'custPriceChange'])->name('cust-product-price-change-store');
+    Route::post('/party-users/get-commission-data', [PartyUserController::class, 'getDataCommission'])->name('party-users.get.commission.data');
+    Route::get('/cust-trasaction-photo/view/{id}', [PartyUserController::class, 'custTrasactionPhoto'])->name('cust-trasaction-photo-view');
+    Route::post('/party-users/status-change', [PartyUserController::class, 'statusChange'])->name('party-users.status-change');
+
+    // });
+
+    Route::get('/stock-transfer/list', [StockTransferController::class, 'index'])->name('stock-transfer.list');
+    Route::post('/stock-transfer/store', [StockTransferController::class, 'store'])->name('stock-transfer.store');
+
+    Route::get('/vendor/list', [VendorListController::class, 'index'])->name('vendor.list');
+    Route::post('/vendor/get-data', [VendorListController::class, 'getData'])->name('vendor.getData');
+    Route::get('/vendor/create', [VendorListController::class, 'create'])->name('vendor.create');
+    Route::post('/vendor/', [VendorListController::class, 'store'])->name('vendor.store');
+    Route::get('/vendor/edit/{id}', [VendorListController::class, 'edit'])->name('vendor.edit');
+    Route::put('/vendor/{Partyuser}', [VendorListController::class, 'update'])->name('vendor.update');
+    Route::delete('/vendor/{Partyuser}', [VendorListController::class, 'destroy'])->name('vendor.destroy');
+
+    Route::get('/purchase/list', [PurchaseController::class, 'index'])->name('purchase.list');
+    Route::get('/purchase/create', [PurchaseController::class, 'create'])->name('purchase.create');
+    Route::post('/purchase/store', [PurchaseController::class, 'store'])->name('purchase.store');
+    Route::post('/purchase/get-data', [PurchaseController::class, 'getData'])->name('purchase.getData');
+    Route::get('/purchase/view/{id}', [PurchaseController::class, 'view'])->name('purchase.view');
+    Route::get('/vendor/get-product-details/{id}', [PurchaseController::class, 'getProductDetails'])->name('vendor.get-product-details');
+
+    Route::get('/popup/form/{type}', [NotificationController::class, 'loadForm']);
+    Route::get('/notifications/index', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/fetch-data', [NotificationController::class, 'getData'])->name('notifications.fetch-data');
+    Route::get('/notifications/get-notification', [NotificationController::class, 'getNotication'])->name('notifications.get-notication');
+
+
+    // routes/web.php
+    Route::get('sales/sales-list', [SalesReportController::class, 'salasList'])->name('sales.sales.list');
+    Route::get('sales/sales-report', [SalesReportController::class, 'index'])->name('sales.report');
+    Route::get('sales-report/data', [SalesReportController::class, 'getSalesReportData'])->name('sales.report.data');
+    Route::post('sales/get-data', [SalesReportController::class, 'getData'])->name('sales.get.data');
+    Route::get('/store-sales-summary', [SalesReportController::class, 'storeSummary'])->name('store-sales-summary');
+
+    Route::get('/sales/sales-daily', [SalesReportController::class, 'salesDaily'])->name('sales.sales-daily');
+    Route::get('/sales/branch-sales-report', [SalesReportController::class, 'branchSalesReport'])->name('sales.branch.sales.report');
+
+    Route::get('/sales/stock-report', [SalesReportController::class, 'stockReport'])->name('sales.stock.report');
+    Route::get('/sales/fetch-stock-data', [SalesReportController::class, 'fetchStockData'])->name('sales.fetch-stock-data');
+
+    Route::get('/sales/commission-report', [SalesReportController::class, 'commissionReport'])->name('sales.commission.report');
+    Route::get('/sales/fetch-commission-data', [SalesReportController::class, 'commissionInvoicesReport'])->name('sales.fetch-commission-data');
+
+    Route::get('/exp-category/list', [ExpenseCategoryController::class, 'index'])->name('exp_category.list');
+    Route::post('/exp-category/get-data', [ExpenseCategoryController::class, 'getData'])->name('exp_category.getData');
+    Route::get('/exp-category/create', [ExpenseCategoryController::class, 'create'])->name('exp_category.create');
+    Route::post('/exp-category/store', [ExpenseCategoryController::class, 'store'])->name('exp_category.store');
+    Route::get('/exp-category/edit/{id}', [ExpenseCategoryController::class, 'edit'])->name('exp_category.edit');
+    Route::post('/exp-category/update', [ExpenseCategoryController::class, 'update'])->name('exp_category.update');
+    Route::delete('/exp-category/delete/{id}', [ExpenseCategoryController::class, 'destroy'])->name('exp_category.destroy');
+
+    Route::get('/exp/list', [ExpenseController::class, 'index'])->name('exp.list');
+    Route::post('/exp/get-data', [ExpenseController::class, 'getData'])->name('exp.getData');
+    Route::get('/exp/create', [ExpenseController::class, 'create'])->name('exp.create');
+    Route::post('/exp/store', [ExpenseController::class, 'store'])->name('exp.store');
+    Route::get('/exp/edit/{id}', [ExpenseController::class, 'edit'])->name('exp.edit');
+    Route::post('/exp/update', [ExpenseController::class, 'update'])->name('exp.update');
+
+    Route::get('/demand-order/list', [DemandOrderController::class, 'index'])->name('demand-order.list');
+    Route::post('/demand-order/get-data', [DemandOrderController::class, 'getData'])->name('demand-order.getData');
+    Route::get('/demand-order/create', [DemandOrderController::class, 'create'])->name('demand-order.create');
+    Route::post('/demand-order/store', [DemandOrderController::class, 'store'])->name('demand-order.store');
+    Route::get('/demand-order/edit/{id}', [DemandOrderController::class, 'edit'])->name('demand-orders.edit');
+    Route::get('/demand-order/create-pre', [DemandOrderController::class, 'createPrediction'])->name('demand-order.create.pre');
+
+    Route::get('/products/import', [ProductImportController::class, 'showUploadForm'])->name('products.import');
+    Route::post('/products/upload', [ProductImportController::class, 'import'])->name('products.upload');
+    Route::post('/products/import-data', [ProductImportController::class, 'importData'])->name('products.import.data');
+    Route::get('/products/add-stocks', [ProductImportController::class, 'addStocks'])->name('products.add-stocks');
+    Route::post('/products/import-stocks', [ProductImportController::class, 'importStocks'])->name('products.import.stocks');
+
+    Route::get('/shift-manage/list', [ShiftManageController::class, 'index'])->name('shift-manage.list');
+    Route::post('/shift-manage/get-data', [ShiftManageController::class, 'getShiftClosingsData'])->name('shift-manage.getData');
+    Route::post('shift-manage/invoices-by-branch', [ShiftManageController::class, 'getInvoicesByBranch'])->name('shift-manage.invoices-by-branch');
+    Route::post('shift-manage/close-shift/{id}', [ShiftManageController::class, 'closeShift'])->name('shift-manage.close-shift');
 });
 
-// Route::middleware(['auth', 'admin'])->prefix('commission-users')->name('commission-users.')->group(function () {
-
-Route::get('/commission-users/list', [CommissionUserController::class, 'index'])->name('commission-users.list');
-Route::post('/commission-users/get-data', [CommissionUserController::class, 'getData'])->name('commission-users.getData');
-Route::get('/commission-users/create', [CommissionUserController::class, 'create'])->name('commission-users.create');
-Route::post('/commission-users/', [CommissionUserController::class, 'store'])->name('commission-users.store');
-Route::get('/commission-users/edit/{id}', [CommissionUserController::class, 'edit'])->name('commission-users.edit');
-Route::put('/commission-users/{Commissionuser}', [CommissionUserController::class, 'update'])->name('commission-users.update');
-Route::delete('/commission-users/{Commissionuser}', [CommissionUserController::class, 'destroy'])->name('commission-users.destroy');
-Route::get('/commission-cust/view/{id}', [CommissionUserController::class, 'view'])->name('commission-cust.view');
-Route::get('/commission-cust/trasaction-photo-view/{id}', [CommissionUserController::class, 'custTrasactionPhoto'])->name('commission-cust.trasaction-photo-view');
-Route::post('/commission-cust/get-commission-data', [CommissionUserController::class, 'getDataCommission'])->name('commission-cust.get.commission.data');
-Route::post('/commission-cust/status-change', [CommissionUserController::class, 'statusChange'])->name('commission-cust.status-change');
-// });
-
-// Route::middleware(['auth', 'admin'])->prefix('party-users')->name('party-users.')->group(function () {
-Route::get('/party-users/list', [PartyUserController::class, 'index'])->name('party-users.list');
-Route::post('/party-users/get-data', [PartyUserController::class, 'getData'])->name('party-users.getData');
-Route::get('/party-users/create', [PartyUserController::class, 'create'])->name('party-users.create');
-Route::post('/party-users/', [PartyUserController::class, 'store'])->name('party-users.store');
-Route::get('/party-users/edit/{id}', [PartyUserController::class, 'edit'])->name('party-users.edit');
-Route::get('/party-users/view/{id}', [PartyUserController::class, 'view'])->name('party-users.view');
-Route::put('/party-users/{Partyuser}', [PartyUserController::class, 'update'])->name('party-users.update');
-Route::delete('/party-users/{Partyuser}', [PartyUserController::class, 'destroy'])->name('party-users.destroy');
-Route::get('/cust-product-price-change/form/{id}', [PartyUserController::class, 'custProductPriceChangeForm']);
-Route::post('/cust-product-price-change/price_change-store', [PartyUserController::class, 'custPriceChange'])->name('cust-product-price-change-store');
-Route::post('/party-users/get-commission-data', [PartyUserController::class, 'getDataCommission'])->name('party-users.get.commission.data');
-Route::get('/cust-trasaction-photo/view/{id}', [PartyUserController::class, 'custTrasactionPhoto'])->name('cust-trasaction-photo-view');
-Route::post('/party-users/status-change', [PartyUserController::class, 'statusChange'])->name('party-users.status-change');
-
-// });
-
-Route::get('/stock-transfer/list', [StockTransferController::class, 'index'])->name('stock-transfer.list');
-Route::post('/stock-transfer/store', [StockTransferController::class, 'store'])->name('stock-transfer.store');
-
-Route::get('/vendor/list', [VendorListController::class, 'index'])->name('vendor.list');
-Route::post('/vendor/get-data', [VendorListController::class, 'getData'])->name('vendor.getData');
-Route::get('/vendor/create', [VendorListController::class, 'create'])->name('vendor.create');
-Route::post('/vendor/', [VendorListController::class, 'store'])->name('vendor.store');
-Route::get('/vendor/edit/{id}', [VendorListController::class, 'edit'])->name('vendor.edit');
-Route::put('/vendor/{Partyuser}', [VendorListController::class, 'update'])->name('vendor.update');
-Route::delete('/vendor/{Partyuser}', [VendorListController::class, 'destroy'])->name('vendor.destroy');
-
-Route::get('/purchase/list', [PurchaseController::class, 'index'])->name('purchase.list');
-Route::get('/purchase/create', [PurchaseController::class, 'create'])->name('purchase.create');
-Route::post('/purchase/store', [PurchaseController::class, 'store'])->name('purchase.store');
-Route::post('/purchase/get-data', [PurchaseController::class, 'getData'])->name('purchase.getData');
-Route::get('/purchase/view/{id}', [PurchaseController::class, 'view'])->name('purchase.view');
-Route::get('/vendor/get-product-details/{id}', [PurchaseController::class, 'getProductDetails'])->name('vendor.get-product-details');
-
-Route::get('/popup/form/{type}', [NotificationController::class, 'loadForm']);
-Route::get('/notifications/index', [NotificationController::class, 'index'])->name('notifications.index');
-Route::post('/notifications/fetch-data', [NotificationController::class, 'getData'])->name('notifications.fetch-data');
-Route::get('/notifications/get-notification', [NotificationController::class, 'getNotication'])->name('notifications.get-notication');
-
-
-// routes/web.php
-Route::get('sales/sales-list', [SalesReportController::class, 'salasList'])->name('sales.sales.list');
-Route::get('sales/sales-report', [SalesReportController::class, 'index'])->name('sales.report');
-Route::get('sales-report/data', [SalesReportController::class, 'getSalesReportData'])->name('sales.report.data');
-Route::post('sales/get-data', [SalesReportController::class, 'getData'])->name('sales.get.data');
-Route::get('/store-sales-summary', [SalesReportController::class, 'storeSummary'])->name('store-sales-summary');
-
-Route::get('/sales/sales-daily', [SalesReportController::class, 'salesDaily'])->name('sales.sales-daily');
-Route::get('/sales/branch-sales-report', [SalesReportController::class, 'branchSalesReport'])->name('sales.branch.sales.report');
-
-Route::get('/sales/stock-report', [SalesReportController::class, 'stockReport'])->name('sales.stock.report');
-Route::get('/sales/fetch-stock-data', [SalesReportController::class, 'fetchStockData'])->name('sales.fetch-stock-data');
-
-Route::get('/sales/commission-report', [SalesReportController::class, 'commissionReport'])->name('sales.commission.report');
-Route::get('/sales/fetch-commission-data', [SalesReportController::class, 'commissionInvoicesReport'])->name('sales.fetch-commission-data');
-
-Route::get('/exp-category/list', [ExpenseCategoryController::class, 'index'])->name('exp_category.list');
-Route::post('/exp-category/get-data', [ExpenseCategoryController::class, 'getData'])->name('exp_category.getData');
-Route::get('/exp-category/create', [ExpenseCategoryController::class, 'create'])->name('exp_category.create');
-Route::post('/exp-category/store', [ExpenseCategoryController::class, 'store'])->name('exp_category.store');
-Route::get('/exp-category/edit/{id}', [ExpenseCategoryController::class, 'edit'])->name('exp_category.edit');
-Route::post('/exp-category/update', [ExpenseCategoryController::class, 'update'])->name('exp_category.update');
-Route::delete('/exp-category/delete/{id}', [ExpenseCategoryController::class, 'destroy'])->name('exp_category.destroy');
-
-Route::get('/exp/list', [ExpenseController::class, 'index'])->name('exp.list');
-Route::post('/exp/get-data', [ExpenseController::class, 'getData'])->name('exp.getData');
-Route::get('/exp/create', [ExpenseController::class, 'create'])->name('exp.create');
-Route::post('/exp/store', [ExpenseController::class, 'store'])->name('exp.store');
-Route::get('/exp/edit/{id}', [ExpenseController::class, 'edit'])->name('exp.edit');
-Route::post('/exp/update', [ExpenseController::class, 'update'])->name('exp.update');
-
-Route::get('/demand-order/list', [DemandOrderController::class, 'index'])->name('demand-order.list');
-Route::post('/demand-order/get-data', [DemandOrderController::class, 'getData'])->name('demand-order.getData');
-Route::get('/demand-order/create', [DemandOrderController::class, 'create'])->name('demand-order.create');
-Route::post('/demand-order/store', [DemandOrderController::class, 'store'])->name('demand-order.store');
-Route::get('/demand-order/edit/{id}', [DemandOrderController::class, 'edit'])->name('demand-orders.edit');
-Route::get('/demand-order/create-pre', [DemandOrderController::class, 'createPrediction'])->name('demand-order.create.pre');
-
-Route::get('/products/import', [ProductImportController::class, 'showUploadForm'])->name('products.import');
-Route::post('/products/upload', [ProductImportController::class, 'import'])->name('products.upload');
-Route::post('/products/import-data', [ProductImportController::class, 'importData'])->name('products.import.data');
-Route::get('/products/add-stocks', [ProductImportController::class, 'addStocks'])->name('products.add-stocks');
-Route::post('/products/import-stocks', [ProductImportController::class, 'importStocks'])->name('products.import.stocks');
-
-Route::get('/shift-manage/list', [ShiftManageController::class, 'index'])->name('shift-manage.list');
-Route::post('/shift-manage/get-data', [ShiftManageController::class, 'getShiftClosingsData'])->name('shift-manage.getData');
-Route::post('shift-manage/invoices-by-branch', [ShiftManageController::class, 'getInvoicesByBranch'])->name('shift-manage.invoices-by-branch');
-Route::post('shift-manage/close-shift/{id}', [ShiftManageController::class, 'closeShift'])->name('shift-manage.close-shift');
 
 
 require __DIR__ . '/auth.php';

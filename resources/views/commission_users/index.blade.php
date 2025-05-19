@@ -14,7 +14,7 @@
                     <div class="col-lg-12">
                         <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                             <div>
-                                <h4 class="mb-3">Commission Customer List</h4>
+                                <h4 class="mb-3">Commission Customer</h4>
                             </div>
                             <a href="{{ route('commission-users.create') }}" class="btn btn-primary add-list">
                                 <i class="las la-plus mr-3"></i>Create New Commission Customer
@@ -99,7 +99,7 @@
                     ],
                     aoColumnDefs: [{
                         bSortable: false,
-                        aTargets: [2,3,4,6] // make "action" column unsortable
+                        aTargets: [2, 3, 4, 6] // make "action" column unsortable
                     }],
                     order: [
                         [5, 'desc']
@@ -145,6 +145,39 @@
                     }
                 });
 
+            }
+
+            function statusChange(id, newStatus) {
+                Swal.fire({
+                    title: "Are you sure?",
+                    text: "Do you want to change the status?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, change it!",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            type: "POST",
+                            url: "{{ url('commission-cust/status-change') }}", // Update this to your route
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            data: {
+                                id: id,
+                                status: newStatus
+                            },
+                            success: function(response) {
+                                Swal.fire("Success!", "Status has been changed.", "success").then(() => {
+                                    $('#commission_users_table').DataTable().ajax.reload(null,
+                                        false); // ✅ Only reload DataTable
+                                });
+                            },
+                            error: function(xhr) {
+                                Swal.fire("Error!", "Something went wrong.", "error");
+                            }
+                        });
+                    }
+                });
             }
         </script>
     @endsection
