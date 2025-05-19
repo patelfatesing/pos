@@ -31,7 +31,7 @@ class BranchController extends Controller
         $orderColumn = $request->input('columns' . $orderColumnIndex . 'data', 'id');
         $orderDirection = $request->input('order.0.dir', 'asc');
 
-        $query = Branch::where('is_deleted', '!=', 'yes')->where('is_warehouser', '!=', 'yes');
+        $query = Branch::where('is_deleted', '!=', 'yes');
 
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
@@ -40,7 +40,7 @@ class BranchController extends Controller
             });
         }
 
-        $recordsTotal = Branch::where('is_deleted', '!=')->where('is_warehouser','no')->count();
+        $recordsTotal = Branch::where('is_deleted', '!=')->count();
         $recordsFiltered = $query->count();
 
         $data = $query->orderBy($orderColumn, $orderDirection)
@@ -53,18 +53,21 @@ class BranchController extends Controller
         $url = url('/');
         foreach ($data as $employee) {
 
-            $action ='<div class="d-flex align-items-center list-action">         
-                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                                        href="' . url('/store/edit/' . $employee->id) . '"><i class="ri-pencil-line mr-0"></i></a>
-                                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
-                                        href="#" onclick="delete_store(' . $employee->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
-            </div>';
+            $action = '<div class="d-flex align-items-center list-action">';
+            if ($employee->is_warehouser != 'yes') {
+                $action .= '<a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete"
+                href="#" onclick="delete_store(' . $employee->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>';
+            }
+            $action .= '<a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit"
+                    href="' . url('/store/edit/' . $employee->id) . '"><i class="ri-pencil-line mr-0"></i></a>';
+            $action .= '</div>';
+
 
             $records[] = [
                 'name' => $employee->name,
                 'address' => $employee->address,
                 'main_branch' => $employee->main_branch,
-                'is_active' => ($employee->is_active ? '<div class="badge badge-success">Active</div>':'<div class="badge badge-success">Inactive</div>'),
+                'is_active' => ($employee->is_active ? '<div class="badge badge-success">Active</div>' : '<div class="badge badge-success">Inactive</div>'),
                 'created_at' => date('d-m-Y h:s', strtotime($employee->created_at)),
                 'action' => $action
             ];
@@ -83,7 +86,7 @@ class BranchController extends Controller
      */
     public function create()
     {
-           return view('branch.create');
+        return view('branch.create');
     }
 
     /**
@@ -134,7 +137,7 @@ class BranchController extends Controller
     public function update(Request $request)
     {
         $id = $request->id;
-        
+
         // if (!auth()->user()->hasPermission('Update')) {
         //     abort(403, 'Unauthorized - You do not have the required permission.');
         // }
@@ -165,8 +168,7 @@ class BranchController extends Controller
             'success' => true,
             'message' => 'Record deleted successfully.',
         ]);
-        
+
         // return redirect()->route('branch.list')->with('success', 'Record deleted successfully.');
     }
-
 }

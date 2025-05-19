@@ -1,4 +1,5 @@
 @extends('layouts.backend.layouts')
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 @section('page-content')
     <!-- Wrapper Start -->
     <div class="wrapper">
@@ -104,7 +105,8 @@
                                                     data-style="py-0">
                                                     <option value="">Select Store</option>
                                                     @foreach ($branch as $id => $name)
-                                                        <option value="{{ $id }}" data-id="{{ $id }}">{{ $name }}</option>
+                                                        <option value="{{ $id }}" data-id="{{ $id }}">
+                                                            {{ $name }}</option>
                                                     @endforeach
                                                 </select>
                                                 @error('branch_id')
@@ -132,42 +134,40 @@
         </div>
     </div>
     <!-- Wrapper End-->
-@endsection
-@push('scripts')
-    <script>
-        $(document).ready(function() {
-            const $branchSelect = $('select[name="branch_id"]');
-            const allBranchOptions = $branchSelect.find('option').clone();
+@endsection\
+<script>
+    $(document).ready(function() {
+        const $branchSelect = $('select[name="branch_id"]');
+        const allBranchOptions = $branchSelect.find('option').clone();
 
-            $('select[name="role_id"]').on('change', function() {
-                const selectedRoleId = $(this).val();
+        $('select[name="role_id"]').on('change', function() {
+            const selectedRoleId = $(this).val();
 
-                $branchSelect.empty().append('<option value="">Select Store</option>');
+            $branchSelect.empty().append('<option value="">Select Store</option>');
 
-                if (selectedRoleId == '4') {
-                    // Only show branch_id = 1
-                    allBranchOptions.each(function() {
-                        if ($(this).val() == '1') {
-                            $branchSelect.append($(this));
-                        }
-                    });
-                } else {
-                    // Show all branches except branch_id = 1
-                    allBranchOptions.each(function() {
-                        if ($(this).val() != '1' && $(this).val() !== '') {
-                            $branchSelect.append($(this));
-                        }
-                    });
-                }
-
-                $branchSelect.selectpicker('refresh'); // Refresh if using Bootstrap Select
-            });
-
-            // Trigger change on page load if old('role_id') is set
-            const preselectedRole = $('select[name="role_id"]').val();
-            if (preselectedRole) {
-                $('select[name="role_id"]').trigger('change');
+            if (selectedRoleId == '4') {
+                // Only show branch_id = 1
+                allBranchOptions.each(function() {
+                    if ($(this).val() == '1') {
+                        $branchSelect.append($(this));
+                    }
+                });
+            } else {
+                // Show all branches except branch_id = 1
+                allBranchOptions.each(function() {
+                    if ($(this).val() != '1' && $(this).val() !== '') {
+                        $branchSelect.append($(this));
+                    }
+                });
             }
+
+            $branchSelect.selectpicker('refresh'); // Refresh if using Bootstrap Select
         });
-    </script>
-@endpush
+
+        // Trigger change on page load if old('role_id') is set
+        const preselectedRole = $('select[name="role_id"]').val();
+        if (preselectedRole) {
+            $('select[name="role_id"]').trigger('change');
+        }
+    });
+</script>
