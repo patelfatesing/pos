@@ -79,7 +79,9 @@ class PartyUserController extends Controller
                 'images' => implode(', ', array_map(function ($image) {
                     return "<img src='{$image}' alt='Image' style='width:50px;height:50px;'>";
                 }, $images)),
-                'status' => ($partyUser->status == 'Active' ? '<div class="badge badge-success">Active</div>' : '<div class="badge badge-success">Inactive</div>'),
+                'status' => $partyUser->status == 'Active'
+                    ? '<span onclick=\'statusChange("' . $partyUser->id . '", "Inactive")\'><div class="badge badge-success" style="cursor:pointer">Active</div></span>'
+                    : '<span onclick=\'statusChange("' . $partyUser->id . '", "Active")\'><div class="badge badge-danger" style="cursor:pointer">Inactive</div></span>',
                 'created_at' => date('d-m-Y h:i', strtotime($partyUser->created_at)),
                 'action' => $action
             ];

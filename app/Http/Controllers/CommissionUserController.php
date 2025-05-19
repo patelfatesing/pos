@@ -78,7 +78,9 @@ class CommissionUserController extends Controller
                 'images' => implode(', ', array_map(function ($image) {
                     return "<img src='{$image}' alt='Image' style='width:50px;height:50px;'>";
                 }, $images)),
-                'is_active' => ($commissionUser->is_active == 1 ? '<div class="badge badge-success">Active</div>' : '<div class="badge badge-success">Inactive</div>'),
+                'is_active' => $commissionUser->is_active == 1
+                    ? '<span onclick=\'statusChange("' . $commissionUser->id . '", 0)\'><div class="badge badge-success" style="cursor:pointer">Active</div></span>'
+                    : '<span onclick=\'statusChange("' . $commissionUser->id . '", 1)\'><div class="badge badge-danger" style="cursor:pointer">Inactive</div></span>',
                 'created_at' => date('d-m-Y h:i', strtotime($commissionUser->created_at)),
                 'action' => $action
             ];

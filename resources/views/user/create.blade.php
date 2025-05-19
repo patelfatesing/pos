@@ -14,7 +14,8 @@
                                     <h4 class="card-title">{{ __('messages.add_user') }}</h4>
                                 </div>
                                 <div>
-                                    <a href="{{ route('users.list') }}" class="btn btn-secondary">{{ __('messages.back') }}</a>
+                                    <a href="{{ route('users.list') }}"
+                                        class="btn btn-secondary">{{ __('messages.back') }}</a>
                                 </div>
                             </div>
                             <div class="card-body">
@@ -54,8 +55,9 @@
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>{{ __('messages.phone_number') }}</label>
-                                                <input class="floating-input form-control" value="{{ old('phone_number') }}"
-                                                    name="phone_number" type="text" placeholder=" ">
+                                                <input class="floating-input form-control"
+                                                    value="{{ old('phone_number') }}" name="phone_number" type="text"
+                                                    placeholder=" ">
                                                 @error('phone_number')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -102,7 +104,7 @@
                                                     data-style="py-0">
                                                     <option value="">Select Store</option>
                                                     @foreach ($branch as $id => $name)
-                                                        <option value="{{ $id }}">{{ $name }}</option>
+                                                        <option value="{{ $id }}" data-id="{{ $id }}">{{ $name }}</option>
                                                     @endforeach
                                                 </select>
                                                 @error('branch_id')
@@ -117,7 +119,8 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <button type="submit" class="btn btn-primary mr-2">{{ __('messages.create_new_user') }}</button>
+                                    <button type="submit"
+                                        class="btn btn-primary mr-2">{{ __('messages.create_new_user') }}</button>
                                     <button type="reset" class="btn btn-danger">Reset</button>
                                 </form>
                             </div>
@@ -130,3 +133,41 @@
     </div>
     <!-- Wrapper End-->
 @endsection
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            const $branchSelect = $('select[name="branch_id"]');
+            const allBranchOptions = $branchSelect.find('option').clone();
+
+            $('select[name="role_id"]').on('change', function() {
+                const selectedRoleId = $(this).val();
+
+                $branchSelect.empty().append('<option value="">Select Store</option>');
+
+                if (selectedRoleId == '4') {
+                    // Only show branch_id = 1
+                    allBranchOptions.each(function() {
+                        if ($(this).val() == '1') {
+                            $branchSelect.append($(this));
+                        }
+                    });
+                } else {
+                    // Show all branches except branch_id = 1
+                    allBranchOptions.each(function() {
+                        if ($(this).val() != '1' && $(this).val() !== '') {
+                            $branchSelect.append($(this));
+                        }
+                    });
+                }
+
+                $branchSelect.selectpicker('refresh'); // Refresh if using Bootstrap Select
+            });
+
+            // Trigger change on page load if old('role_id') is set
+            const preselectedRole = $('select[name="role_id"]').val();
+            if (preselectedRole) {
+                $('select[name="role_id"]').trigger('change');
+            }
+        });
+    </script>
+@endpush
