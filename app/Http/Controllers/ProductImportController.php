@@ -27,6 +27,8 @@ class ProductImportController extends Controller
 
     public function import(Request $request)
     {
+
+
         $request->validate([
             'file' => 'required|file|mimes:csv,txt',
         ]);
@@ -50,6 +52,7 @@ class ProductImportController extends Controller
         $header = fgetcsv($handle); // read CSV header
         $inserted = 0;
         $skipped = 0;
+        $updated = 0;
 
         while (($row = fgetcsv($handle)) !== false) {
 
@@ -68,10 +71,10 @@ class ProductImportController extends Controller
                     ->whereDate('inventories.expiry_date', Carbon::createFromFormat('d-m-Y', $row[4])->format('Y-m-d'))
                     ->first();
 
-                if ($existing) {
-                    $skipped++;
-                    continue;
-                }
+                // if ($existing) {
+                //     $skipped++;
+                //     continue;
+                // }
 
                 // Insert or find product
                 $product = DB::table('products')->where('name', $row[0])->first();
@@ -84,7 +87,7 @@ class ProductImportController extends Controller
                     $productId = DB::table('products')->insertGetId([
                         'name' => $row[0],
                         'brand' => $brand,
-                        'barcode' => $row[1],
+                        'barcode' => (string) $row[1],
                         'size' => $row[7],
                         'sku' => $sku,
                         'category_id' => $category_id,
@@ -99,39 +102,124 @@ class ProductImportController extends Controller
                         'box_unit' => $row[17],
                         'secondary_unitx' => $row[18],
                     ]);
+
+                    $inserted++;
                 } else {
 
-                    if ($product->barcode != $row[1] || $product->sell_price != $row[13]) {
-                        $product_data = Product::findOrFail($id);
-                        $product_data->barcode = $row[1];
+                    if ($product->barcode != (string) $row[1] || $product->sell_price != $row[13]) {
+                        $product_data = Product::findOrFail($product->id);
+                        $product_data->barcode = (string) $row[1];
                         $product_data->cost_price = $row[8];
                         $product_data->sell_price = $row[13];
                         $product_data->discount_price = $row[15];
                         $product_data->discount_amt = $row[16];
                         $product_data->save();
+
+                        $productId = $product_data->id;
+                        $updated++;
                     }
                 }
 
-                // Insert inventory
-                DB::table('inventories')->insert([
-                    'product_id' => $productId,
-                    'store_id' => 1,
-                    'location_id' => 1,
-                    'batch_no' => $row[2],
-                    'expiry_date' => Carbon::createFromFormat('d-m-Y', $row[4])->format('Y-m-d'),
-                    'mfg_date' => Carbon::createFromFormat('d-m-Y', $row[3])->format('Y-m-d'),
-                    'quantity' => 0,
-                ]);
+                if (!empty($productId)) {
+
+                    // Insert inventory
+                    DB::table('inventories')->insert([
+                        'product_id' => $productId,
+                        'store_id' => 1,
+                        'location_id' => 1,
+                        'batch_no' => $row[2],
+                        'expiry_date' => Carbon::parse($row[4])->format('Y-m-d'),
+                        'mfg_date' => Carbon::parse($row[3])->format('Y-m-d'),
+                        'quantity' => 0,
+                    ]);
+                }
 
                 // Only increment if insert actually happens
-                $inserted++;
+
             }
         }
 
 
         fclose($handle);
 
-        return redirect()->route('products.list')->with('success', "$inserted records inserted, $skipped duplicates skipped.");
+        return redirect()->route('products.list')->with('success', "$inserted records inserted, $skipped duplicates skipped,$updated updated products.");
+    }
+
+    // Try to parse using multiple known formats
+    function normalizeDate($dateString)
+    {
+        $formats = ['d/m/Y', 'd-m-Y', 'm/d/Y', 'Y-m-d'];
+        foreach ($formats as $format) {
+            try {
+                $date = Carbon::createFromFormat($format, $dateString);
+                if ($date && $date->format($format) === $dateString) {
+                    return $date->format('Y-m-d'); // DB-compatible format
+                }
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
+
+        // Fallback: return null or current date
+        return null; // or return now()->format('Y-m-d');
+    }
+
+
+    public function preview(Request $request)
+    {
+
+
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt',
+        ]);
+
+        $file = $request->file('file');
+        $csv = array_map('str_getcsv', file($file));
+        $headers = array_map('trim', $csv[0]); // CSV headers
+
+        // Get DB columns from a specific table, for example: products
+        $dbFields = Schema::getColumnListing('products');
+        $ar = [
+            1 => "name",
+            6 => "barcode",
+            2 => "batch_no",
+            4 => "mfg_date",
+            3 => "expiry_date",
+            9 => "category_id",
+            10 => "subcategory_id",
+            3 => "size",
+            5 => "quantity",
+
+            4 => "sku",
+
+            8 => "description",
+
+            15 => "reorder_level",
+            16 => "cost_price",
+            17 => "sell_price",
+            18 => "price_apply_date",
+            19 => "discount_price",
+            20 => "discount_amt",
+            21 => "case_size",
+            22 => "box_unit",
+            23 => "secondary_unitx"
+        ];
+
+        // dd($dbFields);
+        return view('products_import.csv-preview', compact('headers', 'dbFields'));
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt',
+        ]);
+
+        $file = $request->file('csv_file');
+        $csv = array_map('str_getcsv', file($file));
+        $headers = array_map('trim', $csv[0]); // CSV headers
+
+        // Get DB columns from a specific table, for example: products
+        $dbFields = Schema::getColumnListing('products');
+        dd($dbFields);
+
+        return view('csv-preview', compact('headers', 'dbFields'));
     }
 
     public function collection(Collection $rows)
