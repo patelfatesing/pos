@@ -30,6 +30,7 @@ use App\Models\PartyCustomerProductsPrice;
 use App\Models\CommissionUserImage;
 use App\Models\PartyUserImage;
 use App\Models\DailyProductStock;
+use Illuminate\Support\Facades\Storage;
 
 class Shoppingcart extends Component
 {
@@ -44,7 +45,7 @@ class Shoppingcart extends Component
     public $upi = 0;
     public $updatingField = null;
     public $showCloseButton = false;
-
+    public $partImsgs=[];
     public $shift;
     public $shiftcash;
    public  $narrations = [
@@ -65,6 +66,8 @@ class Shoppingcart extends Component
     public $categoryTotals = [];
     public $cartitems = [];
     public $sub_total = 0;
+    public $productImage = "";
+    public $userImage = "";
     public $tax = 0;
     public $cashAmount = 0;
     public $onlineAmount = 0;
@@ -169,6 +172,12 @@ class Shoppingcart extends Component
     public function updatedSearch($value)
     {
         $this->selectedProduct = Product::where('barcode', $value)->first();
+         if (!$this->selectedProduct) {
+            $this->dispatch('notiffication-error', [
+                'message' => 'Product with this barcode not found please check with admin.'
+            ]);
+            return;
+        }
     }
 
     public function updatedSearchSalesReturn($value)
@@ -411,8 +420,12 @@ class Shoppingcart extends Component
     public function toggleBox()
     {
         if (auth()->user()->hasRole('warehouse')) {
+             $partyImages = session('checkout_images.party', []);
             if (empty($this->selectedPartyUser)) {
                 $this->dispatch('notiffication-error', ['message' => 'Please selecte party customer.']);
+    
+            }else if (empty($partyImages) || (!empty($partyImages) &&  empty($partyImages[0]['product_image_path']) ) | (!empty($partyImages) &&  empty($partyImages[0]['user_image_path']) ))  {
+                $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
     
             }else{
     
@@ -429,16 +442,27 @@ class Shoppingcart extends Component
             }
         
         }else{
-            if (!empty($this->products->toArray())) {
-                $this->headertitle="Cash";
-                $this->shoeCashUpi = false;
-                $this->showBox = true;
-                $this->paymentType = "cash";
-                $this->total = $this->cashAmount;
-                $this->useCredit=false;
-                
-            } else {
-                $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
+            $cashierImages = session('checkout_images.cashier', []);
+            
+            if (empty($this->selectedCommissionUser)) {
+                $this->dispatch('notiffication-error', ['message' => 'Please select commission customer.']);
+    
+            }else if (empty($cashierImages) || (!empty($cashierImages) &&  empty($cashierImages[0]['product_image_path']) ) | (!empty($cashierImages) &&  empty($cashierImages[0]['user_image_path']) ))  {
+                $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
+    
+            }else{
+
+                if (!empty($this->products->toArray())) {
+                    $this->headertitle="Cash";
+                    $this->shoeCashUpi = false;
+                    $this->showBox = true;
+                    $this->paymentType = "cash";
+                    $this->total = $this->cashAmount;
+                    $this->useCredit=false;
+                    
+                } else {
+                    $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
+                }
             }
         }
 
@@ -447,8 +471,12 @@ class Shoppingcart extends Component
     public function cashupitoggleBox()
     {
         if (auth()->user()->hasRole('warehouse')) {
+            $partyImages = session('checkout_images.party', []);
             if (empty($this->selectedPartyUser)) {
                 $this->dispatch('notiffication-error', ['message' => 'Please selecte party customer.']);
+    
+            }else if (empty($partyImages) || (!empty($partyImages) &&  empty($partyImages[0]['product_image_path']) ) | (!empty($partyImages) &&  empty($partyImages[0]['user_image_path']) ))  {
+                $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
     
             }else{
 
@@ -467,18 +495,29 @@ class Shoppingcart extends Component
                 }
             }
         }else{
-            if (!empty($this->products->toArray())) {
-                $this->showBox = false;
-                $this->showOnline=false;
-                $this->shoeCashUpi = true;
-                $this->paymentType = "cashupi";
-                $this->headertitle="Cash + UPI";
-                $this->useCredit=false;
-                $this->total = $this->cashAmount;
-                
+            $cashierImages = session('checkout_images.cashier', []);
+            
+            if (empty($this->selectedCommissionUser)) {
+                $this->dispatch('notiffication-error', ['message' => 'Please select commission customer.']);
     
-            } else {
-                $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
+            }else if (empty($cashierImages) || (!empty($cashierImages) &&  empty($cashierImages[0]['product_image_path']) ) | (!empty($cashierImages) &&  empty($cashierImages[0]['user_image_path']) ))  {
+                $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
+    
+            }else{
+
+                if (!empty($this->products->toArray())) {
+                    $this->showBox = false;
+                    $this->showOnline=false;
+                    $this->shoeCashUpi = true;
+                    $this->paymentType = "cashupi";
+                    $this->headertitle="Cash + UPI";
+                    $this->useCredit=false;
+                    $this->total = $this->cashAmount;
+                    
+        
+                } else {
+                    $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
+                }
             }
         }
         
@@ -487,8 +526,13 @@ class Shoppingcart extends Component
     public function onlinePayment()
     {
         if (auth()->user()->hasRole('warehouse')) {
+            $partyImages = session('checkout_images.party', []);
+
             if (empty($this->selectedPartyUser)) {
                 $this->dispatch('notiffication-error', ['message' => 'Please selecte party customer.']);
+    
+            }else if (empty($partyImages) || (!empty($partyImages) &&  empty($partyImages[0]['product_image_path']) ) | (!empty($partyImages) &&  empty($partyImages[0]['user_image_path']) ))  {
+                $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
     
             }else{
 
@@ -506,17 +550,28 @@ class Shoppingcart extends Component
                 }
             }
         }else{
-            if (!empty($this->products->toArray())) {
-                $this->showBox = false;
-                $this->shoeCashUpi = true;
-                $this->paymentType = "online";
-                $this->headertitle="Online";
-                $this->showOnline=true;
-                $this->total = $this->cashAmount;
-                
+            $cashierImages = session('checkout_images.cashier', []);
+            
+            if (empty($this->selectedCommissionUser)) {
+                $this->dispatch('notiffication-error', ['message' => 'Please select commission customer.']);
     
-            } else {
-                $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
+            }else if (empty($cashierImages) || (!empty($cashierImages) &&  empty($cashierImages[0]['product_image_path']) ) | (!empty($cashierImages) &&  empty($cashierImages[0]['user_image_path']) ))  {
+                $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
+    
+            }else{
+
+                if (!empty($this->products->toArray())) {
+                    $this->showBox = false;
+                    $this->shoeCashUpi = true;
+                    $this->paymentType = "online";
+                    $this->headertitle="Online";
+                    $this->showOnline=true;
+                    $this->total = $this->cashAmount;
+                    
+        
+                } else {
+                    $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
+                }
             }
         }
     }
@@ -779,9 +834,20 @@ class Shoppingcart extends Component
         $this->language = $value; // Update the language property
         $this->dispatch('language-updated', ['language' => $value]); // Notify frontend
     }
-
+   
     public function mount()
     {
+        //$this->getImages();
+        if (auth()->user()->hasRole('warehouse')) {
+
+            $partyImages = session('checkout_images.party', []);
+            $this->productImage=$partyImages[0]['product_image_path']??'';
+            $this->userImage=$partyImages[0]['user_image_path']??'';
+        }else{
+            $cashierImages = session('checkout_images.cashier', []);
+            $this->productImage=$cashierImages[0]['product_image_path']??'';
+            $this->userImage=$cashierImages[0]['user_image_path']??'';
+        }
         $this->language = Session::get('locale') ?? config('app.locale');
 
         $this->branch_name = (!empty(auth()->user()->userinfo->branch->name)) ? auth()->user()->userinfo->branch->name : "";
@@ -1982,32 +2048,68 @@ class Shoppingcart extends Component
             ]);
             InvoiceHistory::logFromInvoice($invoice, 'created', auth()->id());
 
-            // Retrieve session data
-            $cashierImages = session('checkout_images.cashier', []);
-            $partyImages = session('checkout_images.party', []);
 
-            
+                if ($this->selectedPartyUser) {
+                    $partyImages = session('checkout_images.party', []);
+                    foreach ($partyImages as $image) {
+                        $userImgName = basename($image['user_image_path']);
+                        $productImgName = basename($image['product_image_path']);
+                        // Define source and destination paths
+                        //$sourcePath = 'uploaded_photos/' . $image['filename'];
+                        $destinationProductPath = 'uploaded_photos/' . $invoice_number . '/' . $productImgName;
+                        $destinationUserPath = 'uploaded_photos/' . $invoice_number . '/' . $userImgName;
+
+                        if (Storage::disk('public')->exists($image['user_image_path'])) {
+                            Storage::disk('public')->move($image['user_image_path'], $destinationUserPath);
+                        }
+                        if (Storage::disk('public')->exists($image['product_image_path'])) {
+                            Storage::disk('public')->move($image['product_image_path'], $destinationProductPath);
+                        }  
+                        // Save the updated image path (in the order folder) to the database
+                        PartyUserImage::create([
+                            'party_user_id' => $image['user_id'],
+                            'type' => $image['type'],
+                            'image_path' => $destinationUserPath, // new path
+                            'image_name' => $image['filename'],
+                            'product_image_path' => $destinationProductPath, // assuming same
+                            'transaction_id' => $invoice->id,
+                        ]);
+                    }
+
+                    // Optional: clear the session images
+                    session()->forget('checkout_images.party');
+                }
+                else{
+
+                $cashierImages = session('checkout_images.cashier', []);
                 // Store all cashier images
                 foreach ($cashierImages as $image) {
+                    $userImgName = basename($image['user_image_path']);
+                    $productImgName = basename($image['product_image_path']);
+                    // Define source and destination paths
+                    //$sourcePath = 'uploaded_photos/' . $image['filename'];
+                    $destinationProductPath = 'uploaded_photos/' . $invoice_number . '/' . $productImgName;
+                    $destinationUserPath = 'uploaded_photos/' . $invoice_number . '/' . $userImgName;
+
+                    if (Storage::disk('public')->exists($image['user_image_path'])) {
+                        Storage::disk('public')->move($image['user_image_path'], $destinationUserPath);
+                    }
+                    if (Storage::disk('public')->exists($image['product_image_path'])) {
+                        Storage::disk('public')->move($image['product_image_path'], $destinationProductPath);
+                    }  
                     CommissionUserImage::create([
                         'commission_user_id' => $image['user_id'],
                         'type' => $image['type'],
-                        'image_path' => $image['path'],
-                        'image_name' => $image['filename'],
+                        'image_path' => $userImgName,
+                        'image_name' => $destinationUserPath,
+                        'product_image_path' => $destinationProductPath,
                         'transaction_id' => $invoice->id,
                     ]);
                 }
+                session()->forget('checkout_images.cashier');
+            }
+            // Retrieve session data
 
-                // Store all party images
-                foreach ($partyImages as $image) {
-                    PartyUserImage::create([
-                        'party_user_id' => $image['user_id'],
-                        'type' => $image['type'],
-                        'image_path' => $image['path'],
-                        'image_name' => $image['filename'],
-                        'transaction_id' => $invoice->id,
-                    ]);
-                }
 
             // Clear session
             session()->forget('checkout_images');

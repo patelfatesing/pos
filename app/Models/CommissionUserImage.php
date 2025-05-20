@@ -15,6 +15,7 @@ class CommissionUserImage extends Model
         'type',
         'image_path',
         'image_name',
+        'product_image_path'
     ];
 
     /**
