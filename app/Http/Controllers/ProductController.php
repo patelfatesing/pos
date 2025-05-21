@@ -341,58 +341,70 @@ class ProductController extends Controller
 
     public function uploadPhoto(Request $request)
     {
-        if (strtolower(Auth::user()->role->name )== 'cashier') {
-            $request->validate([
-                'selectedCommissionUser' => 'required',
-            ]);
-        }else{
-            $request->validate([
-                'selectedPartyUser' => 'required',
-            ]);
-        }
+        $isCashier = strtolower(Auth::user()->role->name) == 'cashier';
+
+        $request->validate([
+            $isCashier ? 'selectedCommissionUser' : 'selectedPartyUser' => 'required',
+        ]);
 
         $image = $request->file('photo');
-        $path = $image->store('uploaded_photos', 'public');
-        $filename = $image->getClientOriginalName();
+        $type = $request->type;
+        // Define the custom file name (optional: make it unique using timestamp or UUID)
+        $extension = $image->getClientOriginalExtension();
+        $userId = $isCashier ? $request->selectedCommissionUser : $request->selectedPartyUser;
+        $customFileName = $type . '_' . $userId . '_image.' . $extension;
 
-        if (strtolower(Auth::user()->role->name )== 'cashier') {
-            $modal=new CommissionUserImage();
-            $modal->commission_user_id = $request->selectedCommissionUser;
-            $modal->type = $request->type;
-            $modal->image_path = $path;
-            $modal->image_name = $filename;
-           // $modal->save();
-            session()->push('checkout_images.cashier', [
-                'id' => $modal->id,
-                'user_id' => $modal->commission_user_id,
-                'type' => $modal->type,
-                'path' => $path,
-                'filename' => $filename,
-            ]);
-        }else{
-            $modal=new PartyUserImage();
-            $modal->party_user_id = $request->selectedPartyUser;
-            $modal->type = $request->type;
-            $modal->image_path = $path;
-           // $modal->image_name = $filename;
-          //  $modal->save();
-              // Store in session
-            session()->push('checkout_images.party', [
-                'id' => $modal->id,
-                'user_id' => $modal->party_user_id,
-                'type' => $modal->type,
-                'path' => $path,
-                'filename' => $filename,
-            ]);
+        $path = $image->storeAs('uploaded_photos', $customFileName, 'public');
 
+        // Unified session key
+        $sessionKey = $isCashier ? 'checkout_images.cashier' : 'checkout_images.party';
+
+        // Get current session data or empty array
+        $images = session($sessionKey, []);
+
+        // Check if user entry already exists
+        $found = false;
+
+        foreach ($images as &$img) {
+            if ($img['user_id'] == $userId) {
+                // Update the corresponding image path
+                if ($type === 'product') {
+                    $img['product_image_path'] = $path;
+                    $img['filename'] = $customFileName;
+                } elseif ($type === 'user') {
+                    $img['user_image_path'] = $path;
+                    $img['filename'] = $customFileName;
+                }
+                $found = true;
+                break;
+            }
         }
+        unset($img); // good practice after foreach by reference
+
+        // If not found, add new entry
+        if (!$found) {
+            $images[] = [
+                'user_id' => $userId,
+                'type' => $type,
+                'filename' => $customFileName,
+                'product_image_path' => $type === 'product' ? $path : '',
+                'user_image_path' => $type === 'user' ? $path : '',
+            ];
+        }
+
+        // Save back to session
+        session()->put($sessionKey, $images);
+
 
         return response()->json([
             'success' => true,
-            'filename' => $filename,
+            'filename' => $customFileName,
             'path' => $path,
+            'orignal_path' => Storage::url($path), // This gives you the full URL
+
         ]);
     }
+
 
     /**
      * Update the specified resource in storage.

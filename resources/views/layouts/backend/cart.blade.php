@@ -278,7 +278,32 @@
 .custom-input,.custom-btn{
         border-radius: 0px ! important;
 
+}/* Default widths */
+.col-product { width: 45% !important; }
+.col-qty { width: 15% !important; }
+.col-price { width: 10% !important; }
+.col-total { width: 10% !important; }
+.col-actions { width: 8% !important; }
+
+/* Responsive adjustments for tablets and small screens */
+@media (max-width: 1024px) {
+    .col-product { width: 30% !important; }
+    .col-qty, .col-price, .col-total, .col-actions {
+        width: auto !important;
+        text-align: center;
+    }
 }
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+    .col-product { width: 50% !important; }
+    .col-qty, .col-price, .col-total, .col-actions {
+        width: auto !important;
+        text-align: center;
+    }
+}
+
+
     </style>
     @livewireStyles
     </head>
