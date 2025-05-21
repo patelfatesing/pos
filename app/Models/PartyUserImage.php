@@ -13,6 +13,7 @@ class PartyUserImage extends Model
     protected $fillable = [
         'party_user_id',
         'image_path',
+        'product_image_path',
         'type',
         'transaction_id'
     ];

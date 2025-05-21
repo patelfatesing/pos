@@ -133,7 +133,7 @@
             @endif
 
         </div>
-        @if ($showSuggestions && count($searchResults) > 0)
+        @if ($this->showSuggestions && count($searchResults) > 0)
             <div id="search-suggestion-wrapper" class="search-results col-md-6">
 
                 <div class="list-group">
@@ -147,6 +147,14 @@
                     @endforeach
                 </div>
             </div>
+        @elseif(strlen($this->searchTerm) > 0 &&  count($searchResults) == 0)
+            <div id="search-suggestion-wrapper" class="search-results col-md-6">
+            <div class="list-group">
+                <div class="list-group-item text-center text-muted">
+                    No product found.
+                </div>
+            </div>
+        </div>
         @endif
 
         <div class="table-responsive" id="main_tb">
@@ -154,13 +162,13 @@
             <div class=" {{ count($itemCarts) > 5 ? ' cart-table-scroll scrollable' : '' }}">
 
                 <table class="customtable table table-bordered" id="cartTable">
-                    <thead class="thead-light">
+                   <thead class="thead-light">
                         <tr>
-                            <th style="width: 45%;">{{ __('messages.product') }}</th>
-                            <th class="text-center" style="width: 15%;">{{ __('messages.qty') }}</th>
-                            <th style="width: 10%;">{{ __('messages.price') }}</th>
-                            <th style="width: 10%;">{{ __('messages.total') }}</th>
-                            <th style="width: 8%;">{{ __('messages.actions') }}</th>
+                            <th class="col-product">{{ __('messages.product') }}</th>
+                            <th class="col-qty text-center">{{ __('messages.qty') }}</th>
+                            <th class="col-price">{{ __('messages.price') }}</th>
+                            <th class="col-total">{{ __('messages.total') }}</th>
+                            <th class="col-actions">{{ __('messages.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -172,11 +180,11 @@
                                 $finalAmount = $total - $commission - $party;
                             @endphp
                             <tr>
-                                <td class="product-name" style="word-wrap: break-word; width: 45%;">
+                                <td class="product-name col-product" style="word-wrap: break-word; ">
                                     <strong>{{ $item->product->name }}</strong><br>
                                     <small>{{ $item->product->description }}</small>
                                 </td>
-                                <td style="width: 15%;">
+                                <td class="col-qty" >
                                     @if (auth()->user()->hasRole('cashier'))
                                         <div class="d-flex align-items-center justify-content-between">
                                             <input type="number" min="1"
@@ -229,7 +237,7 @@
                                         </div>
                                     @endif
                                 </td>
-                                <td style="width: 10%;">
+                                <td class="col-price">
 
                                     @if (@$this->partyUserDiscountAmt && $this->commissionAmount > 0)
                                         <span class="text-danger">
@@ -268,12 +276,12 @@
                                         @endif
                                     @endif
                                 </td>
-                                <td style="width: 10%;">
+                                <td class="col-total">
 
                                     {{ format_inr($item->net_amount) }}
 
                                 </td>
-                                <td style="width: 8%; " class="text-center">
+                                <td  class="col-actions text-center">
                                     <button class="btn btn-danger" wire:click="removeItem({{ $item->id }})"
                                         title="Remove item">
                                         <i class="fas fa-times"></i>
@@ -333,16 +341,10 @@
                                             <i class="fa fa-hand-holding-usd me-2"></i> Sales Return
                                         </button>
                                     @else
-                                        @if (($selectedPartyUser && count($itemCarts) > 0) || count($itemCarts) > 0)
-                                            <button wire:click="toggleBox"
-                                                class="btn btn-sm btn-primary m-2 flex-fill text-nowrap">
-                                                <i class="fa fa-money-bill-wave me-2"></i> {{ __('messages.cash') }}
-                                            </button>
-                                        @else
-                                            <button class="btn btn-sm btn-primary m-2 flex-fill text-nowrap" disabled>
-                                                <i class="fa fa-money-bill-wave me-2"></i> {{ __('messages.cash') }}
-                                            </button>
-                                        @endif
+                                        <button wire:click="toggleBox"
+                                            class="btn btn-sm btn-primary m-2 flex-fill text-nowrap">
+                                            <i class="fa fa-money-bill-wave me-2"></i> {{ __('messages.cash') }}
+                                        </button>
                                     @endif
                                     @if (empty($this->selectedSalesReturn))
                                         <button wire:click="voidSale"
@@ -414,7 +416,8 @@
 
                 <div class="modal-body px-4 py-4">
                     <!-- Step 1: Product -->
-                    <div id="step1">
+                  
+                    <div id="step1" class="{{ !empty($this->productImage) && !empty($this->userImage) ? 'd-none' : '' }}">
                         <h6 class="text-muted mb-3">Step 1: Capture Product Image</h6>
                         <div class="border rounded-3 overflow-hidden mb-3 text-center p-2 bg-light">
                             <img src="{{ asset('assets/images/bottle.png') }}" alt="Sample Product"
@@ -427,6 +430,9 @@
                         <button type="button" class="btn btn-outline-primary w-100"
                             onclick="captureImage('product')">
                             <i class="bi bi-camera me-1"></i>Capture Product Image
+                        </button>
+                        <button type="button" class="btn btn-primary w-100 mt-2" onclick="goToStep(2)">
+                            Next: Customer Image
                         </button>
                     </div>
 
@@ -445,12 +451,47 @@
                         <div class="d-flex justify-content-between gap-2">
                             <button type="button" class="btn btn-outline-primary w-100"
                                 onclick="captureImage('user')">
-                                <i class="bi bi-camera me-1"></i>Capture User Image
+                                <i class="bi bi-camera me-1"></i>Capture Customer Image
                             </button>
-                            <button type="button" class="btn btn-outline-secondary w-100" data-dismiss="modal">
-                                <i class="bi bi-x-circle me-1"></i>Close
+                            <button type="button" class="btn btn-primary w-100" onclick="goToStep(3)">
+                                Next: Review
                             </button>
 
+                        </div>
+                    </div>
+
+                    <div id="step3" class="{{ !empty($this->productImage) && !empty($this->userImage) ? '' : 'd-none mt-4' }}" >
+                        @php
+                            $stepTitle=!empty($this->productImage) && !empty($this->userImage) ? 'Uploaded Images' : 'Step 3: Review & Confirm';
+                        @endphp
+                        <h6 class="text-muted mb-3">{{$stepTitle}}</h6>
+                      
+                        <div class="row mb-3">
+                            
+                            <div class="col-6 text-center mb-3">
+                                <p class="text-sm font-medium text-gray-600 mb-2">Product Image</p>
+                                <img id="imgproduct"  src="{{ $this->productImage ? asset('storage/' . $this->productImage)  : asset('assets/images/bottle.png') }}" class="rounded shadow-sm border" width="160" height="150" alt="Captured Product">
+
+                            </div>
+                            <div class="col-6 text-center mb-3">
+                                <p class="text-sm font-medium text-gray-600 mb-2">User Image</p>
+                                <img id="imguser"
+                                    src="{{ $this->userImage ? asset('storage/' . $this->userImage) : asset('assets/images/user/07.jpg') }}"
+                                    class="rounded shadow-sm border" width="150" height="150" alt="Captured Customer">
+
+                            </div>
+                          
+                        </div>
+                        <div class="d-flex justify-content-between gap-2">
+                            <button type="button" class="btn btn-outline-warning w-100" onclick="goToStep(1)">
+                                <i class="bi bi-arrow-left-circle me-1"></i>Retake Product Image
+                            </button>
+                            <button type="button" class="btn btn-outline-warning w-100" onclick="goToStep(2)">
+                                <i class="bi bi-arrow-left-circle me-1"></i>Retake User Image
+                            </button>
+                            <button type="button" class="btn btn-success w-100" data-dismiss="modal">
+                                <i class="bi bi-check-circle me-1"></i>Confirm
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -458,7 +499,7 @@
         </div>
     </div>
 
-
+    
     {{-- <form action="{{ route('shift-close.withdraw') }}" method="POST">
         @csrf --}}
 
@@ -910,10 +951,12 @@
                             @endif
                             <!-- Modal -->
                             {{-- Logout --}}
-                            <button type="button" class="btn btn-outline-danger ml-2" data-toggle="tooltip"
-                                data-placement="top" title="Logout" onclick="confirmLogout()">
+                            <button type="button" class="btn btn-outline-danger d-flex align-items-center "   data-toggle="tooltip" data-placement="top" title="Logout"   onclick="confirmLogout()">
+                                <span class="font-weight-bold"> {{ Auth::user()->name }}</span>
+                                &nbsp;&nbsp;&nbsp;
                                 <i class="fas fa-sign-out-alt"></i>
                             </button>
+
 
                             {{-- Logout Form --}}
                             <form id="logout-form" action="{{ route('logout') }}" method="POST"
@@ -1776,17 +1819,12 @@
                 .then(data => {
                     if (data.path) {
                         var alertmsg = (type === 'product') ? 'Product' : 'Customer';
-                        if (type === 'product') {
-                            document.getElementById('step1').classList.add('d-none');
-                            document.getElementById('step2').classList.remove('d-none');
+                          if (type === 'product') {
+                            document.getElementById('imgproduct').src = data.orignal_path+ '?t=' + new Date().getTime();
+                            goToStep(2);
                         } else if (type === 'user') {
-                            //$('#captureModal').modal('hide');
-                            document.getElementById('captureModal').style.display = 'none';
-
-                            $('.modal-backdrop.show').remove();
-                            //bootstrap.Modal.getInstance(document.getElementById('captureModal')).hide();
-                            //document.getElementById('submitDiv').classList.remove('d-none');
-
+                            document.getElementById('imguser').src = data.orignal_path + '?t=' + new Date().getTime();
+                            goToStep(3);
                         }
                         Swal.fire({
                             title: 'Photo Uploaded!',
@@ -1862,6 +1900,8 @@
                 tracks.forEach(track => track.stop());
                 video.srcObject = null;
             }
+            location.reload();
+
         });
         //  // Set your shift end time here
         //  let shiftEnd = new Date("{{ $this->shiftEndTime }}"); // Example: 2025-04-23 18:00:00
@@ -2449,4 +2489,21 @@
             stockStatusModal.show();
         });
     });
+    function goToStep(stepNumber) {
+        // Hide all steps
+        document.getElementById('step1').classList.add('d-none');
+        document.getElementById('step2').classList.add('d-none');
+        document.getElementById('step3').classList.add('d-none');
+
+        // Show selected step
+        document.getElementById('step' + stepNumber).classList.remove('d-none');
+
+        // On step 3, set preview images
+        if (stepNumber === 3) {
+            const productImage = document.getElementById('productImagePreview').src;
+            const userImage = document.getElementById('userImagePreview').src;
+           // document.getElementById('reviewProductImage').src = productImage;
+            //document.getElementById('reviewUserImage').src = userImage;
+        }
+    }
 </script>
