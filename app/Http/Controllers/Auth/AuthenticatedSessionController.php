@@ -36,12 +36,19 @@ class AuthenticatedSessionController extends Controller
 
         // Store it in session
         session(['role_name' => $roleName]);
-        if(strtolower($roleName)=="cashier"){
-            return redirect()->intended(route('items.cart', absolute: false));
-        }else if(strtolower($roleName)=="warehouse"){
-            return redirect()->intended(route('items.cart', absolute: false));
-        }else{
-            return redirect()->intended(route('dashboard', absolute: false));
+        // if(strtolower($roleName)=="cashier"){
+        //     return redirect()->intended(route('items.cart', absolute: false));
+        // }else if(strtolower($roleName)=="warehouse"){
+        //     return redirect()->intended(route('items.cart', absolute: false));
+        // }else{
+        //     return redirect()->intended(route('dashboard', absolute: false));
+        // }
+        if(strtolower($roleName) == "cashier") {
+            return redirect(route('items.cart'));
+        } else if(strtolower($roleName) == "warehouse") {
+            return redirect(route('items.cart'));
+        } else {
+            return redirect(route('dashboard'));
         }
     }
 

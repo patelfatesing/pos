@@ -23,7 +23,7 @@ class CommissionUserForm extends Component
     {
         if ($id) {
             $this->commissionUserId = $id;
-            $commission = Commissionuser::with('images')->findOrFail($id);
+            $commission = Commissionuser::with('images')->where('status', 'Active')->findOrFail($id);
             $this->fill($commission->toArray());
             $this->existingImages = $commission->images;
         }
@@ -53,7 +53,7 @@ class CommissionUserForm extends Component
         ]);
         
         $commissionUser = $this->commissionUserId
-            ? Commissionuser::findOrFail($this->commissionUserId)->update($data)
+            ? Commissionuser::where('status', 'Active')->findOrFail($this->commissionUserId)->update($data)
             : $commissionUser = Commissionuser::create($data);
 
         $id = $this->commissionUserId ?? $commissionUser->id;

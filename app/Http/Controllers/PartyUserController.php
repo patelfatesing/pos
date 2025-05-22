@@ -13,7 +13,7 @@ class PartyUserController extends Controller
 {
     public function index()
     {
-        $partyUsers = Partyuser::with('images')->latest()->get();
+        $partyUsers = Partyuser::with('images')->where('status', 'Active')->latest()->get();
         return view('party_users.index', compact('partyUsers'));
     }
 
@@ -27,7 +27,7 @@ class PartyUserController extends Controller
         $orderColumn = $request->input('columns.' . $orderColumnIndex . '.data', 'id');
         $orderDirection = $request->input('order.0.dir', 'asc');
 
-        $query = Partyuser::with('images');
+        $query = Partyuser::with('images')->where('status', 'Active');
 
         // **Search filter**
         if (!empty($searchValue)) {
@@ -40,7 +40,7 @@ class PartyUserController extends Controller
             });
         }
 
-        $recordsTotal = Partyuser::count();
+        $recordsTotal = Partyuser::where('status', 'Active')->count();
         $recordsFiltered = $query->count();
 
         $data = $query->orderBy($orderColumn, $orderDirection)
@@ -131,13 +131,13 @@ class PartyUserController extends Controller
 
     public function edit($id)
     {
-        $partyUser = Partyuser::with('images')->where('id', $id)->firstOrFail();
+        $partyUser = Partyuser::with('images')->where('id', $id)->where('status', 'Active')->firstOrFail();
         return view('party_users.edit', compact('partyUser'));
     }
 
     public function view($id)
     {
-        $partyUser = Partyuser::with('images')->where('id', $id)->firstOrFail();
+        $partyUser = Partyuser::with('images')->where('id', $id)->where('status', 'Active')->firstOrFail();
         return view('party_users.view', compact('partyUser'));
     }
 
@@ -180,7 +180,7 @@ class PartyUserController extends Controller
     {
         $id = $request->id;
         // Find the user and soft delete
-        $record = Partyuser::findOrFail($id);
+        $record = Partyuser::where('status', 'Active')->findOrFail($id);
         $record->update(['is_deleted' => 'yes']);
 
         return redirect()->route('users.list')->with('success', 'Party User has been deleted successfully.');
@@ -188,7 +188,7 @@ class PartyUserController extends Controller
 
     public function custProductPriceChangeForm($id)
     {
-        $partyUser = Partyuser::select('first_name', 'last_name', 'id')->where('id', $id)->first();
+        $partyUser = Partyuser::select('first_name', 'last_name', 'id')->where('status', 'Active')->where('id', $id)->first();
 
         $products = DB::table('products')
             ->select(
@@ -399,7 +399,7 @@ class PartyUserController extends Controller
 
     public function statusChange(Request $request)
     {
-        $user = Partyuser::findOrFail($request->id);
+        $user = Partyuser::where('status', 'Active')->findOrFail($request->id);
         $user->status = $request->status;
         $user->save();
 

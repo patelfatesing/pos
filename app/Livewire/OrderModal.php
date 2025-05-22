@@ -58,7 +58,7 @@ class OrderModal extends Component
         $pdfPath = storage_path('app/public/invoices/duplicate_' . $invoice->invoice_number . '.pdf');
 
         if (!file_exists($pdfPath)) {
-            $partyUser = PartyUser::find($invoice->party_user_id);
+            $partyUser = PartyUser::where('status', 'Active')->find($invoice->party_user_id);
             $pdf = App::make('dompdf.wrapper');
             $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'duplicate' => true,'customer_name' => $partyUser->first_name.' '.$partyUser->last_name]);
             $pdf->save($pdfPath);

@@ -11,7 +11,7 @@ class CommissionUserController extends Controller
 {
     public function index()
     {
-        $commissionUsers = Commissionuser::with('images')->latest()->get();
+        $commissionUsers = Commissionuser::with('images')->where('status', 'Active')->latest()->get();
         return view('commission_users.index', compact('commissionUsers'));
     }
 
@@ -25,7 +25,7 @@ class CommissionUserController extends Controller
         $orderColumn = $request->input('columns.' . $orderColumnIndex . '.data', 'id');
         $orderDirection = $request->input('order.0.dir', 'asc');
 
-        $query = Commissionuser::with('images');
+        $query = Commissionuser::with('images')->where('status', 'Active');
 
         // **Search filter**
         if (!empty($searchValue)) {
@@ -39,7 +39,7 @@ class CommissionUserController extends Controller
             });
         }
 
-        $recordsTotal = Commissionuser::count();
+        $recordsTotal = Commissionuser::where('status', 'Active')->count();
         $recordsFiltered = $query->count();
 
         $data = $query->orderBy($orderColumn, $orderDirection)
@@ -140,13 +140,13 @@ class CommissionUserController extends Controller
 
     public function edit($id)
     {
-        $commissionUser = Commissionuser::with('images')->where('id', $id)->firstOrFail();
+        $commissionUser = Commissionuser::with('images')->where('status', 'Active')->where('id', $id)->firstOrFail();
         return view('commission_users.edit', compact('commissionUser'));
     }
 
     public function view($id)
     {
-        $commissionUser = Commissionuser::with('images')->where('id', $id)->firstOrFail();
+        $commissionUser = Commissionuser::with('images')->where('status', 'Active')->where('id', $id)->firstOrFail();
         return view('commission_users.view', compact('commissionUser'));
     }
 
@@ -247,7 +247,7 @@ class CommissionUserController extends Controller
 
     public function statusChange(Request $request)
     {
-        $user = Commissionuser::findOrFail($request->id);
+        $user = Commissionuser::where('status', 'Active')->findOrFail($request->id);
         $user->is_active = $request->status;
         $user->save();
 
