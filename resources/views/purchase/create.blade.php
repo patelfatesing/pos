@@ -106,7 +106,84 @@
                                                             <th>Action</th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody></tbody>
+                                                    <tbody id="productBody">
+                                                        @if (old('products'))
+                                                            @foreach (old('products') as $i => $product)
+                                                                <tr>
+                                                                    <td>{{ $i + 1 }}</td>
+                                                                    <td>
+                                                                        <input type="hidden"
+                                                                            name="products[{{ $i }}][product_id]"
+                                                                            value="{{ $product['product_id'] }}">
+                                                                        <input type="text" class="form-control"
+                                                                            name="products[{{ $i }}][brand_name]"
+                                                                            value="{{ $product['brand_name'] }}" readonly>
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="text" class="form-control"
+                                                                            name="products[{{ $i }}][batch]"
+                                                                            value="{{ $product['batch'] }}">
+                                                                        @error("products.$i.batch")
+                                                                            <span
+                                                                                class="text-danger">{{ $message }}</span>
+                                                                        @enderror
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="date" class="form-control"
+                                                                            name="products[{{ $i }}][mfg_date]"
+                                                                            value="{{ $product['mfg_date'] }}">
+                                                                        @error("products.$i.mfg_date")
+                                                                            <span
+                                                                                class="text-danger">{{ $message }}</span>
+                                                                        @enderror
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="number" class="form-control mrp"
+                                                                            step="0.01"
+                                                                            name="products[{{ $i }}][mrp]"
+                                                                            value="{{ $product['mrp'] }}">
+                                                                        @error("products.$i.mrp")
+                                                                            <span
+                                                                                class="text-danger">{{ $message }}</span>
+                                                                        @enderror
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="number" class="form-control qnt"
+                                                                            name="products[{{ $i }}][qnt]"
+                                                                            value="{{ $product['qnt'] }}">
+                                                                        @error("products.$i.qnt")
+                                                                            <span
+                                                                                class="text-danger">{{ $message }}</span>
+                                                                        @enderror
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="number" class="form-control rate"
+                                                                            step="0.01"
+                                                                            name="products[{{ $i }}][rate]"
+                                                                            value="{{ $product['rate'] }}">
+                                                                        @error("products.$i.rate")
+                                                                            <span
+                                                                                class="text-danger">{{ $message }}</span>
+                                                                        @enderror
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="number" class="form-control amount"
+                                                                            step="0.01"
+                                                                            name="products[{{ $i }}][amount]"
+                                                                            value="{{ $product['amount'] }}" readonly>
+                                                                        @error("products.$i.amount")
+                                                                            <span
+                                                                                class="text-danger">{{ $message }}</span>
+                                                                        @enderror
+                                                                    </td>
+                                                                    <td><button type="button"
+                                                                            class="btn btn-danger remove">Remove</button>
+                                                                    </td>
+                                                                </tr>
+                                                            @endforeach
+                                                        @endif
+                                                    </tbody>
+
                                                 </table>
                                             </div>
                                             <input type="hidden" name="total" class="total_val" value="" />
@@ -115,6 +192,7 @@
                                                     <tbody class="">
                                                         <tr>
                                                             <td colspan="8">Total</td>
+                                                            <input hidden class="total_amt">
                                                             <td id="total"></td>
                                                         </tr>
                                                     </tbody>
@@ -127,60 +205,105 @@
                                                     <div class="or-detail rounded">
                                                         <div class="p-3">
                                                             <h5 class="mb-3">Billing Details</h5>
-                                                            <div
-                                                                class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
-                                                                <h6>EXCISE FEE</h6>
-                                                                <p id="">
+
+                                                            <!-- Vendor 1 Fields -->
+                                                            <div id="vendor-1-fields" class="vendor-fields d-none">
                                                                 <div class="form-group">
+                                                                    <label>EXCISE FEE</label>
                                                                     <input type="tel" class="form-control"
-                                                                        name="excise_fee" id="excise_fee" value="">
+                                                                        name="excise_fee" id="excise_fee" />
                                                                 </div>
-                                                                </p>
-                                                            </div>
-                                                            <div
-                                                                class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
-                                                                <h6>COMPOSITION VAT</h6>
-                                                                <p id="">
+                                                                <div class="form-group">
+                                                                    <label>COMPOSITION VAT</label>
                                                                     <input type="tel" class="form-control"
-                                                                        name="composition_vat" id="composition_vat"
-                                                                        value="">
-                                                                </p>
-                                                            </div>
-                                                            <div
-                                                                class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
-                                                                <h6>SURCHARGE ON CA</h6>
-                                                                <p id="">
+                                                                        name="composition_vat" id="composition_vat" />
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>SURCHARGE ON CA</label>
                                                                     <input type="tel" class="form-control"
-                                                                        name="surcharge_on_ca" id="surcharge_on_ca"
-                                                                        value="">
-                                                                </p>
-                                                            </div>
-                                                            <div
-                                                                class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
-                                                                <h6>TCS</h6>
-                                                                <p id="">
+                                                                        name="surcharge_on_ca" id="surcharge_on_ca" />
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>AED TO BE PAID</label>
                                                                     <input type="tel" class="form-control"
-                                                                        name="tcs" id="tcs" value="">
-                                                                </p>
+                                                                        name="aed_to_be_paid" id="aed_to_be_paid" />
+                                                                </div>
                                                             </div>
-                                                            <div
-                                                                class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
-                                                                <h6>AED TO BE PAID</h6>
-                                                                <p id="">
+
+                                                            <!-- Vendor 2 and Others Fields -->
+                                                            <div id="vendor-2-fields" class="vendor-fields d-none">
+                                                                <div class="form-group">
+                                                                    <label>VAT</label>
+                                                                    <input type="tel" id="vat"
+                                                                        class="form-control" name="vat" />
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>SURCHARGE ON VAT</label>
+                                                                    <input type="tel" id="surcharge_on_vat"
+                                                                        class="form-control" name="surcharge_on_vat" />
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>BLF</label>
+                                                                    <input type="tel" id="blf"
+                                                                        class="form-control" name="blf" />
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>Permit Fee</label>
                                                                     <input type="tel" class="form-control"
-                                                                        name="aed_to_be_paid" id="aed_to_be_paid"
-                                                                        value="">
-                                                                </p>
+                                                                        name="permit_fee" id="permit_fee" />
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>RSGSM Purchase</label>
+                                                                    <input type="tel" class="form-control"
+                                                                        name="rsgsm_purchase" id="rsgsm_purchase" />
+                                                                </div>
+                                                            </div>
+                                                            <div class="vendor-common">
+                                                                <div class="form-group">
+                                                                    <label>TCS</label>
+                                                                    <input type="tel" id="tcs"
+                                                                        class="form-control" name="tcs" />
+                                                                </div>
                                                             </div>
                                                         </div>
+                                                        <div id="vendor-others-fields" class="vendor-fields d-none">
+                                                            <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center border border-danger"
+                                                                style="background-color: #fdf1f7;">
+                                                                <div>
+                                                                    <strong class="d-block">CASH PURCHASE</strong>
+                                                                    <div class="d-flex align-items-center">
+                                                                        <label class="mr-1 mb-0">(-)</label>
+                                                                        <input type="number"
+                                                                            class="form-control form-control-sm pur_dis"
+                                                                            placeholder="%" name="case_purchase_per" style="width: 80px;"
+                                                                            min="0" max="100">
+                                                                        <span class="ml-1">%</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="text-right d-flex align-items-center">
+                                                                    <label class="mr-1 mb-0">(-)</label>
+                                                                    <input type="number" name="case_purchase_amt"
+                                                                        class="form-control form-control-sm pur_amt text-danger font-weight-bold"
+                                                                        placeholder="Amount" style="width: 120px;"
+                                                                        min="0">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Total after deduction -->
+
+
                                                         <div
-                                                            class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
+                                                            class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center border-top">
                                                             <h6>Total Amount</h6>
-                                                            <input type="hidden" name="total_amount"
-                                                                class="total_amount" value="" />
-                                                            <h3 class="text-primary font-weight-700" id="total_amount">
-                                                            </h3>
+                                                            <div>
+                                                                <input type="hidden" name="total_amount"
+                                                                    class="total_amount" value="" />
+                                                                <h3 class="text-primary font-weight-700"
+                                                                    id="total_amount"></h3>
+                                                            </div>
                                                         </div>
+
                                                     </div>
                                                 </div>
                                             </div>
@@ -189,6 +312,7 @@
                                                 Order</button>
                                             <button type="reset" class="btn btn-danger">Reset</button>
                                         </form>
+
                                     </div>
                                 </div>
                             </div>
@@ -207,6 +331,33 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
     $(document).ready(function() {
+
+        // Hide all dynamic fields initially
+        $('.vendor-group').hide();
+        $('.vendor-total').hide();
+        $('.vendor-common').hide();
+
+        $('#vendor_id').change(function() {
+            var vendorId = $(this).val();
+
+            // Hide all groups and show only the relevant one
+            $('.vendor-group').hide();
+            $('.vendor-total').hide();
+            $('.vendor-common').hide();
+
+            if (vendorId == '1') {
+                $('.vendor-1').show();
+                $('.vendor-common').show();
+                $('.vendor-total').show();
+            } else if (vendorId == '2') {
+                $('.vendor-2').show();
+                $('.vendor-common').show();
+                $('.vendor-total').show();
+            } else {
+                $('.vendor-others').show();
+                $('.vendor-total').show();
+            }
+        });
 
         let srNo = 1;
 
@@ -242,7 +393,7 @@
         });
 
         function updateAmount() {
-            
+
             const rate = parseFloat($('#rate').val()) || 0;
             const qty = parseInt($('#qty').val()) || 0;
             const get_total = (rate * qty);
@@ -294,13 +445,13 @@
                 <tr>
                     <td>${srNo}</td>
                     <input type="hidden" name="products[${srNo - 1}][product_id]" value="${brand}">
-                    <td><input type="text" name="products[${srNo - 1}][brand_name]" class="form-control" value="${brandVal}" readonly></td>
+                    <td style="width:20%"><input type="text" name="products[${srNo - 1}][brand_name]" class="form-control" value="${brandVal}" readonly></td>
                     <td><input type="text" name="products[${srNo - 1}][batch]" class="form-control" value="${batch}"></td>
                     <td><input type="date" name="products[${srNo - 1}][mfg_date]" class="form-control" value="${mfg}"></td>
                     <td><input type="number" step="0.01" name="products[${srNo - 1}][mrp]" class="form-control" value="${mrp}"></td>
                     <td><input type="number" name="products[${srNo - 1}][qnt]" class="form-control" value="${qty}" min="1" data-prev="${qty}"></td>
                     <td><input type="number" step="0.01" name="products[${srNo - 1}][rate]" class="form-control" value="${rate}"></td>
-                    <td><input type="number" step="0.01" name="products[${srNo - 1}][amount]" class="form-control" value="${amount}" readonly></td>
+                    <td><input type="number" step="0.01" name="products[${srNo - 1}][amount]" class="form-control" value="${amount}"></td>
                     <td><button type="button" class="btn btn-sm btn-danger remove">Remove</button></td>
                 </tr>
                 `;
@@ -324,6 +475,7 @@
             });
 
             $('#total').text(newTotal.toFixed(2));
+            $(".total_amt").val(newTotal.toFixed(2));
             $('#total_amount').text(newTotal.toFixed(2));
 
             $('.total_val').val(newTotal.toFixed(2));
@@ -377,15 +529,17 @@
                 total += parseFloat($(this).val()) || 0;
             });
             $('#total').text(total.toFixed(2));
+            $(".total_amt").val(total.toFixed(2));
             $('#total_amount').text(total.toFixed(2));
             $(".total_amount").val(total);
 
             calculation(total, '', '', '', '', '', total);
         });
 
-        $('#excise_fee, #composition_vat, #surcharge_on_ca, #tcs, #aed_to_be_paid').on('input', function() {
-            updateBillingTotal();
-        });
+        $('#excise_fee, #composition_vat, #surcharge_on_ca, #tcs, #aed_to_be_paid,#vat,#surcharge_on_vat,#blf,#permit_fee,#rsgsm_purchase')
+            .on('input', function() {
+                updateBillingTotal();
+            });
 
         function updateBillingTotal() {
             const baseTotal = parseFloat($('#total').text()) || 0;
@@ -394,11 +548,20 @@
             const compVat = parseFloat($('#composition_vat').val()) || 0;
             const surcharge = parseFloat($('#surcharge_on_ca').val()) || 0;
             const tcs = parseFloat($('#tcs').val()) || 0;
+            const vat = parseFloat($('#vat').val()) || 0;
+            const surcharge_on_vat = parseFloat($('#surcharge_on_vat').val()) || 0;
+            const blf = parseFloat($('#blf').val()) || 0;
+            const permit_fee = parseFloat($('#permit_fee').val()) || 0;
+            const rsgsm_purchase = parseFloat($('#rsgsm_purchase').val()) || 0;
+            // const case_purchase = parseFloat($('#case_purchase').val()) || 0;
+
             const aed = parseFloat($('#aed_to_be_paid').val()) || 0;
 
-            const grandTotal = baseTotal + excise + compVat + surcharge + tcs + aed;
+            const grandTotal = baseTotal + excise + compVat + surcharge + tcs + aed + vat + surcharge_on_vat +
+                blf + permit_fee + rsgsm_purchase;
 
-            $('#total_amount').text(grandTotal.toFixed(2));
+            // $('#total_amount').text(grandTotal.toFixed(2));
+            $('#total_amount').text('₹' + grandTotal.toFixed(2));
             $('.total_amount').val(grandTotal.toFixed(2));
         }
 
@@ -406,6 +569,7 @@
             total_amount) {
 
             $('#total').text((total).toFixed(2));
+            $(".total_amt").val(total.toFixed(2));
             $("#total_amount").text('Rs. ' + total_amount);
 
             $('.total_val').val((total).toFixed(2));
@@ -417,11 +581,76 @@
             $('input[name*="[amount]"]').each(function() {
                 total += parseFloat($(this).val()) || 0;
             });
-            $('#total').text(total.toFixed(2));
-            $('#total_amount').text(total.toFixed(2));
 
+            // $('#total').text(total.toFixed(2));
+            // $('#total_amount').text(total.toFixed(2));
+            $('#total').text('₹' + total.toFixed(2));
+
+            $(".total_amt").val(total.toFixed(2));
             $('.total_val').val(total.toFixed(2));
+
+            $('#total_amount').text('₹' + total.toFixed(2));
             $('.total_amount').val(total.toFixed(2));
         }
+
+        $(document).on('input', 'input[name*="[amount]"]', function() {
+            const $row = $(this).closest('tr');
+            const amount = parseFloat($(this).val()) || 0;
+            const qty = parseFloat($row.find('input[name*="[qnt]"]').val()) || 1;
+
+            // Recalculate rate
+            const rate = amount / qty;
+            $row.find('input[name*="[rate]"]').val(rate.toFixed(2));
+
+            // Update total
+            updateTotal();
+        });
+
+        $('#vendor_id').on('change', function() {
+            const vendorId = $(this).val();
+
+            // Hide all vendor-specific fields first
+            $('.vendor-fields').addClass('d-none');
+
+            if (vendorId === '1') {
+                $('#vendor-1-fields').removeClass('d-none');
+
+            } else if (vendorId === '2') {
+                $('#vendor-2-fields').removeClass('d-none');
+            } else {
+                $('#vendor-others-fields').removeClass('d-none'); // Default
+            }
+        });
+
+        // Replace this with dynamic value if needed
+
+        function updateFromPercentage() {
+            let originalAmount = $(".total_val").val();
+
+            let percent = parseFloat($('.pur_dis').val()) || 0;
+            let discount = (originalAmount * percent) / 100;
+            $('.pur_amt').val(discount.toFixed(2));
+
+            let ta = originalAmount - discount;
+            $('#total_amount').text('₹' + ta.toFixed(2));
+            $('.total_amount').val(ta.toFixed(2));
+
+        }
+
+        function updateFromAmount() {
+            let originalAmount = $(".total_val").val();
+            let amount = parseFloat($('.pur_amt').val()) || 0;
+            let percent = (amount / originalAmount) * 100;
+            $('.pur_dis').val(percent.toFixed(2));
+
+            let ta = originalAmount - amount;
+            $('#total_amount').text('₹' + ta.toFixed(2));
+            $('.total_amount').val(ta.toFixed(2));
+
+        }
+
+        $('.pur_dis').on('input', updateFromPercentage);
+        $('.pur_amt').on('input', updateFromAmount);
+
     });
 </script>

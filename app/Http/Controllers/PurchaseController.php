@@ -47,36 +47,22 @@ class PurchaseController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'bill_no' => 'required|string|max:255',
-            'vendor_id' => 'required|exists:vendor_lists,id',
-            // 'parchase_ledger' => 'required|string|max:255',
-            // 'total' => 'required|numeric',
-            'date' => 'required|date',
-            'excise_fee' => 'nullable|numeric',
-            'composition_vat' => 'nullable|numeric',
-            'surcharge_on_ca' => 'nullable|numeric',
-            'tcs' => 'nullable|numeric',
-            'aed_to_be_paid' => 'nullable|numeric',
-            // 'total_amount' => 'required|numeric',
-            'status' => 'nullable|string|max:50',
 
+        $request->validate([
+            'vendor_id' => 'required|exists:vendor_lists,id',
+            'bill_no' => 'required|string|max:255',
+            'date' => 'required|date',
             'products' => 'required|array|min:1',
-            // 'products.*.sr_no' => 'required|integer',
-            'products.*.brand_name' => 'required|string|max:255',
-            // 'products.*.batch' => 'required|string|max:255',
-            // 'products.*.mfg_date' => 'required|date',
-            // 'products.*.mrp' => 'required|numeric',
-            // 'products.*.qnt' => 'required|integer',
-            // 'products.*.rate' => 'required|numeric',
-            // 'products.*.amount' => 'required|numeric',
+            'products.*.product_id' => 'required|integer',
+            'products.*.brand_name' => 'required|string',
+            'products.*.batch' => 'required|string',
+            'products.*.mfg_date' => 'required|date',
+            'products.*.mrp' => 'required|numeric',
+            'products.*.qnt' => 'required|integer|min:1',
+            'products.*.rate' => 'required|numeric',
+            'products.*.amount' => 'required|numeric',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'errors' => $validator->errors(),
-            ], 422);
-        }
 
         DB::beginTransaction();
 
@@ -93,6 +79,14 @@ class PurchaseController extends Controller
                 'tcs' => $request->tcs ?? 0,
                 'aed_to_be_paid' => $request->aed_to_be_paid ?? 0,
                 'total_amount' => $request->total_amount,
+                'vat' => $request->vat,
+                'surcharge_on_vat' => $request->surcharge_on_vat,
+                'blf' => $request->blf,
+                'permit_fee' => $request->permit_fee,
+                'rsgsm_purchase' => $request->rsgsm_purchase,
+                'case_purchase' => $request->case_purchase,
+                'case_purchase_per' => $request->case_purchase_per,
+                'case_purchase_amt' => $request->case_purchase_amt,
                 'status' => $request->status ?? 'pending',
                 'created_by' => Auth::id(),
             ]);
@@ -259,6 +253,7 @@ class PurchaseController extends Controller
         $record = Product::select(
             'products.id',
             'products.name',
+            'products.size',
             'products.brand',
             'inventories.batch_no',
             'inventories.mfg_date',
@@ -276,7 +271,8 @@ class PurchaseController extends Controller
                 'inventories.batch_no',
                 'inventories.mfg_date',
                 'products.cost_price',
-                'products.sell_price'
+                'products.sell_price',
+                'products.size'
             )
             ->orderBy('total_quantity', 'asc')
             ->first();

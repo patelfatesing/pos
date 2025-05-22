@@ -108,10 +108,10 @@ class InventoryController extends Controller
                 $action = "";
                 if(session('role_name') == "admin") {
                 
-                    $action ='<div class="d-flex align-items-center list-action">
-                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                        href="' . url('/inventories/edit/' . $inventory->id) . '"><i class="ri-pencil-line mr-0"></i></a>
-                    </div>';
+                    // $action ='<div class="d-flex align-items-center list-action">
+                    // <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
+                    //     href="' . url('/inventories/edit/' . $inventory->id) . '"><i class="ri-pencil-line mr-0"></i></a>
+                    // </div>';
                 }
 
             $records[] = [

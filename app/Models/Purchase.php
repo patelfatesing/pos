@@ -23,6 +23,15 @@ class Purchase extends Model
         'status',
         'created_by',
         'updated_by',
+        'vat',
+        'surcharge_on_vat',
+        'blf',
+        'permit_fee',
+        'rsgsm_purchase',
+        'case_purchase',
+        'case_purchase_per',
+        'case_purchase_amt'
+
     ];
 
     public function vendor(): BelongsTo
@@ -45,4 +54,3 @@ class Purchase extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 }
-
