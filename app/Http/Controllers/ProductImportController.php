@@ -17,6 +17,7 @@ use App\Models\Branch;
 use App\Models\Inventory;
 use App\Models\DailyProductStock;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class ProductImportController extends Controller
 {
@@ -27,6 +28,52 @@ class ProductImportController extends Controller
 
     public function import(Request $request)
     {
+
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt',
+        ]);
+
+        $file = $request->file('file');
+        $csv = array_map('str_getcsv', file($file));
+        $headers = array_map('trim', $csv[0]); // CSV headers
+
+        $file = $request->file('file');
+        $path = $file->getRealPath();
+
+
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+
+            // Generate new filename with current date and time
+            $filename = now()->format('dmYHis') . '.' . $file->getClientOriginalExtension();
+
+            // Store the file in 'product_import' folder with the new name
+            $file->storeAs('product_import', $filename, 'public');
+        }
+
+        // Get DB columns from a specific table, for example: products
+        $dbFields = Schema::getColumnListing('products');
+
+        $dbFields = [
+            1 => "Name",
+            2 => "Barcode",
+            3 => "Batch No",
+            4 => "Mfg Date",
+            5 => "Expiry Date",
+            6 => "Category",
+            7 => "Sub Category",
+            8 => "Pack Size",
+            9 => "Stock Low Level",
+            10 => "Cost Price",
+            11 => "Sell Price",
+            12 => "MRP",
+            13 => "Discount Price",
+            14 => "Discount Amt",
+            15 => "Case Size",
+        ];
+
+        // dd($dbFields);
+        return view('products_import.csv-preview', compact('headers', 'dbFields', 'filename'));
 
 
         $request->validate([
@@ -167,59 +214,121 @@ class ProductImportController extends Controller
 
     public function preview(Request $request)
     {
+        $filename = $request->input('file_name'); // e.g., "product_sample.csv"
+        $fullPath = storage_path('app/public/product_import/' . $filename);
+
+        $mapping = $request->input('mapping');
+
+        if (!file_exists($fullPath)) {
+            return response()->json(['error' => 'File not found.'], 404);
+        }
+
+        $csvData = array_map('str_getcsv', file($fullPath));
+
+        $inserted = $updated = $skipped = 0;
+        $productId = null;
+
+        // Skip header
+        for ($i = 1; $i < count($csvData); $i++) {
+            $row = $csvData[$i];
+
+            // Dynamically map values from row using $mapping
+            $name = $row[$mapping['Name']] ?? null;
+            $barcode = $row[$mapping['Barcode']] ?? null;
+            $batch_no = $row[$mapping['Batch No']] ?? null;
+            $mfg_date = Carbon::parse($row[$mapping['Mfg Date']])->format('Y-m-d');
+            $expiry_date = Carbon::parse($row[$mapping['Expiry Date']])->format('Y-m-d');
+            $category_id = $row[$mapping['Category']] ?? null;
+            $sub_category_id = $row[$mapping['Sub Category']] ?? null;
+
+            $categories = Category::where('name', $category_id)->first();
+            $subcategories = SubCategory::where('name', $sub_category_id)->first();
+            $category_id = $categories?->id;
+            $sub_category_id = $subcategories?->id;
 
 
-        $request->validate([
-            'file' => 'required|file|mimes:csv,txt',
-        ]);
+            if (empty($category_id) || empty($sub_category_id)) {
+                $skipped++;
+                continue;
+            }
 
-        $file = $request->file('file');
-        $csv = array_map('str_getcsv', file($file));
-        $headers = array_map('trim', $csv[0]); // CSV headers
+            // Check for existing inventory record
+            $existing = DB::table('products')
+                ->join('inventories', 'products.id', '=', 'inventories.product_id')
+                ->where('products.name', $name)
+                ->where('inventories.batch_no', $batch_no)
+                ->whereDate('inventories.expiry_date', $expiry_date)
+                ->first();
 
-        // Get DB columns from a specific table, for example: products
-        $dbFields = Schema::getColumnListing('products');
-        $ar = [
-            1 => "name",
-            6 => "barcode",
-            2 => "batch_no",
-            4 => "mfg_date",
-            3 => "expiry_date",
-            9 => "category_id",
-            10 => "subcategory_id",
-            3 => "size",
-            5 => "quantity",
+            if ($existing) {
+                $skipped++;
+                continue;
+            }
 
-            4 => "sku",
+            // Find or Insert Product
+            $product = DB::table('products')->where('name', $name)->first();
 
-            8 => "description",
 
-            15 => "reorder_level",
-            16 => "cost_price",
-            17 => "sell_price",
-            18 => "price_apply_date",
-            19 => "discount_price",
-            20 => "discount_amt",
-            21 => "case_size",
-            22 => "box_unit",
-            23 => "secondary_unitx"
-        ];
+            if (!$product) {
+                $brand = preg_replace('/\s\d{2,4}ml\b/i', '', $name);
+                $sku = Product::generateSku($brand, $batch_no, $row[$mapping['Pack Size']]);
 
-        // dd($dbFields);
-        return view('products_import.csv-preview', compact('headers', 'dbFields'));
-        $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt',
-        ]);
+                $productId = DB::table('products')->insertGetId([
+                    'name' => $name,
+                    'brand' => $brand,
+                    'barcode' => (string) $barcode,
+                    'size' => $row[$mapping['Pack Size']] ?? null,
+                    'sku' => $sku,
+                    'category_id' => $category_id,
+                    'subcategory_id' => $sub_category_id,
+                    'cost_price' => $row[$mapping['Cost Price']] ?? null,
+                    'sell_price' => $row[$mapping['Sell Price']] ?? null,
+                    'mrp' => $row[$mapping['MRP']] ?? null,
+                    'reorder_level' => $row[$mapping['Stock Low Level']] ?? null,
+                    'discount_price' => $row[$mapping['Discount Price']] ?? null,
+                    'discount_amt' => $row[$mapping['Discount Amt']] ?? null,
+                    'case_size' => $row[$mapping['Case Size']] ?? null,
+                ]);
 
-        $file = $request->file('csv_file');
-        $csv = array_map('str_getcsv', file($file));
-        $headers = array_map('trim', $csv[0]); // CSV headers
+                DB::table('inventories')->insert([
+                    'product_id' => $productId,
+                    'store_id' => 1,
+                    'location_id' => 1,
+                    'batch_no' => $batch_no,
+                    'expiry_date' => $expiry_date,
+                    'mfg_date' => $mfg_date,
+                    'quantity' => 0,
+                ]);
 
-        // Get DB columns from a specific table, for example: products
-        $dbFields = Schema::getColumnListing('products');
-        dd($dbFields);
+                $inserted++;
+            } else {
+                if (
+                    $product->barcode != (string) $barcode ||
+                    $product->sell_price != ($row[$mapping['Sell Price']] ?? null)
+                ) {
+                    $productModel = Product::find($product->id);
+                    $productModel->barcode = (string) $barcode;
+                    $productModel->cost_price = $row[$mapping['Cost Price']] ?? null;
+                    $productModel->sell_price = $row[$mapping['Sell Price']] ?? null;
+                    $productModel->discount_price = $row[$mapping['Discount Price']] ?? null;
+                    $productModel->discount_amt = $row[$mapping['Discount Amt']] ?? null;
+                    $productModel->save();
 
-        return view('csv-preview', compact('headers', 'dbFields'));
+                    $productId = $productModel->id;
+                    $updated++;
+                } else {
+                    $productId = $product->id;
+                }
+            }
+        }
+
+        // return response()->json([
+        //     'inserted' => $inserted,
+        //     'updated' => $updated,
+        //     'skipped' => $skipped,
+        // ]);
+
+        return redirect()->route('products.list')->with('success', "$inserted records inserted, $skipped duplicates skipped,$updated updated products.");
     }
 
     public function collection(Collection $rows)

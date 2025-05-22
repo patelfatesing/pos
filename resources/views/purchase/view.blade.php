@@ -87,26 +87,67 @@
                                                         <th>Total</th>
                                                         <td>₹{{ number_format($purchase->total, 2) }}</td>
                                                     </tr>
-                                                    <tr>
-                                                        <th>Excise Fee</th>
-                                                        <td>₹{{ number_format($purchase->excise_fee, 2) }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th>Composition VAT</th>
-                                                        <td>₹{{ number_format($purchase->composition_vat, 2) }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th>Surcharge on CA</th>
-                                                        <td>₹{{ number_format($purchase->surcharge_on_ca, 2) }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th>TCS</th>
-                                                        <td>₹{{ number_format($purchase->tcs, 2) }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th>AED to be Paid</th>
-                                                        <td>₹{{ number_format($purchase->aed_to_be_paid, 2) }}</td>
-                                                    </tr>
+
+                                                    @if ($purchase->vendor_id == 1)
+                                                        <tr>
+                                                            <th>Excise Fee</th>
+                                                            <td>₹{{ number_format($purchase->excise_fee, 2) }}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>Composition VAT</th>
+                                                            <td>₹{{ number_format($purchase->composition_vat, 2) }}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>Surcharge on CA</th>
+                                                            <td>₹{{ number_format($purchase->surcharge_on_ca, 2) }}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>TCS</th>
+                                                            <td>₹{{ number_format($purchase->tcs, 2) }}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>AED to be Paid</th>
+                                                            <td>₹{{ number_format($purchase->aed_to_be_paid, 2) }}</td>
+                                                        </tr>
+                                                    @elseif ($purchase->vendor_id == 2)
+                                                        <tr>
+                                                            <th>VAT</th>
+                                                            <td>₹{{ number_format($purchase->vat ?? 0, 2) }}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>Surcharge on VAT</th>
+                                                            <td>₹{{ number_format($purchase->surcharge_on_vat ?? 0, 2) }}
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>TCS</th>
+                                                            <td>₹{{ number_format($purchase->tcs ?? 0, 2) }}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>BLF</th>
+                                                            <td>₹{{ number_format($purchase->blf ?? 0, 2) }}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>Permit Fee</th>
+                                                            <td>₹{{ number_format($purchase->permit_fee ?? 0, 2) }}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>RSGSM Purchase</th>
+                                                            <td>₹{{ number_format($purchase->rsgsm_purchase ?? 0, 2) }}
+                                                            </td>
+                                                        </tr>
+                                                    @else
+                                                        <tr>
+                                                            <th>Case Purchase %</th>
+                                                            <td>₹{{ number_format($purchase->case_purchase_per ?? 0, 2) }}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>Case Purchase Amount</th>
+                                                            <td>₹{{ number_format($purchase->case_purchase_amt ?? 0, 2) }}
+                                                            </td>
+                                                        </tr>
+                                                    @endif
+
                                                     <tr class="table-primary">
                                                         <th><strong>Total With Tax</strong></th>
                                                         <td><strong>₹{{ number_format($purchase->total_amount, 2) }}</strong>
@@ -114,6 +155,7 @@
                                                     </tr>
                                                 </tbody>
                                             </table>
+
                                         </div>
                                     </div>
 

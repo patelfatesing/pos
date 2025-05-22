@@ -10,47 +10,46 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between">
                                 <div class="header-title">
-                                    <h4 class="card-title">Update Product</h4>
+                                    <h4 class="card-title">Map CSV Fields to DB Fields</h4>
                                 </div>
                                 <div>
-                                     </div>
+                                </div>
                             </div>
 
                             <div class="card-body">
                                 <div class="container">
-                                    <h2>Map Fields</h2>
-
-                                    <h4>Map CSV Fields to DB Fields</h4>
 
                                     <form action="{{ route('csv.preview') }}" method="POST">
                                         @csrf
 
-                                        <table class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th>CSV Column</th>
-                                                    <th>Map to DB Field</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($headers as $i => $header)
-                                                    <tr>
-                                                        <td>{{ $header }}</td>
-                                                        <td>
-                                                            <select name="mapping[{{ $header }}]"
-                                                                class="form-control">
-                                                                <option value="">-- Select Field --</option>
-                                                                @foreach ($dbFields as $field)
-                                                                    <option value="{{ $field }}">{{ $field }}
-                                                                    </option>
-                                                                @endforeach
-                                                            </select>
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
+                                        <div class="row">
 
+                                            <div class="col-md-3">
+                                                <label> Map to DB Field</label>
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <label> CSV Column</label>
+                                            </div>
+                                        </div>
+
+                                        <input type="hidden" name="file_name" value="{{ $filename }}" />
+                                        @foreach ($dbFields as $field)
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    {{ $field }}
+                                                </div>
+                                                <div class="col-md-3 mt-1">
+                                                    <select name="mapping[{{ $field }}]" class="form-control">
+                                                        <option value="">-- Select Field --</option>
+                                                        @foreach ($headers as $i => $header)
+                                                            <option value="{{ $i }}">{{ $header }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        @endforeach
                                         <button type="submit">Import</button>
                                     </form>
 

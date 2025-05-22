@@ -94,16 +94,6 @@
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label>Quantity</label>
-                                                <input type="number" name="quantity" class="form-control"
-                                                    placeholder="Enter Quantity" value="{{ old('quantity',$inventory->quantity) }}">
-                                                @error('quantity')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
                                                 <label>Low Level Stock</label>
                                                 <input type="number" name="reorder_level" class="form-control"
                                                     placeholder="Enter Low Level Stock" value="{{ old('reorder_level',$inventory->reorder_level) }}">
