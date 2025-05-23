@@ -932,7 +932,7 @@
                                     data-toggle="tooltip" data-placement="top" title="Print the last invoice">
                                     <i class="fas fa-print"></i>
                                 </button>
-                                <livewire:order-modal />
+                                 <livewire:order-modal />
                             @endif
                             @livewire('button-timer', ['endTime' => $this->shiftEndTime])
 
