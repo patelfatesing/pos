@@ -6,6 +6,8 @@
 
 <!-- Bootstrap 5 JS with Popper included -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pusher/7.2.0/pusher.min.js"></script>
+
 
 @section('page-content')
     <livewire:shoppingcart />

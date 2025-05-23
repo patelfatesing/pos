@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use App\Models\User;
 
@@ -28,28 +29,24 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+        
         // Get role name after authentication
-        $roleName = \DB::table('users')
+        $roleName = DB::table('users')
             ->join('roles', 'users.role_id', '=', 'roles.id')
-            ->where('users.id', auth()->id())
+            ->where('users.id', Auth::id())
             ->value('roles.name');
 
         // Store it in session
         session(['role_name' => $roleName]);
-        // if(strtolower($roleName)=="cashier"){
-        //     return redirect()->intended(route('items.cart', absolute: false));
-        // }else if(strtolower($roleName)=="warehouse"){
-        //     return redirect()->intended(route('items.cart', absolute: false));
-        // }else{
-        //     return redirect()->intended(route('dashboard', absolute: false));
-        // }
-        if(strtolower($roleName) == "cashier") {
+        
+        // Always redirect cashier and warehouse users to items.cart
+        $roleName = strtolower($roleName);
+        if ($roleName === "cashier" || $roleName === "warehouse") {
             return redirect(route('items.cart'));
-        } else if(strtolower($roleName) == "warehouse") {
-            return redirect(route('items.cart'));
-        } else {
-            return redirect(route('dashboard'));
         }
+        
+        // All other roles go to dashboard
+        return redirect(route('dashboard'));
     }
 
     /**
@@ -60,13 +57,15 @@ class AuthenticatedSessionController extends Controller
         $user = User::find(Auth::id());
         $user->is_login = 'No';
         $user->save();
+        
         Auth::guard('web')->logout();
-        if (session()->has('checkout_images')) {
-            session()->forget('checkout_images');
-        }
+        
+        session()->forget(auth()->id().'_warehouse_product_photo_path', []);
+        session()->forget(auth()->id().'_warehouse_customer_photo_path', []);
+        session()->forget(auth()->id().'_cashier_product_photo_path', []);
+        session()->forget(auth()->id().'_cashier_customer_photo_path', []);
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
         return redirect('/login');
