@@ -166,7 +166,6 @@ class ShiftCloseModal extends Component
         ->first();
 
         $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->where('status', '!=', 'Hold')->where('invoice_number', 'not like', '%Hold%')->latest()->get();
-
         foreach ($invoices as $invoice) {
             $items = $invoice->items; // decode items from longtext JSON
 
@@ -176,14 +175,17 @@ class ShiftCloseModal extends Component
 
             if (is_array($items)) {
                 foreach ($items as $item) {
-                    $category = Str::upper($item['category'])  ?? 'Unknown';
-                    $amount = $item['price'] ?? 0;
+                    if(!empty($item['subcategory'])){
 
-                    if (!isset($this->categoryTotals['sales'][$category])) {
-                        $this->categoryTotals['sales'][$category] = 0;
+                        $category =  Str::upper($item['subcategory'])  ?? 'Unknown';
+                        $amount = $item['price'] ?? 0;
+    
+                        if (!isset($this->categoryTotals['sales'][$category])) {
+                            $this->categoryTotals['sales'][$category] = 0;
+                        }
+    
+                        $this->categoryTotals['sales'][$category] += $amount;
                     }
-
-                    $this->categoryTotals['sales'][$category] += $amount;
                 }
             }
 
@@ -390,9 +392,10 @@ class ShiftCloseModal extends Component
                 }
             }
 
-            if (session()->has('checkout_images')) {
-                session()->forget('checkout_images');
-            }
+            session()->forget(auth()->id().'_warehouse_product_photo_path', []);
+            session()->forget(auth()->id().'_warehouse_customer_photo_path', []);
+            session()->forget(auth()->id().'_cashier_product_photo_path', []);
+            session()->forget(auth()->id().'_cashier_customer_photo_path', []);
 
             Auth::logout();
 
