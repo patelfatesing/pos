@@ -941,6 +941,7 @@
                                     <i class="fas fa-print"></i>
                                 </button>
                                  <livewire:order-modal />
+                                  <livewire:collation-modal />
                             @endif
                             @livewire('button-timer', ['endTime' => $this->shiftEndTime])
 
