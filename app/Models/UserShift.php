@@ -25,6 +25,7 @@ class UserShift extends Model
         'cash',
         'status',
         'cash_break_id',
+        'closing_sales',
     ];
 
 

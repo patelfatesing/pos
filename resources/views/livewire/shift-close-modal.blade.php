@@ -30,6 +30,8 @@
                             <input type="hidden" wire:model="opening_cash">
                             <input type="hidden" wire:model="today_cash">
                             <input type="hidden" wire:model="total_payments">
+                            <input type="hidden" wire:model="closing_sales">
+
 
                             {{-- Sales and Cash Section --}}
                             <div class="row g-4 mb-4">
