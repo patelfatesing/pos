@@ -142,7 +142,7 @@
         }
 
         .card .card-header {
-            padding: 11px 20px ! important;
+            padding: 11px 0px ! important;
         }
         .list-group-item{
             border-bottom: 1px solid rgba(0, 0, 0, 0.125) !important;

@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Session;
 use App\Models\Refund;
-use App\Models\InvoiceHistory;
+use App\Models\CreditCollection;
 use Illuminate\Support\Facades\Auth;
 use App\Models\DailyProductStock;
 
@@ -42,7 +42,7 @@ class ShiftCloseModal extends Component
     public $updatingField = null;
     public $showCloseButton = false;
     public $buttonEnabled = false;
-
+    public $creditCollacted=[];
     public $shift;
     public $shiftcash;
     public  $narrations = [
@@ -156,6 +156,14 @@ class ShiftCloseModal extends Component
             ->where('store_id', $branch_id)
             ->selectRaw('SUM(credit_amount) as credit_total, SUM(debit_amount) as debit_total')
             ->first();
+        $this->creditCollacted = \DB::table('credit_collections')
+        ->selectRaw('
+        SUM(cash_amount) as collacted_cash_amount,
+        SUM(online_amount) as collacted_online_amount,
+        SUM(upi_amount) as collacted_upi_amount
+        ')
+        ->whereBetween('created_at', [$start_date, $end_date])
+        ->first();
 
         $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->where('status', '!=', 'Hold')->where('invoice_number', 'not like', '%Hold%')->latest()->get();
 
@@ -218,9 +226,11 @@ class ShiftCloseModal extends Component
         $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] = $totalWith * (-1);
         $this->categoryTotals['summary']['UPI PAYMENT'] = $totalUpiPaid * (-1);
         $this->categoryTotals['summary']['ONLINE PAYMENT'] = $totalOnlinePaid * (-1);
+        if(!empty($this->creditCollacted->collacted_cash_amount))
+        $this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] = $this->creditCollacted->collacted_cash_amount;
         // $this->categoryTotals['summary']['REFUND'] += $totalRefundReturn *(-1);
         $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['OPENING CASH'] + $this->categoryTotals['summary']['TOTAL SALES'] + $this->categoryTotals['summary']['DISCOUNT'] + $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $this->categoryTotals['summary']['UPI PAYMENT'] + @$this->categoryTotals['summary']['REFUND'] +
-            $this->categoryTotals['summary']['ONLINE PAYMENT'];
+            $this->categoryTotals['summary']['ONLINE PAYMENT']+ @$this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'];
         $this->categoryTotals['summary']['REFUND'] = $totalRefund * (-1) + $totalRefundReturn * (-1);
         //$this->categoryTotals['summary']['REFUND RETURN'] = $totalRefundReturn*(-1);
         $this->categoryTotals['summary']['CREDIT'] = $totals->credit_total;

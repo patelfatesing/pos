@@ -14,15 +14,24 @@ class InvoiceController extends Controller
     //
     public function show(Invoice $invoice)
     {
-        $commissionUser = Commissionuser::find($invoice->commission_user_id);
-        $partyUser = Partyuser::find($invoice->party_user_id);
+        $commissionUser = Commissionuser::where('id', $invoice->commission_user_id)
+                      ->where('status', 'Active')
+                      ->first();
+        $partyUser = Partyuser::where('id', $invoice->party_user_id)
+                      ->where('status', 'Active')
+                      ->first();
+
         return view('invoice.view', compact('invoice', 'commissionUser', 'partyUser'));
     }
 
     public function download(Invoice $invoice)
     {
-        $commissionUser = Commissionuser::find($invoice->commission_user_id);
-        $partyUser = Partyuser::find($invoice->party_user_id);
+         $commissionUser = Commissionuser::where('id', $invoice->commission_user_id)
+                      ->where('status', 'Active')
+                      ->first();
+        $partyUser = Partyuser::where('id', $invoice->party_user_id)
+                      ->where('status', 'Active')
+                      ->first();
         
         $pdf = PDF::loadView('invoice', [
             'invoice' => $invoice,
@@ -42,9 +51,11 @@ class InvoiceController extends Controller
 
     public function viewInvoice(Invoice $invoice)
     {
-        $commissionUser = Commissionuser::find($invoice->commission_user_id);
+        $commissionUser = Commissionuser::where('status', 'Active')->find($invoice->commission_user_id);
         // dd($invoice);
-        $partyUser = Partyuser::find($invoice->party_user_id);
+        $partyUser = Partyuser::where('id', $invoice->party_user_id)
+                      ->where('status', 'Active')
+                      ->first();
         return view('invoice.viewInvoice', compact('invoice', 'commissionUser', 'partyUser'));
     }
 
