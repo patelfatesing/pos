@@ -25,13 +25,13 @@ class Product extends Model
         'mrp'
     ];
 
-    public static function generateSku($brand, $name, $size)
+    public static function generateSku($brand, $name, $size,$p_id)
     {
         $brandCode = strtoupper(Str::slug(Str::words($brand, 1, ''), ''));
         $nameCode = strtoupper(Str::slug(Str::words($name, 1, ''), ''));
         $sizeCode = preg_replace('/[^0-9]/', '', $size); // extract ml only
 
-        return "{$brandCode}-{$nameCode}-{$sizeCode}";
+        return "{$brandCode}-{$nameCode}-{$sizeCode}-{$p_id}";
     }
 
     public function inventories()

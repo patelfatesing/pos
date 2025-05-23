@@ -361,7 +361,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
     });
 
     var channel = pusher.subscribe('drawer-channel');
-    
+
     channel.bind('DrawerOpened', function(data) {
 
         if (data.notify_to == null) {
@@ -465,10 +465,13 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                 console.error('Error fetching notifications:', error);
             });
     }
-
-
-    // Call every 30 seconds
-    setInterval(fetchNotifications, 3000);
-    // Fetch immediately on page load
-    fetchNotifications();
 </script>
+
+@if (Auth::check())
+    <script>
+        // Call every 30 seconds
+        setInterval(fetchNotifications, 3000);
+        // Fetch immediately on page load
+        fetchNotifications();
+    </script>
+@endif

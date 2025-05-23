@@ -61,7 +61,7 @@ class ProductController extends Controller
     
         $query->where('is_deleted', 'no');
         
-        $recordsTotal = Product::count();
+        $recordsTotal = Product::where('is_deleted', 'no')->count();
         $recordsFiltered = $query->count();
     
         $data = $query->orderBy($orderColumn, $orderDirection)

@@ -253,8 +253,11 @@ $minDate = \Carbon\Carbon::today()->format('Y-m-d');
                             id: id
                         },
                         success: function(response) {
-                            swal("Deleted!", "The store has been deleted.", "success")
-                                .then(() => location.reload());
+                            Swal.fire("Deleted!", "The product has been deleted.", "success").then(
+                        () => {
+                                $('#products_table').DataTable().ajax.reload(null,
+                                    false); // ✅ Only reload DataTable
+                            });
                         },
                         error: function(xhr) {
                             swal("Error!", "Something went wrong.", "error");
