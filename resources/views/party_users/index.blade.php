@@ -95,7 +95,7 @@
                         data: 'status'
                     },
                      {
-                        data: 'is_deleted'
+                        data: 'is_delete'
                     },
                     {
                         data: 'action',
