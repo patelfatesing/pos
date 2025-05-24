@@ -67,8 +67,23 @@
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>{{ __('messages.password') }}</label>
-                                                <input class="floating-input form-control" value="{{ old('password') }}"
-                                                    name="password" type="password" placeholder=" ">
+                                                  <input 
+                                                        id="password" 
+                                                        class="floating-input form-control pr-5" 
+                                                        name="password" 
+                                                        type="password" 
+                                                        placeholder=" " 
+                                                        :value="old('password')"
+                                                    >
+                                                    <!-- Eye icon -->
+                                                    <span 
+                                                        class="position-absolute" 
+                                                        style="top: 50px; right: 15px; cursor: pointer;" 
+                                                        onclick="togglePasswordVisibility()"
+                                                    >
+                                                        <i id="togglePasswordIcon" class="fa fa-eye"></i>
+                                                    </span>
+                                              
                                                 @error('password')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -77,8 +92,22 @@
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>{{ __('messages.confirm_password') }}</label>
-                                                <input class="floating-input form-control" name="password_confirmation"
-                                                    value="{{ old('confirm_password') }}" type="password" placeholder=" ">
+                                                <input 
+                                                    id="passwordnew" 
+                                                    class="floating-input form-control pr-5" 
+                                                    name="password_confirmation" 
+                                                    type="password" 
+                                                    placeholder=" " 
+                                                    :value="old('confirm_password')"
+                                                >
+                                                <!-- Eye icon -->
+                                                <span 
+                                                    class="position-absolute" 
+                                                    style="top: 50px; right: 15px; cursor: pointer;" 
+                                                    onclick="togglePasswordVisibilityNew()"
+                                                >
+                                                    <i id="togglePasswordIcon" class="fa fa-eye"></i>
+                                                </span>
                                                 @error('confirm_password')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -171,3 +200,36 @@
         }
     });
 </script>
+
+<script>
+   function togglePasswordVisibility() {
+      const input = document.getElementById('password');
+      const icon = document.getElementById('togglePasswordIcon');
+
+      if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+      } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+      }
+   }
+    function togglePasswordVisibilityNew() {
+      const input = document.getElementById('passwordnew');
+      const icon = document.getElementById('togglePasswordIconnew');
+
+      if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+      } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+      }
+   }
+</script>
+
+

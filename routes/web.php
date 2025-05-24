@@ -37,6 +37,11 @@ use App\Http\Controllers\ProductImportController;
 use App\Http\Controllers\ShiftManageController;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
+
+Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 
 Route::get('/logs', function () {
     $file = storage_path('logs/laravel-' . now()->format('Y-m-d') . '.log');
@@ -106,6 +111,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/users/update', [UserController::class, 'update'])->name('users.update');
     Route::post('/users/delete', [UserController::class, 'destroy'])->name('users.delete');
     Route::post('/users/status-change', [UserController::class, 'statusChange'])->name('users.status-change');
+    Route::get('/open-drawer', [UserController::class, 'openDrawer']);
+
     Route::post('/cash-in-hand', [CashInHandController::class, 'store'])->name('cash-in-hand')->middleware('auth');
 
     Route::get('/roles/list', [RolesController::class, 'index'])->name('roles.list');
@@ -316,6 +323,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/demand-order/list', [DemandOrderController::class, 'index'])->name('demand-order.list');
     Route::post('/demand-order/get-data', [DemandOrderController::class, 'getData'])->name('demand-order.getData');
     Route::get('/demand-order/create', [DemandOrderController::class, 'create'])->name('demand-order.create');
+    //  Route::get('/demand-order/step-1', [DemandOrderController::class, 'step1'])->name('demand-order.step1');
+    // Route::post('/demand-order/step-1', [DemandOrderController::class, 'postStep1'])->name('demand-order.step1');
+
+    // Route::get('/demand-order/step-2', [DemandOrderController::class, 'step2'])->name('demand-order.step2');
+    // Route::post('/demand-order/step-2', [DemandOrderController::class, 'postStep2'])->name('demand-order.step2');
+
+    // Route::get('/demand-order/step-3', [DemandOrderController::class, 'step3'])->name('demand-order.step3');
+    // Route::post('/demand-order/step-3', [DemandOrderController::class, 'postStep3'])->name('demand-order.step3');
+
+    // Route::get('/demand-order/step-4', [DemandOrderController::class, 'step4'])->name('demand-order.step4');
+    // Route::post('/demand-order/step-4', [DemandOrderController::class, 'postStep4'])->name('demand-order.step4');
+
     Route::post('/demand-order/store', [DemandOrderController::class, 'store'])->name('demand-order.store');
     Route::get('/demand-order/edit/{id}', [DemandOrderController::class, 'edit'])->name('demand-orders.edit');
     Route::get('/demand-order/create-pre', [DemandOrderController::class, 'createPrediction'])->name('demand-order.create.pre');
