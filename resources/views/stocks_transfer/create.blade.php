@@ -3,9 +3,7 @@
 @section('page-content')
     <!-- Wrapper Start -->
     <div class="wrapper">
-
         <div class="content-page">
-
             <div class="container-fluid add-form-list">
                 <div class="row">
                     <div class="col-sm-12">
@@ -20,25 +18,49 @@
                             </div>
 
                             <div class="card-body">
-                                <form action="{{ route('stock-transfer.store') }}" enctype="multipart/form-data" method="POST">
+                                @if (session('success'))
+                                    <div class="alert alert-success alert-dismissible fade show">
+                                        {{ session('success') }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                @endif
+
+                                @if (session('error'))
+                                    <div class="alert alert-danger alert-dismissible fade show">
+                                        {{ session('error') }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                @endif
+
+                                @if ($errors->any())
+                                    <div class="alert alert-danger alert-dismissible fade show">
+                                        <ul class="mb-0 list-unstyled">
+                                            @foreach ($errors->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                @endif
+
+                                <form id="transferForm" action="{{ route('stock-transfer.store') }}" method="POST">
                                     @csrf
                                     <div class="row">
-
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>From Store *</label>
                                                 <select name="from_store_id" id="from_store_id"
-                                                    class="selectpicker form-control" data-style="py-0">
-                                                    <option value="" disabled selected>Select Store</option>
-                                                    @foreach ($stores as $category)
-                                                        <option value="{{ $category->id }}"
-                                                            {{ old('from_store_id') == $category->id ? 'selected' : '' }}>
-                                                            {{ $category->name }}
+                                                    class="form-control @error('from_store_id') is-invalid @enderror">
+                                                    <option value="">Select Store</option>
+                                                    @foreach ($stores as $store)
+                                                        <option value="{{ $store->id }}"
+                                                            {{ old('from_store_id') == $store->id ? 'selected' : '' }}>
+                                                            {{ $store->name }}
                                                         </option>
                                                     @endforeach
                                                 </select>
                                                 @error('from_store_id')
-                                                    <span class="text-danger">{{ $message }}</span>
+                                                    <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                             </div>
                                         </div>
@@ -46,200 +68,221 @@
                                             <div class="form-group">
                                                 <label>To Store *</label>
                                                 <select name="to_store_id" id="to_store_id"
-                                                    class="selectpicker form-control" data-style="py-0">
-                                                    <option value="" disabled selected>Select Store</option>
-                                                    @foreach ($stores as $category)
-                                                        <option value="{{ $category->id }}"
-                                                            {{ old('to_store_id') == $category->id ? 'selected' : '' }}>
-                                                            {{ $category->name }}
+                                                    class="form-control @error('to_store_id') is-invalid @enderror">
+                                                    <option value="">Select Store</option>
+                                                    @foreach ($stores as $store)
+                                                        <option value="{{ $store->id }}"
+                                                            {{ old('to_store_id') == $store->id ? 'selected' : '' }}>
+                                                            {{ $store->name }}
                                                         </option>
                                                     @endforeach
                                                 </select>
                                                 @error('to_store_id')
-                                                    <span class="text-danger">{{ $message }}</span>
+                                                    <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                             </div>
                                         </div>
-
                                     </div>
 
                                     <div id="product-items">
                                         <h5>Products</h5>
-                                        <div class="item-row product_items mb-3">
-                                            <select name="items[0][product_id]" id=""
-                                                class="form-control d-inline w-50 product-select" required>
-                                                <option value="">-- Select Product --</option>
-                                                @foreach ($products as $product)
-                                                    <option value="{{ $product->id }}">{{ $product->name }}
-                                                        ({{ $product->sku }})
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            <input type="number" name="items[0][quantity]"
-                                                class="form-control d-inline w-25 ms-2" placeholder="Qty" min="1"
-                                                required>
-                                            <button type="button" class="btn btn-danger btn-sm ms-2 remove-item">X</button>
-                                            <div class="availability-container mt-2 small text-muted">
-                                                <!-- Filled dynamically with AJAX -->
+                                        @if (old('items'))
+                                            @foreach (old('items') as $index => $item)
+                                                <div class="item-row product_items mb-3">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <select name="items[{{ $index }}][product_id]"
+                                                                    class="form-control product-select @error('items.'.$index.'.product_id') is-invalid @enderror">
+                                                                    <option value="">Select Product</option>
+                                                                    @foreach ($products as $product)
+                                                                        <option value="{{ $product->id }}"
+                                                                            {{ old('items.'.$index.'.product_id') == $product->id ? 'selected' : '' }}>
+                                                                            {{ $product->name }}
+                                                                        </option>
+                                                                    @endforeach
+                                                                </select>
+                                                                @error('items.'.$index.'.product_id')
+                                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                                @enderror
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="form-group">
+                                                                <input type="number" name="items[{{ $index }}][quantity]"
+                                                                    class="form-control @error('items.'.$index.'.quantity') is-invalid @enderror"
+                                                                    placeholder="Quantity" min="1"
+                                                                    value="{{ old('items.'.$index.'.quantity') }}">
+                                                                @error('items.'.$index.'.quantity')
+                                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                                @enderror
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-2">
+                                                            <button type="button" class="btn btn-danger remove-item">Remove</button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="availability-container mt-2 small text-muted"></div>
+                                                </div>
+                                            @endforeach
+                                        @else
+                                            <div class="item-row product_items mb-3">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <select name="items[0][product_id]"
+                                                                class="form-control product-select @error('items.0.product_id') is-invalid @enderror">
+                                                                <option value="">Select Product</option>
+                                                                @foreach ($products as $product)
+                                                                    <option value="{{ $product->id }}">
+                                                                        {{ $product->name }} ({{ $product->sku }})
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                            @error('items.0.product_id')
+                                                                <div class="invalid-feedback">{{ $message }}</div>
+                                                            @enderror
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="form-group">
+                                                            <input type="number" name="items[0][quantity]"
+                                                                class="form-control @error('items.0.quantity') is-invalid @enderror"
+                                                                placeholder="Quantity" min="1">
+                                                            @error('items.0.quantity')
+                                                                <div class="invalid-feedback">{{ $message }}</div>
+                                                            @enderror
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <button type="button" class="btn btn-danger remove-item">Remove</button>
+                                                    </div>
+                                                </div>
+                                                <div class="availability-container mt-2 small text-muted"></div>
                                             </div>
-                                        </div>
+                                        @endif
                                     </div>
 
-                                    <div class="mb-3">
-                                        {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
-                                        <div id="product-availability" class="mt-3">
-                                            <!-- Availability information will be displayed here -->
+                                    <button type="button" id="add-item" class="btn btn-secondary mb-3">+ Add Product</button>
+
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <button type="submit" id="submitBtn" class="btn btn-primary">Submit Transfer</button>
+                                            <button type="reset" class="btn btn-danger">Reset</button>
                                         </div>
-
-
                                     </div>
-
-
-                                    <button type="button" id="add-item" class="btn btn-secondary btn-sm mb-3">+ Add
-                                        Another Product</button>
-                                        <div class="row">
-                                    <button type="reset" class="btn btn-danger mr-2">Reset</button>
-
-                                    <button type="submit" class="btn btn-primary">Submit Request</button>
-                                        </div>
                                 </form>
                             </div>
                         </div>
                     </div>
                 </div>
-                <!-- Page end  -->
             </div>
         </div>
     </div>
-    <!-- Wrapper End-->
 
     <script>
-        let itemIndex = 1;
+        let itemIndex = {{ old('items') ? count(old('items')) : 1 }};
+
+        // Prevent double submission
+        document.getElementById('transferForm').addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn.disabled) {
+                e.preventDefault();
+                return false;
+            }
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Processing...';
+            return true;
+        });
 
         document.getElementById('add-item').addEventListener('click', function() {
-            // Clone the first item-row
-            const row = document.querySelector('.item-row').cloneNode(true);
-
-            // Update the name attributes for the cloned row
-            row.querySelectorAll('select, input').forEach(el => {
-                const name = el.getAttribute('name');
-                const updatedName = name.replace(/\[\d+\]/, `[${itemIndex}]`);
-                el.setAttribute('name', updatedName);
-
-                // Clear the value for inputs
-                if (el.tagName === 'INPUT') el.value = '';
-            });
-
-            // Clear the availability-container for the cloned row
-            const container = row.querySelector('.availability-container');
-            container.innerHTML = '';
-
-            // Append the cloned row to the product-items container
-            document.getElementById('product-items').appendChild(row);
-
-            // Increment the item index
+            const template = `
+                <div class="item-row product_items mb-3">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <select name="items[${itemIndex}][product_id]" class="form-control product-select">
+                                    <option value="">Select Product</option>
+                                    @foreach ($products as $product)
+                                        <option value="{{ $product->id }}">{{ $product->name }} ({{ $product->sku }})</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <input type="number" name="items[${itemIndex}][quantity]" class="form-control" placeholder="Quantity" min="1">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-danger remove-item">Remove</button>
+                        </div>
+                    </div>
+                    <div class="availability-container mt-2 small text-muted"></div>
+                </div>
+            `;
+            
+            document.getElementById('product-items').insertAdjacentHTML('beforeend', template);
             itemIndex++;
         });
 
-        document.addEventListener('click', function(e) {
-            if (e.target && e.target.classList.contains('remove-item')) {
-                if (document.querySelectorAll('.item-row').length > 1) {
-                    e.target.closest('.item-row').remove();
-                }
+        $(document).on('click', '.remove-item', function() {
+            if (document.querySelectorAll('.item-row').length > 1) {
+                $(this).closest('.item-row').remove();
             }
         });
 
-        $(document).ready(function() {
-            // Event listener for product selection change
-            $(document).on('change', '.product-select', function() {
-                const productId = $(this).val();
-                const from_store_id = $("#from_store_id").val();
-                const to_store_id = $("#to_store_id").val();
-                const itemRow = $(this).closest('.item-row');
-                const container = itemRow.find('.availability-container');
-                const indexMatch = $(this).attr('name').match(/\[(\d+)\]/);
-                const itemIndex = indexMatch ? indexMatch[1] : 0;
+        $(document).on('change', '.product-select', function() {
+            const productId = $(this).val();
+            const from_store_id = $("#from_store_id").val();
+            const to_store_id = $("#to_store_id").val();
+            const container = $(this).closest('.item-row').find('.availability-container');
 
-                if(from_store_id == ""){
-                    alert("Please first select from store.");
-                    return false;
-                }
+            if (!from_store_id) {
+                alert("Please select the source store first.");
+                $(this).val('');
+                return false;
+            }
 
-                if(to_store_id == ""){
-                    alert("Please first select to store.");
-                    return false;
-                }
+            if (!to_store_id) {
+                alert("Please select the destination store first.");
+                $(this).val('');
+                return false;
+            }
 
-                if (productId) {
-                    // AJAX request to fetch product availability
-                    $.ajax({
-                        url: "{{ url('/products/get-availability-branch') }}/" + productId +
-                            "?from=" + encodeURIComponent(from_store_id) +
-                            "&to=" + encodeURIComponent(to_store_id),
-                        type: "GET",
-                        dataType: "json",
-                        success: function(data) {
-                            console.log(data);
-
-                            let html = `<div class="row">`;
-
-                            html += `
-                                <div class="col-md-6 mb-2">
-                                    <div class="form-check">
-                                        <label class="form-check-label" for="branch_">
-                                             (Available Stock: ${data.from_count})
-                                        </label>
-                                    </div>
+            if (productId) {
+                $.ajax({
+                    url: "{{ url('/products/get-availability-branch') }}/" + productId +
+                        "?from=" + encodeURIComponent(from_store_id) +
+                        "&to=" + encodeURIComponent(to_store_id),
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data) {
+                        let html = `
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Source Store Stock:</strong> ${data.from_count}
                                 </div>
-                                <div class="col-md-6 mb-2">
- <label class="form-check-label" for="branch_">
-                                             (Available Stock: ${data.to_count})
-                                        </label>
+                                <div class="col-md-6">
+                                    <strong>Destination Store Stock:</strong> ${data.to_count}
                                 </div>
-                            `;
-
-
-                            html += '</div>';
-                            container.html(html);
-                        },
-                        error: function() {
-                            container.html(
-                                '<span class="text-danger">Failed to load availability. Please try again.</span>'
-                            );
-                        }
-                    });
-                } else {
-                    container.empty(); // Clear container if no product is selected
-                }
-            });
-
-            // Enable/disable quantity input based on checkbox selection
-            $(document).on('change', '.branch-checkbox', function() {
-                const quantityInput = $(this).closest('.col-md-6').next('.col-md-6').find(
-                    '.branch-quantity');
-                if ($(this).is(':checked')) {
-                    quantityInput.prop('disabled', false);
-                } else {
-                    quantityInput.prop('disabled', true).val(''); // Clear value when disabled
-                }
-            });
-
-            // Validate branch quantities
-            $(document).on('input', '.branch-quantity', function() {
-                const itemRow = $(this).closest('.item-row');
-                const totalRequestedQty = parseInt(itemRow.find('input[name$="[quantity]"]').val()) || 0;
-                let totalBranchQty = 0;
-
-                // Calculate the total quantity across all branches
-                itemRow.find('.branch-quantity').each(function() {
-                    const branchQty = parseInt($(this).val()) || 0;
-                    totalBranchQty += branchQty;
+                            </div>`;
+                        container.html(html);
+                    },
+                    error: function() {
+                        container.html('<div class="text-danger">Failed to load stock information. Please try again.</div>');
+                    }
                 });
+            } else {
+                container.empty();
+            }
+        });
 
-                // Check if the total branch quantity exceeds the requested quantity
-                if (totalBranchQty > totalRequestedQty) {
-                    alert('The total quantity across branches cannot exceed the requested quantity.');
-                    $(this).val(''); // Clear the invalid input
+        // Trigger change event for pre-selected products
+        $(document).ready(function() {
+            $('.product-select').each(function() {
+                if ($(this).val()) {
+                    $(this).trigger('change');
                 }
             });
         });
