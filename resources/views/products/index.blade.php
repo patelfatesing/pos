@@ -39,6 +39,7 @@
                                     <th>Pack Size</th>
                                     <th>Brand</th>
                                     <th>sku</th>
+                                    <th>MRP</th>
                                     <th>Status</th>
                                     <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
                                     <th>Action</th>
@@ -167,7 +168,10 @@ $minDate = \Carbon\Carbon::today()->format('Y-m-d');
                         data: 'sku',
                         orderable: false
                     },
-
+                    {
+                        data: 'mrp',
+                        orderable: false
+                    },
                     {
                         data: 'is_active',
                         orderable: false
@@ -254,10 +258,10 @@ $minDate = \Carbon\Carbon::today()->format('Y-m-d');
                         },
                         success: function(response) {
                             Swal.fire("Deleted!", "The product has been deleted.", "success").then(
-                        () => {
-                                $('#products_table').DataTable().ajax.reload(null,
-                                    false); // ✅ Only reload DataTable
-                            });
+                                () => {
+                                    $('#products_table').DataTable().ajax.reload(null,
+                                        false); // ✅ Only reload DataTable
+                                });
                         },
                         error: function(xhr) {
                             swal("Error!", "Something went wrong.", "error");

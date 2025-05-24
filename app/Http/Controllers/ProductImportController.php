@@ -222,7 +222,7 @@ class ProductImportController extends Controller
                 // Check if it's a numeric string in scientific notation
                 if (preg_match('/^\d+\.?\d*E\+?\d+$/i', $value)) {
                     // Convert scientific to number without losing precision
-                    $value = number_format((float)$value, 0, '', '');
+                    $value = number_format((int)$value, 0, '', '');
                 }
                 return $value;
             }, $fields);
@@ -298,7 +298,7 @@ class ProductImportController extends Controller
                     'mrp' => $row[$mapping['MRP']] ?? null,
                     'reorder_level' => $row[$mapping['Stock Low Level']] ?? null,
                     'discount_price' => $row[$mapping['Discount Price']] ?? null,
-                    'discount_amt' => $row[$mapping['Discount Amt']] ?? null,
+                    'discount_amt' => ($row[$mapping['Discount Amt']] != "" ? $row[$mapping['Discount Amt']] : 0),
                     'case_size' => $row[$mapping['Case Size']] ?? null,
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now(),

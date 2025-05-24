@@ -193,7 +193,17 @@
                                                 @enderror
                                             </div>
                                         </div>
-
+                                        <div class="col-md-6">
+                                            <!-- Discount Price -->
+                                            <div class="form-group">
+                                                <label for="mrp">MRP</label>
+                                                <input type="number" value="{{ old('mrp', $record->mrp) }}"
+                                                    name="mrp" step="0.01" class="form-control">
+                                                @error('mrp')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
                                         {{-- Description --}}
                                         <div class="col-md-12">
                                             <div class="form-group">

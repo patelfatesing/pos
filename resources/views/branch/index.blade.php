@@ -28,10 +28,11 @@
                             <tr class="ligth ligth-data">
 
                                 <th>
-                                    <b>N</b>ame
+                                    Name
                                 </th>
                                 <th>Address</th>
                                 <th>Status</th>
+                                <th>Store Status</th>
                                 <th>Main Branch</th>
                                 <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
                                 <th>Action</th>
@@ -80,6 +81,9 @@
                         },
                         {
                             data: 'is_active'
+                        },
+                        {
+                            data: 'is_deleted'
                         },
                         {
                             data: 'main_branch'
@@ -142,5 +146,37 @@
                 });
 
             }
+             function branchStatusChange(id, newStatus) {
+                Swal.fire({
+                    title: "Are you sure?",
+                    text: "Do you want to change the status?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, change it!",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            type: "POST",
+                            url: "{{ url('store/status-change') }}", // Update this to your route
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            data: {
+                                id: id,
+                                status: newStatus
+                            },
+                            success: function(response) {
+                                Swal.fire("Success!", "Store status has been changed.", "success").then(() => {
+                                    $('#branch_table').DataTable().ajax.reload(null,
+                                        false); // ✅ Only reload DataTable
+                                });
+                            },
+                            error: function(xhr) {
+                                Swal.fire("Error!", "Something went wrong.", "error");
+                            }
+                        });
+                    }
+                });
+        }
         </script>
     @endsection

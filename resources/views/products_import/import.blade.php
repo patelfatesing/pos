@@ -22,8 +22,6 @@
 
                             <div class="card-body">
                                 <div class="container">
-                                    <h2>Upload CSV File</h2>
-
                                     @if (session('success'))
                                         <div class="alert alert-success">{{ session('success') }}</div>
                                     @endif

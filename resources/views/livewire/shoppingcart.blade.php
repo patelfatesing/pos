@@ -2522,12 +2522,12 @@
         cluster: "{{ config('broadcasting.connections.pusher.options.cluster') }}",
         encrypted: true,
     });
-
+    var branch_id='{{ @$data->userInfo->branch_id }}';
     var channel = pusher.subscribe('drawer-channel');
     
     channel.bind('DrawerOpened', function(data) {
 
-        if (data.notify_to == null) {
+        if (data.notify_to == branch_id) {
             Swal.fire({
                 title: '📢 New Notification!',
                 text: `${data.message} (Notify By: ${data.customer})`,
