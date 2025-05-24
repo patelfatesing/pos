@@ -33,7 +33,6 @@
             </div>
         </section>
     </div>
-    sdfsdf
     <script src="{{ asset('assets/js/script.js') }}"></script>
     <!-- Backend Bundle JavaScript -->
     <script src="{{ asset('assets/js/backend-bundle.min.js') }}"></script>
