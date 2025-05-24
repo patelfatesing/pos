@@ -32,23 +32,40 @@
                                </div>
                                <x-input-error :messages="$errors->get('email')" class="mt-2" />
                             </div>
-                            <div class="col-lg-12">
-                               <div class="form-group">
+                           <div class="col-lg-12">
+                              <div class="form-group position-relative">
                                  <label>Password</label>
-                                  <input class="floating-input form-control" name="password" type="password" placeholder=" " :value="old('password')">
-                                  
-                               </div>
-                               <x-input-error :messages="$errors->get('password')" class="mt-2" />
-                            </div>
+                                 <input 
+                                       id="password" 
+                                       class="floating-input form-control pr-5" 
+                                       name="password" 
+                                       type="password" 
+                                       placeholder=" " 
+                                       :value="old('password')"
+                                 >
+                                 <!-- Eye icon -->
+                                 <span 
+                                       class="position-absolute" 
+                                       style="top: 38px; right: 15px; cursor: pointer;" 
+                                       onclick="togglePasswordVisibility()"
+                                 >
+                                       <i id="togglePasswordIcon" class="fa fa-eye"></i>
+                                 </span>
+                              </div>
+                              <x-input-error :messages="$errors->get('password')" class="mt-2" />
+                           </div>
+
+
                             <div class="col-lg-6">
                                <div class="custom-control custom-checkbox mb-3">
                                   <input type="checkbox" class="custom-control-input" id="customCheck1">
                                   <label class="custom-control-label control-label-1" for="customCheck1">Remember Me</label>
                                </div>
                             </div>
-                            <div class="col-lg-6">
-                               <a href="auth-recoverpw.html" class="text-primary float-right">Forgot Password?</a>
-                            </div>
+                           <div class="col-lg-6">
+                              <a href="{{ route('password.request') }}" class="text-primary float-right">Forgot Password?</a>
+                           </div>
+
                          </div>
                          <button type="submit" class="btn btn-primary">Login</button>
                          <p class="mt-3">
@@ -76,4 +93,20 @@
    }, 3000); // Hide after 3 seconds
 </script>
 
+<script>
+   function togglePasswordVisibility() {
+      const input = document.getElementById('password');
+      const icon = document.getElementById('togglePasswordIcon');
+
+      if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+      } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+      }
+   }
+</script>
 @endsection
