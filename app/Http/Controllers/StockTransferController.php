@@ -18,7 +18,7 @@ class StockTransferController extends Controller
 {
     public function index()
     {
-        $stores = Branch::all();
+        $stores = Branch::where('is_deleted', 'no')->get();
         $products = Product::all();
         $data = User::with('userInfo')
         ->where('users.id', Auth::id())
