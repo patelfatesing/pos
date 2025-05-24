@@ -180,7 +180,18 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        <div class="col-md-12">
+                                        <div class="col-md-6">
+                                            <!-- Discount Price -->
+                                            <div class="form-group">
+                                                <label for="mrp">MRP</label>
+                                                <input type="number" value="{{ old('mrp') }}"
+                                                    name="mrp" step="0.01" class="form-control">
+                                                @error('mrp')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Description / Product Details</label>
                                                 <textarea class="form-control" name="description" rows="4">{{ old('description') }}</textarea>

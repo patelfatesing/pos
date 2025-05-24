@@ -44,8 +44,8 @@ class ProductController extends Controller
         $orderDirection = $request->input('order.0.dir', 'asc');
 
         $query = Product::with(['category', 'subcategory']);
-        
-    
+
+
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('name', 'like', '%' . $searchValue . '%')
@@ -58,32 +58,32 @@ class ProductController extends Controller
                     });
             });
         }
-    
+
         $query->where('is_deleted', 'no');
-        
+
         $recordsTotal = Product::where('is_deleted', 'no')->count();
         $recordsFiltered = $query->count();
-    
+
         $data = $query->orderBy($orderColumn, $orderDirection)
             ->offset($start)
             ->limit($length)
             ->get();
-            
-    
+
+
         $records = [];
         $url = url('/');
-        if(session('role_name') == "admin") {
+        if (session('role_name') == "admin") {
             // $url = url('/admin');
-        } elseif(session('role_name') == 'wwner') {
+        } elseif (session('role_name') == 'wwner') {
             // $url = url('/manager');
-        } elseif(session('role_name') == 'warehouse') {
+        } elseif (session('role_name') == 'warehouse') {
             // $url = url('/employee');
-        }else{
+        } else {
             $url = url('');
         }
-          
+
         foreach ($data as $product) {
-            $action ='<div class="d-flex align-items-center list-action">
+            $action = '<div class="d-flex align-items-center list-action">
             <a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="#" onclick="product_price_change(' . $product->id . ',' . $product->sell_price . ')"><i class="ri-currency-line"></i></a>
                     
@@ -94,8 +94,8 @@ class ProductController extends Controller
                                     <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
                                         href="#" onclick="delete_product(' . $product->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
             </div>';
-                               
-            $status = ($product->is_active ? '<div class="badge badge-success">Active</div>':'<div class="badge badge-success">Inactive</div>');
+
+            $status = ($product->is_active ? '<div class="badge badge-success">Active</div>' : '<div class="badge badge-success">Inactive</div>');
             $records[] = [
                 'name' => $product->name,
                 'category' => $product->category->name ?? 'N/A',
@@ -103,12 +103,13 @@ class ProductController extends Controller
                 'size' => $product->size,
                 'brand' => $product->brand,
                 'sku' => $product->sku,
+                'mrp' => "₹".$product->mrp,
                 'is_active' => $status,
                 'created_at' => date('d-m-Y h:i', strtotime($product->created_at)),
                 'action' => $action
             ];
         }
-    
+
         return response()->json([
             'draw' => $draw,
             'recordsTotal' => $recordsTotal,
@@ -116,7 +117,7 @@ class ProductController extends Controller
             'data' => $records
         ]);
     }
-    
+
     /**
      * Show the form for creating a new resource.
      */
@@ -128,7 +129,7 @@ class ProductController extends Controller
         $productCode = '123456789';
 
         // $barcode = $generator->getBarcode('123456789', $generator::TYPE_CODE_128);
-           return view('products.create', compact('categories','productCode','packSize'));
+        return view('products.create', compact('categories', 'productCode', 'packSize'));
     }
 
     public function generateBarcode($productCode)
@@ -171,54 +172,62 @@ class ProductController extends Controller
 
         $validatedData = $validator->validate();
 
-        
+
         // try {
 
         $pack_size = $request->size;
-        if ($request->has('size')) {
-            $sku = Product::generateSku($request->brand, $request->batch_no, $request->size);
-        }else{
-            $batchNumber = strtoupper($request->sku) . '-' . now()->format('Ymd') . '-' . Str::upper(Str::random(4));
-            $sku = Product::generateSku($request->brand, $batchNumber, $request->size);
+        $product_l_id = DB::table('products')->select('id')->orderBy('id', 'desc')->first();
+        if (empty($product_l_id)) {
+            $product_l_id = 0;
+        } else {
+            $product_l_id = $product_l_id->id;
         }
-           
-            $validatedData['sku'] = $sku;
-            
-            // //barcode code
-            // $code = str_replace('-', '', $sku);
-            // $generator = new BarcodeGeneratorPNG();
-            // $barcodeData = $generator->getBarcode($code, $generator::TYPE_CODE_128);
-            // $filePath = 'barcodes/' . $code . '.png';
-            // Storage::disk('public')->put($filePath, $barcodeData);
-            // $validatedData['barcode'] = $code;
-            // //barcode code end
-    
-            // Handle image upload
-            if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('product_images', 'public');
-                $validatedData['image'] = $imagePath;
-            }
-            // Save product in a transaction
-            // \DB::tppransaction(function () use ($validatedData) {
-                $validatedData['size'] = $pack_size;
-                // dd($validatedData);
-                $product =  Product::create($validatedData);
+        if ($request->has('size')) {
 
-                DB::table('inventories')->insert([
-                    'product_id' => $product->id,
-                    'store_id' => 1,
-                    'location_id' => 1,
-                    'quantity' => 0
-                ]);
-            // });
-    
-            return redirect()->route('products.list')->with('success', 'Product has been added successfully!');
-   
-            // return redirect()->back()->with('success', 'Product added successfully!');
+            $sku = Product::generateSku($request->brand, $request->batch_no, $request->size, $product_l_id);
+        } else {
+            $batchNumber = strtoupper($request->sku) . '-' . now()->format('Ymd') . '-' . Str::upper(Str::random(4));
+            $sku = Product::generateSku($request->brand, $batchNumber, $request->size, $product_l_id);
+        }
+
+        $validatedData['sku'] = $sku;
+        $validatedData['mrp'] = $request->mrp;
+
+        // //barcode code
+        // $code = str_replace('-', '', $sku);
+        // $generator = new BarcodeGeneratorPNG();
+        // $barcodeData = $generator->getBarcode($code, $generator::TYPE_CODE_128);
+        // $filePath = 'barcodes/' . $code . '.png';
+        // Storage::disk('public')->put($filePath, $barcodeData);
+        // $validatedData['barcode'] = $code;
+        // //barcode code end
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('product_images', 'public');
+            $validatedData['image'] = $imagePath;
+        }
+        // Save product in a transaction
+        // \DB::tppransaction(function () use ($validatedData) {
+        $validatedData['size'] = $pack_size;
+        // dd($validatedData);
+        $product =  Product::create($validatedData);
+
+        DB::table('inventories')->insert([
+            'product_id' => $product->id,
+            'store_id' => 1,
+            'location_id' => 1,
+            'quantity' => 0
+        ]);
+        // });
+
+        return redirect()->route('products.list')->with('success', 'Product has been added successfully!');
+
+        // return redirect()->back()->with('success', 'Product added successfully!');
         // } catch (\Exception $e) {
         //     // Log the error for debugging
         //     \Log::error('Error storing product: ' . $e->getMessage());
-    
+
         //     return redirect()->back()->with('error', 'An error occurred while adding the product. Please try again.');
         // }
     }
@@ -241,10 +250,10 @@ class ProductController extends Controller
         // $productCode = '123456789';
         $subcategories = SubCategory::all(); // Fetch subcategories
         $packSizes = PackSize::all(); // Example pack sizes
-    
+
         $record = Product::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
 
-        return view('products.edit', compact('subcategories','packSizes','record','categories'));
+        return view('products.edit', compact('subcategories', 'packSizes', 'record', 'categories'));
     }
 
     public function updatePrice(Request $request)
@@ -253,7 +262,7 @@ class ProductController extends Controller
         $validator = Validator::make($request->all(), [
             'old_price' => 'required|numeric|min:0',
             'new_price' => 'required|numeric|min:0',
-            'changed_at' =>'required'
+            'changed_at' => 'required'
         ]);
 
         $id = $request->product_id;
@@ -287,7 +296,7 @@ class ProductController extends Controller
 
         foreach ($stores as $store) {
             $arr['id'] = $his_data->id;
-            sendNotification('price_change', $product->name.' Product price is changed.',$store->id,Auth::id(),json_encode($arr), 0);
+            sendNotification('price_change', $product->name . ' Product price is changed.', $store->id, Auth::id(), json_encode($arr), 0);
         }
 
         return response()->json([
@@ -440,7 +449,7 @@ class ProductController extends Controller
 
             if ($request->hasFile('image')) {
                 $imagePath = $request->file('image')->store('product_images', 'public');
-               
+
                 $image = $imagePath;
             }
 
@@ -482,26 +491,24 @@ class ProductController extends Controller
 
         return redirect()->route('users.list')->with('success', 'Product has been deleted successfully.');
     }
-    
+
     public function getAvailability($productId)
     {
 
         return Branch::with(['inventories' => function ($query) use ($productId) {
             $query->where('product_id', $productId);
         }])
-        ->where('is_deleted', 'no') 
-        ->where('is_active', 'yes') 
-        ->where('is_warehouser', 'no') // <- move this outside
-        ->get()
-        ->map(function ($branch) {
-            return [
-                'id' => $branch->id,
-                'name' => $branch->name,
-                'available_quantity' => $branch->inventories->sum('quantity'),
-            ];
-        });
-
-        
+            ->where('is_deleted', 'no')
+            ->where('is_active', 'yes')
+            ->where('is_warehouser', 'no') // <- move this outside
+            ->get()
+            ->map(function ($branch) {
+                return [
+                    'id' => $branch->id,
+                    'name' => $branch->name,
+                    'available_quantity' => $branch->inventories->sum('quantity'),
+                ];
+            });
     }
 
     public function getAvailabilityBranch($productId, Request $request)
@@ -510,12 +517,12 @@ class ProductController extends Controller
         $to = $request->query('to');
 
 
-       $from_count = Branch::with(['inventories' => function ($query) use ($productId) {
+        $from_count = Branch::with(['inventories' => function ($query) use ($productId) {
             $query->where('product_id', $productId);
         }])
             ->where('id', $from) // Filter the branch here
-            ->where('is_deleted', 'no') 
-            ->where('is_active', 'yes') 
+            ->where('is_deleted', 'no')
+            ->where('is_active', 'yes')
             ->get()
             ->map(function ($branch) {
                 return [
@@ -525,39 +532,37 @@ class ProductController extends Controller
                 ];
             });
 
-            $from_count_val = '';
-            if(!empty($from_count)){
-                $from_count_val = $from_count[0]['available_quantity'];
-            }
+        $from_count_val = '';
+        if (!empty($from_count)) {
+            $from_count_val = $from_count[0]['available_quantity'];
+        }
 
 
         $to_count = Branch::with(['inventories' => function ($query) use ($productId) {
             $query->where('product_id', $productId);
         }])
-        ->where('id', $to) // Filter the branch here
-        ->where('is_deleted', 'no') 
-        ->where('is_active', 'yes') 
-        ->get()
-        ->map(function ($branch) {
-            return [
-                'id' => $branch->id,
-                'name' => $branch->name,
-                'available_quantity' => $branch->inventories->sum('quantity'),
-            ];
-        });
+            ->where('id', $to) // Filter the branch here
+            ->where('is_deleted', 'no')
+            ->where('is_active', 'yes')
+            ->get()
+            ->map(function ($branch) {
+                return [
+                    'id' => $branch->id,
+                    'name' => $branch->name,
+                    'available_quantity' => $branch->inventories->sum('quantity'),
+                ];
+            });
 
         $to_count_val = '';
-        if(!empty($to_count)){
+        if (!empty($to_count)) {
             $to_count_val = $to_count[0]['available_quantity'];
         }
-    
+
         $arr = [];
         $arr['from_count'] = $from_count_val;
         $arr['to_count'] = $to_count_val;
-        
-        return response()->json($arr); 
 
-        
+        return response()->json($arr);
     }
 
     public function sampleFileDownload()

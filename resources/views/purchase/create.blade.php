@@ -275,8 +275,9 @@
                                                                         <label class="mr-1 mb-0">(-)</label>
                                                                         <input type="number"
                                                                             class="form-control form-control-sm pur_dis"
-                                                                            placeholder="%" name="case_purchase_per" style="width: 80px;"
-                                                                            min="0" max="100">
+                                                                            placeholder="%" name="case_purchase_per"
+                                                                            style="width: 80px;" min="0"
+                                                                            max="100">
                                                                         <span class="ml-1">%</span>
                                                                     </div>
                                                                 </div>
@@ -534,11 +535,16 @@
             $(".total_amount").val(total);
 
             calculation(total, '', '', '', '', '', total);
+            updateBillingTotal();
+            updateFromPercentage();
+            updateFromAmount();
         });
 
         $('#excise_fee, #composition_vat, #surcharge_on_ca, #tcs, #aed_to_be_paid,#vat,#surcharge_on_vat,#blf,#permit_fee,#rsgsm_purchase')
             .on('input', function() {
                 updateBillingTotal();
+                updateFromPercentage();
+                updateFromAmount();
             });
 
         function updateBillingTotal() {
@@ -584,7 +590,7 @@
 
             // $('#total').text(total.toFixed(2));
             // $('#total_amount').text(total.toFixed(2));
-            $('#total').text('₹' + total.toFixed(2));
+            $('#total').text(total.toFixed(2));
 
             $(".total_amt").val(total.toFixed(2));
             $('.total_val').val(total.toFixed(2));
@@ -604,6 +610,9 @@
 
             // Update total
             updateTotal();
+            updateBillingTotal();
+            updateFromPercentage();
+            updateFromAmount();
         });
 
         $('#vendor_id').on('change', function() {

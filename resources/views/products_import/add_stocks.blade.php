@@ -48,6 +48,7 @@
                                             <table class="table table-bordered" id="stock-table">
                                                 <thead>
                                                     <tr>
+                                                        <th>Sr No</th>
                                                         <th>Product</th>
                                                         <th>Quantity</th>
                                                         <th>Action</th> <!-- 🆕 New column for remove button -->
@@ -67,6 +68,7 @@
                                                             @endphp
                                                             @if ($product)
                                                                 <tr class="item-row">
+                                                                    <td>{{ $key + 1}}</td>
                                                                     <td>{{ $product->name }}</td>
                                                                     <td>
                                                                         @php
@@ -95,8 +97,9 @@
                                                             @endif
                                                         @endforeach
                                                     @else
-                                                        @forelse($products as $product)
+                                                        @forelse($products as $key => $product)
                                                             <tr class="item-row">
+                                                                <td>{{ $key + 1}}</td>
                                                                 <td>{{ $product->name }}</td>
                                                                 <td>
                                                                     <input type="number"
@@ -114,8 +117,7 @@
                                                             </tr>
                                                         @empty
                                                             <tr>
-                                                                <td colspan="3" class="text-center">✅ All products are
-                                                                    above Low Level Stock.</td>
+                                                                <td colspan="3" class="text-center">✅ No available products
                                                             </tr>
                                                         @endforelse
                                                     @endif
