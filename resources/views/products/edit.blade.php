@@ -120,7 +120,7 @@
                                             <div class="form-group">
                                                 <label>Barcode</label>
                                                 <input type="text" name="barcode" class="form-control"
-                                                    value="{{ old('barcode', $record->barcode) }}" {{ !empty($record->barcode) ? 'disabled' : '' }}>
+                                                    value="{{ old('barcode', $record->barcode) }}">
                                                 @error('barcode')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror

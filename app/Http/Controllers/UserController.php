@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Roles;
 use App\Models\UserInfo;
 use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 
 class UserController extends Controller
 {
@@ -78,7 +79,7 @@ class UserController extends Controller
                 'is_active' => $employee->is_active == 'yes'
                     ? '<span onclick=\'statusChange("' . $employee->id . '", "no")\'><div class="badge badge-success" style="cursor:pointer">Active</div></span>'
                     : '<span onclick=\'statusChange("' . $employee->id . '", "yes")\'><div class="badge badge-danger" style="cursor:pointer">Inactive</div></span>',
-                'created_at' => date('d-m-Y h:s', strtotime($employee->created_at)),
+                'created_at' => Carbon::parse($employee->created_at)->format('d-m-Y h:s'),
                 'action' => $action
             ];
         }
