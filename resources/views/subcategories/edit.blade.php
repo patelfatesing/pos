@@ -18,7 +18,7 @@
                                 </div>
                             </div>
                             <div class="card-body">
-                                <form action="{{ route('subcategories.update', $record->id) }}" method="POST">
+                                <form action="{{ route('subcategories.update') }}" method="POST">
                                     @csrf
                                     @method('POST')
                                     <input type="hidden" name="id" value="{{ $record->id }}">

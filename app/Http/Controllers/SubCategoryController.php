@@ -13,7 +13,7 @@ class SubCategoryController extends Controller
         $subCategories = SubCategory::with('category')->get();
         return view('subcategories.index', compact('subCategories'));
     }
-    
+
     public function getData(Request $request)
     {
         $draw = $request->input('draw', 1);
@@ -35,13 +35,13 @@ class SubCategoryController extends Controller
             'sub_categories.is_active',
             'sub_categories.created_at'
         )
-        ->join('categories', 'sub_categories.category_id', '=', 'categories.id')
-        ->where('sub_categories.is_deleted', 'no');
+            ->join('categories', 'sub_categories.category_id', '=', 'categories.id')
+            ->where('sub_categories.is_deleted', 'no');
 
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('sub_categories.name', 'like', '%' . $searchValue . '%')
-                ->orWhere('categories.name', 'like', '%' . $searchValue . '%');
+                    ->orWhere('categories.name', 'like', '%' . $searchValue . '%');
             });
         }
 
@@ -58,7 +58,7 @@ class SubCategoryController extends Controller
 
         foreach ($data as $row) {
 
-            $action ='<div class="d-flex align-items-center list-action">   
+            $action = '<div class="d-flex align-items-center list-action">   
                         <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
                                         href="' . url('/subcategories/edit/' . $row->id) . '"><i class="ri-pencil-line mr-0"></i></a>
                                     <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
@@ -102,30 +102,29 @@ class SubCategoryController extends Controller
     public function edit($id)
     {
         $categories = Category::all();
-       
+
         $record = SubCategory::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
         return view('subcategories.edit', compact('record', 'categories'));
     }
 
-    public function update(Request $request, SubCategory $subCategory)
+    public function update(Request $request)
     {
-        
-        $id = $request->id;
-        
-        $record = SubCategory::findOrFail($id);
-
-
         $request->validate([
             'category_id' => 'required|exists:categories,id',
-            'name' => 'sometimes|string|unique:roles,name,' . $id . '|max:255'
+            'name' => 'sometimes|string|max:255|unique:sub_categories,name,' . $request->id,
         ], [
-            'name.unique' => 'This role name already exists.',
-            'name.max' => 'The role name must not exceed 255 characters.',
-            'category_id.required' => 'Please select category.',
+            'name.unique' => 'This subcategory name already exists.',
+            'name.max' => 'The subcategory name must not exceed 255 characters.',
+            'category_id.required' => 'Please select a category.',
         ]);
-        
 
-        $subCategory->update($request->all());
+
+        $sub_category = subCategory::findOrFail($request->id);
+        $sub_category->category_id = $request->category_id;
+        $sub_category->name = $request->name;
+        $sub_category->save();
+
+
         return redirect()->route('subcategories.list')->with('success', 'SubCategory updated!');
     }
 
