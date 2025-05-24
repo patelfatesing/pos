@@ -42,7 +42,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
         <nav class="navbar navbar-expand-lg navbar-light p-0">
             <div class="iq-navbar-logo d-flex align-items-center justify-content-between">
                 <i class="ri-menu-line wrapper-menu"></i>
-                <a href="{{ asset('backend/index.html') }}" class="header-logo">
+                <a href="{{ route('dashboard') }}" class="header-logo">
                     <img src="{{ asset('assets/images/logo.png') }}" class="img-fluid rounded-normal" alt="logo" />
                     <h5 class="logo-title ml-3">LiquorHub</h5>
                 </a>
