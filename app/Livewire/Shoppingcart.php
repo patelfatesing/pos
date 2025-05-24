@@ -138,7 +138,7 @@ class Shoppingcart extends Component
     {
         $this->useCredit = !$this->useCredit;
          if ($this->useCredit && $this->selectedPartyUser) {
-            $this->partyUserDetails = Partyuser::where('status', 'Active')->find($this->selectedPartyUser);
+            $this->partyUserDetails = Partyuser::where('status', 'Active')->where('is_delete','!=', 'Yes')->find($this->selectedPartyUser);
             if($this->selectedSalesReturn){
                 $this->creditPay=$this->selectedSalesReturn->creditpay;
                 $this->creditPayChanged();
@@ -937,8 +937,8 @@ class Shoppingcart extends Component
 
         // return view('shift_closing.show', compact('shift'));
         //$this->loadCartData();
-        $this->commissionUsers = Commissionuser::where('status', 'Active')->get(); // Assuming you have a model for this
-        $this->partyUsers = Partyuser::where('status', 'Active')->get(); // Assuming you have a model for this
+        $this->commissionUsers = Commissionuser::where('status', 'Active')->where('is_deleted','!=' ,'Yes')->get(); // Assuming you have a model for this
+        $this->partyUsers = Partyuser::where('status', 'Active')->where('is_delete','!=' ,'Yes')->get(); // Assuming you have a model for this
         foreach ($this->cartitems as $item) {
             $this->quantities[$item->id] = $item->quantity;
         }
@@ -1109,7 +1109,7 @@ class Shoppingcart extends Component
             }
             $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
             $invoice_number = 'Hold-' . strtoupper(Str::random(8));
-            $commissionUser = CommissionUser::where('status', 'Active')->find($this->selectedCommissionUser);
+            $commissionUser = CommissionUser::where('status', 'Active')->where('is_deleted','!=' ,'Yes')->find($this->selectedCommissionUser);
             $partyUser = PartyUser::where('status', 'Active')->find($this->selectedPartyUser);
             $invoice = Invoice::create([
                 'user_id' => auth()->id(),
@@ -1508,7 +1508,7 @@ class Shoppingcart extends Component
     {
         $this->dispatch('user-selection-updated', ['userId' => $this->selectedUser]);
         $sum=$commissionTotal=0;
-        $user = Commissionuser::where('status', 'Active')->find($this->selectedCommissionUser);
+        $user = Commissionuser::where('status', 'Active')->where('is_deleted','!=' ,'Yes')->find($this->selectedCommissionUser);
         if (!empty($user)) {
             // $getDiscountAmt = Cart::with(['product', 'product.inventorie'])
             //     ->where(['user_id' => auth()->user()->id])
@@ -1705,7 +1705,7 @@ class Shoppingcart extends Component
             //
 
             if($this->selectedCommissionUser){
-                $commissionUser = CommissionUser::where('status', 'Active')->find($this->selectedCommissionUser);
+                $commissionUser = CommissionUser::where('status', 'Active')->where('is_deleted','!=' ,'Yes')->find($this->selectedCommissionUser);
                 if(!empty($commissionUser)){
                      $this->getDiscountPrice($id);
                     $myCart=$this->partyUserDiscountAmt;
@@ -1932,7 +1932,7 @@ class Shoppingcart extends Component
             // }
             $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
-            $commissionUser = CommissionUser::where('status', 'Active')->find($this->selectedCommissionUser);
+            $commissionUser = CommissionUser::where('status', 'Active')->where('is_deleted','!=' ,'Yes')->find($this->selectedCommissionUser);
             $partyUser = PartyUser::where('status', 'Active')->find($this->selectedPartyUser);
             if(!empty($partyUser)){
                 $partyUser->credit_points -= $this->creditPay;
@@ -2204,7 +2204,7 @@ class Shoppingcart extends Component
                 // }
 
             
-                $commissionUser = CommissionUser::where('status', 'Active')->find($this->selectedCommissionUser);
+                $commissionUser = CommissionUser::where('status', 'Active')->where('is_deleted','!=' ,'Yes')->find($this->selectedCommissionUser);
                 $partyUser = PartyUser::where('status', 'Active')->find($this->selectedPartyUser);
                 if(!empty($partyUser)){
                     $partyUser->credit_points += $this->creditPay;
@@ -2465,7 +2465,7 @@ class Shoppingcart extends Component
     public function onlinePaymentCheckout()
     {
         try {
-            $commissionUser = CommissionUser::where('status', 'Active')->find($this->selectedCommissionUser);
+            $commissionUser = CommissionUser::where('status', 'Active')->where('is_deleted','!=' ,'Yes')->find($this->selectedCommissionUser);
             $partyUser = PartyUser::where('status', 'Active')->find($this->selectedPartyUser);
             if(!empty($partyUser)){
                 $partyUser->credit_points -= $this->creditPay;
