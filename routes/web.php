@@ -123,6 +123,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/store/edit/{id}', [BranchController::class, 'edit'])->name('branch.edit');
     Route::post('/store/update', [BranchController::class, 'update'])->name('branch.update');
     Route::post('/store/delete', [BranchController::class, 'destroy'])->name('branch.destroy');
+    Route::post('/store/status-change', [BranchController::class, 'statusChange'])->name('store.status-change');
 
 
     Route::get('/products/list', [ProductController::class, 'index'])->name('products.list');

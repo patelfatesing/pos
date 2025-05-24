@@ -82,6 +82,8 @@ class PartyUserController extends Controller
                 'status' => $partyUser->status == 'Active'
                     ? '<span onclick=\'statusChange("' . $partyUser->id . '", "Inactive")\'><div class="badge badge-success" style="cursor:pointer">Active</div></span>'
                     : '<span onclick=\'statusChange("' . $partyUser->id . '", "Active")\'><div class="badge badge-danger" style="cursor:pointer">Inactive</div></span>',
+                'is_delete' => ($partyUser->is_delete=="No" ? '<div class="badge badge-success">Not Deleted</div>' : '<div class="badge badge-danger">Deleted</div>'),
+
                 'created_at' => date('d-m-Y h:i', strtotime($partyUser->created_at)),
                 'action' => $action
             ];
@@ -176,14 +178,14 @@ class PartyUserController extends Controller
         return redirect()->route('party-users.list')->with('success', 'Party User Updated');
     }
 
-    public function destroy(Request $request)
+    public function destroy($id)
     {
-        $id = $request->id;
         // Find the user and soft delete
         $record = Partyuser::where('status', 'Active')->findOrFail($id);
-        $record->update(['is_deleted' => 'yes']);
+        $record->is_delete="Yes";
+        $record->save();
 
-        return redirect()->route('users.list')->with('success', 'Party User has been deleted successfully.');
+        //return redirect()->route('users.list')->with('success', 'Party User has been deleted successfully.');
     }
 
     public function custProductPriceChangeForm($id)

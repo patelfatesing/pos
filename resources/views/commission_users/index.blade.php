@@ -34,6 +34,7 @@
                                         <th>Applies To</th>
                                         <th>Created Date</th>
                                         <th>Status</th>
+                                        <th>Customer Status</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -92,6 +93,9 @@
                         },
                         {
                             data: 'is_active'
+                        },
+                         {
+                            data: 'is_deleted'
                         },
                         {
                             data: 'action'

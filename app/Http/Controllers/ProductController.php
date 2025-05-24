@@ -283,7 +283,7 @@ class ProductController extends Controller
         // $product->price = $request->price;
         // $product->save();
 
-        $stores = Branch::all();
+        $stores = Branch::where('is_deleted', 'no')->get();
 
         foreach ($stores as $store) {
             $arr['id'] = $his_data->id;

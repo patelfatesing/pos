@@ -31,7 +31,7 @@ class StockController extends Controller
      */
     public function add()
     {
-        $stores = Branch::all();
+        $stores = Branch::where('is_deleted', 'no')->get();
         $products = Product::all();
         $data = User::with('userInfo')
             ->where('users.id', Auth::id())
@@ -43,7 +43,7 @@ class StockController extends Controller
 
     public function addWarehouse()
     {
-        $stores = Branch::all();
+        $stores = Branch::where('is_deleted', 'no')->get();
         $products = Product::all();
 
         return view('stocks.create_warehouse', compact('stores', 'products'));

@@ -34,6 +34,7 @@
                                         <th>Phone</th>
                                         <th>Credit</th>
                                         <th>Status</th>
+                                        <th>Party Customer Status</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -92,6 +93,9 @@
                     },
                     {
                         data: 'status'
+                    },
+                     {
+                        data: 'is_deleted'
                     },
                     {
                         data: 'action',

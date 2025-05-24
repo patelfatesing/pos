@@ -81,6 +81,7 @@ class CommissionUserController extends Controller
                 'is_active' => $commissionUser->is_active == 1
                     ? '<span onclick=\'statusChange("' . $commissionUser->id . '", 0)\'><div class="badge badge-success" style="cursor:pointer">Active</div></span>'
                     : '<span onclick=\'statusChange("' . $commissionUser->id . '", 1)\'><div class="badge badge-danger" style="cursor:pointer">Inactive</div></span>',
+                'is_deleted' => ($commissionUser->is_deleted=="No" ? '<div class="badge badge-success">Not Deleted</div>' : '<div class="badge badge-danger">Deleted</div>'),
                 'created_at' => date('d-m-Y h:i', strtotime($commissionUser->created_at)),
                 'action' => $action
             ];
@@ -290,9 +291,12 @@ class CommissionUserController extends Controller
     }
 
 
-    public function destroy(Commissionuser $Commissionuser)
+    public function destroy($id)
     {
-        $Commissionuser->delete();
+        $record = Commissionuser::where('status', 'Active')->findOrFail($id);
+        $record->is_deleted="Yes";
+        $record->save();
+        //$Commissionuser->delete();
         return response()->json(['success' => true, 'message' => 'Commission User Deleted']);
     }
 }
