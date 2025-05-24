@@ -51,6 +51,7 @@ class ShiftCloseModal extends Component
         'Other'
     ];
     public $stockStatus = [];
+    public $closing_sales="";
     public $errorInCredit = false;
     public $changeAmount = 0;
     public $showBox = false;
@@ -188,7 +189,7 @@ class ShiftCloseModal extends Component
                     }
                 }
             }
-
+            $this->closing_sales=$this->categoryTotals['sales'];
             // $discountTotal += ($invoice->commission_amount ?? 0) + ($invoice->party_amount ?? 0);
             $discountTotal += (!empty($invoice->commission_amount) && is_numeric($invoice->commission_amount)) ? (int)$invoice->commission_amount : 0;
             $discountTotal += (!empty($invoice->party_amount) && is_numeric($invoice->party_amount)) ? (int)$invoice->party_amount : 0;
@@ -363,6 +364,7 @@ class ShiftCloseModal extends Component
             $shift->upi_payment = str_replace([',', '₹'], '', $this->categoryTotals['payment']['UPI PAYMENT'] ?? 0);
             $shift->withdrawal_payment = str_replace([',', '₹'], '', $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] ?? 0);
             $shift->cash = str_replace([',', '₹'], '', $this->closingCash ?? 0);
+            $shift->closing_sales=json_encode($this->closing_sales);
             $shift->status = 'completed';
             $shift->save();
             //  Invoice::where(['user_id' => $user_id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->delete();

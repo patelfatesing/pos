@@ -194,16 +194,42 @@ class ProductImportController extends Controller
 
     public function preview(Request $request)
     {
+
+        // $filename = $request->input('file_name'); // e.g., "product_sample.csv"
+        // $fullPath = storage_path('app/public/product_import/' . $filename);
+
+        // $mapping = $request->input('mapping');
+
+        // if (!file_exists($fullPath)) {
+        //     return response()->json(['error' => 'File not found.'], 404);
+        // }
+
+        // $csvData = array_map('str_getcsv', file($fullPath));
         $filename = $request->input('file_name'); // e.g., "product_sample.csv"
         $fullPath = storage_path('app/public/product_import/' . $filename);
-
         $mapping = $request->input('mapping');
 
         if (!file_exists($fullPath)) {
             return response()->json(['error' => 'File not found.'], 404);
         }
 
-        $csvData = array_map('str_getcsv', file($fullPath));
+        $rows = file($fullPath);
+        $csvData = [];
+
+        foreach ($rows as $row1) {
+            $fields = str_getcsv($row1);
+            $formattedFields = array_map(function ($value) {
+                // Check if it's a numeric string in scientific notation
+                if (preg_match('/^\d+\.?\d*E\+?\d+$/i', $value)) {
+                    // Convert scientific to number without losing precision
+                    $value = number_format((float)$value, 0, '', '');
+                }
+                return $value;
+            }, $fields);
+
+            $csvData[] = $formattedFields;
+        }
+
 
         $inserted = $updated = $skipped = $cate_sub_not_match = 0;
         $productId = null;
@@ -211,7 +237,6 @@ class ProductImportController extends Controller
         // Skip header
         for ($i = 1; $i < count($csvData); $i++) {
             $row = $csvData[$i];
-
             // Dynamically map values from row using $mapping
             $name = $row[$mapping['Name']] ?? null;
             $barcode = $row[$mapping['Barcode']] ?? null;
@@ -275,6 +300,8 @@ class ProductImportController extends Controller
                     'discount_price' => $row[$mapping['Discount Price']] ?? null,
                     'discount_amt' => $row[$mapping['Discount Amt']] ?? null,
                     'case_size' => $row[$mapping['Case Size']] ?? null,
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
                 ]);
 
                 DB::table('inventories')->insert([
@@ -470,7 +497,7 @@ class ProductImportController extends Controller
     public function addStocks()
     {
         $products = Product::with('inventories')
-            ->orderBy('id', 'asc')
+            ->orderBy('id', 'asc')->where('is_deleted', 'no')
             ->get();
         $stores = Branch::where('is_active', 'yes')->where('is_deleted', 'no')->latest()->get();
 

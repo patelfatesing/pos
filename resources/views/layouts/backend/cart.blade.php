@@ -303,7 +303,94 @@
     }
 }
 
-
+.progress-steps {
+        padding: 20px 0;
+    }
+    
+    .progress-step {
+        text-align: center;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .step-circle {
+        width: 40px;
+        height: 40px;
+        background-color: #e9ecef;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 10px;
+        font-weight: bold;
+        color: #6c757d;
+        transition: all 0.3s ease;
+    }
+    
+    .progress-step.active .step-circle {
+        background-color: #0d6efd;
+        color: white;
+    }
+    
+    .progress-step.done .step-circle {
+        background-color: #198754;
+        color: white;
+    }
+    
+    .step-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+    
+    .progress-line {
+        position: absolute;
+        top: 20px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: #e9ecef;
+        z-index: 0;
+    }
+    
+    .capture-container {
+        position: relative;
+        background-color: #000;
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+    
+    .capture-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .capture-guide {
+        border: 2px dashed rgba(255,255,255,0.5);
+        width: 80%;
+        height: 80%;
+    }
+    
+    .preview-box {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.5rem;
+    }
+    
+    .review-box {
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    }
     </style>
     @livewireStyles
     </head>

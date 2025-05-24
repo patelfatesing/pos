@@ -33,14 +33,14 @@
                  
 
                     @if($storedPhotos)
-                    <div class="row alert alert-info mb-3">
+                    <div class="row alert alert-info mb-3 lastsavepic" >
                         <div class="col-md-12">
                             <h6 class="mb-2">Last Saved Photos:</h6>
                         </div>
                         <div class="col-md-3">
                             <strong>Product Photo:</strong>
                             @if($productPhotoUrl)
-                                <a href="{{ $productPhotoUrl }}" target="_blank" class="d-block">
+                                <a href="javascript:void(0)"  class="d-block">
                                     <img src="{{ asset('storage/' . $productPhotoUrl) }}" alt="Product" class="img-thumbnail mt-2" style="max-height: 100px">
                                 </a>
                             @endif
@@ -48,7 +48,7 @@
                         <div class="col-md-3">
                             <strong>Customer Photo:</strong>
                             @if($customerPhotoUrl)
-                                <a href="{{ $customerPhotoUrl }}" target="_blank" class="d-block">
+                                <a href="javascript:void(0)"  class="d-block">
                                     <img src="{{ asset('storage/' . $customerPhotoUrl) }}" alt="Customer" class="img-thumbnail mt-2" style="max-height: 100px">
                                 </a>
                             @endif

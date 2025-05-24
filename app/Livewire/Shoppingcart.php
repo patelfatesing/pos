@@ -139,8 +139,14 @@ class Shoppingcart extends Component
         $this->useCredit = !$this->useCredit;
          if ($this->useCredit && $this->selectedPartyUser) {
             $this->partyUserDetails = Partyuser::where('status', 'Active')->find($this->selectedPartyUser);
+            if($this->selectedSalesReturn){
+                $this->creditPay=$this->selectedSalesReturn->creditpay;
+                $this->creditPayChanged();
+            }
         } else {
+            $this->creditPay=0;
             $this->partyUserDetails = null;
+            $this->creditPayChanged();
         }
      
     }
@@ -385,11 +391,17 @@ class Shoppingcart extends Component
                 $this->errorInCredit = true;
                 $this->dispatch('notiffication-error', ['message' => 'Credit payment cannot be greater than cash amount']);
                 $this->creditPay=0;
+                $this->cashAmount=((Int)$this->sub_total-(Int)$this->partyAmount-(Int)$this->creditPay);
+                $this->clearCashNotes();
+
                 return;
             }else if($this->creditPay > $user->credit_points){
                 $this->errorInCredit = true;
                 $this->dispatch('notiffication-error', ['message' => 'Credit payment cannot be greater than available credit.']);
                 $this->creditPay=0;
+                $this->cashAmount=((Int)$this->sub_total-(Int)$this->partyAmount-(Int)$this->creditPay);
+                $this->clearCashNotes();
+
                 return;
             }else{
                 $this->errorInCredit = false;
