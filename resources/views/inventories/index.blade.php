@@ -18,7 +18,7 @@
                                 <div class="form-group">
                                     <select name="storeSearch" id="storeSearch" class="selectpicker form-control"
                                         data-style="py-0">
-                                        <option value="">Select Store</option>
+                                        <option value="">All</option>
                                         @foreach ($branch as $id => $name)
                                             <option value="{{ $id }}">{{ $name }}</option>
                                         @endforeach

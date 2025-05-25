@@ -34,6 +34,13 @@
                                         </div>
 
                                         <input type="hidden" name="file_name" value="{{ $filename }}" />
+
+                                        @if ($errors->has('mapping'))
+                                            <div class="alert alert-danger">
+                                                {{ $errors->first('mapping') }}
+                                            </div>
+                                        @endif
+
                                         @foreach ($dbFields as $field)
                                             <div class="row">
                                                 <div class="col-md-3">
@@ -50,11 +57,16 @@
                                                 </div>
                                             </div>
                                         @endforeach
-                                        <button type="submit">Import</button>
+
+                                        <div class="row mt-3">
+                                            <div class="col-12">
+                                                <button type="submit" id="submitBtn" class="btn btn-primary">Import
+                                                    Data</button>
+                                                <button type="reset" class="btn btn-danger">Reset</button>
+                                            </div>
+                                        </div>
                                     </form>
-
                                 </div>
-
                             </div>
                         </div>
                     </div>

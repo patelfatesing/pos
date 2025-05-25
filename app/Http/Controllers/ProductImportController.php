@@ -68,8 +68,7 @@ class ProductImportController extends Controller
             11 => "Sell Price",
             12 => "MRP",
             13 => "Discount Price",
-            14 => "Discount Amt",
-            15 => "Case Size",
+            14 => "Discount Amt"
         ];
 
         // dd($dbFields);
@@ -194,7 +193,6 @@ class ProductImportController extends Controller
 
     public function preview(Request $request)
     {
-
         // $filename = $request->input('file_name'); // e.g., "product_sample.csv"
         // $fullPath = storage_path('app/public/product_import/' . $filename);
 
@@ -245,12 +243,12 @@ class ProductImportController extends Controller
             $expiry_date = Carbon::parse($row[$mapping['Expiry Date']])->format('Y-m-d');
             $category_id = $row[$mapping['Category']] ?? null;
             $sub_category_id = $row[$mapping['Sub Category']] ?? null;
+            $sale_price = $row[$mapping['Sell Price']];
 
             $categories = Category::where('name', $category_id)->first();
             $subcategories = SubCategory::where('name', $sub_category_id)->first();
             $category_id = $categories?->id;
             $sub_category_id = $subcategories?->id;
-
 
             if (empty($category_id) || empty($sub_category_id)) {
                 $cate_sub_not_match++;
@@ -264,6 +262,8 @@ class ProductImportController extends Controller
                 ->where('inventories.batch_no', $batch_no)
                 ->where('products.is_deleted', 'yes')
                 ->whereDate('inventories.expiry_date', $expiry_date)
+                ->where('products.barcode', $barcode)
+                ->where('products.sell_price', $sale_price)
                 ->first();
 
             if ($existing) {
@@ -274,13 +274,12 @@ class ProductImportController extends Controller
             // Find or Insert Product
             $product = DB::table('products')->where('name', $name)->where('products.is_deleted', 'no')->first();
 
-
             if (!$product) {
                 $brand = preg_replace('/\s\d{2,4}ml\b/i', '', $name);
                 $product_l_id = DB::table('products')->select('id')->orderBy('id', 'desc')->first();
                 if (empty($product_l_id)) {
                     $product_l_id = 0;
-                }else{
+                } else {
                     $product_l_id = $product_l_id->id;
                 }
                 $sku = Product::generateSku($brand, $batch_no, $row[$mapping['Pack Size']], $product_l_id);
@@ -299,7 +298,6 @@ class ProductImportController extends Controller
                     'reorder_level' => $row[$mapping['Stock Low Level']] ?? null,
                     'discount_price' => $row[$mapping['Discount Price']] ?? null,
                     'discount_amt' => ($row[$mapping['Discount Amt']] != "" ? $row[$mapping['Discount Amt']] : 0),
-                    'case_size' => $row[$mapping['Case Size']] ?? null,
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now(),
                 ]);
@@ -396,7 +394,6 @@ class ProductImportController extends Controller
                 'sell_price' => $row['sell_price'],
                 'discount_price' => $row['discount_price'],
                 'discount_amt' => $row['discount_amt'],
-                'case_size' => $row['case_size'],
                 'box_unit' => $row['box_unit'],
                 'secondary_unitx' => $row['secondary_unitx'],
                 'created_at' => now(),
@@ -416,7 +413,6 @@ class ProductImportController extends Controller
 
     public function uploadFile_old(Request $request)
     {
-        dd("sdfsdf");
         $request->validate([
             'file' => 'required|file|mimes:xlsx,xls'
         ]);

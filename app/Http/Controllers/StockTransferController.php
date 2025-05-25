@@ -31,6 +31,7 @@ class StockTransferController extends Controller
     public function store(Request $request)
     {
         try {
+            // Validate basic form inputs
             $validated = $request->validate([
                 'from_store_id' => 'required|exists:branches,id',
                 'to_store_id' => 'required|exists:branches,id',
@@ -46,94 +47,118 @@ class StockTransferController extends Controller
                 'items.*.quantity.min' => 'Quantity must be at least 1.',
             ]);
 
+            // Validate from and to store are different
             if ($request->from_store_id == $request->to_store_id) {
                 return back()->withErrors(['to_store_id' => 'The destination store must be different from the source store.'])->withInput();
             }
 
+            // Step 1: Pre-check inventory levels
+            $errors = [];
+
+            foreach ($request->items as $key => $item) {
+                $availableQty = Inventory::where('product_id', $item['product_id'])
+                    ->where('store_id', $request->from_store_id)
+                    ->sum('quantity');
+
+                if ($availableQty < $item['quantity']) {
+                    $errors["items.$key.quantity"] = "Insufficient stock in source store. Available: $availableQty";
+                }
+            }
+
+            if (!empty($errors)) {
+                return back()->withErrors($errors)->withInput();
+            }
+
+            // Step 2: Begin transaction and do actual stock transfer
             DB::beginTransaction();
 
             $transferNumber = 'TRF-' . now()->format('YmdHis') . '-' . strtoupper(Str::random(4));
 
-            foreach ($request->items as $key => $val) {
-                $inventories = Inventory::where('product_id', $val['product_id'])
+            foreach ($request->items as $item) {
+                $remainingQty = $item['quantity'];
+
+                $inventories = Inventory::where('product_id', $item['product_id'])
                     ->where('store_id', $request->from_store_id)
                     ->orderBy('expiry_date')
                     ->get();
 
-                $totalQuantity = (float)$inventories->sum('quantity');
-                $quantity = (float)$val['quantity'];
-
-                if ($totalQuantity < $quantity) {
-                    DB::rollback();
-                    return back()->withErrors([
-                        "items.$key.quantity" => "Insufficient stock in source store. Available: $totalQuantity"
-                    ])->withInput();
-                }
-
-                $remainingQty = $val['quantity'];
-
                 foreach ($inventories as $inventory) {
                     if ($remainingQty <= 0) break;
 
-                    $deducted = min($inventory->quantity, $remainingQty);
+                    $deductQty = min($inventory->quantity, $remainingQty);
 
                     // Deduct from source store
-                    $inventory->quantity -= $deducted;
+                    $inventory->quantity -= $deductQty;
                     $inventory->save();
 
                     // Add to destination store
-                    $storeInventory = Inventory::firstOrNew([
-                        'store_id' => $request->to_store_id,
-                        'location_id' => $request->to_store_id,
-                        'product_id' => $val['product_id'],
-                        'batch_no' => $inventory->batch_no,
-                        'expiry_date' => $inventory->expiry_date,
-                    ]);
+                    $criteria = [
+                        'store_id'    => $request->to_store_id,
+                        'product_id'  => $item['product_id'],
+                        'batch_no'    => $inventory->batch_no,
+                        'expiry_date' => $inventory->expiry_date->toDateString(),
+                    ];
 
-                    $storeInventory->quantity += $deducted;
-                    $storeInventory->save();
+                    $storeInventory = Inventory::where($criteria)->first();
 
-                    stockStatusChange($val['product_id'], $request->from_store_id, $val['quantity'], 'transfer_stock');
-                    stockStatusChange($val['product_id'], $request->to_store_id, $val['quantity'], 'add_stock');
+                    if ($storeInventory) {
+                        $storeInventory->quantity += $deductQty;
+                        $storeInventory->save();
+                    } else {
+                        Inventory::create([
+                            'store_id'     => $request->to_store_id,
+                            'location_id'  => $request->to_store_id,
+                            'product_id'   => $item['product_id'],
+                            'batch_no'     => $inventory->batch_no,
+                            'expiry_date'  => $inventory->expiry_date->toDateString(),
+                            'quantity'     => $deductQty,
+                        ]);
+                    }
 
-                    // Transfer log
+                    // Stock status changes and logs
+                    stockStatusChange($item['product_id'], $request->from_store_id, $deductQty, 'transfer_stock');
+                    stockStatusChange($item['product_id'], $request->to_store_id, $deductQty, 'add_stock');
+
                     $inventoryService = new \App\Services\InventoryService();
                     $inventoryService->transferProduct(
-                        $val['product_id'],
+                        $item['product_id'],
                         $inventory->id,
                         $request->from_store_id,
                         $request->to_store_id,
-                        $deducted,
+                        $deductQty,
                         'store_to_store',
                         'store'
                     );
 
-                    $remainingQty -= $deducted;
-
+                    // Log the transfer
                     StockTransfer::create([
                         'stock_request_id' => $request->request_id ?? null,
                         'transfer_number' => $transferNumber,
                         'from_branch_id' => $request->from_store_id,
                         'to_branch_id' => $request->to_store_id,
-                        'product_id' => $val['product_id'],
-                        'quantity' => $val['quantity'],
+                        'product_id' => $item['product_id'],
+                        'quantity' => $item['quantity'],
                         'status' => 'approved',
                         'transfer_by' => Auth::id(),
                         'transferred_at' => now(),
                     ]);
+
+                    $remainingQty -= $deductQty;
                 }
             }
 
-            $arr['id'] = $transferNumber;
-            sendNotification('transfer_stock', 'Stock transfer completed successfully', $request->to_store_id, Auth::id(), json_encode($arr), 0);
+            // Send notification and commit
+            $data['id'] = $transferNumber;
+            sendNotification('transfer_stock', 'Stock transfer completed successfully', $request->to_store_id, Auth::id(), json_encode($data), 0);
 
             DB::commit();
+
             return redirect()->route('inventories.list')->with('success', 'Stock has been transferred successfully.');
         } catch (\Illuminate\Validation\ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withError('Failed to transfer stock: ' . $e->getMessage())->withInput();
+            return back()->with('error', 'Failed to transfer stock: ' . $e->getMessage())->withInput();
         }
     }
 }

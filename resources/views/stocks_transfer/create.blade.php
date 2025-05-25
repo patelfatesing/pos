@@ -21,25 +21,8 @@
                                 @if (session('success'))
                                     <div class="alert alert-success alert-dismissible fade show">
                                         {{ session('success') }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                    </div>
-                                @endif
-
-                                @if (session('error'))
-                                    <div class="alert alert-danger alert-dismissible fade show">
-                                        {{ session('error') }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                    </div>
-                                @endif
-
-                                @if ($errors->any())
-                                    <div class="alert alert-danger alert-dismissible fade show">
-                                        <ul class="mb-0 list-unstyled">
-                                            @foreach ($errors->all() as $error)
-                                                <li>{{ $error }}</li>
-                                            @endforeach
-                                        </ul>
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                            aria-label="Close"></button>
                                     </div>
                                 @endif
 
@@ -93,33 +76,35 @@
                                                         <div class="col-md-6">
                                                             <div class="form-group">
                                                                 <select name="items[{{ $index }}][product_id]"
-                                                                    class="form-control product-select @error('items.'.$index.'.product_id') is-invalid @enderror">
+                                                                    class="form-control product-select @error('items.' . $index . '.product_id') is-invalid @enderror">
                                                                     <option value="">Select Product</option>
                                                                     @foreach ($products as $product)
                                                                         <option value="{{ $product->id }}"
-                                                                            {{ old('items.'.$index.'.product_id') == $product->id ? 'selected' : '' }}>
+                                                                            {{ old('items.' . $index . '.product_id') == $product->id ? 'selected' : '' }}>
                                                                             {{ $product->name }}
                                                                         </option>
                                                                     @endforeach
                                                                 </select>
-                                                                @error('items.'.$index.'.product_id')
+                                                                @error('items.' . $index . '.product_id')
                                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                                 @enderror
                                                             </div>
                                                         </div>
                                                         <div class="col-md-4">
                                                             <div class="form-group">
-                                                                <input type="number" name="items[{{ $index }}][quantity]"
-                                                                    class="form-control @error('items.'.$index.'.quantity') is-invalid @enderror"
+                                                                <input type="number"
+                                                                    name="items[{{ $index }}][quantity]"
+                                                                    class="form-control @error('items.' . $index . '.quantity') is-invalid @enderror"
                                                                     placeholder="Quantity" min="1"
-                                                                    value="{{ old('items.'.$index.'.quantity') }}">
-                                                                @error('items.'.$index.'.quantity')
+                                                                    value="{{ old('items.' . $index . '.quantity') }}">
+                                                                @error('items.' . $index . '.quantity')
                                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                                 @enderror
                                                             </div>
                                                         </div>
                                                         <div class="col-md-2">
-                                                            <button type="button" class="btn btn-danger remove-item">Remove</button>
+                                                            <button type="button"
+                                                                class="btn btn-danger remove-item">Remove</button>
                                                         </div>
                                                     </div>
                                                     <div class="availability-container mt-2 small text-muted"></div>
@@ -135,7 +120,7 @@
                                                                 <option value="">Select Product</option>
                                                                 @foreach ($products as $product)
                                                                     <option value="{{ $product->id }}">
-                                                                        {{ $product->name }} ({{ $product->sku }})
+                                                                        {{ $product->name }}
                                                                     </option>
                                                                 @endforeach
                                                             </select>
@@ -155,25 +140,32 @@
                                                         </div>
                                                     </div>
                                                     <div class="col-md-2">
-                                                        <button type="button" class="btn btn-danger remove-item">Remove</button>
+                                                        <button type="button"
+                                                            class="btn btn-danger remove-item">Remove</button>
                                                     </div>
                                                 </div>
                                                 <div class="availability-container mt-2 small text-muted"></div>
                                             </div>
                                         @endif
                                     </div>
-
-                                    <button type="button" id="add-item" class="btn btn-secondary mb-3">+ Add Product</button>
+                                    <div class="row mb-3">
+                                        <div class="col-md-12 text-end">
+                                            <h5>Total Quantity: <span id="total-quantity">0</span></h5>
+                                        </div>
+                                    </div>
+                                    <button type="button" id="add-item" class="btn btn-secondary mb-3">+ Add
+                                        Product</button>
 
                                     <div class="row mt-3">
                                         <div class="col-12">
-                                            <button type="submit" id="submitBtn" class="btn btn-primary">Submit Transfer</button>
+                                            <button type="submit" id="submitBtn" class="btn btn-primary">Submit
+                                                Transfer</button>
                                             <button type="reset" class="btn btn-danger">Reset</button>
                                         </div>
                                     </div>
                                 </form>
                             </div>
-                        </div>
+                        </div>  
                     </div>
                 </div>
             </div>
@@ -221,32 +213,47 @@
                     <div class="availability-container mt-2 small text-muted"></div>
                 </div>
             `;
-            
+
             document.getElementById('product-items').insertAdjacentHTML('beforeend', template);
             itemIndex++;
         });
 
+        // Remove item handler
         $(document).on('click', '.remove-item', function() {
             if (document.querySelectorAll('.item-row').length > 1) {
                 $(this).closest('.item-row').remove();
             }
         });
 
+        // Product selection handler
         $(document).on('change', '.product-select', function() {
             const productId = $(this).val();
             const from_store_id = $("#from_store_id").val();
             const to_store_id = $("#to_store_id").val();
             const container = $(this).closest('.item-row').find('.availability-container');
+            const currentSelect = $(this);
+
+            // Check if this product is already selected in another row
+            if (productId) {
+                const isDuplicate = $('.product-select').not(this).toArray().some(select => select.value ===
+                    productId);
+                if (isDuplicate) {
+                    alert("This product is already selected. Please choose a different product.");
+                    currentSelect.val('');
+                    container.empty();
+                    return false;
+                }
+            }
 
             if (!from_store_id) {
                 alert("Please select the source store first.");
-                $(this).val('');
+                currentSelect.val('');
                 return false;
             }
 
             if (!to_store_id) {
                 alert("Please select the destination store first.");
-                $(this).val('');
+                currentSelect.val('');
                 return false;
             }
 
@@ -270,7 +277,9 @@
                         container.html(html);
                     },
                     error: function() {
-                        container.html('<div class="text-danger">Failed to load stock information. Please try again.</div>');
+                        container.html(
+                            '<div class="text-danger">Failed to load stock information. Please try again.</div>'
+                        );
                     }
                 });
             } else {
@@ -280,11 +289,37 @@
 
         // Trigger change event for pre-selected products
         $(document).ready(function() {
+            updateTotalQuantity();
+
             $('.product-select').each(function() {
                 if ($(this).val()) {
                     $(this).trigger('change');
                 }
             });
+        });
+
+        function updateTotalQuantity() {
+            let total = 0;
+            $('input[name^="items"][name$="[quantity]"]').each(function() {
+                const val = parseInt($(this).val());
+                if (!isNaN(val)) {
+                    total += val;
+                }
+            });
+            $('#total-quantity').text(total);
+        }
+
+        // Trigger total update on quantity input change
+        $(document).on('input', 'input[name^="items"][name$="[quantity]"]', updateTotalQuantity);
+
+        // Also update total when new row is added
+        $('#add-item').on('click', function() {
+            setTimeout(updateTotalQuantity, 100); // small delay to allow DOM insert
+        });
+
+        // When row is removed
+        $(document).on('click', '.remove-item', function() {
+            setTimeout(updateTotalQuantity, 100);
         });
     </script>
 @endsection
