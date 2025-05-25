@@ -2631,8 +2631,8 @@
            });
             $(document).on('change', '.product-select', function() {
                 const productId = $(this).val();
-                const from_store_id = $("#main_store_id").val();
-                const to_store_id =from_store_id;
+                const from_store_id =branch_id;
+                const to_store_id = $("#main_store_id").val();
                 const itemRow = $(this).closest('.item-row-wh');
                 const container = itemRow.find('.availability-container-wh');
                 const indexMatch = $(this).attr('name').match(/\[(\d+)\]/);
@@ -2674,7 +2674,7 @@
                                 <div class="col-md-12">
                                     <div class="form-check">
                                         <label class="form-check-label" for="branch_">
-                                             (Available Stock: ${data.from_count})
+                                             (Available Stock: ${data.to_count})
                                         </label>
                                     </div>
                                 </div>
