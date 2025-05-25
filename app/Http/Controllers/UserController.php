@@ -80,6 +80,7 @@ class UserController extends Controller
                     ? '<span onclick=\'statusChange("' . $employee->id . '", "no")\'><div class="badge badge-success" style="cursor:pointer">Active</div></span>'
                     : '<span onclick=\'statusChange("' . $employee->id . '", "yes")\'><div class="badge badge-danger" style="cursor:pointer">Inactive</div></span>',
                 'created_at' => Carbon::parse($employee->created_at)->format('d-m-Y h:s'),
+                'updated_at'=> Carbon::parse($employee->updated_at)->format('d-m-Y h:s'),
                 'action' => $action
             ];
         }
@@ -109,7 +110,7 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
+            //'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'phone_number' => [
                 'required',
@@ -228,4 +229,22 @@ class UserController extends Controller
 
         return response()->json(['message' => 'Status updated successfully']);
     }
+    
+    // public function openDrawer()
+    // {
+    //     try {
+    //         // Connect to the shared printer
+    //         $connector = new WindowsPrintConnector("smb://localhost/TVSPrinter"); // Replace with your shared printer name
+    //         $printer = new Printer($connector);
+
+    //         // Open the drawer using pulse command
+    //         $printer->pulse(); // Sends the default drawer pulse
+
+    //         $printer->close();
+
+    //         return response()->json(['status' => 'Drawer opened']);
+    //     } catch (\Exception $e) {
+    //         return response()->json(['status' => 'Error', 'message' => $e->getMessage()], 500);
+    //     }
+    // }
 }

@@ -122,5 +122,7 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
-     'shift_testing' => true,
+    'shift_testing' => true,
+    'owner_email' => 'admin@example.com',
+
 ];

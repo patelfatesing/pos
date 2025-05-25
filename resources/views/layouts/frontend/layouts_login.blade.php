@@ -12,11 +12,24 @@
     <link rel="stylesheet" href="{{ asset('assets/vendor/@fortawesome/fontawesome-free/css/all.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendor/remixicon/fonts/remixicon.css') }}">
-</head>
+    <style>
+        .flash-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 250px;
+        }
+        .alert.hide {
+            opacity: 0;
+            transition: opacity 0.5s ease-out;
+        }
+    </style>
+
 </head>
 
 <body>
-
+    
     <!-- loader Start -->
     <div id="loading">
         <div id="loading-center">
@@ -27,6 +40,19 @@
     <div class="wrapper">
         <section class="login-content">
             <div class="container">
+                @if (session('status'))
+                    <div id="flash-success" class="alert alert-success alert-dismissible fade show" role="alert">
+                        {{ session('status') }}
+                    </div>
+                @endif
+            
+                @if ($errors->any())
+                    <div id="flash-error" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ $errors->first('email') }}
+                    </div>
+                   
+                @endif
+                
                 <main>
                     @yield('page-content')
                 </main>
@@ -48,7 +74,22 @@
 
     <!-- app JavaScript -->
     <script src="{{ asset('assets/js/app.js') }}"></script>
-
+     <script>
+        setTimeout(() => {
+            const success = document.getElementById('flash-success');
+            if (success) {
+                success.classList.add('hide');
+                setTimeout(() => success.remove(), 500); // wait for fade-out
+            }
+        }, 3000);
+        setTimeout(() => {
+        const error = document.getElementById('flash-error');
+        if (error) {
+            error.classList.add('hide');
+            setTimeout(() => error.remove(), 500);
+        }
+    }, 4000); // 4 seconds for error
+    </script>
 </body>
 
 </html>

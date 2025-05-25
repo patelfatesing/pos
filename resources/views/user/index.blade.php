@@ -37,6 +37,8 @@
                                         <th>Branch</th>
                                         <th>Status</th>
                                         <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
+                                         <th data-type="date" data-format="YYYY/DD/MM">Updated Date</th>
+
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -100,15 +102,22 @@
                     {
                         data: 'created_at'
                     },
+                     {
+                        data: 'updated_at'
+                    },
                     {
                         data: 'action'
                     }
                     // Define more columns as per your table structure
 
                 ],
-                aoColumnDefs: [{
+                aoColumnDefs: [  {
                     bSortable: false,
-                    aTargets: [2, 4, 5, 7]
+                    aTargets: [0,1,2,3,4,5] // disables sorting on all columns
+                },
+                {
+                    bSortable: true,
+                    aTargets: [6] // only enable sorting on 'created_at'
                 }],
                 order: [
                     [6, 'desc']

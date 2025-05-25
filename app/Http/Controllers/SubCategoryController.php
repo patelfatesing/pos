@@ -61,9 +61,7 @@ class SubCategoryController extends Controller
             $action = '<div class="d-flex align-items-center list-action">   
                         <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
                                         href="' . url('/subcategories/edit/' . $row->id) . '"><i class="ri-pencil-line mr-0"></i></a>
-                                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
-                                        href="#" onclick="delete_sub_cat(' . $row->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
-            </div>';
+                                    </div>';
 
             $records[] = [
                 'name' => $row->name,

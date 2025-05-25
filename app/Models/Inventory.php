@@ -12,7 +12,7 @@ class Inventory extends Model
         'store_id',
         'quantity',
         'batch_no',
-        '<expiry_dat></expiry_dat>e',
+        'expiry_date',
         'is_active',
         'is_deleted',
         'created_by',

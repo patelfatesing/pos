@@ -62,9 +62,14 @@ class CommissionUserController extends Controller
             $action = '<div class="d-flex align-items-center list-action">
                                     <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
                                         href="' . url('/commission-users/edit/' . $commissionUser->id) . '"><i class="ri-pencil-line mr-0"></i></a>
-                                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
-                                        href="#" onclick="delete_commission_user(' . $commissionUser->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
             </div>';
+
+            // $action = '<div class="d-flex align-items-center list-action">
+            //                         <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
+            //                             href="' . url('/commission-users/edit/' . $commissionUser->id) . '"><i class="ri-pencil-line mr-0"></i></a>
+            //                         <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
+            //                             href="#" onclick="delete_commission_user(' . $commissionUser->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
+            // </div>';
 
             $records[] = [
                 'first_name' => $first_name,
@@ -81,7 +86,7 @@ class CommissionUserController extends Controller
                 'is_active' => $commissionUser->is_active == 1
                     ? '<span onclick=\'statusChange("' . $commissionUser->id . '", 0)\'><div class="badge badge-success" style="cursor:pointer">Active</div></span>'
                     : '<span onclick=\'statusChange("' . $commissionUser->id . '", 1)\'><div class="badge badge-danger" style="cursor:pointer">Inactive</div></span>',
-                'is_deleted' => ($commissionUser->is_deleted=="No" ? '<div class="badge badge-success">Not Deleted</div>' : '<div class="badge badge-danger">Deleted</div>'),
+                //'is_deleted' => ($commissionUser->is_deleted=="No" ? '<div class="badge badge-success">Not Deleted</div>' : '<div class="badge badge-danger">Deleted</div>'),
                 'created_at' => date('d-m-Y h:i', strtotime($commissionUser->created_at)),
                 'action' => $action
             ];
