@@ -7,6 +7,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\View\View;
+use App\Models\User;
+use Illuminate\Support\Str;
+
 
 class PasswordResetLinkController extends Controller
 {
@@ -28,7 +31,11 @@ class PasswordResetLinkController extends Controller
         $request->validate([
             'email' => ['required', 'email'],
         ]);
-
+        $user = User::where('email', $request->email)->first();
+        if (Str::lower($user->role->name) !== 'admin') {
+            return back()->withErrors(['email' => 'Only admin users are allowed to reset their password.']);
+        }
+        
         // We will send the password reset link to this user. Once we have attempted
         // to send the link, we will examine the response then see the message we
         // need to show to the user. Finally, we'll send out a proper response.

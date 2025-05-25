@@ -20,6 +20,19 @@ class UserController extends Controller
         $data = User::where('is_deleted', 'no')->get();
         return view('user.index', compact('data'));
     }
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'new_password' => 'required|min:8|confirmed',
+        ]);
+
+        $user = User::findOrFail($request->user_id);
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json(['success' => true]);
+    }
 
     public function getData(Request $request)
     {
@@ -68,7 +81,9 @@ class UserController extends Controller
             $action = '<div class="d-flex align-items-center list-action">
                                     <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
                                         href="' . url('/users/edit/' . $employee->id) . '"><i class="ri-pencil-line mr-0"></i></a>
-                                   </div>';
+                                        <button class="btn btn-sm btn-warning" onclick="openChangePasswordModal(' . $employee->id . ')">Change Password</button>
+
+                                        </div>';
 
             $records[] = [
                 'name' => $employee->first_name . ' ' . $employee->last_name,
