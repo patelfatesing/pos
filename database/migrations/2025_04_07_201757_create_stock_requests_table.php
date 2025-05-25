@@ -9,7 +9,7 @@ return new class extends Migration {
         Schema::create('stock_requests', function (Blueprint $table) {
             $table->id();
             $table->foreignId('store_id')->constrained('branches');
-            $table->foreignId('requested_by')->constrained('users');
+            $table->foreignId('requested_by')->constrained('branches');
             $table->foreignId('approved_by')->nullable()->constrained('users');
             $table->enum('status', ['pending', 'approved', 'rejected', 'completed'])->default('pending');
             $table->text('notes')->nullable();
