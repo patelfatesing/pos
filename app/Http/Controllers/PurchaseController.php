@@ -50,8 +50,9 @@ class PurchaseController extends Controller
 
         $request->validate([
             'vendor_id' => 'required|exists:vendor_lists,id',
-            'bill_no' => 'required|string|max:255',
+            'bill_no' => 'required|string|max:255|unique:purchases,bill_no',
             'date' => 'required|date',
+            'parchase_ledger' => 'required',
             'products' => 'required|array|min:1',
             'products.*.product_id' => 'required|integer',
             'products.*.brand_name' => 'required|string',
