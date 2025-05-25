@@ -643,7 +643,7 @@
                                             <h5>Products</h5>
                                             <div class="item-row mb-3">
 
-                                                <select name="items[0][product_id]" class="form-control d-inline w-50"
+                                                <select name="items[0][product_id]" class="form-control d-inline w-50 product-select-sh"
                                                     required>
                                                     <option value="">-- {{ __('messages.select_product') }} --</option>
                                                     @foreach ($allProducts as $product)
@@ -686,7 +686,7 @@
 
     <div class="modal fade" id="warehouseStockRequest" tabindex="-1" aria-labelledby="warehouseStockRequest"
         aria-hidden="true" data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog modal-dialog-scrollable modal-mg">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
             <div class="modal-content shadow-sm rounded-4 border-0">
                 <div class="modal-header bg-primary text-white rounded-top-4">
                     <h5 class="modal-title fw-semibold" id="cashout">
@@ -705,12 +705,12 @@
 
                                 <div class="card-body">
 
-                                    <form method="POST" action="{{ route('stock.warehouse') }}">
+                                    <form id="warehouseForm" method="POST" action="{{ route('stock.warehouse') }}">
                                         @csrf
 
-                                        <div class="item-row2 product_items2 mb-3">
+                                        <div class="product_items mb-3">
 
-                                            <select name="store_id" class="form-control d-inline w-50" required>
+                                            <select name="store_id" id="main_store_id"  class="form-control d-inline w-50" required>
                                                 <option value="">-- {{ __('messages.select_store') }} --</option>
                                                 @foreach ($stores as $product)
                                                     @if ($product->id != 1)
@@ -725,31 +725,43 @@
 
                                         </div>
                                         {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
-                                        <div id="product-items1">
+                                        <div id="product-items-wh">
+                                            
                                             <h5>Products</h5>
-                                            <div class="item-row1 product_items1 mb-3">
+                                            <div class="row item-row-wh product_items mb-3">
+                                                <div class="col-md-4">
 
-                                                <select name="items[0][product_id]" class="form-control d-inline w-50"
-                                                    required>
-                                                    <option value="">-- {{ __('messages.select_product') }} --</option>
-                                                    @foreach ($allProducts as $product)
-                                                        <option value="{{ $product->id }}">{{ $product->name }}
-                                                            ({{ $product->sku }})
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                @error('items')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                                <input type="number" name="items[0][quantity]"
-                                                    class="form-control d-inline w-25 ms-2" placeholder="Qty"
-                                                    min="1" required>
-                                                <button type="button"
-                                                    class="btn btn-danger btn-sm ms-2 remove-item">X</button>
-                                                <div class="availability-container mt-2 small text-muted">
-                                                    <!-- Filled dynamically with AJAX -->
+                                                    <select name="items[0][product_id]" class="form-control  product-select"
+                                                        required>
+                                                        <option value="">-- {{ __('messages.select_product') }} --</option>
+                                                        @foreach ($allProducts as $product)
+                                                            <option value="{{ $product->id }}">{{ $product->name }}
+                                                                ({{ $product->sku }})
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    {{-- @error('items.0.product_id')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror --}}
                                                 </div>
-                                            </div>
+                                                <div class="col-md-4">
+                                                    <input type="number" name="items[0][quantity]"
+                                                        class="form-control  ms-2" placeholder="Qty"
+                                                        min="1" required>
+
+                                                  
+                                                </div>
+                                                <div class="col-md-4">
+
+                                                    <button type="button"
+                                                        class="btn btn-danger btn-sm ms-2 remove-item-wh">X</button>
+                                                    </div>
+                                                    
+                                                    <div class="availability-container-wh mt-2 small text-muted">
+                                                        <!-- Filled dynamically with AJAX -->
+                                                    </div>
+                                                </div>
+                                          
                                         </div>
 
                                         <div class="mb-3">
@@ -2295,21 +2307,63 @@
                 e.target.closest('.item-row').remove();
             }
         }
+         if (e.target && e.target.classList.contains('remove-item-wh')) {
+            if (document.querySelectorAll('.item-row-wh').length > 1) {
+                e.target.closest('.item-row-wh').remove();
+            }
+        }
     });
 
 
     let itemIndex1 = 1;
-    document.getElementById('add-item-wh').addEventListener('click', function() {
-        const row = document.querySelector('.item-row1').cloneNode(true);
-        row.querySelectorAll('select, input').forEach(el => {
-            const name = el.getAttribute('name');
-            const updatedName = name.replace(/\[\d+\]/, `[${itemIndex1}]`);
-            el.setAttribute('name', updatedName);
-            if (el.tagName === 'INPUT') el.value = '';
+    // document.getElementById('add-item-wh').addEventListener('click', function() {
+    //      // Clone the first item-row
+    //         const row = document.querySelector('.item-row-wh').cloneNode(true);
+
+    //         // Update the name attributes for the cloned row
+    //         row.querySelectorAll('select, input').forEach(el => {
+    //             const name = el.getAttribute('name');
+    //             const updatedName = name.replace(/\[\d+\]/, `[${itemIndex}]`);
+    //             el.setAttribute('name', updatedName);
+
+    //             // Clear the value for inputs
+    //             if (el.tagName === 'INPUT') el.value = '';
+    //         });
+
+    //         // Clear the availability-container for the cloned row
+    //         const container = row.querySelector('.availability-container-wh');
+    //         container.innerHTML = '';
+
+    //         // Append the cloned row to the product-items container
+    //         document.getElementById('product-items').appendChild(row);
+
+    //         // Increment the item index
+    //         itemIndex++;
+    // });
+     document.getElementById('add-item-wh').addEventListener('click', function() {
+            const template = `
+                <div class="row item-row-wh product_items mb-3">
+                     <div class="col-md-4">
+                        <select name="items[${itemIndex}][product_id]" class="form-control  product-select">
+                                    <option value="">Select Product</option>
+                                    @foreach ($products as $product)
+                                        <option value="{{ $product->id }}">{{ $product->name }} ({{ $product->sku }})</option>
+                                    @endforeach
+                                </select>
+                     </div>
+                     <div class="col-md-4">
+                        <input type="number" name="items[${itemIndex}][quantity]" class="form-control  ms-2" placeholder="Qty" min="1">
+                     </div>
+                     <div class="col-md-4">
+                        <button type="button" class="btn btn-danger remove-item-wh">X</button>
+                        </div>
+                    <div class="availability-container-wh mt-2 small text-muted"></div>
+                </div>
+            `;
+            
+            document.getElementById('product-items-wh').insertAdjacentHTML('beforeend', template);
+            itemIndex++;
         });
-        document.getElementById('product-items1').appendChild(row);
-        itemIndex1++;
-    });
 
     // document.addEventListener('DOMContentLoaded', function() {
     //     const inputs = document.querySelectorAll('.note-input');
@@ -2556,4 +2610,179 @@
             });
         }
     });
+     $(document).ready(function() {
+            // Event listener for product selection change
+          // Event listener for product selection change
+           $(document).on('change', '.product-select-sh', function() {
+                const productId = $(this).val();
+                const currentSelect = $(this);
+
+                // Check if this product is already selected in another row
+                if (productId) {
+                    const isDuplicate = $('.product-select-sh').not(this).toArray().some(select => select.value ===
+                        productId);
+                    if (isDuplicate) {
+                        showAlert('error', 'LiquorHub!','This product is already selected. Please choose a different product');
+                        currentSelect.val('');
+                        container.empty();
+                        return false;
+                    }
+                }
+           });
+            $(document).on('change', '.product-select', function() {
+                const productId = $(this).val();
+                const from_store_id = $("#main_store_id").val();
+                const to_store_id =from_store_id;
+                const itemRow = $(this).closest('.item-row-wh');
+                const container = itemRow.find('.availability-container-wh');
+                const indexMatch = $(this).attr('name').match(/\[(\d+)\]/);
+                const itemIndex = indexMatch ? indexMatch[1] : 0;
+
+                const currentSelect = $(this);
+
+                // Check if this product is already selected in another row
+                if (productId) {
+                    const isDuplicate = $('.product-select').not(this).toArray().some(select => select.value ===
+                        productId);
+                    if (isDuplicate) {
+                        showAlert('error', 'LiquorHub!','This product is already selected. Please choose a different product');
+                        currentSelect.val('');
+                        container.empty();
+                        return false;
+                    }
+                }
+                if(from_store_id == ""){
+                    showAlert('error', 'LiquorHub!','Please first select from store.!');
+                    return false;
+                }
+
+            
+
+                if (productId) {
+                    // AJAX request to fetch product availability
+                    $.ajax({
+                        url: "{{ url('/products/get-availability-branch') }}/" + productId +
+                            "?from=" + encodeURIComponent(from_store_id) +
+                            "&to=" + encodeURIComponent(to_store_id),
+                        type: "GET",
+                        dataType: "json",
+                        success: function(data) {
+                            console.log(data);
+
+                            let html = `<div class="row">`;
+                            html += `
+                                <div class="col-md-12">
+                                    <div class="form-check">
+                                        <label class="form-check-label" for="branch_">
+                                             (Available Stock: ${data.from_count})
+                                        </label>
+                                    </div>
+                                </div>
+                               
+                            `;
+
+
+                            html += '</div>';
+                            container.html(html);
+                        },
+                        error: function() {
+                            container.html(
+                                '<span class="text-danger">Failed to load availability. Please try again.</span>'
+                            );
+                        }
+                    });
+                } else {
+                    container.empty(); // Clear container if no product is selected
+                }
+            });
+
+
+            // Enable/disable quantity input based on checkbox selection
+            $(document).on('change', '.branch-checkbox', function() {
+                const quantityInput = $(this).closest('.col-md-6').next('.col-md-6').find(
+                    '.branch-quantity');
+                if ($(this).is(':checked')) {
+                    quantityInput.prop('disabled', false);
+                } else {
+                    quantityInput.prop('disabled', true).val(''); // Clear value when disabled
+                }
+            });
+
+            // Validate branch quantities
+            $(document).on('input', '.branch-quantity', function() {
+                const itemRow = $(this).closest('.item-row');
+                const totalRequestedQty = parseInt(itemRow.find('input[name$="[quantity]"]').val()) || 0;
+                let totalBranchQty = 0;
+
+                // Calculate the total quantity across all branches
+                itemRow.find('.branch-quantity').each(function() {
+                    const branchQty = parseInt($(this).val()) || 0;
+                    totalBranchQty += branchQty;
+                });
+
+                // Check if the total branch quantity exceeds the requested quantity
+                if (totalBranchQty > totalRequestedQty) {
+                    alert('The total quantity across branches cannot exceed the requested quantity.');
+                    $(this).val(''); // Clear the invalid input
+                }
+            });
+        });
+</script>
+
+<script>
+$(document).ready(function () {
+
+    $('#warehouseForm').on('submit', function (e) {
+        e.preventDefault();
+
+        // Clear previous errors
+        $('.text-danger').remove();
+        $('.is-invalid').removeClass('is-invalid');
+
+        let form = $(this);
+        let formData = new FormData(this);
+
+        $.ajax({
+            url: form.attr('action'),
+            method: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+
+            success: function (response) {
+                showAlert('success', 'LiquorHub!','Stock submitted successfully!');
+                $('#warehouseStockRequest').modal('hide'); // Replace with your actual modal ID
+                $('.modal-backdrop.show').remove();
+                $('.availability-container-wh').html("");
+
+                form.trigger("reset");
+            },
+
+            error: function (xhr) {
+                if (xhr.status === 422) {
+                    let errors = xhr.responseJSON.errors;
+                    console.log(errors);
+                    // Loop through the errors
+                    Object.keys(errors).forEach(function (key) {
+                        console.log(key);
+                        let nameAttr = key.replace(/\.(\d+)\./g, '[$1][').replace(/\./g, ']') + ']';
+                        let selector = `[name="${nameAttr}"]`;
+
+                        let field = $(selector);
+                        if (field.length) {
+                            field.addClass('is-invalid');
+                            field.after(`<div class="text-danger">${errors[key]}</div>`);
+                        } else {
+                            // Fallback for unmatched errors
+                            $('#warehouseForm').prepend(`<div class="text-danger">${errors[key]}</div>`);
+                        }
+                    });
+
+                    // Show the modal again (if it's closed somehow)
+                }
+            }
+        });
+    });
+
+});
 </script>
