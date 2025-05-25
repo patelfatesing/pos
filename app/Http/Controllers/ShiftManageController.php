@@ -93,14 +93,14 @@ class ShiftManageController extends Controller
                 </a>';
 
             // Show "Close Shift" button if end_time is within next 30 minutes
-            if ($endTime && $now->diffInMinutes($endTime, false) >= 0 && $now->diffInMinutes($endTime, false) <= 30) {
+            // if ($endTime && $now->diffInMinutes($endTime, false) >= 0 && $now->diffInMinutes($endTime, false) <= 30) {
                 $action .= '<a class="badge bg-warning ml-2 close-shift" 
                                 href="javascript:void(0);" 
                                 data-id="' . $row->id . '" 
                                 title="Close Shift">
                                 <i class="ri-lock-line"></i> Close
                             </a>';
-            }
+            // }
 
             $action .= '</div>';
 

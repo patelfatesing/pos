@@ -32,9 +32,9 @@
                                 </th>
                                 <th>Address</th>
                                 <th>Status</th>
-                                <th>Store Status</th>
                                 <th>Main Branch</th>
                                 <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
+                                <th data-type="date" data-format="YYYY/DD/MM">Updated Date</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -83,13 +83,13 @@
                             data: 'is_active'
                         },
                         {
-                            data: 'is_deleted'
-                        },
-                        {
                             data: 'main_branch'
                         },
                         {
                             data: 'created_at'
+                        },
+                        {
+                            data: 'updated_at'
                         },
                         {
                             data: 'action'
@@ -99,7 +99,7 @@
                     ],
                     aoColumnDefs: [{
                         bSortable: false,
-                        aTargets: [1, 2, 3, 5]
+                        aTargets: [1, 2, 3, 6]
                     }],
                     order: [
                         [4, 'desc']
@@ -134,7 +134,9 @@
                                 id: id
                             },
                             success: function(response) {
-                                location.reload();
+                                $('#branch_table').DataTable().ajax.reload();
+                                Swal.fire("Deleted!", "The store has been deleted.", "success");
+                                
                                 // swal("Deleted!", "The store has been deleted.", "success")
                                 //     .then(() => location.reload());
                             },
@@ -146,7 +148,8 @@
                 });
 
             }
-             function branchStatusChange(id, newStatus) {
+
+            function branchStatusChange(id, newStatus) {
                 Swal.fire({
                     title: "Are you sure?",
                     text: "Do you want to change the status?",
@@ -166,10 +169,11 @@
                                 status: newStatus
                             },
                             success: function(response) {
-                                Swal.fire("Success!", "Store status has been changed.", "success").then(() => {
-                                    $('#branch_table').DataTable().ajax.reload(null,
-                                        false); // ✅ Only reload DataTable
-                                });
+                                Swal.fire("Success!", "Store status has been changed.", "success").then(
+                                () => {
+                                        $('#branch_table').DataTable().ajax.reload(null,
+                                            false); // ✅ Only reload DataTable
+                                    });
                             },
                             error: function(xhr) {
                                 Swal.fire("Error!", "Something went wrong.", "error");
@@ -177,6 +181,6 @@
                         });
                     }
                 });
-        }
+            }
         </script>
     @endsection

@@ -123,6 +123,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
     'shift_testing' => true,
-    'owner_email' => 'admin@example.com',
+    'owner_email' => env('OWNER_EMAIL', '')
 
 ];

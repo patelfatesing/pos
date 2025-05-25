@@ -18,9 +18,8 @@
                                 </div>
                             </div>
                             <div class="card-body">
-                                <form action="{{ route('vendor.update', $vendor->id) }}" method="POST" enctype="multipart/form-data" data-toggle="validator">
+                                <form action="{{ route('vendor.update') }}" method="POST" enctype="multipart/form-data" data-toggle="validator">
                                     @csrf
-                                    @method('PUT')
                                     <input type="hidden" name="id" value="{{ old('name', $vendor->id) }}"/>
                                     <div class="row">
                                         <div class="col-lg-6">

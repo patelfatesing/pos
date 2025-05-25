@@ -273,8 +273,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/vendor/create', [VendorListController::class, 'create'])->name('vendor.create');
     Route::post('/vendor/', [VendorListController::class, 'store'])->name('vendor.store');
     Route::get('/vendor/edit/{id}', [VendorListController::class, 'edit'])->name('vendor.edit');
-    Route::put('/vendor/{Partyuser}', [VendorListController::class, 'update'])->name('vendor.update');
+    Route::post('/vendor/update', [VendorListController::class, 'update'])->name('vendor.update');
     Route::delete('/vendor/{Partyuser}', [VendorListController::class, 'destroy'])->name('vendor.destroy');
+    Route::post('/vendor/status-change', [VendorListController::class, 'statusChange'])->name('vendor.status-change');
 
     Route::get('/purchase/list', [PurchaseController::class, 'index'])->name('purchase.list');
     Route::get('/purchase/create', [PurchaseController::class, 'create'])->name('purchase.create');

@@ -27,7 +27,7 @@
                                                 <div class="col-md-4">
                                                     <label for="bill_no" class="form-label">Bill No</label>
                                                     <input type="text" class="form-control" id="bill_no" name="bill_no"
-                                                        required>
+                                                        value="{{ old('bill_no') }}">
                                                     @error('bill_no')
                                                         <span class="text-danger">{{ $message }}</span>
                                                     @enderror
@@ -36,7 +36,7 @@
                                                 <div class="col-md-4">
                                                     <label for="date" class="form-label">Date</label>
                                                     <input type="date" class="form-control" id="date" name="date"
-                                                        required>
+                                                        value="{{ old('date') }}" max="{{ now()->toDateString() }}">
                                                     @error('date')
                                                         <span class="text-danger">{{ $message }}</span>
                                                     @enderror
@@ -47,7 +47,9 @@
                                                         <select name="vendor_id" id="vendor_id" class="form-control">
                                                             <option value="">-- Select Party --</option>
                                                             @foreach ($vendors as $vendor)
-                                                                <option value="{{ $vendor->id }}">{{ $vendor->name }}
+                                                                <option value="{{ $vendor->id }}"
+                                                                    {{ old('vendor_id') == $vendor->id ? 'selected' : '' }}>
+                                                                    {{ $vendor->name }}
                                                                 </option>
                                                             @endforeach
                                                         </select>
@@ -63,7 +65,9 @@
                                                             class="form-control">
                                                             <option value="">-- Select Ledger --</option>
                                                             @foreach ($vendors as $vendor)
-                                                                <option value="{{ $vendor->id }}">{{ $vendor->name }}
+                                                                <option value="{{ $vendor->id }}"
+                                                                    {{ old('parchase_ledger') == $vendor->id ? 'selected' : '' }}>
+                                                                    {{ $vendor->name }}
                                                                 </option>
                                                             @endforeach
                                                         </select>
@@ -170,7 +174,7 @@
                                                                         <input type="number" class="form-control amount"
                                                                             step="0.01"
                                                                             name="products[{{ $i }}][amount]"
-                                                                            value="{{ $product['amount'] }}" readonly>
+                                                                            value="{{ $product['amount'] }}">
                                                                         @error("products.$i.amount")
                                                                             <span
                                                                                 class="text-danger">{{ $message }}</span>
@@ -187,18 +191,19 @@
                                                 </table>
                                             </div>
                                             <input type="hidden" name="total" class="total_val" value="" />
-                                            <div class="table-responsive mb-1">
-                                                <table class="table table-bordered">
-                                                    <tbody class="">
-                                                        <tr>
-                                                            <td colspan="8">Total</td>
+
+                                            <div class="row mt-4 mb-3">
+                                                <div class="offset-lg-8 col-lg-4">
+                                                    <div class="or-detail rounded">
+                                                        <div class="p-3">
+                                                            <span colspan="8">Sub Total: </span>
                                                             <input hidden class="total_amt">
-                                                            <td id="total"></td>
-                                                        </tr>
-                                                    </tbody>
-                                                    <tbody></tbody>
-                                                </table>
+                                                            <span id="total"></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
+
                                             <hr />
                                             <div class="row mt-4 mb-3">
                                                 <div class="offset-lg-8 col-lg-4">
@@ -207,54 +212,65 @@
                                                             <h5 class="mb-3">Billing Details</h5>
 
                                                             <!-- Vendor 1 Fields -->
-                                                            <div id="vendor-1-fields" class="vendor-fields d-none">
+                                                            <div id="vendor-1-fields"
+                                                                class="vendor-fields d-none vendor-1">
                                                                 <div class="form-group">
                                                                     <label>EXCISE FEE</label>
                                                                     <input type="tel" class="form-control"
-                                                                        name="excise_fee" id="excise_fee" />
+                                                                        value="{{ old('excise_fee') }}" name="excise_fee"
+                                                                        id="excise_fee" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>COMPOSITION VAT</label>
                                                                     <input type="tel" class="form-control"
+                                                                        value="{{ old('composition_vat') }}"
                                                                         name="composition_vat" id="composition_vat" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>SURCHARGE ON CA</label>
                                                                     <input type="tel" class="form-control"
+                                                                        value="{{ old('surcharge_on_ca') }}"
                                                                         name="surcharge_on_ca" id="surcharge_on_ca" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>AED TO BE PAID</label>
                                                                     <input type="tel" class="form-control"
+                                                                        value="{{ old('aed_to_be_paid') }}"
                                                                         name="aed_to_be_paid" id="aed_to_be_paid" />
                                                                 </div>
                                                             </div>
 
                                                             <!-- Vendor 2 and Others Fields -->
-                                                            <div id="vendor-2-fields" class="vendor-fields d-none">
+                                                            <div id="vendor-2-fields"
+                                                                class="vendor-fields d-none vendor-2">
                                                                 <div class="form-group">
                                                                     <label>VAT</label>
                                                                     <input type="tel" id="vat"
-                                                                        class="form-control" name="vat" />
+                                                                        value="{{ old('vat') }}" class="form-control"
+                                                                        name="vat" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>SURCHARGE ON VAT</label>
                                                                     <input type="tel" id="surcharge_on_vat"
+                                                                        value="{{ old('surcharge_on_vat') }}"
                                                                         class="form-control" name="surcharge_on_vat" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>BLF</label>
                                                                     <input type="tel" id="blf"
-                                                                        class="form-control" name="blf" />
+                                                                        value="{{ old('blf') }}" class="form-control"
+                                                                        name="blf" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>Permit Fee</label>
                                                                     <input type="tel" class="form-control"
-                                                                        name="permit_fee" id="permit_fee" />
+                                                                        value="{{ old('permit_fee') }}" name="permit_fee"
+                                                                        id="permit_fee" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>RSGSM Purchase</label>
                                                                     <input type="tel" class="form-control"
+                                                                        value="{{ old('rsgsm_purchase') }}"
                                                                         name="rsgsm_purchase" id="rsgsm_purchase" />
                                                                 </div>
                                                             </div>
@@ -262,7 +278,8 @@
                                                                 <div class="form-group">
                                                                     <label>TCS</label>
                                                                     <input type="tel" id="tcs"
-                                                                        class="form-control" name="tcs" />
+                                                                        value="{{ old('tcs') }}" class="form-control"
+                                                                        name="tcs" />
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -331,34 +348,33 @@
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const oldVendorId = '{{ old('vendor_id') }}';
+
+        if (oldVendorId) {
+            onVendorChange(oldVendorId);
+        }
+    });
+
+    function onVendorChange() {
+        var vendor_id = document.getElementById('vendor_id').value;
+        // Hide all groups and show only the relevant one
+
+        $('.vendor-fields').addClass('d-none');
+
+        updateBillingTotal();
+        if (vendor_id === '1') {
+            $('#vendor-1-fields').removeClass('d-none');
+
+        } else if (vendor_id === '2') {
+            $('#vendor-2-fields').removeClass('d-none');
+        } else {
+            $('#vendor-others-fields').removeClass('d-none'); // Default
+        }
+        // Add any other vendor-specific logic here
+    }
+
     $(document).ready(function() {
-
-        // Hide all dynamic fields initially
-        $('.vendor-group').hide();
-        $('.vendor-total').hide();
-        $('.vendor-common').hide();
-
-        $('#vendor_id').change(function() {
-            var vendorId = $(this).val();
-
-            // Hide all groups and show only the relevant one
-            $('.vendor-group').hide();
-            $('.vendor-total').hide();
-            $('.vendor-common').hide();
-
-            if (vendorId == '1') {
-                $('.vendor-1').show();
-                $('.vendor-common').show();
-                $('.vendor-total').show();
-            } else if (vendorId == '2') {
-                $('.vendor-2').show();
-                $('.vendor-common').show();
-                $('.vendor-total').show();
-            } else {
-                $('.vendor-others').show();
-                $('.vendor-total').show();
-            }
-        });
 
         let srNo = 1;
 
@@ -543,8 +559,8 @@
         $('#excise_fee, #composition_vat, #surcharge_on_ca, #tcs, #aed_to_be_paid,#vat,#surcharge_on_vat,#blf,#permit_fee,#rsgsm_purchase')
             .on('input', function() {
                 updateBillingTotal();
-                updateFromPercentage();
-                updateFromAmount();
+                // updateFromPercentage();
+                // updateFromAmount();
             });
 
         function updateBillingTotal() {
@@ -617,7 +633,7 @@
 
         $('#vendor_id').on('change', function() {
             const vendorId = $(this).val();
-
+            alert("fg");
             // Hide all vendor-specific fields first
             $('.vendor-fields').addClass('d-none');
 
