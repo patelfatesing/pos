@@ -55,15 +55,19 @@ class StockController extends Controller
     public function storeWarehouse(Request $request)
     {
 
-        // $validated = $request->validate([
-        //     'items' => 'required|array|min:1',
-        //     'items.*.product_id' => 'required|exists:products,id',
-        //     'items.*.quantity' => 'required|numeric|min:1',
-        //     'items.*.branches' => 'required|array|min:1',
-        //     'items.*.branch_quantities' => 'required|array',
-        //     'notes' => 'nullable|string',
-        // ]);
-
+        $validated = $request->validate([
+            'store_id' => 'required|exists:branches,id',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
+        ], [
+            'store_id.required' => 'Please select the source store.',
+            'items.required' => 'At least one product is required.',
+            'items.*.product_id.required' => 'Please select a product.',
+            'items.*.quantity.required' => 'Please enter the quantity.',
+            'items.*.quantity.min' => 'Quantity must be at least 1.',
+        ]);
+        DB::beginTransaction();
         $data = User::with('userInfo')
             ->where('users.id', Auth::id())
             ->where('is_deleted', 'no')
@@ -84,10 +88,18 @@ class StockController extends Controller
         $totalProductCount = 0;
         $totalQuantitySum = 0;
         $uniqueProductIds = [];
-
-        foreach ($request['items'] as $item) {
+        foreach ($request['items']  as $key =>  $item) {
             $productId = $item['product_id'];
             $totalQty = (int) $item['quantity'];
+            $inventories = Inventory::where('product_id', $productId)
+                    ->where('store_id', $request->store_id)
+                    ->orderBy('expiry_date')
+                    ->get();
+
+                $totalQuantity = (int)$inventories->sum('quantity');
+                if ($totalQuantity < $totalQty) {
+                    $errors["items.$key.quantity"] = "Insufficient stock in source store. Available: $totalQuantity";
+                }
             // $branches = $item['branches'] ?? [];
             // $quantities = $item['branch_quantities'] ?? [];
 
@@ -126,14 +138,18 @@ class StockController extends Controller
             // }
 
         }
-
+        if ($request->ajax() && !empty($errors)) {
+            DB::rollback();
+            return response()->json(['errors' => $errors], 422);
+        } 
         // 🔄 Update totals
         $stockRequest->update([
             'total_product' => count($uniqueProductIds),
             'total_quantity' => $totalQuantitySum
         ]);
+        DB::commit();
 
-        return redirect()->route('items.cart')->with('success', 'Stock request submitted successfully.');
+      //  return redirect()->route('items.cart')->with('success', 'Stock request submitted successfully.');
     }
 
     public function storeWarehouse_ori(Request $request)
