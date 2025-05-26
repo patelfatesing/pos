@@ -210,7 +210,7 @@ class SalesReportController extends Controller
                 $invoice_sub_total = 0.0;
 
                 foreach ($items as $item) {
-                    $invoice_sub_total += (float)$item['quantity'] * (float)$item['price'];
+                    $invoice_sub_total += (float)$item['quantity'] * (float)$item['mrp'];
                 }
 
                 // Add each invoice data to finalData
