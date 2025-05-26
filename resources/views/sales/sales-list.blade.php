@@ -19,7 +19,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 
-    
+
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Wrapper Start -->
@@ -61,8 +61,8 @@
                                     <th>Trasaction #</th>
                                     <th>Status</th>
                                     <th>Commission Amount</th>
-                                    <th>Party Amount</th>
                                     <th>Sub Total</th>
+                                    <th>Party Dicount</th>
                                     <th>Total</th>
                                     <th>Item Count</th>
                                     <th>Store</th>
@@ -174,22 +174,22 @@
                     {
                         data: 'commission_amount',
                         name: 'commission_amount',
-                        render: data => '₹' + parseFloat(data).toFixed(2)
-                    },
-                    {
-                        data: 'party_amount',
-                        name: 'party_amount',
-                        render: data => '₹' + parseFloat(data).toFixed(2)
+                        render: data => '₹' + parseFloat(data.replace(/,/g, '')).toFixed(2)
                     },
                     {
                         data: 'sub_total',
                         name: 'sub_total',
-                        render: data => '₹' + parseFloat(data).toFixed(2)
+                        render: data => '₹' + parseFloat(data.replace(/,/g, '')).toFixed(2)
+                    },
+                    {
+                        data: 'party_amount',
+                        name: 'party_amount',
+                        render: data => '₹' + parseFloat(data.replace(/,/g, '')).toFixed(2)
                     },
                     {
                         data: 'total',
                         name: 'total',
-                        render: data => '₹' + parseFloat(data).toFixed(2)
+                        render: data => '₹' + parseFloat(data.replace(/,/g, '')).toFixed(2)
                     },
                     {
                         data: 'items_count',
@@ -228,8 +228,8 @@
                     });
 
                     $(api.column(2).footer()).html('₹' + commission.toFixed(2));
-                    $(api.column(3).footer()).html('₹' + party.toFixed(2));
-                    $(api.column(4).footer()).html('₹' + subtotal.toFixed(2));
+                    $(api.column(3).footer()).html('₹' + subtotal.toFixed(2));
+                    $(api.column(4).footer()).html('₹' + party.toFixed(2));
                     $(api.column(5).footer()).html('₹' + total.toFixed(2));
                     $(api.column(6).footer()).html(items);
                 }

@@ -103,9 +103,9 @@
                                                             <th>Brand</th>
                                                             <th>Batch</th>
                                                             <th>MFG Date</th>
-                                                            <th>MRP</th>
+                                                            <th>MRP Rate</th>
                                                             <th>Qty</th>
-                                                            <th>Rate</th>
+                                                            <th> Cost Price</th>
                                                             <th>Amount</th>
                                                             <th>Action</th>
                                                         </tr>
@@ -181,7 +181,7 @@
                                                                         @enderror
                                                                     </td>
                                                                     <td><button type="button"
-                                                                            class="btn btn-danger remove">Remove</button>
+                                                                            class="btn btn-sm btn-danger remove">Remove</button>
                                                                     </td>
                                                                 </tr>
                                                             @endforeach
@@ -290,7 +290,7 @@
                                                                     <strong class="d-block">CASH PURCHASE</strong>
                                                                     <div class="d-flex align-items-center">
                                                                         <label class="mr-1 mb-0">(-)</label>
-                                                                        <input type="number"
+                                                                        <input type="float"
                                                                             class="form-control form-control-sm pur_dis"
                                                                             placeholder="%" name="case_purchase_per"
                                                                             style="width: 80px;" min="0"
@@ -300,7 +300,7 @@
                                                                 </div>
                                                                 <div class="text-right d-flex align-items-center">
                                                                     <label class="mr-1 mb-0">(-)</label>
-                                                                    <input type="number" name="case_purchase_amt"
+                                                                    <input type="float" name="case_purchase_amt"
                                                                         class="form-control form-control-sm pur_amt text-danger font-weight-bold"
                                                                         placeholder="Amount" style="width: 120px;"
                                                                         min="0">
@@ -348,36 +348,10 @@
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const oldVendorId = '{{ old('vendor_id') }}';
-
-        if (oldVendorId) {
-            onVendorChange(oldVendorId);
-        }
-    });
-
-    function onVendorChange() {
-        var vendor_id = document.getElementById('vendor_id').value;
-        // Hide all groups and show only the relevant one
-
-        $('.vendor-fields').addClass('d-none');
-
-        updateBillingTotal();
-        if (vendor_id === '1') {
-            $('#vendor-1-fields').removeClass('d-none');
-
-        } else if (vendor_id === '2') {
-            $('#vendor-2-fields').removeClass('d-none');
-        } else {
-            $('#vendor-others-fields').removeClass('d-none'); // Default
-        }
-        // Add any other vendor-specific logic here
-    }
-
     $(document).ready(function() {
 
         let srNo = 1;
-
+        $('.vendor-common').hide();
         // Pre-fill product fields on select
         $('#product_select').change(function() {
             const data = $(this).val();
@@ -423,8 +397,8 @@
             const brandVal = data.name;
             const batch = data.batch_no;
             const mfg = data.mfg_date;
-            const mrp = data.cost_price;
-            const rate = data.sell_price;
+            const mrp = data.mrp;
+            const rate = data.cost_price;
             const qty = 1;
             const amount = rate * qty;
 
@@ -493,10 +467,22 @@
 
             $('#total').text(newTotal.toFixed(2));
             $(".total_amt").val(newTotal.toFixed(2));
-            $('#total_amount').text(newTotal.toFixed(2));
-
             $('.total_val').val(newTotal.toFixed(2));
-            $('.total_amount').val(newTotal.toFixed(2));
+
+            // Check if all products are removed
+            if ($('#productBody tr').length === 0) {
+                // Clear all billing details textboxes
+                $('#excise_fee, #composition_vat, #surcharge_on_ca, #aed_to_be_paid').val(
+                    ''); // Vendor 1 fields
+                $('#vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase').val(
+                    ''); // Vendor 2 fields
+                $('.pur_dis, .pur_amt').val(''); // Other vendor fields
+                $('#tcs').val(''); // Common field
+                $('#total_amount').text('₹0.00');
+                $('.total_amount').val('0.00');
+            }
+
+            updateBillingTotal();
         });
 
         function resetFields() {
@@ -631,20 +617,81 @@
             updateFromAmount();
         });
 
-        $('#vendor_id').on('change', function() {
-            const vendorId = $(this).val();
-            alert("fg");
+        function onVendorChange(vendorId) {
             // Hide all vendor-specific fields first
             $('.vendor-fields').addClass('d-none');
 
+            // Reset all billing fields to 0 first
+            $('#excise_fee, #composition_vat, #surcharge_on_ca, #aed_to_be_paid').val(0); // Vendor 1 fields
+            $('#vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase').val(0); // Vendor 2 fields
+            $('.pur_dis, .pur_amt').val(0); // Other vendor fields
+
+            // Get old values from Laravel
+            const oldValues = {
+                // Vendor 1 fields
+                excise_fee: '{{ old('excise_fee') }}',
+                composition_vat: '{{ old('composition_vat') }}',
+                surcharge_on_ca: '{{ old('surcharge_on_ca') }}',
+                aed_to_be_paid: '{{ old('aed_to_be_paid') }}',
+
+                // Vendor 2 fields
+                vat: '{{ old('vat') }}',
+                surcharge_on_vat: '{{ old('surcharge_on_vat') }}',
+                blf: '{{ old('blf') }}',
+                permit_fee: '{{ old('permit_fee') }}',
+                rsgsm_purchase: '{{ old('rsgsm_purchase') }}',
+
+                // Other vendor fields
+                case_purchase_per: '{{ old('case_purchase_per') }}',
+                case_purchase_amt: '{{ old('case_purchase_amt') }}',
+
+                // Common field
+                tcs: '{{ old('tcs') }}'
+            };
+
+            // Show relevant fields based on vendor and restore their values
             if (vendorId === '1') {
                 $('#vendor-1-fields').removeClass('d-none');
-
+                // Restore vendor 1 fields
+                if (oldValues.excise_fee) $('#excise_fee').val(oldValues.excise_fee);
+                if (oldValues.composition_vat) $('#composition_vat').val(oldValues.composition_vat);
+                if (oldValues.surcharge_on_ca) $('#surcharge_on_ca').val(oldValues.surcharge_on_ca);
+                if (oldValues.aed_to_be_paid) $('#aed_to_be_paid').val(oldValues.aed_to_be_paid);
             } else if (vendorId === '2') {
                 $('#vendor-2-fields').removeClass('d-none');
+                // Restore vendor 2 fields
+                if (oldValues.vat) $('#vat').val(oldValues.vat);
+                if (oldValues.surcharge_on_vat) $('#surcharge_on_vat').val(oldValues.surcharge_on_vat);
+                if (oldValues.blf) $('#blf').val(oldValues.blf);
+                if (oldValues.permit_fee) $('#permit_fee').val(oldValues.permit_fee);
+                if (oldValues.rsgsm_purchase) $('#rsgsm_purchase').val(oldValues.rsgsm_purchase);
             } else {
-                $('#vendor-others-fields').removeClass('d-none'); // Default
+                $('.vendor-common').hide();
+                $('#vendor-others-fields').removeClass('d-none');
+                // Restore other vendor fields
+                if (oldValues.case_purchase_per) $('.pur_dis').val(oldValues.case_purchase_per);
+                if (oldValues.case_purchase_amt) $('.pur_amt').val(oldValues.case_purchase_amt);
             }
+
+            // Always restore TCS value if it exists
+            if (oldValues.tcs) $('#tcs').val(oldValues.tcs);
+
+            // Recalculate totals after changing vendor
+            calculateProductTotals();
+            updateBillingTotal();
+        }
+
+        // Initialize vendor fields on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const oldVendorId = '{{ old('vendor_id') }}';
+            if (oldVendorId) {
+                onVendorChange(oldVendorId);
+            }
+        });
+
+        // Handle vendor change
+        $('#vendor_id').on('change', function() {
+            onVendorChange($(this).val());
         });
 
         // Replace this with dynamic value if needed
@@ -677,5 +724,164 @@
         $('.pur_dis').on('input', updateFromPercentage);
         $('.pur_amt').on('input', updateFromAmount);
 
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initial calculations when page loads (especially important after validation errors)
+        calculateProductTotals();
+        updateBillingTotal();
+
+        const oldVendorId = '{{ old('vendor_id') }}';
+        if (oldVendorId) {
+            onVendorChange(oldVendorId);
+        }
+    });
+
+    function calculateProductTotals() {
+        // Calculate totals for all products
+        let total = 0;
+        $('input[name*="[rate]"]').each(function() {
+            const $row = $(this).closest('tr');
+            const rate = parseFloat($(this).val()) || 0;
+            const qty = parseFloat($row.find('input[name*="[qnt]"]').val()) || 0;
+            const amount = (rate * qty).toFixed(2);
+
+            // Update amount field
+            $row.find('input[name*="[amount]"]').val(amount);
+            total += parseFloat(amount);
+        });
+
+        // Update all total fields
+        $('#total').text(total.toFixed(2));
+        $(".total_amt").val(total.toFixed(2));
+        $('.total_val').val(total.toFixed(2));
+
+        return total;
+    }
+
+    function updateBillingTotal() {
+        const baseTotal = parseFloat($(".total_amt").val()) || 0;
+
+        // Get all billing details values
+        const excise = parseFloat($('#excise_fee').val()) || 0;
+        const compVat = parseFloat($('#composition_vat').val()) || 0;
+        const surcharge = parseFloat($('#surcharge_on_ca').val()) || 0;
+        const tcs = parseFloat($('#tcs').val()) || 0;
+        const vat = parseFloat($('#vat').val()) || 0;
+        const surcharge_on_vat = parseFloat($('#surcharge_on_vat').val()) || 0;
+        const blf = parseFloat($('#blf').val()) || 0;
+        const permit_fee = parseFloat($('#permit_fee').val()) || 0;
+        const rsgsm_purchase = parseFloat($('#rsgsm_purchase').val()) || 0;
+        const aed = parseFloat($('#aed_to_be_paid').val()) || 0;
+
+        // Sum all billing details
+        const additionalCharges = excise + compVat + surcharge + tcs + aed + vat +
+            surcharge_on_vat + blf + permit_fee + rsgsm_purchase;
+
+        // Calculate grand total
+        let grandTotal = baseTotal + additionalCharges;
+
+        // Apply discount if any
+        const discountPercent = parseFloat($('.pur_dis').val()) || 0;
+        const discountAmount = parseFloat($('.pur_amt').val()) || 0;
+
+        if (discountPercent > 0) {
+            const discount = (grandTotal * discountPercent) / 100;
+            grandTotal -= discount;
+            $('.pur_amt').val(discount.toFixed(2));
+        } else if (discountAmount > 0) {
+            grandTotal -= discountAmount;
+            $('.pur_dis').val(((discountAmount / grandTotal) * 100).toFixed(2));
+        }
+
+        // Update total amount displays
+        $('#total_amount').text('₹' + grandTotal.toFixed(2));
+        $('.total_amount').val(grandTotal.toFixed(2));
+    }
+
+    function onVendorChange(vendorId) {
+        // Hide all vendor-specific fields first
+        $('.vendor-fields').addClass('d-none');
+
+        // Reset all billing fields to 0 first
+        $('#excise_fee, #composition_vat, #surcharge_on_ca, #aed_to_be_paid').val(0); // Vendor 1 fields
+        $('#vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase').val(0); // Vendor 2 fields
+        $('.pur_dis, .pur_amt').val(0); // Other vendor fields
+
+        // Get old values from Laravel
+        const oldValues = {
+            // Vendor 1 fields
+            excise_fee: '{{ old('excise_fee') }}',
+            composition_vat: '{{ old('composition_vat') }}',
+            surcharge_on_ca: '{{ old('surcharge_on_ca') }}',
+            aed_to_be_paid: '{{ old('aed_to_be_paid') }}',
+
+            // Vendor 2 fields
+            vat: '{{ old('vat') }}',
+            surcharge_on_vat: '{{ old('surcharge_on_vat') }}',
+            blf: '{{ old('blf') }}',
+            permit_fee: '{{ old('permit_fee') }}',
+            rsgsm_purchase: '{{ old('rsgsm_purchase') }}',
+
+            // Other vendor fields
+            case_purchase_per: '{{ old('case_purchase_per') }}',
+            case_purchase_amt: '{{ old('case_purchase_amt') }}',
+
+            // Common field
+            tcs: '{{ old('tcs') }}'
+        };
+
+        // Show relevant fields based on vendor and restore their values
+        if (vendorId === '1') {
+            $('#vendor-1-fields').removeClass('d-none');
+            // Restore vendor 1 fields
+            if (oldValues.excise_fee) $('#excise_fee').val(oldValues.excise_fee);
+            if (oldValues.composition_vat) $('#composition_vat').val(oldValues.composition_vat);
+            if (oldValues.surcharge_on_ca) $('#surcharge_on_ca').val(oldValues.surcharge_on_ca);
+            if (oldValues.aed_to_be_paid) $('#aed_to_be_paid').val(oldValues.aed_to_be_paid);
+        } else if (vendorId === '2') {
+            $('#vendor-2-fields').removeClass('d-none');
+            // Restore vendor 2 fields
+            if (oldValues.vat) $('#vat').val(oldValues.vat);
+            if (oldValues.surcharge_on_vat) $('#surcharge_on_vat').val(oldValues.surcharge_on_vat);
+            if (oldValues.blf) $('#blf').val(oldValues.blf);
+            if (oldValues.permit_fee) $('#permit_fee').val(oldValues.permit_fee);
+            if (oldValues.rsgsm_purchase) $('#rsgsm_purchase').val(oldValues.rsgsm_purchase);
+        } else {
+            $('#vendor-others-fields').removeClass('d-none');
+            // Restore other vendor fields
+            $('.vendor-common').hide();
+            if (oldValues.case_purchase_per) $('.pur_dis').val(oldValues.case_purchase_per);
+            if (oldValues.case_purchase_amt) $('.pur_amt').val(oldValues.case_purchase_amt);
+        }
+
+        // Always restore TCS value if it exists
+        if (oldValues.tcs) $('#tcs').val(oldValues.tcs);
+
+        // Recalculate totals after changing vendor
+        calculateProductTotals();
+        updateBillingTotal();
+    }
+
+    // Event handlers for rate and quantity changes
+    $(document).on('input', 'input[name*="[qnt]"], input[name*="[rate]"]', function() {
+        calculateProductTotals();
+        updateBillingTotal();
+    });
+
+    // Event handlers for billing details changes
+    $('#excise_fee, #composition_vat, #surcharge_on_ca, #tcs, #aed_to_be_paid, #vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase')
+        .on('input', function() {
+            updateBillingTotal();
+        });
+
+    // Event handlers for discount changes
+    $('.pur_dis, .pur_amt').on('input', function() {
+        updateBillingTotal();
+    });
+
+    // Handle vendor change
+    $('#vendor_id').on('change', function() {
+        onVendorChange($(this).val());
     });
 </script>

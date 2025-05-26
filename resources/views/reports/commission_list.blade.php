@@ -165,10 +165,9 @@
                         render: function(data, type, row) {
 
                             if (row.status == 'unpaid') {
-                                return '<span class="badge bg-danger"><a href="#" onClick="payCredit(' +
-                                    data.commission_id + ')">Unpaid</a></span>';
+                                return '<span class="badge "></span>';
                             } else {
-                                return '<span class="badge bg-success">Paid</span>';
+                                return '<span class="badge "></span>';
                             }
                         },
                         orderable: false,

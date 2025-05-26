@@ -1,7 +1,7 @@
 <form id="stockRequestForm" action="{{ route('stock.stock-request-from-store') }}" method="POST">
     @csrf
     <div class="modal-header">
-        <h5 class="modal-title">⚡ Create Stock Request</h5>
+        <h5 class="modal-title">⚡ Low Stock Products</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
@@ -19,7 +19,7 @@
                         <th>Brand</th>
                         <th>Low Level Stock</th>
                         <th>Current Stock</th>
-                        <th>Request Quantity</th> <!-- 🆕 -->
+                        {{-- <th>Request Quantity</th> <!-- 🆕 --> --}}
                     </tr>
                 </thead>
                 <tbody>
@@ -30,7 +30,7 @@
                             <td>{{ $product->brand }}</td>
                             <td>{{ $product->reorder_level }}</td>
                             <td>{{ $product->total_stock }}</td>
-                            <td>
+                            {{-- <td>
                                 <input type="number" 
                                        name="items[{{ $product->id }}][quantity]" 
                                        class="form-control" 
@@ -39,7 +39,7 @@
                                 <input type="hidden" 
                                        name="items[{{ $product->id }}][product_id]" 
                                        value="{{ $product->id }}">
-                            </td>
+                            </td> --}}
                         </tr>
                        
                     @empty
@@ -62,6 +62,6 @@
 
     <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="submit" class="btn btn-primary">Submit Stock Request</button> <!-- 🆕 -->
+        {{-- <button type="submit" class="btn btn-primary">Submit Stock Request</button> <!-- 🆕 --> --}}
     </div>
 </form>

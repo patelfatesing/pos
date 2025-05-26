@@ -23,7 +23,7 @@ class NotificationController extends Controller
         $nf->save();
 
         if ($type === 'low_stock') {
-            
+            $id  = $request->id;
             $lowStockProducts = DB::table('products')
             ->select(
                 'products.id',
@@ -36,6 +36,7 @@ class NotificationController extends Controller
             ->leftJoin('inventories', 'products.id', '=', 'inventories.product_id')
             ->where('products.is_deleted', 'no')
             ->where('products.is_active', 'yes')
+            ->where('products.id', $id)
             ->groupBy(
                 'products.id',
                 'products.name',

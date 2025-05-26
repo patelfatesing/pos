@@ -256,6 +256,7 @@ class PurchaseController extends Controller
             'products.name',
             'products.size',
             'products.brand',
+            'products.mrp',
             'inventories.batch_no',
             'inventories.mfg_date',
             'products.cost_price',
@@ -273,7 +274,8 @@ class PurchaseController extends Controller
                 'inventories.mfg_date',
                 'products.cost_price',
                 'products.sell_price',
-                'products.size'
+                'products.size',
+                'products.mrp'
             )
             ->orderBy('total_quantity', 'asc')
             ->first();
