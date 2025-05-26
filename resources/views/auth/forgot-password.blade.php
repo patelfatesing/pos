@@ -32,6 +32,9 @@
                         <button type="submit" class="btn btn-primary rounded-3 fw-semibold">
                             Send Reset Link
                         </button>
+                        <a href="{{ route('login') }}" class="btn btn-secondary rounded-3 fw-semibold">
+                        Cancel
+                        </a>
                     </div>
 
                 </form>

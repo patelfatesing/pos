@@ -52,6 +52,52 @@
             </div>
         </div>
     </div>
+    <!-- Change Password Modal -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="changePasswordForm">
+                @csrf
+                <input type="hidden" name="user_id" id="password_user_id">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password" required>
+                            <!-- Eye icon -->
+                            <span 
+                                class="position-absolute" 
+                                style="top: 65px; right: 25px; cursor: pointer;" 
+                                onclick="togglePasswordVisibility()"
+                            >
+                                <i id="togglePasswordIcon" class="fa fa-eye"></i>
+                            </span>
+                        </div>
+                        <div class="mb-3">
+                            <label for="new_password_confirmation" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="new_password_confirmation" name="new_password_confirmation" required>
+                                <span 
+                                class="position-absolute" 
+                                style="top: 165px; right: 25px; cursor: pointer;" 
+                                onclick="togglePasswordVisibilityNew()">
+                                <i id="togglePasswordIconnew" class="fa fa-eye"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Update Password</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Wrapper End-->
 
     <script>
@@ -199,5 +245,72 @@
                 }
             });
         }
+        function openChangePasswordModal(userId) {
+    $('#password_user_id').val(userId);
+    $('#changePasswordModal').modal('show');
+}
+
+$('#changePasswordForm').submit(function(e) {
+    e.preventDefault();
+
+    const formData = {
+        _token: $('meta[name="csrf-token"]').attr('content'),
+        user_id: $('#password_user_id').val(),
+        new_password: $('#new_password').val(),
+        new_password_confirmation: $('#new_password_confirmation').val(),
+    };
+
+    $.ajax({
+        url: "{{ url('users/change-password') }}",
+        type: "POST",
+        data: formData,
+        success: function(response) {
+            Swal.fire("Success!", "Password updated successfully.", "success");
+            $('#changePasswordModal').modal('hide');
+            $('#changePasswordForm')[0].reset();
+        },
+        error: function(xhr) {
+            let errorMsg = "Failed to update password.";
+
+            if (xhr.responseJSON && xhr.responseJSON.errors) {
+                const errors = xhr.responseJSON.errors;
+                errorMsg = Object.values(errors).flat().join('\n');
+            } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMsg = xhr.responseJSON.message;
+            }
+
+            Swal.fire("Error!", errorMsg, "error");
+        }
+
+    });
+});
+  function togglePasswordVisibility() {
+      const input = document.getElementById('new_password');
+      const icon = document.getElementById('togglePasswordIcon');
+
+      if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+      } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+      }
+   }
+    function togglePasswordVisibilityNew() {
+      const input = document.getElementById('new_password_confirmation');
+      const icon = document.getElementById('togglePasswordIconnew');
+
+      if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+      } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+      }
+   }
     </script>
 @endsection
