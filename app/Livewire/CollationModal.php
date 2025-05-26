@@ -229,12 +229,12 @@ class CollationModal extends Component
                 $user->left_credit = max(0, $user->left_credit - $collectedAmount);
             }
             $user->save();
-            
+            $denominations = array_values($this->cashNotes);
             if ($this->paymentType != 'online') {
                 $cashBreakdown = \App\Models\CashBreakdown::create([
                     'user_id' => auth()->id(),
                     'branch_id' => $branch_id,
-                    'denominations' => json_encode($this->cashNotes),
+                    'denominations' => json_encode($denominations),
                     'total' => $collectedAmount,
                 ]);
             }
