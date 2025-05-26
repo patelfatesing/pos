@@ -66,8 +66,15 @@
 
             <div class="col-md-3">
                 <div class="mb-3">
+                  <div class="input-group">
                     <input type="number" wire:model.live="search" wire:keydown.enter="addToCartBarCode"
-                        class="form-control" placeholder=" {{ __('messages.scan_barcode') }}" autofocus>
+                        class="form-control" placeholder="{{ __('messages.scan_barcode') }}" autofocus>
+
+                    <button type="button" wire:click="$set('search', '')" class="btn btn-outline-primary">
+                        Clear
+                    </button>
+                </div>
+
                    
                     {{-- @if ($selectedProduct)
                         <div class="search-results">
