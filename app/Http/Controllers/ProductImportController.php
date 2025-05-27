@@ -18,6 +18,7 @@ use App\Models\Inventory;
 use App\Models\DailyProductStock;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class ProductImportController extends Controller
 {
@@ -28,319 +29,244 @@ class ProductImportController extends Controller
 
     public function import(Request $request)
     {
+        try {
+            $request->validate([
+                'file' => 'required|file|mimes:csv,txt|max:10240', // max 10MB
+            ]);
 
-        $request->validate([
-            'file' => 'required|file|mimes:csv,txt',
-        ]);
+            if (!$request->hasFile('file') || !$request->file('file')->isValid()) {
+                return redirect()->route('products.import')->withErrors(['file' => 'The uploaded file is invalid.']);
+            }
 
-        $file = $request->file('file');
-        $csv = array_map('str_getcsv', file($file));
-        $headers = array_map('trim', $csv[0]); // CSV headers
-
-        $file = $request->file('file');
-        $path = $file->getRealPath();
-
-
-        if ($request->hasFile('file')) {
             $file = $request->file('file');
+
+            // Read and validate CSV structure
+            $csv = array_map('str_getcsv', file($file));
+            if (empty($csv) || count($csv) < 2) { // At least header row and one data row
+                return redirect()->route('products.import')->withErrors(['file' => 'The CSV file must contain a header row and at least one data row.']);
+            }
+
+            $headers = array_map('trim', $csv[0]); // CSV headers
+            if (empty($headers)) {
+                return redirect()->route('products.import')->withErrors(['file' => 'The CSV file must contain headers.']);
+            }
 
             // Generate new filename with current date and time
             $filename = now()->format('dmYHis') . '.' . $file->getClientOriginalExtension();
 
             // Store the file in 'product_import' folder with the new name
             $file->storeAs('product_import', $filename, 'public');
+
+            // Redirect to mapping form
+            return redirect()->route('products.mapping', ['filename' => $filename]);
+        } catch (\Exception $e) {
+            Log::error('Product import error: ' . $e->getMessage());
+            return redirect()->route('products.import')->withErrors(['system_error' => 'An error occurred while processing the file. Please try again.']);
         }
-
-        // Get DB columns from a specific table, for example: products
-        $dbFields = Schema::getColumnListing('products');
-
-        $dbFields = [
-            1 => "Name",
-            2 => "Barcode",
-            3 => "Batch No",
-            4 => "Mfg Date",
-            5 => "Expiry Date",
-            6 => "Category",
-            7 => "Sub Category",
-            8 => "Pack Size",
-            9 => "Stock Low Level",
-            10 => "Cost Price",
-            11 => "Sell Price",
-            12 => "MRP",
-            13 => "Discount Price",
-            14 => "Discount Amt"
-        ];
-
-        // dd($dbFields);
-        return view('products_import.csv-preview', compact('headers', 'dbFields', 'filename'));
-
-
-        // $request->validate([
-        //     'file' => 'required|file|mimes:csv,txt',
-        // ]);
-
-        // $file = $request->file('file');
-        // $path = $file->getRealPath();
-
-        // if ($request->hasFile('file')) {
-        //     $file = $request->file('file');
-
-        //     // Generate new filename with current date and time
-        //     $filename = now()->format('dmYHis') . '.' . $file->getClientOriginalExtension();
-
-        //     // Store the file in 'product_import' folder with the new name
-        //     $file->storeAs('product_import', $filename, 'public');
-        // }
-
-
-        // $handle = fopen($path, 'r');
-
-        // $header = fgetcsv($handle); // read CSV header
-        // $inserted = 0;
-        // $skipped = 0;
-        // $updated = 0;
-
-        // while (($row = fgetcsv($handle)) !== false) {
-
-        //     $categories = Category::where('name', $row[5])->first();
-        //     $subcategories = SubCategory::where('name', $row[6])->first();
-        //     $category_id = $categories?->id;
-        //     $sub_category_id = $subcategories?->id;
-
-        //     if (!empty($sub_category_id) && !empty($category_id)) {
-
-        //         // Check for duplicates
-        //         $existing = DB::table('products')
-        //             ->join('inventories', 'products.id', '=', 'inventories.product_id')
-        //             ->where('products.name', $row[0])
-        //             ->where('inventories.batch_no', $row[2])
-        //             ->whereDate('inventories.expiry_date', Carbon::createFromFormat('d-m-Y', $row[4])->format('Y-m-d'))
-        //             ->first();
-
-        //         // if ($existing) {
-        //         //     $skipped++;
-        //         //     continue;
-        //         // }
-
-        //         // Insert or find product
-        //         $product = DB::table('products')->where('name', $row[0])->first();
-        //         $productId = null;
-
-        //         if (!$product) {
-        //             $brand = preg_replace('/\s\d{2,4}ml\b/i', '', $row[0]);
-        //             $sku = Product::generateSku($brand, $row[2], $row[7]);
-
-        //             $productId = DB::table('products')->insertGetId([
-        //                 'name' => $row[0],
-        //                 'brand' => $brand,
-        //                 'barcode' => (string) $row[1],
-        //                 'size' => $row[7],
-        //                 'sku' => $sku,
-        //                 'category_id' => $category_id,
-        //                 'subcategory_id' => $sub_category_id,
-        //                 'created_at' => now(),
-        //                 'cost_price' => $row[8],
-        //                 'sell_price' => $row[13],
-        //                 'reorder_level' => $row[14],
-        //                 'discount_price' => $row[15],
-        //                 'discount_amt' => $row[16],
-        //                 'case_size' => $row[11],
-        //                 'box_unit' => $row[17],
-        //                 'secondary_unitx' => $row[18],
-        //             ]);
-
-        //             $inserted++;
-        //         } else {
-
-        //             if ($product->barcode != (string) $row[1] || $product->sell_price != $row[13]) {
-        //                 $product_data = Product::findOrFail($product->id);
-        //                 $product_data->barcode = (string) $row[1];
-        //                 $product_data->cost_price = $row[8];
-        //                 $product_data->sell_price = $row[13];
-        //                 $product_data->discount_price = $row[15];
-        //                 $product_data->discount_amt = $row[16];
-        //                 $product_data->save();
-
-        //                 $productId = $product_data->id;
-        //                 $updated++;
-        //             }
-        //         }
-
-        //         if (!empty($productId)) {
-
-        //             // Insert inventory
-        //             DB::table('inventories')->insert([
-        //                 'product_id' => $productId,
-        //                 'store_id' => 1,
-        //                 'location_id' => 1,
-        //                 'batch_no' => $row[2],
-        //                 'expiry_date' => Carbon::parse($row[4])->format('Y-m-d'),
-        //                 'mfg_date' => Carbon::parse($row[3])->format('Y-m-d'),
-        //                 'quantity' => 0,
-        //             ]);
-        //         }
-
-        //         // Only increment if insert actually happens
-
-        //     }
-        // }
-
-
-        // fclose($handle);
-
-        // return redirect()->route('products.list')->with('success', "$inserted records inserted, $skipped duplicates skipped,$updated updated products.");
     }
 
-    public function preview(Request $request)
+    public function showMappingForm($filename)
     {
-        // $filename = $request->input('file_name'); // e.g., "product_sample.csv"
-        // $fullPath = storage_path('app/public/product_import/' . $filename);
-
-        // $mapping = $request->input('mapping');
-
-        // if (!file_exists($fullPath)) {
-        //     return response()->json(['error' => 'File not found.'], 404);
-        // }
-
-        // $csvData = array_map('str_getcsv', file($fullPath));
-        $filename = $request->input('file_name'); // e.g., "product_sample.csv"
         $fullPath = storage_path('app/public/product_import/' . $filename);
-        $mapping = $request->input('mapping');
 
         if (!file_exists($fullPath)) {
-            return response()->json(['error' => 'File not found.'], 404);
+            return redirect()->route('products.import')
+                ->withErrors(['file' => 'The uploaded file is no longer available. Please try uploading again.']);
         }
 
-        $rows = file($fullPath);
-        $csvData = [];
+        try {
+            $csv = array_map('str_getcsv', file($fullPath));
+            $headers = array_map('trim', $csv[0]); // CSV headers
 
-        foreach ($rows as $row1) {
-            $fields = str_getcsv($row1);
-            $formattedFields = array_map(function ($value) {
-                // Check if it's a numeric string in scientific notation
-                if (preg_match('/^\d+\.?\d*E\+?\d+$/i', $value)) {
-                    // Convert scientific to number without losing precision
-                    $value = number_format((int)$value, 0, '', '');
-                }
-                return $value;
-            }, $fields);
+            // Define database fields with descriptions
+            $dbFields = [
+                'Name' => 'name',
+                'Barcode' => 'barcode',
+                'Batch No' => 'batch_number',
+                'Mfg Date' => 'Mfg_date',
+                'Expiry Date' => 'Expiry_date',
+                'Category' => 'category',
+                'Sub Category' => 'sub_category',
+                'Pack Size' => 'pack_size',
+                'Stock Low Level' => 'Minimum_stock_level',
+                'Cost Price' => 'cost_price',
+                'Sell Price' => 'selling_price',
+                'MRP' => 'MRP',
+                'Discount Price' => 'Comission_customer_price',
+                'Discount Amt' => 'Discount_amount'
+            ];
 
-            $csvData[] = $formattedFields;
+            return view('products_import.csv-preview', compact('headers', 'dbFields', 'filename'));
+        } catch (\Exception $e) {
+            Log::error('Error showing mapping form: ' . $e->getMessage());
+            return redirect()->route('products.import')
+                ->withErrors(['system_error' => 'An error occurred while processing the file. Please try uploading again.']);
         }
+    }
 
+    public function processImport(Request $request)
+    {
+        
+        try {
+            $request->validate([
+                'file_name' => 'required|string',
+                'mapping' => 'required|array',
+                'mapping.name' => 'required',
+                'mapping.barcode' => 'required',
+                'mapping.batch_number' => 'required',
+                'mapping.category' => 'required',
+                'mapping.sub_category' => 'required',
+                'mapping.cost_price' => 'required',
+                'mapping.selling_price' => 'required',
+                'mapping.Minimum_stock_level' => 'required',
+            ], [
+                'mapping.required' => 'Please map all required fields.',
+                'mapping.name.required' => 'Product Name field mapping is required.',
+                'mapping.category.required' => 'Category field mapping is required.',
+                'mapping.sub_category.required' => 'Sub Category field mapping is required.',
+                'mapping.cost_price.required' => 'Cost Price field mapping is required.',
+                'mapping.selling_price.required' => 'Sell Price field mapping is required.',
+                'mapping.Minimum_stock_level.required' => 'Stock Low Level field mapping is required.',
+            ]);
 
-        $inserted = $updated = $skipped = $cate_sub_not_match = 0;
-        $productId = null;
+            $filename = $request->input('file_name');
+            $fullPath = storage_path('app/public/product_import/' . $filename);
 
-        // Skip header
-        for ($i = 1; $i < count($csvData); $i++) {
-            $row = $csvData[$i];
-            // Dynamically map values from row using $mapping
-            $name = $row[$mapping['Name']] ?? null;
-            $barcode = $row[$mapping['Barcode']] ?? null;
-            $batch_no = $row[$mapping['Batch No']] ?? null;
-            $mfg_date = Carbon::parse($row[$mapping['Mfg Date']])->format('Y-m-d');
-            $expiry_date = Carbon::parse($row[$mapping['Expiry Date']])->format('Y-m-d');
-            $category_id = $row[$mapping['Category']] ?? null;
-            $sub_category_id = $row[$mapping['Sub Category']] ?? null;
-            $sale_price = $row[$mapping['Sell Price']];
-
-            $categories = Category::where('name', $category_id)->first();
-            $subcategories = SubCategory::where('name', $sub_category_id)->first();
-            $category_id = $categories?->id;
-            $sub_category_id = $subcategories?->id;
-
-            if (empty($category_id) || empty($sub_category_id)) {
-                $cate_sub_not_match++;
-                continue;
+            if (!file_exists($fullPath)) {
+                return back()
+                    ->withErrors(['file' => 'The uploaded file is no longer available. Please try uploading again.']);
             }
 
-            // Check for existing inventory record
-            $existing = DB::table('products')
-                ->join('inventories', 'products.id', '=', 'inventories.product_id')
-                ->where('products.name', $name)
-                ->where('inventories.batch_no', $batch_no)
-                ->where('products.is_deleted', 'yes')
-                ->whereDate('inventories.expiry_date', $expiry_date)
-                ->where('products.barcode', $barcode)
-                ->where('products.sell_price', $sale_price)
-                ->first();
+            $rows = file($fullPath);
+            $csvData = [];
 
-            if ($existing) {
-                $skipped++;
-                continue;
+            foreach ($rows as $row) {
+                $fields = str_getcsv($row);
+                $formattedFields = array_map(function ($value) {
+                    if (preg_match('/^\d+\.?\d*E\+?\d+$/i', $value)) {
+                        $value = number_format((float)$value, 0, '', '');
+                    }
+                    return $value;
+                }, $fields);
+
+                $csvData[] = $formattedFields;
             }
 
-            // Find or Insert Product
-            $product = DB::table('products')->where('name', $name)->where('products.is_deleted', 'no')->first();
+            $mapping = $request->input('mapping');
+            $inserted = $updated = $skipped = $cate_sub_not_match = 0;
 
-            if (!$product) {
-                $brand = preg_replace('/\s\d{2,4}ml\b/i', '', $name);
-                $product_l_id = DB::table('products')->select('id')->orderBy('id', 'desc')->first();
-                if (empty($product_l_id)) {
-                    $product_l_id = 0;
-                } else {
-                    $product_l_id = $product_l_id->id;
+            DB::beginTransaction();
+
+            try {
+                // Skip header
+                for ($i = 1; $i < count($csvData); $i++) {
+                    $row = $csvData[$i];
+                    // Map values from row using $mapping
+                    $name = $row[$mapping['name']] ?? null;
+                    $barcode = $row[$mapping['barcode']] ?? null;
+                    $batch_no = $row[$mapping['batch_number']] ?? null;
+                    $mfg_date = isset($mapping['mfg_date']) && isset($row[$mapping['mfg_date']])
+                        ? Carbon::createFromFormat('d-m-Y', $row[$mapping['mfg_date']])->format('Y-m-d')
+                        : null;
+                    $expiry_date = isset($mapping['expiry_date']) && isset($row[$mapping['expiry_date']])
+                        ? Carbon::createFromFormat('d-m-Y', $row[$mapping['expiry_date']])->format('Y-m-d')
+                        : null;
+                    $category_name = $row[$mapping['category']] ?? null;
+                    $sub_category_name = $row[$mapping['sub_category']] ?? null;
+                    $pack_size = $row[$mapping['pack_size']] ?? null;
+                    $sale_price = $row[$mapping['Minimum_stock_level']] ?? null;
+
+                    // Validate required fields
+                    if (!$name || !$category_name || !$sub_category_name || !$sale_price) {
+                        $skipped++;
+                        continue;
+                    }
+
+                    // Find category and subcategory
+                    $category = Category::where('name', $category_name)->first();
+                    $subcategory = SubCategory::where('name', $sub_category_name)->first();
+
+                    if (!$category || !$subcategory) {
+                        $cate_sub_not_match++;
+                        continue;
+                    }
+
+                    // Check for existing product
+                    $existing = Product::where('name', $name)
+                        ->where('is_deleted', 'no')
+                        ->first();
+
+                    if ($existing) {
+                        // Update existing product
+                        $existing->barcode = $barcode;
+                        $existing->cost_price = $row[$mapping['cost_price']] ?? null;
+                        $existing->sell_price = $sale_price;
+                        $existing->discount_price = isset($mapping['Comission_customer_price']) ? $row[$mapping['Comission_customer_price']] : null;
+                        $existing->discount_amt = isset($mapping['Discount_amount']) ? $row[$mapping['Discount_amount']] : 0;
+                        $existing->save();
+
+                        $updated++;
+                    } else {
+                        // Create new product
+                        $brand = preg_replace('/\s\d{2,4}ml\b/i', '', $name);
+                        $product_l_id = Product::max('id') ?? 0;
+
+                        $sku = Product::generateSku($brand, $batch_no, $pack_size, $product_l_id + 1);
+
+                        $product = Product::create([
+                            'name' => $name,
+                            'brand' => $brand,
+                            'barcode' => $barcode,
+                            'size' => $pack_size,
+                            'sku' => $sku,
+                            'category_id' => $category->id,
+                            'subcategory_id' => $subcategory->id,
+                            'cost_price' => $row[$mapping['cost_price']] ?? null,
+                            'sell_price' => $sale_price,
+                            'mrp' => isset($mapping['MRP']) ? $row[$mapping['MRP']] : null,
+                            'reorder_level' => isset($mapping['Minimum_stock_level']) ? $row[$mapping['Minimum_stock_level']] : null,
+                            'discount_price' => isset($mapping['Comission_customer_price']) ? $row[$mapping['Comission_customer_price']] : null,
+                            'discount_amt' => isset($mapping['Discount_amount']) ? $row[$mapping['Discount_amount']] : 0,
+                        ]);
+
+                        // Create inventory record
+                        if ($mfg_date && $expiry_date) {
+                            Inventory::create([
+                                'product_id' => $product->id,
+                                'store_id' => 1,
+                                'location_id' => 1,
+                                'batch_no' => $batch_no,
+                                'expiry_date' => $expiry_date,
+                                'mfg_date' => $mfg_date,
+                                'quantity' => 0,
+                            ]);
+                        }
+
+                        $inserted++;
+                    }
                 }
-                $sku = Product::generateSku($brand, $batch_no, $row[$mapping['Pack Size']], $product_l_id);
 
-                $productId = DB::table('products')->insertGetId([
-                    'name' => $name,
-                    'brand' => (string) $brand,
-                    'barcode' => $barcode,
-                    'size' => $row[$mapping['Pack Size']] ?? null,
-                    'sku' => $sku,
-                    'category_id' => $category_id,
-                    'subcategory_id' => $sub_category_id,
-                    'cost_price' => $row[$mapping['Cost Price']] ?? null,
-                    'sell_price' => $row[$mapping['Sell Price']] ?? null,
-                    'mrp' => $row[$mapping['MRP']] ?? null,
-                    'reorder_level' => $row[$mapping['Stock Low Level']] ?? null,
-                    'discount_price' => $row[$mapping['Discount Price']] ?? null,
-                    'discount_amt' => ($row[$mapping['Discount Amt']] != "" ? $row[$mapping['Discount Amt']] : 0),
-                    'created_at' => Carbon::now(),
-                    'updated_at' => Carbon::now(),
-                ]);
+                DB::commit();
 
-                DB::table('inventories')->insert([
-                    'product_id' => $productId,
-                    'store_id' => 1,
-                    'location_id' => 1,
-                    'batch_no' => $batch_no,
-                    'expiry_date' => $expiry_date,
-                    'mfg_date' => $mfg_date,
-                    'quantity' => 0,
-                ]);
+                // Clean up the uploaded file
+                @unlink($fullPath);
 
-                $inserted++;
-            } else {
-                if (
-                    $product->barcode != (string) $barcode ||
-                    $product->sell_price != ($row[$mapping['Sell Price']] ?? null)
-                ) {
-                    $productModel = Product::find($product->id);
-                    $productModel->barcode = (string) $barcode;
-                    $productModel->cost_price = $row[$mapping['Cost Price']] ?? null;
-                    $productModel->sell_price = $row[$mapping['Sell Price']] ?? null;
-                    $productModel->discount_price = $row[$mapping['Discount Price']] ?? null;
-                    $productModel->discount_amt = $row[$mapping['Discount Amt']] ?? null;
-                    $productModel->save();
-
-                    $productId = $productModel->id;
-                    $updated++;
-                } else {
-                    $productId = $product->id;
-                }
+                return redirect()->route('products.list')
+                    ->with('success', "$inserted records inserted, $cate_sub_not_match category/sub-category not matched, " .
+                        "$skipped skipped, $updated updated products.");
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Product import error: ' . $e->getMessage());
+                return back()
+                    ->withErrors(['system_error' => 'An error occurred while importing products: ' . $e->getMessage()])
+                    ->withInput();
             }
+        } catch (\Exception $e) {
+            Log::error('Product import mapping error: ' . $e->getMessage());
+            return back()
+                ->withErrors(['system_error' => 'An error occurred while processing the file: ' . $e->getMessage()])
+                ->withInput();
         }
-
-        // return response()->json([
-        //     'inserted' => $inserted,
-        //     'updated' => $updated,
-        //     'skipped' => $skipped,
-        // ]);
-
-        return redirect()->route('products.list')->with('success', "$inserted records inserted,$cate_sub_not_match category and sub category not match, $skipped skipped,$updated updated products.");
     }
 
     // Try to parse using multiple known formats

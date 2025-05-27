@@ -459,10 +459,7 @@ class Shoppingcart extends Component
             $cashier_product_photo_path = session(auth()->id().'_cashier_product_photo_path', []);
             $cashier_customer_photo_path = session(auth()->id().'_cashier_customer_photo_path', []);
             
-            if (empty($this->selectedCommissionUser)) {
-                $this->dispatch('notiffication-error', ['message' => 'Please select commission customer.']);
-    
-            }else if (empty($cashier_product_photo_path) || empty($cashier_customer_photo_path))  {
+            if (empty($cashier_product_photo_path) || empty($cashier_customer_photo_path))  {
                 $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
     
             }else{
@@ -514,10 +511,7 @@ class Shoppingcart extends Component
             $cashier_product_photo_path = session(auth()->id().'_cashier_product_photo_path', []);
             $cashier_customer_photo_path = session(auth()->id().'_cashier_customer_photo_path', []);
             
-            if (empty($this->selectedCommissionUser)) {
-                $this->dispatch('notiffication-error', ['message' => 'Please select commission customer.']);
-    
-            }else if (empty($cashier_product_photo_path) || empty($cashier_customer_photo_path))  {
+            if (empty($cashier_product_photo_path) || empty($cashier_customer_photo_path))  {
                 $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
     
             }else{
@@ -545,10 +539,7 @@ class Shoppingcart extends Component
         if (auth()->user()->hasRole('warehouse')) {
             $warehouse_product_photo_path = session(auth()->id().'_warehouse_product_photo_path', []);
             $warehouse_customer_photo_path = session(auth()->id().'_warehouse_customer_photo_path', []);
-            if (empty($this->selectedPartyUser)) {
-                $this->dispatch('notiffication-error', ['message' => 'Please selecte party customer.']);
-    
-            }else if (empty($warehouse_product_photo_path) || empty($warehouse_customer_photo_path) )  {
+            if (empty($warehouse_product_photo_path) || empty($warehouse_customer_photo_path) )  {
                 $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
     
             }else{
@@ -1520,8 +1511,8 @@ class Shoppingcart extends Component
 
             foreach ($mycarts as $key => $mycart) {
                $this->getDiscountPrice($mycart->product->id);
-
-               $mycart->net_amount=$mycart->net_amount-($this->partyUserDiscountAmt*$mycart->quantity);
+                
+               $mycart->net_amount=($mycart->mrp *$mycart->quantity)-$this->partyUserDiscountAmt;
                $mycart->discount=$this->partyUserDiscountAmt*$mycart->quantity;
                $mycart->save();
                $sum=$sum+$mycart->net_amount;

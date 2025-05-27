@@ -93,7 +93,7 @@
 <div>
     <strong>{{ @$type == 'refund' ? 'Refund' : 'Invoice' }}:</strong> {{ $invoice->invoice_number }}<br>
     <strong>Name:</strong> {{ $customer_name ?? '' }}<br>
-    <strong>Date:</strong> {{ $created_at->format('d/m/Y H:i') }}
+    <strong>Date:</strong> {{ now()->format('d/m/Y H:i') }}
 </div>
 
 <div class="line"></div>

@@ -39,8 +39,7 @@ class HoldTransactions extends Component
     {
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
         $transaction = Invoice::where(['user_id' => auth()->user()->id])->where('id', $id)->where(['branch_id' => $branch_id])->where('status', 'Hold')->first();
-        $transaction->status =Cart::STATUS_PENDING;
-        $transaction->save();
+        $transaction->delete();
         
         foreach ($transaction->items as $key => $value) {
             $product =Product::where('name', $value['name'])->first();

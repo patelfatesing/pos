@@ -29,7 +29,7 @@ class PurchaseController extends Controller
      */
     public function create()
     {
-        $vendors = VendorList::where('is_active', true)->get();
+        $vendors = VendorList::where('is_active', 1)->get();
         $products = Product::select('id', 'name')->where('is_deleted', 'no')->get();
 
         // $products = Product::select('products.id', 'products.name', DB::raw('SUM(inventories.quantity) as total_quantity'))
