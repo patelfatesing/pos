@@ -60,7 +60,13 @@
                                             </select>
                                         </div>
 
-                                        <button type="submit" class="btn btn-success mt-2">Import Data</button>
+                                        <div class="row mt-3">
+                                            <div class="col-12">
+                                                <button type="submit" id="submitBtn"
+                                                    class="btn btn-primary">Upload</button>
+                                                <button type="reset" class="btn btn-danger">Reset</button>
+                                            </div>
+                                        </div>
                                     </form>
                                 </div>
 
@@ -96,7 +102,7 @@
                 if (subCatId) {
                     $.get("{{ url('/products/getpacksize') }}/" + subCatId, function(data) {
                         $('#pack_size').empty().append(
-                        '<option value="">Select Pack Size</option>');
+                            '<option value="">Select Pack Size</option>');
                         $.each(data, function(i, val) {
                             $('#pack_size').append('<option value="' + val.size + '">' + val
                                 .size + '</option>');

@@ -12,41 +12,91 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between">
                                 <div class="header-title">
-                                    <h4 class="card-title">Import Product</h4>
+                                    <h4 class="card-title">Import Products</h4>
                                 </div>
                                 <div>
-                                    <a href="{{ route('products.download-sample') }}" class="btn btn-success mr-2">Sample File</a>
-                                    <a href="{{ route('products.list') }}" class="btn btn-secondary">Back</a>
+                                    <a href="{{ route('products.download-sample') }}" class="btn btn-success">
+                                        <i class="fas fa-download"></i> Download Sample
+                                    </a>
+                                    <a href="{{ route('products.list') }}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left"></i> Back
+                                    </a>
                                 </div>
                             </div>
 
                             <div class="card-body">
-                                <div class="container">
+                                @if (session('success'))
+                                    <div class="alert alert-success alert-dismissible fade show">
+                                        {{ session('success') }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                            aria-label="Close"></button>
+                                    </div>
+                                @endif
 
-                                    @if (session('success'))
-                                        <div class="alert alert-success">{{ session('success') }}</div>
-                                    @endif
+                                @if (session('error'))
+                                    <div class="alert alert-danger alert-dismissible fade show">
+                                        {{ session('error') }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                            aria-label="Close"></button>
+                                    </div>
+                                @endif
+
+                                @if ($errors->any())
+                                    <div class="alert alert-danger alert-dismissible fade show">
+                                        <ul class="mb-0">
+                                            @foreach ($errors->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                            aria-label="Close"></button>
+                                    </div>
+                                @endif
+
+                                <div class="container">
+                                    <div class="row mb-4">
+                                        <div class="col-12">
+                                            <div class="alert alert-info">
+                                                <h5 class="alert-heading">Import Instructions</h5>
+                                                <ol class="mb-0">
+                                                    <li>Download the sample file to see the required format</li>
+                                                    <li>Prepare your CSV file with the same column structure</li>
+                                                    <li>Make sure all required fields are filled</li>
+                                                    <li>Upload your file and verify the field mapping</li>
+                                                </ol>
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     <form method="POST" action="{{ route('products.upload') }}"
-                                        enctype="multipart/form-data">
+                                        enctype="multipart/form-data" id="importForm">
                                         @csrf
                                         <div class="row">
-                                            <div class="col-sm-6">
-                                                <div class="custom-file mb-3">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
                                                     <input type="file" class="custom-file-input" id="file"
                                                         name="file">
                                                     <label class="custom-file-label" for="file">Choose file</label>
+
                                                     @error('file')
-                                                        <span class="text-danger">{{ $message }}</span>
+                                                        <div class="invalid-feedback">{{ $message }}</div>
                                                     @enderror
+                                                    <small class="form-text text-muted">
+                                                        Accepted formats: CSV
+                                                    </small>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <button class="btn btn-primary mt-2" type="submit">Upload</button>
+                                        <div class="row mt-3">
+                                            <div class="col-12">
+                                                <button class="btn btn-primary" type="submit" id="submitBtn">
+                                                    <i class="fas fa-upload"></i> Upload & Continue
+                                                </button>
+                                            </div>
+                                        </div>
                                     </form>
                                 </div>
-
                             </div>
                         </div>
                     </div>
@@ -59,6 +109,38 @@
 
     <script>
         $(document).ready(function() {
+            // File input change handler
+            $('#file').on('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    // Validate file type
+                    const validTypes = ['text/csv', 'text/plain'];
+                    if (!validTypes.includes(file.type)) {
+                        alert('Please select a valid CSV or TXT file.');
+                        this.value = '';
+                        return;
+                    }
+
+                    // Validate file size (10MB)
+                    const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+                    if (file.size > maxSize) {
+                        alert('File size must be less than 10MB.');
+                        this.value = '';
+                        return;
+                    }
+                }
+            });
+
+            // Form submit handler
+            $('#importForm').on('submit', function(e) {
+                const fileInput = $('#file')[0];
+                if (!fileInput.files || !fileInput.files[0]) {
+                    e.preventDefault();
+                    alert('Please select a file to upload.');
+                    return false;
+                }
+            });
+
             $('#category_id').on('change', function() {
 
                 var categoryId = $(this).val();

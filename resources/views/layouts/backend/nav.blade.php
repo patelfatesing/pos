@@ -394,7 +394,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
         }
     });
 
-    function fetchNotifications() {
+    function fetchNotifications() { 
         fetch('{{ route('notifications.get-notication') }}')
             .then(response => response.json())
             .then(data => {
@@ -442,7 +442,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                         data-type="${item.type}" id="${item.id}" data-nfid="${item.id}">
                         <div class="media align-items-center cust-card py-3 border-bottom">
                             <div>
-                                <img class="avatar-50 rounded-small" src="/assets/images/user/notification.png" alt="01" />
+                                <img class="avatar-50 rounded-small" src={{ asset('assets/images/user/notification.png') }}" alt="01" />
                             </div>
                             <div class="media-body ml-3">
                                 <div class="d-flex align-items-center justify-content-between">

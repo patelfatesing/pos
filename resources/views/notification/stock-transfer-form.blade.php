@@ -1,38 +1,26 @@
 <form id="priceUpdateForm">
     @csrf
     <div class="modal-header">
-        <h5 class="modal-title" id="approveModalLabel">Stock Request Detail</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
+        <h5 class="modal-title" id="approveModalLabel">Stock Transfer Detail</h5>
     </div>
 
     <div class="modal-body">
         <div class="container mt-1">
-            <h4 class="mb-4">Stock Request #{{ $stockRequest->id }}</h4>
-
             <div class="card mb-4">
                 <div class="card-body">
-                    <p><strong>Store:</strong> {{ $stockRequest->store->name ?? 'warehouse' }}</p>
-                    <p><strong>Requested By:</strong> {{ $stockRequest->user->name ?? 'N/A' }}</p>
-                    <p><strong>Date:</strong> {{ $stockRequest->requested_at->format('d M Y h:i A') }}</p>
-                    <p><strong>Status:</strong>
-                        <span
-                            class="badge 
-                                    {{ $stockRequest->status === 'pending'
-                                        ? 'bg-warning'
-                                        : ($stockRequest->status === 'approved'
-                                            ? 'bg-success'
-                                            : 'bg-danger') }}">
-                            {{ ucfirst($stockRequest->status) }}
-                        </span>
-                    </p>
-                    <p><strong>Notes:</strong> {{ $stockRequest->notes ?? '-' }}</p>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <p><strong>From:</strong> Warehouse</p>
+                        </div>
+                        <div class="col-lg-6">
+                            {{-- <p><strong>Date Time:</strong> Warehouse</p> --}}
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="card">
-                <div class="card-header"><strong>Requested Items</strong></div>
+                <div class="card-header"><strong>Transfer Items</strong></div>
                 <div class="card-body p-0">
                     <table class="table table-bordered mb-0">
                         <thead>
@@ -41,22 +29,22 @@
                                 <th>Product</th>
                                 <th>Brand</th>
                                 <th>SKU</th>
-                                <th>Size</th>
+                                <th>Transfer Number</th>
                                 <th>Quantity</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($stockRequest->items as $index => $item)
+                            @foreach ($stockTransfer as $index => $item)
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
-                                    <td>{{ $item->product->name }}</td>
-                                    <td>{{ $item->product->brand }}</td>
-                                    <td>{{ $item->product->sku }}</td>
-                                    <td>{{ $item->product->size }}</td>
+                                    <td>{{ $item->product_name }}</td>
+                                    <td>{{ $item->brand }}</td>
+                                    <td>{{ $item->sku }}</td>
+                                    <td>{{ $item->transfer_number }}</td>
                                     <td>{{ $item->quantity }}</td>
                                 </tr>
                             @endforeach
-                            @if ($stockRequest->items->isEmpty())
+                            @if ($stockTransfer->isEmpty())
                                 <tr>
                                     <td colspan="6" class="text-center">No items found.</td>
                                 </tr>
@@ -70,7 +58,7 @@
     </div>
 
     <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="nfModelCls()">Close</button>
         {{-- <button type="submit" class="btn btn-primary">Save changes</button> --}}
     </div>
 </form>

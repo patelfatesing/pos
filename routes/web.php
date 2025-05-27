@@ -341,12 +341,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/demand-order/edit/{id}', [DemandOrderController::class, 'edit'])->name('demand-orders.edit');
     Route::get('/demand-order/create-pre', [DemandOrderController::class, 'createPrediction'])->name('demand-order.create.pre');
 
-    Route::get('/products/import', [ProductImportController::class, 'showUploadForm'])->name('products.import');
-    Route::post('/products/upload', [ProductImportController::class, 'import'])->name('products.upload');
-    Route::post('/products/import-data', [ProductImportController::class, 'importData'])->name('products.import.data');
-    Route::get('/products/add-stocks', [ProductImportController::class, 'addStocks'])->name('products.add-stocks');
-    Route::post('/products/import-stocks', [ProductImportController::class, 'importStocks'])->name('products.import.stocks');
-    Route::post('/csv-preview', [ProductImportController::class, 'preview'])->name('csv.preview');
+    // Product Import Routes
+    Route::prefix('products')->name('products.')->group(function () {
+        Route::get('/import', [ProductImportController::class, 'showUploadForm'])->name('import');
+        Route::post('/upload', [ProductImportController::class, 'import'])->name('upload');
+        Route::get('/mapping/{filename}', [ProductImportController::class, 'showMappingForm'])->name('mapping');
+        Route::post('/process-import', [ProductImportController::class, 'processImport'])->name('process');
+        Route::get('/add-stocks', [ProductImportController::class, 'addStocks'])->name('add-stocks');
+        Route::post('/import-stocks', [ProductImportController::class, 'importStocks'])->name('import.stocks');
+    });
 
     Route::get('/shift-manage/list', [ShiftManageController::class, 'index'])->name('shift-manage.list');
     Route::post('/shift-manage/get-data', [ShiftManageController::class, 'getShiftClosingsData'])->name('shift-manage.getData');

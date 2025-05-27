@@ -26,6 +26,26 @@
                                     </div>
                                 @endif
 
+                                @if (session('error'))
+                                    <div class="alert alert-danger alert-dismissible fade show">
+                                        {{ session('error') }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                            aria-label="Close"></button>
+                                    </div>
+                                @endif
+
+                                @if ($errors->any())
+                                    <div class="alert alert-danger alert-dismissible fade show">
+                                        <ul class="mb-0">
+                                            @foreach ($errors->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                            aria-label="Close"></button>
+                                    </div>
+                                @endif
+
                                 <form id="transferForm" action="{{ route('stock-transfer.store') }}" method="POST">
                                     @csrf
                                     <div class="row">
@@ -165,7 +185,7 @@
                                     </div>
                                 </form>
                             </div>
-                        </div>  
+                        </div>
                     </div>
                 </div>
             </div>
@@ -175,13 +195,68 @@
     <script>
         let itemIndex = {{ old('items') ? count(old('items')) : 1 }};
 
-        // Prevent double submission
+        // Prevent double submission and validate form
         document.getElementById('transferForm').addEventListener('submit', function(e) {
             const submitBtn = document.getElementById('submitBtn');
+
+            // Clear previous error states
+            $('.is-invalid').removeClass('is-invalid');
+            $('.invalid-feedback').remove();
+
+            // Validate source and destination stores
+            const fromStore = $('#from_store_id').val();
+            const toStore = $('#to_store_id').val();
+            let hasError = false;
+
+            if (!fromStore) {
+                $('#from_store_id').addClass('is-invalid');
+                $('#from_store_id').after('<div class="invalid-feedback">Please select the source store.</div>');
+                hasError = true;
+            }
+
+            if (!toStore) {
+                $('#to_store_id').addClass('is-invalid');
+                $('#to_store_id').after('<div class="invalid-feedback">Please select the destination store.</div>');
+                hasError = true;
+            }
+
+            if (fromStore && toStore && fromStore === toStore) {
+                $('#to_store_id').addClass('is-invalid');
+                $('#to_store_id').after(
+                    '<div class="invalid-feedback">Source and destination stores must be different.</div>');
+                hasError = true;
+            }
+
+            // Validate products
+            $('.product-select').each(function(index) {
+                const productId = $(this).val();
+                const quantityInput = $(this).closest('.row').find('input[type="number"]');
+                const quantity = quantityInput.val();
+
+                if (!productId) {
+                    $(this).addClass('is-invalid');
+                    $(this).after('<div class="invalid-feedback">Please select a product.</div>');
+                    hasError = true;
+                }
+
+                if (!quantity || quantity < 1) {
+                    quantityInput.addClass('is-invalid');
+                    quantityInput.after(
+                        '<div class="invalid-feedback">Please enter a valid quantity.</div>');
+                    hasError = true;
+                }
+            });
+
+            if (hasError) {
+                e.preventDefault();
+                return false;
+            }
+
             if (submitBtn.disabled) {
                 e.preventDefault();
                 return false;
             }
+
             submitBtn.disabled = true;
             submitBtn.innerHTML = 'Processing...';
             return true;
@@ -265,6 +340,14 @@
                     type: "GET",
                     dataType: "json",
                     success: function(data) {
+
+                        if (data.from_count <= 0) {
+                            alert("Insufficient stock in the source store for this product.");
+                            
+                            currentSelect.val('');
+                            container.empty();
+                            return false;
+                        }
                         let html = `
                             <div class="row">
                                 <div class="col-md-6">
