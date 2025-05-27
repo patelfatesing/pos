@@ -40,7 +40,7 @@
                                             <div class="form-group">
                                                 <label>Date:</label>
                                                 <span class="ml-2">
-                                                    {{ \Carbon\Carbon::parse($purchase->date)->format('d-m-Y h:i A') }}</span>
+                                                    {{ \Carbon\Carbon::parse($purchase->created_at)->format('d-m-Y h:i A') }}</span>
                                             </div>
                                         </div>
                                     </div>
