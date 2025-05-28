@@ -189,6 +189,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/inventories/add-stock/{id}', [InventoryController::class, 'addStock'])->name('inventories.add-stock');
     Route::get('/inventories/edit1/{id}', [InventoryController::class, 'editStock'])->name('inventories.edit-stock');
     Route::post('/inventories/store-stock', [InventoryController::class, 'storeStock'])->name('inventories.stockStore');
+    Route::post('/inventories/update-low-level-qty', [InventoryController::class, 'updateLowLevelQty'])->name('inventories.update-low-level-qty');
+    Route::get('/inventories/get-low-level-products/{storeId}', [InventoryController::class, 'getLowLevelProducts'])->name('inventories.get-low-level-products');
+    Route::post('/inventories/update-multiple-low-level-qty', [InventoryController::class, 'updateMultipleLowLevelQty'])->name('inventories.update-multiple-low-level-qty');
+    
     // Route::get('/stock/list', [InventoryController::class, 'index'])->name('inventories.list');
     // Route::post('/inventories/get-data', [InventoryController::class, 'getData'])->name('inventories.getData');
 

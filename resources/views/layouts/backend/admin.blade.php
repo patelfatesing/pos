@@ -99,6 +99,11 @@
                                 <i class="las la-minus"></i><span>Store Manage</span>
                             </a>
                         </li>
+                        <li class="">
+                            <a href="{{ route('shift-manage.list') }}">
+                                <i class="las la-minus"></i><span>Shift Manage</span>
+                            </a>
+                        </li>
                     </ul>
                 </li>
 
@@ -129,11 +134,6 @@
                         <li class="">
                             <a href="{{ route('users.list') }}">
                                 <i class="las la-minus"></i><span>Users</span>
-                            </a>
-                        </li>
-                        <li class="">
-                            <a href="{{ route('shift-manage.list') }}">
-                                <i class="las la-minus"></i><span>Shift Manage</span>
                             </a>
                         </li>
                     </ul>

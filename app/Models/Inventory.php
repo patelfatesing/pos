@@ -16,9 +16,10 @@ class Inventory extends Model
         'is_active',
         'is_deleted',
         'created_by',
-        'added_by'
+        'added_by',
+        'low_level_qty'
     ];
-    
+
     public function product()
     {
         return $this->belongsTo(Product::class);
@@ -27,6 +28,13 @@ class Inventory extends Model
     public function location()
     {
         return $this->morphTo();
+    }
+
+    public static function countQty($productId, $storeId)
+    {
+        return self::where('product_id', $productId)
+            ->where('store_id', $storeId)
+            ->sum('quantity');
     }
 
     protected $casts = [
