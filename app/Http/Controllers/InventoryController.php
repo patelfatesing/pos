@@ -100,9 +100,11 @@ class InventoryController extends Controller
         $url = url('/');
 
         foreach ($data as $inventory) {
-            $reorder_level = ($inventory->quantity < $inventory->reorder_level)
-                ? '<span class="badge bg-danger">Low Level (' . $inventory->reorder_level . ')</span>'
-                : '<span class="badge bg-success">' . $inventory->reorder_level . '</span>';
+            $total_qty = Inventory::countQty($inventory->product_id, $inventory->store_id);
+
+            $reorder_level = ($total_qty < $inventory->low_level_qty)
+                ? '<span class="badge bg-danger" onclick="low_level_stock_set(' . $inventory->product_id . ',' . $inventory->store_id . ',' . $inventory->low_level_qty . ')">Low Level (' . $inventory->low_level_qty . ')</span>'
+                : '<span class="badge bg-success" onclick="low_level_stock_set(' . $inventory->product_id . ',' . $inventory->store_id . ',' . $inventory->low_level_qty . ')">' . $inventory->low_level_qty . '</span>';
             $status = ($inventory->status == 'Yes')
                 ? '<span class="badge bg-danger">Active</span>'
                 : '<span class="badge bg-success">Inactive</span>';
@@ -365,8 +367,86 @@ class InventoryController extends Controller
             'data' => $records
         ]);
     }
+
     public function lowStock()
     {
         return $this->inventoryService->getLowStockItems();
+    }
+
+    public function countQty($p_id, $store_id)
+    {
+        return Inventory::where('product_id', $p_id)
+            ->where('store_id', $store_id)
+            ->sum('qty'); // assuming your column is named 'qty'
+    }
+
+    public function updateLowLevelQty(Request $request)
+    {
+        $request->validate([
+            'store_id' => 'required|integer',
+            'product_id' => 'required|integer',
+            'low_level_qty' => 'required|integer|min:0',
+        ]);
+
+        $storeId = $request->store_id;
+        $productId = $request->product_id;
+        $lowLevelQty = $request->low_level_qty;
+
+        if ($storeId == 1) {
+            // Update reorder_level in products table
+            $product = Product::find($productId);
+            if ($product) {
+                $product->reorder_level = $lowLevelQty;
+                $product->save();
+            }
+            Inventory::where('product_id', $productId)
+                ->where('store_id', $storeId)
+                ->update(['low_level_qty' => $lowLevelQty]);
+        } else {
+            // Update low_level_qty in inventories table for matching product_id AND store_id
+            Inventory::where('product_id', $productId)
+                ->where('store_id', $storeId)
+                ->update(['low_level_qty' => $lowLevelQty]);
+        }
+
+        return response()->json(['message' => 'Low level quantity updated successfully.']);
+    }
+
+    public function getLowLevelProducts($storeId)
+    {
+        $products = Inventory::join('products', 'inventories.product_id', '=', 'products.id')
+            ->where('inventories.store_id', $storeId)
+            ->where('products.is_deleted', 'no')
+            ->where('products.is_active', 'yes')
+            ->select('products.name', 'inventories.low_level_qty','inventories.product_id as id')
+            ->groupBy('inventories.product_id', 'products.name', 'inventories.low_level_qty')
+            ->get();
+
+        return response()->json($products);
+    }
+
+    public function updateMultipleLowLevelQty(Request $request)
+    {
+        $storeId = $request->input('store_id');
+        $products = $request->input('products');
+
+        foreach ($products as $product) {
+            $productId = $product['product_id'];
+            $lowLevelQty = $product['low_level_qty'];
+
+            if ($storeId == 1) {
+                // Update reorder_level in product table
+                \App\Models\Product::where('id', $productId)->update([
+                    'reorder_level' => $lowLevelQty
+                ]);
+            }
+
+            // Update all inventories for that product & store
+            \App\Models\Inventory::where('product_id', $productId)
+                ->where('store_id', $storeId)
+                ->update(['low_level_qty' => $lowLevelQty]);
+        }
+
+        return response()->json(['success' => true]);
     }
 }

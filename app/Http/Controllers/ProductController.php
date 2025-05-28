@@ -102,8 +102,8 @@ class ProductController extends Controller
                 'sub_category' => $product->subcategory->name ?? 'N/A',
                 'size' => $product->size,
                 'brand' => $product->brand,
-                'sku' => $product->sku,
-                'mrp' => "₹".$product->mrp,
+                'sell_price' => "₹" . $product->sell_price,
+                'mrp' => "₹" . $product->mrp,
                 'is_active' => $status,
                 'created_at' => date('d-m-Y h:i', strtotime($product->created_at)),
                 'action' => $action
@@ -232,13 +232,6 @@ class ProductController extends Controller
         // }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Product $product)
-    {
-        //
-    }
 
     /**
      * Show the form for editing the specified resource.

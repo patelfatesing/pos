@@ -484,6 +484,7 @@ class ProductImportController extends Controller
                             'expiry_date' => $inventory->expiry_date,
                             'mfg_date' => $inventory->mfg_date,
                             'quantity' => $product['quantity'],
+                            'low_level_qty' => $product['reorder_level'],
                             'added_by' => Auth::id()
                         ]
                     );

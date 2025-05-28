@@ -112,6 +112,7 @@ class StockTransferController extends Controller
                             'batch_no'     => $inventory->batch_no,
                             'expiry_date'  => $inventory->expiry_date->toDateString(),
                             'quantity'     => $deductQty,
+                            // 'low_level_qty' => $item['reorder_level'],
                         ]);
                     }
 
