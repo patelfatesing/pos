@@ -225,18 +225,20 @@
 
                 updateTotal();
             } else {
+                const tableBody = document.querySelector("#product_table tbody");
+                const srNo1 = tableBody.rows.length + 1;
                 // New row
                 const row = `
                 <tr>
-                    <td>${srNo}</td>
-                    <input type="hidden" name="products[${srNo - 1}][product_id]" value="${brand}">
-                    <td><input type="text" name="products[${srNo - 1}][brand_name]" class="form-control" value="${brandVal}" readonly></td>
-                    <td><input type="text" name="products[${srNo - 1}][batch]" class="form-control" value="${batch}"></td>
-                    <td><input type="date" name="products[${srNo - 1}][mfg_date]" class="form-control" value="${mfg}"></td>
-                    <td><input type="number" step="0.01" name="products[${srNo - 1}][mrp]" class="form-control" value="${mrp}"></td>
-                    <td><input type="number" name="products[${srNo - 1}][qnt]" class="form-control" value="${qty}" min="1" data-prev="${qty}"></td>
-                    <td><input type="number" step="0.01" name="products[${srNo - 1}][rate]" class="form-control" value="${rate}"></td>
-                    <td><input type="number" step="0.01" name="products[${srNo - 1}][amount]" class="form-control" value="${amount}" readonly></td>
+                    <td>${srNo1}</td>
+                    <input type="hidden" name="products[${srNo1 - 1}][product_id]" value="${brand}">
+                    <td><input type="text" name="products[${srNo1 - 1}][brand_name]" class="form-control" value="${brandVal}" readonly></td>
+                    <td><input type="text" name="products[${srNo1 - 1}][batch]" class="form-control" value="${batch}"></td>
+                    <td><input type="date" name="products[${srNo1 - 1}][mfg_date]" class="form-control" value="${mfg}"></td>
+                    <td><input type="number" step="0.01" name="products[${srNo1 - 1}][mrp]" class="form-control" value="${mrp}"></td>
+                    <td><input type="number" name="products[${srNo1 - 1}][qnt]" class="form-control" value="${qty}" min="1" data-prev="${qty}"></td>
+                    <td><input type="number" step="0.01" name="products[${srNo1 - 1}][rate]" class="form-control" value="${rate}"></td>
+                    <td><input type="number" step="0.01" name="products[${srNo1 - 1}][amount]" class="form-control" value="${amount}" readonly></td>
                     <td><button type="button" class="btn btn-sm btn-danger remove">Remove</button></td>
                 </tr>
                 `;
