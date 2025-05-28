@@ -329,17 +329,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/demand-order/list', [DemandOrderController::class, 'index'])->name('demand-order.list');
     Route::post('/demand-order/get-data', [DemandOrderController::class, 'getData'])->name('demand-order.getData');
     Route::get('/demand-order/create', [DemandOrderController::class, 'create'])->name('demand-order.create');
-    //  Route::get('/demand-order/step-1', [DemandOrderController::class, 'step1'])->name('demand-order.step1');
-    // Route::post('/demand-order/step-1', [DemandOrderController::class, 'postStep1'])->name('demand-order.step1');
+    
+     Route::get('/demand-order/step-1', [DemandOrderController::class, 'step1'])->name('demand-order.step1');
+    Route::post('/demand-order/step-1', [DemandOrderController::class, 'postStep1'])->name('demand-order.step1');
 
-    // Route::get('/demand-order/step-2', [DemandOrderController::class, 'step2'])->name('demand-order.step2');
-    // Route::post('/demand-order/step-2', [DemandOrderController::class, 'postStep2'])->name('demand-order.step2');
+    Route::get('/demand-order/step-2', [DemandOrderController::class, 'step2'])->name('demand-order.step2');
+    Route::post('/demand-order/step-2', [DemandOrderController::class, 'postStep2'])->name('demand-order.step2');
 
-    // Route::get('/demand-order/step-3', [DemandOrderController::class, 'step3'])->name('demand-order.step3');
-    // Route::post('/demand-order/step-3', [DemandOrderController::class, 'postStep3'])->name('demand-order.step3');
+    Route::get('/demand-order/step-3', [DemandOrderController::class, 'step3'])->name('demand-order.step3');
+    Route::post('/demand-order/step-3', [DemandOrderController::class, 'postStep3'])->name('demand-order.step3');
 
-    // Route::get('/demand-order/step-4', [DemandOrderController::class, 'step4'])->name('demand-order.step4');
-    // Route::post('/demand-order/step-4', [DemandOrderController::class, 'postStep4'])->name('demand-order.step4');
+    Route::get('/demand-order/step-4', [DemandOrderController::class, 'step4'])->name('demand-order.step4');
+    Route::post('/demand-order/step-4', [DemandOrderController::class, 'postStep4'])->name('demand-order.step4');
 
     Route::post('/demand-order/store', [DemandOrderController::class, 'store'])->name('demand-order.store');
     Route::get('/demand-order/edit/{id}', [DemandOrderController::class, 'edit'])->name('demand-orders.edit');

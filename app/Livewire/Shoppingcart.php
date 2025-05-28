@@ -1964,9 +1964,10 @@ class Shoppingcart extends Component
             foreach ($groupedProducts as $productId => $totalQuantity) {
                 $product = $this->cartitems->firstWhere('product_id', $productId)->product;
                 $inventories = $product->inventories;
+                $totalQuantity = $inventories->sum('quantity');
                 $inventory =$product->inventorie;
                 
-                if ($inventory && $inventory->quantity < $inventory->product->reorder_level) {
+                if ($totalQuantity <= $inventory->low_level_qty) {
                     // You can use your custom function like sendNotification, or better use Laravel Notification system
 
                     // Example with your function:
@@ -1974,7 +1975,6 @@ class Shoppingcart extends Component
                     sendNotification('low_stock', 'Store stock request', null, auth()->id(),json_encode($arr));
 
                 }
-
                 stockStatusChange($inventory->product->id,$branch_id,$totalQuantity,'sold_stock');
 
                 if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {

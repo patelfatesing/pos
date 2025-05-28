@@ -267,8 +267,8 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                                 class="rounded profile-img img-fluid avatar-70" />
                                         </div>
                                         <div class="p-3">
-                                            <h5 class="mb-1">{{ $user->userInfo->first_name }}
-                                                {{ $user->userInfo->last_name }}</h5>
+                                            <h5 class="mb-1">{{ @$user->userInfo->first_name }}
+                                                {{ @$user->userInfo->last_name }}</h5>
                                             <p class="mb-0">Since
                                                 {{ \Carbon\Carbon::parse(Auth::user()->created_at)->format('d F, Y') }}
                                             </p>
