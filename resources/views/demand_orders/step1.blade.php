@@ -30,7 +30,7 @@
                                         </li>
                                         <li id="payment">
                                             <a href="javascript:void();">
-                                                <i class="ri-camera-fill"></i><span>Final Select</span>
+                                                <i class="ri-file-text-line	"></i><span>Final Select</span>
                                             </a>
                                         </li>
                                         <li id="confirm">
@@ -53,13 +53,15 @@
                                             <div class="row">
                                                 <div class="col-md-4">
                                                     <label for="vendor_id">Vendor Name</label>
-                                                    <select name="vendor_id" id="vendor_id" class="form-control">
-                                                        <option value="">-- Select Party --</option>
-                                                        @foreach ($vendors as $vendor)
-                                                            <option value="{{ $vendor->id }}">{{ $vendor->name }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
+                                                  <select name="vendor_id" id="vendor_id" class="form-control">
+                                                    <option value="">-- Select Party --</option>
+                                                    @foreach ($vendors as $vendor)
+                                                        <option value="{{ $vendor->id }}" {{ old('vendor_id') == $vendor->id ? 'selected' : '' }}>
+                                                            {{ $vendor->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+
                                                     @error('vendor_id')
                                                         <span class="text-danger">{{ $message }}</span>
                                                     @enderror
@@ -73,7 +75,7 @@
                                                         <span class="text-danger">{{ $message }}</span>
                                                     @enderror
                                                 </div>
-                                               @php
+                                                @php
                                                     $today = date('Y-m-d');
                                                     $maxDate = date('Y-m-d', strtotime('+3 months'));
                                                 @endphp
@@ -81,11 +83,8 @@
                                                 <div class="col-md-4">
                                                     <div class="form-group">
                                                         <label for="shipping_date" class="form-label">Shipping Date</label>
-                                                        <input type="date" 
-                                                            id="shipping_date"
-                                                            name="shipping_date" 
-                                                            class="form-control"
-                                                            min="{{ $today }}"
+                                                        <input type="date" id="shipping_date" name="shipping_date"
+                                                            class="form-control" min="{{ $today }}"
                                                             max="{{ $maxDate }}">
                                                         @error('shipping_date')
                                                             <span class="text-danger">{{ $message }}</span>
@@ -103,14 +102,14 @@
                                                 </div> --}}
                                                 <div class="col-md-4">
                                                     <div class="form-group">
-                                                        <label for="avg_sales">Avarage Sale</label>
-                                                        <select name="avg_sales" id="avg_sales"
-                                                            class="form-control">
-                                                            <option value="">-- Select Avarage Sale --</option>
-                                                            <option value="7">Last week
-                                                                <option value="14">Last 2 week
-                                                                    <option value="21">Last 3 week
-                                                            </option>
+                                                        <label for="avg_sales">Average Sale</label>
+                                                        <select name="avg_sales" id="avg_sales" class="form-control">
+                                                            <option value="">-- Select Average Sale --</option>
+                                                            <option value="7">Last week</option>
+                                                            <option value="14">Last 2 week</option>
+                                                            <option value="21">Last 3 week</option>
+                                                            <option value="30">Last 1 Month</option>
+
                                                         </select>
                                                         @error('avg_sales')
                                                             <span class="text-danger">{{ $message }}</span>
@@ -122,7 +121,7 @@
                                         <button type="submit" class="btn btn-primary float-right">Next</button>
 
                                     </fieldset>
-                                   
+
                                 </form>
                             </div>
                         </div>
