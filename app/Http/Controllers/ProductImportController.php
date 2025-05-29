@@ -161,7 +161,6 @@ class ProductImportController extends Controller
                 // Skip header
                 for ($i = 1; $i < count($csvData); $i++) {
                     $row = $csvData[$i];
-                    // dd($mapping);
                     // Map values from row using $mapping
                     $name = $row[$mapping['name']] ?? null;
                     $barcode = $row[$mapping['barcode']] ?? null;
@@ -172,7 +171,7 @@ class ProductImportController extends Controller
                     $sub_category_name = $row[$mapping['sub_category']] ?? null;
                     $pack_size = $row[$mapping['pack_size']] ?? null;
                     $sale_price = $row[$mapping['selling_price']] ?? null;
-// dd($mfg_date);
+
                     // Validate required fields
                     if (!$name || !$category_name || !$sub_category_name || !$sale_price) {
                         $skipped++;
@@ -195,7 +194,9 @@ class ProductImportController extends Controller
 
                     if ($existing) {
                         // Update existing product
-                        $existing->barcode = $barcode;
+                        // $existing->barcode = $barcode;
+                        $existing->reorder_level = isset($mapping['Minimum_stock_level']) ? $row[$mapping['Minimum_stock_level']] : 0;
+                        $existing->mrp = isset($mapping['MRP']) ? $row[$mapping['MRP']] : 0;
                         $existing->cost_price = $row[$mapping['cost_price']] ?? null;
                         $existing->sell_price = $sale_price;
                         $existing->discount_price = isset($mapping['Comission_customer_price']) ? $row[$mapping['Comission_customer_price']] : null;
@@ -220,7 +221,7 @@ class ProductImportController extends Controller
                             'subcategory_id' => $subcategory->id,
                             'cost_price' => $row[$mapping['cost_price']] ?? null,
                             'sell_price' => $sale_price,
-                            'mrp' => isset($mapping['MRP']) ? $row[$mapping['MRP']] : null,
+                            'mrp' => isset($mapping['MRP']) ? $row[$mapping['MRP']] : 0,
                             'reorder_level' => isset($mapping['Minimum_stock_level']) ? $row[$mapping['Minimum_stock_level']] : null,
                             'discount_price' => isset($mapping['Comission_customer_price']) ? $row[$mapping['Comission_customer_price']] : null,
                             'discount_amt' => isset($mapping['Discount_amount']) ? $row[$mapping['Discount_amount']] : 0,
@@ -406,7 +407,7 @@ class ProductImportController extends Controller
         return redirect()->route('inventories.list')->with('success', 'Opening Stock has beeb added successfully.');
     }
 
-        public function collection(Collection $rows)
+    public function collection(Collection $rows)
     {
         foreach ($rows as $row) {
             $category = Category::where('name', $row['category'])->first();
@@ -505,5 +506,4 @@ class ProductImportController extends Controller
 
         return back()->with('error', 'File upload failed!');
     }
-
 }
