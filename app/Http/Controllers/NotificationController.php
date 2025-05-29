@@ -106,7 +106,7 @@ class NotificationController extends Controller
                 )
                 ->orderBy('i.created_at')
                 ->get();
-                
+
             return view('notification.stock-transfer-form', compact('stockTransfer'));
         }
 
@@ -183,19 +183,21 @@ class NotificationController extends Controller
     public function getNotication()
     {
 
-
         if (session('role_name') == "admin") {
-            $res_date =  Notification::where('notify_to', null)
+            $res_date =  Notification::whereNull('notify_to')
+                ->where('created_at', '>=', Carbon::now()->subDay())
                 ->orderBy('created_at', 'desc')
                 ->limit(10)
                 ->get();
 
             $res_all = Notification::where('notify_to', null)
+                ->where('created_at', '>=', Carbon::now()->subDay())
                 ->orderBy('created_at', 'desc')
                 // ->limit(10)
                 ->count();
 
             $res_all_unread = Notification::where('notify_to', null)
+                ->where('created_at', '>=', Carbon::now()->subDay())
                 ->where('status', 'unread')
                 ->orderBy('created_at', 'desc')
                 ->count();
@@ -209,17 +211,20 @@ class NotificationController extends Controller
             $branch_id = $data->userInfo->branch_id;
 
             $res_date = Notification::where('notify_to', $branch_id)
+                ->where('created_at', '>=', Carbon::now()->subDay())
                 ->orderBy('created_at', 'desc')
                 ->limit(10)
                 ->get();
 
             $res_all_unread = Notification::where('notify_to', null)
+                ->where('created_at', '>=', Carbon::now()->subDay())
                 ->where('status', 'unread')
                 ->orderBy('created_at', 'desc')
 
                 ->count();
 
             $res_all = Notification::where('notify_to', $branch_id)
+                ->where('created_at', '>=', Carbon::now()->subDay())
                 ->orderBy('created_at', 'desc')
                 ->count();
         }

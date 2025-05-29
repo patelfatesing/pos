@@ -62,7 +62,7 @@ class BranchController extends Controller
             }
 
             $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                    href="#" onclick="low_level_stock(' . $store->id . ')"><i class="ri-currency-line"></i></a>';
+                    href="#" onclick="low_level_stock(' . $store->id . ')"><i class="ri-battery-low-line"></i></a>';
             $action .= '<a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit"
                     href="' . url('/store/edit/' . $store->id) . '"><i class="ri-pencil-line mr-0"></i></a>';
             $action .= '</div>';

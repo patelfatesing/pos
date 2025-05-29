@@ -12,6 +12,7 @@ class Inventory extends Model
         'store_id',
         'quantity',
         'batch_no',
+        'mfg_date',
         'expiry_date',
         'is_active',
         'is_deleted',
@@ -37,7 +38,15 @@ class Inventory extends Model
             ->sum('quantity');
     }
 
+    public static function lowLevelQty($productId, $storeId)
+    {
+        return self::where('product_id', $productId)
+            ->where('store_id', $storeId)
+            ->value('low_level_qty');
+    }
+
     protected $casts = [
-        'expiry_date' => 'datetime', // Automatically cast to Carbon instance
+        'expiry_date' => 'datetime',
+        'mfg_date' => 'datetime', // Automatically cast to Carbon instance
     ];
 }

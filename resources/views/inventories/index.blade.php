@@ -10,7 +10,7 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <h1>Inventory</h1>
+                <h1>Stock Inventory</h1>
                 <div class="col-lg-12">
                     <div class="table-responsive rounded mb-3">
                         <table class="table data-tables table-striped" id="inventory_table">
@@ -77,9 +77,9 @@
                                 </div>
                             </div>
                         </div>
-                        <span class="mt-2 badge badge-pill border border-secondary text-secondary">
+                        {{-- <span class="mt-2 badge badge-pill border border-secondary text-secondary">
                             {{ __('messages.reorder_level_qty') }}
-                        </span>
+                        </span> --}}
                     </div>
 
                     <div class="modal-footer">

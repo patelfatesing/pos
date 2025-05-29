@@ -94,8 +94,8 @@ class UserController extends Controller
                 'is_active' => $employee->is_active == 'yes'
                     ? '<span onclick=\'statusChange("' . $employee->id . '", "no")\'><div class="badge badge-success" style="cursor:pointer">Active</div></span>'
                     : '<span onclick=\'statusChange("' . $employee->id . '", "yes")\'><div class="badge badge-danger" style="cursor:pointer">Inactive</div></span>',
-                'created_at' => Carbon::parse($employee->created_at)->format('d-m-Y h:s'),
-                'updated_at'=> Carbon::parse($employee->updated_at)->format('d-m-Y h:s'),
+                'created_at' => $employee->created_at->format('d-m-Y h:i A'),
+                'updated_at'=> $employee->updated_at->format('d-m-Y h:i A'),
                 'action' => $action
             ];
         }

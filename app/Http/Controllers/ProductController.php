@@ -53,6 +53,7 @@ class ProductController extends Controller
                     ->orWhere('sku', 'like', '%' . $searchValue . '%')
                     ->orWhere('abv', 'like', '%' . $searchValue . '%')
                     ->orWhere('size', 'like', '%' . $searchValue . '%')
+                    ->orWhere('barcode', 'like', '%' . $searchValue . '%')
                     ->orWhereHas('category', function ($q2) use ($searchValue) {
                         $q2->where('name', 'like', '%' . $searchValue . '%');
                     });
