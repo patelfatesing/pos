@@ -53,14 +53,15 @@
                                             <div class="row">
                                                 <div class="col-md-4">
                                                     <label for="vendor_id">Vendor Name</label>
-                                                  <select name="vendor_id" id="vendor_id" class="form-control">
-                                                    <option value="">-- Select Party --</option>
-                                                    @foreach ($vendors as $vendor)
-                                                        <option value="{{ $vendor->id }}" {{ old('vendor_id') == $vendor->id ? 'selected' : '' }}>
-                                                            {{ $vendor->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
+                                                    <select name="vendor_id" id="vendor_id" class="form-control">
+                                                        <option value="">-- Select Party --</option>
+                                                        @foreach ($vendors as $vendor)
+                                                            <option value="{{ $vendor->id }}"
+                                                                {{ old('vendor_id') == $vendor->id ? 'selected' : '' }}>
+                                                                {{ $vendor->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
 
                                                     @error('vendor_id')
                                                         <span class="text-danger">{{ $message }}</span>
@@ -109,13 +110,31 @@
                                                             <option value="14">Last 2 week</option>
                                                             <option value="21">Last 3 week</option>
                                                             <option value="30">Last 1 Month</option>
+                                                            <option value="0">Free Selection</option>
+                                                            {{-- This will trigger date inputs --}}
 
                                                         </select>
+
                                                         @error('avg_sales')
                                                             <span class="text-danger">{{ $message }}</span>
                                                         @enderror
                                                     </div>
                                                 </div>
+                                                <div class="col-md-4 custom-date-range d-none" >
+                                                    <div class="form-group">
+                                                        <label for="start_date">Start Date</label>
+                                                        <input type="date" name="start_date" id="start_date"
+                                                            class="form-control">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4 custom-date-range d-none" >
+                                                    <div class="form-group">
+                                                        <label for="end_date" >End Date</label>
+                                                        <input type="date" name="end_date" id="end_date"
+                                                            class="form-control">
+                                                    </div>
+                                                </div>
+
                                             </div>
                                         </div>
                                         <button type="submit" class="btn btn-primary float-right">Next</button>
@@ -137,6 +156,24 @@
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
+   $(document).ready(function () {
+        $(document).ready(function () {
+        $('#avg_sales').on('change', function () {
+            if ($(this).val() === '0') {
+                $('.custom-date-range').removeClass('d-none');
+                $('.custom-date-range input').prop('disabled', false);
+            } else {
+                $('.custom-date-range').addClass('d-none');
+                $('.custom-date-range input').prop('disabled', true);
+            }
+        });
+
+        // Initial check (in case of old value retained on edit)
+        if ($('#avg_sales').val() !== '0') {
+            $('.custom-date-range input').prop('disabled', true);
+        }
+    });
+    });
     $(document).ready(function() {
 
         let srNo = 1;

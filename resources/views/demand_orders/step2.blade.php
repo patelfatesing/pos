@@ -54,7 +54,7 @@
                                                 </div>
                                             </div>
                                             <div class="row">
-                                                <table class="table table-striped">
+                                                <table class="table table-bordered">
                                                     <thead class="bg-gray-50">
                                                         <tr>
                                                             <th class="py-2 text-left text-sm font-medium text-gray-700">
@@ -77,7 +77,7 @@
                                                                 Sales</th>
                                                             <th class="text-right text-sm font-medium text-gray-700">Avg
                                                                 Daily</th>
-                                                            <th class="text-right text-sm font-medium text-gray-700">Pending
+                                                            <th class="text-right text-sm font-medium text-gray-700">Delivery Pending
                                                             </th>
                                                             <th class="text-right text-sm font-medium text-gray-700">
                                                                 Suggested Qty</th>

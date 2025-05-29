@@ -71,6 +71,11 @@
                                 <i class="las la-minus"></i><span>Pack Size</span>
                             </a>
                         </li>
+                          <li class="">
+                            <a href="{{ route('demand-order.step1') }}">
+                                <i class="las la-minus"></i><span>Demand Order</span>
+                            </a>
+                        </li>
                     </ul>
                 </li>
 

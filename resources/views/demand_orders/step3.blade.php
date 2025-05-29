@@ -82,9 +82,7 @@
                                                     <thead class="table-light">
                                                         <tr>
                                                             <th>Sr No</th>
-                                                            <th>Brand</th>
-                                                            <th>Batch</th>
-                                                            <th>MFG Date</th>
+                                                            <th>Product Name</th>
                                                             <th>MRP Rate</th>
                                                             <th>Qty</th>
                                                             <th>Cost price</th>
@@ -107,8 +105,6 @@
                                                            <input type="hidden" name="products[{{ @$srNo }}][product_id]" value="{{$item['product_id']}}">
 
                                                             <td><input type="text" name="products[{{ @$srNo }}][brand_name]" class="form-control" value="{{ $product['brand'] ?? '' }}" readonly></td>
-                                                            <td><input type="text" name="products[{{ $srNo }}][batch]" class="form-control" value="{{ $product['batch_no'] ?? '' }}"></td>
-                                                            <td><input type="date" name="products[{{ $srNo }}][mfg_date]" class="form-control" value="{{ $product['mfg_date'] ?? '' }}"></td>
                                                             <td><input type="number" step="0.01" name="products[{{ $srNo }}][mrp]" class="form-control" value="{{ $product['mrp'] ?? '' }}"></td>
                                                             <td><input type="number" name="products[{{ $srNo }}][qnt]" class="form-control" value="{{ $item['order_qty'] ?? 1 }}" min="1" data-prev="{{ $item['order_qty'] ?? 1 }}"></td>
                                                             <td><input type="number" step="0.01" name="products[{{ $srNo }}][rate]" class="form-control" value="{{ $product['cost_price'] ?? '' }}"></td>

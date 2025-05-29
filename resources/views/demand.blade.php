@@ -54,7 +54,11 @@
 </head>
 <body>
 
-    <h2>Demand Order Details</h2>
+<h2 class="mb-0">
+    Demand Order Details
+    <span class="h6 text-muted ms-2" style="">{{ now()->format('d-m-Y H:i') }}</span>
+</h2>
+
 
     {{-- Shop & Order Info Table --}}
     <table class="header-table">
@@ -64,10 +68,10 @@
         </tr>
         <tr>
             <th>Name</th>
-            <td>{{$user->name}}</td>
+            <td>Nag Ji Ram</td>
         </tr>
         <tr>
-            <th>Shop Address</th>
+            <th>Delivery Address</th>
             <td>Shop No. 1 MAHARANA PRATAP CHOUK, RANIWARA (RANIWARA KALLAN/KHURD, JALERA KHURD, MEDA)</td>
         </tr>
         <tr>
@@ -89,12 +93,10 @@
         <thead>
             <tr>
                 <th>#</th>
-                <th>Brand Name</th>
-                <th>Batch</th>
-                <th>Manufacturing Date</th>
+                <th>Product Name</th>
                 <th>MRP </th>
                 <th>Quantity</th>
-                <th>Rate </th>
+                <th>Cost price	 </th>
                 <th>Amount </th>
             </tr>
         </thead>
@@ -105,8 +107,6 @@
                     <tr>
                         <td>{{ $key }}</td>
                         <td>{{ $product['brand_name'] }}</td>
-                        <td>{{ $product['batch'] }}</td>
-                        <td>{{ \Carbon\Carbon::parse($product['mfg_date'])->format('d-m-Y') }}</td>
                         <td>{{ number_format($product['mrp'], 2) }}</td>
                         <td>{{ $product['qnt'] }}</td>
                         <td>{{ number_format($product['rate'], 2) }}</td>
@@ -116,7 +116,7 @@
                 @endif
             @endforeach
             <tr class="total-row">
-                <td colspan="7" style="text-align: right;">Total Amount </td>
+                <td colspan="5" style="text-align: right;">Total Amount </td>
                 <td>{{ number_format($totalAmount, 2) }}</td>
             </tr>
         </tbody>

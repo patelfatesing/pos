@@ -9,6 +9,7 @@ use App\Models\DemandOrderProduct;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
+use Carbon\Carbon;
 
 class DemandOrderController extends Controller
 {
@@ -133,8 +134,10 @@ class DemandOrderController extends Controller
          $validated = $request->validate([
             'purchase_date' => 'required|date',
             'shipping_date' => 'required|date',
-            'avg_sales' => 'required|numeric',
+            'avg_sales' => 'required',
             'vendor_id' => 'required',
+            'start_date'    => 'nullable|date',
+            'end_date'      => 'nullable|date|after_or_equal:start_date',
         ]);
         $demand_date=$request->purchase_date;
          // 1. All vendors & products
@@ -149,8 +152,18 @@ class DemandOrderController extends Controller
         $lowStock = getProductStockQuery()
         ->whereColumn('inventories.quantity', '<', 'products.reorder_level')
         ->get();
+        $startDate = Carbon::parse(@$request->input('start_date')); // e.g. "2025-05-21"
+        $endDate = Carbon::parse(@$request->input('end_date'));     // e.g. "2025-05-30"
 
-        $lastWeek  = now()->subDays($request->avg_sales);
+        $diffInDays = $startDate->diffInDays($endDate);
+        if(!empty($diffInDays) && !empty($request->input('start_date')) && !empty($request->input('end_date'))){
+           $lastWeek  = now()->subDays($diffInDays);
+           $selectedAvg=$diffInDays;
+        }else{
+            $lastWeek  = now()->subDays($request->avg_sales);
+            $selectedAvg=$request->avg_sales;
+        }
+
        // $lastMonth = now()->subDays(30);
         // 4. Fetch all invoice items from the last month
         $invoices = DB::table('invoices')
@@ -185,17 +198,17 @@ class DemandOrderController extends Controller
             ->toArray();
 
         // 6. Build predictions including category data
-        $predictions = $lowStock->map(function($row) use ($weeklySales, $request, $pending) {
+        $predictions = $lowStock->map(function($row) use ($weeklySales, $selectedAvg, $pending) {
             $pid           = $row->product_id;
             $weeklyCount   = $weeklySales[$pid] ?? 0;
             $monthlyCount  = $monthlySales[$pid] ?? 0;
 
             // Average daily sales = (weekly/7 + monthly/30) / 2
-            $avgDailySales = $weeklyCount / $request->avg_sales / 2;
+            $avgDailySales = $weeklyCount / $selectedAvg / 2;
             $needed        = $row->reorder_level - $row->current_stock;
             $pendingQty    = $pending[$pid] ?? 0;
 
-            $suggestedQty  = $needed + ($avgDailySales * $request->avg_sales) - $pendingQty;
+            $suggestedQty  = $needed + ($avgDailySales * $selectedAvg) - $pendingQty;
 
             return [
                 'product_id'               => $pid,
@@ -297,7 +310,7 @@ class DemandOrderController extends Controller
     }
     public function step2()
     {
-        $step2Data = session('demand_orders.step1');
+         $step2Data = session('demand_orders.step1');
         // $vendors = VendorList::all();
         // $products = Product::all();
 
@@ -315,8 +328,17 @@ class DemandOrderController extends Controller
         ->whereColumn('inventories.quantity', '<', 'products.reorder_level')
         ->get();
 
-  
-          $lastWeek  = now()->subDays($step2Data['avg_sales']);
+        $startDate = Carbon::parse(@$step2Data['start_date']); // e.g. "2025-05-21"
+        $endDate = Carbon::parse(@$step2Data['end_date']);     // e.g. "2025-05-30"
+
+        $diffInDays = $startDate->diffInDays($endDate);
+        if(!empty($diffInDays) && !empty($step2Data['start_date']) && !empty($step2Data['start_date'])){
+            $lastWeek  = now()->subDays($diffInDays);
+            $selectedAvg=$diffInDays;
+        }else{
+            $lastWeek  = now()->subDays($step2Data['avg_sales']);
+            $selectedAvg=$step2Data['avg_sales'];
+        }
           //$lastMonth = now()->subDays(30);
   
           // 4. Fetch all invoice items from the last month
@@ -352,16 +374,17 @@ class DemandOrderController extends Controller
               ->toArray();
   
           // 6. Build predictions including category data
-          $predictions = $lowStock->map(function($row) use ($weeklySales, $step2Data, $pending) {
+          $predictions = $lowStock->map(function($row) use ($weeklySales, $selectedAvg, $pending) {
+            
               $pid           = $row->product_id;
               $weeklyCount   = $weeklySales[$pid] ?? 0;
               $monthlyCount  = $monthlySales[$pid] ?? 0;
   
-              $avgDailySales = ($weeklyCount / $step2Data['avg_sales']) / 2;
+              $avgDailySales = ($weeklyCount / $selectedAvg) / 2;
               $needed        = $row->reorder_level - $row->current_stock;
               $pendingQty    = $pending[$pid] ?? 0;
   
-              $suggestedQty  = $needed + ($avgDailySales * $step2Data['avg_sales']) - $pendingQty;
+              $suggestedQty  = $needed + ($avgDailySales * $selectedAvg) - $pendingQty;
               return [
                   'product_id'               => $pid,
                   'name'                     => $row->name,

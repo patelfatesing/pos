@@ -231,24 +231,26 @@ if (!function_exists('stockStatusChange')) {
         }
 
     if (!function_exists('getProductStockQuery')) {
-        function getProductStockQuery()
-        {
-            return DB::table('inventories')
-                ->select(
-                    'inventories.product_id',
-                    DB::raw('MAX(products.name) as name'),
-                    DB::raw('MAX(products.size) as size'),
-                    DB::raw('MAX(categories.name) as category_name'),
-                    DB::raw('MAX(sub_categories.name) as subcategory_name'),
-                    DB::raw('SUM(inventories.quantity) as current_stock'),
-                    DB::raw('MAX(products.reorder_level) as reorder_level')
-                )
-                ->join('products', 'inventories.product_id', '=', 'products.id')
-                ->join('categories', 'products.category_id', '=', 'categories.id')
-                ->join('sub_categories', 'products.subcategory_id', '=', 'sub_categories.id')
-                ->groupBy('inventories.product_id');
-        }
+      function getProductStockQuery()
+            {
+                return DB::table('inventories')
+                    ->select(
+                        'inventories.product_id',
+                        DB::raw('MAX(products.name) as name'),
+                        DB::raw('MAX(products.size) as size'),
+                        DB::raw('MAX(categories.name) as category_name'),
+                        DB::raw('MAX(sub_categories.name) as subcategory_name'),
+                        DB::raw('SUM(inventories.quantity) as current_stock'),
+                        DB::raw('MAX(products.reorder_level) as reorder_level')
+                    )
+                    ->join('products', 'inventories.product_id', '=', 'products.id')
+                    ->join('categories', 'products.category_id', '=', 'categories.id')
+                    ->join('sub_categories', 'products.subcategory_id', '=', 'sub_categories.id')
+                   // ->join('branches', 'inventories.store_id', '=', 'branches.id') // assuming branch_id in inventories
+                   // ->where('branches.is_warehouser', 'yes')
+                    ->groupBy('inventories.product_id');
+            }
 
-        
+
     }
 }
