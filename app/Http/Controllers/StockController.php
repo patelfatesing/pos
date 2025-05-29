@@ -92,14 +92,14 @@ class StockController extends Controller
             $productId = $item['product_id'];
             $totalQty = (int) $item['quantity'];
             $inventories = Inventory::where('product_id', $productId)
-                    ->where('store_id', $request->store_id)
-                    ->orderBy('expiry_date')
-                    ->get();
+                ->where('store_id', $request->store_id)
+                ->orderBy('expiry_date')
+                ->get();
 
-                $totalQuantity = (int)$inventories->sum('quantity');
-                if ($totalQuantity < $totalQty) {
-                    $errors["items.$key.quantity"] = "Insufficient stock in source store. Available: $totalQuantity";
-                }
+            $totalQuantity = (int)$inventories->sum('quantity');
+            if ($totalQuantity < $totalQty) {
+                $errors["items.$key.quantity"] = "Insufficient stock in source store. Available: $totalQuantity";
+            }
             // $branches = $item['branches'] ?? [];
             // $quantities = $item['branch_quantities'] ?? [];
 
@@ -141,7 +141,7 @@ class StockController extends Controller
         if ($request->ajax() && !empty($errors)) {
             DB::rollback();
             return response()->json(['errors' => $errors], 422);
-        } 
+        }
         // 🔄 Update totals
         $stockRequest->update([
             'total_product' => count($uniqueProductIds),
@@ -149,7 +149,7 @@ class StockController extends Controller
         ]);
         DB::commit();
 
-      //  return redirect()->route('items.cart')->with('success', 'Stock request submitted successfully.');
+        //  return redirect()->route('items.cart')->with('success', 'Stock request submitted successfully.');
     }
 
     public function storeWarehouse_ori(Request $request)
@@ -721,6 +721,16 @@ class StockController extends Controller
                                 // Deduct from warehouse
                                 $inventory->quantity -= $deducted;
                                 $inventory->save();
+
+                                $low_qty_level = Inventory::lowLevelQty($product_id, 1);
+
+                                $total_qty = Inventory::countQty($product_id, 1);
+                                $total_qty = $total_qty + $deducted;
+
+                                if ($total_qty < $low_qty_level) {
+                                    $arr['id'] = $product_id;
+                                    sendNotification('low_stock', 'Store stock request', null, Auth::id(), json_encode($arr));
+                                }
 
                                 // Add to store inventory
                                 $storeInventory = Inventory::firstOrNew([

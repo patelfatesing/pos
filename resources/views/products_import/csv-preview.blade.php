@@ -20,14 +20,16 @@
                                 @if (session('success'))
                                     <div class="alert alert-success alert-dismissible fade show">
                                         {{ session('success') }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                            aria-label="Close"></button>
                                     </div>
                                 @endif
 
                                 @if (session('error'))
                                     <div class="alert alert-danger alert-dismissible fade show">
                                         {{ session('error') }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                            aria-label="Close"></button>
                                     </div>
                                 @endif
 
@@ -62,7 +64,8 @@
                                                 @endforeach
                                             </ul>
                                         @endif
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                            aria-label="Close"></button>
                                     </div>
                                 @endif
 
@@ -76,7 +79,8 @@
                                                 <div class="alert alert-info">
                                                     <h5 class="alert-heading">Field Mapping Instructions</h5>
                                                     <p class="mb-0">
-                                                        Please map each database field to the corresponding column in your CSV file.
+                                                        Please map each database field to the corresponding column in your
+                                                        CSV file.
                                                         Fields marked with <span class="text-danger">*</span> are required.
                                                     </p>
                                                 </div>
@@ -100,17 +104,26 @@
                                                 <div class="col-md-4">
                                                     <label class="form-label">
                                                         {{ $field }}
-                                                        @if (in_array($field, ['name', 'barcode', 'batch_number', 'category', 'sub_category', 'cost_price', 'selling_price', 'Minimum_stock_level']))
+                                                        @if (in_array($field, [
+                                                                'name',
+                                                                'barcode',
+                                                                'batch_number',
+                                                                'category',
+                                                                'sub_category',
+                                                                'cost_price',
+                                                                'selling_price',
+                                                                'Minimum_stock_level',
+                                                            ]))
                                                             <span class="text-danger">*</span>
                                                         @endif
                                                     </label>
                                                 </div>
                                                 <div class="col-md-4">
-                                                    <select name="mapping[{{ $field }}]" 
+                                                    <select name="mapping[{{ $field }}]"
                                                         class="form-control form-select @error('mapping.' . $field) is-invalid @enderror">
                                                         <option value="">-- Select Column --</option>
                                                         @foreach ($headers as $i => $header)
-                                                            <option value="{{ $i }}" {{ old('mapping.' . $field) == $i ? 'selected' : '' }}>
+                                                            <option value="{{ $i }}" {{ $errors->any() && old('mapping.' . $field) == $i ? 'selected' : '' }}>
                                                                 {{ $header }}
                                                             </option>
                                                         @endforeach
@@ -124,28 +137,36 @@
                                                         @switch($field)
                                                             @case('name')
                                                                 Product name
-                                                                @break
+                                                            @break
+
                                                             @case('category')
                                                                 Must match existing category name
-                                                                @break
+                                                            @break
+
                                                             @case('sub_category')
                                                                 Must match existing sub-category name
-                                                                @break
+                                                            @break
+
                                                             @case('cost_price')
                                                                 Product cost price (numeric)
-                                                                @break
+                                                            @break
+
                                                             @case('selling_price')
                                                                 Product selling price (numeric)
-                                                                @break
+                                                            @break
+
                                                             @case('Minimum_stock_level')
                                                                 Minimum stock level (numeric)
-                                                                @break
+                                                            @break
+
                                                             @case('Mfg_date')
                                                                 Manufacturing date (DD-MM-YYYY)
-                                                                @break
+                                                            @break
+
                                                             @case('Expiry_date')
                                                                 Expiry date (DD-MM-YYYY)
-                                                                @break
+                                                            @break
+
                                                             @default
                                                                 {{ $field }}
                                                         @endswitch

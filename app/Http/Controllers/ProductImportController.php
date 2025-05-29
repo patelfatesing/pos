@@ -106,7 +106,7 @@ class ProductImportController extends Controller
 
     public function processImport(Request $request)
     {
-        
+
         try {
             $request->validate([
                 'file_name' => 'required|string',
@@ -161,21 +161,18 @@ class ProductImportController extends Controller
                 // Skip header
                 for ($i = 1; $i < count($csvData); $i++) {
                     $row = $csvData[$i];
+                    // dd($mapping);
                     // Map values from row using $mapping
                     $name = $row[$mapping['name']] ?? null;
                     $barcode = $row[$mapping['barcode']] ?? null;
                     $batch_no = $row[$mapping['batch_number']] ?? null;
-                    $mfg_date = isset($mapping['mfg_date']) && isset($row[$mapping['mfg_date']])
-                        ? Carbon::createFromFormat('d-m-Y', $row[$mapping['mfg_date']])->format('Y-m-d')
-                        : null;
-                    $expiry_date = isset($mapping['expiry_date']) && isset($row[$mapping['expiry_date']])
-                        ? Carbon::createFromFormat('d-m-Y', $row[$mapping['expiry_date']])->format('Y-m-d')
-                        : null;
+                    $mfg_date = $row[$mapping['Mfg_date']];
+                    $expiry_date = $row[$mapping['Expiry_date']];
                     $category_name = $row[$mapping['category']] ?? null;
                     $sub_category_name = $row[$mapping['sub_category']] ?? null;
                     $pack_size = $row[$mapping['pack_size']] ?? null;
-                    $sale_price = $row[$mapping['Minimum_stock_level']] ?? null;
-
+                    $sale_price = $row[$mapping['selling_price']] ?? null;
+// dd($mfg_date);
                     // Validate required fields
                     if (!$name || !$category_name || !$sub_category_name || !$sale_price) {
                         $skipped++;
@@ -230,17 +227,18 @@ class ProductImportController extends Controller
                         ]);
 
                         // Create inventory record
-                        if ($mfg_date && $expiry_date) {
-                            Inventory::create([
-                                'product_id' => $product->id,
-                                'store_id' => 1,
-                                'location_id' => 1,
-                                'batch_no' => $batch_no,
-                                'expiry_date' => $expiry_date,
-                                'mfg_date' => $mfg_date,
-                                'quantity' => 0,
-                            ]);
-                        }
+                        // if ($mfg_date && $expiry_date) {
+                        Inventory::create([
+                            'product_id' => $product->id,
+                            'store_id' => 1,
+                            'location_id' => 1,
+                            'batch_no' => $batch_no,
+                            'expiry_date' => $expiry_date,
+                            'mfg_date' => $mfg_date,
+                            'quantity' => 0,
+                            'low_level_qty' => isset($mapping['Minimum_stock_level']) ? $row[$mapping['Minimum_stock_level']] : null,
+                        ]);
+                        // }
 
                         $inserted++;
                     }
@@ -288,7 +286,127 @@ class ProductImportController extends Controller
         return null; // or return now()->format('Y-m-d');
     }
 
-    public function collection(Collection $rows)
+    public function importData(Request $request)
+    {
+        $request->validate([
+            'mapping' => 'required|array'
+        ]);
+
+        $path = Session::get('import_file');
+        $data = Session::get('import_data');
+
+        if (!$data) {
+            return redirect()->route('products.import')->with('error', 'No data found. Please upload again.');
+        }
+
+        foreach ($data as $row) {
+            Product::create([
+                'name' => $row[$request->mapping['name']] ?? null,
+                'sku' => $row[$request->mapping['sku']] ?? null,
+                'price' => $row[$request->mapping['price']] ?? 0,
+                'stock' => $row[$request->mapping['stock']] ?? 0,
+            ]);
+        }
+
+        Session::forget('import_file');
+        Session::forget('import_data');
+
+        return redirect()->route('products.import')->with('success', 'Products imported successfully.');
+    }
+
+    public function addStocks()
+    {
+        $products = Product::with('inventories')
+            ->orderBy('id', 'asc')->where('is_deleted', 'no')
+            ->get();
+        $stores = Branch::where('is_active', 'yes')->where('is_deleted', 'no')->latest()->get();
+
+        return view('products_import.add_stocks', compact('products', 'stores'));
+    }
+
+    public function importStocks(Request $request)
+    {
+        $request->validate([
+            'from_store_id' => 'required|exists:branches,id',
+            'items' => 'required|array',
+            'items.*.product_id' => 'required|exists:products,id',
+            // 'items.*.quantity' => 'required|integer|min:1',
+        ]);
+
+        $from_store_id = $request->from_store_id;
+
+        $inventoryService = new \App\Services\InventoryService();
+
+
+        foreach ($request->items as $product_id => $product) {
+
+            $record = Product::with('inventorie')->where('id', $product_id)->where('is_deleted', 'no')->firstOrFail();
+
+            $inventory = Inventory::findOrFail($record->inventorie->id);
+
+            if ($from_store_id == 1) {
+
+                if (!empty($inventory['quantity'])) {
+                    $qnt =  $inventory['quantity'] + $product['quantity'];
+                } else {
+                    $qnt =  !empty($product['quantity']) ? $product['quantity'] : 0;
+                }
+
+                $inventory->updated_at = now();
+                $inventory->quantity = $qnt;
+
+                $inventory->save();
+            } else {
+
+                $inventory_branch = Inventory::where('product_id', $product_id)->where('store_id', $from_store_id)->first();
+
+                if (!empty($inventory_branch)) {
+
+                    if (!empty($inventory_branch['quantity'])) {
+                        $qnt =  $inventory_branch['qnquantityt'] + $product['quantity'];
+                    } else {
+                        $qnt =  !empty($product['quantity']) ? $product['quantity'] : 0;
+                    }
+
+                    $inventory_branch->updated_at = now();
+                    $inventory_branch->quantity = $qnt;
+                    $inventory_branch->save();
+                } else {
+
+                    Inventory::updateOrCreate(
+                        [
+                            'product_id' => $product_id,
+                            'store_id' => $from_store_id,
+                            'batch_no' => $inventory->batch_no,
+                            'location_id' => $from_store_id,
+                            'expiry_date' => $inventory->expiry_date,
+                            'mfg_date' => $inventory->mfg_date,
+                            'quantity' => !empty($product['quantity']) ? $product['quantity'] : 0,
+                            // 'low_level_qty' => $product['reorder_level'],
+                            'added_by' => Auth::id()
+                        ]
+                    );
+                }
+            }
+
+            $date = Carbon::today();
+
+            DailyProductStock::updateOrCreate(
+                [
+                    'product_id' => $product_id,
+                    'branch_id' => $from_store_id,
+                    'date' => $date,
+                    'opening_stock' => !empty($product['quantity']) ? $product['quantity'] : 0,
+                ]
+            );
+
+            $inventoryService->transferProduct($product_id, $inventory->id, $from_store_id, '', !empty($product['quantity']) ? $product['quantity'] : 0, 'add_stock');
+        }
+
+        return redirect()->route('inventories.list')->with('success', 'Opening Stock has beeb added successfully.');
+    }
+
+        public function collection(Collection $rows)
     {
         foreach ($rows as $row) {
             $category = Category::where('name', $row['category'])->first();
@@ -388,123 +506,4 @@ class ProductImportController extends Controller
         return back()->with('error', 'File upload failed!');
     }
 
-    public function importData(Request $request)
-    {
-        $request->validate([
-            'mapping' => 'required|array'
-        ]);
-
-        $path = Session::get('import_file');
-        $data = Session::get('import_data');
-
-        if (!$data) {
-            return redirect()->route('products.import')->with('error', 'No data found. Please upload again.');
-        }
-
-        foreach ($data as $row) {
-            Product::create([
-                'name' => $row[$request->mapping['name']] ?? null,
-                'sku' => $row[$request->mapping['sku']] ?? null,
-                'price' => $row[$request->mapping['price']] ?? 0,
-                'stock' => $row[$request->mapping['stock']] ?? 0,
-            ]);
-        }
-
-        Session::forget('import_file');
-        Session::forget('import_data');
-
-        return redirect()->route('products.import')->with('success', 'Products imported successfully.');
-    }
-
-    public function addStocks()
-    {
-        $products = Product::with('inventories')
-            ->orderBy('id', 'asc')->where('is_deleted', 'no')
-            ->get();
-        $stores = Branch::where('is_active', 'yes')->where('is_deleted', 'no')->latest()->get();
-
-        return view('products_import.add_stocks', compact('products', 'stores'));
-    }
-
-    public function importStocks(Request $request)
-    {
-        $request->validate([
-            'from_store_id' => 'required|exists:branches,id',
-            'items' => 'required|array',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|integer|min:1',
-        ]);
-
-        $from_store_id = $request->from_store_id;
-
-        $inventoryService = new \App\Services\InventoryService();
-
-
-        foreach ($request->items as $product_id => $product) {
-
-            $record = Product::with('inventorie')->where('id', $product_id)->where('is_deleted', 'no')->firstOrFail();
-
-            $inventory = Inventory::findOrFail($record->inventorie->id);
-
-            if ($from_store_id == 1) {
-
-                if (!empty($inventory['quantity'])) {
-                    $qnt =  $inventory['quantity'] + $product['quantity'];
-                } else {
-                    $qnt =  $product['quantity'];
-                }
-
-                $inventory->updated_at = now();
-                $inventory->quantity = $qnt;
-
-                $inventory->save();
-            } else {
-
-                $inventory_branch = Inventory::where('product_id', $product_id)->where('store_id', $from_store_id)->first();
-
-                if (!empty($inventory_branch)) {
-
-                    if (!empty($inventory_branch['quantity'])) {
-                        $qnt =  $inventory_branch['qnquantityt'] + $product['quantity'];
-                    } else {
-                        $qnt =  $product['quantity'];
-                    }
-
-                    $inventory_branch->updated_at = now();
-                    $inventory_branch->quantity = $qnt;
-                    $inventory_branch->save();
-                } else {
-
-                    Inventory::updateOrCreate(
-                        [
-                            'product_id' => $product_id,
-                            'store_id' => $from_store_id,
-                            'batch_no' => $inventory->batch_no,
-                            'location_id' => $from_store_id,
-                            'expiry_date' => $inventory->expiry_date,
-                            'mfg_date' => $inventory->mfg_date,
-                            'quantity' => $product['quantity'],
-                            'low_level_qty' => $product['reorder_level'],
-                            'added_by' => Auth::id()
-                        ]
-                    );
-                }
-            }
-
-            $date = Carbon::today();
-
-            DailyProductStock::updateOrCreate(
-                [
-                    'product_id' => $product_id,
-                    'branch_id' => $from_store_id,
-                    'date' => $date,
-                    'opening_stock' => $product['quantity'],
-                ]
-            );
-
-            $inventoryService->transferProduct($product_id, $inventory->id, $from_store_id, '', $product['quantity'], 'add_stock');
-        }
-
-        return redirect()->route('inventories.list')->with('success', 'Opening Stock has beeb added successfully.');
-    }
 }

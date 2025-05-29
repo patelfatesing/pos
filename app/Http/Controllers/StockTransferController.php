@@ -105,6 +105,8 @@ class StockTransferController extends Controller
                         $storeInventory->quantity += $deductQty;
                         $storeInventory->save();
                     } else {
+                        $low_qty_level_wh = Inventory::lowLevelQty($item['product_id'], 1);
+                    
                         Inventory::create([
                             'store_id'     => $request->to_store_id,
                             'location_id'  => $request->to_store_id,
@@ -112,8 +114,19 @@ class StockTransferController extends Controller
                             'batch_no'     => $inventory->batch_no,
                             'expiry_date'  => $inventory->expiry_date->toDateString(),
                             'quantity'     => $deductQty,
-                            // 'low_level_qty' => $item['reorder_level'],
+                            'low_level_qty' => $low_qty_level_wh,
                         ]);
+                    }
+
+                    $low_qty_level = Inventory::lowLevelQty($item['product_id'], $request->from_store_id);
+                    
+                    $total_qty = Inventory::countQty($item['product_id'], $request->from_store_id);
+                    $total_qty = $total_qty + $deductQty;
+
+                    if ($total_qty < $low_qty_level) {
+                        $arr['id'] = $item['product_id'];
+                        sendNotification('low_stock', 'Store stock request', $request->from_store_id, Auth::id(), json_encode($arr));
+                        sendNotification('low_stock', 'Store stock request', null, Auth::id(), json_encode($arr));
                     }
 
                     // Stock status changes and logs
