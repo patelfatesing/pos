@@ -1621,7 +1621,7 @@ class Shoppingcart extends Component
         foreach ($itemCarts as $item) {
             $this->quantities[$item->id] = $item->quantity;
         }
-        $stores = Branch::all();
+        $stores = Branch::where('is_deleted', 'no')->get();
         $products = Product::all();
         $data = User::with('userInfo')
         ->where('users.id', auth()->id())
