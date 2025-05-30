@@ -74,6 +74,7 @@ class StockTransferController extends Controller
 
             $transferNumber = 'TRF-' . now()->format('YmdHis') . '-' . strtoupper(Str::random(4));
 
+            $arr_low_stock = [];
             foreach ($request->items as $item) {
                 $remainingQty = $item['quantity'];
 
@@ -106,7 +107,7 @@ class StockTransferController extends Controller
                         $storeInventory->save();
                     } else {
                         $low_qty_level_wh = Inventory::lowLevelQty($item['product_id'], 1);
-                    
+
                         Inventory::create([
                             'store_id'     => $request->to_store_id,
                             'location_id'  => $request->to_store_id,
@@ -119,7 +120,7 @@ class StockTransferController extends Controller
                     }
 
                     $low_qty_level = Inventory::lowLevelQty($item['product_id'], $request->from_store_id);
-                    
+
                     $total_qty = Inventory::countQty($item['product_id'], $request->from_store_id);
                     $total_qty = $total_qty + $deductQty;
 

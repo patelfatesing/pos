@@ -55,10 +55,10 @@
                                         </div>
                                         <a href="{{ route('demand-order.step1') }}"
                                             class="btn btn-dark previous action-button-previous float-right mr-3">Complete</a>
-                                        <a href="{{ $pdfPath }}" download
+                                        {{-- <a href="{{ $pdfPath }}" download
                                             class="btn btn-primary next action-button ">
                                             <i class="ri-download-2-line"></i> Download PDF
-                                        </a>
+                                        </a> --}}
 
                                     </fieldset>
 

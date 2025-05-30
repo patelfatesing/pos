@@ -32,7 +32,7 @@
                                         </li>
                                         <li class="active"  id="payment">
                                             <a href="javascript:void();">
-                                                <i class="ri-camera-fill"></i><span>Final Select</span>
+                                                <i class="ri-file-text-line"></i><span>Final Select</span>
                                             </a>
                                         </li>
                                         <li id="confirm">
@@ -82,9 +82,7 @@
                                                     <thead class="table-light">
                                                         <tr>
                                                             <th>Sr No</th>
-                                                            <th>Brand</th>
-                                                            <th>Batch</th>
-                                                            <th>MFG Date</th>
+                                                            <th>Product Name</th>
                                                             <th>MRP Rate</th>
                                                             <th>Qty</th>
                                                             <th>Cost price</th>
@@ -107,8 +105,6 @@
                                                            <input type="hidden" name="products[{{ @$srNo }}][product_id]" value="{{$item['product_id']}}">
 
                                                             <td><input type="text" name="products[{{ @$srNo }}][brand_name]" class="form-control" value="{{ $product['brand'] ?? '' }}" readonly></td>
-                                                            <td><input type="text" name="products[{{ $srNo }}][batch]" class="form-control" value="{{ $product['batch_no'] ?? '' }}"></td>
-                                                            <td><input type="date" name="products[{{ $srNo }}][mfg_date]" class="form-control" value="{{ $product['mfg_date'] ?? '' }}"></td>
                                                             <td><input type="number" step="0.01" name="products[{{ $srNo }}][mrp]" class="form-control" value="{{ $product['mrp'] ?? '' }}"></td>
                                                             <td><input type="number" name="products[{{ $srNo }}][qnt]" class="form-control" value="{{ $item['order_qty'] ?? 1 }}" min="1" data-prev="{{ $item['order_qty'] ?? 1 }}"></td>
                                                             <td><input type="number" step="0.01" name="products[{{ $srNo }}][rate]" class="form-control" value="{{ $product['cost_price'] ?? '' }}"></td>
@@ -231,14 +227,14 @@
                 const row = `
                 <tr>
                     <td>${srNo1}</td>
-                    <input type="hidden" name="products[${srNo1 - 1}][product_id]" value="${brand}">
-                    <td><input type="text" name="products[${srNo1 - 1}][brand_name]" class="form-control" value="${brandVal}" readonly></td>
-                    <td><input type="text" name="products[${srNo1 - 1}][batch]" class="form-control" value="${batch}"></td>
-                    <td><input type="date" name="products[${srNo1 - 1}][mfg_date]" class="form-control" value="${mfg}"></td>
-                    <td><input type="number" step="0.01" name="products[${srNo1 - 1}][mrp]" class="form-control" value="${mrp}"></td>
-                    <td><input type="number" name="products[${srNo1 - 1}][qnt]" class="form-control" value="${qty}" min="1" data-prev="${qty}"></td>
-                    <td><input type="number" step="0.01" name="products[${srNo1 - 1}][rate]" class="form-control" value="${rate}"></td>
-                    <td><input type="number" step="0.01" name="products[${srNo1 - 1}][amount]" class="form-control" value="${amount}" readonly></td>
+                    <input type="hidden" name="products[${srNo1}][product_id]" value="${brand}">
+                    <td><input type="text" name="products[${srNo1}][brand_name]" class="form-control" value="${brandVal}" readonly></td>
+                    <td><input type="text" name="products[${srNo1}][batch]" class="form-control" value="${batch}"></td>
+                    <td><input type="date" name="products[${srNo1}][mfg_date]" class="form-control" value="${mfg}"></td>
+                    <td><input type="number" step="0.01" name="products[${srNo1}][mrp]" class="form-control" value="${mrp}"></td>
+                    <td><input type="number" name="products[${srNo1}][qnt]" class="form-control" value="${qty}" min="1" data-prev="${qty}"></td>
+                    <td><input type="number" step="0.01" name="products[${srNo1}][rate]" class="form-control" value="${rate}"></td>
+                    <td><input type="number" step="0.01" name="products[${srNo1}][amount]" class="form-control" value="${amount}" readonly></td>
                     <td><button type="button" class="btn btn-sm btn-danger remove">Remove</button></td>
                 </tr>
                 `;
