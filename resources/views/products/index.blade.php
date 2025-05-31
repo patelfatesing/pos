@@ -42,6 +42,7 @@
                                     <th>Sale Price</th>
                                     <th>Status</th>
                                     <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
+                                    <th data-type="date" data-format="YYYY/DD/MM">Updated Date</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -57,7 +58,7 @@
 
     @php
         // Calculate tomorrow's date
-    $minDate = \Carbon\Carbon::today()->format('Y-m-d');
+$minDate = \Carbon\Carbon::today()->format('Y-m-d');
     @endphp
 
     <div class="modal fade bd-example-modal-lg" id="priceChangeModal" tabindex="-1" role="dialog"
@@ -178,6 +179,9 @@
                     },
                     {
                         data: 'created_at'
+                    },
+                    {
+                        data: 'updated_at'
                     },
                     {
                         data: 'action',

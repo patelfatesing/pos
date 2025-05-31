@@ -70,7 +70,7 @@ class PartyUserController extends Controller
             //   $action = '<div class="d-flex align-items-center list-action">
             // <a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
             //         href="#" onclick="party_cust_price_change(' . $partyUser->id . ')"><i class="ri-eye-line mr-0"></i></a>
-                    
+
             // <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
             //                             href="' . url('/party-users/edit/' . $partyUser->id) . '"><i class="ri-pencil-line mr-0"></i></a>
             //                         <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
@@ -90,9 +90,10 @@ class PartyUserController extends Controller
                 'status' => $partyUser->status == 'Active'
                     ? '<span onclick=\'statusChange("' . $partyUser->id . '", "Inactive")\'><div class="badge badge-success" style="cursor:pointer">Active</div></span>'
                     : '<span onclick=\'statusChange("' . $partyUser->id . '", "Active")\'><div class="badge badge-danger" style="cursor:pointer">Inactive</div></span>',
-               // 'is_delete' => ($partyUser->is_delete=="No" ? '<div class="badge badge-success">Not Deleted</div>' : '<div class="badge badge-danger">Deleted</div>'),
+                // 'is_delete' => ($partyUser->is_delete=="No" ? '<div class="badge badge-success">Not Deleted</div>' : '<div class="badge badge-danger">Deleted</div>'),
 
                 'created_at' => date('d-m-Y h:i', strtotime($partyUser->created_at)),
+                'updated_at' => date('d-m-Y h:i', strtotime($partyUser->updated_at)),
                 'action' => $action
             ];
         }
@@ -190,7 +191,7 @@ class PartyUserController extends Controller
     {
         // Find the user and soft delete
         $record = Partyuser::where('status', 'Active')->findOrFail($id);
-        $record->is_delete="Yes";
+        $record->is_delete = "Yes";
         $record->save();
 
         //return redirect()->route('users.list')->with('success', 'Party User has been deleted successfully.');

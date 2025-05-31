@@ -27,13 +27,14 @@
                             <table class="table data-tables table-striped" id="party_users_table">
                                 <thead class="bg-white text-uppercase">
                                     <tr class="ligth ligth-data">
-
                                         <th>First Name</th>
                                         <th>Last Name</th>
                                         <th>Email</th>
                                         <th>Phone</th>
                                         <th>Credit</th>
                                         <th>Status</th>
+                                        <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
+                                        <th data-type="date" data-format="YYYY/DD/MM">Updated Date</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -93,6 +94,12 @@
                     {
                         data: 'status'
                     },
+                    {
+                        data: 'created_at'
+                    },
+                    {
+                        data: 'updated_at'
+                    },
                     //  {
                     //     data: 'is_delete'
                     // },
@@ -107,7 +114,7 @@
                     aTargets: [4, 5] // make "action" column unsortable
                 }],
                 order: [
-                    [2, 'desc']
+                    [6, 'desc']
                 ], // 🟢 Sort by created_at DESC by default
                 dom: "Bfrtip",
                 buttons: ['pageLength'],

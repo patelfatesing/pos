@@ -88,6 +88,7 @@ class CommissionUserController extends Controller
                     : '<span onclick=\'statusChange("' . $commissionUser->id . '", 1)\'><div class="badge badge-danger" style="cursor:pointer">Inactive</div></span>',
                 //'is_deleted' => ($commissionUser->is_deleted=="No" ? '<div class="badge badge-success">Not Deleted</div>' : '<div class="badge badge-danger">Deleted</div>'),
                 'created_at' => date('d-m-Y h:i', strtotime($commissionUser->created_at)),
+                'updated_at' => date('d-m-Y h:i', strtotime($commissionUser->updated_at)),
                 'action' => $action
             ];
         }
