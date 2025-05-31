@@ -124,7 +124,7 @@ class Shoppingcart extends Component
     public $partyUserDiscountAmt = 0;
     public $finalDiscountPartyAmount = 0;
     public $productStock = [];
-    public $product_in_stocks = [];
+    //public $product_in_stocks = [];
 
 
     // This method is triggered whenever the checkbox is checked or unchecked
