@@ -31,7 +31,6 @@ class CommissionUserController extends Controller
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('first_name', 'like', '%' . $searchValue . '%')
-                    ->orWhere('middle_name', 'like', '%' . $searchValue . '%')
                     ->orWhere('last_name', 'like', '%' . $searchValue . '%')
                     ->orWhere('commission_type', 'like', '%' . $searchValue . '%')
                     ->orWhere('applies_to', 'like', '%' . $searchValue . '%')

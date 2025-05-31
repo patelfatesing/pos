@@ -59,6 +59,7 @@
                             <thead class="bg-white text-uppercase">
                                 <tr class="ligth ligth-data">
                                     <th>Trasaction #</th>
+                                    <th>Photo</th>
                                     <th>Status</th>
                                     <th>Commission Amount</th>
                                     <th>Sub Total</th>
@@ -92,6 +93,13 @@
             <!-- Wrapper End-->
         </div>
     </div>
+     <div class="modal fade bd-example-modal-lg" id="salesCustPhotoShowModal" tabindex="-1" role="dialog"
+        aria-labelledby="salesCustPhotoShowModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content" id="salesCustPhotoModalContent">
+            </div>
+        </div>
+    </div>
     <script>
         $(document).ready(function() {
             $.ajaxSetup({
@@ -111,7 +119,7 @@
                 autoWidth: false,
                 bLengthChange: true,
                 order: [
-                    [8, 'desc']
+                    [1, 'desc']
                 ], // Sort by created_at
                 columnDefs: [{
                         targets: [1, 2, 3, 4, 5, 6],
@@ -171,6 +179,13 @@
                         data: 'status',
                         name: 'status'
                     },
+                        {
+                        data: 'photo',
+                        name: 'photo',
+                        orderable: false,
+                        searchable: false
+                    },
+                 
                     {
                         data: 'commission_amount',
                         name: 'commission_amount',
@@ -239,5 +254,22 @@
                 table.draw();
             });
         });
+         const salesImgViewBase = "{{ url('sales-img-view') }}";
+
+        function showPhoto(id,commission_user_id='',party_user_id='',invoice_no='') {
+            let url = `${salesImgViewBase}/${id}?commission_user_id=${commission_user_id}&party_user_id=${party_user_id}&invoice_no=${invoice_no}`;
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function(response) {
+                    $('#salesCustPhotoModalContent').html(response);
+                    $('#salesCustPhotoShowModal').modal('show');
+                },
+                error: function() {
+                    alert('Photos not found.');
+                }
+            });
+        }
     </script>
 @endsection

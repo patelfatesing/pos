@@ -8,6 +8,7 @@ use App\Models\PartyUserImage;
 use Illuminate\Support\Facades\DB;
 use App\Models\PartyCustomerProductsPrice;
 use Illuminate\Support\Facades\Auth;
+use App\Models\CommissionUserImage;
 
 class PartyUserController extends Controller
 {
@@ -34,9 +35,7 @@ class PartyUserController extends Controller
             $query->where(function ($q) use ($searchValue) {
                 $q->where('first_name', 'like', '%' . $searchValue . '%')
                     ->orWhere('last_name', 'like', '%' . $searchValue . '%')
-                    ->orWhere('commission_type', 'like', '%' . $searchValue . '%')
-                    ->orWhere('applies_to', 'like', '%' . $searchValue . '%')
-                    ->orWhere('commission_value', 'like', '%' . $searchValue . '%');
+                    ->orWhere('credit_points', 'like', '%' . $searchValue . '%');
             });
         }
 
@@ -399,13 +398,19 @@ class PartyUserController extends Controller
         ]);
     }
 
-    public function custTrasactionPhoto($id)
+    public function custTrasactionPhoto($id, Request $request)
     {
-        $photos = PartyUserImage::select('image_path', 'type', 'id')->where('transaction_id', $id)->get();
+        $imageType=$request->get('imageType');
+        $invoice_id=$request->get('invoice_id');
 
-        return view('party_users.cust-photo', compact('photos'));
+    
+        if($imageType=="Commission"){
+            $photos = CommissionUserImage::where('transaction_id', $invoice_id)->where('commission_user_id', $id)->first();
+        }else{
+            $photos = PartyUserImage::where('transaction_id', $id)->first();
+        }
 
-        return response()->json(['error' => 'Form not found'], 404);
+        return view('party_users.cust-photo', compact('photos','imageType'));
     }
 
     public function statusChange(Request $request)
