@@ -93,8 +93,7 @@ class Invoice extends Model
         }
 
         // Get last invoice number from DB, e.g., 'LHINV-0045'
-        $lastInvoice = Invoice::latest('id')->value('invoice_number'); 
-
+        $lastInvoice = Invoice::where('status', '!=', 'hold')->latest('id')->value('invoice_number'); 
         if ($lastInvoice) {
             $number = (int) str_replace($prefix, '', $lastInvoice);
             $newNumber = $prefix . str_pad($number + 1, 4, '0', STR_PAD_LEFT);
