@@ -400,7 +400,7 @@
     <!-- Bootstrap Modal -->
     <div class="modal fade" id="holdTransactionsModal" tabindex="-1" aria-labelledby="holdModalLabel"
         aria-hidden="true" wire:ignore.self>
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="holdModalLabel">{{ __('messages.hold_transactions') }} </h5>
@@ -2502,12 +2502,12 @@
     } --}}
 </script>
 <script>
-    window.addEventListener('show-order-modal', event => {
-        var myModal = new bootstrap.Modal(document.getElementById('orderModal'), {
-            keyboard: false
-        });
-        myModal.show();
-    });
+    // window.addEventListener('show-order-modal', event => {
+    //     var myModal = new bootstrap.Modal(document.getElementById('orderModal'), {
+    //         keyboard: false
+    //     });
+    //     myModal.show();
+    // });
 </script>
 <script>
     document.addEventListener('click', function(event) {
