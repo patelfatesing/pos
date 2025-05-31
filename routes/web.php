@@ -310,7 +310,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/sales/commission-report', [SalesReportController::class, 'commissionReport'])->name('sales.commission.report');
     Route::get('/sales/fetch-commission-data', [SalesReportController::class, 'commissionInvoicesReport'])->name('sales.fetch-commission-data');
-
+Route::get('/sales-img-view/{id}', [SalesReportController::class, 'show'])->name('sales.img.view');
+    
     Route::get('/exp-category/list', [ExpenseCategoryController::class, 'index'])->name('exp_category.list');
     Route::post('/exp-category/get-data', [ExpenseCategoryController::class, 'getData'])->name('exp_category.getData');
     Route::get('/exp-category/create', [ExpenseCategoryController::class, 'create'])->name('exp_category.create');

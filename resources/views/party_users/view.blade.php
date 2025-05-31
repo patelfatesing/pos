@@ -150,7 +150,7 @@
                                                 aria-labelledby="pills-profile-tab-fill">
                                                 <div class="table-responsive rounded mb-3">
                                                     <table class="table data-tables table-striped"
-                                                        id="cust_commission_his_table">
+                                                        id="cust_party_his_table" style="width: 100%">
 
                                                         <thead class="bg-white text-uppercase">
 
@@ -189,10 +189,10 @@
     <!-- Wrapper End -->
 
 
-    <div class="modal fade bd-example-modal-lg" id="custPhotoShowModal" tabindex="-1" role="dialog"
-        aria-labelledby="custPhotoShowModalLabel" aria-hidden="true">
+    <div class="modal fade bd-example-modal-lg" id="partyCustPhotoShowModal" tabindex="-1" role="dialog"
+        aria-labelledby="partyCustPhotoShowModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content" id="custPhotoModalContent">
+            <div class="modal-content" id="partyCustPhotoModalContent">
             </div>
         </div>
     </div>
@@ -208,11 +208,11 @@
             }
         });
 
-        if ($.fn.DataTable.isDataTable('#cust_commission_his_table')) {
-            $('#cust_commission_his_table').DataTable().clear().destroy();
+        if ($.fn.DataTable.isDataTable('#cust_party_his_table')) {
+            $('#cust_party_his_table').DataTable().clear().destroy();
         }
 
-        $('#cust_commission_his_table').DataTable({
+        $('#cust_party_his_table').DataTable({
             pageLength: 10,
             responsive: true,
             processing: true,
@@ -263,7 +263,7 @@
                         console.log(row);
                         if (row.credit_amount === '0.00') {
                             return `<span class="badge bg-info">
-                                <a href="#" style="color:white;">-</a>
+                                <a href="#" style="color:white;"> - </a>
                             </span>`;
                         } else if (row.credit_amount != '0.00' && row.status == 'unpaid') {
                             return `<span class="badge bg-danger">
@@ -293,16 +293,22 @@
         });
     });
 
-    function showPhoto(id) {
+  
+    function showPhoto(party_user_id,invoice_id='') {
 
         $.ajax({
-            url: '/cust-trasaction-photo/view/' + id,
+            url: '/cust-trasaction-photo/view/' + party_user_id,
             type: 'GET',
+            data:{
+                'imageType': "Party",
+                'invoice_id': invoice_id
+            },
+
             success: function(response) {
                 // Assuming the response is a JSON with customer_photo and product_photo
 
-                $('#custPhotoModalContent').html(response);
-                $('#custPhotoShowModal').modal('show');
+                $('#partyCustPhotoModalContent').html(response);
+                $('#partyCustPhotoShowModal').modal('show');
             },
             error: function() {
                 alert('Photos.Not Found');

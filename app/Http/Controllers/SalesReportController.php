@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\DB;
 use App\Events\DrawerOpened;
 use App\Events\NewCreditTransaction;
 use Illuminate\Support\Facades\Auth;
+use App\Models\PartyUserImage;
+use App\Models\CommissionUserImage;
 
 class SalesReportController extends Controller
 {
@@ -43,7 +45,9 @@ class SalesReportController extends Controller
                 'invoices.items',
                 'invoices.branch_id',
                 'branches.name as branch_name',
-                'invoices.created_at'
+                'invoices.created_at',
+                'invoices.commission_user_id',
+                'invoices.party_user_id'
             );
 
         if ($request->start_date && $request->end_date) {
@@ -93,11 +97,15 @@ class SalesReportController extends Controller
             $action = '<div class="d-flex align-items-center list-action">
                         <a class="badge badge-success mr-2" data-toggle="tooltip" data-placement="top" title="View"
                         href="' . url('/view-invoice/' . $invoice->id) . '">' . $invoice->invoice_number . '</a>
-                    </div>';
+                    </div> ';
+                $photo = '<div class="d-flex align-items-center list-action">
+                <a class="badge badge-success mr-2" onClick="showPhoto(' . ($invoice->id ?? '') . ',\'' . ($invoice->commission_user_id ?? '') . '\',\'' . ($invoice->party_user_id ?? ''). '\',\'' . ($invoice->invoice_number ?? '') . '\')">Show</a>
+                </div>';
 
             $data[] = [
                 'invoice_number' => $action,
                 'status' => $invoice->status,
+                'photo' => $photo,
                 'sub_total' => number_format($invoice->sub_total, 2),
                 'total' => number_format($invoice->total, 2),
                 'commission_amount' => number_format($invoice->commission_amount, 2),
@@ -115,7 +123,23 @@ class SalesReportController extends Controller
             'data' => $data,
         ]);
     }
+     public function show($id,Request $request)
+    {
+        $commission_user_id = $request->input('commission_user_id', null);
+        $party_user_id = $request->input('party_user_id', null);
+        $invoice_no = $request->input('invoice_no', null);
 
+
+        // Debugging output
+        // dd($id, $commission_user_id, $party_user_id);
+        if(!empty($party_user_id)){
+            $photos = PartyUserImage::where('transaction_id', $id)->first();
+        }else if(!empty($commission_user_id)){
+            $photos = CommissionUserImage::where('transaction_id', $id)->first();
+        }
+        $imageType="";
+        return view('party_users.cust-photo', compact('photos','invoice_no','imageType'));
+    }
     public function storeSummary()
     {
         $invoices = DB::table('invoices')

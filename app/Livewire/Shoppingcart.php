@@ -2083,7 +2083,7 @@ class Shoppingcart extends Component
                     CommissionUserImage::create([
                         'commission_user_id' => $invoice->commission_user_id,
                         'type' => '',
-                        'image_path' => $userImgName,
+                        'image_path' => $destinationUserPath,
                         'image_name' => '',
                         'product_image_path' => $destinationProductPath,
                         'transaction_id' => $invoice->id,
