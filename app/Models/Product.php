@@ -42,7 +42,9 @@ class Product extends Model
     }
     public function inventorie()
     {
-        return $this->hasOne(Inventory::class, 'product_id');
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
+        return $this->hasOne(Inventory::class, 'product_id')->where('store_id', $branch_id);;
     }
 
     public function category()
