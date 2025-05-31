@@ -45,7 +45,6 @@ class ProductController extends Controller
 
         $query = Product::with(['category', 'subcategory']);
 
-
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('name', 'like', '%' . $searchValue . '%')
@@ -107,6 +106,7 @@ class ProductController extends Controller
                 'mrp' => "₹" . $product->mrp,
                 'is_active' => $status,
                 'created_at' => date('d-m-Y h:i', strtotime($product->created_at)),
+                'updated_at' => date('d-m-Y h:i', strtotime($product->updated_at)),
                 'action' => $action
             ];
         }

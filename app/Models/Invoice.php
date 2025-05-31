@@ -64,7 +64,7 @@ class Invoice extends Model
     {
         return $this->hasMany(Refund::class);
     }
-  public static function generateInvoiceNumber(): string
+  public static function generateInvoiceNumber($type=""): string
     {
         // $today = Carbon::now()->format('Ymd'); // e.g., 20250516
         // $datePrefix = 'LHUB' . $today;
@@ -88,6 +88,9 @@ class Invoice extends Model
         // return $invoiceNumber;
         // Example prefix
         $prefix = 'LQH-';
+        if(!empty($type)){
+            $prefix.=$type."-";
+        }
 
         // Get last invoice number from DB, e.g., 'LHINV-0045'
         $lastInvoice = Invoice::latest('id')->value('invoice_number'); 

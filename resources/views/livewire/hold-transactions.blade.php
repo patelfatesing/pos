@@ -21,7 +21,9 @@
                 }
             @endphp
                 <tr>
-                    <td>HOLD-{{ $sid+1 }}</td>
+                    {{-- <td>HOLD-{{ $sid+1 }}</td> --}}
+                    <td>{{ $transaction->invoice_number }}</td>
+
                     @if (auth()->user()->hasRole('warehouse'))
                     <td>{{ !empty($transaction->partyUser) ? $transaction->partyUser->first_name." ".$transaction->partyUser->last_name : 'N/A' }}</td>
                     @else
@@ -36,6 +38,9 @@
                          <button wire:click="resumeTransaction({{ $transaction->id }})" class="btn btn-success btn-sm">
                             Resume
                         </button>
+                        <button class="btn btn-primary btn-sm" wire:click="printInvoice('{{ $transaction->id }}')">
+                          <i class="fa fa-file-pdf"></i>
+                          </button>
                         <button class="btn btn-danger btn-sm" onclick="confirmDelete({{ $transaction->id }})">
                             Delete
                         </button>

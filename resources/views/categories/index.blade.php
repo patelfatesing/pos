@@ -31,6 +31,7 @@
                                 </th>
                                 <th>Status</th>
                                 <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
+                                <th data-type="date" data-format="YYYY/DD/MM">Updated Date</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -78,6 +79,9 @@
                     },
                     {
                         data: 'created_at'
+                    },
+                    {
+                        data: 'updated_at'
                     },
                     {
                         data: 'action'

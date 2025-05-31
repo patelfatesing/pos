@@ -56,6 +56,7 @@ class CategoryController extends Controller
                 'name' => $role->name,
                 'is_active' => ($role->is_active ? '<div class="badge badge-success">Active</div>':'<div class="badge badge-success">Inactive</div>'),
                 'created_at' => \Carbon\Carbon::parse($role->created_at)->format('d-m-Y H:i'),
+                'updated_at' => \Carbon\Carbon::parse($role->updated_at)->format('d-m-Y H:i'),
                 'action' => $action
             ];
         }
