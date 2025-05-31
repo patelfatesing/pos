@@ -2074,7 +2074,6 @@ class Shoppingcart extends Component
                     //$sourcePath = 'uploaded_photos/' . $image['filename'];
                     $destinationProductPath = 'uploaded_photos/' . $invoice_number . '/' . $productImgName;
                     $destinationUserPath = 'uploaded_photos/' . $invoice_number . '/' . $userImgName;
-    
                     if (Storage::disk('public')->exists($cashier_customer_photo_path)) {
                         Storage::disk('public')->move($cashier_customer_photo_path, $destinationUserPath);
                     }

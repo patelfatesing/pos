@@ -217,69 +217,6 @@
             $('#amount').val((rate * qty).toFixed(2));
         }
 
-        // Add product row
-        function addProduct(data) {
-            const brand = data.id;
-            const brandVal = data.name;
-            const batch = data.batch_no;
-            const mfg = data.mfg_date;
-            const mrp = data.cost_price;
-            const rate = data.sell_price;
-            const qty = 1;
-            const amount = rate * qty;
-
-            let existingRow = null;
-
-            // Check if product already exists in the table
-            $('#product_table tbody tr').each(function() {
-                const rowBrand = $(this).find('input[name*="[brand_name]"]').val();
-                const rowBatch = $(this).find('input[name*="[batch]"]').val();
-
-                if (rowBrand === brandVal && rowBatch === batch) {
-                    existingRow = $(this);
-                    return false; // break loop
-                }
-            });
-
-            if (existingRow) {
-                // Update quantity and amount
-                const qtyInput = existingRow.find('input[name*="[qnt]"]');
-                const rateInput = existingRow.find('input[name*="[rate]"]');
-                const amountInput = existingRow.find('input[name*="[amount]"]');
-
-                let existingQty = parseInt(qtyInput.val()) || 0;
-                const newQty = existingQty + qty;
-                const newAmount = (newQty * rate).toFixed(2);
-
-                qtyInput.val(newQty);
-                amountInput.val(newAmount);
-                qtyInput.data('prev', newQty); // update previous value
-
-                updateTotal();
-            } else {
-                // New row
-                const row = `
-                <tr>
-                    <td>${srNo}</td>
-                    <input type="hidden" name="products[${srNo - 1}][product_id]" value="${brand}">
-                    <td><input type="text" name="products[${srNo - 1}][brand_name]" class="form-control" value="${brandVal}" readonly></td>
-                    <td><input type="text" name="products[${srNo - 1}][batch]" class="form-control" value="${batch}"></td>
-                    <td><input type="date" name="products[${srNo - 1}][mfg_date]" class="form-control" value="${mfg}"></td>
-                    <td><input type="number" step="0.01" name="products[${srNo - 1}][mrp]" class="form-control" value="${mrp}"></td>
-                    <td><input type="number" name="products[${srNo - 1}][qnt]" class="form-control" value="${qty}" min="1" data-prev="${qty}"></td>
-                    <td><input type="number" step="0.01" name="products[${srNo - 1}][rate]" class="form-control" value="${rate}"></td>
-                    <td><input type="number" step="0.01" name="products[${srNo - 1}][amount]" class="form-control" value="${amount}" readonly></td>
-                    <td><button type="button" class="btn btn-sm btn-danger remove">Remove</button></td>
-                </tr>
-                `;
-
-                $('#product_table tbody').append(row);
-                srNo++;
-                updateTotal();
-            }
-
-            resetFields();
-        }
 
         // Remove row
         $(document).on('click', '.remove', function() {
