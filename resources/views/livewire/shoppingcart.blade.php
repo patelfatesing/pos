@@ -653,9 +653,8 @@
                                                 <select name="items[0][product_id]" class="form-control d-inline w-50 product-select-sh"
                                                     required>
                                                     <option value="">-- {{ __('messages.select_product') }} --</option>
-                                                    @foreach ($allProducts as $product)
-                                                        <option value="{{ $product->id }}">{{ $product->name }}
-                                                            ({{ $product->sku }})
+                                                    @foreach ($product_in_stocks as $pro)
+                                                        <option value="{{ $pro->id }}">{{ $pro->name }}
                                                         </option>
                                                     @endforeach
                                                 </select>
