@@ -1939,17 +1939,16 @@ class Shoppingcart extends Component
             foreach ($groupedProducts as $productId => $totalQuantity) {
                 $product = $this->cartitems->firstWhere('product_id', $productId)->product;
                 $inventories = $product->inventories;
-                $totalQuantity = $inventories->sum('quantity');
+                $totalQuantityNew = $inventories->sum('quantity')- $totalQuantity;
                 $inventory = $product->inventorie;
-
-                if ($totalQuantity <= $inventory->low_level_qty) {
+                if ($totalQuantityNew <= $inventory->low_level_qty) {
                     // You can use your custom function like sendNotification, or better use Laravel Notification system
 
                     // Example with your function:
                     $arr['id'] = $inventory->product->id;
                     sendNotification('low_stock', 'Store stock request', null, auth()->id(), json_encode($arr));
                 }
-                stockStatusChange($inventory->product->id, $branch_id, $totalQuantity, 'sold_stock');
+                stockStatusChange($inventory->product->id, $branch_id, $totalQuantityNew, 'sold_stock');
 
                 if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
                     // Deduct only from the first inventory if it has enough quantity
@@ -2067,29 +2066,32 @@ class Shoppingcart extends Component
 
                 $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
                 $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
-                $userImgName = basename($cashier_customer_photo_path);
-                $productImgName = basename($cashier_product_photo_path);
-                // Define source and destination paths
-                //$sourcePath = 'uploaded_photos/' . $image['filename'];
-                $destinationProductPath = 'uploaded_photos/' . $invoice_number . '/' . $productImgName;
-                $destinationUserPath = 'uploaded_photos/' . $invoice_number . '/' . $userImgName;
+                if(!empty($cashier_product_photo_path) && !empty($cashier_customer_photo_path)){
 
-                if (Storage::disk('public')->exists($cashier_customer_photo_path)) {
-                    Storage::disk('public')->move($cashier_customer_photo_path, $destinationUserPath);
+                    $userImgName = basename($cashier_customer_photo_path) ?? '';
+                    $productImgName = basename($cashier_product_photo_path) ?? '';
+                    // Define source and destination paths
+                    //$sourcePath = 'uploaded_photos/' . $image['filename'];
+                    $destinationProductPath = 'uploaded_photos/' . $invoice_number . '/' . $productImgName;
+                    $destinationUserPath = 'uploaded_photos/' . $invoice_number . '/' . $userImgName;
+    
+                    if (Storage::disk('public')->exists($cashier_customer_photo_path)) {
+                        Storage::disk('public')->move($cashier_customer_photo_path, $destinationUserPath);
+                    }
+                    if (Storage::disk('public')->exists($cashier_product_photo_path)) {
+                        Storage::disk('public')->move($cashier_product_photo_path, $destinationProductPath);
+                    }
+                    CommissionUserImage::create([
+                        'commission_user_id' => $invoice->commission_user_id,
+                        'type' => '',
+                        'image_path' => $userImgName,
+                        'image_name' => '',
+                        'product_image_path' => $destinationProductPath,
+                        'transaction_id' => $invoice->id,
+                    ]);
+                    session()->forget(auth()->id() . '_cashier_product_photo_path', []);
+                    session()->forget(auth()->id() . '_cashier_customer_photo_path', []);
                 }
-                if (Storage::disk('public')->exists($cashier_product_photo_path)) {
-                    Storage::disk('public')->move($cashier_product_photo_path, $destinationProductPath);
-                }
-                CommissionUserImage::create([
-                    'commission_user_id' => $invoice->commission_user_id,
-                    'type' => '',
-                    'image_path' => $userImgName,
-                    'image_name' => '',
-                    'product_image_path' => $destinationProductPath,
-                    'transaction_id' => $invoice->id,
-                ]);
-                session()->forget(auth()->id() . '_cashier_product_photo_path', []);
-                session()->forget(auth()->id() . '_cashier_customer_photo_path', []);
             }
             // Retrieve session data
 
