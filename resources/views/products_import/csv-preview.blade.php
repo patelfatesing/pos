@@ -103,16 +103,16 @@
                                             <div class="row mb-3">
                                                 <div class="col-md-4">
                                                     <label class="form-label">
-                                                        {{ $field }}
+                                                        {{ ucwords(str_replace('_', ' ', $field)) }}
                                                         @if (in_array($field, [
-                                                                'name',
+                                                                'product_name',
                                                                 'barcode',
-                                                                'batch_number',
+                                                                'batch_no',
                                                                 'category',
                                                                 'sub_category',
                                                                 'cost_price',
                                                                 'selling_price',
-                                                                'Minimum_stock_level',
+                                                                'minimum_stock_level',
                                                             ]))
                                                             <span class="text-danger">*</span>
                                                         @endif
@@ -123,7 +123,9 @@
                                                         class="form-control form-select @error('mapping.' . $field) is-invalid @enderror">
                                                         <option value="">-- Select Column --</option>
                                                         @foreach ($headers as $i => $header)
-                                                            <option value="{{ $i }}" {{ $errors->any() && old('mapping.' . $field) == $i ? 'selected' : '' }}>
+                                                            <option value="{{ $i }}" 
+                                                                {{ ($errors->any() && old('mapping.' . $field) == $i) || 
+                                                                   (!$errors->any() && strtolower(str_replace('_', ' ', $field)) === strtolower(str_replace('_', ' ', $header))) ? 'selected' : '' }}>
                                                                 {{ $header }}
                                                             </option>
                                                         @endforeach

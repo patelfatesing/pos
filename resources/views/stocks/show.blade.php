@@ -10,7 +10,7 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <h1>Stock Request Details</h1>                
+                <h1>Stock Request Details</h1>
                 <div class="table-responsive rounded mb-3">
                     <table class="table data-tables table-striped" id="stock-requests-table">
                         <thead class="bg-white text-uppercase">
@@ -202,7 +202,7 @@
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [2,3,5]
+                    aTargets: [2, 3, 5]
                 }],
                 order: [
                     [1, 'desc']
@@ -218,36 +218,5 @@
 
         });
 
-        function delete_store(id) {
-
-            Swal.fire({
-                title: "Are you sure?",
-                text: "You won't be able to revert this!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Yes, delete it!",
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        type: "delete", // "method" also works
-                        url: "{{ url('store/delete') }}/" + id, // Ensure correct Laravel URL
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        data: {
-                            id: id
-                        },
-                        success: function(response) {
-                            swal("Deleted!", "The store has been deleted.", "success")
-                                .then(() => location.reload());
-                        },
-                        error: function(xhr) {
-                            swal("Error!", "Something went wrong.", "error");
-                        }
-                    });
-                }
-            });
-
-        }
     </script>
 @endsection

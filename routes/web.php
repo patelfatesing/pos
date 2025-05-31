@@ -160,6 +160,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/stock/request-list', [StockController::class, 'show'])->name('stock.requestList');
     Route::post('/stock/get-request-data', [StockController::class, 'getRequestData'])->name('stock.getRequestData');
     Route::get('/stock/view/{id}', [StockController::class, 'view'])->name('stock.view');
+    Route::get('/stock/stock-request-view/{id}', [StockController::class, 'stockRequestView'])->name('stock.stock-request-view');
     Route::post('/stock-requests/{id}/approve', [StockController::class, 'approve'])
         ->name('stock-requests.approve');
     Route::get('/stock-requests/popup-details/{id}', [StockController::class, 'stockShow'])->name('stock.popupDetails');
@@ -169,6 +170,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/stock/store-warehouse', [StockController::class, 'storeWarehouse'])->name('stock.warehouse');
     Route::get('/stock/send-request-list', [StockController::class, 'showSendRequest'])->name('stock.requestSendList');
     Route::post('/stock/get-send-request-data', [StockController::class, 'getSendRequestData'])->name('stock.getSendRequestData');
+    Route::post('/stock/get-stock-request-details', [StockController::class, 'getStockRequestDetails'])->name('stock.get-stock-request-details');
 
     // Route::get('/stock/send-store-request-list', [StockController::class, 'showStoreSendRequest'])->name('stock.requestStoreSendList');
     // Route::post('/stock/get-send-store-request-data', [StockController::class, 'getStoreSendRequestData'])->name('stock.getSendStoreRequestData');
@@ -192,7 +194,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/inventories/update-low-level-qty', [InventoryController::class, 'updateLowLevelQty'])->name('inventories.update-low-level-qty');
     Route::get('/inventories/get-low-level-products/{storeId}', [InventoryController::class, 'getLowLevelProducts'])->name('inventories.get-low-level-products');
     Route::post('/inventories/update-multiple-low-level-qty', [InventoryController::class, 'updateMultipleLowLevelQty'])->name('inventories.update-multiple-low-level-qty');
-    
+
     // Route::get('/stock/list', [InventoryController::class, 'index'])->name('inventories.list');
     // Route::post('/inventories/get-data', [InventoryController::class, 'getData'])->name('inventories.getData');
 
@@ -330,8 +332,8 @@ Route::get('/sales-img-view/{id}', [SalesReportController::class, 'show'])->name
     Route::get('/demand-order/list', [DemandOrderController::class, 'index'])->name('demand-order.list');
     Route::post('/demand-order/get-data', [DemandOrderController::class, 'getData'])->name('demand-order.getData');
     Route::get('/demand-order/create', [DemandOrderController::class, 'create'])->name('demand-order.create');
-    
-     Route::get('/demand-order/step-1', [DemandOrderController::class, 'step1'])->name('demand-order.step1');
+
+    Route::get('/demand-order/step-1', [DemandOrderController::class, 'step1'])->name('demand-order.step1');
     Route::post('/demand-order/step-1', [DemandOrderController::class, 'postStep1'])->name('demand-order.step1');
 
     Route::get('/demand-order/step-2', [DemandOrderController::class, 'step2'])->name('demand-order.step2');

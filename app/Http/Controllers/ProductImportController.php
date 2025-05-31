@@ -80,20 +80,20 @@ class ProductImportController extends Controller
 
             // Define database fields with descriptions
             $dbFields = [
-                'Name' => 'name',
+                'Name' => 'product_name',
                 'Barcode' => 'barcode',
-                'Batch No' => 'batch_number',
-                'Mfg Date' => 'Mfg_date',
-                'Expiry Date' => 'Expiry_date',
+                'Batch No' => 'batch_no',
+                'Mfg Date' => 'mfg_date',
+                'Expiry Date' => 'exp_date',
                 'Category' => 'category',
                 'Sub Category' => 'sub_category',
                 'Pack Size' => 'pack_size',
-                'Stock Low Level' => 'Minimum_stock_level',
+                'Stock Low Level' => 'min_stock_qty_set',
                 'Cost Price' => 'cost_price',
-                'Sell Price' => 'selling_price',
-                'MRP' => 'MRP',
-                'Discount Price' => 'Comission_customer_price',
-                'Discount Amt' => 'Discount_amount'
+                'Sale Price' => 'sale_price',
+                'MRP' => 'mrp',
+                'Discount Price' => 'commssion_base_customer_sale_price',
+                'Discount Amt' => 'commssion_margin'
             ];
 
             return view('products_import.csv-preview', compact('headers', 'dbFields', 'filename'));
@@ -111,22 +111,22 @@ class ProductImportController extends Controller
             $request->validate([
                 'file_name' => 'required|string',
                 'mapping' => 'required|array',
-                'mapping.name' => 'required',
+                'mapping.product_name' => 'required',
                 'mapping.barcode' => 'required',
-                'mapping.batch_number' => 'required',
+                'mapping.batch_no' => 'required',
                 'mapping.category' => 'required',
                 'mapping.sub_category' => 'required',
                 'mapping.cost_price' => 'required',
-                'mapping.selling_price' => 'required',
-                'mapping.Minimum_stock_level' => 'required',
+                'mapping.sale_price' => 'required',
+                'mapping.min_stock_qty_set' => 'required',
             ], [
                 'mapping.required' => 'Please map all required fields.',
-                'mapping.name.required' => 'Product Name field mapping is required.',
+                'mapping.product_name.required' => 'Product Name field mapping is required.',
                 'mapping.category.required' => 'Category field mapping is required.',
                 'mapping.sub_category.required' => 'Sub Category field mapping is required.',
                 'mapping.cost_price.required' => 'Cost Price field mapping is required.',
-                'mapping.selling_price.required' => 'Sell Price field mapping is required.',
-                'mapping.Minimum_stock_level.required' => 'Stock Low Level field mapping is required.',
+                'mapping.sale_price.required' => 'Sale Price field mapping is required.',
+                'mapping.min_stock_qty_set.required' => 'Stock Low Level field mapping is required.',
             ]);
 
             $filename = $request->input('file_name');
@@ -162,15 +162,15 @@ class ProductImportController extends Controller
                 for ($i = 1; $i < count($csvData); $i++) {
                     $row = $csvData[$i];
                     // Map values from row using $mapping
-                    $name = $row[$mapping['name']] ?? null;
+                    $name = $row[$mapping['product_name']] ?? null;
                     $barcode = $row[$mapping['barcode']] ?? null;
-                    $batch_no = $row[$mapping['batch_number']] ?? null;
-                    $mfg_date = $row[$mapping['Mfg_date']];
-                    $expiry_date = $row[$mapping['Expiry_date']];
+                    $batch_no = $row[$mapping['batch_no']] ?? null;
+                    $mfg_date = $row[$mapping['mfg_date']];
+                    $expiry_date = $row[$mapping['exp_date']];
                     $category_name = $row[$mapping['category']] ?? null;
                     $sub_category_name = $row[$mapping['sub_category']] ?? null;
                     $pack_size = $row[$mapping['pack_size']] ?? null;
-                    $sale_price = $row[$mapping['selling_price']] ?? null;
+                    $sale_price = $row[$mapping['sale_price']] ?? null;
 
                     // Validate required fields
                     if (!$name || !$category_name || !$sub_category_name || !$sale_price) {
@@ -195,12 +195,12 @@ class ProductImportController extends Controller
                     if ($existing) {
                         // Update existing product
                         // $existing->barcode = $barcode;
-                        $existing->reorder_level = isset($mapping['Minimum_stock_level']) ? $row[$mapping['Minimum_stock_level']] : 0;
-                        $existing->mrp = isset($mapping['MRP']) ? $row[$mapping['MRP']] : 0;
+                        $existing->reorder_level = isset($mapping['min_stock_qty_set']) ? $row[$mapping['min_stock_qty_set']] : 0;
+                        $existing->mrp = isset($mapping['mrp']) ? $row[$mapping['mrp']] : 0;
                         $existing->cost_price = $row[$mapping['cost_price']] ?? null;
                         $existing->sell_price = $sale_price;
-                        $existing->discount_price = isset($mapping['Comission_customer_price']) ? $row[$mapping['Comission_customer_price']] : null;
-                        $existing->discount_amt = isset($mapping['Discount_amount']) ? $row[$mapping['Discount_amount']] : 0;
+                        $existing->discount_price = isset($mapping['commssion_base_customer_sale_price']) ? $row[$mapping['commssion_base_customer_sale_price']] : null;
+                        $existing->discount_amt = isset($mapping['commssion_margin']) ? $row[$mapping['commssion_margin']] : 0;
                         $existing->save();
 
                         $updated++;
@@ -221,10 +221,10 @@ class ProductImportController extends Controller
                             'subcategory_id' => $subcategory->id,
                             'cost_price' => $row[$mapping['cost_price']] ?? null,
                             'sell_price' => $sale_price,
-                            'mrp' => isset($mapping['MRP']) ? $row[$mapping['MRP']] : 0,
-                            'reorder_level' => isset($mapping['Minimum_stock_level']) ? $row[$mapping['Minimum_stock_level']] : null,
-                            'discount_price' => isset($mapping['Comission_customer_price']) ? $row[$mapping['Comission_customer_price']] : null,
-                            'discount_amt' => isset($mapping['Discount_amount']) ? $row[$mapping['Discount_amount']] : 0,
+                            'mrp' => isset($mapping['mrp']) ? $row[$mapping['mrp']] : 0,
+                            'reorder_level' => isset($mapping['min_stock_qty_set']) ? $row[$mapping['min_stock_qty_set']] : null,
+                            'discount_price' => isset($mapping['commssion_base_customer_sale_price']) ? $row[$mapping['commssion_base_customer_sale_price']] : null,
+                            'discount_amt' => isset($mapping['commssion_margin']) ? $row[$mapping['commssion_margin']] : 0,
                         ]);
 
                         // Create inventory record
@@ -237,7 +237,7 @@ class ProductImportController extends Controller
                             'expiry_date' => $expiry_date,
                             'mfg_date' => $mfg_date,
                             'quantity' => 0,
-                            'low_level_qty' => isset($mapping['Minimum_stock_level']) ? $row[$mapping['Minimum_stock_level']] : null,
+                            'low_level_qty' => isset($mapping['min_stock_qty_set']) ? $row[$mapping['min_stock_qty_set']] : null,
                         ]);
                         // }
 
@@ -338,12 +338,10 @@ class ProductImportController extends Controller
 
         $inventoryService = new \App\Services\InventoryService();
 
-
         foreach ($request->items as $product_id => $product) {
 
-            $record = Product::with('inventorie')->where('id', $product_id)->where('is_deleted', 'no')->firstOrFail();
-
-            $inventory = Inventory::findOrFail($record->inventorie->id);
+            $record = Product::with('inventorieUnfiltered')->where('id', $product_id)->where('is_deleted', 'no')->firstOrFail();   
+            $inventory = Inventory::findOrFail($record->inventorieUnfiltered->id);
 
             if ($from_store_id == 1) {
 

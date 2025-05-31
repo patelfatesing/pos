@@ -122,12 +122,13 @@ class StockTransferController extends Controller
                     $low_qty_level = Inventory::lowLevelQty($item['product_id'], $request->from_store_id);
 
                     $total_qty = Inventory::countQty($item['product_id'], $request->from_store_id);
-                    $total_qty = $total_qty + $deductQty;
+                    $total_qty = $total_qty - $deductQty;
 
                     if ($total_qty < $low_qty_level) {
-                        $arr['id'] = $item['product_id'];
-                        sendNotification('low_stock', 'Store stock request', $request->from_store_id, Auth::id(), json_encode($arr));
-                        sendNotification('low_stock', 'Store stock request', null, Auth::id(), json_encode($arr));
+                        // $arr['id'] = $item['product_id'];
+                        $arr_low_stock[$item['product_id']] = $item['product_id'];
+                        // sendNotification('low_stock', 'Store stock request', $request->from_store_id, Auth::id(), json_encode($arr));
+                        // sendNotification('low_stock', 'Store stock request', null, Auth::id(), json_encode($arr));
                     }
 
                     // Stock status changes and logs
@@ -160,6 +161,15 @@ class StockTransferController extends Controller
 
                     $remainingQty -= $deductQty;
                 }
+            }
+
+            if (!empty($arr_low_stock)) {
+
+                $arr['product_id'] =  implode(',', array_values($arr_low_stock));
+                $arr['store_id'] =  (string) $request->from_store_id;
+                
+                sendNotification('low_stock', 'Store stock request', $request->from_store_id, Auth::id(), json_encode($arr));
+                sendNotification('low_stock', 'Store stock request', null, Auth::id(), json_encode($arr));
             }
 
             // Send notification and commit

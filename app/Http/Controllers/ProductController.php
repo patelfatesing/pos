@@ -289,8 +289,10 @@ class ProductController extends Controller
         $stores = Branch::where('is_deleted', 'no')->get();
 
         foreach ($stores as $store) {
-            $arr['id'] = $his_data->id;
-            sendNotification('price_change', $product->name . ' Product price is changed.', $store->id, Auth::id(), json_encode($arr), 0);
+            // $arr['id'] = $his_data->id;
+            // json_encode(['id' => (string) $his_data->id]);
+
+            sendNotification('price_change', $product->name . ' Product price is changed.', $store->id, Auth::id(), json_encode(['id' => (string)$his_data->id]), 0);
         }
 
         return response()->json([
