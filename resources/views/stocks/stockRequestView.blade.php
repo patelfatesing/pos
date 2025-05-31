@@ -24,13 +24,13 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-sm-4">
-                                <p><strong>From Store:</strong> {{ $stockRequest->branch->name ?? 'warehouse' }}</p>
-                            </div>
-                            <div class="col-sm-4">
-                                <p><strong>To Store:</strong> {{ $stockRequest->tobranch->name ?? 'warehouse' }}</p>
+                                <p><strong>Store:</strong> {{ $stockRequest->branch->name ?? 'warehouse' }}</p>
                             </div>
                             <div class="col-sm-4">
                                 <p><strong>Requested By:</strong> {{ $stockRequest->user->name ?? 'N/A' }}</p>
+                            </div>
+                            <div class="col-sm-4">
+                                <p><strong>Date:</strong> {{ $stockRequest->requested_at->format('d M Y h:i A') }}</p>
                             </div>
                             <div class="col-sm-4">
                                 <p><strong>Status:</strong>
@@ -47,9 +47,6 @@
                                 </p>
                             </div>
                             <div class="col-sm-4">
-                                <p><strong>Date:</strong> {{ $stockRequest->requested_at->format('d M Y h:i A') }}</p>
-                            </div>
-                            <div class="col-sm-4">
                                 <p><strong>Notes:</strong> {{ $stockRequest->notes ?? '-' }}</p>
                             </div>
                         </div>
@@ -57,27 +54,98 @@
                 </div>
 
                 <div class="card">
-                    <div class="card-header"><strong>Requested Items</strong></div>
+                    <div class="card-header"><strong></strong></div>
                     <div class="card-body p-0">
-                        <table class="table table-bordered mb-0" id="stock-requests-details-table">
+                        <form action="{{ route('stock.approve.stocks') }}" method="POST">
+                            @csrf
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-bordered" id="stock-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Sr No</th>
+                                                <th>Product</th>
+                                                <th>Requested Qty</th>
+                                                <th>Available in</th> <!-- 🆕 New column for remove button -->
+                                                <th>Approve Qty</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="stock-table-body">
+                                            @php
+                                                $oldItems = old('items');
+                                            @endphp
+
+                                            @if ($oldItems)
+                                            @else
+                                                @forelse($data['items'] as $key => $product)
+                                                    <tr class="item-row">
+                                                        <td>{{ $key + 1 }}</td>
+                                                        <td>{{ $product['product_name'] }}</td>
+                                                        <td>
+                                                            {{ $product['store_ava_quantity'] }}
+
+                                                        </td>
+                                                        <td>
+                                                            {{ $product['req_quantity'] }}
+                                                        </td>
+                                                        <td>
+                                                            <input type="number"
+                                                                name="items[{{ $product['id'] }}][quantity]"
+                                                                class="form-control" min="1"
+                                                                placeholder="Enter quantity">
+                                                            <input type="hidden"
+                                                                name="items[{{ $product['id'] }}][product_id]"
+                                                                value="{{ $product['id'] }}">
+                                                        </td>
+                                                        <td>
+                                                            {{-- <button type="button"
+                                                                        class="btn btn-danger btn-sm remove-item">Remove</button> --}}
+                                                        </td>
+                                                    </tr>
+                                                @empty
+                                                    <tr>
+                                                        <td colspan="3" class="text-center">✅ No available
+                                                            products
+                                                    </tr>
+                                                @endforelse
+                                            @endif
+
+                                        </tbody>
+                                    </table>
+
+                                    <button type="submit" class="btn btn-primary">Add Stocs</button> <!-- 🆕 -->
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <strong>Total Quantity:</strong> <span id="total-quantity">0</span>
+                            </div>
+                        </form>
+
+                        <table class="table table-bordered" id="stock-table">
                             <thead>
                                 <tr>
-                                    <th>#</th>
+                                    <th>Sr No</th>
                                     <th>Product</th>
-                                    <th>Brand</th>
-                                    <th>Size</th>
                                     <th>Quantity</th>
+                                    <th>Action</th> <!-- 🆕 New column for remove button -->
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="stock-table-body">
+                                @php
+                                    $oldItems = old('items');
+                                @endphp
+
+                                @if ($oldItems)
+                                    @foreach ($oldItems as $key => $item)
+                                    @endforeach
+                                @else
+                                @endif
+
                             </tbody>
-                            <tfoot>
-                                <tr>
-                                    <th colspan="4" style="text-align:right">Total Quantity:</th>
-                                    <th></th>
-                                </tr>
-                            </tfoot>
                         </table>
+                        <button type="submit" class="btn btn-primary">Add Stocs</button> <!-- 🆕 -->
+
                     </div>
                 </div>
                 <!-- Page end  -->
@@ -202,10 +270,7 @@
                     success: function(res) {
                         alert(res.message);
                         $('#approvedStockModal').modal('hide');
-                        // $('#stock-requests-table').DataTable().ajax.reload(null, false);
-                        setTimeout(function() {
-                            location.reload();
-                        }, 500);
+                        $('#stock-requests-table').DataTable().ajax.reload(null, false);
 
                     },
                     error: function(xhr) {

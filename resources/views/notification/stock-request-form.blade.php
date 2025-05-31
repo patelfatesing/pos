@@ -14,8 +14,6 @@
 
     <div class="modal-body">
         <div class="container mt-1">
-            <h4 class="mb-4">Stock Request #{{ $stockRequest->id }}</h4>
-
             <div class="card mb-4">
                 <div class="card-body">
 
@@ -56,7 +54,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>Status: </label>
+                                <label>Notes: </label>
                                 <span class="ml-2"> {{ $stockRequest->notes ?? '-' }}</span>
                             </div>
                         </div>
@@ -74,7 +72,6 @@
                                 <th>#</th>
                                 <th>Product</th>
                                 <th>Brand</th>
-                                <th>SKU</th>
                                 <th>Size</th>
                                 <th>Quantity</th>
                             </tr>
@@ -85,7 +82,6 @@
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $item->product->name }}</td>
                                     <td>{{ $item->product->brand }}</td>
-                                    <td>{{ $item->product->sku }}</td>
                                     <td>{{ $item->product->size }}</td>
                                     <td>{{ $item->quantity }}</td>
                                 </tr>

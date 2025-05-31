@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
-    // app/Http/Controllers/PopupController.php
 
     public function loadForm($type, Request $request)
     {
@@ -24,7 +23,10 @@ class NotificationController extends Controller
         $nf->save();
 
         if ($type === 'low_stock') {
-            $id  = $request->id;
+
+            $data = json_decode($nf->details);
+            $ids = explode(',', $data->product_id);
+
             $lowStockProducts = DB::table('products')
                 ->select(
                     'products.id',
@@ -37,7 +39,8 @@ class NotificationController extends Controller
                 ->leftJoin('inventories', 'products.id', '=', 'inventories.product_id')
                 ->where('products.is_deleted', 'no')
                 ->where('products.is_active', 'yes')
-                ->where('products.id', $id)
+                ->where('inventories.store_id', $data->store_id)
+                ->whereIn('products.id', $ids) // <- Use array here
                 ->groupBy(
                     'products.id',
                     'products.name',
@@ -45,10 +48,10 @@ class NotificationController extends Controller
                     'products.sku',
                     'products.reorder_level'
                 )
-                ->havingRaw('total_stock <= products.reorder_level')
+                // ->havingRaw('total_stock <= products.reorder_level')
                 ->get();
+
             return view('notification.product-form', compact('lowStockProducts'));
-            // return view('notification.product-form'); // resources/views/popups/user-form.blade.php
         }
 
         if ($type === 'expire_product') {
@@ -76,20 +79,23 @@ class NotificationController extends Controller
         }
 
         if ($type === 'request_stock') {
-            $id  = $request->id;
+
+            $data = json_decode($nf->details);
+            $id  = $data->id;
             $stockRequest = StockRequest::with(['branch', 'user', 'items.product'])->findOrFail($id);
             return view('notification.stock-request-form', compact('stockRequest'));
         }
 
         if ($type === 'approved_stock') {
-            $id  = $request->id;
+            $data = json_decode($nf->details);
+            $id  = $data->id;
             $stockRequest = StockRequest::with(['branch', 'user', 'items.product'])->findOrFail($id);
             return view('notification.stock-approved-form', compact('stockRequest'));
         }
 
-
         if ($type === 'transfer_stock') {
-            $id  = $request->id;
+            $data = json_decode($nf->details);
+            $id  = $data->id;
             $stockTransfer =  DB::table('stock_transfers as i')
                 ->join('products as p', 'i.product_id', '=', 'p.id')
                 ->where('i.transfer_number', $id)
@@ -220,7 +226,6 @@ class NotificationController extends Controller
                 ->where('created_at', '>=', Carbon::now()->subDay())
                 ->where('status', 'unread')
                 ->orderBy('created_at', 'desc')
-
                 ->count();
 
             $res_all = Notification::where('notify_to', $branch_id)

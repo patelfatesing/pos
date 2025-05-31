@@ -2598,20 +2598,20 @@
                     // This code runs when "Okay" is clicked
                     console.log('User clicked Okay');
 
-                    $.ajax({
-                        url: '/popup/form/' + data.type + "?id=" + data.value + "&nfid=" + data
-                            .nfid,
-                        type: 'GET',
-                        success: function(response) {
+                    // $.ajax({
+                    //     url: '/popup/form/' + data.type + "?id=" + data.value + "&nfid=" + data
+                    //         .nfid,
+                    //     type: 'GET',
+                    //     success: function(response) {
 
-                            $('#modalContent').html(response);
+                    //         $('#modalContent').html(response);
 
-                            $('#approveModal').modal('show');
-                        },
-                        error: function() {
-                            alert('Failed to load form.');
-                        }
-                    });
+                    //         $('#approveModal').modal('show');
+                    //     },
+                    //     error: function() {
+                    //         alert('Failed to load form.');
+                    //     }
+                    // });
                 }
             });
         }
