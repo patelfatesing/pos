@@ -112,7 +112,7 @@
                                                 aria-labelledby="pills-profile-tab-fill">
                                                 <div class="table-responsive rounded mb-3">
                                                     <table class="table data-tables table-striped"
-                                                        id="cust_commission_his_table">
+                                                        id="cust_commission_his_table" style="width: 100%;">
 
                                                         <thead class="bg-white text-uppercase">
 
@@ -208,7 +208,7 @@
                     render: function(data, type, row) {
                         if (data != '') {
                             return `<span class="badge bg-danger">
-                                <a href="#" onClick="showPhoto(${row.commission_user_image_id})" style="color:white;">Show</a>
+                                <a href="#" onClick="showPhoto(${row.commission_user_id},${row.invoice_id})" style="color:white;">Show</a>
                             </span>`;
                         } else {
                             return `<span class="badge bg-success">Paid</span>`;
@@ -222,7 +222,6 @@
                     name: 'status',
                     render: function(data, type, row) {
 
-                        console.log(row);
                         if (row.credit_amount === '0.00') {
                             return `<span class="badge bg-info">
                                 <a href="#" style="color:white;">-</a>
@@ -255,11 +254,16 @@
         });
     });
 
-    function showPhoto(id) {
+    function showPhoto(commission_user_id,invoice_id='') {
 
         $.ajax({
-            url: '/cust-trasaction-photo/view/' + id,
+            url: '/cust-trasaction-photo/view/' + commission_user_id,
             type: 'GET',
+            data:{
+                'imageType': "Commission",
+                'invoice_id': invoice_id
+            },
+
             success: function(response) {
                 // Assuming the response is a JSON with customer_photo and product_photo
 
