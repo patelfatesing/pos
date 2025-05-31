@@ -246,8 +246,8 @@ if (!function_exists('stockStatusChange')) {
                     ->join('products', 'inventories.product_id', '=', 'products.id')
                     ->join('categories', 'products.category_id', '=', 'categories.id')
                     ->join('sub_categories', 'products.subcategory_id', '=', 'sub_categories.id')
-                   // ->join('branches', 'inventories.store_id', '=', 'branches.id') // assuming branch_id in inventories
-                   // ->where('branches.is_warehouser', 'yes')
+                   ->join('branches', 'inventories.store_id', '=', 'branches.id') // assuming branch_id in inventories
+                   ->where('branches.is_warehouser', 'yes')
                     ->groupBy('inventories.product_id');
             }
 
