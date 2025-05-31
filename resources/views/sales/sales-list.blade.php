@@ -59,8 +59,8 @@
                             <thead class="bg-white text-uppercase">
                                 <tr class="ligth ligth-data">
                                     <th>Trasaction #</th>
-                                    <th>Photo</th>
                                     <th>Status</th>
+                                    <th>Photo</th>
                                     <th>Commission Amount</th>
                                     <th>Sub Total</th>
                                     <th>Party Dicount</th>
