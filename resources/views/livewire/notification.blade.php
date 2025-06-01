@@ -16,7 +16,7 @@
             <h5>Notifications</h5>
             @foreach ($notifications as $notification)
                 @if ($notification['status'] == 'unread')
-                    <div class="notification-item py-2 bg-light rounded p-2"
+                    <div class="notification-item py-2 bg-light rounded p-2 mb-1"
                         wire:click="viewNotificationDetail({{ $notification['notify_to'] }}, '{{ $notification['type'] }}', '{{ $notification['req_id'] }}','{{ $notification['id'] }}')"
                         style="cursor: pointer;">
                         <p class="mb-1">{{ $notification['message'] }}</p>

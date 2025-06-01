@@ -14,17 +14,52 @@
                         </div>
                     </div>
                 </div>
+                   <div class="row">
+                  
+                    <div class="col-md-2 mb-2">
+                        <input type="date" id="start_date" class="form-control">
+                    </div>
+                    <div class="col-md-2 mb-2">
+                        <input type="date" id="end_date" class="form-control">
+                    </div>
+                    <div class="col-md-2 mb-2">
+                        <select id="branch_id" class="form-control">
+                            <option value="">All Branches</option>
+                            @foreach ($branches as $branch)
+                                <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                     <div class="col-md-2 mb-2">
+                        <select id="user_id" class="form-control">
+                            <option value="">All Users</option>
+                            @foreach ($users as $users)
+                                <option value="{{ $users->id }}">{{ $users->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="col-md-2 mb-2">
+                        <button class="btn btn-primary w-100" id="shiftSearch">Search</button>
+                    </div>
+                    <div class="col-md-2 mb-2">
+                        <button class="btn btn-secondary w-100" id="shiftReset">Reset</button>
+                    </div>
+
+                </div>
                 <div class="table-responsive rounded mb-3">
                     <table class="table data-tables table-striped" id="shift_tbl">
                         <thead class="bg-white text-uppercase">
                             <tr class="ligth ligth-data">
                                 <th>Store</th>
-                                <th>Cashier</th>
+                                <th>User</th>
                                 <th>Shift Start</th>
                                 <th>Shift End</th>
                                 <th>Opening Cash</th>
+                                <th>Closing Cash</th>
                                 <th>Status</th>
-                                <th>Total Transaction</th>
+                                <th>Total Sales</th>
+                                <th>Difference</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -51,6 +86,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
+                  
                     <div class="table-responsive">
                         <table class="table table-bordered" id="invoice_table_modal">
                             <thead>
@@ -100,7 +136,7 @@
 
             $('#shift_tbl').DataTable().clear().destroy();
 
-            $('#shift_tbl').DataTable({
+            let table = $('#shift_tbl').DataTable({
                 pageLength: 10,
                 responsive: true,
                 processing: true,
@@ -111,9 +147,13 @@
                 ajax: {
                     url: '{{ url('shift-manage/get-data') }}',
                     type: 'POST',
-                    data: function(d) {
-                        // Add any extra data if needed
-                    },
+                   data: function(d) {
+                        d.start_date = $('#start_date').val();
+                        d.end_date = $('#end_date').val();
+                        d.branch_id = $('#branch_id').val();
+                        d.user_id = $('#user_id').val();
+                        
+                    }
                 },
                 columns: [{
                         data: 'branch_name',
@@ -138,13 +178,25 @@
                             return '₹' + parseFloat(data).toFixed(2);
                         }
                     },
+                      {
+                        data: 'closing_cash',
+                        name: 'closing_cash',
+                        render: function(data, type, row) {
+                            return '₹' + data;
+                        }
+                    },
                     {
                         data: 'status',
                         name: 'status'
                     },
+                
                     {
                         data: 'total_transaction',
                         name: 'total_transaction'
+                    },
+                        {
+                        data: 'difference',
+                        name: 'difference'
                     },
                     {
                         data: 'action',
@@ -167,7 +219,16 @@
                 ],
                 buttons: ['pageLength']
             });
-
+             $('#shiftSearch').on('click', function() {
+                table.draw();
+            });
+             $('#shiftReset').click(function () {
+                $('#start_date').val('');
+                $('#end_date').val('');
+                $('#branch_id').val('');
+                $('#user_id').val('');
+                table.ajax.reload();
+            });
         });
 
         // Use event delegation for dynamically created elements:

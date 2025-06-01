@@ -272,7 +272,11 @@ Route::middleware('auth')->group(function () {
 
     // });
 
+    Route::get('/stock-transfer/craete-transfer', [StockTransferController::class, 'craeteTransfer'])->name('stock-transfer.craete-transfer');
     Route::get('/stock-transfer/list', [StockTransferController::class, 'index'])->name('stock-transfer.list');
+    Route::get('/stock-transfer/get-transfer-data', [StockTransferController::class, 'getTransferData'])->name('stock-transfer.get-transfer-data');
+    Route::get('/stock-transfer/view/{id}', [StockTransferController::class, 'view'])->name('stock-transfer.view');
+
     Route::post('/stock-transfer/store', [StockTransferController::class, 'store'])->name('stock-transfer.store');
 
     Route::get('/vendor/list', [VendorListController::class, 'index'])->name('vendor.list');
@@ -312,8 +316,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/sales/commission-report', [SalesReportController::class, 'commissionReport'])->name('sales.commission.report');
     Route::get('/sales/fetch-commission-data', [SalesReportController::class, 'commissionInvoicesReport'])->name('sales.fetch-commission-data');
-Route::get('/sales-img-view/{id}', [SalesReportController::class, 'show'])->name('sales.img.view');
-    
+    Route::get('/sales-img-view/{id}', [SalesReportController::class, 'show'])->name('sales.img.view');
+
     Route::get('/exp-category/list', [ExpenseCategoryController::class, 'index'])->name('exp_category.list');
     Route::post('/exp-category/get-data', [ExpenseCategoryController::class, 'getData'])->name('exp_category.getData');
     Route::get('/exp-category/create', [ExpenseCategoryController::class, 'create'])->name('exp_category.create');
@@ -363,6 +367,8 @@ Route::get('/sales-img-view/{id}', [SalesReportController::class, 'show'])->name
     Route::post('/shift-manage/get-data', [ShiftManageController::class, 'getShiftClosingsData'])->name('shift-manage.getData');
     Route::post('shift-manage/invoices-by-branch', [ShiftManageController::class, 'getInvoicesByBranch'])->name('shift-manage.invoices-by-branch');
     Route::post('shift-manage/close-shift/{id}', [ShiftManageController::class, 'closeShift'])->name('shift-manage.close-shift');
+    Route::get('/shift-manage/view/{id}/{strartdate}/{endTime}', [ShiftManageController::class, 'view'])->name('purchase.shift-manage');
+
 });
 
 
