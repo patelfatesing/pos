@@ -40,6 +40,8 @@ class BranchController extends Controller
             });
         }
 
+        $query->where('is_deleted', 'no');
+
         $recordsTotal = Branch::count();
         $recordsFiltered = $query->count();
 
@@ -51,27 +53,29 @@ class BranchController extends Controller
         $records = [];
 
         $url = url('/');
-        foreach ($data as $employee) {
+        foreach ($data as $store) {
 
             $action = '<div class="d-flex align-items-center list-action">';
-            if ($employee->is_warehouser != 'yes') {
-                $action .= '<a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete"
-                href="#" onclick="delete_store(' . $employee->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>';
+            if ($store->is_warehouser != 'yes') {
+                // $action .= '<a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete"
+                // href="#" onclick="delete_store(' . $store->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>';
             }
+
+            $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
+                    href="#" onclick="low_level_stock(' . $store->id . ')"><i class="ri-battery-low-line"></i></a>';
             $action .= '<a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit"
-                    href="' . url('/store/edit/' . $employee->id) . '"><i class="ri-pencil-line mr-0"></i></a>';
+                    href="' . url('/store/edit/' . $store->id) . '"><i class="ri-pencil-line mr-0"></i></a>';
             $action .= '</div>';
 
-            
             $records[] = [
-                'name' => $employee->name,
-                'address' => $employee->address,
-                'main_branch' => $employee->main_branch,
-                'is_active' => $employee->is_active == 'yes'
-                ? '<span onclick=\'branchStatusChange("' . $employee->id . '", "no")\'><div class="badge badge-success" style="cursor:pointer">Active</div></span>'
-                : '<span onclick=\'branchStatusChange("' . $employee->id . '", "yes")\'><div class="badge badge-danger" style="cursor:pointer">Inactive</div></span>',
-                'is_deleted' => ($employee->is_deleted=="no" ? '<div class="badge badge-success">Not Deleted</div>' : '<div class="badge badge-danger">Deleted</div>'),
-                'created_at' => date('d-m-Y h:s', strtotime($employee->created_at)),
+                'name' => $store->name,
+                'address' => $store->address,
+                'main_branch' => $store->main_branch,
+                'is_active' => $store->is_active == 'yes'
+                    ? '<span onclick=\'branchStatusChange("' . $store->id . '", "no")\'><div class="badge badge-success" style="cursor:pointer">Active</div></span>'
+                    : '<span onclick=\'branchStatusChange("' . $store->id . '", "yes")\'><div class="badge badge-danger" style="cursor:pointer">Inactive</div></span>',
+                'created_at' => date('d-m-Y h:s', strtotime($store->created_at)),
+                'updated_at' => date('d-m-Y h:s', strtotime($store->updated_at)),
                 'action' => $action
             ];
         }
@@ -174,7 +178,7 @@ class BranchController extends Controller
 
         // return redirect()->route('branch.list')->with('success', 'Record deleted successfully.');
     }
-     public function statusChange(Request $request)
+    public function statusChange(Request $request)
     {
         $user = Branch::findOrFail($request->id);
         $user->is_active = $request->status;

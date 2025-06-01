@@ -20,6 +20,19 @@ class UserController extends Controller
         $data = User::where('is_deleted', 'no')->get();
         return view('user.index', compact('data'));
     }
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'new_password' => 'required|min:8|confirmed',
+        ]);
+
+        $user = User::findOrFail($request->user_id);
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json(['success' => true]);
+    }
 
     public function getData(Request $request)
     {
@@ -68,7 +81,9 @@ class UserController extends Controller
             $action = '<div class="d-flex align-items-center list-action">
                                     <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
                                         href="' . url('/users/edit/' . $employee->id) . '"><i class="ri-pencil-line mr-0"></i></a>
-                                   </div>';
+                                        <button class="btn btn-sm btn-warning" onclick="openChangePasswordModal(' . $employee->id . ')">Change Password</button>
+
+                                        </div>';
 
             $records[] = [
                 'name' => $employee->first_name . ' ' . $employee->last_name,
@@ -79,8 +94,8 @@ class UserController extends Controller
                 'is_active' => $employee->is_active == 'yes'
                     ? '<span onclick=\'statusChange("' . $employee->id . '", "no")\'><div class="badge badge-success" style="cursor:pointer">Active</div></span>'
                     : '<span onclick=\'statusChange("' . $employee->id . '", "yes")\'><div class="badge badge-danger" style="cursor:pointer">Inactive</div></span>',
-                'created_at' => Carbon::parse($employee->created_at)->format('d-m-Y h:s'),
-                'updated_at'=> Carbon::parse($employee->updated_at)->format('d-m-Y h:s'),
+                'created_at' => $employee->created_at->format('d-m-Y h:i A'),
+                'updated_at'=> $employee->updated_at->format('d-m-Y h:i A'),
                 'action' => $action
             ];
         }

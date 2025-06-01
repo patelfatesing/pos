@@ -33,7 +33,8 @@ class SubCategoryController extends Controller
             'sub_categories.name',
             'categories.name as category_name',
             'sub_categories.is_active',
-            'sub_categories.created_at'
+            'sub_categories.created_at',
+            'sub_categories.updated_at'
         )
             ->join('categories', 'sub_categories.category_id', '=', 'categories.id')
             ->where('sub_categories.is_deleted', 'no');
@@ -68,6 +69,7 @@ class SubCategoryController extends Controller
                 'category_name' => $row->category_name,
                 'is_active' => $row->is_active,
                 'created_at' => \Carbon\Carbon::parse($row->created_at)->format('d-m-Y H:i'),
+                'updated_at' => \Carbon\Carbon::parse($row->updated_at)->format('d-m-Y H:i'),
                 'action' => $action
             ];
         }

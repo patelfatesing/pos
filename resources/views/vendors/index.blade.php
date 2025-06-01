@@ -29,7 +29,9 @@
                                     <th>Email</th>
                                     <th>Phone</th>
                                     <th>GST Number</th>
+                                    <th>Status</th>
                                     <th>Created At</th>
+                                    <th>Updated At</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -73,7 +75,13 @@
                         data: 'gst_number'
                     },
                     {
+                        data: 'status'
+                    },
+                    {
                         data: 'created_at'
+                    },
+                    {
+                        data: 'updated_at'
                     },
                     {
                         data: 'action',
@@ -81,6 +89,13 @@
                         searchable: false
                     }
                 ],
+                aoColumnDefs: [{
+                    bSortable: false,
+                    aTargets: [2, 3, 4, 7] // make "action" column unsortable
+                }],
+                order: [
+                    [5, 'asc']
+                ], // 🟢 Sort by created_at DESC by default
                 dom: 'Bfrtip',
                 buttons: ['pageLength'],
                 lengthMenu: [
@@ -108,6 +123,39 @@
                         },
                         error: function(xhr) {
                             Swal.fire("Error!", "An error occurred while deleting.", "error");
+                        }
+                    });
+                }
+            });
+        }
+
+        function statusChange(id, newStatus) {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "Do you want to change the status?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, change it!",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ url('vendor/status-change') }}", // Update this to your route
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        data: {
+                            id: id,
+                            status: newStatus
+                        },
+                        success: function(response) {
+                            Swal.fire("Success!", "Status has been changed.", "success").then(() => {
+                                $('#vendor_table').DataTable().ajax.reload(null,
+                                    false); // ✅ Only reload DataTable
+                            });
+                        },
+                        error: function(xhr) {
+                            Swal.fire("Error!", "Something went wrong.", "error");
                         }
                     });
                 }

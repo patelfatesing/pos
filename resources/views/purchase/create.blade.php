@@ -27,7 +27,7 @@
                                                 <div class="col-md-4">
                                                     <label for="bill_no" class="form-label">Bill No</label>
                                                     <input type="text" class="form-control" id="bill_no" name="bill_no"
-                                                        required>
+                                                        value="{{ old('bill_no') }}">
                                                     @error('bill_no')
                                                         <span class="text-danger">{{ $message }}</span>
                                                     @enderror
@@ -36,7 +36,7 @@
                                                 <div class="col-md-4">
                                                     <label for="date" class="form-label">Date</label>
                                                     <input type="date" class="form-control" id="date" name="date"
-                                                        required>
+                                                        value="{{ old('date') }}" max="{{ now()->toDateString() }}">
                                                     @error('date')
                                                         <span class="text-danger">{{ $message }}</span>
                                                     @enderror
@@ -47,7 +47,9 @@
                                                         <select name="vendor_id" id="vendor_id" class="form-control">
                                                             <option value="">-- Select Party --</option>
                                                             @foreach ($vendors as $vendor)
-                                                                <option value="{{ $vendor->id }}">{{ $vendor->name }}
+                                                                <option value="{{ $vendor->id }}"
+                                                                    {{ old('vendor_id') == $vendor->id ? 'selected' : '' }}>
+                                                                    {{ $vendor->name }}
                                                                 </option>
                                                             @endforeach
                                                         </select>
@@ -63,7 +65,9 @@
                                                             class="form-control">
                                                             <option value="">-- Select Ledger --</option>
                                                             @foreach ($vendors as $vendor)
-                                                                <option value="{{ $vendor->id }}">{{ $vendor->name }}
+                                                                <option value="{{ $vendor->id }}"
+                                                                    {{ old('parchase_ledger') == $vendor->id ? 'selected' : '' }}>
+                                                                    {{ $vendor->name }}
                                                                 </option>
                                                             @endforeach
                                                         </select>
@@ -99,9 +103,9 @@
                                                             <th>Brand</th>
                                                             <th>Batch</th>
                                                             <th>MFG Date</th>
-                                                            <th>MRP</th>
+                                                            <th>MRP Rate</th>
                                                             <th>Qty</th>
-                                                            <th>Rate</th>
+                                                            <th> Cost Price</th>
                                                             <th>Amount</th>
                                                             <th>Action</th>
                                                         </tr>
@@ -170,14 +174,14 @@
                                                                         <input type="number" class="form-control amount"
                                                                             step="0.01"
                                                                             name="products[{{ $i }}][amount]"
-                                                                            value="{{ $product['amount'] }}" readonly>
+                                                                            value="{{ $product['amount'] }}">
                                                                         @error("products.$i.amount")
                                                                             <span
                                                                                 class="text-danger">{{ $message }}</span>
                                                                         @enderror
                                                                     </td>
                                                                     <td><button type="button"
-                                                                            class="btn btn-danger remove">Remove</button>
+                                                                            class="btn btn-sm btn-danger remove">Remove</button>
                                                                     </td>
                                                                 </tr>
                                                             @endforeach
@@ -187,18 +191,19 @@
                                                 </table>
                                             </div>
                                             <input type="hidden" name="total" class="total_val" value="" />
-                                            <div class="table-responsive mb-1">
-                                                <table class="table table-bordered">
-                                                    <tbody class="">
-                                                        <tr>
-                                                            <td colspan="8">Total</td>
+
+                                            <div class="row mt-4 mb-3">
+                                                <div class="offset-lg-8 col-lg-4">
+                                                    <div class="or-detail rounded">
+                                                        <div class="p-3">
+                                                            <span colspan="8">Sub Total: </span>
                                                             <input hidden class="total_amt">
-                                                            <td id="total"></td>
-                                                        </tr>
-                                                    </tbody>
-                                                    <tbody></tbody>
-                                                </table>
+                                                            <span id="total"></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
+
                                             <hr />
                                             <div class="row mt-4 mb-3">
                                                 <div class="offset-lg-8 col-lg-4">
@@ -207,54 +212,65 @@
                                                             <h5 class="mb-3">Billing Details</h5>
 
                                                             <!-- Vendor 1 Fields -->
-                                                            <div id="vendor-1-fields" class="vendor-fields d-none">
+                                                            <div id="vendor-1-fields"
+                                                                class="vendor-fields d-none vendor-1">
                                                                 <div class="form-group">
                                                                     <label>EXCISE FEE</label>
                                                                     <input type="tel" class="form-control"
-                                                                        name="excise_fee" id="excise_fee" />
+                                                                        value="{{ old('excise_fee') }}" name="excise_fee"
+                                                                        id="excise_fee" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>COMPOSITION VAT</label>
                                                                     <input type="tel" class="form-control"
+                                                                        value="{{ old('composition_vat') }}"
                                                                         name="composition_vat" id="composition_vat" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>SURCHARGE ON CA</label>
                                                                     <input type="tel" class="form-control"
+                                                                        value="{{ old('surcharge_on_ca') }}"
                                                                         name="surcharge_on_ca" id="surcharge_on_ca" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>AED TO BE PAID</label>
                                                                     <input type="tel" class="form-control"
+                                                                        value="{{ old('aed_to_be_paid') }}"
                                                                         name="aed_to_be_paid" id="aed_to_be_paid" />
                                                                 </div>
                                                             </div>
 
                                                             <!-- Vendor 2 and Others Fields -->
-                                                            <div id="vendor-2-fields" class="vendor-fields d-none">
+                                                            <div id="vendor-2-fields"
+                                                                class="vendor-fields d-none vendor-2">
                                                                 <div class="form-group">
                                                                     <label>VAT</label>
                                                                     <input type="tel" id="vat"
-                                                                        class="form-control" name="vat" />
+                                                                        value="{{ old('vat') }}" class="form-control"
+                                                                        name="vat" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>SURCHARGE ON VAT</label>
                                                                     <input type="tel" id="surcharge_on_vat"
+                                                                        value="{{ old('surcharge_on_vat') }}"
                                                                         class="form-control" name="surcharge_on_vat" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>BLF</label>
                                                                     <input type="tel" id="blf"
-                                                                        class="form-control" name="blf" />
+                                                                        value="{{ old('blf') }}" class="form-control"
+                                                                        name="blf" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>Permit Fee</label>
                                                                     <input type="tel" class="form-control"
-                                                                        name="permit_fee" id="permit_fee" />
+                                                                        value="{{ old('permit_fee') }}" name="permit_fee"
+                                                                        id="permit_fee" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>RSGSM Purchase</label>
                                                                     <input type="tel" class="form-control"
+                                                                        value="{{ old('rsgsm_purchase') }}"
                                                                         name="rsgsm_purchase" id="rsgsm_purchase" />
                                                                 </div>
                                                             </div>
@@ -262,7 +278,8 @@
                                                                 <div class="form-group">
                                                                     <label>TCS</label>
                                                                     <input type="tel" id="tcs"
-                                                                        class="form-control" name="tcs" />
+                                                                        value="{{ old('tcs') }}" class="form-control"
+                                                                        name="tcs" />
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -273,7 +290,7 @@
                                                                     <strong class="d-block">CASH PURCHASE</strong>
                                                                     <div class="d-flex align-items-center">
                                                                         <label class="mr-1 mb-0">(-)</label>
-                                                                        <input type="number"
+                                                                        <input type="float"
                                                                             class="form-control form-control-sm pur_dis"
                                                                             placeholder="%" name="case_purchase_per"
                                                                             style="width: 80px;" min="0"
@@ -283,7 +300,7 @@
                                                                 </div>
                                                                 <div class="text-right d-flex align-items-center">
                                                                     <label class="mr-1 mb-0">(-)</label>
-                                                                    <input type="number" name="case_purchase_amt"
+                                                                    <input type="float" name="case_purchase_amt"
                                                                         class="form-control form-control-sm pur_amt text-danger font-weight-bold"
                                                                         placeholder="Amount" style="width: 120px;"
                                                                         min="0">
@@ -333,35 +350,8 @@
 <script>
     $(document).ready(function() {
 
-        // Hide all dynamic fields initially
-        $('.vendor-group').hide();
-        $('.vendor-total').hide();
-        $('.vendor-common').hide();
-
-        $('#vendor_id').change(function() {
-            var vendorId = $(this).val();
-
-            // Hide all groups and show only the relevant one
-            $('.vendor-group').hide();
-            $('.vendor-total').hide();
-            $('.vendor-common').hide();
-
-            if (vendorId == '1') {
-                $('.vendor-1').show();
-                $('.vendor-common').show();
-                $('.vendor-total').show();
-            } else if (vendorId == '2') {
-                $('.vendor-2').show();
-                $('.vendor-common').show();
-                $('.vendor-total').show();
-            } else {
-                $('.vendor-others').show();
-                $('.vendor-total').show();
-            }
-        });
-
         let srNo = 1;
-
+        $('.vendor-common').hide();
         // Pre-fill product fields on select
         $('#product_select').change(function() {
             const data = $(this).val();
@@ -407,8 +397,8 @@
             const brandVal = data.name;
             const batch = data.batch_no;
             const mfg = data.mfg_date;
-            const mrp = data.cost_price;
-            const rate = data.sell_price;
+            const mrp = data.mrp;
+            const rate = data.cost_price;
             const qty = 1;
             const amount = rate * qty;
 
@@ -477,10 +467,22 @@
 
             $('#total').text(newTotal.toFixed(2));
             $(".total_amt").val(newTotal.toFixed(2));
-            $('#total_amount').text(newTotal.toFixed(2));
-
             $('.total_val').val(newTotal.toFixed(2));
-            $('.total_amount').val(newTotal.toFixed(2));
+
+            // Check if all products are removed
+            if ($('#productBody tr').length === 0) {
+                // Clear all billing details textboxes
+                $('#excise_fee, #composition_vat, #surcharge_on_ca, #aed_to_be_paid').val(
+                    ''); // Vendor 1 fields
+                $('#vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase').val(
+                    ''); // Vendor 2 fields
+                $('.pur_dis, .pur_amt').val(''); // Other vendor fields
+                $('#tcs').val(''); // Common field
+                $('#total_amount').text('₹0.00');
+                $('.total_amount').val('0.00');
+            }
+
+            updateBillingTotal();
         });
 
         function resetFields() {
@@ -543,8 +545,8 @@
         $('#excise_fee, #composition_vat, #surcharge_on_ca, #tcs, #aed_to_be_paid,#vat,#surcharge_on_vat,#blf,#permit_fee,#rsgsm_purchase')
             .on('input', function() {
                 updateBillingTotal();
-                updateFromPercentage();
-                updateFromAmount();
+                // updateFromPercentage();
+                // updateFromAmount();
             });
 
         function updateBillingTotal() {
@@ -615,20 +617,81 @@
             updateFromAmount();
         });
 
-        $('#vendor_id').on('change', function() {
-            const vendorId = $(this).val();
-
+        function onVendorChange(vendorId) {
             // Hide all vendor-specific fields first
             $('.vendor-fields').addClass('d-none');
 
+            // Reset all billing fields to 0 first
+            $('#excise_fee, #composition_vat, #surcharge_on_ca, #aed_to_be_paid').val(0); // Vendor 1 fields
+            $('#vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase').val(0); // Vendor 2 fields
+            $('.pur_dis, .pur_amt').val(0); // Other vendor fields
+
+            // Get old values from Laravel
+            const oldValues = {
+                // Vendor 1 fields
+                excise_fee: '{{ old('excise_fee') }}',
+                composition_vat: '{{ old('composition_vat') }}',
+                surcharge_on_ca: '{{ old('surcharge_on_ca') }}',
+                aed_to_be_paid: '{{ old('aed_to_be_paid') }}',
+
+                // Vendor 2 fields
+                vat: '{{ old('vat') }}',
+                surcharge_on_vat: '{{ old('surcharge_on_vat') }}',
+                blf: '{{ old('blf') }}',
+                permit_fee: '{{ old('permit_fee') }}',
+                rsgsm_purchase: '{{ old('rsgsm_purchase') }}',
+
+                // Other vendor fields
+                case_purchase_per: '{{ old('case_purchase_per') }}',
+                case_purchase_amt: '{{ old('case_purchase_amt') }}',
+
+                // Common field
+                tcs: '{{ old('tcs') }}'
+            };
+
+            // Show relevant fields based on vendor and restore their values
             if (vendorId === '1') {
                 $('#vendor-1-fields').removeClass('d-none');
-
+                // Restore vendor 1 fields
+                if (oldValues.excise_fee) $('#excise_fee').val(oldValues.excise_fee);
+                if (oldValues.composition_vat) $('#composition_vat').val(oldValues.composition_vat);
+                if (oldValues.surcharge_on_ca) $('#surcharge_on_ca').val(oldValues.surcharge_on_ca);
+                if (oldValues.aed_to_be_paid) $('#aed_to_be_paid').val(oldValues.aed_to_be_paid);
             } else if (vendorId === '2') {
                 $('#vendor-2-fields').removeClass('d-none');
+                // Restore vendor 2 fields
+                if (oldValues.vat) $('#vat').val(oldValues.vat);
+                if (oldValues.surcharge_on_vat) $('#surcharge_on_vat').val(oldValues.surcharge_on_vat);
+                if (oldValues.blf) $('#blf').val(oldValues.blf);
+                if (oldValues.permit_fee) $('#permit_fee').val(oldValues.permit_fee);
+                if (oldValues.rsgsm_purchase) $('#rsgsm_purchase').val(oldValues.rsgsm_purchase);
             } else {
-                $('#vendor-others-fields').removeClass('d-none'); // Default
+                $('.vendor-common').hide();
+                $('#vendor-others-fields').removeClass('d-none');
+                // Restore other vendor fields
+                if (oldValues.case_purchase_per) $('.pur_dis').val(oldValues.case_purchase_per);
+                if (oldValues.case_purchase_amt) $('.pur_amt').val(oldValues.case_purchase_amt);
             }
+
+            // Always restore TCS value if it exists
+            if (oldValues.tcs) $('#tcs').val(oldValues.tcs);
+
+            // Recalculate totals after changing vendor
+            calculateProductTotals();
+            updateBillingTotal();
+        }
+
+        // Initialize vendor fields on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const oldVendorId = '{{ old('vendor_id') }}';
+            if (oldVendorId) {
+                onVendorChange(oldVendorId);
+            }
+        });
+
+        // Handle vendor change
+        $('#vendor_id').on('change', function() {
+            onVendorChange($(this).val());
         });
 
         // Replace this with dynamic value if needed
@@ -661,5 +724,164 @@
         $('.pur_dis').on('input', updateFromPercentage);
         $('.pur_amt').on('input', updateFromAmount);
 
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initial calculations when page loads (especially important after validation errors)
+        calculateProductTotals();
+        updateBillingTotal();
+
+        const oldVendorId = '{{ old('vendor_id') }}';
+        if (oldVendorId) {
+            onVendorChange(oldVendorId);
+        }
+    });
+
+    function calculateProductTotals() {
+        // Calculate totals for all products
+        let total = 0;
+        $('input[name*="[rate]"]').each(function() {
+            const $row = $(this).closest('tr');
+            const rate = parseFloat($(this).val()) || 0;
+            const qty = parseFloat($row.find('input[name*="[qnt]"]').val()) || 0;
+            const amount = (rate * qty).toFixed(2);
+
+            // Update amount field
+            $row.find('input[name*="[amount]"]').val(amount);
+            total += parseFloat(amount);
+        });
+
+        // Update all total fields
+        $('#total').text(total.toFixed(2));
+        $(".total_amt").val(total.toFixed(2));
+        $('.total_val').val(total.toFixed(2));
+
+        return total;
+    }
+
+    function updateBillingTotal() {
+        const baseTotal = parseFloat($(".total_amt").val()) || 0;
+
+        // Get all billing details values
+        const excise = parseFloat($('#excise_fee').val()) || 0;
+        const compVat = parseFloat($('#composition_vat').val()) || 0;
+        const surcharge = parseFloat($('#surcharge_on_ca').val()) || 0;
+        const tcs = parseFloat($('#tcs').val()) || 0;
+        const vat = parseFloat($('#vat').val()) || 0;
+        const surcharge_on_vat = parseFloat($('#surcharge_on_vat').val()) || 0;
+        const blf = parseFloat($('#blf').val()) || 0;
+        const permit_fee = parseFloat($('#permit_fee').val()) || 0;
+        const rsgsm_purchase = parseFloat($('#rsgsm_purchase').val()) || 0;
+        const aed = parseFloat($('#aed_to_be_paid').val()) || 0;
+
+        // Sum all billing details
+        const additionalCharges = excise + compVat + surcharge + tcs + aed + vat +
+            surcharge_on_vat + blf + permit_fee + rsgsm_purchase;
+
+        // Calculate grand total
+        let grandTotal = baseTotal + additionalCharges;
+
+        // Apply discount if any
+        const discountPercent = parseFloat($('.pur_dis').val()) || 0;
+        const discountAmount = parseFloat($('.pur_amt').val()) || 0;
+
+        if (discountPercent > 0) {
+            const discount = (grandTotal * discountPercent) / 100;
+            grandTotal -= discount;
+            $('.pur_amt').val(discount.toFixed(2));
+        } else if (discountAmount > 0) {
+            grandTotal -= discountAmount;
+            $('.pur_dis').val(((discountAmount / grandTotal) * 100).toFixed(2));
+        }
+
+        // Update total amount displays
+        $('#total_amount').text('₹' + grandTotal.toFixed(2));
+        $('.total_amount').val(grandTotal.toFixed(2));
+    }
+
+    function onVendorChange(vendorId) {
+        // Hide all vendor-specific fields first
+        $('.vendor-fields').addClass('d-none');
+
+        // Reset all billing fields to 0 first
+        $('#excise_fee, #composition_vat, #surcharge_on_ca, #aed_to_be_paid').val(0); // Vendor 1 fields
+        $('#vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase').val(0); // Vendor 2 fields
+        $('.pur_dis, .pur_amt').val(0); // Other vendor fields
+
+        // Get old values from Laravel
+        const oldValues = {
+            // Vendor 1 fields
+            excise_fee: '{{ old('excise_fee') }}',
+            composition_vat: '{{ old('composition_vat') }}',
+            surcharge_on_ca: '{{ old('surcharge_on_ca') }}',
+            aed_to_be_paid: '{{ old('aed_to_be_paid') }}',
+
+            // Vendor 2 fields
+            vat: '{{ old('vat') }}',
+            surcharge_on_vat: '{{ old('surcharge_on_vat') }}',
+            blf: '{{ old('blf') }}',
+            permit_fee: '{{ old('permit_fee') }}',
+            rsgsm_purchase: '{{ old('rsgsm_purchase') }}',
+
+            // Other vendor fields
+            case_purchase_per: '{{ old('case_purchase_per') }}',
+            case_purchase_amt: '{{ old('case_purchase_amt') }}',
+
+            // Common field
+            tcs: '{{ old('tcs') }}'
+        };
+
+        // Show relevant fields based on vendor and restore their values
+        if (vendorId === '1') {
+            $('#vendor-1-fields').removeClass('d-none');
+            // Restore vendor 1 fields
+            if (oldValues.excise_fee) $('#excise_fee').val(oldValues.excise_fee);
+            if (oldValues.composition_vat) $('#composition_vat').val(oldValues.composition_vat);
+            if (oldValues.surcharge_on_ca) $('#surcharge_on_ca').val(oldValues.surcharge_on_ca);
+            if (oldValues.aed_to_be_paid) $('#aed_to_be_paid').val(oldValues.aed_to_be_paid);
+        } else if (vendorId === '2') {
+            $('#vendor-2-fields').removeClass('d-none');
+            // Restore vendor 2 fields
+            if (oldValues.vat) $('#vat').val(oldValues.vat);
+            if (oldValues.surcharge_on_vat) $('#surcharge_on_vat').val(oldValues.surcharge_on_vat);
+            if (oldValues.blf) $('#blf').val(oldValues.blf);
+            if (oldValues.permit_fee) $('#permit_fee').val(oldValues.permit_fee);
+            if (oldValues.rsgsm_purchase) $('#rsgsm_purchase').val(oldValues.rsgsm_purchase);
+        } else {
+            $('#vendor-others-fields').removeClass('d-none');
+            // Restore other vendor fields
+            $('.vendor-common').hide();
+            if (oldValues.case_purchase_per) $('.pur_dis').val(oldValues.case_purchase_per);
+            if (oldValues.case_purchase_amt) $('.pur_amt').val(oldValues.case_purchase_amt);
+        }
+
+        // Always restore TCS value if it exists
+        if (oldValues.tcs) $('#tcs').val(oldValues.tcs);
+
+        // Recalculate totals after changing vendor
+        calculateProductTotals();
+        updateBillingTotal();
+    }
+
+    // Event handlers for rate and quantity changes
+    $(document).on('input', 'input[name*="[qnt]"], input[name*="[rate]"]', function() {
+        calculateProductTotals();
+        updateBillingTotal();
+    });
+
+    // Event handlers for billing details changes
+    $('#excise_fee, #composition_vat, #surcharge_on_ca, #tcs, #aed_to_be_paid, #vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase')
+        .on('input', function() {
+            updateBillingTotal();
+        });
+
+    // Event handlers for discount changes
+    $('.pur_dis, .pur_amt').on('input', function() {
+        updateBillingTotal();
+    });
+
+    // Handle vendor change
+    $('#vendor_id').on('change', function() {
+        onVendorChange($(this).val());
     });
 </script>

@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\DB;
 use App\Events\DrawerOpened;
 use App\Events\NewCreditTransaction;
 use Illuminate\Support\Facades\Auth;
+use App\Models\PartyUserImage;
+use App\Models\CommissionUserImage;
+use Illuminate\Support\Facades\Log;
 
 class SalesReportController extends Controller
 {
@@ -38,12 +41,14 @@ class SalesReportController extends Controller
                 'invoices.sub_total',
                 'invoices.tax',
                 'invoices.commission_amount',
-                'invoices.party_amount',
+                'invoices.creditpay',
                 'invoices.total',
                 'invoices.items',
                 'invoices.branch_id',
                 'branches.name as branch_name',
-                'invoices.created_at'
+                'invoices.created_at',
+                'invoices.commission_user_id',
+                'invoices.party_user_id'
             );
 
         if ($request->start_date && $request->end_date) {
@@ -93,15 +98,19 @@ class SalesReportController extends Controller
             $action = '<div class="d-flex align-items-center list-action">
                         <a class="badge badge-success mr-2" data-toggle="tooltip" data-placement="top" title="View"
                         href="' . url('/view-invoice/' . $invoice->id) . '">' . $invoice->invoice_number . '</a>
-                    </div>';
+                    </div> ';
+                $photo = '<div class="d-flex align-items-center list-action">
+                <a class="badge badge-success mr-2" onClick="showPhoto(' . ($invoice->id ?? '') . ',\'' . ($invoice->commission_user_id ?? '') . '\',\'' . ($invoice->party_user_id ?? ''). '\',\'' . ($invoice->invoice_number ?? '') . '\')">Show</a>
+                </div>';
 
             $data[] = [
                 'invoice_number' => $action,
                 'status' => $invoice->status,
+                'photo' => $photo,
                 'sub_total' => number_format($invoice->sub_total, 2),
                 'total' => number_format($invoice->total, 2),
                 'commission_amount' => number_format($invoice->commission_amount, 2),
-                'party_amount' => number_format($invoice->party_amount, 2),
+                'party_amount' => number_format($invoice->creditpay, 2),
                 'items_count' => $itemCount,
                 'branch_name' => $invoice->branch_name,
                 'created_at' => Carbon::parse($invoice->created_at)->format('Y-m-d H:i:s'),
@@ -115,7 +124,23 @@ class SalesReportController extends Controller
             'data' => $data,
         ]);
     }
+     public function show($id,Request $request)
+    {
+        $commission_user_id = $request->input('commission_user_id', null);
+        $party_user_id = $request->input('party_user_id', null);
+        $invoice_no = $request->input('invoice_no', null);
 
+
+        // Debugging output
+        // dd($id, $commission_user_id, $party_user_id);
+        if(!empty($party_user_id)){
+            $photos = PartyUserImage::where('transaction_id', $id)->first();
+        }else if(!empty($commission_user_id)){
+            $photos = CommissionUserImage::where('transaction_id', $id)->first();
+        }
+        $imageType="";
+        return view('party_users.cust-photo', compact('photos','invoice_no','imageType'));
+    }
     public function storeSummary()
     {
         $invoices = DB::table('invoices')
@@ -164,7 +189,7 @@ class SalesReportController extends Controller
                 'invoices.tax',
                 'invoices.total',
                 'invoices.commission_amount', // <-- Added
-                'invoices.party_amount',      // <-- Added
+                'invoices.creditpay',      // <-- Added
                 'invoices.items',
                 'invoices.status',
                 'invoices.created_at',
@@ -210,7 +235,7 @@ class SalesReportController extends Controller
                 $invoice_sub_total = 0.0;
 
                 foreach ($items as $item) {
-                    $invoice_sub_total += (float)$item['quantity'] * (float)$item['price'];
+                    $invoice_sub_total += (float)$item['quantity'] * (float)$item['mrp'];
                 }
 
                 // Add each invoice data to finalData
@@ -221,7 +246,7 @@ class SalesReportController extends Controller
                     'sub_total'          => $invoice_sub_total,
                     'tax'                => (float)$invoice->tax,
                     'commission_amount'  => (float)$invoice->commission_amount,
-                    'party_amount'       => (float)$invoice->party_amount,
+                    'party_amount'       => (float)$invoice->creditpay,
                     'total'              => (float)$invoice->total,
                     'items_count'        => $items_count,
                     'created_at'         => Carbon::parse($invoice->created_at)->format('Y-m-d'),
@@ -232,7 +257,7 @@ class SalesReportController extends Controller
                 $total_sub_total += $invoice_sub_total;
                 $total_tax += (float)$invoice->tax;
                 $total_commission += (float)$invoice->commission_amount;
-                $total_party_amount += (float)$invoice->party_amount;
+                $total_party_amount += (float)$invoice->creditpay;
                 $total_total += (float)$invoice->total;
                 $total_items_count += $items_count;
             }
@@ -370,41 +395,110 @@ class SalesReportController extends Controller
     
     public function stockReport()
     {
-        $branches = DB::table('branches')->get(); // Adjust if you use a model
-        return view('sales.stock_report', compact('branches'));
+        $branches = DB::table('branches')
+            ->where('is_deleted', 'no')
+            ->get();
+            
+        $products = DB::table('products')
+            ->where('is_deleted', 'no')
+            ->where('is_active', 1)
+            ->get();
+            
+        $categories = DB::table('categories')
+            ->where('is_deleted', 'no')
+            ->get();
+            
+        $subcategories = DB::table('sub_categories')
+            ->where('is_deleted', 'no')
+            ->get();
+            
+        return view('sales.stock_report', compact('branches', 'products', 'categories', 'subcategories'));
     }
 
     public function fetchStockData(Request $request)
     {
-        $query = Inventory::select(
-                'inventories.store_id',
-                'products.id as product_id',
-                \DB::raw('MAX(branches.name) as branch_name'),
-                \DB::raw('MAX(products.name) as product_name'),
-                \DB::raw('MAX(products.sku) as sku'),
-                \DB::raw('MAX(products.reorder_level) as reorder_level'),
-                \DB::raw('MAX(products.sell_price) as sell_price'),
-                \DB::raw('SUM(inventories.quantity) as quantity')
-            )
-            ->join('products', 'inventories.product_id', '=', 'products.id')
-            ->join('branches', 'inventories.store_id', '=', 'branches.id')
-            ->where('products.is_active', 1);
-            // ->where('products.is_deleted', 0)
-            // ->where('branches.is_active', 1)
-            // ->where('branches.is_deleted', 0);
-    
-        // Filter by branch if selected
-        if ($request->branch_id) {
-            $query->where('inventories.store_id', $request->branch_id);
+        try {
+            Log::info('Fetch stock data request received', $request->all());
+            
+            $query = Inventory::select(
+                    'inventories.store_id',
+                    'products.id as product_id',
+                    'branches.name as branch_name',
+                    'products.name as product_name',
+                    'products.barcode',
+                    'categories.name as category_name',
+                    'products.mrp',
+                    'products.sell_price as selling_price',
+                    'products.discount_price as discount',
+                    'products.cost_price as purchase_price',
+                    DB::raw('COALESCE(daily_product_stocks.opening_stock, 0) as opening_stock'),
+                    DB::raw('COALESCE(daily_product_stocks.added_stock, 0) as in_qty'),
+                    DB::raw('COALESCE(daily_product_stocks.transferred_stock, 0) + COALESCE(daily_product_stocks.sold_stock, 0) as out_qty'),
+                    'inventories.quantity as all_qty',
+                    DB::raw('inventories.quantity * products.cost_price as all_price')
+                )
+                ->join('products', 'inventories.product_id', '=', 'products.id')
+                ->join('branches', 'inventories.store_id', '=', 'branches.id')
+                ->join('categories', 'products.category_id', '=', 'categories.id')
+                ->leftJoin('sub_categories', 'products.subcategory_id', '=', 'sub_categories.id')
+                ->leftJoin('daily_product_stocks', function($join) use ($request) {
+                    $join->on('products.id', '=', 'daily_product_stocks.product_id')
+                        ->on('branches.id', '=', 'daily_product_stocks.branch_id');
+                    
+                    if ($request->start_date && $request->end_date) {
+                        $join->whereBetween('daily_product_stocks.date', [
+                            Carbon::parse($request->start_date)->startOfDay(),
+                            Carbon::parse($request->end_date)->endOfDay()
+                        ]);
+                    }
+                })
+                ->where('products.is_active', 'yes')
+                ->where('products.is_deleted', 'no')
+                ->where('branches.is_deleted', 'no');
+        
+            // Apply filters
+            if ($request->store_id) {
+                $query->where('inventories.store_id', $request->store_id);
+            }
+            
+            if ($request->product_id) {
+                $query->where('products.id', $request->product_id);
+            }
+            
+            if ($request->category_id) {
+                $query->where('products.category_id', $request->category_id);
+            }
+            
+            if ($request->subcategory_id) {
+                $query->where('products.subcategory_id', $request->subcategory_id);
+            }
+
+            // Debug the SQL query
+            Log::info('SQL Query:', [
+                'sql' => $query->toSql(),
+                'bindings' => $query->getBindings()
+            ]);
+        
+            $stocks = $query->get();
+            
+            Log::info('Stock data retrieved', ['count' => $stocks->count()]);
+            
+            return response()->json([
+                'draw' => $request->input('draw', 1),
+                'recordsTotal' => $stocks->count(),
+                'recordsFiltered' => $stocks->count(),
+                'data' => $stocks
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error in fetchStockData: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+            
+            return response()->json([
+                'error' => 'An error occurred while fetching stock data',
+                'message' => $e->getMessage()
+            ], 500);
         }
-    
-        $stocks = $query
-            ->groupBy('inventories.store_id', 'products.id')
-            ->get();
-    
-        return response()->json([
-            'data' => $stocks
-        ]);
     }
 
     public function commissionReport()

@@ -40,8 +40,9 @@ use Illuminate\Support\Facades\Response;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 
-Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
-Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+// Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+// Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::post('users/change-password', [UserController::class, 'changePassword']);
 
 Route::get('/logs', function () {
     $file = storage_path('logs/laravel-' . now()->format('Y-m-d') . '.log');
@@ -159,6 +160,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/stock/request-list', [StockController::class, 'show'])->name('stock.requestList');
     Route::post('/stock/get-request-data', [StockController::class, 'getRequestData'])->name('stock.getRequestData');
     Route::get('/stock/view/{id}', [StockController::class, 'view'])->name('stock.view');
+    Route::get('/stock/stock-request-view/{id}', [StockController::class, 'stockRequestView'])->name('stock.stock-request-view');
     Route::post('/stock-requests/{id}/approve', [StockController::class, 'approve'])
         ->name('stock-requests.approve');
     Route::get('/stock-requests/popup-details/{id}', [StockController::class, 'stockShow'])->name('stock.popupDetails');
@@ -168,6 +170,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/stock/store-warehouse', [StockController::class, 'storeWarehouse'])->name('stock.warehouse');
     Route::get('/stock/send-request-list', [StockController::class, 'showSendRequest'])->name('stock.requestSendList');
     Route::post('/stock/get-send-request-data', [StockController::class, 'getSendRequestData'])->name('stock.getSendRequestData');
+    Route::post('/stock/get-stock-request-details', [StockController::class, 'getStockRequestDetails'])->name('stock.get-stock-request-details');
 
     // Route::get('/stock/send-store-request-list', [StockController::class, 'showStoreSendRequest'])->name('stock.requestStoreSendList');
     // Route::post('/stock/get-send-store-request-data', [StockController::class, 'getStoreSendRequestData'])->name('stock.getSendStoreRequestData');
@@ -188,6 +191,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/inventories/add-stock/{id}', [InventoryController::class, 'addStock'])->name('inventories.add-stock');
     Route::get('/inventories/edit1/{id}', [InventoryController::class, 'editStock'])->name('inventories.edit-stock');
     Route::post('/inventories/store-stock', [InventoryController::class, 'storeStock'])->name('inventories.stockStore');
+    Route::post('/inventories/update-low-level-qty', [InventoryController::class, 'updateLowLevelQty'])->name('inventories.update-low-level-qty');
+    Route::get('/inventories/get-low-level-products/{storeId}', [InventoryController::class, 'getLowLevelProducts'])->name('inventories.get-low-level-products');
+    Route::post('/inventories/update-multiple-low-level-qty', [InventoryController::class, 'updateMultipleLowLevelQty'])->name('inventories.update-multiple-low-level-qty');
+
     // Route::get('/stock/list', [InventoryController::class, 'index'])->name('inventories.list');
     // Route::post('/inventories/get-data', [InventoryController::class, 'getData'])->name('inventories.getData');
 
@@ -265,7 +272,11 @@ Route::middleware('auth')->group(function () {
 
     // });
 
+    Route::get('/stock-transfer/craete-transfer', [StockTransferController::class, 'craeteTransfer'])->name('stock-transfer.craete-transfer');
     Route::get('/stock-transfer/list', [StockTransferController::class, 'index'])->name('stock-transfer.list');
+    Route::get('/stock-transfer/get-transfer-data', [StockTransferController::class, 'getTransferData'])->name('stock-transfer.get-transfer-data');
+    Route::get('/stock-transfer/view/{id}', [StockTransferController::class, 'view'])->name('stock-transfer.view');
+
     Route::post('/stock-transfer/store', [StockTransferController::class, 'store'])->name('stock-transfer.store');
 
     Route::get('/vendor/list', [VendorListController::class, 'index'])->name('vendor.list');
@@ -273,8 +284,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/vendor/create', [VendorListController::class, 'create'])->name('vendor.create');
     Route::post('/vendor/', [VendorListController::class, 'store'])->name('vendor.store');
     Route::get('/vendor/edit/{id}', [VendorListController::class, 'edit'])->name('vendor.edit');
-    Route::put('/vendor/{Partyuser}', [VendorListController::class, 'update'])->name('vendor.update');
+    Route::post('/vendor/update', [VendorListController::class, 'update'])->name('vendor.update');
     Route::delete('/vendor/{Partyuser}', [VendorListController::class, 'destroy'])->name('vendor.destroy');
+    Route::post('/vendor/status-change', [VendorListController::class, 'statusChange'])->name('vendor.status-change');
 
     Route::get('/purchase/list', [PurchaseController::class, 'index'])->name('purchase.list');
     Route::get('/purchase/create', [PurchaseController::class, 'create'])->name('purchase.create');
@@ -304,6 +316,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/sales/commission-report', [SalesReportController::class, 'commissionReport'])->name('sales.commission.report');
     Route::get('/sales/fetch-commission-data', [SalesReportController::class, 'commissionInvoicesReport'])->name('sales.fetch-commission-data');
+    Route::get('/sales-img-view/{id}', [SalesReportController::class, 'show'])->name('sales.img.view');
 
     Route::get('/exp-category/list', [ExpenseCategoryController::class, 'index'])->name('exp_category.list');
     Route::post('/exp-category/get-data', [ExpenseCategoryController::class, 'getData'])->name('exp_category.getData');
@@ -323,33 +336,39 @@ Route::middleware('auth')->group(function () {
     Route::get('/demand-order/list', [DemandOrderController::class, 'index'])->name('demand-order.list');
     Route::post('/demand-order/get-data', [DemandOrderController::class, 'getData'])->name('demand-order.getData');
     Route::get('/demand-order/create', [DemandOrderController::class, 'create'])->name('demand-order.create');
-    //  Route::get('/demand-order/step-1', [DemandOrderController::class, 'step1'])->name('demand-order.step1');
-    // Route::post('/demand-order/step-1', [DemandOrderController::class, 'postStep1'])->name('demand-order.step1');
 
-    // Route::get('/demand-order/step-2', [DemandOrderController::class, 'step2'])->name('demand-order.step2');
-    // Route::post('/demand-order/step-2', [DemandOrderController::class, 'postStep2'])->name('demand-order.step2');
+    Route::get('/demand-order/step-1', [DemandOrderController::class, 'step1'])->name('demand-order.step1');
+    Route::post('/demand-order/step-1', [DemandOrderController::class, 'postStep1'])->name('demand-order.step1');
 
-    // Route::get('/demand-order/step-3', [DemandOrderController::class, 'step3'])->name('demand-order.step3');
-    // Route::post('/demand-order/step-3', [DemandOrderController::class, 'postStep3'])->name('demand-order.step3');
+    Route::get('/demand-order/step-2', [DemandOrderController::class, 'step2'])->name('demand-order.step2');
+    Route::post('/demand-order/step-2', [DemandOrderController::class, 'postStep2'])->name('demand-order.step2');
 
-    // Route::get('/demand-order/step-4', [DemandOrderController::class, 'step4'])->name('demand-order.step4');
-    // Route::post('/demand-order/step-4', [DemandOrderController::class, 'postStep4'])->name('demand-order.step4');
+    Route::get('/demand-order/step-3', [DemandOrderController::class, 'step3'])->name('demand-order.step3');
+    Route::post('/demand-order/step-3', [DemandOrderController::class, 'postStep3'])->name('demand-order.step3');
+
+    Route::get('/demand-order/step-4', [DemandOrderController::class, 'step4'])->name('demand-order.step4');
+    Route::post('/demand-order/step-4', [DemandOrderController::class, 'postStep4'])->name('demand-order.step4');
 
     Route::post('/demand-order/store', [DemandOrderController::class, 'store'])->name('demand-order.store');
     Route::get('/demand-order/edit/{id}', [DemandOrderController::class, 'edit'])->name('demand-orders.edit');
     Route::get('/demand-order/create-pre', [DemandOrderController::class, 'createPrediction'])->name('demand-order.create.pre');
 
-    Route::get('/products/import', [ProductImportController::class, 'showUploadForm'])->name('products.import');
-    Route::post('/products/upload', [ProductImportController::class, 'import'])->name('products.upload');
-    Route::post('/products/import-data', [ProductImportController::class, 'importData'])->name('products.import.data');
-    Route::get('/products/add-stocks', [ProductImportController::class, 'addStocks'])->name('products.add-stocks');
-    Route::post('/products/import-stocks', [ProductImportController::class, 'importStocks'])->name('products.import.stocks');
-    Route::post('/csv-preview', [ProductImportController::class, 'preview'])->name('csv.preview');
+    // Product Import Routes
+    Route::prefix('products')->name('products.')->group(function () {
+        Route::get('/import', [ProductImportController::class, 'showUploadForm'])->name('import');
+        Route::post('/upload', [ProductImportController::class, 'import'])->name('upload');
+        Route::get('/mapping/{filename}', [ProductImportController::class, 'showMappingForm'])->name('mapping');
+        Route::post('/process-import', [ProductImportController::class, 'processImport'])->name('process');
+        Route::get('/add-stocks', [ProductImportController::class, 'addStocks'])->name('add-stocks');
+        Route::post('/import-stocks', [ProductImportController::class, 'importStocks'])->name('import.stocks');
+    });
 
     Route::get('/shift-manage/list', [ShiftManageController::class, 'index'])->name('shift-manage.list');
     Route::post('/shift-manage/get-data', [ShiftManageController::class, 'getShiftClosingsData'])->name('shift-manage.getData');
     Route::post('shift-manage/invoices-by-branch', [ShiftManageController::class, 'getInvoicesByBranch'])->name('shift-manage.invoices-by-branch');
     Route::post('shift-manage/close-shift/{id}', [ShiftManageController::class, 'closeShift'])->name('shift-manage.close-shift');
+    Route::get('/shift-manage/view/{id}/{strartdate}/{endTime}', [ShiftManageController::class, 'view'])->name('purchase.shift-manage');
+
 });
 
 

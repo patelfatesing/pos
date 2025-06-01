@@ -45,7 +45,6 @@ class ProductController extends Controller
 
         $query = Product::with(['category', 'subcategory']);
 
-
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('name', 'like', '%' . $searchValue . '%')
@@ -53,6 +52,7 @@ class ProductController extends Controller
                     ->orWhere('sku', 'like', '%' . $searchValue . '%')
                     ->orWhere('abv', 'like', '%' . $searchValue . '%')
                     ->orWhere('size', 'like', '%' . $searchValue . '%')
+                    ->orWhere('barcode', 'like', '%' . $searchValue . '%')
                     ->orWhereHas('category', function ($q2) use ($searchValue) {
                         $q2->where('name', 'like', '%' . $searchValue . '%');
                     });
@@ -102,10 +102,11 @@ class ProductController extends Controller
                 'sub_category' => $product->subcategory->name ?? 'N/A',
                 'size' => $product->size,
                 'brand' => $product->brand,
-                'sku' => $product->sku,
-                'mrp' => "₹".$product->mrp,
+                'sell_price' => "₹" . $product->sell_price,
+                'mrp' => "₹" . $product->mrp,
                 'is_active' => $status,
                 'created_at' => date('d-m-Y h:i', strtotime($product->created_at)),
+                'updated_at' => date('d-m-Y h:i', strtotime($product->updated_at)),
                 'action' => $action
             ];
         }
@@ -232,13 +233,6 @@ class ProductController extends Controller
         // }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Product $product)
-    {
-        //
-    }
 
     /**
      * Show the form for editing the specified resource.
@@ -295,8 +289,10 @@ class ProductController extends Controller
         $stores = Branch::where('is_deleted', 'no')->get();
 
         foreach ($stores as $store) {
-            $arr['id'] = $his_data->id;
-            sendNotification('price_change', $product->name . ' Product price is changed.', $store->id, Auth::id(), json_encode($arr), 0);
+            // $arr['id'] = $his_data->id;
+            // json_encode(['id' => (string) $his_data->id]);
+
+            sendNotification('price_change', $product->name . ' Product price is changed.', $store->id, Auth::id(), json_encode(['id' => (string)$his_data->id]), 0);
         }
 
         return response()->json([

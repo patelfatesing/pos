@@ -20,9 +20,6 @@
                                 <form action="{{ route('products.import.stocks') }}" method="POST">
                                     @csrf
                                     <div class="row">
-
-
-
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Select Store *</label>
@@ -68,7 +65,7 @@
                                                             @endphp
                                                             @if ($product)
                                                                 <tr class="item-row">
-                                                                    <td>{{ $key + 1}}</td>
+                                                                    <td>{{ $key + 1 }}</td>
                                                                     <td>{{ $product->name }}</td>
                                                                     <td>
                                                                         @php
@@ -90,8 +87,8 @@
 
                                                                     </td>
                                                                     <td>
-                                                                        <button type="button"
-                                                                            class="btn btn-danger btn-sm remove-item">Remove</button>
+                                                                        {{-- <button type="button"
+                                                                            class="btn btn-danger btn-sm remove-item">Remove</button> --}}
                                                                     </td>
                                                                 </tr>
                                                             @endif
@@ -99,7 +96,7 @@
                                                     @else
                                                         @forelse($products as $key => $product)
                                                             <tr class="item-row">
-                                                                <td>{{ $key + 1}}</td>
+                                                                <td>{{ $key + 1 }}</td>
                                                                 <td>{{ $product->name }}</td>
                                                                 <td>
                                                                     <input type="number"
@@ -111,13 +108,14 @@
                                                                         value="{{ $product->id }}">
                                                                 </td>
                                                                 <td>
-                                                                    <button type="button"
-                                                                        class="btn btn-danger btn-sm remove-item">Remove</button>
+                                                                    {{-- <button type="button"
+                                                                        class="btn btn-danger btn-sm remove-item">Remove</button> --}}
                                                                 </td>
                                                             </tr>
                                                         @empty
                                                             <tr>
-                                                                <td colspan="3" class="text-center">✅ No available products
+                                                                <td colspan="3" class="text-center">✅ No available
+                                                                    products
                                                             </tr>
                                                         @endforelse
                                                     @endif

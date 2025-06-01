@@ -267,8 +267,8 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                                 class="rounded profile-img img-fluid avatar-70" />
                                         </div>
                                         <div class="p-3">
-                                            <h5 class="mb-1">{{ $user->userInfo->first_name }}
-                                                {{ $user->userInfo->last_name }}</h5>
+                                            <h5 class="mb-1">{{ @$user->userInfo->first_name }}
+                                                {{ @$user->userInfo->last_name }}</h5>
                                             <p class="mb-0">Since
                                                 {{ \Carbon\Carbon::parse(Auth::user()->created_at)->format('d F, Y') }}
                                             </p>
@@ -301,7 +301,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
 
 <div class="modal fade bd-example-modal-lg" id="approveModal" tabindex="-1" role="dialog"
     aria-labelledby="approveModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-lg" role="document" style="max-width: 45%;">
         <div class="modal-content" id="modalContent">
         </div>
     </div>
@@ -373,22 +373,19 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
             }).then((result) => {
                 if (result.isConfirmed) {
                     // This code runs when "Okay" is clicked
-                    console.log('User clicked Okay');
+                    // console.log('User clicked Okay');
 
-                    $.ajax({
-                        url: '/popup/form/' + data.type + "?id=" + data.value + "&nfid=" + data
-                            .nfid,
-                        type: 'GET',
-                        success: function(response) {
-
-                            $('#modalContent').html(response);
-
-                            $('#approveModal').modal('show');
-                        },
-                        error: function() {
-                            alert('Failed to load form.');
-                        }
-                    });
+                    // $.ajax({
+                    //     url: '/popup/form/' + data.type + "?id=" + data.value,
+                    //     type: 'GET',
+                    //     success: function(response) {
+                    //         $('#modalContent').html(response);
+                    //         $('#approveModal').modal('show');
+                    //     },
+                    //     error: function() {
+                    //         alert('Failed to load form.');
+                    //     }
+                    // });
                 }
             });
         }
@@ -419,7 +416,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                     if (item.details) {
                         try {
                             const parsedDetails = JSON.parse(item.details);
-                            id = parsedDetails.id || '';
+                            id = item.id || '';
                         } catch (e) {
                             console.error('Error parsing details:', e);
                         }
@@ -438,12 +435,12 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                     });
 
                     const html = `
-                    <a href="#" data-id="${id}" class="iq-sub-card open-form mb-1 ${isRead}"
-                        data-type="${item.type}" id="${item.id}" data-nfid="${item.id}">
+                    <a href="#" id="${id}" class="iq-sub-card open-form mb-1 ${isRead}"
+                        data-type="${item.type}" data-id="${item.id}" data-nfid="${item.id}">
                         <div class="media align-items-center cust-card py-3 border-bottom">
                             <div>
-                                <img class="avatar-50 rounded-small" src="/assets/images/user/notification.png" alt="01" />
-                            </div>
+                                <img class="avatar-50 rounded-small"  src="{{ asset('assets/images/user/notification.png') }}" alt="Notification">
+                               </div>
                             <div class="media-body ml-3">
                                 <div class="d-flex align-items-center justify-content-between">
                                     <h6 class="mb-0">${type}</h6>

@@ -12,13 +12,15 @@ class Inventory extends Model
         'store_id',
         'quantity',
         'batch_no',
-        '<expiry_dat></expiry_dat>e',
+        'mfg_date',
+        'expiry_date',
         'is_active',
         'is_deleted',
         'created_by',
-        'added_by'
+        'added_by',
+        'low_level_qty'
     ];
-    
+
     public function product()
     {
         return $this->belongsTo(Product::class);
@@ -29,7 +31,22 @@ class Inventory extends Model
         return $this->morphTo();
     }
 
+    public static function countQty($productId, $storeId)
+    {
+        return self::where('product_id', $productId)
+            ->where('store_id', $storeId)
+            ->sum('quantity');
+    }
+
+    public static function lowLevelQty($productId, $storeId)
+    {
+        return self::where('product_id', $productId)
+            ->where('store_id', $storeId)
+            ->value('low_level_qty');
+    }
+
     protected $casts = [
-        'expiry_date' => 'datetime', // Automatically cast to Carbon instance
+        'expiry_date' => 'datetime',
+        'mfg_date' => 'datetime', // Automatically cast to Carbon instance
     ];
 }

@@ -32,7 +32,7 @@ class PackSizeController extends Controller
         $query = PackSize::query()->where('is_deleted', 'no');
 
         if (!empty($searchValue)) {
-            $query->where('name', 'like', '%' . $searchValue . '%');
+            $query->where('size', 'like', '%' . $searchValue . '%');
         }
 
         $recordsTotal = PackSize::where('is_deleted', 'no')->count();

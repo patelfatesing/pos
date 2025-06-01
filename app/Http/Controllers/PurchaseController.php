@@ -29,7 +29,7 @@ class PurchaseController extends Controller
      */
     public function create()
     {
-        $vendors = VendorList::where('is_active', true)->get();
+        $vendors = VendorList::where('is_active', 1)->get();
         $products = Product::select('id', 'name')->where('is_deleted', 'no')->get();
 
         // $products = Product::select('products.id', 'products.name', DB::raw('SUM(inventories.quantity) as total_quantity'))
@@ -50,8 +50,9 @@ class PurchaseController extends Controller
 
         $request->validate([
             'vendor_id' => 'required|exists:vendor_lists,id',
-            'bill_no' => 'required|string|max:255',
+            'bill_no' => 'required|string|max:255|unique:purchases,bill_no',
             'date' => 'required|date',
+            'parchase_ledger' => 'required',
             'products' => 'required|array|min:1',
             'products.*.product_id' => 'required|integer',
             'products.*.brand_name' => 'required|string',
@@ -255,6 +256,7 @@ class PurchaseController extends Controller
             'products.name',
             'products.size',
             'products.brand',
+            'products.mrp',
             'inventories.batch_no',
             'inventories.mfg_date',
             'products.cost_price',
@@ -272,7 +274,8 @@ class PurchaseController extends Controller
                 'inventories.mfg_date',
                 'products.cost_price',
                 'products.sell_price',
-                'products.size'
+                'products.size',
+                'products.mrp'
             )
             ->orderBy('total_quantity', 'asc')
             ->first();

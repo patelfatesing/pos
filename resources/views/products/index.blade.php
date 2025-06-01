@@ -38,10 +38,11 @@
                                     <th>Sub Cotegory</th>
                                     <th>Pack Size</th>
                                     <th>Brand</th>
-                                    <th>sku</th>
                                     <th>MRP</th>
+                                    <th>Sale Price</th>
                                     <th>Status</th>
                                     <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
+                                    <th data-type="date" data-format="YYYY/DD/MM">Updated Date</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -165,11 +166,11 @@ $minDate = \Carbon\Carbon::today()->format('Y-m-d');
                         orderable: false
                     },
                     {
-                        data: 'sku',
+                        data: 'mrp',
                         orderable: false
                     },
                     {
-                        data: 'mrp',
+                        data: 'sell_price',
                         orderable: false
                     },
                     {
@@ -178,6 +179,9 @@ $minDate = \Carbon\Carbon::today()->format('Y-m-d');
                     },
                     {
                         data: 'created_at'
+                    },
+                    {
+                        data: 'updated_at'
                     },
                     {
                         data: 'action',
@@ -233,6 +237,56 @@ $minDate = \Carbon\Carbon::today()->format('Y-m-d');
                 ],
                 buttons: ['pageLength']
 
+            });
+
+            $('#priceUpdateForm').on('submit', function(e) {
+                e.preventDefault();
+
+                // Clear previous validation errors
+                $('#old_price_error').text('');
+                $('#new_price_error').text('');
+                $('#changed_at_error').text('');
+
+                let formData = {
+                    _token: $('input[name="_token"]').val(),
+                    product_id: $('#product_id').val(),
+                    old_price: $('#old_price').val(),
+                    new_price: $('#new_price').val(),
+                    changed_at: $('#changed_at').val()
+                };
+
+                $.ajax({
+                    type: "POST",
+                    url: "{{ route('products.updatePrice') }}", // Adjust to match your route name
+                    data: formData,
+                    success: function(response) {
+                        // Show success message
+                        alert(response.message); // or use toastr.success()
+
+                        // Close and reset modal
+                        $('#priceChangeModal').modal('hide');
+                        $('#priceUpdateForm')[0].reset();
+
+                        // Reload DataTable
+                        $('#products_table').DataTable().ajax.reload(null, false);
+                    },
+                    error: function(xhr) {
+                        if (xhr.status === 422) {
+                            let errors = xhr.responseJSON.errors;
+                            if (errors.old_price) {
+                                $('#old_price_error').text(errors.old_price[0]);
+                            }
+                            if (errors.new_price) {
+                                $('#new_price_error').text(errors.new_price[0]);
+                            }
+                            if (errors.changed_at) {
+                                $('#changed_at_error').text(errors.changed_at[0]);
+                            }
+                        } else {
+                            alert("An unexpected error occurred.");
+                        }
+                    }
+                });
             });
 
         });

@@ -52,7 +52,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://localhost'),
+    'url' => env('APP_URL', 'https://liquorhub.in'),
 
     /*
     |--------------------------------------------------------------------------
@@ -123,6 +123,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
     'shift_testing' => true,
-    'owner_email' => 'admin@example.com',
+    'owner_email' => env('OWNER_EMAIL', '')
 
 ];

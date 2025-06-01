@@ -12,7 +12,17 @@ class Product extends Model
 
     protected $guarded = [];
     protected $fillable = [
-        'brand', 'name', 'size', 'sku', 'category_id', 'subcategory_id','image', 'description','barcode', 'abv', 'abv',
+        'brand',
+        'name',
+        'size',
+        'sku',
+        'category_id',
+        'subcategory_id',
+        'image',
+        'description',
+        'barcode',
+        'abv',
+        'abv',
         'discount_price',
         'case_size',
         'secondary_unitx',
@@ -25,7 +35,7 @@ class Product extends Model
         'mrp'
     ];
 
-    public static function generateSku($brand, $name, $size,$p_id)
+    public static function generateSku($brand, $name, $size, $p_id)
     {
         $brandCode = strtoupper(Str::slug(Str::words($brand, 1, ''), ''));
         $nameCode = strtoupper(Str::slug(Str::words($name, 1, ''), ''));
@@ -41,6 +51,14 @@ class Product extends Model
         return $this->hasMany(Inventory::class)->where('store_id', $branch_id);
     }
     public function inventorie()
+    {
+        $branch_id = auth()->user()->userinfo->branch->id ?? null;
+
+        return $this->hasOne(Inventory::class, 'product_id')
+            ->where('store_id', $branch_id);
+    }
+
+    public function inventorieUnfiltered()
     {
         return $this->hasOne(Inventory::class, 'product_id');
     }
@@ -58,5 +76,5 @@ class Product extends Model
     public function customerPrices()
     {
         return $this->hasMany(PartyCustomerProductsPrice::class);
-    }    
+    }
 }

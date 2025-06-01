@@ -8,6 +8,8 @@ use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\UserShift;
 use Carbon\Carbon;
+use App\Models\Partyuser;
+use Illuminate\Support\Facades\App;
 
 class HoldTransactions extends Component
 {
@@ -39,8 +41,7 @@ class HoldTransactions extends Component
     {
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
         $transaction = Invoice::where(['user_id' => auth()->user()->id])->where('id', $id)->where(['branch_id' => $branch_id])->where('status', 'Hold')->first();
-        $transaction->status =Cart::STATUS_PENDING;
-        $transaction->save();
+        $transaction->delete();
         
         foreach ($transaction->items as $key => $value) {
             $product =Product::where('name', $value['name'])->first();
@@ -65,6 +66,29 @@ class HoldTransactions extends Component
         $this->dispatch('close-hold-modal');
         $this->dispatch('notiffication-success', ['message' => 'Transaction resumed successfully']);
 
+    }
+     public function printInvoice($id)
+    {
+       $invoice = \App\Models\Invoice::where("id",$id)->latest('id')->first();
+       $sunTot=(Int) $invoice->total+(Int)$invoice->party_amount;
+
+        if (!$invoice) {
+            // Handle case where no invoice exists
+            return;
+        }
+
+        $pdfPath = storage_path('app/public/invoices/hold_invoice_' . $invoice->invoice_number . '.pdf');
+
+        if (!file_exists($pdfPath)) {
+            $partyUser = PartyUser::where('status', 'Active')->find($invoice->party_user_id);
+            $pdf = App::make('dompdf.wrapper');
+            $pdf->loadView('hold', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'hold' => true,'customer_name' => @$partyUser->first_name.' '.@$partyUser->last_name]);
+            $pdf->save($pdfPath);
+        }
+        
+        $this->dispatch('triggerPrint', [
+            'pdfPath' => asset('storage/invoices/hold_invoice_' . $invoice->invoice_number . '.pdf')
+        ]);
     }
     public function deleteTransaction($id)
     {

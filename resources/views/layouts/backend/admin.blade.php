@@ -71,6 +71,11 @@
                                 <i class="las la-minus"></i><span>Pack Size</span>
                             </a>
                         </li>
+                          <li class="">
+                            <a href="{{ route('demand-order.step1') }}">
+                                <i class="las la-minus"></i><span>Demand Order</span>
+                            </a>
+                        </li>
                     </ul>
                 </li>
 
@@ -97,6 +102,11 @@
                         <li class="">
                             <a href="{{ route('branch.list') }}">
                                 <i class="las la-minus"></i><span>Store Manage</span>
+                            </a>
+                        </li>
+                        <li class="">
+                            <a href="{{ route('shift-manage.list') }}">
+                                <i class="las la-minus"></i><span>Shift Manage</span>
                             </a>
                         </li>
                     </ul>
@@ -129,11 +139,6 @@
                         <li class="">
                             <a href="{{ route('users.list') }}">
                                 <i class="las la-minus"></i><span>Users</span>
-                            </a>
-                        </li>
-                        <li class="">
-                            <a href="{{ route('shift-manage.list') }}">
-                                <i class="las la-minus"></i><span>Shift Manage</span>
                             </a>
                         </li>
                     </ul>
@@ -281,7 +286,7 @@
                         </li>
                         <li class="">
                             <a href="{{ route('sales.stock.report') }}">
-                                <i class="las la-minus"></i><span>Stock Report</span>
+                                <i class="las la-minus"></i><span>Stock Summary</span>
                             </a>
                         </li>
                         <li class="">

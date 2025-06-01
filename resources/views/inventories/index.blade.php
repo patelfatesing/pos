@@ -10,7 +10,7 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <h1>Inventory</h1>
+                <h1>Stock Inventory</h1>
                 <div class="col-lg-12">
                     <div class="table-responsive rounded mb-3">
                         <table class="table data-tables table-striped" id="inventory_table">
@@ -18,7 +18,7 @@
                                 <div class="form-group">
                                     <select name="storeSearch" id="storeSearch" class="selectpicker form-control"
                                         data-style="py-0">
-                                        <option value="">Select Store</option>
+                                        <option value="">All</option>
                                         @foreach ($branch as $id => $name)
                                             <option value="{{ $id }}">{{ $name }}</option>
                                         @endforeach
@@ -50,6 +50,46 @@
         </div>
     </div>
     <!-- Wrapper End-->
+
+    <div class="modal fade bd-example-modal-lg" id="lowLevelModal" tabindex="-1" role="dialog"
+        aria-labelledby="lowLevelModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <form id="lowLevelStockUpdateForm">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="lowLevelModalLabel">Stocl Low Level Set</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="row">
+                            <input type="hidden" name="product_id" id="product_id" value="">
+                            <input type="hidden" name="store_id" id="store_id" value="">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Low Level Quntity </label>
+                                    <input type="number" name="low_level_qty" class="form-control" id="low_level_qty"
+                                        placeholder="Enter Low Level Quantity">
+                                    <span class="text-danger" id="low_level_qty_error"></span>
+                                </div>
+                            </div>
+                        </div>
+                        {{-- <span class="mt-2 badge badge-pill border border-secondary text-secondary">
+                            {{ __('messages.reorder_level_qty') }}
+                        </span> --}}
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <script>
         $(document).ready(function() {
@@ -164,36 +204,51 @@
 
         });
 
-        function delete_store(id) {
-
-            Swal.fire({
-                title: "Are you sure?",
-                text: "You won't be able to revert this!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Yes, delete it!",
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        type: "delete", // "method" also works
-                        url: "{{ url('store/delete') }}/" + id, // Ensure correct Laravel URL
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        data: {
-                            id: id
-                        },
-                        success: function(response) {
-                            swal("Deleted!", "The store has been deleted.", "success")
-                                .then(() => location.reload());
-                        },
-                        error: function(xhr) {
-                            swal("Error!", "Something went wrong.", "error");
-                        }
-                    });
-                }
-            });
-
+        function low_level_stock_set(p_id, branch_id, reorder_level) {
+            $('#product_id').val(p_id);
+            $('#store_id').val(branch_id);
+            $('#low_level_qty').val(reorder_level);
+            $('#lowLevelModal').modal('show');
         }
+
+        $(document).ready(function() {
+            $('#lowLevelStockUpdateForm').on('submit', function(e) {
+                e.preventDefault();
+
+                // Clear previous errors
+                $('#low_level_qty_error').text('');
+
+                let formData = {
+                    _token: $('input[name="_token"]').val(),
+                    product_id: $('#product_id').val(),
+                    store_id: $('#store_id').val(),
+                    low_level_qty: $('#low_level_qty').val(),
+
+                };
+
+                $.ajax({
+                    type: "POST",
+                    url: "{{ route('inventories.update-low-level-qty') }}", // adjust this route
+                    data: formData,
+                    success: function(response) {
+                        alert(response.message); // or show a toast
+                        $('#lowLevelModal').modal('hide');
+                        $('#lowLevelStockUpdateForm')[0].reset();
+                        $('#inventory_table').DataTable().ajax.reload(null, false);
+                        // Optionally reload part of the page
+                    },
+                    error: function(xhr) {
+                        if (xhr.status === 422) {
+                            let errors = xhr.responseJSON.errors;
+                            if (errors.low_level_qty) {
+                                $('#low_level_qty_error').text(errors.low_level_qty[0]);
+                            }
+                        } else {
+                            alert("An unexpected error occurred.");
+                        }
+                    }
+                });
+            });
+        });
     </script>
 @endsection

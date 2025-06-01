@@ -189,7 +189,7 @@ class ShiftCloseModal extends Component
                     }
                 }
             }
-            $this->closing_sales=$this->categoryTotals['sales'];
+            $this->closing_sales=@$this->categoryTotals['sales'];
             // $discountTotal += ($invoice->commission_amount ?? 0) + ($invoice->party_amount ?? 0);
             $discountTotal += (!empty($invoice->commission_amount) && is_numeric($invoice->commission_amount)) ? (int)$invoice->commission_amount : 0;
             $discountTotal += (!empty($invoice->party_amount) && is_numeric($invoice->party_amount)) ? (int)$invoice->party_amount : 0;
@@ -233,7 +233,7 @@ class ShiftCloseModal extends Component
         $this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] = $this->creditCollacted->collacted_cash_amount;
         // $this->categoryTotals['summary']['REFUND'] += $totalRefundReturn *(-1);
         $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['OPENING CASH'] + $this->categoryTotals['summary']['TOTAL SALES'] + $this->categoryTotals['summary']['DISCOUNT'] + $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $this->categoryTotals['summary']['UPI PAYMENT'] + @$this->categoryTotals['summary']['REFUND'] +
-            $this->categoryTotals['summary']['ONLINE PAYMENT']+ @$this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'];
+            @$this->categoryTotals['summary']['ONLINE PAYMENT']+ @$this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'];
         $this->categoryTotals['summary']['REFUND'] = $totalRefund * (-1) + $totalRefundReturn * (-1);
         //$this->categoryTotals['summary']['REFUND RETURN'] = $totalRefundReturn*(-1);
         $this->categoryTotals['summary']['CREDIT'] = $totals->credit_total;

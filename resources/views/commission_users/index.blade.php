@@ -32,9 +32,10 @@
                                         <th>Commission Type</th>
                                         <th>Commission Value</th>
                                         <th>Applies To</th>
-                                        <th>Created Date</th>
                                         <th>Status</th>
-                                        <th>Customer Status</th>
+                                        <th>Created Date</th>
+                                        <th data-type="date" data-format="YYYY/DD/MM">Updated Date</th>
+                                        {{-- <th>Customer Status</th> --}}
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -88,25 +89,29 @@
                         {
                             data: 'applies_to'
                         },
+
+                        {
+                            data: 'is_active'
+                        },
                         {
                             data: 'created_at'
                         },
                         {
-                            data: 'is_active'
+                            data: 'updated_at'
                         },
-                         {
-                            data: 'is_deleted'
-                        },
+                        //  {
+                        //     data: 'is_deleted'
+                        // },
                         {
                             data: 'action'
                         }
                     ],
                     aoColumnDefs: [{
                         bSortable: false,
-                        aTargets: [2, 3, 4, 6] // make "action" column unsortable
+                        aTargets: [2, 3, 4, 6,8] // make "action" column unsortable
                     }],
                     order: [
-                        [5, 'desc']
+                        [6, 'desc']
                     ], // 🟢 Sort by created_at DESC by default
                     dom: "Bfrtip",
                     lengthMenu: [

@@ -7637,7 +7637,7 @@ a.text-light-gray:hover, a.text-light-gray:focus {
   .iq-top-navbar .navbar-expand-lg {
     justify-content: space-between !important; }
   .iq-top-navbar .iq-sub-dropdown {
-    width: 300px;
+    width: 400px;
     position: absolute;
     top: 100%;
     right: 0;

@@ -23,6 +23,10 @@ class StockRequest extends Model
         return $this->belongsTo(Branch::class,'requested_by');
     }
 
+    public function tobranch(): BelongsTo {
+        return $this->belongsTo(Branch::class,'store_id');
+    }
+
     public function requestedBy(): BelongsTo {
         return $this->belongsTo(Branch::class, 'requested_by');
     }
@@ -37,6 +41,6 @@ class StockRequest extends Model
 
     public function user()
 {
-    return $this->belongsTo(User::class, 'requested_by');
+    return $this->belongsTo(User::class, 'created_by');
 }
 }
