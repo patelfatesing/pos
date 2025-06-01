@@ -189,7 +189,7 @@ class SalesReportController extends Controller
                 'invoices.tax',
                 'invoices.total',
                 'invoices.commission_amount', // <-- Added
-                'invoices.party_amount',      // <-- Added
+                'invoices.creditpay',      // <-- Added
                 'invoices.items',
                 'invoices.status',
                 'invoices.created_at',
@@ -235,7 +235,7 @@ class SalesReportController extends Controller
                 $invoice_sub_total = 0.0;
 
                 foreach ($items as $item) {
-                    $invoice_sub_total += (float)$item['quantity'] * (float)$item['price'];
+                    $invoice_sub_total += (float)$item['quantity'] * (float)$item['mrp'];
                 }
 
                 // Add each invoice data to finalData
@@ -246,7 +246,7 @@ class SalesReportController extends Controller
                     'sub_total'          => $invoice_sub_total,
                     'tax'                => (float)$invoice->tax,
                     'commission_amount'  => (float)$invoice->commission_amount,
-                    'party_amount'       => (float)$invoice->party_amount,
+                    'party_amount'       => (float)$invoice->creditpay,
                     'total'              => (float)$invoice->total,
                     'items_count'        => $items_count,
                     'created_at'         => Carbon::parse($invoice->created_at)->format('Y-m-d'),
@@ -257,7 +257,7 @@ class SalesReportController extends Controller
                 $total_sub_total += $invoice_sub_total;
                 $total_tax += (float)$invoice->tax;
                 $total_commission += (float)$invoice->commission_amount;
-                $total_party_amount += (float)$invoice->party_amount;
+                $total_party_amount += (float)$invoice->creditpay;
                 $total_total += (float)$invoice->total;
                 $total_items_count += $items_count;
             }

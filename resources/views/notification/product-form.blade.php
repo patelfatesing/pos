@@ -9,7 +9,7 @@
 
     <div class="modal-body">
         <div class="container">
-            <h5 class="mb-3">Low Stock Products</h5>
+            <h5 class="mb-3">Store : {{ $branch_name }}</h5>
             <input type="hidden" name="store_id" value="2"/>
             <table class="table table-bordered">
                 <thead>

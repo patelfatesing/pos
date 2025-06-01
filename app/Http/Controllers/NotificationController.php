@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use App\Models\StockRequest;
 use App\Models\StockTransfer;
 use App\Models\User;
+use App\Models\Branch;
 use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
@@ -26,6 +27,12 @@ class NotificationController extends Controller
 
             $data = json_decode($nf->details);
             $ids = explode(',', $data->product_id);
+            $branch_name = '';
+
+            if (!empty($data->store_id)) {
+                $branch = Branch::where('id', $data->store_id)->first();
+                $branch_name = $branch->name;
+            }
 
             $lowStockProducts = DB::table('products')
                 ->select(
@@ -51,7 +58,7 @@ class NotificationController extends Controller
                 // ->havingRaw('total_stock <= products.reorder_level')
                 ->get();
 
-            return view('notification.product-form', compact('lowStockProducts'));
+            return view('notification.product-form', compact('lowStockProducts','branch_name'));
         }
 
         if ($type === 'expire_product') {
