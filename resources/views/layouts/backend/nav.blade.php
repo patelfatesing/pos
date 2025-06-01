@@ -61,36 +61,36 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                 </button>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav ml-auto navbar-list align-items-center">
-                        <li class="nav-item nav-icon dropdown">
-                            <a href="#" class="search-toggle dropdown-toggle btn border add-btn"
-                                id="dropdownMenuButton31" data-toggle="dropdown" aria-haspopup="true"
-                                aria-expanded="false">
-                                <img src="{{ asset('assets/images/small/store.png') }}" alt="img-flag"
-                                    class="img-fluid image-flag mr-2" />Select Store
+                        @php
+                            $currentStoreId = request()->route('store'); // or session('store_id') depending on how you manage it
+                        @endphp
 
+                        <li class="nav-item nav-icon dropdown">
+                            <a href="#" class="dropdown-toggle btn border add-btn"
+                                id="dropdownMenuButton31" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <img src="{{ asset('assets/images/small/store.png') }}" alt="store-icon"
+                                    class="img-fluid image-flag mr-2" />
+                                {{ $data['store'] ?? 'Select Store' }}
                             </a>
+
                             <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton31">
                                 <div class="card shadow-none m-0">
                                     <div class="card-body p-3">
                                         @foreach ($branch as $id => $name)
-                                            @if ($name == 'Warehouse')
-                                                <a class="iq-sub-card" href="{{ url('lang/en') }}">
-                                                    <img src="{{ asset('assets/images/small/icons8-warehouse-30.png') }}"
-                                                        alt="img-flag" class="img-fluid mr-2"
-                                                        style="width: 20px; height: 15px;" />{{ $name }}
-                                                </a>
-                                            @else
-                                                <a class="iq-sub-card" href="{{ url('lang/en') }}">
-                                                    <img src="{{ asset('assets/images/small/store.png') }}"
-                                                        alt="img-flag" class="img-fluid mr-2"
-                                                        style="width: 20px; height: 15px;" />{{ $name }}
-                                                </a>
-                                            @endif
+                                            <a class="iq-sub-card d-flex align-items-center {{ $currentStoreId == $id ? 'bg-primary text-white rounded' : '' }}"
+                                                href="{{ route('dashboard.store', ['store' => $id]) }}">
+                                                <img src="{{ asset('assets/images/small/' . ($name == 'Warehouse' ? 'icons8-warehouse-30.png' : 'store.png')) }}"
+                                                    alt="store-icon" class="img-fluid mr-2"
+                                                    style="width: 20px; height: 15px;" />
+                                                {{ $name }}
+                                            </a>
                                         @endforeach
                                     </div>
                                 </div>
                             </div>
                         </li>
+
+
 
                         <li class="nav-item nav-icon dropdown">
                             <a href="#" class="search-toggle dropdown-toggle btn border add-btn"
