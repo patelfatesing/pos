@@ -18,6 +18,11 @@ class StockTransferController extends Controller
 {
     public function index()
     {
+        return view('stocks_transfer.list');
+    }
+
+    public function craeteTransfer()
+    {
         $stores = Branch::where('is_deleted', 'no')->get();
         $products = Product::all();
         $data = User::with('userInfo')
@@ -26,6 +31,133 @@ class StockTransferController extends Controller
             ->firstOrFail();
 
         return view('stocks_transfer.create', compact('stores', 'products', 'data'));
+    }
+
+    public function getData(Request $request)
+    {
+        $stockTransfer = new StockTransfer();
+        $transfers = $stockTransfer->getTransferData();
+
+        return response()->json([
+            'draw' => $request->input('draw'),
+            'recordsTotal' => $transfers->count(),
+            'recordsFiltered' => $transfers->count(),
+            'data' => $transfers
+        ]);
+    }
+
+    public function getTransferData(Request $request)
+    {
+        $draw = $request->input('draw', 1);
+        $start = $request->input('start', 0);
+        $length = $request->input('length', 10);
+        $searchValue = $request->input('search.value', '');
+        $orderColumnIndex = $request->input('order.0.column', 0);
+        $orderColumn = $request->input("columns.$orderColumnIndex.data", 'id');
+        $orderDirection = $request->input('order.0.dir', 'asc');
+
+        $query = StockTransfer::select([
+            'stock_transfers.transfer_number',
+            'stock_transfers.from_branch_id',
+            'stock_transfers.to_branch_id',
+            'stock_transfers.status',
+            'stock_transfers.transfer_by',
+            'stock_transfers.transferred_at',
+            'from_branch.name as from_branch_name',
+            'to_branch.name as to_branch_name',
+            'users.name as created_by_name',
+            DB::raw('COUNT(DISTINCT stock_transfers.product_id) as total_products'),
+            DB::raw('SUM(stock_transfers.quantity) as total_quantity')
+        ])
+            ->join('branches as from_branch', 'stock_transfers.from_branch_id', '=', 'from_branch.id')
+            ->join('branches as to_branch', 'stock_transfers.to_branch_id', '=', 'to_branch.id')
+            ->join('users', 'stock_transfers.transfer_by', '=', 'users.id')
+            ->groupBy([
+                'stock_transfers.transfer_number',
+                'stock_transfers.from_branch_id',
+                'stock_transfers.to_branch_id',
+                'stock_transfers.status',
+                'stock_transfers.transfer_by',
+                'stock_transfers.transferred_at',
+                'from_branch.name',
+                'to_branch.name',
+                'users.name'
+            ]);
+
+        // Optional search
+        if (!empty($searchValue)) {
+            $query->where(function ($q) use ($searchValue) {
+                $q->where('stock_transfers.transfer_number', 'like', "%$searchValue%")
+                    ->orWhere('from_branch.name', 'like', "%$searchValue%")
+                    ->orWhere('to_branch.name', 'like', "%$searchValue%")
+                    ->orWhere('users.name', 'like', "%$searchValue%");
+            });
+        }
+
+        // Role-based filtering
+        if (in_array(session('role_name'), ['cashier', 'warehouse'])) {
+            $data = User::with('userInfo')
+                ->where('users.id', Auth::id())
+                ->where('is_deleted', 'no')
+                ->firstOrFail();
+
+            $branch_id = $data->userInfo->branch_id;
+
+            $query->where(function ($q) use ($branch_id) {
+                $q->where('stock_transfers.from_branch_id', $branch_id)
+                    ->orWhere('stock_transfers.to_branch_id', $branch_id);
+            });
+        }
+
+        $recordsTotal = StockTransfer::select('transfer_number')->distinct()->count();
+        $recordsFiltered = $query->get()->count();
+
+        $data = $query->orderBy($orderColumn, $orderDirection)
+            ->offset($start)
+            ->limit($length)
+            ->get();
+
+        $records = [];
+
+        foreach ($data as $transfer) {
+            $records[] = [
+                'id' => $transfer->transfer_number,
+                'transfer_number' => $transfer->transfer_number,
+                'from' => $transfer->from_branch_name,
+                'to' => $transfer->to_branch_name,
+                'transferred_at' => $transfer->transferred_at ? date('d-m-Y H:i', strtotime($transfer->transferred_at)) : 'N/A',
+                'status' => ucfirst($transfer->status),
+                'created_by' => $transfer->created_by_name,
+                'total_products' => $transfer->total_products,
+                'total_quantity' => $transfer->total_quantity,
+                'action' => '<div class="d-flex align-items-center list-action">
+                    <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="View"
+                        href="' . route('stock-transfer.view', $transfer->transfer_number) . '"><i class="ri-eye-line mr-0"></i></a>
+                </div>'
+            ];
+        }
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $records
+        ]);
+    }
+
+    public function view($transferNumber)
+    {
+        $stockTransfer = new StockTransfer();
+        $transfer = $stockTransfer->getTransferDetails($transferNumber);
+
+        if (!$transfer) {
+            abort(404);
+        }
+
+        return view('stocks_transfer.view', [
+            'stockTransfer' => $transfer,
+            'transferProducts' => $transfer->products
+        ]);
     }
 
     public function store(Request $request)
@@ -167,7 +299,7 @@ class StockTransferController extends Controller
 
                 $arr['product_id'] =  implode(',', array_values($arr_low_stock));
                 $arr['store_id'] =  (string) $request->from_store_id;
-                
+
                 sendNotification('low_stock', 'Store stock request', $request->from_store_id, Auth::id(), json_encode($arr));
                 sendNotification('low_stock', 'Store stock request', null, Auth::id(), json_encode($arr));
             }

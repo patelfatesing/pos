@@ -13,7 +13,7 @@
                                     <h4 class="card-title">Stock Transfer Store to Store</h4>
                                 </div>
                                 <div>
-                                    <a href="{{ route('products.list') }}" class="btn btn-secondary">Back</a>
+                                    <a href="{{ route('stock-transfer.list') }}" class="btn btn-secondary">Back</a>
                                 </div>
                             </div>
 
