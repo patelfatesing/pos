@@ -97,6 +97,7 @@ Route::post('/shift-close/withdraw', [ShiftClosingController::class, 'withdraw']
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
+Route::get('/dashboard/store/{store}', [DashboardController::class, 'showStore'])->name('dashboard.store');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

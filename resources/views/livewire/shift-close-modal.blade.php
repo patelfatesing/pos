@@ -242,7 +242,7 @@
     @if ($showStockModal)
         <div class="modal fade @if ($showStockModal) show d-block @endif" tabindex="-1"
             style="z-index: 1056;" @if ($showStockModal) style="display: block;" @endif>
-            <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <div class="modal-dialog modal-dialog-scrollable modal-xl">
                 <div class="modal-content shadow rounded-3">
 
                     <div class="modal-header bg-secondary text-white">
@@ -264,9 +264,9 @@
                                             <th>Transferred In</th>
                                             <th>Transferred Out</th>
                                             <th>Sold</th>
-                                            <th>System Sales</th>
-                                            <th>Physical Sales</th>
-                                            <th>Difference In Sales</th>
+                                            <th>System Stock</th>
+                                            <th>Physical Stock</th>
+                                            <th>Difference In Stock</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -280,7 +280,7 @@
                                                 <td>{{ $item['transferred_stock'] }}</td>
                                                 <td>{{ $item['sold_stock'] }}</td>
                                                 <td>{{ $item['closing_stock'] }}</td>
-                                                <td>{{ $item['physical_stock'] }}</td>
+                                                <td>{{ (!empty($item['physical_stock']))?$item['physical_stock']:0; }}</td>
                                                 <td>{{ $item['difference_in_stock'] }}</td>
                                             </tr>
                                         @endforeach
