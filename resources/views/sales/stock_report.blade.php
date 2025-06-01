@@ -6,7 +6,7 @@
     <!-- Styles -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
-    
+
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -16,7 +16,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-    
+
     <!-- Wrapper Start -->
     <div class="wrapper">
         <div class="content-page">
@@ -115,7 +115,7 @@
     <script>
         $(document).ready(function() {
             console.log('Document Ready - Stock Report');
-            
+
             // Set up AJAX CSRF token
             $.ajaxSetup({
                 headers: {
@@ -144,83 +144,96 @@
             function initializeDataTable(initialData) {
                 var table = $('#stock-table').DataTable({
                     data: initialData.data || [],
-                    columns: [
-                        { data: 'branch_name' },
-                        { data: 'product_name' },
-                        { data: 'barcode' },
-                        { data: 'category_name' },
-                        { 
+                    columns: [{
+                            data: 'branch_name'
+                        },
+                        {
+                            data: 'product_name'
+                        },
+                        {
+                            data: 'barcode'
+                        },
+                        {
+                            data: 'category_name'
+                        },
+                        {
                             data: 'mrp',
                             render: function(data) {
-                                return '₹ ' + parseFloat(data || 0).toFixed(2);
+                                return '₹' + parseFloat(data || 0).toFixed(2);
                             }
                         },
-                        { 
+                        {
                             data: 'selling_price',
                             render: function(data) {
-                                return '₹ ' + parseFloat(data || 0).toFixed(2);
+                                return '₹' + parseFloat(data || 0).toFixed(2);
                             }
                         },
-                        { 
+                        {
                             data: 'discount',
                             render: function(data) {
-                                return '₹ ' + parseFloat(data || 0).toFixed(2);
+                                return '₹' + parseFloat(data || 0).toFixed(2);
                             }
                         },
-                        { 
+                        {
                             data: 'purchase_price',
                             render: function(data) {
-                                return '₹ ' + parseFloat(data || 0).toFixed(2);
+                                return '₹' + parseFloat(data || 0).toFixed(2);
                             }
                         },
-                        { 
+                        {
                             data: 'opening_stock',
                             render: function(data) {
                                 return parseInt(data || 0);
                             }
                         },
-                        { 
+                        {
                             data: 'in_qty',
                             render: function(data) {
                                 return parseInt(data || 0);
                             }
                         },
-                        { 
+                        {
                             data: 'out_qty',
                             render: function(data) {
                                 return parseInt(data || 0);
                             }
                         },
-                        { 
+                        {
                             data: 'all_qty',
                             render: function(data) {
                                 return parseInt(data || 0);
                             }
                         },
-                        { 
+                        {
                             data: 'all_price',
                             render: function(data) {
-                                return '₹ ' + parseFloat(data || 0).toFixed(2);
+                                return '₹' + parseFloat(data || 0).toFixed(2);
                             }
                         }
                     ],
                     pageLength: 25,
                     dom: 'Bfrtip',
                     buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
+                    aoColumnDefs: [{
+                        bSortable: false,
+                        aTargets: [2, 4, 5, 6, 7, 8] // make "action" column unsortable
+                    }],
                     footerCallback: function(row, data, start, end, display) {
                         var api = this.api();
-                        
+
                         // Calculate totals for numeric columns (MRP to All Price)
                         var numericColumns = [4, 5, 6, 7, 8, 9, 10, 11, 12]; // Column indices
-                        
+
                         numericColumns.forEach(function(colIndex) {
                             var total = api
-                                .column(colIndex, { page: 'current' })
+                                .column(colIndex, {
+                                    page: 'current'
+                                })
                                 .data()
                                 .reduce(function(acc, curr) {
                                     return acc + parseFloat(curr || 0);
                                 }, 0);
-                            
+
                             // Format the total based on column type
                             var formattedTotal;
                             if (colIndex >= 8 && colIndex <= 11) {
@@ -228,9 +241,9 @@
                                 formattedTotal = Math.round(total);
                             } else {
                                 // Add rupee symbol for monetary values
-                                formattedTotal = '₹ ' + total.toFixed(2);
+                                formattedTotal = '₹' + total.toFixed(2);
                             }
-                            
+
                             $(api.column(colIndex).footer()).html(formattedTotal);
                         });
                     }
@@ -256,7 +269,7 @@
 
                 $('#reset-filters').click(function() {
                     $('#store_id, #product_id, #category_id, #subcategory_id').val('');
-                
+
                     refreshData();
                 });
 
@@ -286,22 +299,28 @@
 @endsection
 
 @section('styles')
-<style>
-    .table td, .table th {
-        white-space: nowrap;
-        vertical-align: middle;
-    }
-    .dataTables_wrapper .dataTables_scroll {
-        margin-bottom: 1em;
-    }
-    .dataTables_wrapper .dataTables_length select {
-        min-width: 65px;
-    }
-    .daterangepicker {
-        z-index: 3000;
-    }
-    .buttons-html5, .buttons-print {
-        margin: 0 5px;
-    }
-</style>
+    <style>
+        .table td,
+        .table th {
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        .dataTables_wrapper .dataTables_scroll {
+            margin-bottom: 1em;
+        }
+
+        .dataTables_wrapper .dataTables_length select {
+            min-width: 65px;
+        }
+
+        .daterangepicker {
+            z-index: 3000;
+        }
+
+        .buttons-html5,
+        .buttons-print {
+            margin: 0 5px;
+        }
+    </style>
 @endsection

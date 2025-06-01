@@ -21,65 +21,67 @@
                     <div class="col-lg-8">
                         <div class="row">
                             <div class="col-lg-4 col-md-4">
-                                <div class="card card-block card-stretch card-height">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-4 card-total-sale">
-                                            <div class="icon iq-icon-box-2 bg-info-light">
-                                                <img src="{{ asset('assets/images/product/1.png')}}" class="img-fluid"
-                                                    alt="image" />
-                                            </div>
-                                            <div>
-                                                <p class="mb-2">Total Sales</p>
-                                                <h4>31.50</h4>
-                                            </div>
-                                        </div>
-                                        <div class="iq-progress-bar mt-2">
-                                            <span class="bg-info iq-progress progress-1" data-percent="85">
-                                            </span>
-                                        </div>
+                        <div class="card card-block card-stretch card-height">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-4 card-total-sale">
+                                    <div class="icon iq-icon-box-2 bg-info-light">
+                                        <i class="fas fa-chart-line text-info fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-2">Total Sales</p>
+                                        <h4>{{ format_inr($data['sales'] ?? 0) }}</h4>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-lg-4 col-md-4">
-                                <div class="card card-block card-stretch card-height">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-4 card-total-sale">
-                                            <div class="icon iq-icon-box-2 bg-danger-light">
-                                                <img src="{{ asset('assets/images/product/2.png')}}" class="img-fluid"
-                                                    alt="image" />
-                                            </div>
-                                            <div>
-                                                <p class="mb-2">Total Cost</p>
-                                                <h4>$ 4598</h4>
-                                            </div>
-                                        </div>
-                                        <div class="iq-progress-bar mt-2">
-                                            <span class="bg-danger iq-progress progress-1" data-percent="70">
-                                            </span>
-                                        </div>
-                                    </div>
+                                @php
+                                    $sales = $data['sales'] ?? 0;
+                                    $target = $data['target'] ?? 1; // avoid division by zero
+                                    $percent = min(100, round(($sales / $target) * 100));
+                                @endphp
+                                <div class="iq-progress-bar mt-2">
+                                    <span class="bg-info iq-progress progress-1" data-percent="{{ $percent }}"></span>
                                 </div>
                             </div>
-                            <div class="col-lg-4 col-md-4">
-                                <div class="card card-block card-stretch card-height">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-4 card-total-sale">
-                                            <div class="icon iq-icon-box-2 bg-success-light">
-                                                <img src="{{ asset('assets/images/product/3.png')}}" class="img-fluid"
-                                                    alt="image" />
-                                            </div>
-                                            <div>
-                                                <p class="mb-2">Product Sold</p>
-                                                <h4>4589 M</h4>
-                                            </div>
-                                        </div>
-                                        <div class="iq-progress-bar mt-2">
-                                            <span class="bg-success iq-progress progress-1" data-percent="75">
-                                            </span>
-                                        </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-4">
+                        <div class="card card-block card-stretch card-height">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-4 card-total-sale">
+                                    <div class="icon iq-icon-box-2 bg-danger-light">
+                                        <i class="fas fa-coins text-danger fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-2">Total Cost</p>
+                                        <h4>{{ format_inr($data['total_cost_price']?? 0) }}</h4>
                                     </div>
                                 </div>
+                                <div class="iq-progress-bar mt-2">
+                                    <span class="bg-danger iq-progress progress-1" data-percent="70"></span>
+                                </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-4">
+                        <div class="card card-block card-stretch card-height">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-4 card-total-sale">
+                                    <div class="icon iq-icon-box-2 bg-success-light">
+                                        <i class="fas fa-box-open text-success fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-2">Product Sold</p>
+                                        <h4>{{ $data['products'] ?? 0 }}</h4>
+                                    </div>
+                                </div>
+                                <div class="iq-progress-bar mt-2">
+                                    <span class="bg-success iq-progress progress-1" data-percent="75"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                         </div>
                     </div>
                     <div class="col-lg-6">

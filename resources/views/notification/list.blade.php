@@ -19,6 +19,22 @@
                         </div>
                     </div>
 
+                    <!-- Filters -->
+                    <div class="col-lg-12 mb-4">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <select id="type_filter" class="form-control">
+                                    <option value="">All Types</option>
+                                    <option value="low_stock">Low Stock</option>
+                                    <option value="expire_product">Expire Product</option>
+                                    <option value="request_stock">Stock Request</option>
+                                    <option value="approved_stock">Approved Stock</option>
+                                    <option value="transfer_stock">Stock Transfer</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="col-lg-12">
                         <div class="table-responsive rounded mb-3">
                             <table class="table data-tables table-striped" id="notification_table">
@@ -56,7 +72,7 @@
 
             $('#notification_table').DataTable().clear().destroy();
 
-            $('#notification_table').DataTable({
+            var table = $('#notification_table').DataTable({
                 pageLength: 10, // default number of rows per page
                 responsive: true,
                 processing: true,
@@ -67,7 +83,9 @@
                 ajax: {
                     url: '{{ url('notifications/fetch-data') }}',
                     type: 'POST',
-                    data: function(d) {}
+                    data: function(d) {
+                        d.type = $('#type_filter').val();
+                    }
                 },
 
                 columns: [{
@@ -94,7 +112,7 @@
                 }],
 
                 dom: "Bfrtip",
-                
+
                 lengthMenu: [
                     [10, 25, 50, -1],
                     ['10 rows', '25 rows', '50 rows', 'All']
@@ -102,6 +120,10 @@
                 buttons: ['pageLength']
             });
 
+            // Add type filter change handler
+            $('#type_filter').on('change', function() {
+                table.ajax.reload();
+            });
 
         });
     </script>

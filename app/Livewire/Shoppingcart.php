@@ -583,7 +583,7 @@ class Shoppingcart extends Component
                     $this->showBox = false;
                     $this->shoeCashUpi = true;
                     $this->paymentType = "online";
-                    $this->headertitle = "Online";
+                    $this->headertitle = "UPI";
                     $this->showOnline = true;
                     $this->total = $this->cashAmount;
                 } else {
@@ -615,7 +615,7 @@ class Shoppingcart extends Component
                         $this->showBox = false;
                         $this->shoeCashUpi = true;
                         $this->paymentType = "online";
-                        $this->headertitle = "Online";
+                        $this->headertitle = "UPI";
                         $this->showOnline = true;
                         $this->total = $this->cashAmount;
                     } else {
@@ -640,7 +640,7 @@ class Shoppingcart extends Component
                     $this->showBox = false;
                     $this->shoeCashUpi = true;
                     $this->paymentType = "online";
-                    $this->headertitle = "Online";
+                    $this->headertitle = "UPI";
                     $this->showOnline = true;
                     $this->total = $this->cashAmount;
                 } else {
@@ -2080,8 +2080,8 @@ class Shoppingcart extends Component
                 
                  $branch_name = (!empty(auth()->user()->userinfo->branch->name)) ? auth()->user()->userinfo->branch->name : "";
 
-                sendNotification('low_stock', 'Some Product Low Stock in our ', $branch_id, auth()->id(), json_encode($arr));
-                sendNotification('low_stock', 'Some Product Low Stock in '.$branch_name.' Store', null, auth()->id(), json_encode($arr));
+                sendNotification('low_stock', 'Some products are running low', $branch_id, auth()->id(), json_encode($arr));
+                sendNotification('low_stock', 'Some products are running low in '.$branch_name.' Store', null, auth()->id(), json_encode($arr));
             }
             if ($this->paymentType == "cash") {
 
