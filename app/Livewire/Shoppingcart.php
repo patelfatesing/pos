@@ -448,25 +448,46 @@ class Shoppingcart extends Component
                 }
             }
         } else {
-            $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
-            $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
 
-            // if (empty($cashier_product_photo_path) || empty($cashier_customer_photo_path))  {
-            //     $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
+            if (!empty($this->selectedCommissionUser)) {
+                $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
+                $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
 
-            // }else{
 
-            if (!empty($this->products->toArray())) {
-                $this->headertitle = "Cash";
-                $this->shoeCashUpi = false;
-                $this->showBox = true;
-                $this->paymentType = "cash";
-                $this->total = $this->cashAmount;
-                $this->useCredit = false;
-            } else {
-                $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
+                if (empty($cashier_product_photo_path) || empty($cashier_customer_photo_path))  {
+                    $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
+
+                }else{
+                    if (!empty($this->products->toArray())) {
+                        $this->headertitle = "Cash";
+                        $this->shoeCashUpi = false;
+                        $this->showBox = true;
+                        $this->paymentType = "cash";
+                        $this->total = $this->cashAmount;
+                        $this->useCredit = false;
+                    } else {
+                        $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
+                    }
+                }
+            }else{
+
+                // if (empty($cashier_product_photo_path) || empty($cashier_customer_photo_path))  {
+                //     $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
+    
+                // }else{
+    
+                if (!empty($this->products->toArray())) {
+                    $this->headertitle = "Cash";
+                    $this->shoeCashUpi = false;
+                    $this->showBox = true;
+                    $this->paymentType = "cash";
+                    $this->total = $this->cashAmount;
+                    $this->useCredit = false;
+                } else {
+                    $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
+                }
+                //}
             }
-            //}
         }
     }
 
@@ -494,25 +515,57 @@ class Shoppingcart extends Component
                 }
             }
         } else {
-            $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
-            $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
+            if (!empty($this->selectedCommissionUser)) {
+                $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
+                $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
 
-            // if (empty($cashier_product_photo_path) || empty($cashier_customer_photo_path))  {
-            //     $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
 
-            // }else{
+                if (empty($cashier_product_photo_path) || empty($cashier_customer_photo_path))  {
+                    $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
+                }else{
+                    $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
+                    $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
+        
+                    // if (empty($cashier_product_photo_path) || empty($cashier_customer_photo_path))  {
+                    //     $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
+        
+                    // }else{
+        
+                    // }
+                    if (!empty($this->products->toArray())) {
+                        $this->showBox = false;
+                        $this->showOnline = false;
+                        $this->shoeCashUpi = true;
+                        $this->paymentType = "cashupi";
+                        $this->headertitle = "Cash + UPI";
+                        $this->useCredit = false;
+                        $this->total = $this->cashAmount;
+                    } else {
+                        $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
+                    }
+                }
+            }else{
 
-            // }
-            if (!empty($this->products->toArray())) {
-                $this->showBox = false;
-                $this->showOnline = false;
-                $this->shoeCashUpi = true;
-                $this->paymentType = "cashupi";
-                $this->headertitle = "Cash + UPI";
-                $this->useCredit = false;
-                $this->total = $this->cashAmount;
-            } else {
-                $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
+                $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
+                $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
+    
+                // if (empty($cashier_product_photo_path) || empty($cashier_customer_photo_path))  {
+                //     $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
+    
+                // }else{
+    
+                // }
+                if (!empty($this->products->toArray())) {
+                    $this->showBox = false;
+                    $this->showOnline = false;
+                    $this->shoeCashUpi = true;
+                    $this->paymentType = "cashupi";
+                    $this->headertitle = "Cash + UPI";
+                    $this->useCredit = false;
+                    $this->total = $this->cashAmount;
+                } else {
+                    $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
+                }
             }
         }
     }
@@ -538,27 +591,61 @@ class Shoppingcart extends Component
                 }
             }
         } else {
-            $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
-            $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
+            if (!empty($this->selectedCommissionUser)) {
+                $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
+                $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
 
-            // if (empty($this->selectedCommissionUser)) {
-            //     $this->dispatch('notiffication-error', ['message' => 'Please select commission customer.']);
+                if (empty($cashier_product_photo_path) || empty($cashier_customer_photo_path))  {
+                    $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
 
-            // }else if (empty($cashier_product_photo_path) || empty($cashier_customer_photo_path))  {
-            //     $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
+                }else{
+                    $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
+                    $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
+        
+                    // if (empty($this->selectedCommissionUser)) {
+                    //     $this->dispatch('notiffication-error', ['message' => 'Please select commission customer.']);
+        
+                    // }else if (empty($cashier_product_photo_path) || empty($cashier_customer_photo_path))  {
+                    //     $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
+        
+                    // }else{
+        
+                    // }
+                    if (!empty($this->products->toArray())) {
+                        $this->showBox = false;
+                        $this->shoeCashUpi = true;
+                        $this->paymentType = "online";
+                        $this->headertitle = "Online";
+                        $this->showOnline = true;
+                        $this->total = $this->cashAmount;
+                    } else {
+                        $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
+                    }
+                }
+            }else{
 
-            // }else{
-
-            // }
-            if (!empty($this->products->toArray())) {
-                $this->showBox = false;
-                $this->shoeCashUpi = true;
-                $this->paymentType = "online";
-                $this->headertitle = "Online";
-                $this->showOnline = true;
-                $this->total = $this->cashAmount;
-            } else {
-                $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
+                $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
+                $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
+    
+                // if (empty($this->selectedCommissionUser)) {
+                //     $this->dispatch('notiffication-error', ['message' => 'Please select commission customer.']);
+    
+                // }else if (empty($cashier_product_photo_path) || empty($cashier_customer_photo_path))  {
+                //     $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
+    
+                // }else{
+    
+                // }
+                if (!empty($this->products->toArray())) {
+                    $this->showBox = false;
+                    $this->shoeCashUpi = true;
+                    $this->paymentType = "online";
+                    $this->headertitle = "Online";
+                    $this->showOnline = true;
+                    $this->total = $this->cashAmount;
+                } else {
+                    $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
+                }
             }
         }
     }
@@ -1884,6 +1971,19 @@ class Shoppingcart extends Component
                     'cashupiNotes' => 'required',
                 ]);
             }
+            if (!auth()->user()->hasRole('warehouse')) {
+                 if (!empty($this->selectedCommissionUser)) {
+
+                    $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
+                    $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
+
+
+                    if (empty($cashier_product_photo_path) || empty($cashier_customer_photo_path))  {
+                        $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
+                        return;
+                    }
+                }
+            }
 
 
             // if (!empty($this->commissionAmount)) {
@@ -1935,6 +2035,7 @@ class Shoppingcart extends Component
                 }
                 $groupedProducts[$productId] += $cartitem->quantity;
             }
+            $arr_low_stock = [];
             // Loop through each product group and deduct from inventories
             foreach ($groupedProducts as $productId => $totalQuantity) {
                 $product = $this->cartitems->firstWhere('product_id', $productId)->product;
@@ -1945,9 +2046,11 @@ class Shoppingcart extends Component
                     // You can use your custom function like sendNotification, or better use Laravel Notification system
 
                     // Example with your function:
-                    $arr['id'] = $inventory->product->id;
-                    sendNotification('low_stock', 'Store stock request', null, auth()->id(), json_encode($arr));
+                    // $arr['id'] = $inventory->product->id;
+                    // sendNotification('low_stock', 'Store stock request', null, auth()->id(), json_encode($arr));
+                     $arr_low_stock[$item['product_id']] = $item['product_id'];
                 }
+                
                 stockStatusChange($inventory->product->id, $branch_id, $totalQuantityNew, 'sold_stock');
 
                 if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
@@ -1969,6 +2072,14 @@ class Shoppingcart extends Component
                         }
                     }
                 }
+            }
+             if (!empty($arr_low_stock)) {
+
+                $arr['product_id'] =  implode(',', array_values($arr_low_stock));
+                $arr['store_id'] =  (string) $branch_id;
+                
+                sendNotification('low_stock', 'Store stock request', $branch_id, Auth::id(), json_encode($arr));
+                sendNotification('low_stock', 'Store stock request', null, Auth::id(), json_encode($arr));
             }
             if ($this->paymentType == "cash") {
 
