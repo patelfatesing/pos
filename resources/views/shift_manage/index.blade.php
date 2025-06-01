@@ -126,6 +126,11 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
     <script>
+          document.addEventListener('DOMContentLoaded', function () {
+            const today = new Date().toISOString().split('T')[0]; // format: YYYY-MM-DD
+            document.getElementById('start_date').value = today;
+            document.getElementById('end_date').value = today;
+        });
         $(document).ready(function() {
 
             $.ajaxSetup({
