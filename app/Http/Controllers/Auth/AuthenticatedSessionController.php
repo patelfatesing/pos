@@ -46,8 +46,8 @@ class AuthenticatedSessionController extends Controller
         }
         
         // All other roles go to dashboard
-        // return redirect(route('dashboard'));
-        return redirect()->intended('/dashboard');
+         return redirect(route('dashboard'));
+        //return  redirect(route('dashboard'));
     }
 
     /**

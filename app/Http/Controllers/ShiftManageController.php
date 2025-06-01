@@ -46,14 +46,12 @@ class ShiftManageController extends Controller
                     'shift_closings.closing_cash',
                     'shift_closings.cash_discrepancy',
                     'shift_closings.created_at'
-                )
-                ->whereDate('shift_closings.created_at', \Carbon\Carbon::today());
+                );
 
          if ($request->start_date && $request->end_date) {
-            $query->whereBetween('shift_closings.created_at', [
-                Carbon::parse($request->start_date)->startOfDay(),
-                Carbon::parse($request->end_date)->endOfDay(),
-            ]);
+            $query->where('shift_closings.created_at', '>=', Carbon::parse($request->start_date)->setTime(0, 0))
+      ->where('shift_closings.created_at', '<=', Carbon::parse($request->end_date)->setTime(23, 59));
+
         }
         if (!empty($request->branch_id)) {
             $query->where('shift_closings.branch_id', $request->branch_id);
