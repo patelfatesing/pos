@@ -54,7 +54,7 @@ class Notification extends Component
                         'products.name',
                         'products.brand',
                         'products.sku',
-                        'products.reorder_level',
+                        'inventories.low_level_qty',
                         DB::raw('IFNULL(SUM(inventories.quantity), 0) as total_stock')
                     )
                     ->leftJoin('inventories', 'products.id', '=', 'inventories.product_id')
@@ -67,9 +67,9 @@ class Notification extends Component
                         'products.name',
                         'products.brand',
                         'products.sku',
-                        'products.reorder_level'
+                        'inventories.low_level_qty'
                     )
-                    ->havingRaw('total_stock <= products.reorder_level')
+                    ->havingRaw('total_stock <= inventories.low_level_qty')
                     ->get();
                 // dd($this->selectedNotificationData);
                 break;

@@ -64,7 +64,6 @@
                                 <tr>
                                     <th>#</th>
                                     <th>Product</th>
-                                    <th>Brand</th>
                                     <th>Size</th>
                                     <th>Quantity</th>
                                 </tr>
@@ -73,7 +72,7 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th colspan="4" style="text-align:right">Total Quantity:</th>
+                                    <th colspan="3" style="text-align:right">Total Quantity:</th>
                                     <th></th>
                                 </tr>
                             </tfoot>
@@ -248,9 +247,6 @@
                         data: 'name'
                     },
                     {
-                        data: 'brand'
-                    },
-                    {
                         data: 'size'
                     },
                     {
@@ -271,7 +267,7 @@
 
                     // Total over this page
                     var pageTotal = api
-                        .column(4, {
+                        .column(3, {
                             page: 'current'
                         }) // column index 4 = Quantity
                         .data()
@@ -280,7 +276,7 @@
                         }, 0);
 
                     // Update footer
-                    $(api.column(4).footer()).html(pageTotal);
+                    $(api.column(3).footer()).html(pageTotal);
                 },
                 aoColumnDefs: [{
                     bSortable: false,

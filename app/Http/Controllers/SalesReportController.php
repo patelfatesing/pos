@@ -431,9 +431,9 @@ class SalesReportController extends Controller
                     'products.sell_price as selling_price',
                     'products.discount_price as discount',
                     'products.cost_price as purchase_price',
-                    DB::raw('COALESCE(daily_product_stocks.opening_stock, 0) as opening_stock'),
-                    DB::raw('COALESCE(daily_product_stocks.added_stock, 0) as in_qty'),
-                    DB::raw('COALESCE(daily_product_stocks.transferred_stock, 0) + COALESCE(daily_product_stocks.sold_stock, 0) as out_qty'),
+                    DB::raw('COALESCE(SUM(daily_product_stocks.opening_stock), 0) as opening_stock'),
+                    DB::raw('COALESCE(SUM(daily_product_stocks.added_stock), 0) as in_qty'),
+                    DB::raw('COALESCE(SUM(daily_product_stocks.transferred_stock), 0) + COALESCE(SUM(daily_product_stocks.sold_stock), 0) as out_qty'),
                     'inventories.quantity as all_qty',
                     DB::raw('inventories.quantity * products.cost_price as all_price')
                 )
@@ -472,6 +472,21 @@ class SalesReportController extends Controller
             if ($request->subcategory_id) {
                 $query->where('products.subcategory_id', $request->subcategory_id);
             }
+
+            // Add grouping to prevent duplicates
+            $query->groupBy(
+                'inventories.store_id',
+                'products.id',
+                'branches.name',
+                'products.name',
+                'products.barcode',
+                'categories.name',
+                'products.mrp',
+                'products.sell_price',
+                'products.discount_price',
+                'products.cost_price',
+                'inventories.quantity'
+            );
 
             // Debug the SQL query
             Log::info('SQL Query:', [

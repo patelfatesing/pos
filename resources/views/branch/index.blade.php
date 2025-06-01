@@ -4,6 +4,11 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<style>
+.is-invalid {
+    border-color: #dc3545;
+}
+</style>
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Wrapper Start -->
@@ -221,39 +226,59 @@
             });
         }
 
-        function low_level_stock(id) {
-            $('#store_id').val(id);
-            $('#lowlevelStockBranchModal').modal('show');
+        function low_level_stock(storeId) {
+            $('#store_id').val(storeId);
 
             $.ajax({
-                url: '/inventories/get-low-level-products/' + id,
+                url: '/inventories/get-low-level-products/' + storeId,
                 type: 'GET',
-                success: function(response) {
-                    let tbody = '';
-                    response.forEach(function(product) {
-                        tbody += `
-                    <tr>
-                        <td>
-                            ${product.name}
-                            <input type="hidden" name="products[${product.id}][product_id]" value="${product.id}">
-                        </td>
-                        <td>
-                            <input type="number" name="products[${product.id}][low_level_qty]" value="${product.low_level_qty}" class="form-control">
-                        </td>
-                    </tr>
-                `;
+                success: function(data) {
+                    let tbody = $('#lowLevelProductTable tbody');
+                    tbody.empty();
+
+                    data.forEach(function(product) {
+                        tbody.append(`
+                        <tr>
+                            <td>${product.name}</td>
+                            <td>
+                                <input type="number" name="low_level_qty[${product.id}]" class="form-control low-level-qty" value="${product.low_level_qty ?? ''}">
+                            </td>
+                        </tr>
+                    `);
                     });
-                    $('#lowLevelProductTable tbody').html(tbody);
+
+                    $('#lowlevelStockBranchModal').modal('show');
                 },
                 error: function() {
-                    alert("Error loading products.");
+                    alert('Failed to load products.');
                 }
             });
         }
 
         $('#lowLevelForm').on('submit', function(e) {
             e.preventDefault();
-            let formData = $(this).serialize();
+
+            let isValid = true;
+            let errorMsg = 'Please fill all Low Level Quantity fields.';
+
+            $('#lowLevelProductTable tbody tr').each(function() {
+                let qtyInput = $(this).find('.low-level-qty');
+                let qtyValue = qtyInput.val();
+
+                if (qtyValue === '' || qtyValue === null) {
+                    isValid = false;
+                    qtyInput.addClass('is-invalid');
+                } else {
+                    qtyInput.removeClass('is-invalid');
+                }
+            });
+
+            if (!isValid) {
+                alert(errorMsg);
+                return;
+            }
+
+            let formData = $('#lowLevelForm').serialize();
 
             $.ajax({
                 url: '/inventories/update-multiple-low-level-qty',
@@ -261,8 +286,9 @@
                 data: formData,
                 success: function(response) {
                     $('#lowlevelStockBranchModal').modal('hide');
-                    $('#inventory_table').DataTable().ajax.reload(null, false);
+                    // $('#inventory_table').DataTable().ajax.reload(null, false);
                     alert('Low level quantities updated successfully.');
+                    location.reload();
                 },
                 error: function(xhr) {
                     alert('Error updating quantities.');

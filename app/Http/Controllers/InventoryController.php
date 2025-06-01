@@ -69,6 +69,7 @@ class InventoryController extends Controller
             $query->where(function ($q) use ($searchValue) {
                 $q->where('products.name', 'like', "%$searchValue%")
                     ->orWhere('products.cost_price', 'like', "%$searchValue%")
+                    ->orWhere('products.barcode', 'like', "%$searchValue%")
                     ->orWhere('inventories.batch_no', 'like', "%$searchValue%")
                     ->orWhere('branches.name', 'like', "%$searchValue%");
             });
@@ -418,7 +419,7 @@ class InventoryController extends Controller
             ->where('inventories.store_id', $storeId)
             ->where('products.is_deleted', 'no')
             ->where('products.is_active', 'yes')
-            ->select('products.name', 'inventories.low_level_qty','inventories.product_id as id')
+            ->select('products.name', 'inventories.low_level_qty', 'inventories.product_id as id')
             ->groupBy('inventories.product_id', 'products.name', 'inventories.low_level_qty')
             ->get();
 
@@ -428,11 +429,17 @@ class InventoryController extends Controller
     public function updateMultipleLowLevelQty(Request $request)
     {
         $storeId = $request->input('store_id');
-        $products = $request->input('products');
+        $products = $request->input('low_level_qty');
 
-        foreach ($products as $product) {
-            $productId = $product['product_id'];
-            $lowLevelQty = $product['low_level_qty'];
+        // dd($products);
+
+        foreach ($products as $key => $product) {
+            // $productId = $product['product_id'];
+            // $lowLevelQty = $product['low_level_qty'];
+
+            
+            $productId = $key;
+            $lowLevelQty = $product;
 
             if ($storeId == 1) {
                 // Update reorder_level in product table

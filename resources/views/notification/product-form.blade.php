@@ -10,50 +10,47 @@
     <div class="modal-body">
         <div class="container">
             <h5 class="mb-3">Store : {{ $branch_name }}</h5>
-            <input type="hidden" name="store_id" value="2"/>
+            <input type="hidden" name="store_id" value="2" />
             <table class="table table-bordered">
                 <thead>
                     <tr>
                         <th>Product</th>
-                        <th>Brand</th>
                         <th>Low Level Stock</th>
                         <th>Current Stock</th>
-                        {{-- <th>Request Quantity</th> <!-- 🆕 --> --}}
                     </tr>
                 </thead>
                 <tbody>
+                    @php
+                        $totalCurrentStock = 0;
+                    @endphp
+
                     @forelse($lowStockProducts as $product)
                         <tr>
                             <td>{{ $product->name }}</td>
-                            <td>{{ $product->brand }}</td>
-                            <td>{{ $product->reorder_level }}</td>
+                            <td>{{ $product->low_level_qty }}</td>
                             <td>{{ $product->total_stock }}</td>
-                            {{-- <td>
-                                <input type="number" 
-                                       name="items[{{ $product->id }}][quantity]" 
-                                       class="form-control" 
-                                       min="1"
-                                       placeholder="Enter quantity">
-                                <input type="hidden" 
-                                       name="items[{{ $product->id }}][product_id]" 
-                                       value="{{ $product->id }}">
-                            </td> --}}
                         </tr>
-                       
+                        @php
+                            $totalCurrentStock += $product->total_stock;
+                        @endphp
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center">✅ All products are above Low Level Stock.</td>
+                            <td colspan="3" class="text-center">✅ All products are above Low Level Stock.</td>
                         </tr>
                     @endforelse
-                   
+
+                    @if ($lowStockProducts->count())
+                        <tr>
+                            <td colspan="2" class="text-right font-weight-bold">Total Current Stock:</td>
+                            <td class="font-weight-bold">{{ $totalCurrentStock }}</td>
+                        </tr>
+                    @endif
+
+
                 </tbody>
             </table>
             <tr>
-                <input type="text" 
-                name="notes" 
-                class="form-control" 
-                
-                placeholder="Enter Notes">
+                <input type="text" name="notes" class="form-control" placeholder="Enter Notes">
             </tr>
         </div>
     </div>

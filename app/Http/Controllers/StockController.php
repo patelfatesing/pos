@@ -792,9 +792,9 @@ class StockController extends Controller
             }
 
             // if (!emptyArray($arr_llp)) {
-                // $ids =implode(',',$arr_llp);
-                // $arr['product_id'] = (string) $ids;
-                // sendNotification('low_stock', 'Store stock request', null, Auth::id(), json_encode($arr));
+            // $ids =implode(',',$arr_llp);
+            // $arr['product_id'] = (string) $ids;
+            // sendNotification('low_stock', 'Store stock request', null, Auth::id(), json_encode($arr));
             // }
             $stockRequest->status = 'approved';
             $stockRequest->approved_by = Auth::id();
@@ -815,7 +815,7 @@ class StockController extends Controller
 
     public function view($id)
     {
-        $stockRequest = StockRequest::with(['branch','tobranch', 'user', 'items.product'])->findOrFail($id);
+        $stockRequest = StockRequest::with(['branch', 'tobranch', 'user', 'items.product'])->findOrFail($id);
         return view('stocks.view', compact('stockRequest'));
     }
 
@@ -857,37 +857,36 @@ class StockController extends Controller
         $length = $request->input('length', 10);
         $searchValue = $request->input('search.value', '');
         $orderColumnIndex = $request->input('order.0.column', 0);
-        $orderColumn = $request->input("columns.$orderColumnIndex.data", 'product_name');
+        $orderColumn = $request->input("columns.$orderColumnIndex.data", 'name');
         $orderDirection = $request->input('order.0.dir', 'asc');
 
         $stockRequestId = $request->input('stock_request_id');
 
-        // Fetch stock request and related products
+        // Fetch stock request with products
         $stockRequest = StockRequest::with(['items.product'])->findOrFail($stockRequestId);
 
-        // Flatten product list
+        // Prepare product list
         $allProducts = collect($stockRequest->items)->map(function ($item) {
             return [
                 'name' => $item->product->name ?? '',
-                'brand'        => $item->product->brand ?? '',
-                'size'         => $item->product->size ?? '',
-                'quantity'     => $item->quantity ?? 0,
+                'size' => $item->product->size ?? '',
+                'quantity' => $item->quantity ?? 0,
             ];
         });
 
-        // Filter by search
+        // Filter by search term (case-insensitive)
         if (!empty($searchValue)) {
+            $searchValue = strtolower($searchValue);
             $allProducts = $allProducts->filter(function ($product) use ($searchValue) {
-                return str_contains(strtolower($product['product_name']), strtolower($searchValue)) ||
-                    str_contains(strtolower($product['brand']), strtolower($searchValue)) ||
-                    str_contains(strtolower($product['size']), strtolower($searchValue));
+                return str_contains(strtolower($product['name']), $searchValue) ||
+                    str_contains(strtolower($product['size']), $searchValue);
             });
         }
 
         $recordsFiltered = $allProducts->count();
         $recordsTotal = count($stockRequest->items);
 
-        // Sort
+        // Sort by column
         $allProducts = $allProducts->sortBy([
             [$orderColumn, $orderDirection === 'asc' ? SORT_ASC : SORT_DESC],
         ]);
@@ -899,7 +898,7 @@ class StockController extends Controller
             'draw' => $draw,
             'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
-            'data' => $paginated
+            'data' => $paginated,
         ]);
     }
 

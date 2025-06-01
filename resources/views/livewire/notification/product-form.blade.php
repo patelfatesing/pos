@@ -10,8 +10,7 @@
                 <thead>
                     <tr>
                         <th>Product</th>
-                        <th>SKU</th>
-                        <th>Brand</th>
+                       
                         <th>Low Level Stock</th>
                         <th>Current Stock</th>
                         @if ($branch_id != 1)
@@ -23,9 +22,7 @@
                     @forelse($data as $product)
                         <tr>
                             <td>{{ $product->name }}</td>
-                            <td>{{ $product->sku }}</td>
-                            <td>{{ $product->brand }}</td>
-                            <td>{{ $product->reorder_level }}</td>
+                            <td>{{ $product->low_level_qty }}</td>
                             <td>{{ $product->total_stock }}</td>
                             @if ($branch_id != 1)
                                 <td>

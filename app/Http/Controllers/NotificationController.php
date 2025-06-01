@@ -40,7 +40,7 @@ class NotificationController extends Controller
                     'products.name',
                     'products.brand',
                     'products.sku',
-                    'products.reorder_level',
+                    'inventories.low_level_qty',
                     DB::raw('IFNULL(SUM(inventories.quantity), 0) as total_stock')
                 )
                 ->leftJoin('inventories', 'products.id', '=', 'inventories.product_id')
@@ -53,7 +53,7 @@ class NotificationController extends Controller
                     'products.name',
                     'products.brand',
                     'products.sku',
-                    'products.reorder_level'
+                    'inventories.low_level_qty'
                 )
                 // ->havingRaw('total_stock <= products.reorder_level')
                 ->get();
@@ -139,7 +139,6 @@ class NotificationController extends Controller
         return view('notification.list', compact('notifications'));
     }
 
-
     public function getData(Request $request)
     {
         $draw = $request->input('draw', 1);
@@ -162,32 +161,48 @@ class NotificationController extends Controller
             )
             ->whereNull('notifications.notify_to');
 
-        // **Search filter**
+        // Type filter
+        if ($request->filled('type')) {
+            $query->where('notifications.type', $request->type);
+        }
+
+        // Date range filter
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('notifications.created_at', [
+                Carbon::parse($request->start_date)->startOfDay(),
+                Carbon::parse($request->end_date)->endOfDay()
+            ]);
+        }
+
+        // Search filter
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('notifications.type', 'like', '%' . $searchValue . '%')
                     ->orWhere('notifications.content', 'like', '%' . $searchValue . '%')
                     ->orWhere('notifications.notify_to', 'like', '%' . $searchValue . '%')
-                    ->orWhere('users.name', 'like', '%' . $searchValue . '%'); // add search on user name
+                    ->orWhere('users.name', 'like', '%' . $searchValue . '%');
             });
         }
 
+        // Get total records count before applying filters
         $recordsTotal = Notification::whereNull('notify_to')->count();
+        
+        // Get filtered records count
         $recordsFiltered = $query->count();
 
+        // Get paginated and ordered data
         $data = $query->orderBy($orderColumn, $orderDirection)
             ->offset($start)
             ->limit($length)
             ->get();
 
         $records = [];
-
         foreach ($data as $notification) {
             $records[] = [
-                'type' => $notification->type,
+                'type' => ucwords(str_replace('_', ' ', $notification->type)), // Format type for display
                 'content' => $notification->content,
                 'created_by' => $notification->created_by_name ?? 'System',
-                'status' => $notification->status,
+                'status' => ucfirst($notification->status), // Capitalize status
                 'created_at' => Carbon::parse($notification->created_at)->format('Y-m-d H:i:s'),
             ];
         }
