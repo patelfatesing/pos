@@ -2175,7 +2175,7 @@ class Shoppingcart extends Component
                 // Optional: clear the session images
                 session()->forget(auth()->id() . '_warehouse_product_photo_path', []);
                 session()->forget(auth()->id() . '_warehouse_customer_photo_path', []);
-            } else {
+            }else if ($this->selectedCommissionUser)  {
 
                 $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
                 $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
