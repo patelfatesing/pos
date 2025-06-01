@@ -32,7 +32,7 @@
                                                     <th>Invoice No</th>
                                                     <th>Cash Amount</th>
                                                     <th>UPI Amount</th>
-                                                    <th>Online Amount</th>
+                                                    {{-- <th>Online Amount</th> --}}
                                                     <th>Credit Pay</th>
                                                     <th>Payment Mode</th>
                                                     <th>Total Items</th>
@@ -48,8 +48,8 @@
                                                     <tr>
                                                         <td>{{ $invoice->invoice_number }}</td>
                                                         <td>{{ $invoice->cash_amount }}</td>
-                                                        <td>{{ $invoice->upi_amount }}</td>
-                                                        <td>{{ $invoice->online_amount }}</td>
+                                                        <td>{{ $invoice->upi_amount+$invoice->online_amount }}</td>
+                                                        {{-- <td>{{ $invoice->online_amount }}</td> --}}
                                                         <td>{{ $invoice->creditpay }}</td>
                                                         <td>{{ $invoice->payment_mode }}</td>
                                                         <td>{{ $invoice->total_item_qty }}</td>
@@ -57,7 +57,7 @@
                                                         <td>{{ $invoice->tax }}</td>
                                                         <td>{{ $invoice->total }}</td>
                                                         <td>{{ $invoice->status }}</td>
-                                                        <td>{{ \Carbon\Carbon::parse($invoice->created_at)->format('m-Y') }} </td>
+                                                        <td>{{ \Carbon\Carbon::parse($invoice->created_at)->format('d-m-Y h:i:s') }} </td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>

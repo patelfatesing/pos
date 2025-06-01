@@ -41,8 +41,13 @@
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h4 class="mb-0">Sales Details</h4>
 
-                                            <button wire:click="openClosingStocksModal" class="btn btn-secondary btn-sm" title="View Stock Status">
-                                            View Stock Status
+                                            <button wire:click="openClosingStocksModal" class="btn btn-secondary btn-sm"
+                                                title="View Stock Status">
+                                                View Stock Status
+                                            </button>
+                                            <button wire:click="addphysicalStock" class="btn btn-secondary btn-sm"
+                                                title="View Stock Status">
+                                                Add Physical Stock
                                             </button>
 
                                         </div>
@@ -235,62 +240,136 @@
         <div class="modal-backdrop fade show"></div>
     @endif
     @if ($showStockModal)
-    <div class="modal fade @if($showStockModal) show d-block @endif" tabindex="-1" style="z-index: 1056;" @if($showStockModal) style="display: block;" @endif>
-    <div class="modal-dialog modal-dialog-scrollable modal-lg">
-        <div class="modal-content shadow rounded-3">
+        <div class="modal fade @if ($showStockModal) show d-block @endif" tabindex="-1"
+            style="z-index: 1056;" @if ($showStockModal) style="display: block;" @endif>
+            <div class="modal-dialog modal-dialog-scrollable modal-lg">
+                <div class="modal-content shadow rounded-3">
 
-            <div class="modal-header bg-secondary text-white">
-                <h5 class="modal-title">Closing Stock Status</h5>
-                 <button type="button" class="close" wire:click="$set('showStockModal', false)">
+                    <div class="modal-header bg-secondary text-white">
+                        <h5 class="modal-title">Closing Stock Status</h5>
+                        <button type="button" class="close" wire:click="$set('showStockModal', false)">
                             <span aria-hidden="true">×</span>
                         </button>
-            </div>
-
-            <div class="modal-body">
-                @if (!empty($this->stockStatus))
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>#</th>
-                                     <th>Item</th>
-                                    <th>Opening</th>
-                                    <th>Added</th>
-                                    <th>Transferred</th>
-                                    <th>Sold</th>
-                                    <th>Closing</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($this->stockStatus as $index => $item)
-                                    <tr>
-                                        <td>{{ $index + 1 }}</td>
-                                        <td>{{ $item['product']['name'] }}</td>
-                                        <td>{{ $item['opening_stock'] }}</td>
-                                        <td>{{ $item['added_stock'] }}</td>
-                                        <td>{{ $item['transferred_stock'] }}</td>
-                                        <td>{{ $item['sold_stock'] }}</td>
-                                        <td>{{ $item['closing_stock'] }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
                     </div>
-                @else
-                    <p class="text-muted">No stock data available.</p>
-                @endif
-            </div>
 
-            <div class="modal-footer">
-                <button class="btn btn-outline-secondary" wire:click="closeStockModal">Close</button>
+                    <div class="modal-body">
+                        @if (!empty($this->stockStatus))
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Item</th>
+                                            <th>Opening</th>
+                                            <th>Transferred In</th>
+                                            <th>Transferred Out</th>
+                                            <th>Sold</th>
+                                            <th>System Sales</th>
+                                            <th>Physical Sales</th>
+                                            <th>Difference In Sales</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                       
+                                        @foreach ($this->stockStatus as $index => $item)
+                                            <tr>
+                                                <td>{{ $index + 1 }}</td>
+                                                <td>{{ $item['product']['name'] }}</td>
+                                                <td>{{ $item['opening_stock'] }}</td>
+                                                <td>{{ $item['added_stock'] }}</td>
+                                                <td>{{ $item['transferred_stock'] }}</td>
+                                                <td>{{ $item['sold_stock'] }}</td>
+                                                <td>{{ $item['closing_stock'] }}</td>
+                                                <td>{{ $item['physical_stock'] }}</td>
+                                                <td>{{ $item['difference_in_stock'] }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <p class="text-muted">No stock data available.</p>
+                        @endif
+                    </div>
+
+                    <div class="modal-footer">
+                        <button class="btn btn-outline-secondary" wire:click="closeStockModal">Close</button>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
 
 
-    {{-- Backdrop --}}
-    <div class="modal-backdrop fade show"></div>
-@endif
+        {{-- Backdrop --}}
+        <div class="modal-backdrop fade show"></div>
+    @endif
+    @if ($showPhysicalModal)
+        <div class="modal fade @if ($showPhysicalModal) show d-block @endif" id="showPhysicalModal" tabindex="-1"
+            style="z-index: 1056;" @if ($showPhysicalModal) style="display: block;" @endif>
+            <div class="modal-dialog modal-dialog-scrollable modal-lg">
+                <div class="modal-content shadow rounded-3">
 
+                    <div class="modal-header bg-secondary text-white">
+                        <h5 class="modal-title">Add Physical Stock</h5>
+                        <button type="button" class="close" wire:click="$set('showPhysicalModal', false)">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+                        @if (!empty($this->addstockStatus))
+                            <div class="table-responsive">
+                                <form wire:submit.prevent="save" id="stockPhysicalForm" >
+                                    <table class="table table-bordered table-striped">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Product Name</th>
+                                                <th>Qty</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                           
+                                            <input type="hidden" wire:model="shft_id" >
+                                            @foreach ($this->addstockStatus as $index => $product)
+                                                <tr>
+                                                    <td class="border px-4 py-2">
+                                                        {{ $product['product']['name'] }}
+                                                    </td>
+                                                    <td class="border px-4 py-2">
+                                                        <input type="number" min="1" wire:model="products.{{ $product['product_id'] }}.qty"
+                                                            class="form-control">
+                                                        @error("products.{$product['product_id']}.qty")
+                                                            <span class="text-danger small">{{ $message }}</span>
+                                                        @enderror
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+
+                                    {{-- <button type="submit" class="btn btn-primary mt-3">Save</button> --}}
+                                </form>
+
+                            </div>
+                        @else
+                            <p class="text-muted">No stock data available.</p>
+                        @endif
+                    </div>
+
+                    <div class="modal-footer">
+
+                        <!-- Submit button outside the form -->
+                        <button type="submit" form="stockPhysicalForm" class="btn btn-primary">
+                            Save
+                        </button>
+                        <button class="btn btn-outline-secondary" wire:click="closePhyStockModal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        {{-- Backdrop --}}
+        <div class="modal-backdrop fade show"></div>
+    @endif
 </div>
