@@ -64,6 +64,10 @@
                             @include('livewire.notification.stock-transfer-form', [
                                 'stockTransfer' => $selectedNotificationData,
                             ])
+                        @elseif ($notificationType === 'price_change')
+                            @include('livewire.notification.price-change-form', [
+                                'priceChange' => $selectedNotificationData,
+                            ])
                         @else
                             @include('livewire.notification.product-form', [
                                 'data' => $selectedNotificationData,

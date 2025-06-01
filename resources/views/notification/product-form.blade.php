@@ -15,7 +15,6 @@
                 <thead>
                     <tr>
                         <th>Product</th>
-                        <th>SKU</th>
                         <th>Brand</th>
                         <th>Low Level Stock</th>
                         <th>Current Stock</th>
@@ -26,7 +25,6 @@
                     @forelse($lowStockProducts as $product)
                         <tr>
                             <td>{{ $product->name }}</td>
-                            <td>{{ $product->sku }}</td>
                             <td>{{ $product->brand }}</td>
                             <td>{{ $product->reorder_level }}</td>
                             <td>{{ $product->total_stock }}</td>

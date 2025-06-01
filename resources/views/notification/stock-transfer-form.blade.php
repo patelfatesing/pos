@@ -28,7 +28,6 @@
                                 <th>#</th>
                                 <th>Product</th>
                                 <th>Brand</th>
-                                <th>SKU</th>
                                 <th>Transfer Number</th>
                                 <th>Quantity</th>
                             </tr>
@@ -39,7 +38,6 @@
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $item->product_name }}</td>
                                     <td>{{ $item->brand }}</td>
-                                    <td>{{ $item->sku }}</td>
                                     <td>{{ $item->transfer_number }}</td>
                                     <td>{{ $item->quantity }}</td>
                                 </tr>
