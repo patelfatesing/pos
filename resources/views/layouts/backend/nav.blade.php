@@ -237,7 +237,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                         </div>
                                         <div class="px-3 pt-0 pb-0 sub-card scrollable-container"
                                             id="notificationList"></div>
-                                        <div id="showAllWrapper" class="text-center mt-2" style="display: none;">
+                                        <div id="showAllWrapper" class="text-center mt-2 mb-2" style="display: none;">
                                             <a href="{{ route('notifications.index') }}"
                                                 class="btn btn-sm btn-primary">Show All</a>
                                         </div>
@@ -403,9 +403,10 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                 if (data.res_all > 10) {
                     showAllWrapper.style.display = 'block';
                 } else {
-                    showAllWrapper.style.display = 'none';
+                    showAllWrapper.style.display = 'block';
                 }
 
+                $("#all_unread_notificationCount").text(data.res_all_unread);
                 document.getElementById("all_notificationCount").innerText = data.res_all_unread;
                 document.getElementById("all_notificationCount").innerText = data.res_all;
                 const container = document.getElementById("notificationList");

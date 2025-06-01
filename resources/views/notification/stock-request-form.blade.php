@@ -20,8 +20,7 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>Store: </label> <span
-                                    class="ml-2">{{ $branch_name }}</span>
+                                <label>Store: </label> <span class="ml-2">{{ $branch_name }}</span>
 
                             </div>
                         </div>
@@ -71,27 +70,39 @@
                             <tr>
                                 <th>#</th>
                                 <th>Product</th>
-                                <th>Brand</th>
                                 <th>Size</th>
                                 <th>Quantity</th>
                             </tr>
                         </thead>
                         <tbody>
+                            @php
+                                $totalQty = 0;
+                            @endphp
+
                             @foreach ($stockRequest->items as $index => $item)
+                                @php
+                                    $totalQty += $item->quantity;
+                                @endphp
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $item->product->name }}</td>
-                                    <td>{{ $item->product->brand }}</td>
                                     <td>{{ $item->product->size }}</td>
                                     <td>{{ $item->quantity }}</td>
                                 </tr>
                             @endforeach
+
                             @if ($stockRequest->items->isEmpty())
                                 <tr>
                                     <td colspan="6" class="text-center">No items found.</td>
                                 </tr>
+                            @else
+                                <tr>
+                                    <td colspan="3" class="text-right font-weight-bold">Total Quantity:</td>
+                                    <td class="font-weight-bold">{{ $totalQty }}</td>
+                                </tr>
                             @endif
                         </tbody>
+
                     </table>
                 </div>
             </div>
