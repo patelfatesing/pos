@@ -14,6 +14,15 @@
     <link rel="stylesheet" href="../assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css">
     <link rel="stylesheet" href="../assets/vendor/remixicon/fonts/remixicon.css">
     <style>
+        .flex-grow-1{
+            margin-left: 5% ! important;
+        }
+         .flex-shrink-0{
+            margin-top:7% ! important;
+        }
+        .flex-grow-1 .small {
+            margin-bottom: 0rem !important;
+        }
         .bg-gradient {
             background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
         }

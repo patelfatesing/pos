@@ -22,10 +22,15 @@ class Notification extends Component
     public $branch_name = null;
     public $branch_id = null;
 
+    protected $listeners = ['closePopupExternally' => 'closeNotification'];
 
     public function togglePopup()
     {
         $this->showPopup = !$this->showPopup;
+    }
+    public function closeNotificationPopup()
+    {
+        $this->showPopup = false;
     }
 
     public function viewNotificationDetail($notificationId, $type, $red_id, $id)
@@ -185,7 +190,7 @@ class Notification extends Component
 
         $this->notifications = $notiAry;
         $this->readNotificationsCount = $count;
-
+        
         return view('livewire.notification');
     }
 }
