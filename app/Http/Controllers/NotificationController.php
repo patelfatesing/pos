@@ -89,14 +89,21 @@ class NotificationController extends Controller
 
             $data = json_decode($nf->details);
             $id  = $data->id;
+
+            $branch_name = '';
+
+            if (!empty($data->store_id)) {
+                $branch = Branch::where('id', $data->store_id)->first();
+                $branch_name = $branch->name;
+            }
             $stockRequest = StockRequest::with(['branch', 'user', 'items.product'])->findOrFail($id);
-            return view('notification.stock-request-form', compact('stockRequest'));
+            return view('notification.stock-request-form', compact('stockRequest','branch_name'));
         }
 
         if ($type === 'approved_stock') {
             $data = json_decode($nf->details);
             $id  = $data->id;
-            $stockRequest = StockRequest::with(['branch', 'user', 'items.product'])->findOrFail($id);
+            $stockRequest = StockRequest::with(['branch','tobranch', 'user', 'items.product'])->findOrFail($id);
             return view('notification.stock-approved-form', compact('stockRequest'));
         }
 

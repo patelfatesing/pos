@@ -21,7 +21,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Store: </label> <span
-                                    class="ml-2">{{ $stockRequest->store->name ?? 'warehouse' }}</span>
+                                    class="ml-2">{{ $branch_name }}</span>
 
                             </div>
                         </div>

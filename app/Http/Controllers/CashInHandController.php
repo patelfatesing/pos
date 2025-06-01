@@ -68,22 +68,22 @@ class CashInHandController extends Controller
             ]
         );
 
-        $stocks = DailyProductStock::with('product')
-            ->where('branch_id', $branch_id)
-            ->whereDate('date', Carbon::yesterday())
-            ->get();
+        // $stocks = DailyProductStock::with('product')
+        //     ->where('branch_id', $branch_id)
+        //     ->whereDate('date', Carbon::yesterday())
+        //     ->get();
 
-        foreach ($stocks as $key) {
+        // foreach ($stocks as $key) {
 
-            DailyProductStock::updateOrCreate(
-                [
-                    'product_id' => $key->product_id,
-                    'branch_id' => $branch_id,
-                    'date' => Carbon::today(),
-                    'opening_stock' => $key->closing_stock,
-                ]
-            );
-        }
+        //     DailyProductStock::updateOrCreate(
+        //         [
+        //             'product_id' => $key->product_id,
+        //             'branch_id' => $branch_id,
+        //             'date' => Carbon::today(),
+        //             'opening_stock' => $key->closing_stock,
+        //         ]
+        //     );
+        // }
 
         //return redirect()->route('items.cart')->with('notification-sucess', 'Cash in hand saved.');
         return redirect()->back()->with('notification-sucess', 'Cash in hand saved.');
