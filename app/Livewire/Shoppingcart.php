@@ -2048,7 +2048,7 @@ class Shoppingcart extends Component
                     // Example with your function:
                     // $arr['id'] = $inventory->product->id;
                     // sendNotification('low_stock', 'Store stock request', null, auth()->id(), json_encode($arr));
-                     $arr_low_stock[$item['product_id']] = $item['product_id'];
+                     $arr_low_stock[$productId] = $productId;
                 }
                 
                 stockStatusChange($inventory->product->id, $branch_id, $totalQuantityNew, 'sold_stock');
@@ -2078,8 +2078,10 @@ class Shoppingcart extends Component
                 $arr['product_id'] =  implode(',', array_values($arr_low_stock));
                 $arr['store_id'] =  (string) $branch_id;
                 
-                sendNotification('low_stock', 'Store stock request', $branch_id, Auth::id(), json_encode($arr));
-                sendNotification('low_stock', 'Store stock request', null, Auth::id(), json_encode($arr));
+                 $branch_name = (!empty(auth()->user()->userinfo->branch->name)) ? auth()->user()->userinfo->branch->name : "";
+
+                sendNotification('low_stock', 'Some Product Low Stock in our ', $branch_id, auth()->id(), json_encode($arr));
+                sendNotification('low_stock', 'Some Product Low Stock in '.$branch_name.' Store', null, auth()->id(), json_encode($arr));
             }
             if ($this->paymentType == "cash") {
 
