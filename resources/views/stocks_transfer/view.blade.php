@@ -72,7 +72,7 @@
                                                     <tr>
                                                         <th>#</th>
                                                         <th>Product</th>
-                                                        <th>Batch Number</th>
+                                                        <th>Quantity</th>
                                                         <th>Category</th>
                                                         <th>Sub Category</th>
                                                     </tr>
