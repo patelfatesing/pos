@@ -583,7 +583,7 @@ class Shoppingcart extends Component
                     $this->showBox = false;
                     $this->shoeCashUpi = true;
                     $this->paymentType = "online";
-                    $this->headertitle = "Online";
+                    $this->headertitle = "UPI";
                     $this->showOnline = true;
                     $this->total = $this->cashAmount;
                 } else {
@@ -615,7 +615,7 @@ class Shoppingcart extends Component
                         $this->showBox = false;
                         $this->shoeCashUpi = true;
                         $this->paymentType = "online";
-                        $this->headertitle = "Online";
+                        $this->headertitle = "UPI";
                         $this->showOnline = true;
                         $this->total = $this->cashAmount;
                     } else {
@@ -640,7 +640,7 @@ class Shoppingcart extends Component
                     $this->showBox = false;
                     $this->shoeCashUpi = true;
                     $this->paymentType = "online";
-                    $this->headertitle = "Online";
+                    $this->headertitle = "UPI";
                     $this->showOnline = true;
                     $this->total = $this->cashAmount;
                 } else {
