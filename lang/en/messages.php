@@ -116,6 +116,7 @@ return [
     'adding_more_items_not_allowed'=> 'Adding more items is not allowed in a refund transaction.',
     'product_out_of_stock'=> 'Product is out of stock and cannot be added to the cart.',
     'product_already_exists'=> 'Product already exists in the cart. Please clear it first.',
+    'upi'=> 'UPI',
 
 
 ];

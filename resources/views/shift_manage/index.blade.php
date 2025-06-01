@@ -162,19 +162,23 @@
                 },
                 columns: [{
                         data: 'branch_name',
-                        name: 'branch_name'
+                        name: 'branch_name',
+                        orderable: false
                     },
                     {
                         data: 'user_name',
-                        name: 'user_name'
+                        name: 'user_name',
+                        orderable: false
                     },
                     {
                         data: 'start_time',
-                        name: 'start_time'
+                        name: 'start_time',
+                        orderable: false
                     },
                     {
                         data: 'end_time',
-                        name: 'end_time'
+                        name: 'end_time',
+                        orderable: false
                     },
                     {
                         data: 'opening_cash',
@@ -192,16 +196,19 @@
                     },
                     {
                         data: 'status',
-                        name: 'status'
+                        name: 'status',
+                        orderable: false
                     },
                 
                     {
                         data: 'total_transaction',
-                        name: 'total_transaction'
+                        name: 'total_transaction',
+                        orderable: false
                     },
                         {
                         data: 'difference',
-                        name: 'difference'
+                        name: 'difference',
+                        orderable: false
                     },
                     {
                         data: 'action',

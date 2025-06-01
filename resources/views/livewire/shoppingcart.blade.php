@@ -377,7 +377,7 @@
                                         <button wire:click="onlinePayment"
                                             class="btn btn-sm btn-primary m-2 flex-fill text-nowrap">
                                             <i class="fa fa-credit-card me-2"></i>
-                                            {{ __('messages.online') }}
+                                            {{ __('messages.upi') }}
                                         </button>
 
                                         <button wire:click="cashupitoggleBox"
