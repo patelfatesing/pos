@@ -34,8 +34,8 @@ if (!function_exists('sendNotification')) {
             'priority' => $priority,
         ]);
 
-        $data = json_decode($details,true);
-        
+        $data = json_decode($details, true);
+
         event(new DrawerOpened([
             'notify_to' => $notifyTo,
             'message' => $content,
@@ -86,6 +86,14 @@ if (!function_exists('getUnreadNotificationsByNotifyTo')) {
                 ->where('status', 'unread')
                 ->count();
         }
+    }
+}
+
+if (!function_exists('getNotificationsByIdData')) {
+    function getNotificationsByIdData($id)
+    {
+        return Notification::where('id', $id)
+            ->first();
     }
 }
 

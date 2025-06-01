@@ -59,14 +59,14 @@
                             <thead class="bg-white text-uppercase">
                                 <tr class="ligth ligth-data">
                                     <th>Trasaction #</th>
-                                    <th>Status</th>
-                                    <th>Photo</th>
                                     <th>Commission Amount</th>
-                                    <th>Sub Total</th>
                                     <th>Party Dicount</th>
+                                    <th>Sub Total</th>
                                     <th>Total</th>
                                     <th>Item Count</th>
                                     <th>Store</th>
+                                    <th>Status</th>
+                                    <th>Photo</th>
                                     <th>Date</th>
                                 </tr>
                             </thead>
@@ -74,13 +74,16 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th colspan="2" style="text-align:right">Total:</th>
+                                    <th style="text-align:right">Total:</th>
                                     <th id="commission_total"></th>
                                     <th id="party_total"></th>
                                     <th id="sub_total_total"></th>
                                     <th id="grand_total"></th>
                                     <th id="item_count_total"></th>
                                     <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>  
                                 </tr>
                             </tfoot>
 
@@ -93,7 +96,7 @@
             <!-- Wrapper End-->
         </div>
     </div>
-     <div class="modal fade bd-example-modal-lg" id="salesCustPhotoShowModal" tabindex="-1" role="dialog"
+    <div class="modal fade bd-example-modal-lg" id="salesCustPhotoShowModal" tabindex="-1" role="dialog"
         aria-labelledby="salesCustPhotoShowModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content" id="salesCustPhotoModalContent">
@@ -176,29 +179,18 @@
                         name: 'invoice_number'
                     },
                     {
-                        data: 'status',
-                        name: 'status'
-                    },
-                        {
-                        data: 'photo',
-                        name: 'photo',
-                        orderable: false,
-                        searchable: false
-                    },
-                 
-                    {
                         data: 'commission_amount',
                         name: 'commission_amount',
                         render: data => '₹' + parseFloat(data.replace(/,/g, '')).toFixed(2)
                     },
                     {
-                        data: 'sub_total',
-                        name: 'sub_total',
+                        data: 'party_amount',
+                        name: 'party_amount',
                         render: data => '₹' + parseFloat(data.replace(/,/g, '')).toFixed(2)
                     },
                     {
-                        data: 'party_amount',
-                        name: 'party_amount',
+                        data: 'sub_total',
+                        name: 'sub_total',
                         render: data => '₹' + parseFloat(data.replace(/,/g, '')).toFixed(2)
                     },
                     {
@@ -213,6 +205,16 @@
                     {
                         data: 'branch_name',
                         name: 'branch_name'
+                    },
+                    {
+                        data: 'status',
+                        name: 'status'
+                    },
+                    {
+                        data: 'photo',
+                        name: 'photo',
+                        orderable: false,
+                        searchable: false
                     },
                     {
                         data: 'created_at',
@@ -242,11 +244,11 @@
                         items += intVal(row.items_count);
                     });
 
-                    $(api.column(2).footer()).html('₹' + commission.toFixed(2));
+                    $(api.column(1).footer()).html('₹' + commission.toFixed(2));
+                    $(api.column(2).footer()).html('₹' + party.toFixed(2));
                     $(api.column(3).footer()).html('₹' + subtotal.toFixed(2));
-                    $(api.column(4).footer()).html('₹' + party.toFixed(2));
-                    $(api.column(5).footer()).html('₹' + total.toFixed(2));
-                    $(api.column(6).footer()).html(items);
+                    $(api.column(4).footer()).html('₹' + total.toFixed(2));
+                    $(api.column(5).footer()).html(items);
                 }
             });
 
@@ -254,10 +256,11 @@
                 table.draw();
             });
         });
-         const salesImgViewBase = "{{ url('sales-img-view') }}";
+        const salesImgViewBase = "{{ url('sales-img-view') }}";
 
-        function showPhoto(id,commission_user_id='',party_user_id='',invoice_no='') {
-            let url = `${salesImgViewBase}/${id}?commission_user_id=${commission_user_id}&party_user_id=${party_user_id}&invoice_no=${invoice_no}`;
+        function showPhoto(id, commission_user_id = '', party_user_id = '', invoice_no = '') {
+            let url =
+                `${salesImgViewBase}/${id}?commission_user_id=${commission_user_id}&party_user_id=${party_user_id}&invoice_no=${invoice_no}`;
 
             $.ajax({
                 url: url,

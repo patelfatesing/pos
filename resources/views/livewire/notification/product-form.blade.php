@@ -4,7 +4,7 @@
         <div class="container">
             <h5 class="mb-3">Low Stock Products</h5>
 
-            <input type="hidden" name="store_id" value="2" />
+            <input type="hidden" name="store_id" value="{{ $branch_id }}" />
 
             <table class="table table-bordered">
                 <thead>
@@ -14,7 +14,9 @@
                         <th>Brand</th>
                         <th>Low Level Stock</th>
                         <th>Current Stock</th>
-                        <th>Request Quantity</th>
+                        @if ($branch_id != 1)
+                            <th>Request Quantity</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -25,12 +27,14 @@
                             <td>{{ $product->brand }}</td>
                             <td>{{ $product->reorder_level }}</td>
                             <td>{{ $product->total_stock }}</td>
-                            <td>
-                                <input type="number" name="items[{{ $product->id }}][quantity]" class="form-control"
-                                    min="1" placeholder="Enter quantity">
-                                <input type="hidden" name="items[{{ $product->id }}][product_id]"
-                                    value="{{ $product->id }}">
-                            </td>
+                            @if ($branch_id != 1)
+                                <td>
+                                    <input type="number" name="items[{{ $product->id }}][quantity]"
+                                        class="form-control" min="1" placeholder="Enter quantity">
+                                    <input type="hidden" name="items[{{ $product->id }}][product_id]"
+                                        value="{{ $product->id }}">
+                                </td>
+                            @endif
                         </tr>
 
                     @empty
@@ -40,17 +44,19 @@
                     @endforelse
                 </tbody>
             </table>
-
-            <div class="form-group mt-3">
-                <label for="notes">Notes</label>
-                <input type="text" name="notes" class="form-control" placeholder="Enter notes...">
-            </div>
+            @if ($branch_id != 1)
+                <div class="form-group mt-3">
+                    <label for="notes">Notes</label>
+                    <input type="text" name="notes" class="form-control" placeholder="Enter notes...">
+                </div>
+            @endif
         </div>
     </div>
 
     <div class="modal-footer">
-        <button type="button" class="btn btn-secondary"
-        wire:click="closeNotificationDetail">Close</button>
-        <button type="submit" class="btn btn-primary">Submit Stock Request</button>
+        <button type="button" class="btn btn-secondary" wire:click="closeNotificationDetail">Close</button>
+        @if ($branch_id != 1)
+            <button type="submit" class="btn btn-primary">Submit Stock Request</button>
+        @endif
     </div>
 </form>

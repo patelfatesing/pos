@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Livewire\Component;
 use App\Models\StockRequest;
+use App\Models\Branch;
+
 
 class Notification extends Component
 {
@@ -17,42 +19,58 @@ class Notification extends Component
     public $selectedNotificationData = null;
     public $notificationType = null;
     public $selectedNotificationDataId = null;
+    public $branch_name = null;
+    public $branch_id = null;
+
 
     public function togglePopup()
     {
         $this->showPopup = !$this->showPopup;
     }
 
-    public function viewNotificationDetail($notificationId, $type,$red_id,$id)
+    public function viewNotificationDetail($notificationId, $type, $red_id, $id)
     {
         $this->selectedNotificationId = $notificationId;
         $this->notificationType = $type;
 
         updateUnreadNotificationsById($id);
 
+        $nf = getNotificationsByIdData($id);
+
         switch ($type) {
             case 'low_stock':
+                $data = json_decode($nf->details);
+                $ids = explode(',', $data->product_id);
+                $this->branch_id = $nf->notify_to;
+                
+                if (!empty($data->store_id)) {
+                    $branch = Branch::where('id', $data->store_id)->first();
+                    $this->branch_name = $branch->name;
+                }
+
                 $this->selectedNotificationData = DB::table('products')
-                ->select(
-                    'products.id',
-                    'products.name',
-                    'products.brand',
-                    'products.sku',
-                    'products.reorder_level',
-                    DB::raw('IFNULL(SUM(inventories.quantity), 0) as total_stock')
-                )
-                ->leftJoin('inventories', 'products.id', '=', 'inventories.product_id')
-                ->where('products.is_deleted', 'no')
-                ->where('products.is_active', 'yes')
-                ->groupBy(
-                    'products.id',
-                    'products.name',
-                    'products.brand',
-                    'products.sku',
-                    'products.reorder_level'
-                )
-                ->havingRaw('total_stock <= products.reorder_level')
-                ->get();
+                    ->select(
+                        'products.id',
+                        'products.name',
+                        'products.brand',
+                        'products.sku',
+                        'products.reorder_level',
+                        DB::raw('IFNULL(SUM(inventories.quantity), 0) as total_stock')
+                    )
+                    ->leftJoin('inventories', 'products.id', '=', 'inventories.product_id')
+                    ->where('products.is_deleted', 'no')
+                    ->where('products.is_active', 'yes')
+                    ->where('inventories.store_id', $data->store_id)
+                    ->whereIn('products.id', $ids) // <- Use array here
+                    ->groupBy(
+                        'products.id',
+                        'products.name',
+                        'products.brand',
+                        'products.sku',
+                        'products.reorder_level'
+                    )
+                    ->havingRaw('total_stock <= products.reorder_level')
+                    ->get();
                 // dd($this->selectedNotificationData);
                 break;
 
@@ -63,12 +81,17 @@ class Notification extends Component
                 break;
 
             case 'price_change':
-                $this->selectedNotificationData = DB::table('product_price_logs as ppl')
+
+                $data = json_decode($nf->details);
+                $id = explode(',', $data->id);
+
+                $this->selectedNotificationData = DB::table('product_price_change_history as ppl')
                     ->join('products as p', 'ppl.product_id', '=', 'p.id')
                     ->orderBy('ppl.changed_at', 'desc')
-                    ->select('p.name', 'ppl.old_price', 'ppl.new_price', 'ppl.changed_at')
+                    ->select('p.name', 'ppl.old_price', 'ppl.new_price', 'ppl.changed_at','ppl.created_at')
+                    ->where('ppl.id',$id)
                     ->take(10)
-                    ->get();
+                    ->first();
                 break;
 
             case 'expire_product':
@@ -91,24 +114,24 @@ class Notification extends Component
                     ->orderBy('i.expiry_date')
                     ->get();
                 break;
-                case 'transfer_stock':
-                    $this->selectedNotificationData = DB::table('stock_transfers as i')
-                        ->join('products as p', 'i.product_id', '=', 'p.id')
-                        ->where('i.transfer_number', $red_id)
-                        ->select(
-                            'i.id as id',
-                            'i.product_id',
-                            'p.name as product_name',
-                            'p.brand',
-                            'i.transfer_number',
-                            'i.quantity',
-                            'p.sku',
-                            'p.barcode',
-                            'i.to_branch_id'
-                        )
-                        ->orderBy('i.created_at')
-                        ->get();
-                    break;    
+            case 'transfer_stock':
+                $this->selectedNotificationData = DB::table('stock_transfers as i')
+                    ->join('products as p', 'i.product_id', '=', 'p.id')
+                    ->where('i.transfer_number', $red_id)
+                    ->select(
+                        'i.id as id',
+                        'i.product_id',
+                        'p.name as product_name',
+                        'p.brand',
+                        'i.transfer_number',
+                        'i.quantity',
+                        'p.sku',
+                        'p.barcode',
+                        'i.to_branch_id'
+                    )
+                    ->orderBy('i.created_at')
+                    ->get();
+                break;
             default:
                 $this->selectedNotificationData = collect([
                     'message' => 'Notification not found.',
@@ -138,7 +161,7 @@ class Notification extends Component
 
         foreach ($getNotification as $key => $noti) {
 
-            if(!is_null($noti->details)){
+            if (!is_null($noti->details)) {
                 $data = json_decode($noti->details);
                 if (isset($data->id)) {
                     $noti->details = $data->id;
