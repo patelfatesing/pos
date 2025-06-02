@@ -169,11 +169,7 @@
     </tr>
     <tr>
         <td class="left">By UPI:</td>
-        <td class="right">{{ number_format((float)$invoice->upi_amount, 2) }}</td>
-    </tr>
-    <tr>
-        <td class="left">By Online:</td>
-        <td class="right">{{ number_format((float)$invoice->online_amount, 2) }}</td>
+        <td class="right">{{ number_format((float)($invoice->upi_amount + $invoice->online_amount), 2) }}</td>
     </tr>
 </table>
 

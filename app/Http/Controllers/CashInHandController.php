@@ -58,7 +58,8 @@ class CashInHandController extends Controller
             [
                 'user_id' => auth()->id(),
                 'branch_id' => $branch_id,
-                'status' => 'pending'
+                'status' => 'pending',
+                'created_at' => Carbon::now(),
             ],
             [
                 'start_time' => $start,
