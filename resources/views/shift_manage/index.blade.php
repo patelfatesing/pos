@@ -237,11 +237,17 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const today = new Date().toISOString().split('T')[0]; // format: YYYY-MM-DD
-            document.getElementById('start_date').value = today;
-            document.getElementById('end_date').value = today;
-        });
+     document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');  // months are 0-indexed
+        const day = String(today.getDate()).padStart(2, '0');
+
+        const localDate = `${year}-${month}-${day}`;
+        document.getElementById('start_date').value = localDate;
+        document.getElementById('end_date').value = localDate;
+    });
+
         $(document).ready(function() {
 
             $.ajaxSetup({
