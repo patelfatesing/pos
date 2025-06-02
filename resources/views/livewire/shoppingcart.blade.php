@@ -1511,7 +1511,9 @@
 <script>
     window.addEventListener('triggerPrint', event => {
         const el = document.getElementsByClassName('lastsavepic')[0];
-        el.classList.add('d-none');
+        if (el) {
+            el.classList.add('d-none');
+        }
         // Clear previous iframe if it exists
         const iframeContainer = document.getElementById('iframe-container');
         iframeContainer.innerHTML = '';
