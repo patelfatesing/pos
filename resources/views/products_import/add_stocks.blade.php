@@ -87,8 +87,8 @@
 
                                                                     </td>
                                                                     <td>
-                                                                        {{-- <button type="button"
-                                                                            class="btn btn-danger btn-sm remove-item">Remove</button> --}}
+                                                                        <button type="button"
+                                                                            class="btn btn-danger btn-sm remove-item">Remove</button>
                                                                     </td>
                                                                 </tr>
                                                             @endif
@@ -108,8 +108,8 @@
                                                                         value="{{ $product->id }}">
                                                                 </td>
                                                                 <td>
-                                                                    {{-- <button type="button"
-                                                                        class="btn btn-danger btn-sm remove-item">Remove</button> --}}
+                                                                    <button type="button"
+                                                                        class="btn btn-danger btn-sm remove-item">Remove</button>
                                                                 </td>
                                                             </tr>
                                                         @empty

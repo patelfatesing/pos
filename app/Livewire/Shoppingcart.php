@@ -2051,7 +2051,7 @@ class Shoppingcart extends Component
                      $arr_low_stock[$productId] = $productId;
                 }
                 
-                stockStatusChange($inventory->product->id, $branch_id, $totalQuantityNew, 'sold_stock');
+                stockStatusChange($inventory->product->id, $branch_id, $totalQuantity, 'sold_stock');
 
                 if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
                     // Deduct only from the first inventory if it has enough quantity

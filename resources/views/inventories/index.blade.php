@@ -32,7 +32,7 @@
                                     <th>Product</th>
                                     <th>Store</th>
                                     <th>Quantity</th>
-                                    <th>Price</th>
+                                    <th>Cost Price</th>
                                     <th>Batch No</th>
                                     <th>Expiry Date</th>
                                     <th>Stock Low Level</th>

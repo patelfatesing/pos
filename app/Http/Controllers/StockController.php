@@ -605,8 +605,10 @@ class StockController extends Controller
                 return response()->json(['status' => 'error', 'message' => 'Request already processed.']);
             }
 
-            $arr_llp = [];
+
             if ($from_store_id == 1) {
+                $arr_low_stock = [];
+
                 foreach ($request->items as $key => $val) {
                     $to_store_id = $key;
                     foreach ($val as $product_id => $product_qun) {
@@ -660,6 +662,15 @@ class StockController extends Controller
                                 $storeInventory->quantity += $deducted;
                                 $storeInventory->save();
 
+                                // $low_qty_level = Inventory::lowLevelQty($product_id, $from_store_id);
+
+                                // $total_qty = Inventory::countQty($product_id, $from_store_id);
+                                // $total_qty = $total_qty - $deducted;
+
+                                // if ($total_qty < $low_qty_level) {
+                                //     $arr_low_stock[$product_id] = $product_id;
+                                // }
+
                                 // Transfer log
                                 $inventoryService = new \App\Services\InventoryService();
                                 $data = User::with('userInfo')
@@ -701,7 +712,18 @@ class StockController extends Controller
                         }
                     }
                 }
+
+                // if (!empty($arr_low_stock)) {
+
+                //     $arr['product_id'] =  implode(',', array_values($arr_low_stock));
+                //     $arr['store_id'] =  (string) $request->from_store_id;
+
+                //     // sendNotification('low_stock', 'Some products are running low', $request->from_store_id, Auth::id(), json_encode($arr));
+                //     sendNotification('low_stock', 'Some products are running low', null, Auth::id(), json_encode($arr));
+                // }
             } else {
+
+                $arr_low_stock = [];
 
                 foreach ($request->items as $key => $val) {
                     foreach ($val as $product_id => $product_qun) {
@@ -766,6 +788,15 @@ class StockController extends Controller
 
                                 $remainingQty -= $deducted;
 
+                                // $low_qty_level = Inventory::lowLevelQty($product_id, $from_store_id);
+
+                                // $total_qty = Inventory::countQty($product_id, $from_store_id);
+                                // $total_qty = $total_qty - $deducted;
+
+                                // if ($total_qty < $low_qty_level) {
+                                //     $arr_low_stock[$product_id] = $product_id;
+                                // }
+
                                 stockStatusChange($product_id, $from_store_id, $product_qun, 'transfer_stock');
                                 stockStatusChange($product_id, $key, $product_qun, 'add_stock');
 
@@ -781,6 +812,15 @@ class StockController extends Controller
                                     'transferred_at' => now(),
                                 ]);
                             }
+
+                            // if (!empty($arr_low_stock)) {
+
+                            //     $arr['product_id'] =  implode(',', array_values($arr_low_stock));
+                            //     $arr['store_id'] =  (string) $request->from_store_id;
+
+                            //     sendNotification('low_stock', 'Some products are running low', $request->from_store_id, Auth::id(), json_encode($arr));
+                            //     // sendNotification('low_stock', 'Some products are running low', null, Auth::id(), json_encode($arr));
+                            // }
                         } else {
 
                             $stockItem = StockRequestItem::where('product_id', $product_id)->where('stock_request_id', $id)->firstOrFail(); // optional: FIFO
