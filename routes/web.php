@@ -87,7 +87,7 @@ Route::get('/', function () {
 })->name('login');
 Route::post('/shift-close/store', [ShiftClosingController::class, 'store'])->name('shift-close.store');
 Route::post('/shift-close/withdraw', [ShiftClosingController::class, 'withdraw'])->name('shift-close.withdraw');
-
+Route::get('/shift-summary/{shiftId}', [ShiftClosingController::class, 'getShiftSummary']);
 
 // Route::get('/dashboard', function () {
 //     return view('dashboard');
@@ -369,7 +369,7 @@ Route::middleware('auth')->group(function () {
     Route::post('shift-manage/invoices-by-branch', [ShiftManageController::class, 'getInvoicesByBranch'])->name('shift-manage.invoices-by-branch');
     Route::post('shift-manage/close-shift/{id}', [ShiftManageController::class, 'closeShift'])->name('shift-manage.close-shift');
     Route::get('/shift-manage/view/{id}/{strartdate}/{endTime}', [ShiftManageController::class, 'view'])->name('purchase.shift-manage');
-
+    
 });
 
 
