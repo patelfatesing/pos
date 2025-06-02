@@ -132,7 +132,7 @@ if (!function_exists('format_inr')) {
         $numericAmount = (float) $cleanAmount;
 
         $sign = $numericAmount < 0 ? '-' : '';
-        return $sign . '₹' . number_format(abs($numericAmount), 2);
+    return $sign . '₹' . number_format(abs($numericAmount), 0);
     }
 }
 

@@ -40,6 +40,7 @@
                                         <th>Email</th>
                                         <th>Address</th>
                                         <th>Credit</th>
+                                        <th>Used Credit</th>
                                         <th>Left Credit</th>
                                         <th>Status</th>
                                         <th>Action</th>
@@ -54,13 +55,19 @@
                                             <td>{{ $user->email }}</td>
                                             <td>{{ $user->address }}</td>
                                             <td>{{ number_format($user->credit_points, 2) }}</td>
-                                            <td>{{ number_format($user->left_credit, 2) }}</td>
+                                            <td>{{ number_format($user->use_credit, 2) }}</td>
+                                             <td>{{ number_format($user->left_credit, 2) }}</td>
                                             <td>{{ ucfirst(str_replace('_', ' ', $user->payment_status)) }}</td>
+                                            
                                             <td>
+                                                @if(number_format($user->use_credit, 2) !="0.00")
                                                 <button wire:click="openCollectModal({{ $user->id }})"
                                                     class="btn btn-sm btn-success">
                                                     <i class="fa fa-money-bill"></i> Collect
                                                 </button>
+                                                @else
+                                                    -
+                                                @endif
                                             </td>
                                         </tr>
                                     @empty
@@ -116,7 +123,7 @@
 
                                     <input type="radio" wire:model="paymentType"
                                         wire:click="paymentTypeChanged('online')" value="online" id="pay_online">
-                                    <label for="pay_online">Online</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <label for="pay_online">UPI</label>&nbsp;&nbsp;&nbsp;&nbsp;
                                 </div>
                                 <div>
 

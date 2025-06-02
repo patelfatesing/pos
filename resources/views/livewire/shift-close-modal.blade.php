@@ -264,7 +264,7 @@
                                             <th>Transferred In</th>
                                             <th>Transferred Out</th>
                                             <th>Sold</th>
-                                            <th>System Stock</th>
+                                            <th>Closing Stock</th>
                                             <th>Physical Stock</th>
                                             <th>Difference In Stock</th>
                                         </tr>
