@@ -455,7 +455,7 @@
         $('#shift_tbl tbody').on('click', '.close-shift', function() {
             var shiftId = $(this).data('id');
 
-            loadShiftSummary(shiftId)
+            // loadShiftSummary(shiftId)
             // Swal.fire({
             //     title: 'Are you sure?',
             //     text: "Do you want to close this shift?",
