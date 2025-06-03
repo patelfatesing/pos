@@ -27,7 +27,25 @@ class DashboardController extends Controller
 
         // Only admin users will reach this point
         $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
-        return view('dashboard', compact('branch')); // This refers to resources/views/dashboard.blade.php
+
+        $totals = Invoice::selectRaw('SUM(total) as total_sales, SUM(total_item_qty) as total_products')->first();
+
+        $totalSales = $totals->total_sales;
+        $totalProducts = $totals->total_products;
+
+        $inventorySummary = \DB::table('inventories')
+        ->join('products', 'inventories.product_id', '=', 'products.id')
+        ->selectRaw('SUM(products.cost_price) as total_cost_price')
+        ->first();
+
+        $data= [
+            'store'         => "Selete Store",
+            'sales'         => $totalSales,
+            'products'        => $totalProducts,
+            'total_cost_price'     => $inventorySummary->total_cost_price,
+            'top_products'  => $totalSales,
+        ];
+        return view('dashboard', compact('branch','data')); // This refers to resources/views/dashboard.blade.php
     }
     public function showStore($storeId)
     {

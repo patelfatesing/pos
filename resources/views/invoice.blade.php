@@ -152,7 +152,12 @@
     </tr>
     <tr>
         <td class="left">Total Savings:</td>
-        <td class="right">{{ number_format((float)$invoice->sub_total - (float)$invoice->total, 2) }}</td>
+        <td class="right">{{ number_format(
+        (float)str_replace(',', '', $invoice->sub_total) - 
+        (float)str_replace(',', '', $invoice->total), 
+        2
+        )
+        }}</td>
     </tr>
     <tr class="bold">
         <td class="left">Total Paid:</td>

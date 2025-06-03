@@ -76,6 +76,13 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                             <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton31">
                                 <div class="card shadow-none m-0">
                                     <div class="card-body p-3">
+                                        <a class="iq-sub-card d-flex align-items-center "
+                                                href="{{ route('dashboard') }}">
+                                                <img src="{{ asset('assets/images/small/store.png') }}"
+                                                    alt="store-icon" class="img-fluid mr-2"
+                                                    style="width: 20px; height: 15px;" />
+                                                Select Store
+                                            </a>
                                         @foreach ($branch as $id => $name)
                                             <a class="iq-sub-card d-flex align-items-center {{ $currentStoreId == $id ? 'bg-primary text-white rounded' : '' }}"
                                                 href="{{ route('dashboard.store', ['store' => $id]) }}">
