@@ -58,11 +58,12 @@
                                         <div class="col-12">
                                             <div class="alert alert-info">
                                                 <h5 class="alert-heading">Import Instructions</h5>
+                                                
                                                 <ol class="mb-0">
-                                                    <li>Download the sample file to see the required format</li>
-                                                    <li>Prepare your CSV file with the same column structure</li>
-                                                    <li>Make sure all required fields are filled</li>
-                                                    <li>Upload your file and verify the field mapping</li>
+                                                    <li>Download sample file start by downloading the provided sample CSV file.</li>
+                                                    <li>Prepare your CSV File by using the sample file as a template to format your own excel data.</li>
+                                                    <li>Fill in all required fields & missing required data may cause import to fail or result in incomplete records.</li>
+                                                    <li>Verify field mapping after uploading, review and confirm the mapping between your CSV columns & system fields.</li>
                                                 </ol>
                                             </div>
                                         </div>
