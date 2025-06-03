@@ -14,8 +14,8 @@
                         </div>
                     </div>
                 </div>
-                   <div class="row">
-                  
+                <div class="row">
+
                     <div class="col-md-2 mb-2">
                         <input type="date" id="start_date" class="form-control">
                     </div>
@@ -30,7 +30,7 @@
                             @endforeach
                         </select>
                     </div>
-                     <div class="col-md-2 mb-2">
+                    <div class="col-md-2 mb-2">
                         <select id="user_id" class="form-control">
                             <option value="">All Users</option>
                             @foreach ($users as $users)
@@ -86,7 +86,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                  
+
                     <div class="table-responsive">
                         <table class="table table-bordered" id="invoice_table_modal">
                             <thead>
@@ -120,17 +120,134 @@
         </div>
     </div>
 
+    <!-- Shift Summary Modal -->
+    <div class="modal fade" id="shiftSummaryModal" tabindex="-1" aria-labelledby="shiftSummaryModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="shiftSummaryModalLabel">Shift Close Summary - <span
+                            id="modalBranchName">Branch</span></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body row">
+                    <!-- Sales & Summary -->
+                    <div class="col-md-6">
+                        <h5>Sales Details</h5>
+                        <div class="d-flex justify-content-between mb-2">
+                            <button class="btn btn-warning btn-sm">View Stock Status</button>
+                           </div>
+
+                        <div class="row border p-2 mb-3">
+                            <div class="col-6"><strong>Sales</strong><br>IMFL: ₹<span id="imflSales">0</span></div>
+                            <div class="col-6"><strong>Payment</strong><br>CASH: ₹<span id="cashPayment">0</span></div>
+                        </div>
+
+                        <table class="table table-bordered small">
+                            <tbody>
+                                <tr>
+                                    <td>OPENING CASH</td>
+                                    <td class="text-end">₹<span id="openingCash">0</span></td>
+                                </tr>
+                                <tr>
+                                    <td>TOTAL SALES</td>
+                                    <td class="text-end">₹<span id="totalSales">0</span></td>
+                                </tr>
+                                <tr>
+                                    <td>DISCOUNT</td>
+                                    <td class="text-end">₹<span id="discount">0</span></td>
+                                </tr>
+                                <tr>
+                                    <td>WITHDRAWAL PAYMENT</td>
+                                    <td class="text-end">₹<span id="withdrawal">0</span></td>
+                                </tr>
+                                <tr>
+                                    <td>UPI PAYMENT</td>
+                                    <td class="text-end">₹<span id="upiPayment">0</span></td>
+                                </tr>
+                                <tr class="table-success fw-bold">
+                                    <td>TOTAL</td>
+                                    <td class="text-end">₹<span id="totalCash">0</span></td>
+                                </tr>
+                                <tr>
+                                    <td>REFUND</td>
+                                    <td class="text-end">₹<span id="refund">0</span></td>
+                                </tr>
+                                <tr>
+                                    <td>CREDIT</td>
+                                    <td class="text-end">₹<span id="credit">0</span></td>
+                                </tr>
+                                <tr>
+                                    <td>REFUND CREDIT</td>
+                                    <td class="text-end">₹<span id="refundCredit">0</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Cash Breakdown -->
+                    <div class="col-md-6">
+                        <h5>💵 Cash Details</h5>
+                        <p><strong>Start Time:</strong> <span id="startTime"></span><br>
+                            <strong>End Time:</strong> <span id="endTime"></span>
+                        </p>
+
+                        <table class="table table-bordered text-center small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Denomination</th>
+                                    <th>Notes</th>
+                                    <th>x</th>
+                                    <th>Amount</th>
+                                    <th>=</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="denominationRows"></tbody>
+                            <tfoot>
+                                <tr class="table-success">
+                                    <td colspan="5" class="text-end"><strong>Total</strong></td>
+                                    <td><strong>₹<span id="cashTotal">0</span></strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                        <p><strong>System Cash Sales:</strong> ₹<span id="systemCash">0</span><br>
+                            <strong>Total Cash Amount:</strong> ₹<span id="countedCash">0</span><br>
+                        </p>
+
+                        <div class="mb-2">
+                            <label>Closing Cash</label>
+                            <input type="number" class="form-control form-control-sm" id="closingCashInput">
+                        </div>
+
+                        <p><strong>Discrepancy Cash:</strong> ₹<span id="discrepancyCash">0</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
     <script>
-          document.addEventListener('DOMContentLoaded', function () {
-            const today = new Date().toISOString().split('T')[0]; // format: YYYY-MM-DD
-            document.getElementById('start_date').value = today;
-            document.getElementById('end_date').value = today;
-        });
+     document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');  // months are 0-indexed
+        const day = String(today.getDate()).padStart(2, '0');
+
+        const localDate = `${year}-${month}-${day}`;
+        document.getElementById('start_date').value = localDate;
+        document.getElementById('end_date').value = localDate;
+    });
+
         $(document).ready(function() {
 
             $.ajaxSetup({
@@ -152,12 +269,12 @@
                 ajax: {
                     url: '{{ url('shift-manage/get-data') }}',
                     type: 'POST',
-                   data: function(d) {
+                    data: function(d) {
                         d.start_date = $('#start_date').val();
                         d.end_date = $('#end_date').val();
                         d.branch_id = $('#branch_id').val();
                         d.user_id = $('#user_id').val();
-                        
+
                     }
                 },
                 columns: [{
@@ -187,7 +304,7 @@
                             return '₹' + parseFloat(data).toFixed(2);
                         }
                     },
-                      {
+                    {
                         data: 'closing_cash',
                         name: 'closing_cash',
                         render: function(data, type, row) {
@@ -199,13 +316,13 @@
                         name: 'status',
                         orderable: false
                     },
-                
+
                     {
                         data: 'total_transaction',
                         name: 'total_transaction',
                         orderable: false
                     },
-                        {
+                    {
                         data: 'difference',
                         name: 'difference',
                         orderable: false
@@ -231,10 +348,10 @@
                 ],
                 buttons: ['pageLength']
             });
-             $('#shiftSearch').on('click', function() {
+            $('#shiftSearch').on('click', function() {
                 table.draw();
             });
-             $('#shiftReset').click(function () {
+            $('#shiftReset').click(function() {
                 $('#start_date').val('');
                 $('#end_date').val('');
                 $('#branch_id').val('');
@@ -342,33 +459,81 @@
 
         // Close Shift button click (event delegation)
         $('#shift_tbl tbody').on('click', '.close-shift', function() {
-            var shiftId = $(this).data('shift-id');
+            var shiftId = $(this).data('id');
 
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "Do you want to close this shift?",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, close it!',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: '{{ url('shift-manage/close-shift') }}/' + shiftId,
-                        type: 'POST',
-                        data: {
-                            _token: '{{ csrf_token() }}'
-                        },
-                        success: function(response) {
-                            Swal.fire('Closed!', 'Shift has been closed.', 'success');
-                            $('#shift_tbl').DataTable().ajax.reload(null, false);
-                        },
-                        error: function() {
-                            Swal.fire('Error!', 'Failed to close shift.', 'error');
-                        }
-                    });
-                }
-            });
+            // loadShiftSummary(shiftId)
+            // Swal.fire({
+            //     title: 'Are you sure?',
+            //     text: "Do you want to close this shift?",
+            //     icon: 'warning',
+            //     showCancelButton: true,
+            //     confirmButtonText: 'Yes, close it!',
+            //     cancelButtonText: 'Cancel'
+            // }).then((result) => {
+            //     if (result.isConfirmed) {
+            //         $.ajax({
+            //             url: '{{ url('shift-manage/close-shift') }}/' + shiftId,
+            //             type: 'POST',
+            //             data: {
+            //                 _token: '{{ csrf_token() }}'
+            //             },
+            //             success: function(response) {
+            //                 Swal.fire('Closed!', 'Shift has been closed.', 'success');
+            //                 $('#shift_tbl').DataTable().ajax.reload(null, false);
+            //             },
+            //             error: function() {
+            //                 Swal.fire('Error!', 'Failed to close shift.', 'error');
+            //             }
+            //         });
+            //     }
+            // });
         });
+
+        function loadShiftSummary(shiftId) {
+            fetch(`/shift-summary/${shiftId}`)
+                .then(res => res.json())
+                .then(data => {
+                    // Fill modal fields
+                    document.getElementById('modalBranchName').textContent = data.shift.branch_id;
+                    document.getElementById('startTime').textContent = data.shift.start_time;
+                    document.getElementById('endTime').textContent = data.shift.end_time;
+
+                    const s = data.summary;
+                    document.getElementById('openingCash').textContent = s.opening_cash;
+                    document.getElementById('totalSales').textContent = s.total_sales;
+                    document.getElementById('discount').textContent = s.discount;
+                    document.getElementById('withdrawal').textContent = s.withdrawal_payment;
+                    document.getElementById('upiPayment').textContent = s.upi_payment;
+                    document.getElementById('totalCash').textContent = s.total_cash;
+                    document.getElementById('refund').textContent = s.refund;
+                    document.getElementById('credit').textContent = s.credit;
+                    document.getElementById('refundCredit').textContent = s.refund_credit;
+
+                    document.getElementById('systemCash').textContent = data.system_cash_sales;
+                    document.getElementById('countedCash').textContent = data.counted_cash;
+                    document.getElementById('discrepancyCash').textContent = data.discrepancy_cash;
+
+                    // Denomination table
+                    const tbody = document.getElementById('denominationRows');
+                    tbody.innerHTML = '';
+                    data.denominations.forEach(row => {
+                        tbody.innerHTML += `
+          <tr>
+            <td>₹${row.note}</td>
+            <td>${row.count}</td>
+            <td>X</td>
+            <td>₹${row.note}</td>
+            <td>=</td>
+            <td>₹${row.value}</td>
+          </tr>`;
+                    });
+                    document.getElementById('cashTotal').textContent = data.counted_cash;
+
+                    // Show the modal
+                    const modal = new bootstrap.Modal(document.getElementById('shiftSummaryModal'));
+                    modal.show();
+                })
+                .catch(err => console.error("Failed to load shift summary", err));
+        }
     </script>
 @endsection

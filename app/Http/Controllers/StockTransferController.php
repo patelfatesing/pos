@@ -218,12 +218,17 @@ class StockTransferController extends Controller
                 foreach ($inventories as $inventory) {
                     if ($remainingQty <= 0) break;
 
+                    $low_qty_level = Inventory::lowLevelQty($item['product_id'], $request->from_store_id);
+
+                    $total_qty = Inventory::countQty($item['product_id'], $request->from_store_id);
+
                     $deductQty = min($inventory->quantity, $remainingQty);
 
                     // Deduct from source store
                     $inventory->quantity -= $deductQty;
                     $inventory->save();
 
+                    $total_qty = $total_qty - $deductQty;
                     // Add to destination store
                     $criteria = [
                         'store_id'    => $request->to_store_id,
@@ -251,10 +256,6 @@ class StockTransferController extends Controller
                         ]);
                     }
 
-                    $low_qty_level = Inventory::lowLevelQty($item['product_id'], $request->from_store_id);
-
-                    $total_qty = Inventory::countQty($item['product_id'], $request->from_store_id);
-                    $total_qty = $total_qty - $deductQty;
 
                     if ($total_qty < $low_qty_level) {
                         // $arr['id'] = $item['product_id'];
@@ -306,7 +307,15 @@ class StockTransferController extends Controller
 
             // Send notification and commit
             $data['id'] = $transferNumber;
-            sendNotification('transfer_stock', 'Stock transfer completed successfully', $request->to_store_id, Auth::id(), json_encode($data), 0);
+            $data['from_store'] = Branch::find($request->from_store_id)->name;
+            $data['to_store'] = Branch::find($request->to_store_id)->name;
+            
+            if ($request->to_store_id != 1) {
+                sendNotification('transfer_stock', 'Stock transfer completed successfully', 1, Auth::id(), json_encode($data), 0);
+                sendNotification('transfer_stock', 'Stock transfer completed successfully', $request->to_store_id, Auth::id(), json_encode($data), 0);
+            } else {
+                sendNotification('transfer_stock', 'Stock transfer completed successfully', 1, Auth::id(), json_encode($data), 0);
+            }
 
             DB::commit();
 

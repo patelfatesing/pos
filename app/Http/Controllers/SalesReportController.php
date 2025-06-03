@@ -37,6 +37,7 @@ class SalesReportController extends Controller
             ->select(
                 'invoices.id',
                 'invoices.invoice_number',
+                'invoices.party_amount',
                 'invoices.status',
                 'invoices.sub_total',
                 'invoices.tax',
@@ -99,8 +100,8 @@ class SalesReportController extends Controller
                         <a class="badge badge-success mr-2" data-toggle="tooltip" data-placement="top" title="View"
                         href="' . url('/view-invoice/' . $invoice->id) . '">' . $invoice->invoice_number . '</a>
                     </div> ';
-                $photo = '<div class="d-flex align-items-center list-action">
-                <a class="badge badge-success mr-2" onClick="showPhoto(' . ($invoice->id ?? '') . ',\'' . ($invoice->commission_user_id ?? '') . '\',\'' . ($invoice->party_user_id ?? ''). '\',\'' . ($invoice->invoice_number ?? '') . '\')">Show</a>
+            $photo = '<div class="d-flex align-items-center list-action">
+                <a class="badge badge-success mr-2" onClick="showPhoto(' . ($invoice->id ?? '') . ',\'' . ($invoice->commission_user_id ?? '') . '\',\'' . ($invoice->party_user_id ?? '') . '\',\'' . ($invoice->invoice_number ?? '') . '\')">Show</a>
                 </div>';
 
             $data[] = [
@@ -110,7 +111,8 @@ class SalesReportController extends Controller
                 'sub_total' => number_format($invoice->sub_total, 2),
                 'total' => number_format($invoice->total, 2),
                 'commission_amount' => number_format($invoice->commission_amount, 2),
-                'party_amount' => number_format($invoice->creditpay, 2),
+                'creditpay' => number_format($invoice->creditpay, 2),
+                'party_amount' => number_format($invoice->party_amount, 2),
                 'items_count' => $itemCount,
                 'branch_name' => $invoice->branch_name,
                 'created_at' => Carbon::parse($invoice->created_at)->format('Y-m-d H:i:s'),
@@ -124,7 +126,8 @@ class SalesReportController extends Controller
             'data' => $data,
         ]);
     }
-     public function show($id,Request $request)
+
+    public function show($id, Request $request)
     {
         $commission_user_id = $request->input('commission_user_id', null);
         $party_user_id = $request->input('party_user_id', null);
@@ -133,14 +136,15 @@ class SalesReportController extends Controller
 
         // Debugging output
         // dd($id, $commission_user_id, $party_user_id);
-        if(!empty($party_user_id)){
+        if (!empty($party_user_id)) {
             $photos = PartyUserImage::where('transaction_id', $id)->first();
-        }else if(!empty($commission_user_id)){
+        } else if (!empty($commission_user_id)) {
             $photos = CommissionUserImage::where('transaction_id', $id)->first();
         }
-        $imageType="";
-        return view('party_users.cust-photo', compact('photos','invoice_no','imageType'));
+        $imageType = "";
+        return view('party_users.cust-photo', compact('photos', 'invoice_no', 'imageType'));
     }
+
     public function storeSummary()
     {
         $invoices = DB::table('invoices')
@@ -321,7 +325,11 @@ class SalesReportController extends Controller
 
         // Define the columns to sort
         $columns = [
-            'date', 'branch_name', 'total_orders', 'total_items', 'total_sales'
+            'date',
+            'branch_name',
+            'total_orders',
+            'total_items',
+            'total_sales'
         ];
 
         $orderColumn = $columns[$orderColumnIndex] ?? 'date';
@@ -358,7 +366,7 @@ class SalesReportController extends Controller
         if (!empty($searchValue)) {
             $filteredQuery->having(function ($q) use ($searchValue) {
                 $q->where('branch_name', 'like', "%$searchValue%")
-                ->orWhere('date', 'like', "%$searchValue%");
+                    ->orWhere('date', 'like', "%$searchValue%");
             });
         }
 
@@ -392,26 +400,26 @@ class SalesReportController extends Controller
             'data' => $data,
         ]);
     }
-    
+
     public function stockReport()
     {
         $branches = DB::table('branches')
             ->where('is_deleted', 'no')
             ->get();
-            
+
         $products = DB::table('products')
             ->where('is_deleted', 'no')
             ->where('is_active', 1)
             ->get();
-            
+
         $categories = DB::table('categories')
             ->where('is_deleted', 'no')
             ->get();
-            
+
         $subcategories = DB::table('sub_categories')
             ->where('is_deleted', 'no')
             ->get();
-            
+
         return view('sales.stock_report', compact('branches', 'products', 'categories', 'subcategories'));
     }
 
@@ -419,32 +427,32 @@ class SalesReportController extends Controller
     {
         try {
             Log::info('Fetch stock data request received', $request->all());
-            
+
             $query = Inventory::select(
-                    'inventories.store_id',
-                    'products.id as product_id',
-                    'branches.name as branch_name',
-                    'products.name as product_name',
-                    'products.barcode',
-                    'categories.name as category_name',
-                    'products.mrp',
-                    'products.sell_price as selling_price',
-                    'products.discount_price as discount',
-                    'products.cost_price as purchase_price',
-                    DB::raw('COALESCE(SUM(daily_product_stocks.opening_stock), 0) as opening_stock'),
-                    DB::raw('COALESCE(SUM(daily_product_stocks.added_stock), 0) as in_qty'),
-                    DB::raw('COALESCE(SUM(daily_product_stocks.transferred_stock), 0) + COALESCE(SUM(daily_product_stocks.sold_stock), 0) as out_qty'),
-                    'inventories.quantity as all_qty',
-                    DB::raw('inventories.quantity * products.cost_price as all_price')
-                )
+                'inventories.store_id',
+                'products.id as product_id',
+                'branches.name as branch_name',
+                'products.name as product_name',
+                'products.barcode',
+                'categories.name as category_name',
+                'products.mrp',
+                'products.sell_price as selling_price',
+                'products.discount_price as discount',
+                'products.cost_price as purchase_price',
+                DB::raw('COALESCE(SUM(daily_product_stocks.opening_stock), 0) as opening_stock'),
+                DB::raw('COALESCE(SUM(daily_product_stocks.added_stock), 0) as in_qty'),
+                DB::raw('COALESCE(SUM(daily_product_stocks.transferred_stock), 0) + COALESCE(SUM(daily_product_stocks.sold_stock), 0) as out_qty'),
+                'inventories.quantity as all_qty',
+                DB::raw('inventories.quantity * products.sell_price as all_price')
+            )
                 ->join('products', 'inventories.product_id', '=', 'products.id')
                 ->join('branches', 'inventories.store_id', '=', 'branches.id')
                 ->join('categories', 'products.category_id', '=', 'categories.id')
                 ->leftJoin('sub_categories', 'products.subcategory_id', '=', 'sub_categories.id')
-                ->leftJoin('daily_product_stocks', function($join) use ($request) {
+                ->leftJoin('daily_product_stocks', function ($join) use ($request) {
                     $join->on('products.id', '=', 'daily_product_stocks.product_id')
                         ->on('branches.id', '=', 'daily_product_stocks.branch_id');
-                    
+
                     if ($request->start_date && $request->end_date) {
                         $join->whereBetween('daily_product_stocks.date', [
                             Carbon::parse($request->start_date)->startOfDay(),
@@ -455,20 +463,20 @@ class SalesReportController extends Controller
                 ->where('products.is_active', 'yes')
                 ->where('products.is_deleted', 'no')
                 ->where('branches.is_deleted', 'no');
-        
+
             // Apply filters
             if ($request->store_id) {
                 $query->where('inventories.store_id', $request->store_id);
             }
-            
+
             if ($request->product_id) {
                 $query->where('products.id', $request->product_id);
             }
-            
+
             if ($request->category_id) {
                 $query->where('products.category_id', $request->category_id);
             }
-            
+
             if ($request->subcategory_id) {
                 $query->where('products.subcategory_id', $request->subcategory_id);
             }
@@ -493,22 +501,21 @@ class SalesReportController extends Controller
                 'sql' => $query->toSql(),
                 'bindings' => $query->getBindings()
             ]);
-        
+
             $stocks = $query->get();
-            
+
             Log::info('Stock data retrieved', ['count' => $stocks->count()]);
-            
+
             return response()->json([
                 'draw' => $request->input('draw', 1),
                 'recordsTotal' => $stocks->count(),
                 'recordsFiltered' => $stocks->count(),
                 'data' => $stocks
             ]);
-            
         } catch (\Exception $e) {
             Log::error('Error in fetchStockData: ' . $e->getMessage());
             Log::error($e->getTraceAsString());
-            
+
             return response()->json([
                 'error' => 'An error occurred while fetching stock data',
                 'message' => $e->getMessage()
@@ -520,20 +527,20 @@ class SalesReportController extends Controller
     {
 
         // event(new DrawerOpened());
-         // Optional: pass authenticated user
-    // $user = Auth()->user();
+        // Optional: pass authenticated user
+        // $user = Auth()->user();
 
-    // Trigger the event
-    // event(new DrawerOpened($user));
-    // event(new DrawerOpened([
-    //     'message' => 'New credit transaction added!',
-    //     'customer' => 'John Doe', // You can pass real customer data here
-    // ]));
-    
-    //   event(new NewCreditTransaction([
-    //     'message' => 'New credit transaction added!',
-    //     'customer' => 'John Doe', // You can pass real customer data here
-    // ]));
+        // Trigger the event
+        // event(new DrawerOpened($user));
+        // event(new DrawerOpened([
+        //     'message' => 'New credit transaction added!',
+        //     'customer' => 'John Doe', // You can pass real customer data here
+        // ]));
+
+        //   event(new NewCreditTransaction([
+        //     'message' => 'New credit transaction added!',
+        //     'customer' => 'John Doe', // You can pass real customer data here
+        // ]));
 
 
         $party_users = DB::table('party_users')->get(); // Adjust if you use a model
@@ -550,9 +557,18 @@ class SalesReportController extends Controller
         $orderDirection = $request->input('order.0.dir', 'desc');
 
         $columns = [
-            'invoice_id', 'invoice_number', 'invoice_date', 'invoice_total',
-            'commission_amount', 'commission_user_id', 'commission_user_name',
-            'commission_type', 'commission_value', 'applies_to', 'start_date', 'end_date'
+            'invoice_id',
+            'invoice_number',
+            'invoice_date',
+            'invoice_total',
+            'commission_amount',
+            'commission_user_id',
+            'commission_user_name',
+            'commission_type',
+            'commission_value',
+            'applies_to',
+            'start_date',
+            'end_date'
         ];
 
         $orderColumn = $columns[$orderColumnIndex] ?? 'invoice_date';
@@ -575,7 +591,7 @@ class SalesReportController extends Controller
                 'ch.credit_amount',
                 'ch.status',
                 'ch.id as commission_id',
-                
+
             )
             ->leftJoin('credit_histories as ch', 'i.id', '=', 'ch.invoice_id')
             ->leftJoin('party_users as cu', 'ch.party_user_id', '=', 'cu.id')
@@ -590,7 +606,7 @@ class SalesReportController extends Controller
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('i.invoice_number', 'like', "%$searchValue%")
-                ->orWhere(DB::raw("CONCAT(cu.first_name, ' ', cu.last_name)"), 'like', "%$searchValue%");
+                    ->orWhere(DB::raw("CONCAT(cu.first_name, ' ', cu.last_name)"), 'like', "%$searchValue%");
             });
         }
 
@@ -615,5 +631,4 @@ class SalesReportController extends Controller
             'data' => $data,
         ]);
     }
-
 }

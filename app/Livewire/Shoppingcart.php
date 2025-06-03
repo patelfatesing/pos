@@ -155,7 +155,6 @@ class Shoppingcart extends Component
     public function printLastInvoice()
     {
         $invoice = \App\Models\Invoice::latest('id')->first();
-        $sunTot = (int) $invoice->total + (int)$invoice->party_amount;
 
         if (!$invoice) {
             // Handle case where no invoice exists
@@ -391,7 +390,7 @@ class Shoppingcart extends Component
                 $this->clearCashNotes();
 
                 return;
-            } else if ($this->creditPay > $user->credit_points) {
+            } else if ($this->creditPay > $user->left_credit) {
                 $this->errorInCredit = true;
                 $this->dispatch('notiffication-error', ['message' => 'Credit payment cannot be greater than available credit.']);
                 $this->creditPay = 0;
@@ -1158,7 +1157,6 @@ class Shoppingcart extends Component
             $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
             // $invoice_number = 'Hold-' . strtoupper(Str::random(8));
             $invoice_number = Invoice::generateInvoiceNumber("HOLD");
-
             $commissionUser = CommissionUser::where('status', 'Active')->where('is_deleted', '!=', 'Yes')->find($this->selectedCommissionUser);
             $partyUser = PartyUser::where('status', 'Active')->find($this->selectedPartyUser);
             $invoice = Invoice::create([
@@ -1390,10 +1388,22 @@ class Shoppingcart extends Component
             ->first();
 
         if ($item) {
+            $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
+            $product = Product::select('products.*', 'inventory_summary.total_quantity')
+            ->leftJoin(DB::raw('(
+            SELECT product_id, SUM(quantity) as total_quantity
+            FROM inventories where store_id = ' . $branch_id . '
+            GROUP BY product_id
+            ) as inventory_summary'), 'products.id', '=', 'inventory_summary.product_id')
+            ->where('products.id', $item->product_id)
+            ->first();
+            
             $curtDiscount = $item->discount / $item->quantity;
             $totalQuantity = collect(@$this->selectedSalesReturn->items)
                 ->where('product_id', $item->product_id)
                 ->sum('quantity');
+            
             if (!empty($this->selectedSalesReturn) && $item->quantity >= $totalQuantity) {
                 $this->dispatch('notiffication-error', [
                     'message' => 'Adding more items is not allowed in a refund transaction.'
@@ -1401,6 +1411,11 @@ class Shoppingcart extends Component
                 return;
             }
             $item->quantity++;
+
+             if ($item->quantity > $product['total_quantity']) {
+                $this->dispatch('notiffication-error', ['message' => 'Product is out of stock and cannot be added to cart.']);
+                return;
+            }
             $item->discount = $curtDiscount * ($item->quantity);
             $item->net_amount = ($item->mrp * $item->quantity) - $item->discount;
             $item->save();
@@ -2001,7 +2016,8 @@ class Shoppingcart extends Component
             $commissionUser = CommissionUser::where('status', 'Active')->where('is_deleted', '!=', 'Yes')->find($this->selectedCommissionUser);
             $partyUser = PartyUser::where('status', 'Active')->find($this->selectedPartyUser);
             if (!empty($partyUser)) {
-                $partyUser->credit_points -= $this->creditPay;
+                $partyUser->use_credit = (Int)$partyUser->use_credit + (Int)$this->creditPay;
+                $partyUser->left_credit = (Int)$partyUser->credit_points - (Int)$partyUser->use_credit;
                 $partyUser->save();
             }
 
@@ -2051,7 +2067,7 @@ class Shoppingcart extends Component
                      $arr_low_stock[$productId] = $productId;
                 }
                 
-                stockStatusChange($inventory->product->id, $branch_id, $totalQuantityNew, 'sold_stock');
+                stockStatusChange($inventory->product->id, $branch_id, $totalQuantity, 'sold_stock');
 
                 if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
                     // Deduct only from the first inventory if it has enough quantity
@@ -2352,6 +2368,7 @@ class Shoppingcart extends Component
                 'name' => $item->product->name,
                 'quantity' => $item->quantity,
                 'category' => $item->product->category->name,
+                'subcategory' => $item->product->subcategory->name,
                 'price' => $item->net_amount,
                 'mrp' => $item->mrp,
 
@@ -2496,6 +2513,7 @@ class Shoppingcart extends Component
                 'name' => $item->product->name,
                 'quantity' => $item->quantity,
                 'category' => $item->product->category->name,
+                'subcategory' => $item->product->subcategory->name,
                 'price' => $item->net_amount,
                 'mrp' => $item->mrp,
 
@@ -2608,6 +2626,7 @@ class Shoppingcart extends Component
                     'name' => $item->product->name,
                     'quantity' => $item->quantity,
                     'category' => $item->product->category->name,
+                    'subcategory' => $item->product->subcategory->name,
                     'price' => $item->net_amount,
                     'mrp' => $item->mrp,
 

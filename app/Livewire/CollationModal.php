@@ -200,7 +200,7 @@ class CollationModal extends Component
         //try {
             // Fetch latest user data
             $user = \App\Models\PartyUser::where('status', 'Active')->find($this->selectedUser->id);
-            if((Int)$user->credit_points<=(Int)$collectedAmount)
+            if((Int)$user->use_credit<(Int)$collectedAmount)
             {
                $this->dispatch('notiffication-error', ['message' => 'Collection amount can not more then available credit']);
                return;
@@ -208,25 +208,28 @@ class CollationModal extends Component
             }
             if ($this->paymentType === 'online') {
                 if($user->left_credit==0){
-                    $user->left_credit=$user->credit_points;
+                    $user->left_credit=$user->use_credit;
                 }
                 $collectedAmount=$this->onlineAmount;
+                $user->use_credit = max(0, $user->use_credit - $collectedAmount);
                 // Update left_credit (assuming it's reduced by amount collected)
-                $user->left_credit = max(0, $user->left_credit - $this->onlineAmount);
+                $user->left_credit = max(0, $user->left_credit + $this->onlineAmount);
             }else if ($this->paymentType === 'cash+upi') {
                 if($user->left_credit==0){
-                $user->left_credit=$user->credit_points;
+                $user->left_credit=$user->use_credit;
                 }
                 $collectedAmount+=$this->upiAmount;
                 // Update left_credit (assuming it's reduced by amount collected)
-                $user->left_credit = max(0, $user->left_credit - $collectedAmount);
+                $user->use_credit = max(0, $user->use_credit - $collectedAmount);
+                $user->left_credit = max(0, $user->left_credit + $collectedAmount);
             }else{
 
                 if($user->left_credit==0){
-                    $user->left_credit=$user->credit_points;
+                    $user->left_credit=$user->use_credit;
                 }
+                $user->use_credit = max(0, $user->use_credit - $collectedAmount);
                 // Update left_credit (assuming it's reduced by amount collected)
-                $user->left_credit = max(0, $user->left_credit - $collectedAmount);
+                $user->left_credit = max(0, $user->left_credit + $collectedAmount);
             }
             $user->save();
             $denominations = array_values($this->cashNotes);

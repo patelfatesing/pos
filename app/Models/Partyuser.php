@@ -20,7 +20,8 @@ class Partyuser extends Model
         'phone',
         'address',
         'credit_points',
-        'left_credit'
+        'left_credit',
+        'use_credit'
        
     ];
     /**

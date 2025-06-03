@@ -47,20 +47,36 @@ if (!function_exists('sendNotification')) {
     }
 }
 
+// if (!function_exists('getNotificationsByNotifyTo')) {
+//     function getNotificationsByNotifyTo($userId, $branch_id, $limit = 50)
+//     {
+//         if ($branch_id != "") {
+//             return Notification::where('notify_to', $branch_id)
+//                 ->orderBy('created_at', 'desc')
+//                 ->limit($limit)
+//                 ->get();
+//         } else {
+//             return Notification::where('notify_to', null)
+//                 ->orderBy('created_at', 'desc')
+//                 ->limit($limit)
+//                 ->get();
+//         }
+//     }
+// }
 if (!function_exists('getNotificationsByNotifyTo')) {
     function getNotificationsByNotifyTo($userId, $branch_id, $limit = 50)
     {
+        $query = Notification::where('created_at', '>=', now()->subDay());
+
         if ($branch_id != "") {
-            return Notification::where('notify_to', $branch_id)
-                ->orderBy('created_at', 'desc')
-                ->limit($limit)
-                ->get();
+            $query->where('notify_to', $branch_id);
         } else {
-            return Notification::where('notify_to', null)
-                ->orderBy('created_at', 'desc')
-                ->limit($limit)
-                ->get();
+            $query->whereNull('notify_to');
         }
+
+        return $query->orderBy('created_at', 'desc')
+                     ->limit($limit)
+                     ->get();
     }
 }
 
@@ -116,7 +132,7 @@ if (!function_exists('format_inr')) {
         $numericAmount = (float) $cleanAmount;
 
         $sign = $numericAmount < 0 ? '-' : '';
-        return $sign . '₹' . number_format(abs($numericAmount), 2);
+    return $sign . '₹' . number_format(abs($numericAmount), 0);
     }
 }
 

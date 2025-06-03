@@ -58,7 +58,7 @@ class NotificationController extends Controller
                 // ->havingRaw('total_stock <= products.reorder_level')
                 ->get();
 
-            return view('notification.product-form', compact('lowStockProducts','branch_name'));
+            return view('notification.product-form', compact('lowStockProducts', 'branch_name'));
         }
 
         if ($type === 'expire_product') {
@@ -97,19 +97,21 @@ class NotificationController extends Controller
                 $branch_name = $branch->name;
             }
             $stockRequest = StockRequest::with(['branch', 'user', 'items.product'])->findOrFail($id);
-            return view('notification.stock-request-form', compact('stockRequest','branch_name'));
+            return view('notification.stock-request-form', compact('stockRequest', 'branch_name'));
         }
 
         if ($type === 'approved_stock') {
             $data = json_decode($nf->details);
             $id  = $data->id;
-            $stockRequest = StockRequest::with(['branch','tobranch', 'user', 'items.product'])->findOrFail($id);
+            $stockRequest = StockRequest::with(['branch', 'tobranch', 'user', 'items.product'])->findOrFail($id);
             return view('notification.stock-approved-form', compact('stockRequest'));
         }
 
         if ($type === 'transfer_stock') {
             $data = json_decode($nf->details);
             $id  = $data->id;
+            $from_store = $data->from_store;
+            $to_store = $data->to_store;
             $stockTransfer =  DB::table('stock_transfers as i')
                 ->join('products as p', 'i.product_id', '=', 'p.id')
                 ->where('i.transfer_number', $id)
@@ -127,7 +129,7 @@ class NotificationController extends Controller
                 ->orderBy('i.created_at')
                 ->get();
 
-            return view('notification.stock-transfer-form', compact('stockTransfer'));
+            return view('notification.stock-transfer-form', compact('stockTransfer','from_store', 'to_store'));
         }
 
         return response()->json(['error' => 'Form not found'], 404);
@@ -186,7 +188,7 @@ class NotificationController extends Controller
 
         // Get total records count before applying filters
         $recordsTotal = Notification::whereNull('notify_to')->count();
-        
+
         // Get filtered records count
         $recordsFiltered = $query->count();
 

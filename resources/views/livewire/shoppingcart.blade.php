@@ -1177,7 +1177,7 @@
                                             <div class="d-flex align-items-center">
                                                 <span class="badge bg-primary fs-6 me-2">
                                                     {{ __('messages.available_credit') }}:
-                                                    {{ number_format($this->partyUserDetails->credit_points ?? 0, 2) }}
+                                                    {{ number_format($this->partyUserDetails->left_credit ?? 0, 2) }}
                                                 </span>
                                                 <input type="number" wire:model="creditPay"
                                                     wire:input="creditPayChanged" class="form-control"
@@ -1397,7 +1397,7 @@
                                             <div class="d-flex align-items-center">
                                                 <span class="badge bg-primary fs-6 me-2">
                                                     {{ __('messages.available_credit') }}:
-                                                    {{ number_format($this->partyUserDetails->credit_points, 2) }}
+                                                    {{ number_format($this->partyUserDetails->left_credit, 2) }}
                                                 </span>
                                                 <input type="number" wire:model="creditPay"
                                                     wire:input="creditPayChanged" class="form-control"
@@ -1511,7 +1511,9 @@
 <script>
     window.addEventListener('triggerPrint', event => {
         const el = document.getElementsByClassName('lastsavepic')[0];
-        el.classList.add('d-none');
+        if (el) {
+            el.classList.add('d-none');
+        }
         // Clear previous iframe if it exists
         const iframeContainer = document.getElementById('iframe-container');
         iframeContainer.innerHTML = '';
@@ -2590,7 +2592,7 @@
         if (data.notify_to == branch_id) {
             Swal.fire({
                 title: '📢 New Notification!',
-                text: `${data.message} (Notify By: ${data.customer})`,
+                text: `${data.message} (Notify By: Admin`,
                 icon: 'info',
                 confirmButtonText: 'Okay'
             }).then((result) => {

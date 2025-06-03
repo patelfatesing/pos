@@ -39,7 +39,7 @@
                             Resume
                         </button>
                         <button class="btn btn-primary btn-sm" wire:click="printInvoice('{{ $transaction->id }}')">
-                          <i class="fa fa-file-pdf"></i>
+                          <i class="fas fa-print"></i>
                           </button>
                         <button class="btn btn-danger btn-sm" onclick="confirmDelete({{ $transaction->id }})">
                             Delete

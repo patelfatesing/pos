@@ -11,27 +11,70 @@
 
     <!-- Notification Popup -->
     @if ($showPopup)
-        <div class="popup-notifications position-absolute top-100 end-0 p-3 card shadow-none m-0 shadow rounded"
-            style="z-index: 1050;">
-            <h5>Notifications</h5>
-            @foreach ($notifications as $notification)
-                @if ($notification['status'] == 'unread')
-                    <div class="notification-item py-2 bg-light rounded p-2 mb-1"
-                        wire:click="viewNotificationDetail({{ $notification['notify_to'] }}, '{{ $notification['type'] }}', '{{ $notification['req_id'] }}','{{ $notification['id'] }}')"
-                        style="cursor: pointer;">
-                        <p class="mb-1">{{ $notification['message'] }}</p>
-                        <small class="text-muted">{{ $notification['time'] }}</small>
+        <div class="dropdown-menu dropdown-menu-end p-0 show iq-sub-dropdown" style="width: 360px;"
+            aria-labelledby="dropdownMenuButton" id="notificationDropdown">
+            <div class="card shadow-sm border-0 m-0">
+                <div
+                    class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2 px-3">
+                    <h6 class="mb-0">Notifications    <span class="badge bg-light text-primary"
+                        id="all_notificationCount">{{ count($notifications) }}</span></h6>
+                    
+                         <!-- Close button -->
+                        <button type="button" class="btn  btn-primary" wire:click="closeNotificationPopup" aria-label="Close">
+                        &times;
+                        </button>
+
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="scrollable-container" style="max-height: 400px; overflow-y: auto;"
+                        id="notificationList">
+                        @if (count($notifications) === 0)
+                            <div class="text-center p-3">
+                                <p class="text-muted">No notifications available.</p>
+                            </div>
+                        @endif
+                        @foreach ($notifications as $notification)
+                            @php
+                                $typeIcon = match ($notification['type']) {
+                                    'request_stock' => 'fa-box',
+                                    'low_stock' => 'fas fa-bell',
+                                    'new_order' => 'fa-cart-shopping',
+                                    default => 'fa-bell',
+                                };
+                            @endphp
+
+                            <a href="#" id="{{ $notification['id'] }}"
+                                class="iq-sub-card open-form {{ $notification['status'] == 'unread' ? 'bg-light' : '' }}"
+                                data-type="{{ $notification['type'] }}" data-id="{{ $notification['req_id'] }}"
+                                data-nfid="{{ $notification['id'] }}">
+                                <div class="d-flex align-items-start p-3 border-bottom">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center"
+                                            style="width: 40px; height: 40px;">
+                                            <i class="fas {{ $typeIcon }}"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h6 class="text-dark">
+                                                {{ ucwords(str_replace('_', ' ', $notification['type'])) }}</h6>
+                                        </div>
+                                        <p class="small text-muted">{{ $notification['message'] }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small
+                                                class="text-secondary"><strong>{{ $notification['time'] }}</strong></small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        @endforeach
                     </div>
-                @else
-                    <div class="notification-item py-2"
-                        wire:click="viewNotificationDetail({{ $notification['notify_to'] }}, '{{ $notification['type'] }}', '{{ $notification['req_id'] }}','{{ $notification['id'] }}')"
-                        style="cursor: pointer;">
-                        <p class="mb-1">{{ $notification['message'] }}</p>
-                        <small class="text-muted">{{ $notification['time'] }}</small>
-                    </div>
-                @endif
-            @endforeach
+
+                </div>
+            </div>
         </div>
+
     @endif
 
     <!-- Modal for Notification Detail -->
@@ -63,6 +106,8 @@
                         @elseif ($notificationType === 'transfer_stock')
                             @include('livewire.notification.stock-transfer-form', [
                                 'stockTransfer' => $selectedNotificationData,
+                                'from_store' => $from_store,
+                                'to_store' => $to_store,
                             ])
                         @elseif ($notificationType === 'price_change')
                             @include('livewire.notification.price-change-form', [
