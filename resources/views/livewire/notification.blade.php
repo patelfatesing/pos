@@ -38,7 +38,7 @@
                             @php
                                 $typeIcon = match ($notification['type']) {
                                     'request_stock' => 'fa-box',
-                                    'low_stock' => 'fa-triangle-exclamation',
+                                    'low_stock' => 'fas fa-bell',
                                     'new_order' => 'fa-cart-shopping',
                                     default => 'fa-bell',
                                 };
