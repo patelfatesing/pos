@@ -59,8 +59,9 @@
                             <thead class="bg-white text-uppercase">
                                 <tr class="ligth ligth-data">
                                     <th>Trasaction #</th>
-                                    <th>Commission Amount</th>
-                                    <th>Party Dicount</th>
+                                    <th>Commission(Cust) Dicount</th>
+                                    <th>Party(Cust) Dicount</th>
+                                    <th>Credit</th>
                                     <th>Sub Total</th>
                                     <th>Total</th>
                                     <th>Item Count</th>
@@ -77,13 +78,14 @@
                                     <th style="text-align:right">Total:</th>
                                     <th id="commission_total"></th>
                                     <th id="party_total"></th>
+                                    <th id="credit_total"></th>
                                     <th id="sub_total_total"></th>
                                     <th id="grand_total"></th>
                                     <th id="item_count_total"></th>
                                     <th></th>
                                     <th></th>
                                     <th></th>
-                                    <th></th>  
+                                    <th></th>
                                 </tr>
                             </tfoot>
 
@@ -189,6 +191,11 @@
                         render: data => '₹' + parseFloat(data.replace(/,/g, '')).toFixed(2)
                     },
                     {
+                        data: 'creditpay',
+                        name: 'party_amcreditpayount',
+                        render: data => '₹' + parseFloat(data.replace(/,/g, '')).toFixed(2)
+                    },
+                    {
                         data: 'sub_total',
                         name: 'sub_total',
                         render: data => '₹' + parseFloat(data.replace(/,/g, '')).toFixed(2)
@@ -232,6 +239,7 @@
 
                     let commission = 0,
                         party = 0,
+                        credit = 0,
                         subtotal = 0,
                         total = 0,
                         items = 0;
@@ -239,6 +247,7 @@
                     data.forEach(row => {
                         commission += intVal(row.commission_amount);
                         party += intVal(row.party_amount);
+                        credit += intVal(row.credit);
                         subtotal += intVal(row.sub_total);
                         total += intVal(row.total);
                         items += intVal(row.items_count);
@@ -246,9 +255,10 @@
 
                     $(api.column(1).footer()).html('₹' + commission.toFixed(2));
                     $(api.column(2).footer()).html('₹' + party.toFixed(2));
-                    $(api.column(3).footer()).html('₹' + subtotal.toFixed(2));
-                    $(api.column(4).footer()).html('₹' + total.toFixed(2));
-                    $(api.column(5).footer()).html(items);
+                    $(api.column(3).footer()).html('₹' + credit.toFixed(2));
+                    $(api.column(4).footer()).html('₹' + subtotal.toFixed(2));
+                    $(api.column(5).footer()).html('₹' + total.toFixed(2));
+                    $(api.column(6).footer()).html(items);
                 }
             });
 

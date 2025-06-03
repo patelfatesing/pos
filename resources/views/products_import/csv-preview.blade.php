@@ -79,9 +79,11 @@
                                                 <div class="alert alert-info">
                                                     <h5 class="alert-heading">Field Mapping Instructions</h5>
                                                     <p class="mb-0">
-                                                        Please map each database field to the corresponding column in your
-                                                        CSV file.
-                                                        Fields marked with <span class="text-danger">*</span> are required.
+                                                        Carefully map each database field to the corresponding column in
+                                                        your uploaded file.
+                                                        Fields marked with a red asterisk <span class="text-danger">*</span> are mandatory and must be
+                                                        mapped to proceed.
+
                                                     </p>
                                                 </div>
                                             </div>
@@ -123,9 +125,11 @@
                                                         class="form-control form-select @error('mapping.' . $field) is-invalid @enderror">
                                                         <option value="">-- Select Column --</option>
                                                         @foreach ($headers as $i => $header)
-                                                            <option value="{{ $i }}" 
-                                                                {{ ($errors->any() && old('mapping.' . $field) == $i) || 
-                                                                   (!$errors->any() && strtolower(str_replace('_', ' ', $field)) === strtolower(str_replace('_', ' ', $header))) ? 'selected' : '' }}>
+                                                            <option value="{{ $i }}"
+                                                                {{ ($errors->any() && old('mapping.' . $field) == $i) ||
+                                                                (!$errors->any() && strtolower(str_replace('_', ' ', $field)) === strtolower(str_replace('_', ' ', $header)))
+                                                                    ? 'selected'
+                                                                    : '' }}>
                                                                 {{ $header }}
                                                             </option>
                                                         @endforeach

@@ -218,12 +218,17 @@ class StockTransferController extends Controller
                 foreach ($inventories as $inventory) {
                     if ($remainingQty <= 0) break;
 
+                    $low_qty_level = Inventory::lowLevelQty($item['product_id'], $request->from_store_id);
+
+                    $total_qty = Inventory::countQty($item['product_id'], $request->from_store_id);
+                    
                     $deductQty = min($inventory->quantity, $remainingQty);
 
                     // Deduct from source store
                     $inventory->quantity -= $deductQty;
                     $inventory->save();
 
+                    $total_qty = $total_qty - $deductQty;
                     // Add to destination store
                     $criteria = [
                         'store_id'    => $request->to_store_id,
@@ -251,10 +256,6 @@ class StockTransferController extends Controller
                         ]);
                     }
 
-                    $low_qty_level = Inventory::lowLevelQty($item['product_id'], $request->from_store_id);
-
-                    $total_qty = Inventory::countQty($item['product_id'], $request->from_store_id);
-                    $total_qty = $total_qty - $deductQty;
 
                     if ($total_qty < $low_qty_level) {
                         // $arr['id'] = $item['product_id'];

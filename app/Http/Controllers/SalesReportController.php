@@ -37,6 +37,7 @@ class SalesReportController extends Controller
             ->select(
                 'invoices.id',
                 'invoices.invoice_number',
+                'invoices.party_amount',
                 'invoices.status',
                 'invoices.sub_total',
                 'invoices.tax',
@@ -110,7 +111,8 @@ class SalesReportController extends Controller
                 'sub_total' => number_format($invoice->sub_total, 2),
                 'total' => number_format($invoice->total, 2),
                 'commission_amount' => number_format($invoice->commission_amount, 2),
-                'party_amount' => number_format($invoice->creditpay, 2),
+                'creditpay' => number_format($invoice->creditpay, 2),
+                'party_amount' => number_format($invoice->party_amount, 2),
                 'items_count' => $itemCount,
                 'branch_name' => $invoice->branch_name,
                 'created_at' => Carbon::parse($invoice->created_at)->format('Y-m-d H:i:s'),
@@ -124,7 +126,7 @@ class SalesReportController extends Controller
             'data' => $data,
         ]);
     }
-    
+
     public function show($id, Request $request)
     {
         $commission_user_id = $request->input('commission_user_id', null);
