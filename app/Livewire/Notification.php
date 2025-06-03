@@ -20,6 +20,8 @@ class Notification extends Component
     public $notificationType = null;
     public $selectedNotificationDataId = null;
     public $branch_name = null;
+    public $to_store = null;
+    public $from_store = null; // Assuming this is set somewhere in your code
     public $branch_id = null;
 
     protected $listeners = ['closePopupExternally' => 'closeNotification'];
@@ -47,7 +49,7 @@ class Notification extends Component
                 $data = json_decode($nf->details);
                 $ids = explode(',', $data->product_id);
                 $this->branch_id = $nf->notify_to;
-                
+
                 if (!empty($data->store_id)) {
                     $branch = Branch::where('id', $data->store_id)->first();
                     $this->branch_name = $branch->name;
@@ -93,8 +95,8 @@ class Notification extends Component
                 $this->selectedNotificationData = DB::table('product_price_change_history as ppl')
                     ->join('products as p', 'ppl.product_id', '=', 'p.id')
                     ->orderBy('ppl.changed_at', 'desc')
-                    ->select('p.name', 'ppl.old_price', 'ppl.new_price', 'ppl.changed_at','ppl.created_at')
-                    ->where('ppl.id',$id)
+                    ->select('p.name', 'ppl.old_price', 'ppl.new_price', 'ppl.changed_at', 'ppl.created_at')
+                    ->where('ppl.id', $id)
                     ->take(10)
                     ->first();
                 break;
@@ -120,6 +122,11 @@ class Notification extends Component
                     ->get();
                 break;
             case 'transfer_stock':
+
+                $data = json_decode($nf->details);
+                $ids = explode(',', $data->product_id);
+                $this->from_store = $data->from_store;
+                $this->to_store = $data->to_store;
                 $this->selectedNotificationData = DB::table('stock_transfers as i')
                     ->join('products as p', 'i.product_id', '=', 'p.id')
                     ->where('i.transfer_number', $red_id)
@@ -190,7 +197,7 @@ class Notification extends Component
 
         $this->notifications = $notiAry;
         $this->readNotificationsCount = $count;
-        
+
         return view('livewire.notification');
     }
 }

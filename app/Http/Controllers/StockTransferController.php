@@ -221,7 +221,7 @@ class StockTransferController extends Controller
                     $low_qty_level = Inventory::lowLevelQty($item['product_id'], $request->from_store_id);
 
                     $total_qty = Inventory::countQty($item['product_id'], $request->from_store_id);
-                    
+
                     $deductQty = min($inventory->quantity, $remainingQty);
 
                     // Deduct from source store
@@ -307,7 +307,15 @@ class StockTransferController extends Controller
 
             // Send notification and commit
             $data['id'] = $transferNumber;
-            sendNotification('transfer_stock', 'Stock transfer completed successfully', $request->to_store_id, Auth::id(), json_encode($data), 0);
+            $data['from_store'] = Branch::find($request->from_store_id)->name;
+            $data['to_store'] = Branch::find($request->to_store_id)->name;
+            
+            if ($request->to_store_id != 1) {
+                sendNotification('transfer_stock', 'Stock transfer completed successfully', 1, Auth::id(), json_encode($data), 0);
+                sendNotification('transfer_stock', 'Stock transfer completed successfully', $request->to_store_id, Auth::id(), json_encode($data), 0);
+            } else {
+                sendNotification('transfer_stock', 'Stock transfer completed successfully', 1, Auth::id(), json_encode($data), 0);
+            }
 
             DB::commit();
 

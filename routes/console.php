@@ -8,4 +8,4 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('alert:expiry')->dailyAt('18:00'); // Runs daily at 6 PM
+Schedule::command('alert:expiry')->dailyAt('00:50'); // Runs daily at 6 PM
