@@ -155,7 +155,6 @@ class Shoppingcart extends Component
     public function printLastInvoice()
     {
         $invoice = \App\Models\Invoice::latest('id')->first();
-        $sunTot = (int) $invoice->total + (int)$invoice->party_amount;
 
         if (!$invoice) {
             // Handle case where no invoice exists
