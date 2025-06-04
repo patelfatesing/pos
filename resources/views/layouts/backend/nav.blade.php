@@ -66,8 +66,8 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                         @endphp
 
                         <li class="nav-item nav-icon dropdown">
-                            <a href="#" class="dropdown-toggle btn border add-btn"
-                                id="dropdownMenuButton31" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <a href="#" class="dropdown-toggle btn border add-btn" id="dropdownMenuButton31"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <img src="{{ asset('assets/images/small/store.png') }}" alt="store-icon"
                                     class="img-fluid image-flag mr-2" />
                                 {{ $data['store'] ?? 'Select Store' }}
@@ -77,12 +77,11 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                 <div class="card shadow-none m-0">
                                     <div class="card-body p-3">
                                         <a class="iq-sub-card d-flex align-items-center "
-                                                href="{{ route('dashboard') }}">
-                                                <img src="{{ asset('assets/images/small/store.png') }}"
-                                                    alt="store-icon" class="img-fluid mr-2"
-                                                    style="width: 20px; height: 15px;" />
-                                                Select Store
-                                            </a>
+                                            href="{{ route('dashboard') }}">
+                                            <img src="{{ asset('assets/images/small/store.png') }}" alt="store-icon"
+                                                class="img-fluid mr-2" style="width: 20px; height: 15px;" />
+                                            Select Store
+                                        </a>
                                         @foreach ($branch as $id => $name)
                                             <a class="iq-sub-card d-flex align-items-center {{ $currentStoreId == $id ? 'bg-primary text-white rounded' : '' }}"
                                                 href="{{ route('dashboard.store', ['store' => $id]) }}">
@@ -244,7 +243,8 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                         </div>
                                         <div class="px-3 pt-0 pb-0 sub-card scrollable-container"
                                             id="notificationList"></div>
-                                        <div id="showAllWrapper" class="text-center mt-2 mb-2" style="display: none;">
+                                        <div id="showAllWrapper" class="text-center mt-2 mb-2"
+                                            style="display: none;">
                                             <a href="{{ route('notifications.index') }}"
                                                 class="btn btn-sm btn-primary">Show All</a>
                                         </div>
@@ -428,6 +428,8 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                         } catch (e) {
                             console.error('Error parsing details:', e);
                         }
+                    } else {
+                        id = item.id;
                     }
 
                     const isRead = item.status === 'read' ? 'msg_read' : 'msg_unread';

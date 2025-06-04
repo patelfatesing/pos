@@ -75,7 +75,7 @@
             <td>Shop No. 1 MAHARANA PRATAP CHOUK, RANIWARA (RANIWARA KALLAN/KHURD, JALERA KHURD, MEDA)</td>
         </tr>
         <tr>
-            <th>Demand Quantity</th>
+            <th>Total Demand products</th>
             <td >
                 {{ count($data['products']) }} 
             </td>

@@ -62,9 +62,20 @@ class NotificationController extends Controller
         }
 
         if ($type === 'expire_product') {
+
+            $data = User::with('userInfo')
+                ->where('users.id', Auth::id())
+                ->where('is_deleted', 'no')
+                ->firstOrFail();
+            $branch_id = $data->userInfo->branch_id;
+
             $expiredProducts = DB::table('inventories as i')
                 ->join('products as p', 'i.product_id', '=', 'p.id')
-                ->where('i.expiry_date', '<', Carbon::today())  // Get expired products
+                ->whereBetween('i.expiry_date', [
+                    Carbon::today(),                   // from today
+                    Carbon::today()->addDays(5)        // to 5 days ahead
+                ])
+                ->where('i.store_id', $branch_id)
                 ->select(
                     'i.id as inventory_id',
                     'i.product_id',
@@ -78,8 +89,8 @@ class NotificationController extends Controller
                     'i.store_id',
                     'i.location_id'
                 )
-                ->orderBy('i.expiry_date', 'asc')  // Order by expiry date
-                ->orderBy('i.batch_no')           // Order by batch number
+                ->orderBy('i.expiry_date', 'asc')
+                ->orderBy('i.batch_no')
                 ->get();
             // dd($expiredProducts);
             return view('notification.expire-product-form', compact('expiredProducts'));
@@ -129,7 +140,7 @@ class NotificationController extends Controller
                 ->orderBy('i.created_at')
                 ->get();
 
-            return view('notification.stock-transfer-form', compact('stockTransfer','from_store', 'to_store'));
+            return view('notification.stock-transfer-form', compact('stockTransfer', 'from_store', 'to_store'));
         }
 
         return response()->json(['error' => 'Form not found'], 404);
