@@ -63,19 +63,25 @@ class NotificationController extends Controller
 
         if ($type === 'expire_product') {
 
-            $data = User::with('userInfo')
-                ->where('users.id', Auth::id())
-                ->where('is_deleted', 'no')
-                ->firstOrFail();
-            $branch_id = $data->userInfo->branch_id;
 
-            $expiredProducts = DB::table('inventories as i')
+            $query = DB::table('inventories as i')
                 ->join('products as p', 'i.product_id', '=', 'p.id')
                 ->whereBetween('i.expiry_date', [
-                    Carbon::today(),                   // from today
-                    Carbon::today()->addDays(5)        // to 5 days ahead
-                ])
-                ->where('i.store_id', $branch_id)
+                    Carbon::today(),
+                    Carbon::today()->addDays(5)
+                ]);
+
+            if (Auth::user()->role['name'] !== "admin") {
+
+                $data = User::with('userInfo')
+                    ->where('users.id', Auth::id())
+                    ->where('is_deleted', 'no')
+                    ->firstOrFail();
+                $branch_id = $data->userInfo->branch_id;
+                $query->where('i.store_id', $branch_id);
+            }
+
+            $expiredProducts = $query
                 ->select(
                     'i.id as inventory_id',
                     'i.product_id',
@@ -92,6 +98,7 @@ class NotificationController extends Controller
                 ->orderBy('i.expiry_date', 'asc')
                 ->orderBy('i.batch_no')
                 ->get();
+
             // dd($expiredProducts);
             return view('notification.expire-product-form', compact('expiredProducts'));
         }
