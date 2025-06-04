@@ -21,6 +21,33 @@
         </div>
 
         <div class="row">
+            <div class="col-md-3">
+                <div class="mb-3">
+                  <div class="input-group">
+                    <input type="number" wire:model.live="search" wire:keydown.enter="addToCartBarCode"
+                        class="form-control" placeholder="{{ __('messages.scan_barcode') }}" autofocus>
+
+                    <button type="button" wire:click="$set('search', '')" class="btn btn-outline-primary">
+                        Clear
+                    </button>
+                </div>
+
+                   
+                    {{-- @if ($selectedProduct)
+                        <div class="search-results">
+
+                            <div class="list-group-item list-group-item-action">
+                                <strong>{{ $selectedProduct->name }}</strong>
+                                <small>Barcode: {{ $selectedProduct->barcode }}</small>
+                                <small>Price: {{ $selectedProduct->sell_price }}</small>
+                                <small>Stock: {{ $selectedProduct->quantity }}</small>
+                            </div>
+                        </div>
+                    @endif --}}
+
+                </div>
+
+            </div>
             <div class="col-md-2">
                 <div class="mb-3">
                     <form wire:submit.prevent="searchTerm" class="mb-3">
@@ -64,33 +91,6 @@
                 </div>
             </div>
 
-            <div class="col-md-3">
-                <div class="mb-3">
-                  <div class="input-group">
-                    <input type="number" wire:model.live="search" wire:keydown.enter="addToCartBarCode"
-                        class="form-control" placeholder="{{ __('messages.scan_barcode') }}" autofocus>
-
-                    <button type="button" wire:click="$set('search', '')" class="btn btn-outline-primary">
-                        Clear
-                    </button>
-                </div>
-
-                   
-                    {{-- @if ($selectedProduct)
-                        <div class="search-results">
-
-                            <div class="list-group-item list-group-item-action">
-                                <strong>{{ $selectedProduct->name }}</strong>
-                                <small>Barcode: {{ $selectedProduct->barcode }}</small>
-                                <small>Price: {{ $selectedProduct->sell_price }}</small>
-                                <small>Stock: {{ $selectedProduct->quantity }}</small>
-                            </div>
-                        </div>
-                    @endif --}}
-
-                </div>
-
-            </div>
             <div class="col-md-3">
                 @if (auth()->user()->hasRole('cashier'))
 
