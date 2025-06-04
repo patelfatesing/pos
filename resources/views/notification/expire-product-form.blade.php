@@ -2,7 +2,7 @@
     @csrf
     <div class="modal-header">
         <h5 class="modal-title" id="approveModalLabel">Expired Products</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+         <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
@@ -17,11 +17,9 @@
                         <thead>
                             <tr>
                                 <th>Product Name</th>
-                                <th>Brand</th>
                                 <th>Batch No</th>
                                 <th>Expiry Date</th>
                                 <th>Quantity</th>
-                                <th>SKU</th>
                                 <th>Barcode</th>
                             </tr>
                         </thead>
@@ -29,13 +27,11 @@
                             @foreach ($expiredProducts as $inventory)
                                 <tr>
                                     <td>{{ $inventory->product_name }}</td>
-                                    <td>{{ $inventory->brand }}</td>
                                     <td>{{ $inventory->batch_no }}</td>
                                     <td>
                                         {{ \Carbon\Carbon::parse($inventory->expiry_date)->format('Y-m-d') }}
                                     </td>
                                     <td>{{ $inventory->quantity }}</td>
-                                    <td>{{ $inventory->sku }}</td>
                                     <td>{{ $inventory->barcode }}</td>
                                 </tr>
                             @endforeach
