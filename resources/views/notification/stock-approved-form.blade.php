@@ -1,33 +1,55 @@
 <form id="priceUpdateForm">
     @csrf
     <div class="modal-header">
-        <h5 class="modal-title" id="approveModalLabel">Stock Request Detail</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <h5 class="modal-title" id="approveModalLabel">Stock Request Approved Detail</h5>
+        <button type="button" class="close" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
 
     <div class="modal-body">
         <div class="container mt-1">
-            <h4 class="mb-4">Stock Request #{{ $stockRequest->id }}</h4>
-
             <div class="card mb-4">
                 <div class="card-body">
-                    <p><strong>Store:</strong> {{ $stockRequest->store->name ?? 'warehouse' }}</p>
-                    <p><strong>Requested By:</strong> {{ $stockRequest->user->name ?? 'N/A' }}</p>
-                    <p><strong>Date:</strong> {{ $stockRequest->requested_at->format('d M Y h:i A') }}</p>
-                    <p><strong>Status:</strong>
-                        <span
-                            class="badge 
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <strong>Store:</strong> {{ $stockRequest->store->name ?? 'warehouse' }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <strong>Requested By:</strong> {{ $stockRequest->user->name ?? 'N/A' }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <strong>Date:</strong> {{ $stockRequest->requested_at->format('d M Y h:i A') }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Status: </label>
+                                <span
+                                    class="badge 
                                     {{ $stockRequest->status === 'pending'
                                         ? 'bg-warning'
                                         : ($stockRequest->status === 'approved'
                                             ? 'bg-success'
                                             : 'bg-danger') }}">
-                            {{ ucfirst($stockRequest->status) }}
-                        </span>
-                    </p>
-                    <p><strong>Notes:</strong> {{ $stockRequest->notes ?? '-' }}</p>
+                                    {{ ucfirst($stockRequest->status) }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Notes: </label>
+                                <span class="ml-2"> {{ $stockRequest->notes ?? '-' }}</span>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -45,7 +67,14 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @php
+                                $totalQty = 0;
+                            @endphp
+
                             @foreach ($stockRequest->items as $index => $item)
+                                @php
+                                    $totalQty += $item->quantity;
+                                @endphp
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $item->product->name }}</td>
@@ -54,11 +83,17 @@
                                     <td>{{ $item->quantity }}</td>
                                 </tr>
                             @endforeach
-                            @if ($stockRequest->items->isEmpty())
+                          @if ($stockRequest->items->isEmpty())
                                 <tr>
                                     <td colspan="6" class="text-center">No items found.</td>
                                 </tr>
+                            @else
+                                <tr>
+                                    <td colspan="4" class="text-right font-weight-bold">Total Quantity:</td>
+                                    <td class="font-weight-bold">{{ $totalQty }}</td>
+                                </tr>
                             @endif
+
                         </tbody>
                     </table>
                 </div>
@@ -68,7 +103,7 @@
     </div>
 
     <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-dismiss="modal">Close</button>
         <button type="submit" class="btn btn-primary">Approve</button>
     </div>
 </form>
