@@ -39,7 +39,7 @@
                                             <li class="nav-item">
                                                 <a class="nav-link" id="pills-profile-tab-fill" data-toggle="pill"
                                                     href="#pills-profile-fill" role="tab" aria-controls="pills-profile"
-                                                    aria-selected="false"><span class="text-dark">Credit/Trasaction
+                                                    aria-selected="false"><span class="text-dark">Credit/Transaction
                                                         History</span></a>
                                             </li>
 
@@ -155,10 +155,10 @@
                                                         <thead class="bg-white text-uppercase">
 
                                                             <tr class="ligth ligth-data">
-                                                                <th>Trasaction Number</th>
-                                                                <th>Trasaction Date</th>
+                                                                <th>Transaction Number</th>
+                                                                <th>Transaction Date</th>
                                                                 <th>Credit Amount</th>
-                                                                <th>Trasaction Total</th>
+                                                                <th>Transaction Total</th>
                                                                 <th>Photos</th>
                                                                 <th>Status</th>
                                                             </tr>

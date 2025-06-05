@@ -127,7 +127,12 @@
         .popup-notifications {
             z-index: 999;
         }
+        .close-modal-xl{
+            max-height: 100% !important;
+            max-width: 100% !important;
+            margin: 0% !important;
 
+        }
         .btn.rounded-circle {
             width: 40px;
             height: 40px;

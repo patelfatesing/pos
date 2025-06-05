@@ -1619,7 +1619,7 @@
 
     function yourJsFunction(userId) {
 
-        console.log("JS function called with user ID:", userId);
+        //console.log("JS function called with user ID:", userId);
         // Your custom logic here
     }
 
@@ -1776,8 +1776,8 @@
 
         document.getElementById('totalNoteCash').textContent = ` ${total.toLocaleString()}`;
 
-        console.log("Cash Amount: ", actualTotal);
-        console.log("Actual Total: ", parseFloat(cashAmount) + parseFloat(onlineAmount));
+        //console.log("Cash Amount: ", actualTotal);
+        //console.log("Actual Total: ", parseFloat(cashAmount) + parseFloat(onlineAmount));
 
         if (actualTotal == parseFloat(cashAmount) + parseFloat(onlineAmount)) {
             document.getElementById('paymentSubmit').style.display = 'block';
@@ -1883,10 +1883,10 @@
 
         if (source === 'cash') {
             remaining = Math.max(totalAmount - cash, 0);
-            console.log("Cash Amount: ", cash);
+            //console.log("Cash Amount: ", cash);
             $("#onlineAmount").val(remaining);
         } else if (source === 'online') {
-            console.log("Online Amount: ", online);
+            //console.log("Online Amount: ", online);
 
             remaining = Math.max(totalAmount - online, 0);
             $("#cashAmount").val(remaining);
@@ -1911,7 +1911,7 @@
                     document.getElementById('video1').srcObject = stream;
                 })
                 .catch(function(err) {
-                    console.error("Camera access denied:", err);
+                    //console.error("Camera access denied:", err);
                     Swal.fire({
                         icon: 'error',
                         title: 'Camera Access Denied',
@@ -2032,25 +2032,24 @@
     // });
 </script>
 <script>
-    const encoded = "{{ $this->availableNotes }}";
-    // Decode HTML entities
-    let decoded = new DOMParser().parseFromString(encoded, "text/html").documentElement.textContent;
+   
 
-    // Now parse JSON
-    let availableNotes = JSON.parse(decoded);
-
-    function updateNote(id, delta, denomination) {
+function updateNote(id, delta, denomination) {
+    fetch('/get-available-notes', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(availableNotes => {
         const input = document.getElementById('withcashnotes_' + id);
         let current = parseInt(input.value || 0);
 
-        // Always treat denomination key as string
         const key = denomination.toString();
         const maxNotes = availableNotes[key];
 
-        // If delta > 0 (trying to add note) and either:
-        // 1. Note is not listed (undefined), or
-        // 2. Max notes is 0 or less, or
-        // 3. Already reached the limit
         if (delta > 0 && (!maxNotes || current >= maxNotes)) {
             Swal.fire({
                 title: 'Note Limit Reached',
@@ -2069,7 +2068,17 @@
         document.getElementById('withcashsum_' + id).innerText = '' + (current * denomination);
 
         calculateTotal();
-    }
+    })
+    .catch(error => {
+        //console.error('Error fetching available notes:', error);
+        Swal.fire({
+            title: 'Error',
+            text: 'Could not fetch available notes. Please try again.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+    });
+}
 
     function calculateTotal() {
         let total = 0;
@@ -2197,7 +2206,7 @@
     });
     window.addEventListener('product-added', () => {
         // optional: play sound or flash success
-        console.log('Product added to cart!');
+        //console.log('Product added to cart!');
     });
 </script>
 <script>
@@ -2516,8 +2525,8 @@
         const suggestionBox = document.getElementById('search-suggestion-wrapper');
         const searchInput = document.getElementById('searchInput');
 
-        console.log(searchContainer);
-        console.log(suggestionBox);
+        //console.log(searchContainer);
+        //console.log(suggestionBox);
         if (suggestionBox) {
             suggestionBox.style.display = 'none';
             if (searchInput) {
@@ -2598,7 +2607,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     // This code runs when "Okay" is clicked
-                    console.log('User clicked Okay');
+                    //console.log('User clicked Okay');
 
                     // $.ajax({
                     //     url: '/popup/form/' + data.type + "?id=" + data.value + "&nfid=" + data
@@ -2675,7 +2684,7 @@
                         type: "GET",
                         dataType: "json",
                         success: function(data) {
-                            console.log(data);
+                            //console.log(data);
 
                             let html = `<div class="row">`;
                             html += `
@@ -2769,10 +2778,10 @@ $(document).ready(function () {
             error: function (xhr) {
                 if (xhr.status === 422) {
                     let errors = xhr.responseJSON.errors;
-                    console.log(errors);
+                    //console.log(errors);
                     // Loop through the errors
                     Object.keys(errors).forEach(function (key) {
-                        console.log(key);
+                        //console.log(key);
                         let nameAttr = key.replace(/\.(\d+)\./g, '[$1][').replace(/\./g, ']') + ']';
                         let selector = `[name="${nameAttr}"]`;
 

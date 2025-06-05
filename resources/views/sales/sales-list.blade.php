@@ -31,7 +31,7 @@
                     <div class="col-lg-12">
                         <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                             <div>
-                                <h4 class="mb-3">Trasaction List</h4>
+                                <h4 class="mb-3">Transaction List</h4>
                             </div>
                         </div>
                     </div>
@@ -58,16 +58,17 @@
                         <table class="table data-tables table-striped" id="invoice_table">
                             <thead class="bg-white text-uppercase">
                                 <tr class="ligth ligth-data">
-                                    <th>Trasaction #</th>
-                                    <th>Commission(Cust) Dicount</th>
-                                    <th>Party(Cust) Dicount</th>
+                                    <th>Sr. No.</th>
+                                    <th>Invoice No</th>
+                                    <th>Commission Dicount</th>
+                                    <th>Party Dicount</th>
                                     <th>Credit</th>
                                     <th>Sub Total</th>
                                     <th>Total</th>
-                                    <th>Item Count</th>
+                                    <th>Sales Qty</th>
                                     <th>Store</th>
-                                    <th>Status</th>
-                                    <th>Photo</th>
+                                    <th>Payment Status</th>
+                                    <th>Payment Mode</th>
                                     <th>Date</th>
                                 </tr>
                             </thead>
@@ -75,6 +76,7 @@
                             </tbody>
                             <tfoot>
                                 <tr>
+                                    <th></th>
                                     <th style="text-align:right">Total:</th>
                                     <th id="commission_total"></th>
                                     <th id="party_total"></th>
@@ -85,18 +87,17 @@
                                     <th></th>
                                     <th></th>
                                     <th></th>
-                                    <th></th>
                                 </tr>
                             </tfoot>
 
                         </table>
-                        </ </div>
                     </div>
-                    <!-- Page end  -->
                 </div>
+                <!-- Page end  -->
             </div>
-            <!-- Wrapper End-->
         </div>
+        <!-- Wrapper End-->
+    </div>
     </div>
     <div class="modal fade bd-example-modal-lg" id="salesCustPhotoShowModal" tabindex="-1" role="dialog"
         aria-labelledby="salesCustPhotoShowModalLabel" aria-hidden="true">
@@ -177,6 +178,10 @@
                     }
                 },
                 columns: [{
+                        data: null,
+                        render: (data, type, row, meta) => meta.row + 1,
+                        className: 'text-center'
+                    }, {
                         data: 'invoice_number',
                         name: 'invoice_number'
                     },
@@ -218,8 +223,8 @@
                         name: 'status'
                     },
                     {
-                        data: 'photo',
-                        name: 'photo',
+                        data: 'payment_mode',
+                        name: 'payment_mode',
                         orderable: false,
                         searchable: false
                     },
@@ -253,12 +258,13 @@
                         items += intVal(row.items_count);
                     });
 
-                    $(api.column(1).footer()).html('₹' + commission.toFixed(2));
-                    $(api.column(2).footer()).html('₹' + party.toFixed(2));
-                    $(api.column(3).footer()).html('₹' + credit.toFixed(2));
-                    $(api.column(4).footer()).html('₹' + subtotal.toFixed(2));
-                    $(api.column(5).footer()).html('₹' + total.toFixed(2));
-                    $(api.column(6).footer()).html(items);
+                    $(api.column(2).footer()).html('₹' + commission.toFixed(2)); // Commission (2)
+                    $(api.column(3).footer()).html('₹' + party.toFixed(2)); // Party (3)
+                    $(api.column(4).footer()).html('₹' + credit.toFixed(2)); // Credit (4)
+                    $(api.column(5).footer()).html('₹' + subtotal.toFixed(2)); // Sub Total (5)
+                    $(api.column(6).footer()).html('₹' + total.toFixed(2)); // Total (6)
+                    $(api.column(7).footer()).html(items); // Sales Qty (7)
+
                 }
             });
 
