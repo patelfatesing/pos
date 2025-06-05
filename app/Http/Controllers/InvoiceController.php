@@ -53,7 +53,7 @@ class InvoiceController extends Controller
     public function viewInvoice(Invoice $invoice)
     {
         $commissionUser = Commissionuser::where('status', 'Active')->find($invoice->commission_user_id);
-        // dd($invoice);
+        
         $partyUser = Partyuser::where('id', $invoice->party_user_id)
                       ->where('status', 'Active')
                       ->first();

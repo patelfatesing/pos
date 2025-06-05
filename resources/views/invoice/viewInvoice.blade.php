@@ -21,7 +21,7 @@
                     <div class="col-lg-12">
                         <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                             <div>
-                                <h4 class="mb-3">Trasaction Invoice List</h4>
+                                <h4 class="mb-3">Transaction Invoice Details</h4>
                             </div>
                             <div>
                                 <a href="{{ route('sales.sales.list') }}" class="btn btn-secondary">Back</a>
@@ -58,20 +58,23 @@
                                             <table class="table">
                                                 <thead>
                                                     <tr>
-                                                        <th scope="col">Trasaction Date</th>
-                                                        <th scope="col">Trasaction Status</th>
-                                                        <th scope="col">Trasaction ID</th>
+                                                        <th scope="col">Transaction Date</th>
+                                                        <th scope="col">Transaction Status</th>
+                                                        <th scope="col">Transaction No</th>
+                                                        
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <tr>
-                                                        <td>{{ $invoice->created_at->format('d M Y') }}</td>
+                                                        <td>{{ $invoice->created_at->format('Y-m-d H:i:s') }}</td>
                                                         <td>
                                                             <span
                                                                 class="badge badge-{{ $invoice->status == 'Paid' ? 'success' : 'danger' }}">
                                                                 {{ $invoice->status }}
                                                             </span>
                                                         </td>
+                                                        <td>{{ $invoice->invoice_number }}</td>
+                                                
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -80,7 +83,7 @@
                                 </div>
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <h5 class="mb-3">Trasaction Summary</h5>
+                                        <h5 class="mb-3">Transaction Summary</h5>
                                         <div class="table-responsive-sm">
                                             <table class="table">
                                                 <thead>
@@ -117,7 +120,7 @@
                                     <div class="offset-lg-8 col-lg-4">
                                         <div class="or-detail rounded">
                                             <div class="p-3">
-                                                <h5 class="mb-3">Trasaction Details</h5>
+                                                <h5 class="mb-3">Transaction Details</h5>
                                                 <div class="mb-2">
                                                     <h6>Sub Total</h6>
                                                     <p>₹{{ number_format($invoice->sub_total, 2) }}</p>
