@@ -4,7 +4,10 @@
     </button>
     @if ($showModal)
         <div class="modal fade show d-block" tabindex="-1">
-            <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div @class([
+    'modal-dialog modal-dialog-scrollable modal-xl ',
+    'modal-dialog modal-dialog-scrollable  close-modal-xl' => $this->showYesterDayShiftTime == true
+]) >
                 <div class="modal-content shadow-sm rounded-4 border-0">
 
                     {{-- Modal Header --}}
@@ -14,11 +17,12 @@
                                 <i class="bi bi-cash-coin me-2"></i> Shift Close Summary - {{ $branch_name ?? 'Shop' }}
                             </h5>
                         </div>
-
+                        @if($this->showYesterDayShiftTime==false)
 
                         <button type="button" class="close" wire:click="$set('showModal', false)">
                             <span aria-hidden="true">×</span>
                         </button>
+                        @endif
                     </div>
 
                     {{-- Modal Body --}}
@@ -41,11 +45,11 @@
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h4 class="mb-0">Sales Details</h4>
 
-                                            <button wire:click="openClosingStocksModal" class="btn btn-secondary btn-sm"
+                                            <button type="button"  wire:click="openClosingStocksModal" class="btn btn-secondary btn-sm"
                                                 title="View Stock Status">
                                                 View Stock Status
                                             </button>
-                                            <button wire:click="addphysicalStock" class="btn btn-secondary btn-sm"
+                                            <button type="button"  wire:click="addphysicalStock" class="btn btn-secondary btn-sm"
                                                 title="View Stock Status">
                                                 Add Physical Stock
                                             </button>
@@ -337,7 +341,7 @@
                                                     </td>
                                                     <td class="border px-4 py-2">
                                                         <input type="number" min="1" wire:model="products.{{ $product['product_id'] }}.qty"
-                                                            class="form-control">
+                                                            class="form-control" >
                                                         @error("products.{$product['product_id']}.qty")
                                                             <span class="text-danger small">{{ $message }}</span>
                                                         @enderror

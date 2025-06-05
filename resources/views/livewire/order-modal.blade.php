@@ -58,7 +58,7 @@
                                                         {{ optional($order->commissionUser)->first_name }} {{ optional($order->commissionUser)->last_name }}
                                                     @endif
                                                 </td>
-                                                <td>{{$order->payment_mode}}</td>
+                                                <td>{{($order->payment_mode=="online")?"UPI":$order->payment_mode}}</td>
                                                 <td>{{ $order->total_item_qty }}</td>
                                                  <td>{{ format_inr($order->total) }}</td>
                                                     <td class="text-center">

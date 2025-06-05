@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Branch;
 use Illuminate\Http\Request;
+use App\Models\CashBreakdown;
 
 class BranchController extends Controller
 {
@@ -18,6 +19,46 @@ class BranchController extends Controller
 
         $data = Branch::where('is_deleted', 'no')->get();
         return view('branch.index', compact('data'));
+    }
+    public function getAvailableNotes()
+    {
+
+            $start_date =date('Y-m-d'); // your start date (set manually)
+            $end_date = date('Y-m-d') . ' 23:59:59'; // today's date till end of day
+            $noteCount = [];
+            $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
+            // Decode cash JSON to array
+            $cashBreakdowns = CashBreakdown::select("denominations")->where('user_id', auth()->id())
+                ->where('branch_id', $branch_id)
+                // ->where('type', '!=', 'cashinhand')
+                ->whereBetween('created_at', [$start_date, $end_date])
+                ->get();
+
+
+            foreach ($cashBreakdowns as $breakdown) {
+                $denominations1 = json_decode($breakdown->denominations, true);
+                if (is_array($denominations1)) {
+                    foreach ($denominations1 as $denomination => $notes) {
+                        foreach ($notes as $noteValue => $action) {
+                            // Check for 'in' (added notes) and 'out' (removed notes)
+                            if (isset($action['in'])) {
+                                if (!isset($noteCount[$noteValue])) {
+                                    $noteCount[$noteValue] = 0;
+                                }
+                                $noteCount[$noteValue] += $action['in'];
+                            }
+                            if (isset($action['out'])) {
+                                if (!isset($noteCount[$noteValue])) {
+                                    $noteCount[$noteValue] = 0;
+                                }
+                                $noteCount[$noteValue] -= $action['out'];
+                            }
+                        }
+                    }
+                }
+            }
+        return response()->json($noteCount);
     }
 
     public function getData(Request $request)

@@ -134,12 +134,13 @@ class ShiftCloseModal extends Component
     public $productStock = [];
     public $showCloseModal = false;
     public $shiftTime;
-
+    public $showYesterDayShiftTime = false;
     public function openModal($shiftTime=[])
     {
          $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
          if(!empty($shiftTime['day']) && $shiftTime['day']=="yesterday"){
             $today = Carbon::yesterday();
+            $this->showYesterDayShiftTime=true;
          }else{
              $today = Carbon::today();
          }
@@ -319,12 +320,18 @@ class ShiftCloseModal extends Component
                 $item['sold_stock'];
             return $item;
         }, $rawStockData);
+
     }
     public function addphysicalStock()
     {
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
-
+            
+        if ($this->shift->physical_stock_added==1) {
+             $this->dispatch('notiffication-error', ['message' => 'Physical stock already added.']);
+            return;
+        }
         $this->showPhysicalModal = true;
+
         $rawStockData = DailyProductStock::with('product')
             ->where('branch_id', $branch_id)
             ->whereDate('date', Carbon::today())
@@ -361,6 +368,7 @@ class ShiftCloseModal extends Component
                 ->where('product_id', $product_id)->whereDate('date', Carbon::today())
                 ->first();
             if(!empty($dailyProductStock)){
+                //
                 $dailyProductStock->physical_stock = $product['qty'];
                 $dailyProductStock->difference_in_stock = $product['qty'] - $dailyProductStock->closing_stock;
                 $dailyProductStock->save();
@@ -395,7 +403,6 @@ class ShiftCloseModal extends Component
     public function submit()
     {
         $this->validate();
-
         DB::beginTransaction();
 
         try {
