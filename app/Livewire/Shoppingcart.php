@@ -88,7 +88,7 @@ class Shoppingcart extends Component
     public $showModal = false;
     public $availableNotes = "";
     public $selectedUser = 0;
-    protected $listeners = ['updateProductList' => 'loadCartData', 'loadHoldTransactions', 'updateNewProductDetails', 'resetData', 'hideSuggestions'];
+    protected $listeners = ['updateProductList' => 'loadCartData', 'loadHoldTransactions', 'updateNewProductDetails', 'resetData', 'hideSuggestions','openModalYesterdayShift'=>'openModalYesterdayShift'];
     public $noteDenominations = [10, 20, 50, 100, 200, 500];
     public $remainingAmount = 0;
     public $totalBreakdown = [];
@@ -903,7 +903,10 @@ class Shoppingcart extends Component
         $this->language = $value; // Update the language property
         $this->dispatch('language-updated', ['language' => $value]); // Notify frontend
     }
+     public function openModalYesterdayShift(){
+       $this->dispatch('openCloseModal', ['day' => "yesterday"]);
 
+    }
     public function mount()
     {
         //$this->getImages();
@@ -927,7 +930,10 @@ class Shoppingcart extends Component
 
         $this->shift = $currentShift = UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "pending"])->first();
         //
-        if (empty($currentShift)) {
+        $yesterDayShift = UserShift::getYesterdayShift(auth()->user()->id, $branch_id);
+        if (!empty($yesterDayShift)) {
+            $this->dispatch('openModalYesterdayShift');
+        }else if (empty($currentShift)) {
             $this->dispatch('openModal');
         }
         //

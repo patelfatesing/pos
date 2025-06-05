@@ -47,7 +47,7 @@
                     </div>
 
                 </div>
-                <div class="table-responsive rounded mb-3">
+                <div class="table-responsive rounded mb-3" id="shiftTableContainer">
                     <table class="table data-tables table-striped" id="shift_tbl">
                         <thead class="bg-white text-uppercase">
                             <tr class="ligth ligth-data">
@@ -133,99 +133,8 @@
                     </button>
                 </div>
 
-                <div class="modal-body row">
-                    <!-- Sales & Summary -->
-                    <div class="col-md-6">
-                        <h5>Sales Details</h5>
-                        <div class="d-flex justify-content-between mb-2">
-                            <button class="btn btn-warning btn-sm">View Stock Status</button>
-                           </div>
-
-                        <div class="row border p-2 mb-3">
-                            <div class="col-6"><strong>Sales</strong><br>IMFL: ₹<span id="imflSales">0</span></div>
-                            <div class="col-6"><strong>Payment</strong><br>CASH: ₹<span id="cashPayment">0</span></div>
-                        </div>
-
-                        <table class="table table-bordered small">
-                            <tbody>
-                                <tr>
-                                    <td>OPENING CASH</td>
-                                    <td class="text-end">₹<span id="openingCash">0</span></td>
-                                </tr>
-                                <tr>
-                                    <td>TOTAL SALES</td>
-                                    <td class="text-end">₹<span id="totalSales">0</span></td>
-                                </tr>
-                                <tr>
-                                    <td>DISCOUNT</td>
-                                    <td class="text-end">₹<span id="discount">0</span></td>
-                                </tr>
-                                <tr>
-                                    <td>WITHDRAWAL PAYMENT</td>
-                                    <td class="text-end">₹<span id="withdrawal">0</span></td>
-                                </tr>
-                                <tr>
-                                    <td>UPI PAYMENT</td>
-                                    <td class="text-end">₹<span id="upiPayment">0</span></td>
-                                </tr>
-                                <tr class="table-success fw-bold">
-                                    <td>TOTAL</td>
-                                    <td class="text-end">₹<span id="totalCash">0</span></td>
-                                </tr>
-                                <tr>
-                                    <td>REFUND</td>
-                                    <td class="text-end">₹<span id="refund">0</span></td>
-                                </tr>
-                                <tr>
-                                    <td>CREDIT</td>
-                                    <td class="text-end">₹<span id="credit">0</span></td>
-                                </tr>
-                                <tr>
-                                    <td>REFUND CREDIT</td>
-                                    <td class="text-end">₹<span id="refundCredit">0</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Cash Breakdown -->
-                    <div class="col-md-6">
-                        <h5>💵 Cash Details</h5>
-                        <p><strong>Start Time:</strong> <span id="startTime"></span><br>
-                            <strong>End Time:</strong> <span id="endTime"></span>
-                        </p>
-
-                        <table class="table table-bordered text-center small">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Denomination</th>
-                                    <th>Notes</th>
-                                    <th>x</th>
-                                    <th>Amount</th>
-                                    <th>=</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="denominationRows"></tbody>
-                            <tfoot>
-                                <tr class="table-success">
-                                    <td colspan="5" class="text-end"><strong>Total</strong></td>
-                                    <td><strong>₹<span id="cashTotal">0</span></strong></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-
-                        <p><strong>System Cash Sales:</strong> ₹<span id="systemCash">0</span><br>
-                            <strong>Total Cash Amount:</strong> ₹<span id="countedCash">0</span><br>
-                        </p>
-
-                        <div class="mb-2">
-                            <label>Closing Cash</label>
-                            <input type="number" class="form-control form-control-sm" id="closingCashInput">
-                        </div>
-
-                        <p><strong>Discrepancy Cash:</strong> ₹<span id="discrepancyCash">0</span></p>
-                    </div>
+                <div class="modal-body row" id="shiftSummaryContent">
+                   
                 </div>
             </div>
         </div>
@@ -461,32 +370,39 @@
         $('#shift_tbl tbody').on('click', '.close-shift', function() {
             var shiftId = $(this).data('id');
 
-            // loadShiftSummary(shiftId)
-            // Swal.fire({
-            //     title: 'Are you sure?',
-            //     text: "Do you want to close this shift?",
-            //     icon: 'warning',
-            //     showCancelButton: true,
-            //     confirmButtonText: 'Yes, close it!',
-            //     cancelButtonText: 'Cancel'
-            // }).then((result) => {
-            //     if (result.isConfirmed) {
-            //         $.ajax({
-            //             url: '{{ url('shift-manage/close-shift') }}/' + shiftId,
-            //             type: 'POST',
-            //             data: {
-            //                 _token: '{{ csrf_token() }}'
-            //             },
-            //             success: function(response) {
-            //                 Swal.fire('Closed!', 'Shift has been closed.', 'success');
-            //                 $('#shift_tbl').DataTable().ajax.reload(null, false);
-            //             },
-            //             error: function() {
-            //                 Swal.fire('Error!', 'Failed to close shift.', 'error');
-            //             }
-            //         });
-            //     }
-            // });
+           // loadShiftSummary(shiftId)
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "Do you want to close this shift?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, close it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '{{ url('shift-manage/close-shift') }}/' + shiftId,
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            if (response.code!=200) {
+                                Swal.fire('Info', response.message, 'info');
+                                $('#shift_tbl').DataTable().ajax.reload(null, false);
+                            } else {
+                                $('#shiftSummaryContent').html(response.html); // show the returned Blade HTML
+                                // Show the modal
+                                const modal = new bootstrap.Modal(document.getElementById('shiftSummaryModal'));
+                                modal.show();
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Error!', 'Failed to close shift.', 'error');
+                        }
+                    });
+                }
+            });
         });
 
         function loadShiftSummary(shiftId) {
