@@ -86,7 +86,7 @@ class ShiftCloseModal extends Component
     public $showModal = false;
     public $availableNotes = "";
     public $selectedUser = 0;
-    protected $listeners = ['updateProductList' => 'loadCartData', 'loadHoldTransactions', 'updateNewProductDetails', 'resetData'];
+    protected $listeners = ['updateProductList' => 'loadCartData','openCloseModal' => 'openModal', 'loadHoldTransactions', 'updateNewProductDetails', 'resetData'];
     public $noteDenominations = [10, 20, 50, 100, 200, 500];
     public $remainingAmount = 0;
     public $totalBreakdown = [];
@@ -133,11 +133,17 @@ class ShiftCloseModal extends Component
     ];
     public $productStock = [];
     public $showCloseModal = false;
+    public $shiftTime;
 
-    public function openModal()
+    public function openModal($shiftTime=[])
     {
-        $today = Carbon::today();
-        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+         if(!empty($shiftTime['day']) && $shiftTime['day']=="yesterday"){
+            $today = Carbon::yesterday();
+         }else{
+             $today = Carbon::today();
+         }
+
 
         // Fetch and assign your shift data here (dummy data for now)
         $this->shift = $currentShift = UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "pending"])->first();

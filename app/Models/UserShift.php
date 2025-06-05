@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class UserShift extends Model
 {
@@ -41,6 +42,10 @@ class UserShift extends Model
     {
         return $this->hasOne(Branch::class, 'id', 'branch_id');
 
+    }
+    public static function getYesterdayShift($user_id, $branch_id)
+    {
+        return UserShift::whereDate('start_time', Carbon::yesterday())->where(['user_id' => $user_id])->where(['branch_id' => $branch_id])->where(['status' => "pending"])->first();
     }
     
 
