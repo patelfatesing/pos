@@ -438,7 +438,7 @@ class SalesReportController extends Controller
                 'products.mrp',
                 'products.sell_price as selling_price',
                 'products.discount_price as discount',
-                'products.cost_price as purchase_price',
+                'products.cost_price',
                 DB::raw('COALESCE(SUM(daily_product_stocks.opening_stock), 0) as opening_stock'),
                 DB::raw('COALESCE(SUM(daily_product_stocks.added_stock), 0) as in_qty'),
                 DB::raw('COALESCE(SUM(daily_product_stocks.transferred_stock), 0) + COALESCE(SUM(daily_product_stocks.sold_stock), 0) as out_qty'),
