@@ -134,6 +134,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/store/delete', [BranchController::class, 'destroy'])->name('branch.destroy');
     Route::post('/store/status-change', [BranchController::class, 'statusChange'])->name('store.status-change');
 
+    Route::get('/get-available-notes', [BranchController::class, 'getAvailableNotes']);
 
     Route::get('/products/list', [ProductController::class, 'index'])->name('products.list');
     Route::post('/products/get-data', [ProductController::class, 'getData'])->name('products.getData');
