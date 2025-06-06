@@ -24,31 +24,10 @@
                                     <div class="row">
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
-                                                <label>First Name</label>
+                                                <label>Customer Name</label>
                                                 <input type="text" name="first_name" class="form-control"
-                                                    value="{{ old('first_name') }}" required>
+                                                    value="{{ old('first_name') }}">
                                                 @error('first_name')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-
-                                        <div class="col-lg-6">
-                                            <div class="floating-label form-group">
-                                                <label>Last Name</label>
-                                                <input type="text" name="last_name" class="form-control"
-                                                    value="{{ old('last_name') }}" required>
-                                                @error('last_name')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-6">
-                                            <div class="floating-label form-group">
-                                                <label>Email</label>
-                                                <input type="email" name="email" class="form-control"
-                                                    value="{{ old('email') }}" required>
-                                                @error('email')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
@@ -61,9 +40,6 @@
                                                     <option value="fixed"
                                                         {{ old('commission_type') == 'fixed' ? 'selected' : '' }}>Fixed
                                                     </option>
-                                                    {{-- <option value="percentage"
-                                                        {{ old('commission_type') == 'percentage' ? 'selected' : '' }}>
-                                                        Percentage</option> --}}
                                                 </select>
                                                 @error('commission_type')
                                                     <span class="text-danger">{{ $message }}</span>
@@ -71,26 +47,21 @@
                                             </div>
                                         </div>
 
-                                        {{-- <div class="col-lg-6">
+                                        <div class="col-lg-6">
                                             <div class="floating-label form-group">
-                                                <label>Commission Value</label>
-                                                <input type="number" step="0.01" name="commission_value"
-                                                    class="form-control" value="{{ old('commission_value') }}" required>
-                                                @error('commission_value')
+                                                <label>Email</label>
+                                                <input type="email" name="email" class="form-control"
+                                                    value="{{ old('email') }}">
+                                                @error('email')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
-                                        </div> --}}
+                                        </div>
 
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>Applies To</label>
                                                 <select name="applies_to" class="form-control">
-                                                    {{-- <option value="all"
-                                                        {{ old('applies_to') == 'all' ? 'selected' : '' }}>All</option>
-                                                    <option value="category"
-                                                        {{ old('applies_to') == 'category' ? 'selected' : '' }}>Category
-                                                    </option> --}}
                                                     <option value="product"
                                                         {{ old('applies_to') == 'product' ? 'selected' : '' }}>Product
                                                     </option>
@@ -103,8 +74,8 @@
 
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
-                                                <label>Reference ID</label>
-                                                <input type="number" name="reference_id" class="form-control"
+                                                <label>Reference Name</label>
+                                                <input type="text" name="reference_id" class="form-control"
                                                     value="{{ old('reference_id') }}">
                                                 @error('reference_id')
                                                     <span class="text-danger">{{ $message }}</span>
@@ -123,16 +94,16 @@
                                                 </select>
                                             </div>
                                         </div>
-
                                         <div class="col-lg-6">
                                             <div class="form-group">
-                                                <label>Upload Images</label>
-                                                <input type="file" name="images" class="form-control" multiple>
-                                                @error('images')
+                                                <label>Upload Image</label>
+                                                <input type="file" name="image" class="form-control">
+                                                @error('image')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
                                         </div>
+
                                     </div>
 
                                     <button type="submit" class="btn btn-primary mr-2">Add Commission Customer</button>

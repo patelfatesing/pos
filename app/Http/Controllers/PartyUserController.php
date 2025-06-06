@@ -34,7 +34,7 @@ class PartyUserController extends Controller
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('first_name', 'like', '%' . $searchValue . '%')
-                    ->orWhere('last_name', 'like', '%' . $searchValue . '%')
+                    // ->orWhere('last_name', 'like', '%' . $searchValue . '%')
                     ->orWhere('credit_points', 'like', '%' . $searchValue . '%');
             });
         }
@@ -55,31 +55,19 @@ class PartyUserController extends Controller
                 return asset('storage/' . $image->image_path);
             })->toArray();
 
-            $first_name = '<div class="d-flex align-items-center list-action"><a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit" href="' . url('/party-users/view/' . $partyUser->id) . '">' . $partyUser->first_name . '</a></div>';
-            $last_name = '<div class="d-flex align-items-center list-action"><a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit" href="' . url('/party-users/view/' . $partyUser->id) . '">' . $partyUser->last_name . '</a></div>';
-
             $action = '<div class="d-flex align-items-center list-action">
             <a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                    href="#" onclick="party_cust_price_change(' . $partyUser->id . ')"><i class="ri-eye-line mr-0"></i></a>
-                    
+                    href="#" onclick="party_cust_price_change(' . $partyUser->id . ')"><i class="ri-currency-fill"></i></a>     
+            <a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
+                                        href="' . url('/party-users/view/' . $partyUser->id) . '"><i class="ri-eye-line mr-0"></i></a>
             <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
                                         href="' . url('/party-users/edit/' . $partyUser->id) . '"><i class="ri-pencil-line mr-0"></i></a>
                                   
             </div>';
-            //   $action = '<div class="d-flex align-items-center list-action">
-            // <a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-            //         href="#" onclick="party_cust_price_change(' . $partyUser->id . ')"><i class="ri-eye-line mr-0"></i></a>
-
-            // <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-            //                             href="' . url('/party-users/edit/' . $partyUser->id) . '"><i class="ri-pencil-line mr-0"></i></a>
-            //                         <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
-            //                             href="#" onclick="delete_party_user(' . $partyUser->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
-            // </div>';
 
 
             $records[] = [
-                'first_name' => $first_name,
-                'last_name' => $last_name,
+                'first_name' => $partyUser->first_name,
                 'email' => $partyUser->email,
                 'phone' => $partyUser->phone,
                 'credit_points' => $partyUser->credit_points,
@@ -114,27 +102,24 @@ class PartyUserController extends Controller
     {
         $data = $request->validate([
             'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:party_users,email',
-            'phone' => 'nullable|string|max:255',
+            'phone' => 'required|digits:10|regex:/^[0-9]+$/|unique:party_users,phone',
             'address' => 'nullable|string|max:255',
             'credit_points' => 'required|numeric|min:0|max:99999999.99',
-            'images.*' => 'nullable|image|max:2048',
-
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048'
+        ], [
+            'first_name.required' => 'Customer name is required.',
+            'phone.required' => 'Mobile number is required.',
+            'phone.digits' => 'Mobile number must be exactly 10 digits.',
+            'phone.unique' => 'This mobile number is already in use.',
         ]);
-        $partyUser = Partyuser::create($data);
 
-        // Save images if any
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
-                $path = $image->store('commission_images', 'public');
-                PartyUserImage::create([
-                    'party_user_id' => $partyUser->id,
-                    'image_path' => $path,
-                    'type' => $image->getClientOriginalName(),
-                ]);
-            }
+        // Handle image upload
+        if ($request->hasFile('photo')) {
+            $data['photo'] = $request->file('photo')->store('party_user_photos', 'public');
         }
+
+        PartyUser::create($data);
 
         return redirect()->route('party-users.list')->with('success', 'Party User Created');
     }
@@ -155,33 +140,26 @@ class PartyUserController extends Controller
     {
         $data = $request->validate([
             'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:party_users,email,' . $Partyuser->id . ',id',
+            'email' => 'required|email|max:255|unique:party_users,email,' . $Partyuser->id,
             'phone' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:255',
             'credit_points' => 'required|numeric|min:0|max:99999999.99',
-            'images.*' => 'nullable|image|max:2048',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+
         ]);
 
-        $Partyuser->update($data);
-
-        if ($request->hasFile('images')) {
-            // Delete old images
-            foreach ($Partyuser->images as $image) {
-                \Storage::disk('public')->delete($image->image_path);
-                $image->delete();
+        // Handle photo upload
+        if ($request->hasFile('photo')) {
+            // Delete old photo if exists
+            if ($Partyuser->photo) {
+                \Storage::disk('public')->delete($Partyuser->photo);
             }
 
-            // Save new images
-            foreach ($request->file('images') as $image) {
-                $path = $image->store('party_images', 'public');
-                PartyUserImage::create([
-                    'party_user_id' => $Partyuser->id,
-                    'image_path' => $path,
-                    'type' => $image->getClientOriginalName(),
-                ]);
-            }
+            // Store new photo
+            $data['photo'] = $request->file('photo')->store('party_user_photos', 'public');
         }
+
+        $Partyuser->update($data);
 
         return redirect()->route('party-users.list')->with('success', 'Party User Updated');
     }
@@ -198,7 +176,7 @@ class PartyUserController extends Controller
 
     public function custProductPriceChangeForm($id)
     {
-        $partyUser = Partyuser::select('first_name', 'last_name', 'id')->where('status', 'Active')->where('id', $id)->first();
+        $partyUser = Partyuser::select('first_name', 'id')->where('status', 'Active')->where('id', $id)->first();
 
         $products = DB::table('products')
             ->select(
@@ -347,7 +325,7 @@ class PartyUserController extends Controller
                 'i.total as invoice_total',
                 'i.creditpay as commission_amount',
                 'cu.id as party_user_id',
-                DB::raw("CONCAT(cu.first_name, ' ', cu.last_name) as commission_user_name"),
+                'cu.first_name as commission_user_name',
                 'cu.credit_points',
                 'ch.total_purchase_items',
                 'ch.credit_amount',
@@ -372,7 +350,7 @@ class PartyUserController extends Controller
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('i.invoice_number', 'like', "%$searchValue%")
-                    ->orWhere(DB::raw("CONCAT(cu.first_name, ' ', cu.last_name)"), 'like', "%$searchValue%");
+                    ->orWhere('cu.first_name', 'like', "%$searchValue%");
             });
         }
 
@@ -400,17 +378,17 @@ class PartyUserController extends Controller
 
     public function custTrasactionPhoto($id, Request $request)
     {
-        $imageType=$request->get('imageType');
-        $invoice_id=$request->get('invoice_id');
+        $imageType = $request->get('imageType');
+        $invoice_id = $request->get('invoice_id');
 
-    
-        if($imageType=="Commission"){
+
+        if ($imageType == "Commission") {
             $photos = CommissionUserImage::where('transaction_id', $invoice_id)->where('commission_user_id', $id)->first();
-        }else{
+        } else {
             $photos = PartyUserImage::where('transaction_id', $id)->first();
         }
 
-        return view('party_users.cust-photo', compact('photos','imageType'));
+        return view('party_users.cust-photo', compact('photos', 'imageType'));
     }
 
     public function statusChange(Request $request)

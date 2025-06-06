@@ -27,10 +27,8 @@
                             <table class="table data-tables table-striped" id="commission_users_table">
                                 <thead class="bg-white text-uppercase">
                                     <tr class="ligth ligth-data">
-                                        <th>First Name</th>
-                                        <th>Last Name</th>
+                                        <th>Customer Name</th>
                                         <th>Commission Type</th>
-                                        <th>Commission Value</th>
                                         <th>Applies To</th>
                                         <th>Status</th>
                                         <th>Created Date</th>
@@ -78,13 +76,7 @@
                             data: 'first_name'
                         },
                         {
-                            data: 'last_name'
-                        },
-                        {
                             data: 'commission_type'
-                        },
-                        {
-                            data: 'commission_value'
                         },
                         {
                             data: 'applies_to'
@@ -108,10 +100,10 @@
                     ],
                     aoColumnDefs: [{
                         bSortable: false,
-                        aTargets: [2, 3, 4, 6,8] // make "action" column unsortable
+                        aTargets: [2, 3, 4,6] // make "action" column unsortable
                     }],
                     order: [
-                        [6, 'desc']
+                        [4, 'desc']
                     ], // 🟢 Sort by created_at DESC by default
                     dom: "Bfrtip",
                     lengthMenu: [
