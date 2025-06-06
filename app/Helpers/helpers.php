@@ -204,7 +204,7 @@ if (!function_exists('stockStatusChange')) {
                     'branch_id' => $branch_id,
                     'product_id' => $product_id,
                     'date' => $date,
-                    'added_stock' => $qty
+                    'opening_stock' => $qty
                 ]);
             }
         }
@@ -224,7 +224,7 @@ if (!function_exists('stockStatusChange')) {
                     'branch_id' => $branch_id,
                     'product_id' => $product_id,
                     'date' => $date,
-                    'transferred_stock' => $qty
+                    'opening_stock' => $qty
                 ]);
             }
         }

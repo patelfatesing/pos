@@ -71,13 +71,14 @@
                         <table class="table table-striped" id="stock-table" style="width:100%">
                             <thead class="bg-white">
                                 <tr>
+                                    <th>Sr. No.</th>
                                     <th>Branch</th>
                                     <th>Product</th>
                                     <th>Barcode</th>
                                     <th>Category</th>
                                     <th>MRP</th>
-                                    <th>Cost Price</th>
                                     <th>Selling Price</th>
+                                    <th>Cost Price</th>
                                     <th>Qty</th>
                                     <th>All Price</th>
                                 </tr>
@@ -85,10 +86,17 @@
                             <tbody></tbody>
                             <tfoot>
                                 <tr>
-                                    <th colspan="6" class="text-right">Total Summary:</th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
+                                    <th colspan="8" class="text-right">Total Quantity:</th>
+                                    <th id="total-qty"></th>
+                                    <th id="total-price"></th>
+                                </tr>
+                                <tr>
+                                    <th colspan="5" class="text-right">Selling Total:</th>
+                                    <th colspan="5" id="selling-total" class="text-left"></th>
+                                </tr>
+                                <tr>
+                                    <th colspan="5" class="text-right">Purchase Total:</th>
+                                    <th colspan="5" id="purchase-total" class="text-left"></th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -103,23 +111,34 @@
         $(document).ready(function() {
             var table;
 
-            // Fetch initial data
-            $.ajax({
-                url: '{{ route('sales.fetch-stock-data') }}',
-                type: 'GET',
-                success: function(response) {
-                    initializeDataTable(response.data);
-                },
-                error: function(xhr) {
-                    console.error('Failed to load:', xhr.responseText);
-                    alert('Failed to load data.');
-                }
-            });
+            function loadData(filters = {}) {
+                $.ajax({
+                    url: '{{ route('sales.fetch-stock-data') }}',
+                    type: 'GET',
+                    data: filters,
+                    success: function(response) {
+                        if (table) {
+                            table.clear().rows.add(response.data).draw();
+                        } else {
+                            initializeDataTable(response.data);
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Error:', xhr.responseText);
+                        alert('Failed to load data.');
+                    }
+                });
+            }
 
             function initializeDataTable(data) {
                 table = $('#stock-table').DataTable({
                     data: data,
                     columns: [{
+                            data: null,
+                            render: (data, type, row, meta) => meta.row + 1,
+                            className: 'text-center'
+                        },
+                        {
                             data: 'branch_name'
                         },
                         {
@@ -136,11 +155,11 @@
                             render: data => '₹' + parseFloat(data || 0).toFixed(2)
                         },
                         {
-                            data: 'cost_price',
+                            data: 'selling_price',
                             render: data => '₹' + parseFloat(data || 0).toFixed(2)
                         },
                         {
-                            data: 'selling_price',
+                            data: 'cost_price',
                             render: data => '₹' + parseFloat(data || 0).toFixed(2)
                         },
                         {
@@ -157,32 +176,33 @@
                         [10, 25, 50, 100, "All"]
                     ],
                     pageLength: 25,
-                    dom: 'Blfrtip', // ✅ add 'l' here
+                    dom: 'Blfrtip',
                     buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
-                    aoColumnDefs: [{
-                        bSortable: false,
-                        aTargets: [7, 8]
-                    }],
                     footerCallback: function(row, data) {
-                        var api = this.api();
-                        var numericColumns = [7, 8];
+                        let totalQty = 0;
+                        let totalPrice = 0;
+                        let sellingTotal = 0;
+                        let purchaseTotal = 0;
 
-                        numericColumns.forEach(function(colIndex) {
-                            var total = api.column(colIndex, {
-                                page: 'current'
-                            }).data().reduce(function(acc, curr) {
-                                return acc + parseFloat(curr || 0);
-                            }, 0);
+                        data.forEach(row => {
+                            let qty = parseFloat(row.all_qty || 0);
+                            let sellingPrice = parseFloat(row.selling_price || 0);
+                            let costPrice = parseFloat(row.cost_price || 0);
+                            let allPrice = parseFloat(row.all_price || 0);
 
-                            var formatted = (colIndex === 7) ? Math.round(total) : '₹' + total
-                                .toFixed(2);
-
-                            $(api.column(colIndex).footer()).html(formatted);
+                            totalQty += qty;
+                            totalPrice += allPrice;
+                            sellingTotal += sellingPrice * qty;
+                            purchaseTotal += costPrice * qty;
                         });
+
+                        $('#total-qty').html(totalQty);
+                        $('#total-price').html('₹' + totalPrice.toFixed(2));
+                        $('#selling-total').html('₹' + sellingTotal.toFixed(2));
+                        $('#purchase-total').html('₹' + purchaseTotal.toFixed(2));
                     }
                 });
 
-                // Filter Events
                 $('#store_id, #product_id, #category_id, #subcategory_id').change(function() {
                     refreshData();
                 });
@@ -194,24 +214,17 @@
             }
 
             function refreshData() {
-                $.ajax({
-                    url: '{{ route('sales.fetch-stock-data') }}',
-                    type: 'GET',
-                    data: {
-                        store_id: $('#store_id').val(),
-                        product_id: $('#product_id').val(),
-                        category_id: $('#category_id').val(),
-                        subcategory_id: $('#subcategory_id').val()
-                    },
-                    success: function(response) {
-                        table.clear().rows.add(response.data).draw();
-                    },
-                    error: function(xhr) {
-                        console.error('Refresh failed:', xhr.responseText);
-                        alert('Error refreshing data.');
-                    }
-                });
+                const filters = {
+                    store_id: $('#store_id').val(),
+                    product_id: $('#product_id').val(),
+                    category_id: $('#category_id').val(),
+                    subcategory_id: $('#subcategory_id').val()
+                };
+                loadData(filters);
             }
+
+            // Load data initially
+            loadData();
         });
     </script>
 @endsection
