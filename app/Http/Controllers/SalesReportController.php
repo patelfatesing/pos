@@ -587,7 +587,7 @@ class SalesReportController extends Controller
                 'i.total as invoice_total',
                 'i.creditpay as commission_amount',
                 'cu.id as party_user_id',
-                DB::raw("CONCAT(cu.first_name, ' ', cu.last_name) as commission_user_name"),
+                'cu.first_name as commission_user_name',
                 'cu.credit_points',
                 'ch.total_purchase_items',
                 'ch.credit_amount',
@@ -608,7 +608,7 @@ class SalesReportController extends Controller
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('i.invoice_number', 'like', "%$searchValue%")
-                    ->orWhere(DB::raw("CONCAT(cu.first_name, ' ', cu.last_name)"), 'like', "%$searchValue%");
+                    ->orWhere('cu.first_name', 'like', "%$searchValue%");
             });
         }
 

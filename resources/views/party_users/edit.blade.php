@@ -3,7 +3,6 @@
 @section('page-content')
     <!-- Wrapper Start -->
     <div class="wrapper">
-
         <div class="content-page">
             <div class="container-fluid add-form-list">
                 <div class="row">
@@ -19,27 +18,17 @@
                             </div>
                             <div class="card-body">
                                 <form action="{{ route('party-users.update', $partyUser->id) }}" method="POST"
-                                    enctype="multipart/form-data" data-toggle="validator">
+                                    enctype="multipart/form-data">
                                     @csrf
                                     @method('PUT')
+
                                     <div class="row">
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
-                                                <label>First Name</label>
+                                                <label>Customer Name</label>
                                                 <input type="text" name="first_name" class="form-control"
                                                     value="{{ old('first_name', $partyUser->first_name) }}" required>
                                                 @error('first_name')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-
-                                        <div class="col-lg-6">
-                                            <div class="floating-label form-group">
-                                                <label>Last Name</label>
-                                                <input type="text" name="last_name" class="form-control"
-                                                    value="{{ old('last_name', $partyUser->last_name) }}" required>
-                                                @error('last_name')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
@@ -60,7 +49,7 @@
                                             <div class="floating-label form-group">
                                                 <label>Phone</label>
                                                 <input type="text" name="phone" class="form-control"
-                                                    value="{{ old('phone', $partyUser->phone) }}">
+                                                    value="{{ old('phone', $partyUser->phone) }}" required>
                                                 @error('phone')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -80,8 +69,8 @@
 
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
-                                                <label>Credit</label>
-                                                <input type="number" step="0.01" name="credit_points"
+                                                <label>Credit Points</label>
+                                                <input type="number" name="credit_points" step="1"
                                                     class="form-control"
                                                     value="{{ old('credit_points', $partyUser->credit_points) }}" required>
                                                 @error('credit_points')
@@ -89,33 +78,29 @@
                                                 @enderror
                                             </div>
                                         </div>
+
                                         <div class="col-lg-6">
                                             <div class="form-group">
-                                                <label>Upload Images</label>
-                                                <input type="file" name="images[]" class="form-control" multiple
-                                                    accept="image/*" onchange="previewImages()">
-                                                @error('images')
+                                                <label>Upload Photo</label>
+                                                <input type="file" name="photo" class="form-control" accept="image/*"
+                                                    onchange="previewImage(this)">
+                                                @error('photo')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
 
-                                                {{-- Show existing images --}}
-                                                @if (!empty($partyUser->images))
+                                                @if (!empty($partyUser->photo))
                                                     <div class="mt-3">
-                                                        <label>Existing Images</label>
-                                                        <div class="d-flex flex-wrap gap-2">
-                                                            @foreach ($partyUser->images as $img)
-                                                                <div class="me-2 mb-2">
-                                                                    <img src="{{ asset('storage/' .$img->image_path) }}"
-                                                                        alt="Image" class="img-thumbnail"
-                                                                        style="width: 100px; height: 100px; object-fit: cover;">
-                                                                </div>
-                                                            @endforeach
+                                                        <label>Existing Photo</label>
+                                                        <div>
+                                                            <img src="{{ asset('storage/' . $partyUser->photo) }}"
+                                                                class="img-thumbnail"
+                                                                style="width: 100px; height: 100px; object-fit: cover;"
+                                                                alt="Photo">
                                                         </div>
                                                     </div>
                                                 @endif
 
-                                                {{-- New image preview --}}
-                                                <div id="imagePreview" class="d-flex flex-wrap gap-2 mt-2"></div>
+                                                <div id="imagePreview" class="mt-2"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -132,4 +117,24 @@
         </div>
     </div>
     <!-- Wrapper End -->
+
+    <script>
+        function previewImage(input) {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = '';
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'img-thumbnail';
+                    img.style.width = '100px';
+                    img.style.height = '100px';
+                    img.style.objectFit = 'cover';
+                    preview.appendChild(img);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
 @endsection

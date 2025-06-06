@@ -11,8 +11,11 @@
                  </div>
 
 
-                 <button type="button" class="close" wire:click="$set('showModal', false)">
+                 {{-- <button type="button" class="close" wire:click="$set('showModal', false)">
                      <span aria-hidden="true">×</span>
+                 </button> --}}
+                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
                  </button>
              </div>
 

@@ -21,7 +21,8 @@ class Partyuser extends Model
         'address',
         'credit_points',
         'left_credit',
-        'use_credit'
+        'use_credit',
+        'photo',
        
     ];
     /**

@@ -370,43 +370,65 @@
         $('#shift_tbl tbody').on('click', '.close-shift', function() {
             var shiftId = $(this).data('id');
 
-           // loadShiftSummary(shiftId)
-
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "Do you want to close this shift?",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, close it!',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: '{{ url('shift-manage/close-shift') }}/' + shiftId,
-                        type: 'POST',
-                        data: {
-                            _token: '{{ csrf_token() }}'
-                        },
-                        success: function(response) {
-                            if (response.code != 200) {
-                                Swal.fire('Info', response.message, 'info');
-                                $('#shift_tbl').DataTable().ajax.reload(null, false);
-                            } else {
-                                $('#shiftSummaryContent').html(response
-                                .html); // show the returned Blade HTML
-                                // Show the modal
-                                const modal = new bootstrap.Modal(document.getElementById(
-                                    'shiftSummaryModal'));
-                                modal.show();
-                            }
-                        },
-                        error: function() {
-                            Swal.fire('Error!', 'Failed to close shift.', 'error');
-                        }
-                    });
+            // loadShiftSummary(shiftId)
+            $.ajax({
+                url: '{{ url('shift-manage/close-shift') }}/' + shiftId,
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.code != 200) {
+                        Swal.fire('Info', response.message, 'info');
+                        $('#shift_tbl').DataTable().ajax.reload(null, false);
+                    } else {
+                        $('#shiftSummaryContent').html(response
+                            .html); // show the returned Blade HTML
+                        // Show the modal
+                        const modal = new bootstrap.Modal(document.getElementById(
+                            'shiftSummaryModal'));
+                        modal.show();
+                    }
+                },
+                error: function() {
+                    Swal.fire('Error!', 'Failed to close shift.', 'error');
                 }
             });
-   
+            // Swal.fire({
+            //     title: 'Are you sure?',
+            //     text: "Do you want to close this shift?",
+            //     icon: 'warning',
+            //     showCancelButton: true,
+            //     confirmButtonText: 'Yes, close it!',
+            //     cancelButtonText: 'Cancel'
+            // }).then((result) => {
+            //     if (result.isConfirmed) {
+            //         $.ajax({
+            //             url: '{{ url('shift-manage/close-shift') }}/' + shiftId,
+            //             type: 'POST',
+            //             data: {
+            //                 _token: '{{ csrf_token() }}'
+            //             },
+            //             success: function(response) {
+            //                 if (response.code != 200) {
+            //                     Swal.fire('Info', response.message, 'info');
+            //                     $('#shift_tbl').DataTable().ajax.reload(null, false);
+            //                 } else {
+            //                     $('#shiftSummaryContent').html(response
+            //                     .html); // show the returned Blade HTML
+            //                     // Show the modal
+            //                     const modal = new bootstrap.Modal(document.getElementById(
+            //                         'shiftSummaryModal'));
+            //                     modal.show();
+            //                 }
+            //             },
+            //             error: function() {
+            //                 Swal.fire('Error!', 'Failed to close shift.', 'error');
+            //             }
+            //         });
+            //     }
+            // });
+
         });
 
         function loadShiftSummary(shiftId) {
@@ -455,5 +477,9 @@
                 })
                 .catch(err => console.error("Failed to load shift summary", err));
         }
+
+        $('#closeButton').on('click', function() {
+            $('#shiftSummaryModal').modal('hide');
+        });
     </script>
 @endsection

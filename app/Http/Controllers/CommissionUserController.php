@@ -6,6 +6,7 @@ use App\Models\Commissionuser;
 use App\Models\CommissionUserImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class CommissionUserController extends Controller
 {
@@ -31,7 +32,7 @@ class CommissionUserController extends Controller
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('first_name', 'like', '%' . $searchValue . '%')
-                    ->orWhere('last_name', 'like', '%' . $searchValue . '%')
+                    // ->orWhere('last_name', 'like', '%' . $searchValue . '%')
                     ->orWhere('commission_type', 'like', '%' . $searchValue . '%')
                     ->orWhere('applies_to', 'like', '%' . $searchValue . '%')
                     ->orWhere('commission_value', 'like', '%' . $searchValue . '%');
@@ -54,14 +55,17 @@ class CommissionUserController extends Controller
                 return asset('storage/' . $image->image_path);
             })->toArray();
 
-            $first_name = '<div class="d-flex align-items-center list-action"><a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit" href="' . url('/commission-cust/view/' . $commissionUser->id) . '">' . $commissionUser->first_name . '</a></div>';
-            $last_name = '<div class="d-flex align-items-center list-action"><a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit" href="' . url('/commission-cust/view/' . $commissionUser->id) . '">' . $commissionUser->last_name . '</a></div>';
+            // $first_name = '<div class="d-flex align-items-center list-action"><a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit" href="' . url('/commission-cust/view/' . $commissionUser->id) . '">' . $commissionUser->first_name . '</a></div>';
+            // $last_name = '<div class="d-flex align-items-center list-action"><a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit" href="' . url('/commission-cust/view/' . $commissionUser->id) . '">' . $commissionUser->last_name . '</a></div>';
 
 
             $action = '<div class="d-flex align-items-center list-action">
                                     <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
                                         href="' . url('/commission-users/edit/' . $commissionUser->id) . '"><i class="ri-pencil-line mr-0"></i></a>
-            </div>';
+           <a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
+                                        href="' . url('/party-users/view/' . $commissionUser->id) . '"><i class="ri-eye-line mr-0"></i></a>
+            
+                                        </div>';
 
             // $action = '<div class="d-flex align-items-center list-action">
             //                         <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
@@ -71,8 +75,7 @@ class CommissionUserController extends Controller
             // </div>';
 
             $records[] = [
-                'first_name' => $first_name,
-                'last_name' => $last_name,
+                'first_name' => $commissionUser->first_name,
                 'commission_type' => $commissionUser->commission_type,
                 'commission_value' => $commissionUser->commission_value,
                 'applies_to' => $commissionUser->applies_to,
@@ -109,18 +112,13 @@ class CommissionUserController extends Controller
     {
         $data = $request->validate([
             'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:commission_users,email',
             'commission_type' => 'required|in:fixed,percentage',
-            // 'commission_value' => 'required|numeric',
             'applies_to' => 'required|in:all,category,product',
-            'reference_id' => 'nullable|integer',
+            'reference_id' => 'nullable|string',
             'is_active' => 'required|boolean',
-            // 'start_date' => 'nullable|date',
-            // 'end_date' => 'nullable|date',
-            'images.*' => 'nullable|image|max:2048',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048'
         ]);
-
 
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('commission_images', 'public');
@@ -128,18 +126,6 @@ class CommissionUserController extends Controller
         }
 
         $commissionUser = Commissionuser::create($data);
-
-        // Save images if any
-        // if ($request->hasFile('images')) {
-        //     foreach ($request->file('images') as $image) {
-        //         $path = $image->store('commission_images', 'public');
-        //         CommissionUserImage::create([
-        //             'commission_user_id' => $commissionUser->id,
-        //             'image_path' => $path,
-        //             'image_name' => $image->getClientOriginalName(),
-        //         ]);
-        //     }
-        // }
 
         return redirect()->route('commission-users.list')->with('success', 'Commission User Created');
     }
@@ -262,44 +248,36 @@ class CommissionUserController extends Controller
 
     public function update(Request $request, Commissionuser $Commissionuser)
     {
-        //print_r($Commissionuser);exit;
-        // $commissionUser = Commissionuser::findOrFail($id);
 
         $data = $request->validate([
             'first_name' => 'required|string|max:255',
-            'middle_name' => 'nullable|string|max:255',
-            'last_name' => 'required|string|max:255',
             'commission_type' => 'required|in:fixed,percentage',
-            'commission_value' => 'required|numeric',
             'applies_to' => 'required|in:all,category,product',
-            'reference_id' => 'nullable|integer',
+            'reference_id' => 'nullable|string',
             'is_active' => 'required|boolean',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date',
-            'images.*' => 'nullable|image|max:2048',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
         ]);
 
-        $Commissionuser->update($data);
-
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
-                $path = $image->store('commission_images', 'public');
-                CommissionUserImage::create([
-                    'commission_user_id' => $Commissionuser->id,
-                    'image_path' => $path,
-                    'image_name' => $image->getClientOriginalName(),
-                ]);
+        // Handle new photo upload
+        if ($request->hasFile('photo')) {
+            // Delete old photo
+            if ($Commissionuser->photo && Storage::disk('public')->exists($Commissionuser->photo)) {
+                Storage::disk('public')->delete($Commissionuser->photo);
             }
+
+            // Store new photo
+            $data['photo'] = $request->file('photo')->store('commission_photos', 'public');
         }
+
+        $Commissionuser->update($data);
 
         return redirect()->route('commission-users.list')->with('success', 'Commission User Updated');
     }
 
-
     public function destroy($id)
     {
         $record = Commissionuser::where('status', 'Active')->findOrFail($id);
-        $record->is_deleted="Yes";
+        $record->is_deleted = "Yes";
         $record->save();
         //$Commissionuser->delete();
         return response()->json(['success' => true, 'message' => 'Commission User Deleted']);

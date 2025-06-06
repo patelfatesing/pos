@@ -27,8 +27,7 @@
                             <table class="table data-tables table-striped" id="party_users_table">
                                 <thead class="bg-white text-uppercase">
                                     <tr class="ligth ligth-data">
-                                        <th>First Name</th>
-                                        <th>Last Name</th>
+                                        <th>Customer Name</th>
                                         <th>Email</th>
                                         <th>Phone</th>
                                         <th>Credit</th>
@@ -78,9 +77,6 @@
                 },
                 columns: [{
                         data: 'first_name'
-                    },
-                    {
-                        data: 'last_name'
                     },
                     {
                         data: 'email'
@@ -200,6 +196,4 @@
             });
         }
     </script>
-
-    <script></script>
 @endsection
