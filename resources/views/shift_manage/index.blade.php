@@ -370,9 +370,8 @@
         $('#shift_tbl tbody').on('click', '.close-shift', function() {
             var shiftId = $(this).data('id');
 
-            <<
-            << << < Updated upstream
-            // loadShiftSummary(shiftId)
+           // loadShiftSummary(shiftId)
+
             Swal.fire({
                 title: 'Are you sure?',
                 text: "Do you want to close this shift?",
@@ -406,36 +405,8 @@
                         }
                     });
                 }
-            }); ===
-            === =
-            loadShiftSummary(shiftId)
-                // Swal.fire({
-                //     title: 'Are you sure?',
-                //     text: "Do you want to close this shift?",
-                //     icon: 'warning',
-                //     showCancelButton: true,
-                //     confirmButtonText: 'Yes, close it!',
-                //     cancelButtonText: 'Cancel'
-                // }).then((result) => {
-                //     if (result.isConfirmed) {
-                //         $.ajax({
-                //             url: '{{ url('shift-manage/close-shift') }}/' + shiftId,
-                //             type: 'POST',
-                //             data: {
-                //                 _token: '{{ csrf_token() }}'
-                //             },
-                //             success: function(response) {
-                //                 Swal.fire('Closed!', 'Shift has been closed.', 'success');
-                //                 $('#shift_tbl').DataTable().ajax.reload(null, false);
-                //             },
-                //             error: function() {
-                //                 Swal.fire('Error!', 'Failed to close shift.', 'error');
-                //             }
-                //         });
-                //     }
-                // });
-                >>>
-                >>> > Stashed changes
+            });
+   
         });
 
         function loadShiftSummary(shiftId) {
