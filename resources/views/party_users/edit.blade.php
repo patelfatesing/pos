@@ -94,7 +94,7 @@
                                                         <div>
                                                             <img src="{{ asset('storage/' . $partyUser->photo) }}"
                                                                 class="img-thumbnail"
-                                                                style="width: 100px; height: 100px; object-fit: cover;"
+                                                                style="width: 150px; height: 150px; object-fit: cover;"
                                                                 alt="Photo">
                                                         </div>
                                                     </div>

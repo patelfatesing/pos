@@ -114,7 +114,7 @@
                                                 <label>Current Photo</label><br>
                                                 <img src="{{ asset('storage/' . $commissionUser->photo) }}" alt="Photo"
                                                     class="img-thumbnail"
-                                                    style="width: 100px; height: 100px; object-fit: cover;">
+                                                    style="width: 150px; height: 150px; object-fit: cover;">
                                             </div>
                                         @endif
 
