@@ -262,11 +262,11 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th>#</th>
-                                            <th>Item</th>
-                                            <th>Opening</th>
-                                            <th>Transferred In</th>
-                                            <th>Transferred Out</th>
-                                            <th>Sold</th>
+                                            <th>Product</th>
+                                            <th>Opening Stock</th>
+                                            <th>Transferred IN</th>
+                                            <th>Transferred OUT</th>
+                                            <th>Sold Qty</th>
                                             <th>Closing Stock</th>
                                             <th>Physical Stock</th>
                                             <th>Difference In Stock</th>
