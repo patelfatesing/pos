@@ -88,7 +88,7 @@ class Shoppingcart extends Component
     public $showModal = false;
     public $availableNotes = "";
     public $selectedUser = 0;
-    protected $listeners = ['updateProductList' => 'loadCartData', 'loadHoldTransactions', 'updateNewProductDetails', 'resetData', 'hideSuggestions','openModalYesterdayShift'=>'openModalYesterdayShift'];
+    protected $listeners = ['updateProductList' => 'loadCartData', 'loadHoldTransactions', 'updateNewProductDetails', 'resetData', 'hideSuggestions','openModalYesterdayShift'=>'openModalYesterdayShift','setNotes'];
     public $noteDenominations = [10, 20, 50, 100, 200, 500];
     public $remainingAmount = 0;
     public $totalBreakdown = [];
@@ -492,6 +492,7 @@ class Shoppingcart extends Component
 
     public function cashupitoggleBox()
     {
+        $this->dispatch('setNotes');
         if (auth()->user()->hasRole('warehouse')) {
             $warehouse_product_photo_path = session(auth()->id() . '_warehouse_product_photo_path', []);
             $warehouse_customer_photo_path = session(auth()->id() . '_warehouse_customer_photo_path', []);
@@ -870,6 +871,11 @@ class Shoppingcart extends Component
             'type' => $type,
             'count' => $this->cashNotes[$key]['count'] ?? 0
         ];
+        $this->cashupiNotes[$key] = [
+            'type' => $type,
+            'count' => $this->cashupiNotes[$key]['count'] ?? 0
+        ];
+        
     }
 
     public function getTotalCashInProperty()
@@ -1028,6 +1034,7 @@ class Shoppingcart extends Component
 
         foreach ($this->noteDenominations as $index => $denomination) {
             $this->cashNotes[$index][$denomination] = ['in' => 0, 'out' => 0];
+            $this->cashupiNotes[$index][$denomination] = ['in' => 0, 'out' => 0];
         }
 
         if (session()->has('notification-sucess')) {
@@ -1988,6 +1995,11 @@ class Shoppingcart extends Component
     //     $this->reset('searchTerm', 'searchResults', 'showSuggestions');
 
     // }
+    public function setNotes(){
+        foreach ($this->noteDenominations as $index => $denomination) {
+        $this->cashNotes[$index][$denomination] = ['in' => 0, 'out' => 0];
+        }
+    }
     public function checkout()
     {
         try {
@@ -2709,7 +2721,71 @@ class Shoppingcart extends Component
                 //'billing_address'=> $address,
             ]);
             InvoiceHistory::logFromInvoice($invoice, 'created', auth()->id());
+            if ($this->selectedPartyUser) {
+                $warehouse_product_photo_path = session(auth()->id() . '_warehouse_product_photo_path', []);
+                $warehouse_customer_photo_path = session(auth()->id() . '_warehouse_customer_photo_path', []);
+                $userImgName = basename($warehouse_customer_photo_path);
+                $productImgName = basename($warehouse_product_photo_path);
+                // Define source and destination paths
+                //$sourcePath = 'uploaded_photos/' . $image['filename'];
+                $destinationProductPath = 'uploaded_photos/' . $invoice_number . '/' . $productImgName;
+                $destinationUserPath = 'uploaded_photos/' . $invoice_number . '/' . $userImgName;
 
+                if (Storage::disk('public')->exists($warehouse_product_photo_path)) {
+                    Storage::disk('public')->move($warehouse_product_photo_path, $destinationUserPath);
+                }
+                if (Storage::disk('public')->exists($warehouse_customer_photo_path)) {
+                    Storage::disk('public')->move($warehouse_customer_photo_path, $destinationProductPath);
+                }
+                // Save the updated image path (in the order folder) to the database
+                PartyUserImage::create([
+                    'party_user_id' => $invoice->party_user_id,
+                    'type' => '',
+                    'image_path' => $destinationUserPath, // new path
+                    'image_name' => '',
+                    'product_image_path' => $destinationProductPath, // assuming same
+                    'transaction_id' => $invoice->id,
+                ]);
+
+
+                // Optional: clear the session images
+                session()->forget(auth()->id() . '_warehouse_product_photo_path', []);
+                session()->forget(auth()->id() . '_warehouse_customer_photo_path', []);
+            }else if ($this->selectedCommissionUser)  {
+
+                $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
+                $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
+                if(!empty($cashier_product_photo_path) && !empty($cashier_customer_photo_path)){
+
+                    $userImgName = basename($cashier_customer_photo_path) ?? '';
+                    $productImgName = basename($cashier_product_photo_path) ?? '';
+                    // Define source and destination paths
+                    //$sourcePath = 'uploaded_photos/' . $image['filename'];
+                    $destinationProductPath = 'uploaded_photos/' . $invoice_number . '/' . $productImgName;
+                    $destinationUserPath = 'uploaded_photos/' . $invoice_number . '/' . $userImgName;
+                    if (Storage::disk('public')->exists($cashier_customer_photo_path)) {
+                        Storage::disk('public')->move($cashier_customer_photo_path, $destinationUserPath);
+                    }
+                    if (Storage::disk('public')->exists($cashier_product_photo_path)) {
+                        Storage::disk('public')->move($cashier_product_photo_path, $destinationProductPath);
+                    }
+                    CommissionUserImage::create([
+                        'commission_user_id' => $invoice->commission_user_id,
+                        'type' => '',
+                        'image_path' => $destinationUserPath,
+                        'image_name' => '',
+                        'product_image_path' => $destinationProductPath,
+                        'transaction_id' => $invoice->id,
+                    ]);
+                    session()->forget(auth()->id() . '_cashier_product_photo_path', []);
+                    session()->forget(auth()->id() . '_cashier_customer_photo_path', []);
+                }
+            }
+            // Retrieve session data
+
+
+            // Clear session
+            session()->forget('checkout_images');
             if (!empty($commissionUser->id)) {
 
                 DiscountHistory::create([
