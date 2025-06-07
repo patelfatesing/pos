@@ -74,7 +74,7 @@ class DashboardController extends Controller
         $inventorySummary = \DB::table('inventories')
         ->join('products', 'inventories.product_id', '=', 'products.id')
         ->where('inventories.store_id', $storeId)
-        ->selectRaw('SUM(products.cost_price) as total_cost_price')
+         ->selectRaw('SUM(products.cost_price * inventories.quantity) as total_cost_price')
         ->first();
 
         // // Example: Top selling products
