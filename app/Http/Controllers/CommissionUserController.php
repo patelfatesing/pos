@@ -63,7 +63,7 @@ class CommissionUserController extends Controller
                                     <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
                                         href="' . url('/commission-users/edit/' . $commissionUser->id) . '"><i class="ri-pencil-line mr-0"></i></a>
            <a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                                        href="' . url('/party-users/view/' . $commissionUser->id) . '"><i class="ri-eye-line mr-0"></i></a>
+                                        href="' . url('/commission-cust/view/' . $commissionUser->id) . '"><i class="ri-eye-line mr-0"></i></a>
             
                                         </div>';
 
