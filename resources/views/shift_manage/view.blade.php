@@ -23,12 +23,10 @@
                             </div>
                             <div class="card-body">
                                 <div class="card-body">
-                                
-
                                     <div class="table-responsive">
                                         <table class="table table-bordered">
                                             <thead class="table-light">
-                                               <tr>
+                                                <tr>
                                                     <th>Invoice No</th>
                                                     <th>Cash Amount</th>
                                                     <th>UPI Amount</th>
@@ -37,7 +35,6 @@
                                                     <th>Payment Mode</th>
                                                     <th>Total Items</th>
                                                     <th>Sub Total</th>
-                                                    <th>Tax</th>
                                                     <th>Total</th>
                                                     <th>Status</th>
                                                     <th>Created At</th>
@@ -48,29 +45,24 @@
                                                     <tr>
                                                         <td>{{ $invoice->invoice_number }}</td>
                                                         <td>{{ $invoice->cash_amount }}</td>
-                                                        <td>{{ $invoice->upi_amount+$invoice->online_amount }}</td>
+                                                        <td>{{ $invoice->upi_amount + $invoice->online_amount }}</td>
                                                         {{-- <td>{{ $invoice->online_amount }}</td> --}}
                                                         <td>{{ $invoice->creditpay }}</td>
                                                         <td>{{ $invoice->payment_mode }}</td>
                                                         <td>{{ $invoice->total_item_qty }}</td>
                                                         <td>{{ $invoice->sub_total }}</td>
-                                                        <td>{{ $invoice->tax }}</td>
                                                         <td>{{ $invoice->total }}</td>
                                                         <td>{{ $invoice->status }}</td>
-                                                        <td>{{ \Carbon\Carbon::parse($invoice->created_at)->format('d-m-Y h:i:s') }} </td>
+                                                        <td>{{ \Carbon\Carbon::parse($invoice->created_at)->format('d-m-Y h:i:s') }}
+                                                        </td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>
                                         </table>
                                         <div class="d-flex justify-content-center mt-3">
-{{ $invoices->links('pagination::bootstrap-5') }}
+                                            {{ $invoices->links('pagination::bootstrap-5') }}
                                         </div>
-
                                     </div>
-
-
-                                 
-
                                 </div>
                             </div>
                         </div>
