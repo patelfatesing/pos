@@ -30,9 +30,10 @@
                             <tr>
                                 <th>#</th>
                                 <th>Product</th>
-                                <th>Brand</th>
                                 <th>Transfer Number</th>
+                                <th>Transfer Date</th>
                                 <th>Quantity</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -40,9 +41,10 @@
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $item->product_name }}</td>
-                                    <td>{{ $item->brand }}</td>
                                     <td>{{ $item->transfer_number }}</td>
+                                    <td>{{ $item->transferred_at }}</td>
                                     <td>{{ $item->quantity }}</td>
+                                    <td>{{ $item->status }}</td>
                                 </tr>
                             @endforeach
                             @if ($stockTransfer->isEmpty())
@@ -59,7 +61,8 @@
     </div>
 
     <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-dismiss="modal" onclick="nfModelCls()">Close</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-dismiss="modal"
+            onclick="nfModelCls()">Close</button>
         {{-- <button type="submit" class="btn btn-primary">Save changes</button> --}}
     </div>
 </form>

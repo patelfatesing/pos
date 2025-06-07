@@ -118,7 +118,7 @@ class PartyUserController extends Controller
         // if ($request->hasFile('photo')) {
         //     $data['photo'] = $request->file('photo')->store('party_user_photos', 'public');
         // }
-        $PartyUser=PartyUser::create($data);
+        $PartyUser = PartyUser::create($data);
         if ($request->hasFile('photo')) {
             $extension = $request->file('photo')->getClientOriginalExtension();
             $filename = $PartyUser->id . '_partyuser.' . $extension;
@@ -151,7 +151,7 @@ class PartyUserController extends Controller
         $data = $request->validate([
             'first_name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:party_users,email,' . $Partyuser->id,
-            'phone' => 'nullable|string|max:255',
+            'phone' => 'required|digits:10|regex:/^[0-9]+$/|unique:party_users,phone',
             'address' => 'nullable|string|max:255',
             'credit_points' => 'required|numeric|min:0|max:99999999.99',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
@@ -165,11 +165,10 @@ class PartyUserController extends Controller
                 \Storage::disk('public')->delete($Partyuser->photo);
             }
             $extension = $request->file('photo')->getClientOriginalExtension();
-            $filename = $Partyuser->id.'_partyuser'. '.' . $extension;
+            $filename = $Partyuser->id . '_partyuser' . '.' . $extension;
 
             // Store new photo
             $data['photo'] = $request->file('photo')->storeAs('party_user_photos', $filename, 'public');
-
         }
 
         $Partyuser->update($data);

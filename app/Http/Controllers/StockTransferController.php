@@ -204,7 +204,11 @@ class StockTransferController extends Controller
             // Step 2: Begin transaction and do actual stock transfer
             DB::beginTransaction();
 
-            $transferNumber = 'TRF-' . now()->format('YmdHis') . '-' . strtoupper(Str::random(4));
+            $prefix = 'TF';
+            $datePart = now()->format('ymd'); // e.g., 250607
+            $randomPart = str_pad(random_int(1, 99), 2, '0', STR_PAD_LEFT); // e.g., 06
+
+            $transferNumber = "{$prefix}-{$datePart}-{$randomPart}";
 
             $arr_low_stock = [];
             foreach ($request->items as $item) {
@@ -309,7 +313,7 @@ class StockTransferController extends Controller
             $data['id'] = $transferNumber;
             $data['from_store'] = Branch::find($request->from_store_id)->name;
             $data['to_store'] = Branch::find($request->to_store_id)->name;
-            
+
             if ($request->to_store_id != 1) {
                 sendNotification('transfer_stock', 'Stock transfer completed successfully', 1, Auth::id(), json_encode($data), 0);
                 sendNotification('transfer_stock', 'Stock transfer completed successfully', $request->to_store_id, Auth::id(), json_encode($data), 0);
