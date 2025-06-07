@@ -378,7 +378,7 @@ class ShiftCloseModal extends Component
       public function save()
     {
         $this->validate([
-            'products.*.qty' => 'required|integer|min:1',
+            'products.*.qty' => 'required|integer',
         ]);
           if($this->showYesterDayShiftTime){
             $dateMatch = Carbon::yesterday();
