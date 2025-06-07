@@ -367,8 +367,8 @@
                             <label class="form-label fw-bold mb-2">Physical Stock Image Capture</label>
                             <div class="d-flex flex-wrap align-items-center gap-3">
                                 <div>
-                                    <video id="webcam" width="200" height="150" autoplay class="border rounded"></video>
-                                    <canvas id="canvas" width="200" height="150" style="display: none;"></canvas>
+                                    <video id="webcam" width="480" height="360" autoplay class="border rounded shadow" style="object-fit: cover;"></video>
+                                    <canvas id="canvas" width="480" height="360" style="display: none;"></canvas>
                                 </div>
                                 <div class="d-flex flex-column align-items-center gap-2">
                                     <button type="button" class="btn btn-outline-secondary btn-sm" onclick="takeSnapshot()">

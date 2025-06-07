@@ -243,7 +243,7 @@ class ShiftManageController extends Controller
                 ->selectRaw('SUM(credit_amount) as credit_total, SUM(debit_amount) as debit_total')
                 ->first();
 
-            $invoices = Invoice::where(['user_id' => $shift->user_id])->where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->where('status', '!=', 'Hold')->where('invoice_number', 'not like', '%Hold%')->latest()->get();
+            $invoices = Invoice::where(['user_id' => $shift->user_id])->where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->where('status', '!=', 'Hold')->latest()->get();
             $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = 0;
 
             foreach ($invoices as $invoice) {
@@ -297,13 +297,21 @@ class ShiftManageController extends Controller
                     }
                 }
             }
+            $creditCollacted = \DB::table('credit_collections')
+            ->selectRaw('
+            SUM(cash_amount) as collacted_cash_amount,
+            SUM(online_amount) as collacted_online_amount,
+            SUM(upi_amount) as collacted_upi_amount
+            ')
+            ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
+            ->first();
             $todayCash = $totalPaid;
             $totalWith = \App\Models\WithdrawCash::where('user_id',  $shift->user_id)
                 ->where('branch_id', $shift->branch_id)->whereBetween('created_at', [$shift->start_time, $shift->end_time])->sum('amount');
             $categoryTotals['payment']['CASH'] = $totalCashPaid;
             // $categoryTotals['payment']['UPI PAYMENT'] = $totalUpiPaid;
             $categoryTotals['summary']['OPENING CASH'] = @$shift->opening_cash;
-            $categoryTotals['summary']['TOTAL SALES'] = $totalSubTotal + $discountTotal;
+            $categoryTotals['summary']['TOTAL SALES'] = $totalSubTotal + $discountTotal-$totalRefundReturn;
             $categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
             $categoryTotals['summary']['WITHDRAWAL PAYMENT'] = $totalWith * (-1);
             $categoryTotals['summary']['UPI PAYMENT'] = ($totalUpiPaid + $totalOnlinePaid) * (-1);
