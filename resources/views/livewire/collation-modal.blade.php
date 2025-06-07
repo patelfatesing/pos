@@ -50,7 +50,7 @@
                                     @forelse($partyUsers as $index => $user)
                                         <tr>
                                             <td>{{ $index + 1 }}</td>
-                                            <td>{{ $user->first_name }} {{ $user->last_name }}</td>
+                                            <td>{{ $user->first_name }}</td>
                                             <td>{{ $user->mobile_number }}</td>
                                             <td>{{ $user->email }}</td>
                                             <td>{{ $user->address }}</td>
@@ -101,8 +101,7 @@
             <div class="modal-dialog modal-md">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Collect Credit for {{ $selectedUser?->first_name }}
-                            {{ $selectedUser?->last_name }}</h5>
+                        <h5 class="modal-title">Collect Credit for {{ $selectedUser?->first_name }}</h5>
                         <button type="button" class="close" wire:click="$set('showCollectModal', false)">
                             <span aria-hidden="true">×</span>
                         </button>

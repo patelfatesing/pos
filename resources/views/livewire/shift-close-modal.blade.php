@@ -297,6 +297,8 @@
                     </div>
 
                     <div class="modal-footer">
+                        
+
                         <button class="btn btn-outline-secondary" wire:click="closeStockModal">Close</button>
                     </div>
                 </div>
@@ -360,13 +362,34 @@
                         @endif
                     </div>
 
-                    <div class="modal-footer">
+                    <div class="modal-footer flex-column align-items-stretch gap-3">
 
-                        <!-- Submit button outside the form -->
-                        <button type="submit" form="stockPhysicalForm" class="btn btn-primary">
-                            Save
-                        </button>
-                        <button class="btn btn-outline-secondary" wire:click="closePhyStockModal">Close</button>
+                        <div class="w-100">
+                            <label class="form-label fw-bold mb-2">Physical Stock Image Capture</label>
+                            <div class="d-flex flex-wrap align-items-center gap-3">
+                                <div>
+                                    <video id="webcam" width="200" height="150" autoplay class="border rounded"></video>
+                                    <canvas id="canvas" width="200" height="150" style="display: none;"></canvas>
+                                </div>
+                                <div class="d-flex flex-column align-items-center gap-2">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="takeSnapshot()">
+                                        <i class="bi bi-camera"></i> Capture
+                                    </button>
+                                    @if ($capturedImage)
+                                        <img src="{{ $capturedImage }}" class="img-thumbnail" width="100">
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 w-100">
+                            <button type="submit" form="stockPhysicalForm" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Save
+                            </button>
+                            <button class="btn btn-outline-secondary" wire:click="closePhyStockModal">
+                                <i class="bi bi-x"></i> Close
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -377,3 +400,39 @@
         <div class="modal-backdrop fade show"></div>
     @endif
 </div>
+<script>
+       window.addEventListener('test', (event) => {
+        setTimeout(() => {
+            let video = document.getElementById('webcam');
+            let canvas = document.getElementById('canvas');
+            let context = canvas.getContext('2d');
+
+            // Start webcam
+            if (navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function (stream) {
+                        video.srcObject = stream;
+                    })
+                    .catch(function (error) {
+                        console.log("Webcam error: ", error);
+                    });
+            }
+
+            // function takeSnapshot() {
+            //     context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            //     let image_data_url = canvas.toDataURL('image/jpeg');
+            //     Livewire.dispatch('setCapturedImage', { image: image_data_url });
+            // }
+            window.takeSnapshot = function () {
+                if (!video || !canvas) return;
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageDataUrl = canvas.toDataURL('image/jpeg');
+                //console.log('Captured Image Data URL:', imageDataUrl);
+                Livewire.dispatch('setCapturedImage', { image: imageDataUrl });
+            };
+        }, 300); // allow DOM to fully render
+    });
+</script>

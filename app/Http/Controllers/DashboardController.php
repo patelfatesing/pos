@@ -34,9 +34,9 @@ class DashboardController extends Controller
         $totalProducts = $totals->total_products;
 
         $inventorySummary = \DB::table('inventories')
-        ->join('products', 'inventories.product_id', '=', 'products.id')
-        ->selectRaw('SUM(products.cost_price) as total_cost_price')
-        ->first();
+            ->join('products', 'inventories.product_id', '=', 'products.id')
+            ->selectRaw('SUM(products.cost_price * inventories.quantity) as total_cost_price')
+            ->first();
 
         $data= [
             'store'         => "Selete Store",
