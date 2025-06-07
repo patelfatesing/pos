@@ -80,7 +80,7 @@
                                     <th>Selling Price</th>
                                     <th>Cost Price</th>
                                     <th>Qty</th>
-                                    <th>All Price</th>
+                                    <th>Total Stock Value</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
