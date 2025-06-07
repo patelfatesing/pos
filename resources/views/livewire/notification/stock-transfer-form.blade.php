@@ -16,6 +16,22 @@
                             <p><strong>To:</strong> {{ $to_store }}</p>
                         </div>
                     </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Store: </label> <span class="ml-2">{{ $from_store }}</span>
+
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>To: </label>
+                                <span class="ml-2"> {{ to_store }}</span>
+
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -27,9 +43,10 @@
                             <tr>
                                 <th>#</th>
                                 <th>Product</th>
-                                <th>Brand</th>
-                                <th>SKU</th>
                                 <th>Transfer Number</th>
+                                <th>Transfer Date</th>
+                                <th>SKU</th>
+
                                 <th>Quantity</th>
                             </tr>
                         </thead>
@@ -38,9 +55,9 @@
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $item->product_name }}</td>
-                                    <td>{{ $item->brand }}</td>
-                                    <td>{{ $item->sku }}</td>
                                     <td>{{ $item->transfer_number }}</td>
+                                    <td>{{ $item->transferred_at->format('d M Y h:i A') }}</td>
+                                    <td>{{ $item->sku }}</td>
                                     <td>{{ $item->quantity }}</td>
                                 </tr>
                             @endforeach

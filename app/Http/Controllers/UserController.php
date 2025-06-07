@@ -9,6 +9,7 @@ use App\Models\Roles;
 use App\Models\UserInfo;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -95,7 +96,7 @@ class UserController extends Controller
                     ? '<span onclick=\'statusChange("' . $employee->id . '", "no")\'><div class="badge badge-success" style="cursor:pointer">Active</div></span>'
                     : '<span onclick=\'statusChange("' . $employee->id . '", "yes")\'><div class="badge badge-danger" style="cursor:pointer">Inactive</div></span>',
                 'created_at' => $employee->created_at->format('d-m-Y h:i A'),
-                'updated_at'=> $employee->updated_at->format('d-m-Y h:i A'),
+                'updated_at' => $employee->updated_at->format('d-m-Y h:i A'),
                 'action' => $action
             ];
         }
@@ -133,12 +134,18 @@ class UserController extends Controller
             ],
             'password' => 'required|string|min:8|confirmed',
             'role_id' => 'required|exists:roles,id',
-            'branch_id' => 'required|exists:branches,id',
+            'branch_id' => [
+                Rule::requiredIf(function () use ($request) {
+                    return in_array((int) $request->role_id, [3, 4]);
+                }),
+                'nullable',
+                'exists:branches,id',
+            ],
         ], [
             'phone_number.required' => 'The phone number field is required.',
             'phone_number.regex' => 'Please enter a valid phone number.',
             'role_id.required' => 'Please select role.',
-            'branch_id.required' => 'Please select store.'
+            'branch_id.required' => 'Please select store.',
         ]);
 
         // Create the user
@@ -161,14 +168,6 @@ class UserController extends Controller
         ]);
 
         return redirect()->route('users.list')->with('success', 'User has been created');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(User $User)
-    {
-        //
     }
 
     // Show edit form
@@ -195,7 +194,13 @@ class UserController extends Controller
                 'regex:/^(\+?\d{1,3})?\d{10}$/'
             ],
             'role_id'       => 'required|exists:roles,id',
-            'branch_id'     => 'nullable|exists:branches,id',
+            'branch_id' => [
+                Rule::requiredIf(function () use ($request) {
+                    return in_array((int) $request->role_id, [3, 4]);
+                }),
+                'nullable',
+                'exists:branches,id',
+            ],
         ], [
             'phone_number.required' => 'The phone number field is required.',
             'phone_number.regex'    => 'Please enter a valid phone number.',
@@ -244,7 +249,7 @@ class UserController extends Controller
 
         return response()->json(['message' => 'Status updated successfully']);
     }
-    
+
     // public function openDrawer()
     // {
     //     try {

@@ -68,23 +68,16 @@
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>{{ __('messages.password') }}</label>
-                                                  <input 
-                                                        id="password" 
-                                                        class="floating-input form-control pr-5" 
-                                                        name="password" 
-                                                        type="password" 
-                                                        placeholder=" " 
-                                                        :value="old('password')"
-                                                    >
-                                                    <!-- Eye icon -->
-                                                    <span 
-                                                        class="position-absolute" 
-                                                        style="top: 50px; right: 15px; cursor: pointer;" 
-                                                        onclick="togglePasswordVisibility()"
-                                                    >
-                                                        <i id="togglePasswordIcon" class="fa fa-eye"></i>
-                                                    </span>
-                                              
+                                                <input id="password" class="floating-input form-control pr-5"
+                                                    name="password" type="password" placeholder=" "
+                                                    :value="old('password')">
+                                                <!-- Eye icon -->
+                                                <span class="position-absolute"
+                                                    style="top: 50px; right: 15px; cursor: pointer;"
+                                                    onclick="togglePasswordVisibility()">
+                                                    <i id="togglePasswordIcon" class="fa fa-eye"></i>
+                                                </span>
+
                                                 @error('password')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -93,20 +86,13 @@
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>{{ __('messages.confirm_password') }}</label>
-                                                <input 
-                                                    id="passwordnew" 
-                                                    class="floating-input form-control pr-5" 
-                                                    name="password_confirmation" 
-                                                    type="password" 
-                                                    placeholder=" " 
-                                                    :value="old('confirm_password')"
-                                                >
+                                                <input id="passwordnew" class="floating-input form-control pr-5"
+                                                    name="password_confirmation" type="password" placeholder=" "
+                                                    :value="old('confirm_password')">
                                                 <!-- Eye icon -->
-                                                <span 
-                                                    class="position-absolute" 
-                                                    style="top: 50px; right: 15px; cursor: pointer;" 
-                                                    onclick="togglePasswordVisibilityNew()"
-                                                >
+                                                <span class="position-absolute"
+                                                    style="top: 50px; right: 15px; cursor: pointer;"
+                                                    onclick="togglePasswordVisibilityNew()">
                                                     <i id="togglePasswordIcon" class="fa fa-eye"></i>
                                                 </span>
                                                 @error('confirm_password')
@@ -128,7 +114,7 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-6 branch-section">
                                             <div class="form-group">
                                                 <label>{{ __('messages.branch_id') }} *</label>
                                                 <select name="branch_id" class="selectpicker form-control"
@@ -172,26 +158,32 @@
 
         $('select[name="role_id"]').on('change', function() {
             const selectedRoleId = $(this).val();
-
-            $branchSelect.empty().append('<option value="">Select Store</option>');
-
-            if (selectedRoleId == '4') {
-                // Only show branch_id = 1
-                allBranchOptions.each(function() {
-                    if ($(this).val() == '1') {
-                        $branchSelect.append($(this));
-                    }
-                });
+            // Hide or Show branch dropdown based on role
+            if (selectedRoleId == '1' || selectedRoleId == '2') {
+                $('.branch-section').hide(); // hide the entire div
+                $('select[name="branch_id"]').val('').selectpicker('refresh'); // clear selection
             } else {
-                // Show all branches except branch_id = 1
-                allBranchOptions.each(function() {
-                    if ($(this).val() != '1' && $(this).val() !== '') {
-                        $branchSelect.append($(this));
-                    }
-                });
-            }
+                $('.branch-section').show(); // hide the entire div
+                $branchSelect.empty().append('<option value="">Select Store</option>');
 
-            $branchSelect.selectpicker('refresh'); // Refresh if using Bootstrap Select
+                if (selectedRoleId == '4') {
+                    // Only show branch_id = 1
+                    allBranchOptions.each(function() {
+                        if ($(this).val() == '1') {
+                            $branchSelect.append($(this));
+                        }
+                    });
+                } else {
+                    // Show all branches except branch_id = 1
+                    allBranchOptions.each(function() {
+                        if ($(this).val() != '1' && $(this).val() !== '') {
+                            $branchSelect.append($(this));
+                        }
+                    });
+                }
+
+                $branchSelect.selectpicker('refresh'); // Refresh if using Bootstrap Select
+            }
         });
 
         // Trigger change on page load if old('role_id') is set
@@ -203,34 +195,33 @@
 </script>
 
 <script>
-   function togglePasswordVisibility() {
-      const input = document.getElementById('password');
-      const icon = document.getElementById('togglePasswordIcon');
+    function togglePasswordVisibility() {
+        const input = document.getElementById('password');
+        const icon = document.getElementById('togglePasswordIcon');
 
-      if (input.type === 'password') {
+        if (input.type === 'password') {
             input.type = 'text';
             icon.classList.remove('fa-eye');
             icon.classList.add('fa-eye-slash');
-      } else {
+        } else {
             input.type = 'password';
             icon.classList.remove('fa-eye-slash');
             icon.classList.add('fa-eye');
-      }
-   }
+        }
+    }
+
     function togglePasswordVisibilityNew() {
-      const input = document.getElementById('passwordnew');
-      const icon = document.getElementById('togglePasswordIconnew');
+        const input = document.getElementById('passwordnew');
+        const icon = document.getElementById('togglePasswordIconnew');
 
-      if (input.type === 'password') {
+        if (input.type === 'password') {
             input.type = 'text';
             icon.classList.remove('fa-eye');
             icon.classList.add('fa-eye-slash');
-      } else {
+        } else {
             input.type = 'password';
             icon.classList.remove('fa-eye-slash');
             icon.classList.add('fa-eye');
-      }
-   }
+        }
+    }
 </script>
-
-
