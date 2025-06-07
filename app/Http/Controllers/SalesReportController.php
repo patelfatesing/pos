@@ -60,6 +60,8 @@ class SalesReportController extends Controller
             ]);
         }
 
+        $query->where('invoices.status', '!=', 'Hold'); // Exclude cancelled invoices
+
         if (!empty($request->branch_id)) {
             $query->where('invoices.branch_id', $request->branch_id);
         }
