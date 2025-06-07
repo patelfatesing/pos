@@ -28,6 +28,7 @@ use App\Models\Refund;
 use App\Models\CreditCollection;
 use Illuminate\Support\Facades\Auth;
 use App\Models\DailyProductStock;
+use Illuminate\Support\Facades\Storage;
 
 class ShiftCloseModal extends Component
 {
@@ -86,7 +87,7 @@ class ShiftCloseModal extends Component
     public $showModal = false;
     public $availableNotes = "";
     public $selectedUser = 0;
-    protected $listeners = ['updateProductList' => 'loadCartData', 'loadHoldTransactions', 'updateNewProductDetails', 'resetData'];
+    protected $listeners = ['updateProductList' => 'loadCartData','openCloseModal' => 'openModal', 'loadHoldTransactions', 'updateNewProductDetails', 'resetData','setCapturedImage'];
     public $noteDenominations = [10, 20, 50, 100, 200, 500];
     public $remainingAmount = 0;
     public $totalBreakdown = [];
@@ -121,6 +122,7 @@ class ShiftCloseModal extends Component
     public $diffCash = 0;
     public bool $showStockModal = false;
     public bool $showPhysicalModal = false;
+    public $capturedImage;
 
     protected $rules = [
         'closingCash' => 'required|numeric|min:0',
@@ -133,11 +135,27 @@ class ShiftCloseModal extends Component
     ];
     public $productStock = [];
     public $showCloseModal = false;
+    public $shiftTime;
+    public $image;
+    public $showYesterDayShiftTime = false;
 
-    public function openModal()
+
+
+    public function setCapturedImage($image="")
     {
-        $today = Carbon::today();
-        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+        $this->capturedImage = $image;
+    }
+
+    public function openModal($shiftTime=[])
+    {
+         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+         if(!empty($shiftTime['day']) && $shiftTime['day']=="yesterday"){
+            $today = Carbon::yesterday();
+            $this->showYesterDayShiftTime=true;
+         }else{
+             $today = Carbon::today();
+         }
+
 
         // Fetch and assign your shift data here (dummy data for now)
         $this->shift = $currentShift = UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "pending"])->first();
@@ -170,7 +188,8 @@ class ShiftCloseModal extends Component
         ->whereBetween('created_at', [$start_date, $end_date])
         ->first();
 
-        $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->where('status', '!=', 'Hold')->where('invoice_number', 'not like', '%Hold%')->latest()->get();
+        // $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->where('status', '!=', 'Hold')->where('invoice_number', 'not like', '%Hold%')->latest()->get();
+        $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->where('status', '!=', 'Hold')->latest()->get();
         foreach ($invoices as $invoice) {
             $items = $invoice->items; // decode items from longtext JSON
 
@@ -288,21 +307,27 @@ class ShiftCloseModal extends Component
 
     public function openClosingStocksModal()
     {
+        if($this->showYesterDayShiftTime){
+            $dateMatch = Carbon::yesterday();
+        }else{
+            $dateMatch = Carbon::today();
+        }
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
         $user_id = auth()->id();
         $shift2 = UserShift::where('user_id', $user_id)
         ->where('branch_id', $branch_id)
-        ->whereBetween('created_at', [$this->shift->start_time, $this->shift->end_time])
-        ->where('status', 'pending')
+        //->whereBetween('created_at', [$this->shift->start_time, $this->shift->end_time])
+        ->where('id', 'pending')
+        ->where('status', $this->shift->id)
         ->first();
-        if ($shift2->physical_stock_added==0) {
+        if (!empty($shift2->physical_stock_added) && $shift2->physical_stock_added==0) {
                 $this->dispatch('notiffication-error', ['message' => 'Please add physical sales first']);
                 return;
         }
         $this->showStockModal = true;
         $rawStockData = DailyProductStock::with('product')
             ->where('branch_id', $branch_id)
-            ->whereDate('date', Carbon::today())
+            ->whereDate('date', $dateMatch)
             ->get()->toArray();
 
         $this->stockStatus = array_map(function ($item) {
@@ -313,15 +338,26 @@ class ShiftCloseModal extends Component
                 $item['sold_stock'];
             return $item;
         }, $rawStockData);
+
     }
     public function addphysicalStock()
     {
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
-
+         if($this->showYesterDayShiftTime){
+            $dateMatch = Carbon::yesterday();
+        }else{
+            $dateMatch = Carbon::today();
+        }
+        if ($this->shift->physical_stock_added==1) {
+             $this->dispatch('notiffication-error', ['message' => 'Physical stock already added.']);
+            return;
+        }
         $this->showPhysicalModal = true;
+        $this->dispatch('test');
+
         $rawStockData = DailyProductStock::with('product')
             ->where('branch_id', $branch_id)
-            ->whereDate('date', Carbon::today())
+            ->whereDate('date', $dateMatch)
             ->get()->toArray();
         $this->addstockStatus = array_map(function ($item) {
             $item['closing_stock'] =
@@ -341,20 +377,40 @@ class ShiftCloseModal extends Component
     // }
       public function save()
     {
-        // $this->validate([
-        //     'products.*.qty' => 'required|integer|min:1',
-        // ]);
+        $this->validate([
+            'products.*.qty' => 'required|integer|min:1',
+        ]);
+          if($this->showYesterDayShiftTime){
+            $dateMatch = Carbon::yesterday();
+        }else{
+            $dateMatch = Carbon::today();
+        }
         if (empty($this->products)) {
             $this->dispatch('notiffication-error', ['message' => 'Please add qty of product ']);
             return;
+        }
+         if (empty($this->capturedImage)) {
+            $this->dispatch('notiffication-error', ['message' => 'Please add 
+            physical stock image']);
+            return;
+        }
+         if ($this->capturedImage) {
+            // Decode and store image
+            $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $this->capturedImage));
+            $filename = 'captured_images/' . uniqid() . '.jpg';
+            Storage::disk('public')->put($filename, $imageData);
+
+            // Store path in DB (if needed)
+            // Example: PhysicalStock::create([... , 'image_path' => $filename]);
         }
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
         foreach ($this->products as $product_id =>  $product) {
              $dailyProductStock = DailyProductStock::where('branch_id', $branch_id)
-                ->where('product_id', $product_id)->whereDate('date', Carbon::today())
+                ->where('product_id', $product_id)->whereDate('date', $dateMatch)
                 ->first();
             if(!empty($dailyProductStock)){
+                //
                 $dailyProductStock->physical_stock = $product['qty'];
                 $dailyProductStock->difference_in_stock = $product['qty'] - $dailyProductStock->closing_stock;
                 $dailyProductStock->save();
@@ -366,6 +422,7 @@ class ShiftCloseModal extends Component
         ->where('status', 'pending')
         ->update([
         'physical_stock_added' => true,
+        'physical_photo' => $filename,
         ]);
         $this->showPhysicalModal = false;
         $this->dispatch('notiffication-sucess', ['message' => 'Physical sales added successfully']);
@@ -389,11 +446,14 @@ class ShiftCloseModal extends Component
     public function submit()
     {
         $this->validate();
-
         DB::beginTransaction();
 
         try {
-
+            if($this->showYesterDayShiftTime){
+                $dateMatch = Carbon::yesterday();
+            }else{
+                $dateMatch = Carbon::today();
+            }
             $user_id = auth()->id();
             $branch_id = auth()->user()->userinfo->branch->id ?? null;
             $holdInvoiceExists = Invoice::where('user_id', $user_id)
@@ -454,7 +514,7 @@ class ShiftCloseModal extends Component
 
             $stocks = DailyProductStock::with('product')
                 ->where('branch_id', $branch_id)
-                ->whereDate('date', Carbon::today())
+                ->whereDate('date', $dateMatch)
                 ->get();
 
             foreach ($stocks as $stock) {

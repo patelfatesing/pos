@@ -36,7 +36,7 @@
                         <select id="customer_id" class="form-control">
                             <option value="">All Party Customer</option>
                             @foreach ($party_users as $cus)
-                                <option value="{{ $cus->id }}">{{ $cus->first_name }} {{ $cus->last_name }}</option>
+                                <option value="{{ $cus->id }}">{{ $cus->first_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -51,10 +51,10 @@
                         <table class="table table-striped" id="stock-table" style="width:100%">
                             <thead class="bg-white text-uppercase">
                                 <tr>
-                                    <th>Trasaction Number</th>
-                                    <th>Trasaction Date</th>
+                                    <th>Transaction Number</th>
+                                    <th>Transaction Date</th>
                                     <th>commission Amount</th>
-                                    <th>Trasaction Total</th>
+                                    <th>Transaction Total</th>
                                     <th>Customer Name</th>
                                     <th>Status</th>
 

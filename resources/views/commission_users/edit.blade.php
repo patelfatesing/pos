@@ -1,9 +1,7 @@
 @extends('layouts.backend.layouts')
 
 @section('page-content')
-    <!-- Wrapper Start -->
     <div class="wrapper">
-
         <div class="content-page">
             <div class="container-fluid add-form-list">
                 <div class="row">
@@ -22,24 +20,14 @@
                                     enctype="multipart/form-data" data-toggle="validator">
                                     @csrf
                                     @method('PUT')
+
                                     <div class="row">
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
-                                                <label>First Name</label>
+                                                <label>Customer Name</label>
                                                 <input type="text" name="first_name" class="form-control"
-                                                    value="{{ old('first_name', $commissionUser->first_name) }}" required>
+                                                    value="{{ old('first_name', $commissionUser->first_name) }}">
                                                 @error('first_name')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-
-                                        <div class="col-lg-6">
-                                            <div class="floating-label form-group">
-                                                <label>Last Name</label>
-                                                <input type="text" name="last_name" class="form-control"
-                                                    value="{{ old('last_name', $commissionUser->last_name) }}" required>
-                                                @error('last_name')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
@@ -52,39 +40,29 @@
                                                     <option value="fixed"
                                                         {{ old('commission_type', $commissionUser->commission_type) == 'fixed' ? 'selected' : '' }}>
                                                         Fixed</option>
-                                                    {{-- <option value="percentage"
+                                                    <option value="percentage"
                                                         {{ old('commission_type', $commissionUser->commission_type) == 'percentage' ? 'selected' : '' }}>
-                                                        Percentage</option> --}}
+                                                        Percentage</option>
                                                 </select>
                                                 @error('commission_type')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
                                         </div>
-
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
-                                                <label>Commission Value</label>
-                                                <input type="number" step="0.01" name="commission_value"
-                                                    class="form-control"
-                                                    value="{{ old('commission_value', $commissionUser->commission_value) }}"
-                                                    required>
-                                                @error('commission_value')
+                                                <label>Email</label>
+                                                <input type="email" name="email" class="form-control"
+                                                    value="{{ old('email', $commissionUser->email) }}">
+                                                @error('email')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
                                         </div>
-
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>Applies To</label>
                                                 <select name="applies_to" class="form-control">
-                                                    {{-- <option value="all"
-                                                        {{ old('applies_to', $commissionUser->applies_to) == 'all' ? 'selected' : '' }}>
-                                                        All</option> --}}
-                                                    {{-- <option value="category"
-                                                        {{ old('applies_to', $commissionUser->applies_to) == 'category' ? 'selected' : '' }}>
-                                                        Category</option> --}}
                                                     <option value="product"
                                                         {{ old('applies_to', $commissionUser->applies_to) == 'product' ? 'selected' : '' }}>
                                                         Product</option>
@@ -97,8 +75,8 @@
 
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
-                                                <label>Reference ID</label>
-                                                <input type="number" name="reference_id" class="form-control"
+                                                <label>Reference Name</label>
+                                                <input type="text" name="reference_id" class="form-control"
                                                     value="{{ old('reference_id', $commissionUser->reference_id) }}">
                                                 @error('reference_id')
                                                     <span class="text-danger">{{ $message }}</span>
@@ -122,30 +100,29 @@
 
                                         <div class="col-lg-6">
                                             <div class="form-group">
-                                                <label>Upload Images</label>
-                                                <input type="file" name="images[]" class="form-control" multiple>
-                                                @error('images')
+                                                <label>Photo</label>
+                                                <input type="file" name="photo" class="form-control" accept="image/*"
+                                                    onchange="previewImage(event)">
+                                                @error('photo')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
                                         </div>
 
-                                                {{-- Show existing images --}}
-                                                @if (!empty($commissionUser->photo))
-                                                    <div class="mt-3">
-                                                        <label>Existing Images</label>
-                                                        <div class="d-flex flex-wrap gap-2">
-                                                                <div class="me-2 mb-2">
-                                                                    <img src="{{ asset('storage/' .$commissionUser->photo) }}"
-                                                                        alt="Image" class="img-thumbnail"
-                                                                        style="width: 100px; height: 100px; object-fit: cover;">
-                                                                </div>
-                                                        </div>
-                                                    </div>
-                                                @endif
+                                        @if (!empty($commissionUser->photo))
+                                            <div class="form-group">
+                                                <label>Current Photo</label><br>
+                                                <img src="{{ asset('storage/' . $commissionUser->photo) }}" alt="Photo"
+                                                    class="img-thumbnail"
+                                                    style="width: 100px; height: 100px; object-fit: cover;">
+                                            </div>
+                                        @endif
 
-                                        {{-- New image preview --}}
-                                        <div id="imagePreview" class="d-flex flex-wrap gap-2 mt-2"></div>
+
+                                        <div class="col-12">
+                                            <label>Preview New Photo</label>
+                                            <div id="imagePreview" class="mt-2"></div>
+                                        </div>
                                     </div>
 
                                     <button type="submit" class="btn btn-primary mr-2">Update Commission Customer</button>
@@ -155,9 +132,32 @@
                         </div>
                     </div>
                 </div>
-                <!-- Page end -->
             </div>
         </div>
     </div>
-    <!-- Wrapper End -->
+
+    {{-- Image Preview Script --}}
+    <script>
+        function previewImage(event) {
+            const imagePreview = document.getElementById('imagePreview');
+            imagePreview.innerHTML = ''; // Clear existing
+
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'img-thumbnail';
+                    img.style.width = '100px';
+                    img.style.height = '100px';
+                    img.style.objectFit = 'cover';
+                    imagePreview.appendChild(img);
+                }
+
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
 @endsection

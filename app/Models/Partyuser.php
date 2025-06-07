@@ -15,13 +15,14 @@ class Partyuser extends Model
         'reference_id',
         'is_active',
         'first_name',
-        'last_name',
+        //'last_name',
         'email',
         'phone',
         'address',
         'credit_points',
         'left_credit',
-        'use_credit'
+        'use_credit',
+        'photo',
        
     ];
     /**

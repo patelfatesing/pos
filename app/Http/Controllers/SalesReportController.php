@@ -49,6 +49,7 @@ class SalesReportController extends Controller
                 'branches.name as branch_name',
                 'invoices.created_at',
                 'invoices.commission_user_id',
+                'invoices.payment_mode',
                 'invoices.party_user_id'
             );
 
@@ -115,6 +116,7 @@ class SalesReportController extends Controller
                 'party_amount' => number_format($invoice->party_amount, 2),
                 'items_count' => $itemCount,
                 'branch_name' => $invoice->branch_name,
+                'payment_mode' => $invoice->payment_mode,
                 'created_at' => Carbon::parse($invoice->created_at)->format('Y-m-d H:i:s'),
             ];
         }
@@ -438,12 +440,12 @@ class SalesReportController extends Controller
                 'products.mrp',
                 'products.sell_price as selling_price',
                 'products.discount_price as discount',
-                'products.cost_price as purchase_price',
+                'products.cost_price',
                 DB::raw('COALESCE(SUM(daily_product_stocks.opening_stock), 0) as opening_stock'),
                 DB::raw('COALESCE(SUM(daily_product_stocks.added_stock), 0) as in_qty'),
                 DB::raw('COALESCE(SUM(daily_product_stocks.transferred_stock), 0) + COALESCE(SUM(daily_product_stocks.sold_stock), 0) as out_qty'),
                 'inventories.quantity as all_qty',
-                DB::raw('inventories.quantity * products.sell_price as all_price')
+                DB::raw('inventories.quantity * products.cost_price as all_price')
             )
                 ->join('products', 'inventories.product_id', '=', 'products.id')
                 ->join('branches', 'inventories.store_id', '=', 'branches.id')
@@ -585,7 +587,7 @@ class SalesReportController extends Controller
                 'i.total as invoice_total',
                 'i.creditpay as commission_amount',
                 'cu.id as party_user_id',
-                DB::raw("CONCAT(cu.first_name, ' ', cu.last_name) as commission_user_name"),
+                'cu.first_name as commission_user_name',
                 'cu.credit_points',
                 'ch.total_purchase_items',
                 'ch.credit_amount',
@@ -606,7 +608,7 @@ class SalesReportController extends Controller
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('i.invoice_number', 'like', "%$searchValue%")
-                    ->orWhere(DB::raw("CONCAT(cu.first_name, ' ', cu.last_name)"), 'like', "%$searchValue%");
+                    ->orWhere('cu.first_name', 'like', "%$searchValue%");
             });
         }
 

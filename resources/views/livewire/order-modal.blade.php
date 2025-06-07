@@ -53,12 +53,12 @@
                                                 <td>{{ $order->created_at->format('d/m/Y H:i' ) }}</td>
                                                 <td>
                                                     @if(auth()->user()->hasRole('warehouse'))
-                                                        {{ optional($order->partyUser)->first_name }} {{ optional($order->partyUser)->last_name }}
+                                                        {{ optional($order->partyUser)->first_name }} 
                                                     @else
-                                                        {{ optional($order->commissionUser)->first_name }} {{ optional($order->commissionUser)->last_name }}
+                                                        {{ optional($order->commissionUser)->first_name }} 
                                                     @endif
                                                 </td>
-                                                <td>{{$order->payment_mode}}</td>
+                                                <td>{{($order->payment_mode=="online")?"UPI":$order->payment_mode}}</td>
                                                 <td>{{ $order->total_item_qty }}</td>
                                                  <td>{{ format_inr($order->total) }}</td>
                                                     <td class="text-center">
@@ -102,9 +102,8 @@
                                             <td>{{ $refund->created_at?->format('d/m/Y H:i') ?? '-' }}</td>
                                             <td>
                                                 @if(auth()->user()->hasRole('warehouse'))
-                                                    {{ optional($order->partyUser)->first_name }} {{ optional($order->partyUser)->last_name }}
-                                                @else
-                                                    {{ optional($order->commissionUser)->first_name }} {{ optional($order->commissionUser)->last_name }}
+                                                    {{ optional($order->partyUser)->first_name }}
+                                                    {{ optional($order->commissionUser)->first_name }} 
                                                 @endif
                                             </td>
                                             <td>{{ $order->payment_mode ?? '-' }}</td>

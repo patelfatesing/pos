@@ -41,9 +41,17 @@
                                     <th>Expiry Date</th>
                                     <th>Stock Low Level</th>
                                     <th>Last updated</th>
-                                    <th>Action</th>
+                                    
                                 </tr>
                             </thead>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="2" style="text-align:right">Total:</th>
+                                    <th id="footer_qty"></th>
+                                    <th id="footer_cost"></th>
+                                    <th colspan="4"></th>
+                                </tr>
+                            </tfoot>
                             <tbody class="ligth-body"></tbody>
                         </table>
                     </div>
@@ -142,10 +150,6 @@
                     {
                         data: 'updated_at',
                         orderable: true
-                    },
-                    {
-                        data: 'action',
-                        orderable: false
                     }
                 ],
                 order: [
@@ -182,13 +186,40 @@
                     {
                         width: "10%",
                         targets: 7
-                    },
-                    {
-                        width: "5%",
-                        targets: 8
                     }
                 ],
-                autoWidth: false
+                autoWidth: false,
+                footerCallback: function(row, data, start, end, display) {
+                    var api = this.api();
+
+                    // Total quantity for current page
+                    var totalQty = api
+                        .column(2, {
+                            page: 'current'
+                        })
+                        .data()
+                        .reduce(function(a, b) {
+                            return parseFloat(a) + parseFloat(b);
+                        }, 0);
+
+                    // Total cost = sum(quantity * cost_price) for current page
+                    var qtyData = api.column(2, {
+                        page: 'current'
+                    }).data();
+                    var costData = api.column(3, {
+                        page: 'current'
+                    }).data();
+
+                    var totalCost = 0;
+                    for (let i = 0; i < qtyData.length; i++) {
+                        totalCost += parseFloat(qtyData[i]) * parseFloat(costData[i]);
+                    }
+
+                    // Update footer
+                    $('#footer_qty').html(totalQty);
+                    $('#footer_cost').html(totalCost.toFixed(2));
+                }
+
             });
         }
 

@@ -15,13 +15,12 @@
 
     <div class="wrapper">
         <div class="content-page">
-            
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                             <div>
-                                <h4 class="mb-3">Trasaction Invoice List</h4>
+                                <h4 class="mb-3">Transaction Invoice Details</h4>
                             </div>
                             <div>
                                 <a href="{{ route('sales.sales.list') }}" class="btn btn-secondary">Back</a>
@@ -35,6 +34,22 @@
                                     <h4 class="card-title mb-0">Invoice #{{ $invoice->invoice_number }}</h4>
                                 </div>
                                 <div class="invoice-btn">
+                                    
+                                    @if ($invoice->party_user_id != '')
+                                        <button
+                                            onClick="showPhoto({{ $invoice->id }},{{ $invoice->party_user_id }},'{{ $invoice->invoice_number }}')"
+                                            class="btn btn-primary-dark mr-2">
+                                            <i class="ri-eye-line mr-0"></i> View
+                                        </button>
+                                    @endif
+                                    @if ($invoice->commission_user_id != '')
+                                        <button
+                                            onClick="showPhoto({{ $invoice->id }},{{ $invoice->commission_user_id }},'{{ $invoice->invoice_number }}')"
+                                            class="btn btn-primary-dark mr-2">
+                                            <i class="ri-eye-line mr-0"></i> View
+                                        </button>
+                                    @endif
+
                                     <button onclick="window.print()" class="btn btn-primary-dark mr-2">
                                         <i class="las la-print"></i> Print
                                     </button>
@@ -58,20 +73,23 @@
                                             <table class="table">
                                                 <thead>
                                                     <tr>
-                                                        <th scope="col">Trasaction Date</th>
-                                                        <th scope="col">Trasaction Status</th>
-                                                        <th scope="col">Trasaction ID</th>
+                                                        <th scope="col">Transaction Date</th>
+                                                        <th scope="col">Transaction Status</th>
+                                                        <th scope="col">Transaction No</th>
+
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <tr>
-                                                        <td>{{ $invoice->created_at->format('d M Y') }}</td>
+                                                        <td>{{ $invoice->created_at->format('Y-m-d H:i:s') }}</td>
                                                         <td>
                                                             <span
                                                                 class="badge badge-{{ $invoice->status == 'Paid' ? 'success' : 'danger' }}">
                                                                 {{ $invoice->status }}
                                                             </span>
                                                         </td>
+                                                        <td>{{ $invoice->invoice_number }}</td>
+
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -80,7 +98,7 @@
                                 </div>
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <h5 class="mb-3">Trasaction Summary</h5>
+                                        <h5 class="mb-3">Transaction Summary</h5>
                                         <div class="table-responsive-sm">
                                             <table class="table">
                                                 <thead>
@@ -117,7 +135,7 @@
                                     <div class="offset-lg-8 col-lg-4">
                                         <div class="or-detail rounded">
                                             <div class="p-3">
-                                                <h5 class="mb-3">Trasaction Details</h5>
+                                                <h5 class="mb-3">Transaction Details</h5>
                                                 <div class="mb-2">
                                                     <h6>Sub Total</h6>
                                                     <p>₹{{ number_format($invoice->sub_total, 2) }}</p>
@@ -139,7 +157,8 @@
                                                 class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
                                                 <h6>Total</h6>
                                                 <h3 class="text-primary font-weight-700">
-                                                    ₹{{ number_format((float)$invoice->sub_total - (float)$invoice->party_amount, 2) }}</h3>
+                                                    ₹{{ number_format((float) $invoice->sub_total - (float) $invoice->party_amount, 2) }}
+                                                </h3>
                                             </div>
                                         </div>
                                     </div>
@@ -160,4 +179,33 @@
             <!-- Page end  -->
         </div>
     </div>
+
+    <div class="modal fade bd-example-modal-lg" id="salesCustPhotoShowModal" tabindex="-1" role="dialog"
+        aria-labelledby="salesCustPhotoShowModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content" id="salesCustPhotoModalContent">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const salesImgViewBase = "{{ url('sales-img-view') }}";
+
+        function showPhoto(id, commission_user_id = '', party_user_id = '', invoice_no = '') {
+            let url =
+                `${salesImgViewBase}/${id}?commission_user_id=${commission_user_id}&party_user_id=${party_user_id}&invoice_no=${invoice_no}`;
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function(response) {
+                    $('#salesCustPhotoModalContent').html(response);
+                    $('#salesCustPhotoShowModal').modal('show');
+                },
+                error: function() {
+                    alert('Photos not found.');
+                }
+            });
+        }
+    </script>
 @endsection

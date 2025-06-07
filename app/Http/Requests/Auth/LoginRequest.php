@@ -65,10 +65,10 @@ class LoginRequest extends FormRequest
         }
 
         if (Auth::check() && Auth::user()->is_login === 'Yes') {
-            Auth::logout(); // Force logout immediately
-            throw ValidationException::withMessages([
-                'email' => 'You are already logged in from another device.',
-            ]);
+            // Auth::logout(); // Force logout immediately
+            // throw ValidationException::withMessages([
+            //     'email' => 'You are already logged in from another device.',
+            // ]);
         } else {
 
             $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";

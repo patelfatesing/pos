@@ -88,7 +88,7 @@ class Shoppingcart extends Component
     public $showModal = false;
     public $availableNotes = "";
     public $selectedUser = 0;
-    protected $listeners = ['updateProductList' => 'loadCartData', 'loadHoldTransactions', 'updateNewProductDetails', 'resetData', 'hideSuggestions'];
+    protected $listeners = ['updateProductList' => 'loadCartData', 'loadHoldTransactions', 'updateNewProductDetails', 'resetData', 'hideSuggestions','openModalYesterdayShift'=>'openModalYesterdayShift'];
     public $noteDenominations = [10, 20, 50, 100, 200, 500];
     public $remainingAmount = 0;
     public $totalBreakdown = [];
@@ -903,7 +903,10 @@ class Shoppingcart extends Component
         $this->language = $value; // Update the language property
         $this->dispatch('language-updated', ['language' => $value]); // Notify frontend
     }
+     public function openModalYesterdayShift(){
+       $this->dispatch('openCloseModal', ['day' => "yesterday"]);
 
+    }
     public function mount()
     {
         //$this->getImages();
@@ -927,7 +930,10 @@ class Shoppingcart extends Component
 
         $this->shift = $currentShift = UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "pending"])->first();
         //
-        if (empty($currentShift)) {
+        $yesterDayShift = UserShift::getYesterdayShift(auth()->user()->id, $branch_id);
+        if (!empty($yesterDayShift)) {
+            $this->dispatch('openModalYesterdayShift');
+        }else if (empty($currentShift)) {
             $this->dispatch('openModal');
         }
         //
@@ -1017,7 +1023,7 @@ class Shoppingcart extends Component
 
         $this->productStock = DailyProductStock::with('product')
             ->where('branch_id', $branch_id)
-            ->whereDate('date', Carbon::yesterday())
+            ->whereDate('date', Carbon::today())
             ->get();
 
         foreach ($this->noteDenominations as $index => $denomination) {
@@ -1159,26 +1165,36 @@ class Shoppingcart extends Component
             $invoice_number = Invoice::generateInvoiceNumber("HOLD");
             $commissionUser = CommissionUser::where('status', 'Active')->where('is_deleted', '!=', 'Yes')->find($this->selectedCommissionUser);
             $partyUser = PartyUser::where('status', 'Active')->find($this->selectedPartyUser);
-            $invoice = Invoice::create([
-                'user_id' => auth()->id(),
-                'branch_id' => $branch_id,
-                'invoice_number' => $invoice_number,
-                'commission_user_id' => $commissionUser->id ?? null,
-                'party_user_id' => $partyUser->id ?? null,
-                'items' => $cartItems->map(fn($item) => [
-                    'name' => $item->product->name,
-                    'quantity' => $item->quantity,
-                    'category' => $item->product->category->name,
-                    'price' => $item->product->sell_price,
-                ]),
-                'sub_total' => $this->cashAmount,
-                'tax' => $this->tax,
-                'status' => "Hold",
-                'commission_amount' => $this->commissionAmount,
-                'party_amount' => $this->partyAmount,
-                'total' => $this->cashAmount,
-                //'billing_address'=> $address,
-            ]);
+            $resumedInvoice = Invoice::where('user_id', auth()->id())
+            ->where('branch_id', $branch_id)
+            ->where('status', 'Resumed')
+           // ->where('total', $this->cashAmount)
+            ->first();
+             $invoice_number_to_use = $resumedInvoice->invoice_number ?? $invoice_number;
+
+            $invoice = Invoice::updateOrCreate(
+                [
+                    'invoice_number' => $invoice_number_to_use,
+                    'branch_id' => $branch_id,
+                    'user_id' => auth()->id(),
+                ],
+                [
+                    'commission_user_id' => $commissionUser->id ?? null,
+                    'party_user_id' => $partyUser->id ?? null,
+                    'items' => $cartItems->map(fn($item) => [
+                        'name' => $item->product->name,
+                        'quantity' => $item->quantity,
+                        'category' => $item->product->category->name,
+                        'price' => $item->product->sell_price,
+                    ]),
+                    'sub_total' => $this->cashAmount,
+                    'tax' => $this->tax,
+                    'status' => "Hold",
+                    'commission_amount' => $this->commissionAmount,
+                    'party_amount' => $this->partyAmount,
+                    'total' => $this->cashAmount,
+                ]
+            );
             $cartItems = Cart::where('user_id', auth()->user()->id)->where('status', Cart::STATUS_HOLD)->delete(); // <-- get all matching rows
 
             // Optional: reset UI inputs
@@ -2122,12 +2138,22 @@ class Shoppingcart extends Component
             $totalQuantity = $cartitems->sum(fn($item) => $item->quantity);
             $total_item_total = $cartitems->sum(fn($item) => $item->net_amount);
             $invoice_number = Invoice::generateInvoiceNumber();
+            // Check if an invoice with 'Resumed' status exists for this user/branch
+            $resumedInvoice = Invoice::where('user_id', auth()->id())
+            ->where('branch_id', $branch_id)
+            ->where('status', 'Resumed')
+            ->first();
 
+            // If found, use its invoice number; otherwise, use the default/new invoice number
+            $invoice_number_to_use = $resumedInvoice->invoice_number ?? $invoice_number;
 
-            $invoice = Invoice::create([
+            $invoice = Invoice::updateOrCreate(
+            ['invoice_number' => $invoice_number_to_use, 'user_id' => auth()->id(),
+                'branch_id' => $branch_id,],
+            [
                 'user_id' => auth()->id(),
                 'branch_id' => $branch_id,
-                'invoice_number' => $invoice_number,
+                'invoice_number' => $invoice_number_to_use,
                 'commission_user_id' => $commissionUser->id ?? null,
                 'party_user_id' => $partyUser->id ?? null,
                 'payment_mode' => $this->paymentType,
@@ -2139,7 +2165,6 @@ class Shoppingcart extends Component
                     'subcategory' => $item->product->subcategory->name,
                     'price' => $item->net_amount,
                     'mrp' => $item->mrp,
-
                 ]),
                 'total_item_qty' => $totalQuantity,
                 'total_item_total' => $total_item_total,
@@ -2156,8 +2181,43 @@ class Shoppingcart extends Component
                 'party_amount' => $this->partyAmount,
                 'total' => $this->cashAmount,
                 'cash_break_id' => $cashBreakdown->id,
-                //'billing_address'=> $address,
-            ]);
+            ]
+        );
+
+            // $invoice = Invoice::create([
+            //     'user_id' => auth()->id(),
+            //     'branch_id' => $branch_id,
+            //     'invoice_number' => $invoice_number,
+            //     'commission_user_id' => $commissionUser->id ?? null,
+            //     'party_user_id' => $partyUser->id ?? null,
+            //     'payment_mode' => $this->paymentType,
+            //     'items' => $cartitems->map(fn($item) => [
+            //         'product_id' => $item->product->id,
+            //         'name' => $item->product->name,
+            //         'quantity' => $item->quantity,
+            //         'category' => $item->product->category->name,
+            //         'subcategory' => $item->product->subcategory->name,
+            //         'price' => $item->net_amount,
+            //         'mrp' => $item->mrp,
+
+            //     ]),
+            //     'total_item_qty' => $totalQuantity,
+            //     'total_item_total' => $total_item_total,
+            //     'upi_amount' => $this->upi,
+            //     'change_amount' => $this->cashPayChangeAmt,
+            //     'creditpay' => $this->creditPay,
+            //     'cash_amount' => $this->cash,
+            //     // 'sub_total' => $this->cashAmount,
+            //     'sub_total' => $this->sub_total,
+
+            //     'tax' => $this->tax,
+            //     'status' => "Paid",
+            //     'commission_amount' => $this->commissionAmount,
+            //     'party_amount' => $this->partyAmount,
+            //     'total' => $this->cashAmount,
+            //     'cash_break_id' => $cashBreakdown->id,
+            //     //'billing_address'=> $address,
+            // ]);
             InvoiceHistory::logFromInvoice($invoice, 'created', auth()->id());
 
 
@@ -2256,7 +2316,7 @@ class Shoppingcart extends Component
                 // $this->dispatch('triggerPrint');
                 // Generate PDF and store it in local storage
                 $pdf = App::make('dompdf.wrapper');
-                $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => $partyUser->first_name . ' ' . $partyUser->last_name]);
+                $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => $partyUser->first_name ]);
                 $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
                 $pdf->save($pdfPath);
                 //  $this->dispatch('triggerPrint', [
@@ -2268,7 +2328,7 @@ class Shoppingcart extends Component
             } else {
                 $this->dispatch('order-saved');
             }
-            Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->delete();
+            //Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->delete();
 
             //return redirect()->route('invoice.show', $invoice->id);
             Cart::where('user_id', auth()->user()->id)
@@ -2535,7 +2595,7 @@ class Shoppingcart extends Component
         $this->invoiceData = $invoice;
 
         $pdf = App::make('dompdf.wrapper');
-        $pdf->loadView('refund', ['invoice' => $invoice, 'items' => $refund->items_refund, 'branch' => auth()->user()->userinfo->branch, 'type' => 'refund', 'refund' => $refund, 'customer_name' => $partyUser->first_name . ' ' . $partyUser->last_name]);
+        $pdf->loadView('refund', ['invoice' => $invoice, 'items' => $refund->items_refund, 'branch' => auth()->user()->userinfo->branch, 'type' => 'refund', 'refund' => $refund, 'customer_name' => $partyUser->first_name ]);
         $pdfPath = storage_path('app/public/invoices/refund_' . $invoice->invoice_number . '.pdf');
         $pdf->save($pdfPath);
         //     $this->dispatch('triggerPrint', [
@@ -2680,7 +2740,7 @@ class Shoppingcart extends Component
                 // $this->dispatch('triggerPrint');
                 // Generate PDF and store it in local storage
                 $pdf = App::make('dompdf.wrapper');
-                $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => $partyUser->first_name . ' ' . $partyUser->last_name]);
+                $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => $partyUser->first_name ]);
                 $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
                 $pdf->save($pdfPath);
                 //  $this->dispatch('triggerPrint', [
