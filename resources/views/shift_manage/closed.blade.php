@@ -39,6 +39,10 @@
                                  <div class="d-flex justify-content-between align-items-center mb-3">
                                      <h4 class="mb-0">Sales Details</h4>
 
+                                     <button type="button" onClick="viewStock({{ $shift->id }})"
+                                         class="btn btn-secondary btn-sm" title="View Stock Status">
+                                         View Stock Status
+                                     </button>
                                  </div>
 
                                  <hr class="mb-4">
@@ -112,7 +116,6 @@
                                                  </div>
                                              </div>
                                          </div>
-
                                      </div>
                                      <hr>
                                      {{-- Cash Breakdown --}}
@@ -208,3 +211,29 @@
          </div>
      </div>
  </div>
+
+ <div class="modal fade bd-example-modal-lg" id="dailyStockDetailsModal" tabindex="-1" role="dialog"
+     aria-labelledby="dailyStockDetailsModalLabel" aria-hidden="true">
+     <div class="modal-dialog modal-lg" role="document">
+         <div class="modal-content" id="dailyStockDetailsModalContent">
+         </div>
+     </div>
+ </div>
+
+ <script>
+     function viewStock(id) {
+         window.location.href = '{{ url('shift-manage/stock-details') }}/' + id;
+
+         //  $.ajax({
+         //      url: '{{ url('shift-manage/stock-details') }}/' + id,
+         //      type: 'POST',
+         //      success: function(response) {
+         //          $('#dailyStockDetailsModalContent').html(response);
+         //          $('#dailyStockDetailsModal').modal('show');
+         //      },
+         //      error: function() {
+         //          alert('Photos not found.');
+         //      }
+         //  });
+     }
+ </script>

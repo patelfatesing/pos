@@ -53,7 +53,6 @@
                                                 title="View Stock Status">
                                                 Add Physical Stock
                                             </button>
-
                                         </div>
 
                                         <hr class="mb-4">

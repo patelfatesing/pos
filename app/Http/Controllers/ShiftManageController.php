@@ -11,6 +11,7 @@ use App\Models\CashBreakdown;
 use Illuminate\Support\Str;
 use App\Models\Refund;
 use App\Models\CreditHistory;
+use App\Models\DailyProductStock;
 
 class ShiftManageController extends Controller
 {
@@ -141,7 +142,7 @@ class ShiftManageController extends Controller
             }
             // }
             $action .= '<a class="badge bg-primary ml-2 view-invoices" 
-                href="' . url('/shift-manage/view/' . $row->branch_id . "/" . $row->start_time) . "/" . $endTime . '" title="View Transactions">
+                href="' . url('/shift-manage/view/' . $row->branch_id . "/" . $row->id . "/" . $row->start_time) . "/" . $endTime . '" title="View Transactions">
                 <i class="ri-eye-line"></i>
                 </a>';
 
@@ -201,8 +202,10 @@ class ShiftManageController extends Controller
         return response()->json(['data' => $invoices]);
     }
 
-    public function view($id, $strartdate, $endTime)
+    public function view($id, $shift_id, $strartdate, $endTime)
     {
+        $shift = ShiftClosing::findOrFail($shift_id);
+
         $invoices = \DB::table('invoices')
             ->where('branch_id', $id)
             ->whereBetween('created_at', [$strartdate, $endTime])
@@ -223,7 +226,7 @@ class ShiftManageController extends Controller
             )
             ->paginate(10); // Change 10 to your desired number per page
 
-        return view('shift_manage.view', compact('invoices'));
+        return view('shift_manage.view', compact('invoices', 'shift_id'));
     }
 
     public function closeShift($id)
@@ -379,5 +382,20 @@ class ShiftManageController extends Controller
         }
 
         return view('shift_manage.photo', compact('shift'));
+    }
+
+    public function stockDetails($id)
+    {
+        $shift = ShiftClosing::findOrFail($id);
+
+        $branch_id = $shift->branch_id;
+        
+        $rawStockData = DailyProductStock::with('product')
+            ->where('branch_id', $branch_id)
+            ->whereDate('date', Carbon::today())
+            ->get();
+
+
+        return view('shift_manage.stock_details', compact('rawStockData'));
     }
 }

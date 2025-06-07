@@ -15,7 +15,6 @@
 
     <div class="wrapper">
         <div class="content-page">
-            
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-lg-12">
@@ -35,6 +34,22 @@
                                     <h4 class="card-title mb-0">Invoice #{{ $invoice->invoice_number }}</h4>
                                 </div>
                                 <div class="invoice-btn">
+                                    
+                                    @if ($invoice->party_user_id != '')
+                                        <button
+                                            onClick="showPhoto({{ $invoice->id }},{{ $invoice->party_user_id }},'{{ $invoice->invoice_number }}')"
+                                            class="btn btn-primary-dark mr-2">
+                                            <i class="ri-eye-line mr-0"></i> View
+                                        </button>
+                                    @endif
+                                    @if ($invoice->commission_user_id != '')
+                                        <button
+                                            onClick="showPhoto({{ $invoice->id }},{{ $invoice->commission_user_id }},'{{ $invoice->invoice_number }}')"
+                                            class="btn btn-primary-dark mr-2">
+                                            <i class="ri-eye-line mr-0"></i> View
+                                        </button>
+                                    @endif
+
                                     <button onclick="window.print()" class="btn btn-primary-dark mr-2">
                                         <i class="las la-print"></i> Print
                                     </button>
@@ -61,7 +76,7 @@
                                                         <th scope="col">Transaction Date</th>
                                                         <th scope="col">Transaction Status</th>
                                                         <th scope="col">Transaction No</th>
-                                                        
+
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -74,7 +89,7 @@
                                                             </span>
                                                         </td>
                                                         <td>{{ $invoice->invoice_number }}</td>
-                                                
+
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -142,7 +157,8 @@
                                                 class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
                                                 <h6>Total</h6>
                                                 <h3 class="text-primary font-weight-700">
-                                                    ₹{{ number_format((float)$invoice->sub_total - (float)$invoice->party_amount, 2) }}</h3>
+                                                    ₹{{ number_format((float) $invoice->sub_total - (float) $invoice->party_amount, 2) }}
+                                                </h3>
                                             </div>
                                         </div>
                                     </div>
@@ -163,4 +179,33 @@
             <!-- Page end  -->
         </div>
     </div>
+
+    <div class="modal fade bd-example-modal-lg" id="salesCustPhotoShowModal" tabindex="-1" role="dialog"
+        aria-labelledby="salesCustPhotoShowModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content" id="salesCustPhotoModalContent">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const salesImgViewBase = "{{ url('sales-img-view') }}";
+
+        function showPhoto(id, commission_user_id = '', party_user_id = '', invoice_no = '') {
+            let url =
+                `${salesImgViewBase}/${id}?commission_user_id=${commission_user_id}&party_user_id=${party_user_id}&invoice_no=${invoice_no}`;
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function(response) {
+                    $('#salesCustPhotoModalContent').html(response);
+                    $('#salesCustPhotoShowModal').modal('show');
+                },
+                error: function() {
+                    alert('Photos not found.');
+                }
+            });
+        }
+    </script>
 @endsection
