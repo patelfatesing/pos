@@ -234,9 +234,9 @@ class ShiftManageController extends Controller
         $shift = ShiftClosing::findOrFail($id);
 
         if (!$shift->closing_shift_time) {
-            $shift->closing_shift_time = now();
-            $shift->status = 'completed';
-            $shift->save();
+            // $shift->closing_shift_time = now();
+            // $shift->status = 'completed';
+            // $shift->save();
             $categoryTotals = [];
             $totals = CreditHistory::whereBetween('created_at', [$shift->start_time, $shift->end_time])
                 ->where('store_id', $shift->branch_id)
