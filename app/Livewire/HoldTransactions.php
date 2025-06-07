@@ -67,6 +67,7 @@ class HoldTransactions extends Component
         
         $this->dispatch('updateNewProductDetails');
         $this->dispatch('updateCartCount');
+        $this->dispatch('setNotes');
         $this->dispatch('close-hold-modal');
         $this->dispatch('notiffication-success', ['message' => 'Transaction resumed successfully']);
 

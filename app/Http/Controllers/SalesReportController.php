@@ -118,7 +118,7 @@ class SalesReportController extends Controller
                 'party_amount' => number_format($invoice->party_amount, 2),
                 'items_count' => $itemCount,
                 'branch_name' => $invoice->branch_name,
-                'payment_mode' => $invoice->payment_mode,
+                'payment_mode' => (!empty($invoice->payment_mode) && $invoice->payment_mode=="online")?"UPI":$invoice->payment_mode,
                 'created_at' => Carbon::parse($invoice->created_at)->format('Y-m-d H:i:s'),
             ];
         }
