@@ -885,7 +885,7 @@
                                     <td>{{ $product->product->name }}</td>
                                     <td>
                                         <input type="number" name="productStocks[{{ $product->id }}]"
-                                            class="form-control text-center" value="{{ $product->opening_stock }}"
+                                            class="form-control text-center" value="{{ $product->closing_stock }}"
                                             readonly>
                                     </td>
                                 </tr>
