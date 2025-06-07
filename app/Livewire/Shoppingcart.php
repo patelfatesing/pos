@@ -1023,7 +1023,7 @@ class Shoppingcart extends Component
 
         $this->productStock = DailyProductStock::with('product')
             ->where('branch_id', $branch_id)
-            ->whereDate('date', Carbon::yesterday())
+            ->whereDate('date', Carbon::today())
             ->get();
 
         foreach ($this->noteDenominations as $index => $denomination) {
