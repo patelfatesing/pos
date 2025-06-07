@@ -341,7 +341,7 @@
                                                         {{ $product['product']['name'] }}
                                                     </td>
                                                     <td class="border px-4 py-2">
-                                                        <input type="number" min="1" wire:model="products.{{ $product['product_id'] }}.qty"
+                                                        <input type="number" wire:model="products.{{ $product['product_id'] }}.qty"
                                                             class="form-control" >
                                                         @error("products.{$product['product_id']}.qty")
                                                             <span class="text-danger small">{{ $message }}</span>
