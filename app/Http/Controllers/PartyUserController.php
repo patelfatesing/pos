@@ -106,7 +106,7 @@ class PartyUserController extends Controller
             'phone' => 'required|digits:10|regex:/^[0-9]+$/|unique:party_users,phone',
             'address' => 'nullable|string|max:255',
             'credit_points' => 'required|numeric|min:0|max:99999999.99',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048'
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ], [
             'first_name.required' => 'Customer name is required.',
             'phone.required' => 'Mobile number is required.',
@@ -115,11 +115,21 @@ class PartyUserController extends Controller
         ]);
 
         // Handle image upload
+        // if ($request->hasFile('photo')) {
+        //     $data['photo'] = $request->file('photo')->store('party_user_photos', 'public');
+        // }
+        $PartyUser=PartyUser::create($data);
         if ($request->hasFile('photo')) {
-            $data['photo'] = $request->file('photo')->store('party_user_photos', 'public');
-        }
+            $extension = $request->file('photo')->getClientOriginalExtension();
+            $filename = $PartyUser->id . '_partyuser.' . $extension;
 
-        PartyUser::create($data);
+            // Store new photo
+            $photoPath = $request->file('photo')->storeAs('party_user_photos', $filename, 'public');
+
+            // Update PartyUser photo field
+            $PartyUser->photo = $photoPath;
+            $PartyUser->save();
+        }
 
         return redirect()->route('party-users.list')->with('success', 'Party User Created');
     }
@@ -144,7 +154,7 @@ class PartyUserController extends Controller
             'phone' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:255',
             'credit_points' => 'required|numeric|min:0|max:99999999.99',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
 
         ]);
 
@@ -154,9 +164,12 @@ class PartyUserController extends Controller
             if ($Partyuser->photo) {
                 \Storage::disk('public')->delete($Partyuser->photo);
             }
+            $extension = $request->file('photo')->getClientOriginalExtension();
+            $filename = $Partyuser->id.'_partyuser'. '.' . $extension;
 
             // Store new photo
-            $data['photo'] = $request->file('photo')->store('party_user_photos', 'public');
+            $data['photo'] = $request->file('photo')->storeAs('party_user_photos', $filename, 'public');
+
         }
 
         $Partyuser->update($data);

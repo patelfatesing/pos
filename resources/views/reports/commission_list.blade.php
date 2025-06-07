@@ -36,7 +36,7 @@
                         <select id="customer_id" class="form-control">
                             <option value="">All Party Customer</option>
                             @foreach ($party_users as $cus)
-                                <option value="{{ $cus->id }}">{{ $cus->first_name }} {{ $cus->last_name }}</option>
+                                <option value="{{ $cus->id }}">{{ $cus->first_name }}</option>
                             @endforeach
                         </select>
                     </div>

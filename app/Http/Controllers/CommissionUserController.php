@@ -117,16 +117,26 @@ class CommissionUserController extends Controller
             'applies_to' => 'required|in:all,category,product',
             'reference_id' => 'nullable|string',
             'is_active' => 'required|boolean',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048'
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg'
         ]);
 
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('commission_images', 'public');
-            $data['photo'] = $imagePath;
-        }
+        // if ($request->hasFile('image')) {
+        //     $imagePath = $request->file('image')->store('commission_images', 'public');
+        //     $data['photo'] = $imagePath;
+        // }
 
         $commissionUser = Commissionuser::create($data);
+        if ($request->hasFile('image')) {
+            $extension = $request->file('image')->getClientOriginalExtension();
+            $filename = $commissionUser->id . '_commissionuser.' . $extension;
 
+            // Store new photo
+            $photoPath = $request->file('image')->storeAs('commission_photos', $filename, 'public');
+
+            // Update commissionUser photo field
+            $commissionUser->photo = $photoPath;
+            $commissionUser->save();
+        }
         return redirect()->route('commission-users.list')->with('success', 'Commission User Created');
     }
 
@@ -255,20 +265,32 @@ class CommissionUserController extends Controller
             'applies_to' => 'required|in:all,category,product',
             'reference_id' => 'nullable|string',
             'is_active' => 'required|boolean',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg',
         ]);
 
         // Handle new photo upload
+        // if ($request->hasFile('photo')) {
+        //     // Delete old photo
+        //     if ($Commissionuser->photo && Storage::disk('public')->exists($Commissionuser->photo)) {
+        //         Storage::disk('public')->delete($Commissionuser->photo);
+        //     }
+
+        //     // Store new photo
+        //     $data['photo'] = $request->file('photo')->store('commission_photos', 'public');
+        // }
+       
         if ($request->hasFile('photo')) {
-            // Delete old photo
-            if ($Commissionuser->photo && Storage::disk('public')->exists($Commissionuser->photo)) {
-                Storage::disk('public')->delete($Commissionuser->photo);
+            // Delete old photo if exists
+            if ($Commissionuser->photo) {
+                \Storage::disk('public')->delete($Commissionuser->photo);
             }
+            $extension = $request->file('photo')->getClientOriginalExtension();
+            $filename = $Commissionuser->id.'_commissionuser'. '.' . $extension;
 
             // Store new photo
-            $data['photo'] = $request->file('photo')->store('commission_photos', 'public');
-        }
+            $data['photo'] = $request->file('photo')->storeAs('commission_photos', $filename, 'public');
 
+        }
         $Commissionuser->update($data);
 
         return redirect()->route('commission-users.list')->with('success', 'Commission User Updated');

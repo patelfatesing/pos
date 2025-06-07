@@ -72,7 +72,7 @@
                                                     <i class="fas fa-box-open text-success fa-2x"></i>
                                                 </div>
                                                 <div>
-                                                    <p class="mb-2">Sold Quentity</p>
+                                                    <p class="mb-2">Sold Quantity</p>
                                                     <h4>{{ $data['products'] ?? 0 }}</h4>
                                                 </div>
                                             </div>

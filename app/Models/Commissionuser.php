@@ -20,7 +20,7 @@ class Commissionuser extends Model
         'start_date',
         'end_date',
         'first_name',
-        'last_name',
+        //'last_name',
         'email',
         'photo'
     ];

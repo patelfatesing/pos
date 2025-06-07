@@ -369,8 +369,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/shift-manage/get-data', [ShiftManageController::class, 'getShiftClosingsData'])->name('shift-manage.getData');
     Route::post('shift-manage/invoices-by-branch', [ShiftManageController::class, 'getInvoicesByBranch'])->name('shift-manage.invoices-by-branch');
     Route::post('shift-manage/close-shift/{id}', [ShiftManageController::class, 'closeShift'])->name('shift-manage.close-shift');
+<<<<<<< Updated upstream
     Route::get('/shift-manage/view/{id}/{strartdate}/{endTime}', [ShiftManageController::class, 'view'])->name('purchase.shift-manage');
+    Route::get('/shift-manage/{id}', [ShiftManageController::class, 'showPhoto'])->name('shift-manage.photo');
+
+=======
+    Route::get('/shift-manage/view/{id}/{shift_id}/{strartdate}/{endTime}', [ShiftManageController::class, 'view'])->name('purchase.shift-manage');
+    Route::get('/shift-manage/stock-details/{id}', [ShiftManageController::class, 'stockDetails'])->name('purchase.stock-details');
     
+>>>>>>> Stashed changes
 });
 
 
