@@ -199,7 +199,7 @@ class Shoppingcart extends Component
     public function addToCartBarCode()
     {
         if (!$this->selectedProduct) return;
-        $currentQty= $this->getCartItemCount2($id);
+        $currentQty= $this->getCartItemCount2($this->selectedProduct->id);
         $currentQty = $currentQty + 1;
         $totalQuantity = $this->selectedSalesReturn ? collect($this->selectedSalesReturn->items)->sum('quantity') : 0;
         if (!empty($this->selectedSalesReturn) && $this->cartCount >= $totalQuantity) {

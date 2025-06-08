@@ -58,7 +58,8 @@
 
     @php
         // Calculate tomorrow's date
-$minDate = \Carbon\Carbon::today()->format('Y-m-d');
+    $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
+
     @endphp
 
     <div class="modal fade bd-example-modal-lg" id="priceChangeModal" tabindex="-1" role="dialog"
@@ -81,7 +82,7 @@ $minDate = \Carbon\Carbon::today()->format('Y-m-d');
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Old Price </label>
-                                    <input type="text" name="old_price" class="form-control" id="old_price">
+                                    <input type="text" name="old_price" class="form-control" disabled id="old_price">
                                     <span class="text-danger" id="old_price_error"></span>
                                 </div>
                             </div>

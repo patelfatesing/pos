@@ -254,7 +254,7 @@ class ProductController extends Controller
     {
         // 🔍 Validate input
         $validator = Validator::make($request->all(), [
-            'old_price' => 'required|numeric|min:0',
+            // 'old_price' => 'required|numeric|min:0',
             'new_price' => 'required|numeric|min:0',
             'changed_at' => 'required'
         ]);
@@ -466,6 +466,7 @@ class ProductController extends Controller
         $product->discount_price = $request->discount_price;
         $product->reorder_level  = $request->reorder_level;
         $product->barcode    = $request->barcode;
+        $product->mrp    = $request->mrp;
         $product->description    = $request->description;
         $product->image    = $image;
 
