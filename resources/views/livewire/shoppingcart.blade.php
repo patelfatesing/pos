@@ -2189,6 +2189,23 @@ function updateNote(id, delta, denomination) {
         });
 
     });
+    window.addEventListener('close-shift-12am', event => {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Shift start is not allowed before 12:00 AM. Please try again after 12:00 AM.',
+            icon: 'error',
+            showConfirmButton: false,
+            position: 'center',
+            toast: false,
+            timerProgressBar: false,
+            backdrop: true,
+            allowOutsideClick: false,
+            showCloseButton: false,
+            customClass: {
+                popup: 'large-alert'
+            }
+        });
+    });
 </script>
 <script>
     // window.addEventListener('show-numpad-modal', () => {

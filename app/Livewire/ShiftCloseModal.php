@@ -159,6 +159,14 @@ class ShiftCloseModal extends Component
 
         // Fetch and assign your shift data here (dummy data for now)
         $this->shift = $currentShift = UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "pending"])->first();
+        $now = Carbon::now();
+        $cutoff = Carbon::createFromTime(23, 50, 0); // 11:50 PM today
+
+        if (empty($this->shift) && $now->greaterThanOrEqualTo($cutoff)) {
+                $this->dispatch('close-shift-12am');
+                return;
+        }
+
         $this->shft_id = $this->shift->id ?? null;
         // $this->shift = Shift::latest()->first();
         $this->branch_name = $this->shift->branch->name ?? 'Shop';
@@ -247,7 +255,7 @@ class ShiftCloseModal extends Component
         $this->categoryTotals['payment']['CASH'] = $totalCashPaid;
         // $this->categoryTotals['payment']['UPI PAYMENT'] = $totalUpiPaid;
         $this->categoryTotals['summary']['OPENING CASH'] = @$currentShift->opening_cash;
-        $this->categoryTotals['summary']['TOTAL SALES'] = $totalSubTotal + $discountTotal;
+        $this->categoryTotals['summary']['TOTAL SALES'] = $totalSubTotal + $discountTotal-$totalRefundReturn;
         $this->categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
         $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] = $totalWith * (-1);
         $this->categoryTotals['summary']['UPI PAYMENT'] = ($totalUpiPaid+$totalOnlinePaid) * (-1);

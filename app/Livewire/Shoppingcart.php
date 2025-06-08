@@ -88,7 +88,7 @@ class Shoppingcart extends Component
     public $showModal = false;
     public $availableNotes = "";
     public $selectedUser = 0;
-    protected $listeners = ['updateProductList' => 'loadCartData', 'loadHoldTransactions', 'updateNewProductDetails', 'resetData', 'hideSuggestions','openModalYesterdayShift'=>'openModalYesterdayShift','setNotes'];
+    protected $listeners = ['updateProductList' => 'loadCartData', 'loadHoldTransactions', 'updateNewProductDetails', 'resetData', 'hideSuggestions','openModalYesterdayShift'=>'openModalYesterdayShift','setNotes','openModalTodayShift'=>'openModalTodayShift'];
     public $noteDenominations = [10, 20, 50, 100, 200, 500];
     public $remainingAmount = 0;
     public $totalBreakdown = [];
@@ -913,6 +913,12 @@ class Shoppingcart extends Component
        $this->dispatch('openCloseModal', ['day' => "yesterday"]);
 
     }
+     public function openModalTodayShift(){
+       $this->dispatch('openCloseModal', ['day' => "today"]);
+
+    }
+
+    
     public function mount()
     {
         //$this->getImages();
@@ -937,7 +943,13 @@ class Shoppingcart extends Component
         $this->shift = $currentShift = UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "pending"])->first();
         //
         $yesterDayShift = UserShift::getYesterdayShift(auth()->user()->id, $branch_id);
-        if (!empty($yesterDayShift)) {
+        $now = Carbon::now();
+        $cutoff = Carbon::createFromTime(23, 50, 0); // 11:50 PM today
+
+        if ($now->greaterThanOrEqualTo($cutoff)) {
+            // It's 11:50 PM or later – allow shift close
+            $this->dispatch('openModalTodayShift');
+        }else if (!empty($yesterDayShift)) {
             $this->dispatch('openModalYesterdayShift');
         }else if (empty($currentShift)) {
             $this->dispatch('openModal');
@@ -2828,7 +2840,7 @@ class Shoppingcart extends Component
             } else {
                 $this->dispatch('order-saved');
             }
-            Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->delete();
+            // Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->delete();
 
             //return redirect()->route('invoice.show', $invoice->id);
             Cart::where('user_id', auth()->user()->id)
