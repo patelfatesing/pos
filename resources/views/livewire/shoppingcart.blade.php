@@ -1177,7 +1177,7 @@
                                             <div class="d-flex align-items-center">
                                                 <span class="badge bg-primary fs-6 me-2">
                                                     {{ __('messages.available_credit') }}:
-                                                    {{ number_format($this->partyUserDetails->left_credit ?? 0, 2) }}
+                                                    {{ number_format(($this->partyUserDetails->credit_points ?? 0) - ($this->partyUserDetails->left_credit ?? 0), 2) }}
                                                 </span>
                                                 <input type="number" wire:model="creditPay"
                                                     wire:input="creditPayChanged" class="form-control"
@@ -1397,7 +1397,7 @@
                                             <div class="d-flex align-items-center">
                                                 <span class="badge bg-primary fs-6 me-2">
                                                     {{ __('messages.available_credit') }}:
-                                                    {{ number_format($this->partyUserDetails->left_credit, 2) }}
+                                                    {{ number_format(($this->partyUserDetails->credit_points ?? 0) - ($this->partyUserDetails->left_credit ?? 0), 2) }}
                                                 </span>
                                                 <input type="number" wire:model="creditPay"
                                                     wire:input="creditPayChanged" class="form-control"
