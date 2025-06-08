@@ -388,11 +388,6 @@ class ShiftManageController extends Controller
     {
         
         $shift = ShiftClosing::findOrFail($id);
-
-        if (!$shift->physical_photo) {
-            abort(404, 'No photo available.');
-        }
-
         return view('shift_manage.photo', compact('shift'));
     }
 

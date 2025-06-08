@@ -35,7 +35,7 @@
                     <td>{{ $sumqty }}</td>
                     <td>₹{{ $transaction->total}}</td>
                     <td>
-                         <button wire:click="resumeTransaction({{ $transaction->id }})" class="btn btn-success btn-sm">
+                        <button wire:click="resumeTransaction('{{ $transaction->id }}', '{{ $transaction->commission_user_id }}', '{{ $transaction->party_user_id }}')" class="btn btn-success btn-sm">
                             Resume
                         </button>
                         <button class="btn btn-primary btn-sm" wire:click="printInvoice('{{ $transaction->id }}')">
