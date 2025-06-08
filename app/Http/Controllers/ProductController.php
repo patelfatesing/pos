@@ -254,7 +254,7 @@ class ProductController extends Controller
     {
         // 🔍 Validate input
         $validator = Validator::make($request->all(), [
-            // 'old_price' => 'required|numeric|min:0',
+            'old_price' => 'required|numeric|min:0',
             'new_price' => 'required|numeric|min:0',
             'changed_at' => 'required'
         ]);
