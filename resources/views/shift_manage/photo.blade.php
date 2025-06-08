@@ -2,21 +2,26 @@
 
 @section('page-content')
 <div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center bg-light">
-    <div class="card shadow-lg border-0" style="max-width: 500px; width: 100%; border-radius: 20px;">
-        <div class="card-body text-center p-4">
-            <h2 class="mb-4 text-primary fw-bold">
+    <div class="card shadow-lg border-0" >
+        <div class="card-body text-center ">
+            <h2 class="text-primary fw-bold">
                 <i class="bi bi-camera-fill me-2"></i>Physical Stock Photo
             </h2>
 
             @if ($shift->physical_photo)
-                <div class="border border-3 rounded-4 p-2 bg-white shadow-sm mb-4">
+                <div class="border border-3 rounded-4  bg-white shadow-sm mb-4">
                     <img src="{{ asset('storage/' . $shift->physical_photo) }}" 
                          alt="Physical Photo" 
-                         class="img-fluid rounded-3" 
-                         style="max-height: 360px; object-fit: contain;">
+                         class="img-fluid rounded-3"
+                         style="max-height: 520px; width: 100%; object-fit: contain;">
                 </div>
+                <a href="{{ asset('storage/' . $shift->physical_photo) }}" 
+                   class="btn btn-success rounded-pill" 
+                   download>
+                    <i class="bi bi-download me-1"></i>Download Photo
+                </a>
             @else
-                <div class="alert alert-warning mb-4 rounded-3">
+                <div class="alert alert-warning rounded-3">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>No photo available for this shift.
                 </div>
             @endif

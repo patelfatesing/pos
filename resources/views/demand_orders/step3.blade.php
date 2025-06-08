@@ -82,7 +82,7 @@
                                                     <thead class="table-light">
                                                         <tr>
                                                             <th>Sr No</th>
-                                                            <th>Product Name</th>
+                                                            <th style="min-width: 220px; width: 35%;">Product Name</th>
                                                             <th>MRP Rate</th>
                                                             <th>Qty</th>
                                                             <th>Cost price</th>
@@ -95,23 +95,35 @@
                                                             $srNo=0;
                                                         @endphp
                                                         @foreach ($selectedProducts as $item)
-                                                  
-                                                             @php
+                                                            @php
                                                                 $product=$item['product_details'];
                                                                 $srNo++;
                                                             @endphp
-                                                        <tr>
-                                                           <td>{{$srNo}}</td>
-                                                           <input type="hidden" name="products[{{ @$srNo }}][product_id]" value="{{$item['product_id']}}">
+                                                            <tr>
+                                                                <td>{{$srNo}}</td>
+                                                                <input type="hidden" name="products[{{ @$srNo }}][product_id]" value="{{$item['product_id']}}">
+                                                                <input type="hidden" name="products[{{ $srNo }}][size]" class="form-control" value="{{ $product['size'] ?? '' }}">
 
-                                                            <td><input type="text" name="products[{{ @$srNo }}][brand_name]" class="form-control" value="{{ $product['brand'] ?? '' }}" readonly></td>
-                                                            <td><input type="number" step="0.01" name="products[{{ $srNo }}][mrp]" class="form-control" value="{{ $product['mrp'] ?? '' }}"></td>
-                                                            <td><input type="number" name="products[{{ $srNo }}][qnt]" class="form-control" value="{{ $item['order_qty'] ?? 1 }}" min="1" data-prev="{{ $item['order_qty'] ?? 1 }}"></td>
-                                                            <td><input type="number" step="0.01" name="products[{{ $srNo }}][rate]" class="form-control" value="{{ $product['cost_price'] ?? '' }}"></td>
-                                                            <td><input type="number" step="0.01" name="products[{{ $srNo }}][amount]" class="form-control" value="{{ $product['amount'] ?? '' }}" readonly></td>
-                                                            <td><button type="button" class="btn btn-sm btn-danger remove">Remove</button></td>                                                       </tr>
+                                                                <td style="min-width: 220px; width: 35%;">
+                                                                    <input type="text" name="products[{{ @$srNo }}][brand_name]" class="form-control" value="{{ $product['brand'] ?? '' }}" readonly>
+                                                                </td>
+                                                                <td>
+                                                                    <input type="number" step="0.01" name="products[{{ $srNo }}][mrp]" class="form-control" value="{{ $product['mrp'] ?? '' }}">
+                                                                </td>
+                                                                <td>
+                                                                    <input type="number" name="products[{{ $srNo }}][qnt]" class="form-control" value="{{ $item['order_qty'] ?? 1 }}" min="1" data-prev="{{ $item['order_qty'] ?? 1 }}">
+                                                                </td>
+                                                                <td>
+                                                                    <input type="number" step="0.01" name="products[{{ $srNo }}][rate]" class="form-control" value="{{ $product['cost_price'] ?? '' }}">
+                                                                </td>
+                                                                <td>
+                                                                    <input type="number" step="0.01" name="products[{{ $srNo }}][amount]" class="form-control" value="{{ $product['amount'] ?? '' }}" readonly>
+                                                                </td>
+                                                                <td>
+                                                                    <button type="button" class="btn btn-sm btn-danger remove">Remove</button>
+                                                                </td>
+                                                            </tr>
                                                         @endforeach
-
                                                     </tbody>
                                                 </table>
                                             </div>
