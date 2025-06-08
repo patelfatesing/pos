@@ -337,8 +337,11 @@
                             </td>
 
                             <td>
-                                {{ format_inr($this->cashAmount) }}
-                                <input type="hidden" id="roundedTotal" value="{{ $this->cashAmount }}">
+                                @php
+                                    $this->roundedTotal=$this->cashAmount-$this->cartItemTotalSum;
+                                @endphp
+                                {{ format_inr($this->roundedTotal) }}
+                                <input type="hidden" id="roundedTotal" value="{{ $this->roundedTotal }}" wire:model="roundedTotal">
                             </td>
                             <td class="table-success fw-bold">
                                 {{ format_inr($this->cashAmount) }}
