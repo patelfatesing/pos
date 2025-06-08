@@ -2405,13 +2405,16 @@ class Shoppingcart extends Component
                 ->sum('quantity');
             $groupedProducts[$productId] = $totalQuantity - $cartitem->quantity;
         }
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
         //Loop through each product group and deduct from inventories
         foreach ($groupedProducts as $productId => $totalQuantity) {
 
             $product = $this->cartitems->firstWhere('product_id', $productId)->product;
             $inventories = $product->inventories;
-
+            $inventory = $product->inventorie;
+            stockStatusChange($inventory->product->id, $branch_id, $totalQuantity, 'add_stock');
+               
             if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
                 // Deduct only from the first inventory if it has enough quantity
                 $inventories[0]->quantity += $totalQuantity;
@@ -2419,7 +2422,6 @@ class Shoppingcart extends Component
             }
         }
         $cashNotes = json_encode($this->cashNotes) ?? [];
-        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
         // 💾 Save cash breakdown 
         //full refund
         //dd($this);
@@ -2674,8 +2676,19 @@ class Shoppingcart extends Component
             foreach ($groupedProducts as $productId => $totalQuantity) {
                 $product = $this->cartitems->firstWhere('product_id', $productId)->product;
                 $inventories = $product->inventories;
+                $inventory = $product->inventorie;
+                $totalQuantityNew = $inventories->sum('quantity') - $totalQuantity;
+                if ($totalQuantityNew <= $inventory->low_level_qty) {
+                    // You can use your custom function like sendNotification, or better use Laravel Notification system
 
-                stockStatusChange($productId, $branch_id, $totalQuantity, 'sold_stock');
+                    // Example with your function:
+                    // $arr['id'] = $inventory->product->id;
+                    // sendNotification('low_stock', 'Store stock request', null, auth()->id(), json_encode($arr));
+                    $arr_low_stock[$productId] = $productId;
+                }
+
+                stockStatusChange($inventory->product->id, $branch_id, $totalQuantity, 'sold_stock');
+
 
                 if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
                     // Deduct only from the first inventory if it has enough quantity
@@ -2697,7 +2710,16 @@ class Shoppingcart extends Component
                     }
                 }
             }
+             if (!empty($arr_low_stock)) {
 
+                $arr['product_id'] =  implode(',', array_values($arr_low_stock));
+                $arr['store_id'] =  (string) $branch_id;
+
+                $branch_name = (!empty(auth()->user()->userinfo->branch->name)) ? auth()->user()->userinfo->branch->name : "";
+
+                sendNotification('low_stock', 'Some products are running low', $branch_id, auth()->id(), json_encode($arr));
+                sendNotification('low_stock', 'Some products are running low in ' . $branch_name . ' Store', null, auth()->id(), json_encode($arr));
+            }
             // 💾 Save cash breakdown
             $totalQuantity = $cartitems->sum(fn($item) => $item->quantity);
             $total_item_total = $cartitems->sum(fn($item) => $item->net_amount);
