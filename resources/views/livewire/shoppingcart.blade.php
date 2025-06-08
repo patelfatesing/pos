@@ -99,7 +99,7 @@
                             wire:change="calculateCommission">
                             <option value="">-- Select Commission Customer --</option>
                             @foreach ($commissionUsers as $user)
-                                <option value="{{ $user->id }}">{{ $user->first_name . ' ' . $user->last_name }}
+                                <option value="{{ $user->id }}">{{ $user->first_name }}
                                 </option>
                             @endforeach
                         </select>
@@ -112,7 +112,7 @@
                             wire:change="calculateParty">
                             <option value="">-- {{ __('messages.select_party_customer') }} --</option>
                             @foreach ($partyUsers as $user)
-                                <option value="{{ $user->id }}">{{ $user->first_name . ' ' . $user->last_name }}
+                                <option value="{{ $user->id }}">{{ $user->first_name }}
                                 </option>
                             @endforeach
                         </select>
@@ -2200,10 +2200,22 @@ function updateNote(id, delta, denomination) {
     //     $('#numpadModal').modal('hide');
 
     // });
-    window.addEventListener('close-hold-modal', function() {
-        document.getElementById('holdTransactionsModal').style.display = 'none';
-        $('.modal-backdrop.show').remove();
-    });
+window.addEventListener('close-hold-modal', function () {
+    // Hide modal
+    const modal = document.getElementById('holdTransactionsModal');
+    modal.style.display = 'none';
+    modal.classList.remove('show'); // Optional: remove show class
+    modal.setAttribute('aria-hidden', 'true');
+
+    // Remove backdrop manually
+    const backdrops = document.querySelectorAll('.modal-backdrop');
+    backdrops.forEach(backdrop => backdrop.remove());
+
+    // Optional: remove 'modal-open' class from body to restore scroll
+    document.body.classList.remove('modal-open');
+    document.body.style.paddingRight = '';
+});
+
     window.addEventListener('product-added', () => {
         // optional: play sound or flash success
         //console.log('Product added to cart!');

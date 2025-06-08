@@ -41,8 +41,12 @@ class HoldTransactions extends Component
     {
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
         $transaction = Invoice::where(['user_id' => auth()->user()->id])->where('id', $id)->where(['branch_id' => $branch_id])->where('status', 'Hold')->first();
-        $transaction->delete();
+        $transaction->status="resumed";
+        $transaction->save();
         
+        // Store in session that a transaction is being resumed
+        //session()->put('resumed_transaction_id', $id);
+        //session()->put('resumed_transaction_time', now()); // optional timestamp
         foreach ($transaction->items as $key => $value) {
             $product =Product::where('name', $value['name'])->first();
             if(!empty($product)){
@@ -82,7 +86,7 @@ class HoldTransactions extends Component
         if (!file_exists($pdfPath)) {
             $partyUser = PartyUser::where('status', 'Active')->find($invoice->party_user_id);
             $pdf = App::make('dompdf.wrapper');
-            $pdf->loadView('hold', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'hold' => true,'customer_name' => @$partyUser->first_name.' '.@$partyUser->last_name]);
+            $pdf->loadView('hold', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'hold' => true,'customer_name' => @$partyUser->first_name]);
             $pdf->save($pdfPath);
         }
         

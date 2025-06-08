@@ -55,7 +55,6 @@
 
                                                                     <div class="ml-3">
                                                                         <h4 class="mb-1">{{ $partyUser->first_name }}
-                                                                            {{ $partyUser->last_name }}
                                                                     </div>
                                                                 </div>
 

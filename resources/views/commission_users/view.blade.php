@@ -55,7 +55,7 @@
 
                                                                     <div class="ml-3">
                                                                         <h4 class="mb-1">{{ $commissionUser->first_name }}
-                                                                            {{ $commissionUser->last_name }}
+                                                                           
                                                                     </div>
                                                                 </div>
 
