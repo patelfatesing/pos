@@ -57,13 +57,17 @@ class OrderModal extends Component
 
         $pdfPath = storage_path('app/public/invoices/duplicate_' . $invoice->invoice_number . '.pdf');
 
-        if (!file_exists($pdfPath)) {
-            $partyUser = PartyUser::where('status', 'Active')->find($invoice->party_user_id);
-            $pdf = App::make('dompdf.wrapper');
-            $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'duplicate' => true,'customer_name' => $partyUser->first_name]);
-            $pdf->save($pdfPath);
-        }
-        
+        $partyUser = PartyUser::where('status', 'Active')->find($invoice->party_user_id);
+        $pdf = App::make('dompdf.wrapper');
+        $pdf->loadView('invoice', [
+            'invoice' => $invoice,
+            'items' => $invoice->items,
+            'branch' => auth()->user()->userinfo->branch,
+            'duplicate' => true,
+            'customer_name' => $partyUser->first_name
+        ]);
+        // Always (re)generate the PDF, updating if it already exists
+        $pdf->save($pdfPath);
         $this->dispatch('triggerPrint', [
             'pdfPath' => asset('storage/invoices/duplicate_' . $invoice->invoice_number . '.pdf')
         ]);
