@@ -97,10 +97,12 @@
                                         <div class="col-lg-6">
                                             <div class="form-group">
                                                 <label>Upload Image</label>
-                                                <input type="file" name="image" class="form-control">
+                                                <input type="file" name="image" class="form-control"
+                                                    onchange="previewImage(this)">
                                                 @error('image')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
+                                                <div id="imagePreview" class="mt-2"></div>
                                             </div>
                                         </div>
 
@@ -118,4 +120,23 @@
         </div>
     </div>
     <!-- Wrapper End -->
+    <script>
+        function previewImage(input) {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = '';
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'img-thumbnail';
+                    img.style.width = '150px';
+                    img.style.height = '150px';
+                    img.style.objectFit = 'cover';
+                    preview.appendChild(img);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
 @endsection

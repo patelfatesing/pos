@@ -1,39 +1,51 @@
 @extends('layouts.backend.layouts')
 
-<!-- DataTables CSS -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-
-<!-- Buttons CSS -->
-<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
-
-<!-- DataTables JS -->
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
-<!-- Buttons JS -->
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-
-<!-- Export Dependencies -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
-
-
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <!-- Wrapper Start -->
-    <div class="wrapper">
 
+    <!-- DataTables & Buttons CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+
+    <!-- DataTables & Export JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
+    <style>
+        table.dataTable th,
+        table.dataTable td {
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        #invoice_table_wrapper {
+            overflow-x: auto;
+        }
+
+        .dataTables_wrapper .dt-buttons {
+            margin-bottom: 10px;
+        }
+
+        #invoice_table {
+            font-size: 13px;
+        }
+    </style>
+
+    <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
                 <div class="row">
-                    <div class="col-lg-12">
-                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                            <div>
-                                <h4 class="mb-3">Transaction List</h4>
-                            </div>
-                        </div>
+                    <div class="col-lg-12 mb-3 d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Transaction List</h4>
                     </div>
                     <div class="col-md-3 mb-2">
                         <input type="date" id="start_date" class="form-control">
@@ -53,85 +65,67 @@
                         <button class="btn btn-primary w-100" id="storeSearch">Search</button>
                     </div>
                 </div>
-                <div class="col-lg-12">
-                    <div class="table-responsive rounded mb-3">
-                        <table class="table data-tables table-striped" id="invoice_table">
-                            <thead class="bg-white text-uppercase">
-                                <tr class="ligth ligth-data">
-                                    <th>Sr. No.</th>
-                                    <th>Invoice No</th>
-                                    <th>Commission Dicount</th>
-                                    <th>Party Dicount</th>
-                                    <th>Credit</th>
-                                    <th>Sub Total</th>
-                                    <th>Total</th>
-                                    <th>Sales Qty</th>
-                                    <th>Store</th>
-                                    <th>Payment Status</th>
-                                    <th>Payment Mode</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody class="ligth-body">
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <th></th>
-                                    <th style="text-align:right">Total:</th>
-                                    <th id="commission_total"></th>
-                                    <th id="party_total"></th>
-                                    <th id="credit_total"></th>
-                                    <th id="sub_total_total"></th>
-                                    <th id="grand_total"></th>
-                                    <th id="item_count_total"></th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                </tr>
-                            </tfoot>
 
-                        </table>
-                    </div>
+                <div class="table-responsive rounded mb-3">
+                    <table class="table table-striped nowrap" id="invoice_table" style="width:100%;">
+                        <thead class="bg-white text-uppercase">
+                            <tr>
+                                <th class="text-nowrap">Sr. No.</th>
+                                <th class="text-nowrap">Invoice No</th>
+                                <th class="text-nowrap">Commission Discount</th>
+                                <th class="text-nowrap">Party Discount</th>
+                                <th class="text-nowrap">Credit</th>
+                                <th class="text-nowrap">Sub Total</th>
+                                <th class="text-nowrap">Total</th>
+                                <th class="text-nowrap">Sales Qty</th>
+                                <th class="text-nowrap">Store</th>
+                                <th class="text-nowrap">Payment Status</th>
+                                <th class="text-nowrap">Payment Mode</th>
+                                <th class="text-nowrap">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr>
+                                <th></th>
+                                <th style="text-align:right">Total:</th>
+                                <th id="commission_total"></th>
+                                <th id="party_total"></th>
+                                <th id="credit_total"></th>
+                                <th id="sub_total_total"></th>
+                                <th id="grand_total"></th>
+                                <th id="item_count_total"></th>
+                                <th></th><th></th><th></th><th></th>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
-                <!-- Page end  -->
             </div>
         </div>
-        <!-- Wrapper End-->
     </div>
-    </div>
+
+    <!-- Modal -->
     <div class="modal fade bd-example-modal-lg" id="salesCustPhotoShowModal" tabindex="-1" role="dialog"
         aria-labelledby="salesCustPhotoShowModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content" id="salesCustPhotoModalContent">
-            </div>
+            <div class="modal-content" id="salesCustPhotoModalContent"></div>
         </div>
     </div>
+
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
             });
 
-            $('#invoice_table').DataTable().clear().destroy();
-
             let table = $('#invoice_table').DataTable({
-                pagelength: 10,
+                scrollX: true,
                 responsive: true,
                 processing: true,
-                ordering: true,
                 serverSide: true,
                 autoWidth: false,
                 bLengthChange: true,
-                order: [
-                    [1, 'desc']
-                ], // Sort by created_at
-                columnDefs: [{
-                        targets: [1, 2, 3, 4, 5, 6],
-                        orderable: false
-                    }, // Disable sorting for these columns
-                ],
+                order: [[1, 'desc']],
                 dom: 'Blfrtip',
                 buttons: [
                     'pageLength',
@@ -141,9 +135,7 @@
                         className: 'btn btn-sm btn-outline-primary',
                         title: 'Transaction Report',
                         filename: 'transaction_report_csv',
-                        exportOptions: {
-                            columns: ':visible'
-                        }
+                        exportOptions: { columns: ':visible' }
                     },
                     {
                         extend: 'excelHtml5',
@@ -151,9 +143,7 @@
                         className: 'btn btn-sm btn-outline-success',
                         title: 'Transaction Report',
                         filename: 'transaction_report_excel',
-                        exportOptions: {
-                            columns: ':visible'
-                        }
+                        exportOptions: { columns: ':visible' }
                     },
                     {
                         extend: 'pdfHtml5',
@@ -163,129 +153,97 @@
                         filename: 'transaction_report_pdf',
                         orientation: 'landscape',
                         pageSize: 'A4',
-                        exportOptions: {
-                            columns: ':visible'
-                        }
+                        exportOptions: { columns: ':visible' }
                     }
                 ],
                 ajax: {
                     url: '{{ url('sales/get-data') }}',
                     type: 'POST',
-                    data: function(d) {
+                    data: function (d) {
                         d.start_date = $('#start_date').val();
                         d.end_date = $('#end_date').val();
                         d.branch_id = $('#branch_id').val();
                     }
                 },
-                columns: [{
-                        data: null,
-                        render: (data, type, row, meta) => meta.row + 1,
-                        className: 'text-center'
-                    }, {
-                        data: 'invoice_number',
-                        name: 'invoice_number'
-                    },
+                columns: [
+                    { data: null, render: (data, type, row, meta) => meta.row + 1, className: 'text-center text-nowrap' },
+                    { data: 'invoice_number', name: 'invoice_number', className: 'text-nowrap' },
                     {
                         data: 'commission_amount',
                         name: 'commission_amount',
-                        render: data => '₹' + parseFloat(data.replace(/,/g, '')).toFixed(2)
+                        render: data => '₹' + parseFloat(data.replace(/,/g, '')).toFixed(2),
+                        className: 'text-nowrap'
                     },
                     {
                         data: 'party_amount',
                         name: 'party_amount',
-                        render: data => '₹' + parseFloat(data.replace(/,/g, '')).toFixed(2)
+                        render: data => '₹' + parseFloat(data.replace(/,/g, '')).toFixed(2),
+                        className: 'text-nowrap'
                     },
                     {
                         data: 'creditpay',
-                        name: 'party_amcreditpayount',
-                        render: data => '₹' + parseFloat(data.replace(/,/g, '')).toFixed(2)
+                        name: 'creditpay',
+                        render: data => '₹' + parseFloat(data.replace(/,/g, '')).toFixed(2),
+                        className: 'text-nowrap'
                     },
                     {
                         data: 'sub_total',
                         name: 'sub_total',
-                        render: data => '₹' + parseFloat(data.replace(/,/g, '')).toFixed(2)
+                        render: data => '₹' + parseFloat(data.replace(/,/g, '')).toFixed(2),
+                        className: 'text-nowrap'
                     },
                     {
                         data: 'total',
                         name: 'total',
-                        render: data => '₹' + parseFloat(data.replace(/,/g, '')).toFixed(2)
+                        render: data => '₹' + parseFloat(data.replace(/,/g, '')).toFixed(2),
+                        className: 'text-nowrap'
                     },
-                    {
-                        data: 'items_count',
-                        name: 'items_count'
-                    },
-                    {
-                        data: 'branch_name',
-                        name: 'branch_name'
-                    },
-                    {
-                        data: 'status',
-                        name: 'status'
-                    },
-                    {
-                        data: 'payment_mode',
-                        name: 'payment_mode',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'created_at',
-                        name: 'created_at'
-                    }
+                    { data: 'items_count', name: 'items_count', className: 'text-nowrap' },
+                    { data: 'branch_name', name: 'branch_name', className: 'text-nowrap' },
+                    { data: 'status', name: 'status', className: 'text-nowrap' },
+                    { data: 'payment_mode', name: 'payment_mode', orderable: false, searchable: false, className: 'text-nowrap' },
+                    { data: 'created_at', name: 'created_at', className: 'text-nowrap' }
                 ],
-                footerCallback: function(row, data) {
-                    var api = this.api();
-
-                    const intVal = i => typeof i === 'string' ?
-                        parseFloat(i.replace(/[₹,]/g, '')) || 0 :
-                        typeof i === 'number' ?
-                        i :
-                        0;
-
-                    let commission = 0,
-                        party = 0,
-                        credit = 0,
-                        subtotal = 0,
-                        total = 0,
-                        items = 0;
+                footerCallback: function (row, data) {
+                    const api = this.api();
+                    const intVal = i => typeof i === 'string' ? parseFloat(i.replace(/[₹,]/g, '')) || 0 : (typeof i === 'number' ? i : 0);
+                    let commission = 0, party = 0, credit = 0, subtotal = 0, total = 0, items = 0;
 
                     data.forEach(row => {
                         commission += intVal(row.commission_amount);
                         party += intVal(row.party_amount);
-                        credit += intVal(row.credit);
+                        credit += intVal(row.creditpay);
                         subtotal += intVal(row.sub_total);
                         total += intVal(row.total);
                         items += intVal(row.items_count);
                     });
 
-                    $(api.column(2).footer()).html('₹' + commission.toFixed(2)); // Commission (2)
-                    $(api.column(3).footer()).html('₹' + party.toFixed(2)); // Party (3)
-                    $(api.column(4).footer()).html('₹' + credit.toFixed(2)); // Credit (4)
-                    $(api.column(5).footer()).html('₹' + subtotal.toFixed(2)); // Sub Total (5)
-                    $(api.column(6).footer()).html('₹' + total.toFixed(2)); // Total (6)
-                    $(api.column(7).footer()).html(items); // Sales Qty (7)
-
+                    $(api.column(2).footer()).html('₹' + commission.toFixed(2));
+                    $(api.column(3).footer()).html('₹' + party.toFixed(2));
+                    $(api.column(4).footer()).html('₹' + credit.toFixed(2));
+                    $(api.column(5).footer()).html('₹' + subtotal.toFixed(2));
+                    $(api.column(6).footer()).html('₹' + total.toFixed(2));
+                    $(api.column(7).footer()).html(items);
                 }
             });
 
-            $('#storeSearch').on('click', function() {
+            $('#storeSearch').on('click', function () {
                 table.draw();
             });
         });
+
         const salesImgViewBase = "{{ url('sales-img-view') }}";
 
         function showPhoto(id, commission_user_id = '', party_user_id = '', invoice_no = '') {
-            let url =
-                `${salesImgViewBase}/${id}?commission_user_id=${commission_user_id}&party_user_id=${party_user_id}&invoice_no=${invoice_no}`;
-
+            const url = `${salesImgViewBase}/${id}?commission_user_id=${commission_user_id}&party_user_id=${party_user_id}&invoice_no=${invoice_no}`;
             $.ajax({
                 url: url,
                 type: 'GET',
-                success: function(response) {
+                success: function (response) {
                     $('#salesCustPhotoModalContent').html(response);
                     $('#salesCustPhotoShowModal').modal('show');
                 },
-                error: function() {
+                error: function () {
                     alert('Photos not found.');
                 }
             });

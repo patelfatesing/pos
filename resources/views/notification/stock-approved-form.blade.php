@@ -61,7 +61,6 @@
                             <tr>
                                 <th>#</th>
                                 <th>Product</th>
-                                <th>Brand</th>
                                 <th>Size</th>
                                 <th>Quantity</th>
                             </tr>
@@ -78,7 +77,6 @@
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $item->product->name }}</td>
-                                    <td>{{ $item->product->brand }}</td>
                                     <td>{{ $item->product->size }}</td>
                                     <td>{{ $item->quantity }}</td>
                                 </tr>
@@ -104,6 +102,6 @@
 
     <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-dismiss="modal">Close</button>
-        <button type="submit" class="btn btn-primary">Approve</button>
+        {{-- <button type="submit" class="btn btn-primary">Approve</button> --}}
     </div>
 </form>

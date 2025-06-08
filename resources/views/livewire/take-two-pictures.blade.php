@@ -384,7 +384,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     cameraModal.addEventListener('shown.bs.modal', function () {
         // Get the value of partyUser from a hidden input or data attribute
-        // Example: <input type="hidden" id="partyUser" value="{{ $selectedPartyUser }}">
         const partyUser = document.getElementById('partyUser') ? document.getElementById('partyUser').value : '';
         // If you want to append an image based on partyUser value
         if (partyUser) {

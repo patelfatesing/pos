@@ -5,9 +5,9 @@
 
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <style>
-.is-invalid {
-    border-color: #dc3545;
-}
+    .is-invalid {
+        border-color: #dc3545;
+    }
 </style>
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -67,18 +67,19 @@
                     </div>
                     <div class="modal-body">
                         <input type="hidden" name="store_id" id="store_id" value="">
-
-                        <table class="table table-bordered" id="lowLevelProductTable">
-                            <thead>
-                                <tr>
-                                    <th>Product Name</th>
-                                    <th>Low Level Quantity</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Filled by AJAX -->
-                            </tbody>
-                        </table>
+                        <div class="scrollable-content p-3" tabindex="0" id="scrollableContent">
+                            <table class="table table-bordered" id="lowLevelProductTable">
+                                <thead>
+                                    <tr>
+                                        <th>Product Name</th>
+                                        <th>Low Level Quantity</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Filled by AJAX -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <div class="modal-footer">
@@ -89,6 +90,18 @@
             </div>
         </div>
     </div>
+
+    <style>
+        .scrollable-content {
+            max-height: 450px;
+            overflow-y: auto;
+        }
+
+        .table th,
+        .table td {
+            vertical-align: middle;
+        }
+    </style>
 
     <script>
         $(document).ready(function() {
@@ -293,6 +306,20 @@
                 error: function(xhr) {
                     alert('Error updating quantities.');
                 }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const scrollable = document.getElementById('scrollableContent');
+
+            // Auto-focus when modal is shown
+            $('.modal').on('shown.bs.modal', function() {
+                scrollable.focus();
+            });
+
+            // Allow focus again on click
+            scrollable.addEventListener('click', () => {
+                scrollable.focus();
             });
         });
     </script>

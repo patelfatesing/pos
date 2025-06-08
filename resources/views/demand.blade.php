@@ -64,7 +64,7 @@
     <table class="header-table">
         <tr>
             <th>Demand Date</th>
-            <th>{{ \Carbon\Carbon::parse($data['demand_date'])->format('d-m-Y h:i A') }}</th>
+            <th>{{ \Carbon\Carbon::parse($data['demand_date'])->format('d-m-Y') }}</th>
         </tr>
         <tr>
             <th>Name</th>
@@ -106,7 +106,7 @@
                 @if(is_numeric($key))
                     <tr>
                         <td>{{ $key }}</td>
-                        <td>{{ $product['brand_name'] }}</td>
+                        <td>{{ $product['brand_name'] ." - ".$product['size'] }}</td>
                         <td>{{ number_format($product['mrp'], 2) }}</td>
                         <td>{{ $product['qnt'] }}</td>
                         <td>{{ number_format($product['rate'], 2) }}</td>

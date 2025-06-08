@@ -262,6 +262,7 @@ class DemandOrderController extends Controller
 
         foreach ($request->selected as $productId) {
             $qty = $request->order_qty[$productId] ?? 0;
+            $pack_size = $request->pack_size[$productId] ?? 0;
 
             // Skip if qty is zero
             if ($qty <= 0) {
@@ -276,6 +277,7 @@ class DemandOrderController extends Controller
             $selectedProducts[] = [
                 'product_id' => $productId,
                 'order_qty' => $qty,
+                 'pack_size' => $pack_size,
                 'product_details' => $productDetailsAry, // optional
             ];
         }
@@ -299,6 +301,32 @@ class DemandOrderController extends Controller
         $pdf->loadView('demand', ['data' => $data, 'user' => $user]);
         $pdfPath = storage_path('app/public/demand/' . $filename);
         $pdf->save($pdfPath);
+        $step2Data = session('demand_orders.step1');
+        $my2 = session('demand_orders.step2');
+        $my3 = session('demand_orders.step3');
+        $demandOrder = DemandOrder::create([
+            'vendor_id' => $step2Data['vendor_id'],
+            'purchase_date' => $step2Data['purchase_date'],
+            'purchase_order_no' => $step2Data['vendor_id'],
+            'shipping_date' => $step2Data['shipping_date'],
+            'notes' => $my3['notes'],
+            'status' =>  'order',
+        ]);
+
+        foreach ($data['products'] as $product) {
+            DemandOrderProduct::create([
+                'demand_order_id' => $demandOrder->id,
+                'product_id' => $product['product_id'],
+                'quantity' => $product['qnt'],
+                'barcode' => $product['barcode'] ?? null,
+                'mrp' => $product['mrp'],
+                'rate' => $product['rate'],
+                'sell_price' => $product['amount'],
+                'delivery_status' => 'partially',
+                'delivery_quantity' => 0,
+            ]);
+        }
+
         if (session()->has('demand_orders.step1')) {
             session()->forget('demand_orders.step1');
         }

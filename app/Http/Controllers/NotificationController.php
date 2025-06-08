@@ -139,6 +139,8 @@ class NotificationController extends Controller
                     'p.name as product_name',
                     'p.brand',
                     'i.transfer_number',
+                    'i.transferred_at',
+                    'i.status',
                     'i.quantity',
                     'p.sku',
                     'p.barcode',

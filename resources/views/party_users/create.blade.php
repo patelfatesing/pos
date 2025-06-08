@@ -114,8 +114,8 @@
                 const img = document.createElement('img');
                 img.src = e.target.result;
                 img.className = 'img-thumbnail';
-                img.style.width = '100px';
-                img.style.height = '100px';
+                img.style.width = '150px';
+                img.style.height = '150px';
                 img.style.objectFit = 'cover';
                 preview.appendChild(img);
             }

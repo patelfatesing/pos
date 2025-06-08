@@ -262,11 +262,11 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th>#</th>
-                                            <th>Item</th>
-                                            <th>Opening</th>
-                                            <th>Transferred In</th>
-                                            <th>Transferred Out</th>
-                                            <th>Sold</th>
+                                            <th>Product</th>
+                                            <th>Opening Stock</th>
+                                            <th>Transferred IN</th>
+                                            <th>Transferred OUT</th>
+                                            <th>Sold Qty</th>
                                             <th>Closing Stock</th>
                                             <th>Physical Stock</th>
                                             <th>Difference In Stock</th>
@@ -341,7 +341,7 @@
                                                         {{ $product['product']['name'] }}
                                                     </td>
                                                     <td class="border px-4 py-2">
-                                                        <input type="number" min="1" wire:model="products.{{ $product['product_id'] }}.qty"
+                                                        <input type="number" wire:model="products.{{ $product['product_id'] }}.qty"
                                                             class="form-control" >
                                                         @error("products.{$product['product_id']}.qty")
                                                             <span class="text-danger small">{{ $message }}</span>
@@ -367,8 +367,8 @@
                             <label class="form-label fw-bold mb-2">Physical Stock Image Capture</label>
                             <div class="d-flex flex-wrap align-items-center gap-3">
                                 <div>
-                                    <video id="webcam" width="200" height="150" autoplay class="border rounded"></video>
-                                    <canvas id="canvas" width="200" height="150" style="display: none;"></canvas>
+                                    <video id="webcam" width="480" height="360" autoplay class="border rounded shadow" style="object-fit: cover;"></video>
+                                    <canvas id="canvas" width="480" height="360" style="display: none;"></canvas>
                                 </div>
                                 <div class="d-flex flex-column align-items-center gap-2">
                                     <button type="button" class="btn btn-outline-secondary btn-sm" onclick="takeSnapshot()">

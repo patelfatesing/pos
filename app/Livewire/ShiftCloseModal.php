@@ -159,6 +159,14 @@ class ShiftCloseModal extends Component
 
         // Fetch and assign your shift data here (dummy data for now)
         $this->shift = $currentShift = UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "pending"])->first();
+        $now = Carbon::now();
+        $cutoff = Carbon::createFromTime(23, 50, 0); // 11:50 PM today
+
+        if (empty($this->shift) && $now->greaterThanOrEqualTo($cutoff)) {
+                $this->dispatch('close-shift-12am');
+                return;
+        }
+
         $this->shft_id = $this->shift->id ?? null;
         // $this->shift = Shift::latest()->first();
         $this->branch_name = $this->shift->branch->name ?? 'Shop';
@@ -247,7 +255,7 @@ class ShiftCloseModal extends Component
         $this->categoryTotals['payment']['CASH'] = $totalCashPaid;
         // $this->categoryTotals['payment']['UPI PAYMENT'] = $totalUpiPaid;
         $this->categoryTotals['summary']['OPENING CASH'] = @$currentShift->opening_cash;
-        $this->categoryTotals['summary']['TOTAL SALES'] = $totalSubTotal + $discountTotal;
+        $this->categoryTotals['summary']['TOTAL SALES'] = $totalSubTotal + $discountTotal-$totalRefundReturn;
         $this->categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
         $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] = $totalWith * (-1);
         $this->categoryTotals['summary']['UPI PAYMENT'] = ($totalUpiPaid+$totalOnlinePaid) * (-1);
@@ -317,10 +325,10 @@ class ShiftCloseModal extends Component
         $shift2 = UserShift::where('user_id', $user_id)
         ->where('branch_id', $branch_id)
         //->whereBetween('created_at', [$this->shift->start_time, $this->shift->end_time])
-        ->where('id', 'pending')
-        ->where('status', $this->shift->id)
+        ->where('status', 'pending')
+        ->where('id', $this->shift->id)
         ->first();
-        if (!empty($shift2->physical_stock_added) && $shift2->physical_stock_added==0) {
+        if (isset($shift2->physical_stock_added) && $shift2->physical_stock_added==0) {
                 $this->dispatch('notiffication-error', ['message' => 'Please add physical sales first']);
                 return;
         }
@@ -378,7 +386,7 @@ class ShiftCloseModal extends Component
       public function save()
     {
         $this->validate([
-            'products.*.qty' => 'required|integer|min:1',
+            'products.*.qty' => 'required|integer',
         ]);
           if($this->showYesterDayShiftTime){
             $dateMatch = Carbon::yesterday();
@@ -410,9 +418,15 @@ class ShiftCloseModal extends Component
                 ->where('product_id', $product_id)->whereDate('date', $dateMatch)
                 ->first();
             if(!empty($dailyProductStock)){
-                //
+                  // Calculate closing_stock using the formula
+                $closingStock = $dailyProductStock->opening_stock
+                    + $dailyProductStock->added_stock
+                    - $dailyProductStock->transferred_stock
+                    - $dailyProductStock->sold_stock;
+
                 $dailyProductStock->physical_stock = $product['qty'];
-                $dailyProductStock->difference_in_stock = $product['qty'] - $dailyProductStock->closing_stock;
+                $dailyProductStock->closing_stock = $closingStock ?? 0;
+                $dailyProductStock->difference_in_stock = $closingStock-$product['qty'];
                 $dailyProductStock->save();
             }
         }
@@ -512,25 +526,25 @@ class ShiftCloseModal extends Component
             $user->is_login = 'No';
             $user->save();
 
-            $stocks = DailyProductStock::with('product')
-                ->where('branch_id', $branch_id)
-                ->whereDate('date', $dateMatch)
-                ->get();
+            // $stocks = DailyProductStock::with('product')
+            //     ->where('branch_id', $branch_id)
+            //     ->whereDate('date', $dateMatch)
+            //     ->get();
 
-            foreach ($stocks as $stock) {
+            // foreach ($stocks as $stock) {
 
-                // Calculate closing_stock using the formula
-                $closingStock = $stock->opening_stock
-                    + $stock->added_stock
-                    - $stock->transferred_stock
-                    - $stock->sold_stock;
+            //     // Calculate closing_stock using the formula
+            //     $closingStock = $stock->opening_stock
+            //         + $stock->added_stock
+            //         - $stock->transferred_stock
+            //         - $stock->sold_stock;
 
-                // Optionally, save closing_stock if it's not saved yet
-                if ($stock->closing_stock !== $closingStock) {
-                    $stock->closing_stock = $closingStock;
-                    $stock->save();
-                }
-            }
+            //     // Optionally, save closing_stock if it's not saved yet
+            //     if ($stock->closing_stock !== $closingStock) {
+            //         $stock->closing_stock = $closingStock;
+            //         $stock->save();
+            //     }
+            // }
 
             session()->forget(auth()->id().'_warehouse_product_photo_path', []);
             session()->forget(auth()->id().'_warehouse_customer_photo_path', []);
