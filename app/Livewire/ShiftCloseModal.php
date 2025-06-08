@@ -317,10 +317,10 @@ class ShiftCloseModal extends Component
         $shift2 = UserShift::where('user_id', $user_id)
         ->where('branch_id', $branch_id)
         //->whereBetween('created_at', [$this->shift->start_time, $this->shift->end_time])
-        ->where('id', 'pending')
-        ->where('status', $this->shift->id)
+        ->where('status', 'pending')
+        ->where('id', $this->shift->id)
         ->first();
-        if (!empty($shift2->physical_stock_added) && $shift2->physical_stock_added==0) {
+        if (isset($shift2->physical_stock_added) && $shift2->physical_stock_added==0) {
                 $this->dispatch('notiffication-error', ['message' => 'Please add physical sales first']);
                 return;
         }
