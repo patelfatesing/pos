@@ -278,7 +278,7 @@ class ProductController extends Controller
                 'product_id' => $product->id,
                 'old_price' => $product->sell_price,
                 'new_price' => $request->new_price,
-                'changed_at' => now(),
+                'changed_at' => $request->changed_at,
             ]);
         }
 
