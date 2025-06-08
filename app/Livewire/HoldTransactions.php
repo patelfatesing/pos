@@ -37,7 +37,7 @@ class HoldTransactions extends Component
 
     }
 
-    public function resumeTransaction($id)
+    public function resumeTransaction($id,$commission_user_id="",$party_user_id="")
     {
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
         $transaction = Invoice::where(['user_id' => auth()->user()->id])->where('id', $id)->where(['branch_id' => $branch_id])->where('status', 'Hold')->first();
@@ -69,6 +69,10 @@ class HoldTransactions extends Component
         $this->dispatch('updateCartCount');
         $this->dispatch('setNotes');
         $this->dispatch('close-hold-modal');
+         $this->dispatch('updateCustomerDetailHold', [
+            'party_user_id' => $party_user_id,
+            'commission_user_id' => $commission_user_id
+        ]);
         $this->dispatch('notiffication-success', ['message' => 'Transaction resumed successfully']);
 
     }

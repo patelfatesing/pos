@@ -72,6 +72,7 @@ class Shoppingcart extends Component
     public $cashAmount = 0;
     public $onlineAmount = 0;
     public $cartCount = 0;
+    public $cartCrtCount = 0;
     public $selectedCommissionUser;
     public $selectedPartyUser;
     public $commissionUsers = [];
@@ -88,7 +89,7 @@ class Shoppingcart extends Component
     public $showModal = false;
     public $availableNotes = "";
     public $selectedUser = 0;
-    protected $listeners = ['updateProductList' => 'loadCartData', 'loadHoldTransactions', 'updateNewProductDetails', 'resetData', 'hideSuggestions', 'openModalYesterdayShift' => 'openModalYesterdayShift', 'setNotes'];
+    protected $listeners = ['updateProductList' => 'loadCartData', 'loadHoldTransactions', 'updateNewProductDetails',"updateCustomerDetailHold" ,'resetData', 'hideSuggestions', 'openModalYesterdayShift' => 'openModalYesterdayShift', 'setNotes','calculateCommission','calculateParty'];
     public $noteDenominations = [10, 20, 50, 100, 200, 500];
     public $remainingAmount = 0;
     public $totalBreakdown = [];
@@ -96,6 +97,7 @@ class Shoppingcart extends Component
     public $searchSalesReturn = '';
     public $branch_name = '';
     public $quantities = [];
+    public $cartItemTotal = [];
     public $showSuggestions = false;
     public $showSuggestionsSales = false;
     public $showCheckbox = false;
@@ -106,6 +108,7 @@ class Shoppingcart extends Component
     public $cashPayment = 0;
     public $paymentType = "";
     public $scTotalCashAmt = 0;
+    public $cartItemTotalSum=0;
     public $scTotalUpiAmt = 0;
     public $shiftEndTime = "";
     public $cashupiNotes = [];
@@ -124,6 +127,7 @@ class Shoppingcart extends Component
     public $partyUserDiscountAmt = 0;
     public $finalDiscountPartyAmount = 0;
     public $productStock = [];
+    public $roundedTotal=0;
     //public $product_in_stocks = [];
 
 
@@ -198,7 +202,9 @@ class Shoppingcart extends Component
     public function addToCartBarCode()
     {
         if (!$this->selectedProduct) return;
-        $currentQty = $this->cartCount + 1;
+        $currentProduct = $this->cartitems->firstWhere('product_id', $this->selectedProduct->id);
+        $currentQty = $currentProduct ? $currentProduct->quantity : 0;
+        $currentQty = $currentQty + 1;
         $totalQuantity = $this->selectedSalesReturn ? collect($this->selectedSalesReturn->items)->sum('quantity') : 0;
         if (!empty($this->selectedSalesReturn) && $this->cartCount >= $totalQuantity) {
             $this->dispatch('notiffication-error', [
@@ -1216,7 +1222,7 @@ class Shoppingcart extends Component
             // Optional: reset UI inputs
             //$this->dispatch('updateCartCount');
             $this->dispatch('updateNewProductDetails');
-            $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount');
+            $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount','selectedPartyUser', 'selectedCommissionUser');
 
             $this->dispatch('notiffication-sucess', ['message' => 'Your transaction has been added to hold.']);
 
@@ -1334,6 +1340,17 @@ class Shoppingcart extends Component
         // $this->dispatch('updateCartCount');
         //$this->dispatch('updateProductList');
     }
+    public function updateCustomerDetailHold($data = null)
+    {
+       if(!empty($data['party_user_id'])) {
+            $this->selectedPartyUser = $data['party_user_id'];
+            $this->calculateParty();
+        }
+        if(!empty($data['commission_user_id'])) {
+            $this->selectedCommissionUser = $data['commission_user_id'];
+            $this->calculateCommission();
+        }
+    }
     public function updateNewProductDetails()
     {
         $this->cartitems = $this->products = Cart::with('product')
@@ -1410,6 +1427,7 @@ class Shoppingcart extends Component
 
         $this->dispatch('updateCartCount');
     }
+    
     //sanjay
     public function incrementQty($id, $amount = 0)
     {
@@ -1689,7 +1707,17 @@ class Shoppingcart extends Component
         // $this->cashAmount=$sum;
 
     }
+    public function getRoundedAmount()
+    {
+        $totalItem=0;
+        $itemCarts = Cart::GetCartItems();
 
+        foreach ($itemCarts as $item) {
+            $this->quantities[$item->id] = $item->quantity;
+            $totalItem += $item->net_amount;
+        }
+        $this->cartItemTotalSum = $totalItem;
+    }
     public function render()
     {
 
@@ -1716,9 +1744,7 @@ class Shoppingcart extends Component
             $this->searchResults = [];
         }
         $itemCarts = Cart::GetCartItems();
-        foreach ($itemCarts as $item) {
-            $this->quantities[$item->id] = $item->quantity;
-        }
+        $this->getRoundedAmount();
         $stores = Branch::where('is_deleted', 'no')->get();
         $products = Product::where('is_active', 'yes')->where('is_deleted', 'no')->get();
 
@@ -1764,7 +1790,9 @@ class Shoppingcart extends Component
     {
 
         if (auth()->user()) {
-            $currentQty = $this->cartCount + 1;
+            $currentProduct = $this->cartitems->firstWhere('product_id', $id);
+            $currentQty = $currentProduct ? $currentProduct->quantity : 0;
+            $currentQty = $currentQty + 1;
             $totalQuantity = $this->selectedSalesReturn ? collect($this->selectedSalesReturn->items)->sum('quantity') : 0;
             if (!empty($this->selectedSalesReturn) && $this->cartCount >= $totalQuantity) {
                 $this->dispatch('notiffication-error', [
@@ -2179,6 +2207,7 @@ class Shoppingcart extends Component
                 [
                     'user_id' => auth()->id(),
                     'branch_id' => $branch_id,
+                    'roundof'=>$this->roundedTotal,
                     'invoice_number' => $invoice_number_to_use,
                     'commission_user_id' => $commissionUser->id ?? null,
                     'party_user_id' => $partyUser->id ?? null,
@@ -2254,8 +2283,8 @@ class Shoppingcart extends Component
                 $productImgName = basename($warehouse_product_photo_path);
                 // Define source and destination paths
                 //$sourcePath = 'uploaded_photos/' . $image['filename'];
-                $destinationProductPath = 'uploaded_photos/' . $invoice_number . '/' . $productImgName;
-                $destinationUserPath = 'uploaded_photos/' . $invoice_number . '/' . $userImgName;
+                $destinationProductPath = 'uploaded_photos/' . $invoice_number_to_use . '/' . $productImgName;
+                $destinationUserPath = 'uploaded_photos/' . $invoice_number_to_use . '/' . $userImgName;
 
                 if (Storage::disk('public')->exists($warehouse_product_photo_path)) {
                     Storage::disk('public')->move($warehouse_product_photo_path, $destinationUserPath);
@@ -2287,8 +2316,8 @@ class Shoppingcart extends Component
                     $productImgName = basename($cashier_product_photo_path) ?? '';
                     // Define source and destination paths
                     //$sourcePath = 'uploaded_photos/' . $image['filename'];
-                    $destinationProductPath = 'uploaded_photos/' . $invoice_number . '/' . $productImgName;
-                    $destinationUserPath = 'uploaded_photos/' . $invoice_number . '/' . $userImgName;
+                    $destinationProductPath = 'uploaded_photos/' . $invoice_number_to_use . '/' . $productImgName;
+                    $destinationUserPath = 'uploaded_photos/' . $invoice_number_to_use . '/' . $userImgName;
                     if (Storage::disk('public')->exists($cashier_customer_photo_path)) {
                         Storage::disk('public')->move($cashier_customer_photo_path, $destinationUserPath);
                     }
@@ -2360,7 +2389,7 @@ class Shoppingcart extends Component
             Cart::where('user_id', auth()->user()->id)
                 ->where('status', '!=', Cart::STATUS_HOLD)
                 ->delete();
-            $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown');
+            $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown','useCredit','showCheckbox','roundedTotal');
         } catch (\Illuminate\Validation\ValidationException $e) {
             // 🔔 Flash message for Laravel Blade
             $this->dispatch('notiffication-error', ['message' => 'Something went wrong']);
@@ -2725,40 +2754,49 @@ class Shoppingcart extends Component
             $total_item_total = $cartitems->sum(fn($item) => $item->net_amount);
 
             $invoice_number = Invoice::generateInvoiceNumber();
-            $invoice = Invoice::create([
-                'user_id' => auth()->id(),
-                'branch_id' => $branch_id,
-                'invoice_number' => $invoice_number,
-                'commission_user_id' => $commissionUser->id ?? null,
-                'party_user_id' => $partyUser->id ?? null,
-                'payment_mode' => $this->paymentType,
-                'items' => $cartitems->map(fn($item) => [
-                    'product_id' => $item->product->id,
-                    'name' => $item->product->name,
-                    'quantity' => $item->quantity,
-                    'category' => $item->product->category->name,
-                    'subcategory' => $item->product->subcategory->name,
-                    'price' => $item->net_amount,
-                    'mrp' => $item->mrp,
+            $resumedInvoice = Invoice::where('user_id', auth()->id())
+                ->where('branch_id', $branch_id)
+                ->where('status', 'Resumed')
+                ->first();
 
-                ]),
-                'total_item_qty' => $totalQuantity,
-                'total_item_total' => $total_item_total,
-                'upi_amount' => 0,
-                'change_amount' => $this->cashAmount,
-                'creditpay' => $this->creditPay,
-                'cash_amount' => 0,
-                'online_amount' => $this->cashAmount,
-                // 'sub_total' => $this->cashAmount,
-                'sub_total' => $this->cashAmount,
-                'tax' => $this->tax,
-                'status' => "Paid",
-                'commission_amount' => $this->commissionAmount,
-                'party_amount' => $this->partyAmount,
-                'total' => $this->cashAmount,
-                'cash_break_id' => null,
-                //'billing_address'=> $address,
-            ]);
+            // If found, use its invoice number; otherwise, use the default/new invoice number
+            $invoice_number_to_use = $resumedInvoice->invoice_number ?? $invoice_number;
+            $invoice = Invoice::updateOrCreate(
+                [
+                    'invoice_number' => $invoice_number_to_use,
+                    'user_id' => auth()->id(),
+                    'branch_id' => $branch_id,
+                ],
+                [
+                    'commission_user_id' => $commissionUser->id ?? null,
+                    'party_user_id' => $partyUser->id ?? null,
+                    'payment_mode' => $this->paymentType,
+                    'roundof'=>$this->roundedTotal,
+                    'items' => $cartitems->map(fn($item) => [
+                        'product_id' => $item->product->id,
+                        'name' => $item->product->name,
+                        'quantity' => $item->quantity,
+                        'category' => $item->product->category->name,
+                        'subcategory' => $item->product->subcategory->name,
+                        'price' => $item->net_amount,
+                        'mrp' => $item->mrp,
+                    ]),
+                    'total_item_qty' => $totalQuantity,
+                    'total_item_total' => $total_item_total,
+                    'upi_amount' => 0,
+                    'change_amount' => $this->cashAmount,
+                    'creditpay' => $this->creditPay,
+                    'cash_amount' => 0,
+                    'online_amount' => $this->cashAmount,
+                    'sub_total' => $this->sub_total,
+                    'tax' => $this->tax,
+                    'status' => "Paid",
+                    'commission_amount' => $this->commissionAmount,
+                    'party_amount' => $this->partyAmount,
+                    'total' => $this->cashAmount,
+                    'cash_break_id' => null,
+                ]
+            );
             InvoiceHistory::logFromInvoice($invoice, 'created', auth()->id());
             if ($this->selectedPartyUser) {
                 $warehouse_product_photo_path = session(auth()->id() . '_warehouse_product_photo_path', []);
@@ -2767,8 +2805,8 @@ class Shoppingcart extends Component
                 $productImgName = basename($warehouse_product_photo_path);
                 // Define source and destination paths
                 //$sourcePath = 'uploaded_photos/' . $image['filename'];
-                $destinationProductPath = 'uploaded_photos/' . $invoice_number . '/' . $productImgName;
-                $destinationUserPath = 'uploaded_photos/' . $invoice_number . '/' . $userImgName;
+                $destinationProductPath = 'uploaded_photos/' . $invoice_number_to_use . '/' . $productImgName;
+                $destinationUserPath = 'uploaded_photos/' . $invoice_number_to_use . '/' . $userImgName;
 
                 if (Storage::disk('public')->exists($warehouse_product_photo_path)) {
                     Storage::disk('public')->move($warehouse_product_photo_path, $destinationUserPath);
@@ -2800,8 +2838,8 @@ class Shoppingcart extends Component
                     $productImgName = basename($cashier_product_photo_path) ?? '';
                     // Define source and destination paths
                     //$sourcePath = 'uploaded_photos/' . $image['filename'];
-                    $destinationProductPath = 'uploaded_photos/' . $invoice_number . '/' . $productImgName;
-                    $destinationUserPath = 'uploaded_photos/' . $invoice_number . '/' . $userImgName;
+                    $destinationProductPath = 'uploaded_photos/' . $invoice_number_to_use . '/' . $productImgName;
+                    $destinationUserPath = 'uploaded_photos/' . $invoice_number_to_use . '/' . $userImgName;
                     if (Storage::disk('public')->exists($cashier_customer_photo_path)) {
                         Storage::disk('public')->move($cashier_customer_photo_path, $destinationUserPath);
                     }
@@ -2873,7 +2911,8 @@ class Shoppingcart extends Component
             Cart::where('user_id', auth()->user()->id)
                 ->where('status', '!=', Cart::STATUS_HOLD)
                 ->delete();
-            $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown');
+            $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown','useCredit','showCheckbox','roundedTotal');
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             // 🔔 Flash message for Laravel Blade
             $this->dispatch('notiffication-error', ['message' => 'Something went wrong']);
