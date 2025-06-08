@@ -410,9 +410,15 @@ class ShiftCloseModal extends Component
                 ->where('product_id', $product_id)->whereDate('date', $dateMatch)
                 ->first();
             if(!empty($dailyProductStock)){
-                //
+                  // Calculate closing_stock using the formula
+                $closingStock = $dailyProductStock->opening_stock
+                    + $dailyProductStock->added_stock
+                    - $dailyProductStock->transferred_stock
+                    - $dailyProductStock->sold_stock;
+
                 $dailyProductStock->physical_stock = $product['qty'];
-                $dailyProductStock->difference_in_stock = $product['qty'] - $dailyProductStock->closing_stock;
+                $dailyProductStock->closing_stock = $closingStock ?? 0;
+                $dailyProductStock->difference_in_stock = $closingStock-$product['qty'];
                 $dailyProductStock->save();
             }
         }
@@ -512,25 +518,25 @@ class ShiftCloseModal extends Component
             $user->is_login = 'No';
             $user->save();
 
-            $stocks = DailyProductStock::with('product')
-                ->where('branch_id', $branch_id)
-                ->whereDate('date', $dateMatch)
-                ->get();
+            // $stocks = DailyProductStock::with('product')
+            //     ->where('branch_id', $branch_id)
+            //     ->whereDate('date', $dateMatch)
+            //     ->get();
 
-            foreach ($stocks as $stock) {
+            // foreach ($stocks as $stock) {
 
-                // Calculate closing_stock using the formula
-                $closingStock = $stock->opening_stock
-                    + $stock->added_stock
-                    - $stock->transferred_stock
-                    - $stock->sold_stock;
+            //     // Calculate closing_stock using the formula
+            //     $closingStock = $stock->opening_stock
+            //         + $stock->added_stock
+            //         - $stock->transferred_stock
+            //         - $stock->sold_stock;
 
-                // Optionally, save closing_stock if it's not saved yet
-                if ($stock->closing_stock !== $closingStock) {
-                    $stock->closing_stock = $closingStock;
-                    $stock->save();
-                }
-            }
+            //     // Optionally, save closing_stock if it's not saved yet
+            //     if ($stock->closing_stock !== $closingStock) {
+            //         $stock->closing_stock = $closingStock;
+            //         $stock->save();
+            //     }
+            // }
 
             session()->forget(auth()->id().'_warehouse_product_photo_path', []);
             session()->forget(auth()->id().'_warehouse_customer_photo_path', []);
