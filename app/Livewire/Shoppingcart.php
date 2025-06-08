@@ -390,7 +390,7 @@ class Shoppingcart extends Component
                 $this->clearCashNotes();
 
                 return;
-            } else if ($this->creditPay > ($user->credit_points - $user->left_credit)) {
+            } else if ($this->creditPay > ($user->credit_points - $user->use_credit)) {
                 $this->errorInCredit = true;
                 $this->dispatch('notiffication-error', ['message' => 'Credit payment cannot be greater than available credit.']);
                 $this->creditPay = 0;
