@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use App\Models\Refund;
 use App\Models\CreditHistory;
 use App\Models\DailyProductStock;
+use App\Models\Branch;
 
 class ShiftManageController extends Controller
 {
@@ -233,6 +234,9 @@ class ShiftManageController extends Controller
     {
         $shift = ShiftClosing::findOrFail($id);
 
+        $branch_data = Branch::select('name')->where('id', $shift->branch_id)->firstOrFail();
+        $branch_name = $branch_data->name;
+
         if (!$shift->closing_shift_time) {
             // $shift->closing_shift_time = now();
             // $shift->status = 'completed';
@@ -365,7 +369,7 @@ class ShiftManageController extends Controller
             $cash_discrepancy = $shift->cash_discrepancy;
             //dd($shiftcash);
             // Render a Blade view and pass any needed data
-            $html = view('shift_manage.closed', ['shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy])->render();
+            $html = view('shift_manage.closed', ['shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy,'branch_name' =>$branch_name])->render();
 
             return response()->json([
                 'message' => 'Shift closed successfully',

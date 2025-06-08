@@ -742,7 +742,6 @@
                                                         <option value="">-- {{ __('messages.select_product') }} --</option>
                                                         @foreach ($allProducts as $product)
                                                             <option value="{{ $product->id }}">{{ $product->name }}
-                                                                ({{ $product->sku }})
                                                             </option>
                                                         @endforeach
                                                     </select>
