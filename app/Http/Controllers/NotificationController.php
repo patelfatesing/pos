@@ -152,6 +152,22 @@ class NotificationController extends Controller
             return view('notification.stock-transfer-form', compact('stockTransfer', 'from_store', 'to_store'));
         }
 
+        if ($type === 'price_change') {
+            $data = json_decode($nf->details);
+            $id  = $data->id;
+            // $from_store = $data->from_store;
+            // $to_store = $data->to_store;
+            $priceChange =  DB::table('product_price_change_history as ppl')
+                    ->join('products as p', 'ppl.product_id', '=', 'p.id')
+                    ->orderBy('ppl.changed_at', 'desc')
+                    ->select('p.name', 'ppl.old_price', 'ppl.new_price', 'ppl.changed_at', 'ppl.created_at')
+                    ->where('ppl.id', $id)
+                    ->take(10)
+                    ->first();
+
+            return view('notification.price-change-form', compact('priceChange'));
+        }
+
         return response()->json(['error' => 'Form not found'], 404);
     }
 

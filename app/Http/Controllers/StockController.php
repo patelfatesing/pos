@@ -690,8 +690,8 @@ class StockController extends Controller
 
                                 $remainingQty -= $deducted;
 
-                                stockStatusChange($product_id, $from_store_id, $product_qun, 'transfer_stock');
-                                stockStatusChange($product_id, $key, $product_qun, 'add_stock');
+                                stockStatusChange($product_id, $key, $product_qun, 'transfer_stock');
+                                stockStatusChange($product_id, $from_store_id, $product_qun, 'add_stock');
 
                                 StockTransfer::create([
                                     'stock_request_id' => $request->request_id,
@@ -797,8 +797,8 @@ class StockController extends Controller
                                 //     $arr_low_stock[$product_id] = $product_id;
                                 // }
 
-                                stockStatusChange($product_id, $from_store_id, $product_qun, 'transfer_stock');
-                                stockStatusChange($product_id, $key, $product_qun, 'add_stock');
+                                stockStatusChange($product_id, $key, $product_qun, 'transfer_stock');
+                                stockStatusChange($product_id, $from_store_id, $product_qun, 'add_stock');
 
                                 StockTransfer::create([
                                     'stock_request_id' => $request->request_id,

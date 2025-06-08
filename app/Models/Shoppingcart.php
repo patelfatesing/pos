@@ -23,7 +23,7 @@ class Shoppingcart extends Model
         return  Shoppingcart::with('product')
         ->where(['user_id'=>auth()->user()->id])
         ->where('status', Shoppingcart::STATUS_PENDING)
-        ->paginate(7);
+        ->paginate(10000);
     }
     public function user()
     {
