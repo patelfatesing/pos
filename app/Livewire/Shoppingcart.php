@@ -72,6 +72,7 @@ class Shoppingcart extends Component
     public $cashAmount = 0;
     public $onlineAmount = 0;
     public $cartCount = 0;
+    public $cartCrtCount = 0;
     public $selectedCommissionUser;
     public $selectedPartyUser;
     public $commissionUsers = [];
@@ -198,7 +199,8 @@ class Shoppingcart extends Component
     public function addToCartBarCode()
     {
         if (!$this->selectedProduct) return;
-        $currentQty = $this->cartCount + 1;
+        $currentQty= $this->getCartItemCount2($id);
+        $currentQty = $currentQty + 1;
         $totalQuantity = $this->selectedSalesReturn ? collect($this->selectedSalesReturn->items)->sum('quantity') : 0;
         if (!empty($this->selectedSalesReturn) && $this->cartCount >= $totalQuantity) {
             $this->dispatch('notiffication-error', [
@@ -1410,6 +1412,15 @@ class Shoppingcart extends Component
 
         $this->dispatch('updateCartCount');
     }
+     public function getCartItemCount2($id)
+    {
+        $this->cartCrtCount = Cart::where('user_id', auth()->id())
+            ->where('status', '!=', Cart::STATUS_HOLD)
+            ->where('product_id', $id)
+            ->sum('quantity');
+
+        $this->dispatch('updateCartCount');
+    }
     //sanjay
     public function incrementQty($id, $amount = 0)
     {
@@ -1716,6 +1727,7 @@ class Shoppingcart extends Component
             $this->searchResults = [];
         }
         $itemCarts = Cart::GetCartItems();
+        \Log::info("test:::".json_encode($itemCarts));
         foreach ($itemCarts as $item) {
             $this->quantities[$item->id] = $item->quantity;
         }
@@ -1764,7 +1776,8 @@ class Shoppingcart extends Component
     {
 
         if (auth()->user()) {
-            $currentQty = $this->cartCount + 1;
+            $currentQty= $this->getCartItemCount2($id);
+            $currentQty = $currentQty + 1;
             $totalQuantity = $this->selectedSalesReturn ? collect($this->selectedSalesReturn->items)->sum('quantity') : 0;
             if (!empty($this->selectedSalesReturn) && $this->cartCount >= $totalQuantity) {
                 $this->dispatch('notiffication-error', [
@@ -1787,7 +1800,7 @@ class Shoppingcart extends Component
 
 
             if ($currentQty > $product['total_quantity']) {
-                $this->dispatch('notiffication-error', ['message' => 'Product is out of stock and cannot be added to cart.']);
+                $this->dispatch('notiffication-error', ['message' => $currentQty.'Product is out of stock and cannot be added to cart.']);
                 return;
             }
 
