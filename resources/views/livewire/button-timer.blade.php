@@ -1,5 +1,4 @@
-{{-- <div wire:poll.60s="checkTime"> --}}
-<div>
+<div wire:poll.60s="checkTime">
     @if ($buttonEnabled || $testing)
         @livewire('shift-close-modal')
     @else
