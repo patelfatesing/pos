@@ -910,12 +910,12 @@ class Shoppingcart extends Component
     {
         $this->dispatch('openCloseModal', ['day' => "yesterday"]);
     }
-     public function openModalTodayShift(){
-       $this->dispatch('openCloseModal', ['day' => "today"]);
-
+    public function openModalTodayShift()
+    {
+        $this->dispatch('openCloseModal', ['day' => "today"]);
     }
 
-    
+
     public function mount()
     {
         //$this->getImages();
@@ -946,7 +946,7 @@ class Shoppingcart extends Component
         if ($now->greaterThanOrEqualTo($cutoff)) {
             // It's 11:50 PM or later – allow shift close
             $this->dispatch('openModalTodayShift');
-        }else if (!empty($yesterDayShift)) {
+        } else if (!empty($yesterDayShift)) {
             $this->dispatch('openModalYesterdayShift');
         } else if (empty($currentShift)) {
             $this->dispatch('openModal');
@@ -1723,10 +1723,11 @@ class Shoppingcart extends Component
         $products = Product::where('is_active', 'yes')->where('is_deleted', 'no')->get();
 
         $branchId = auth()->user()?->userinfo?->branch?->id;
+        $w_id = 1;
 
-        $product_in_stocks = Product::with(['inventories'])
-            ->whereHas('inventories', function ($query) use ($branchId) {
-                $query->where('store_id', $branchId);
+        $product_in_stocks = Product::with(['inventorieUnfiltered'])
+            ->whereHas('inventorieUnfiltered', function ($query) use ($w_id) {
+                $query->where('store_id', $w_id);
             })
             ->where('is_active', 'yes')
             ->where('is_deleted', 'no')
