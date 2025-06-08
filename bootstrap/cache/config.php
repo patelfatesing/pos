@@ -214,8 +214,8 @@
       'file' => 
       array (
         'driver' => 'file',
-        'path' => 'D:\\xampp\\htdocs\\pos\\storage\\framework/cache/data',
-        'lock_path' => 'D:\\xampp\\htdocs\\pos\\storage\\framework/cache/data',
+        'path' => 'D:\\xampp\\htdocs\\pos_system\\storage\\framework/cache/data',
+        'lock_path' => 'D:\\xampp\\htdocs\\pos_system\\storage\\framework/cache/data',
       ),
       'memcached' => 
       array (
@@ -507,7 +507,7 @@
       'local' => 
       array (
         'driver' => 'local',
-        'root' => 'D:\\xampp\\htdocs\\pos\\storage\\app/private',
+        'root' => 'D:\\xampp\\htdocs\\pos_system\\storage\\app/private',
         'serve' => true,
         'throw' => false,
         'report' => false,
@@ -515,7 +515,7 @@
       'public' => 
       array (
         'driver' => 'local',
-        'root' => 'D:\\xampp\\htdocs\\pos\\storage\\app/public',
+        'root' => 'D:\\xampp\\htdocs\\pos_system\\storage\\app/public',
         'url' => 'http://localhost/storage',
         'visibility' => 'public',
         'throw' => false,
@@ -537,13 +537,13 @@
     ),
     'links' => 
     array (
-      'D:\\xampp\\htdocs\\pos\\public\\storage' => 'D:\\xampp\\htdocs\\pos\\storage\\app/public',
+      'D:\\xampp\\htdocs\\pos_system\\public\\storage' => 'D:\\xampp\\htdocs\\pos_system\\storage\\app/public',
     ),
   ),
   'livewire' => 
   array (
     'class_namespace' => 'App\\Livewire',
-    'view_path' => 'D:\\xampp\\htdocs\\pos\\resources\\views/livewire',
+    'view_path' => 'D:\\xampp\\htdocs\\pos_system\\resources\\views/livewire',
     'layout' => 'components.layouts.app',
     'lazy_placeholder' => NULL,
     'temporary_file_upload' => 
@@ -607,14 +607,14 @@
       'single' => 
       array (
         'driver' => 'single',
-        'path' => 'D:\\xampp\\htdocs\\pos\\storage\\logs/laravel.log',
+        'path' => 'D:\\xampp\\htdocs\\pos_system\\storage\\logs/laravel.log',
         'level' => 'debug',
         'replace_placeholders' => true,
       ),
       'daily' => 
       array (
         'driver' => 'daily',
-        'path' => 'D:\\xampp\\htdocs\\pos\\storage\\logs/laravel.log',
+        'path' => 'D:\\xampp\\htdocs\\pos_system\\storage\\logs/laravel.log',
         'level' => 'debug',
         'days' => 14,
         'replace_placeholders' => true,
@@ -679,7 +679,7 @@
       ),
       'emergency' => 
       array (
-        'path' => 'D:\\xampp\\htdocs\\pos\\storage\\logs/laravel.log',
+        'path' => 'D:\\xampp\\htdocs\\pos_system\\storage\\logs/laravel.log',
       ),
     ),
   ),
@@ -755,7 +755,7 @@
       'theme' => 'default',
       'paths' => 
       array (
-        0 => 'D:\\xampp\\htdocs\\pos\\resources\\views/vendor/mail',
+        0 => 'D:\\xampp\\htdocs\\pos_system\\resources\\views/vendor/mail',
       ),
     ),
   ),
@@ -850,7 +850,7 @@
     'lifetime' => 120,
     'expire_on_close' => false,
     'encrypt' => false,
-    'files' => 'D:\\xampp\\htdocs\\pos\\storage\\framework/sessions',
+    'files' => 'D:\\xampp\\htdocs\\pos_system\\storage\\framework/sessions',
     'connection' => NULL,
     'table' => 'sessions',
     'store' => NULL,
@@ -921,9 +921,9 @@
   array (
     'paths' => 
     array (
-      0 => 'D:\\xampp\\htdocs\\pos\\resources\\views',
+      0 => 'D:\\xampp\\htdocs\\pos_system\\resources\\views',
     ),
-    'compiled' => 'D:\\xampp\\htdocs\\pos\\storage\\framework\\views',
+    'compiled' => 'D:\\xampp\\htdocs\\pos_system\\storage\\framework\\views',
   ),
   'dompdf' => 
   array (
@@ -932,10 +932,10 @@
     'convert_entities' => true,
     'options' => 
     array (
-      'font_dir' => 'D:\\xampp\\htdocs\\pos\\storage\\fonts',
-      'font_cache' => 'D:\\xampp\\htdocs\\pos\\storage\\fonts',
+      'font_dir' => 'D:\\xampp\\htdocs\\pos_system\\storage\\fonts',
+      'font_cache' => 'D:\\xampp\\htdocs\\pos_system\\storage\\fonts',
       'temp_dir' => 'C:\\Users\\FATESI~1\\AppData\\Local\\Temp',
-      'chroot' => 'D:\\xampp\\htdocs\\pos',
+      'chroot' => 'D:\\xampp\\htdocs\\pos_system',
       'allowed_protocols' => 
       array (
         'data://' => 

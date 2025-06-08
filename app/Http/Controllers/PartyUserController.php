@@ -102,14 +102,14 @@ class PartyUserController extends Controller
     {
         $data = $request->validate([
             'first_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:party_users,email',
-            'phone' => 'required|digits:10|regex:/^[0-9]+$/|unique:party_users,phone',
+            'email' => 'nullable|email|max:255|unique:party_users,email',
+            'phone' => 'nullable|digits:10|regex:/^[0-9]+$/|unique:party_users,phone',
             'address' => 'nullable|string|max:255',
             'credit_points' => 'required|numeric|min:0|max:99999999.99',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ], [
             'first_name.required' => 'Customer name is required.',
-            'phone.required' => 'Mobile number is required.',
+            // 'phone.required' => 'Mobile number is required.',
             'phone.digits' => 'Mobile number must be exactly 10 digits.',
             'phone.unique' => 'This mobile number is already in use.',
         ]);
@@ -150,8 +150,8 @@ class PartyUserController extends Controller
     {
         $data = $request->validate([
             'first_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:party_users,email,' . $Partyuser->id,
-            'phone' => 'required|digits:10|regex:/^[0-9]+$/|unique:party_users,phone',
+            'email' => 'nullable|email|max:255|unique:party_users,email,' . $Partyuser->id,
+            'phone' => 'nullable|digits:10|regex:/^[0-9]+$/|unique:party_users,phone,' . $Partyuser->id,
             'address' => 'nullable|string|max:255',
             'credit_points' => 'required|numeric|min:0|max:99999999.99',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',

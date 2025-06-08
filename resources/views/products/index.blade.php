@@ -25,7 +25,6 @@
                     </div>
                 </div>
 
-
                 <div class="col-lg-12">
                     <div class="table-responsive rounded mb-3">
                         <table class="table data-tables table-striped" id="products_table">
@@ -58,7 +57,7 @@
 
     @php
         // Calculate tomorrow's date
-    $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
+$minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
 
     @endphp
 
@@ -82,7 +81,8 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Old Price </label>
-                                    <input type="text" name="old_price" class="form-control" disabled id="old_price">
+                                    <input type="text" class="form-control" disabled id="old_price">
+                                    <input type="hidden" name="old_price" id="old_price_hidden">
                                     <span class="text-danger" id="old_price_error"></span>
                                 </div>
                             </div>
@@ -328,7 +328,8 @@
         }
 
         function product_price_change(id, sell_price) {
-            // alert(id);
+            
+            $('#old_price_hidden').val(sell_price);
             $('#old_price').val(sell_price);
             $('#product_id').val(id);
             $('#priceChangeModal').modal('show');
