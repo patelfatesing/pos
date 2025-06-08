@@ -940,12 +940,12 @@ class Shoppingcart extends Component
         $this->shift = $currentShift = UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "pending"])->first();
         //
         $yesterDayShift = UserShift::getYesterdayShift(auth()->user()->id, $branch_id);
-        $now = Carbon::now();
-        $cutoff = Carbon::createFromTime(23, 50, 0); // 11:50 PM today
-
-        if ($now->greaterThanOrEqualTo($cutoff)) {
-            // It's 11:50 PM or later – allow shift close
-            $this->dispatch('openModalTodayShift');
+        //$now = Carbon::now();
+        //$cutoff = Carbon::createFromTime(23, 50, 0); // 11:50 PM today
+        $alredyCloseshift =  UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "completed"])->first();
+        if (!empty($alredyCloseshift)) {
+            $this->dispatch('close-shift-12am');
+            return;
         } else if (!empty($yesterDayShift)) {
             $this->dispatch('openModalYesterdayShift');
         } else if (empty($currentShift)) {
