@@ -147,8 +147,8 @@ class ShiftManageController extends Controller
                 <i class="ri-eye-line"></i>
                 </a>';
 
-                $action .= '<a class="badge bg-primary ml-2 view-invoices" 
-                href="' . url('/shift-manage/' . $row->id ) . '" title="View Physical Stock Photo">
+            $action .= '<a class="badge bg-primary ml-2 view-invoices" 
+                href="' . url('/shift-manage/' . $row->id) . '" title="View Physical Stock Photo">
                 <i class="ri-image-line"></i>
                 </a>';
 
@@ -302,20 +302,20 @@ class ShiftManageController extends Controller
                 }
             }
             $creditCollacted = \DB::table('credit_collections')
-            ->selectRaw('
+                ->selectRaw('
             SUM(cash_amount) as collacted_cash_amount,
             SUM(online_amount) as collacted_online_amount,
             SUM(upi_amount) as collacted_upi_amount
             ')
-            ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
-            ->first();
+                ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
+                ->first();
             $todayCash = $totalPaid;
             $totalWith = \App\Models\WithdrawCash::where('user_id',  $shift->user_id)
                 ->where('branch_id', $shift->branch_id)->whereBetween('created_at', [$shift->start_time, $shift->end_time])->sum('amount');
             $categoryTotals['payment']['CASH'] = $totalCashPaid;
             // $categoryTotals['payment']['UPI PAYMENT'] = $totalUpiPaid;
             $categoryTotals['summary']['OPENING CASH'] = @$shift->opening_cash;
-            $categoryTotals['summary']['TOTAL SALES'] = $totalSubTotal + $discountTotal-$totalRefundReturn;
+            $categoryTotals['summary']['TOTAL SALES'] = $totalSubTotal + $discountTotal - $totalRefundReturn;
             $categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
             $categoryTotals['summary']['WITHDRAWAL PAYMENT'] = $totalWith * (-1);
             $categoryTotals['summary']['UPI PAYMENT'] = ($totalUpiPaid + $totalOnlinePaid) * (-1);
@@ -369,7 +369,7 @@ class ShiftManageController extends Controller
             $cash_discrepancy = $shift->cash_discrepancy;
             //dd($shiftcash);
             // Render a Blade view and pass any needed data
-            $html = view('shift_manage.closed', ['shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy,'branch_name' =>$branch_name])->render();
+            $html = view('shift_manage.closed', ['shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy, 'branch_name' => $branch_name])->render();
 
             return response()->json([
                 'message' => 'Shift closed successfully',
@@ -384,9 +384,10 @@ class ShiftManageController extends Controller
 
         ], 200);
     }
-        public function showPhoto($id)
+
+    public function showPhoto($id)
     {
-        
+
         $shift = ShiftClosing::findOrFail($id);
 
         if (!$shift->physical_photo) {
@@ -401,13 +402,54 @@ class ShiftManageController extends Controller
         $shift = ShiftClosing::findOrFail($id);
 
         $branch_id = $shift->branch_id;
-        
+
         $rawStockData = DailyProductStock::with('product')
             ->where('branch_id', $branch_id)
             ->whereDate('date', Carbon::today())
             ->get();
 
-
         return view('shift_manage.stock_details', compact('rawStockData'));
+    }
+
+    public function printShift($id)
+    {
+
+        $data = $request->all();
+        session(['demand_orders.step3' => $data]);
+
+        $user = auth()->user();
+        //
+        $filename = 'demand_' . time() . '.pdf';
+        $pdf = App::make('dompdf.wrapper');
+        $pdf->loadView('demand', ['data' => $data, 'user' => $user]);
+        $pdfPath = storage_path('app/public/demand/' . $filename);
+        $pdf->save($pdfPath);
+        $step2Data = session('demand_orders.step1');
+        $my2 = session('demand_orders.step2');
+        $my3 = session('demand_orders.step3');
+        $demandOrder = DemandOrder::create([
+            'vendor_id' => $step2Data['vendor_id'],
+            'purchase_date' => $step2Data['purchase_date'],
+            'purchase_order_no' => $step2Data['vendor_id'],
+            'shipping_date' => $step2Data['shipping_date'],
+            'notes' => $my3['notes'],
+            'status' =>  'order',
+        ]);
+
+        foreach ($data['products'] as $product) {
+            DemandOrderProduct::create([
+                'demand_order_id' => $demandOrder->id,
+                'product_id' => $product['product_id'],
+                'quantity' => $product['qnt'],
+                'barcode' => $product['barcode'] ?? null,
+                'mrp' => $product['mrp'],
+                'rate' => $product['rate'],
+                'sell_price' => $product['amount'],
+                'delivery_status' => 'partially',
+                'delivery_quantity' => 0,
+            ]);
+        }
+
+        return view('shift_manage.shift_print', ['pdfPath' =>  asset('storage/demand/' . $filename), 'user' => $user]);
     }
 }
