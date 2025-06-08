@@ -162,10 +162,10 @@ class ShiftCloseModal extends Component
         $now = Carbon::now();
         $cutoff = Carbon::createFromTime(23, 50, 0); // 11:50 PM today
 
-        if (empty($this->shift) && $now->greaterThanOrEqualTo($cutoff)) {
-                $this->dispatch('close-shift-12am');
-                return;
-        }
+        // if (empty($this->shift) && $now->greaterThanOrEqualTo($cutoff)) {
+        //         $this->dispatch('close-shift-12am');
+        //         return;
+        // }
 
         $this->shft_id = $this->shift->id ?? null;
         // $this->shift = Shift::latest()->first();
