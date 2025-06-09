@@ -171,7 +171,7 @@ class ShiftCloseModal extends Component
         // $this->shift = Shift::latest()->first();
         $this->branch_name = $this->shift->branch->name ?? 'Shop';
         $sales = ['DESI', 'BEER', 'ENGLISH'];
-        $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = 0;
+        $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid =$totalRoundOf= 0;
 
         $this->categoryTotals = [];
         $this->totalInvoicedAmount = \App\Models\Invoice::where('user_id', auth()->user()->id)
@@ -197,7 +197,7 @@ class ShiftCloseModal extends Component
         ->first();
 
         // $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->where('status', '!=', 'Hold')->where('invoice_number', 'not like', '%Hold%')->latest()->get();
-        $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->where('status', '!=', 'Hold')->latest()->get();
+        $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->whereNotIn('status',[ 'Hold','resumed'])->latest()->get();
         foreach ($invoices as $invoice) {
             $items = $invoice->items; // decode items from longtext JSON
 
@@ -216,7 +216,7 @@ class ShiftCloseModal extends Component
                             $this->categoryTotals['sales'][$category] = 0;
                         }
     
-                        $this->categoryTotals['sales'][$category] += $amount;
+                        $this->categoryTotals['sales'][$category] += $amount+$invoice->roundof;
                     }
                 }
             }
@@ -230,6 +230,8 @@ class ShiftCloseModal extends Component
             $totalSubTotal += (!empty($invoice->total)) ? parseCurrency($invoice->total) : 0;
             $totalUpiPaid  += (!empty($invoice->upi_amount)  && is_numeric($invoice->upi_amount)) ? (int)$invoice->upi_amount  : 0;
             $totalOnlinePaid  += (!empty($invoice->online_amount)  && is_numeric($invoice->online_amount)) ? (int)$invoice->online_amount  : 0;
+            $totalRoundOf  += (!empty($invoice->roundof)  && is_numeric($invoice->roundof)) ? (int)$invoice->roundof  : 0;
+            
             if ($invoice->status == "Returned") {
                 $totalRefundReturn += floatval(str_replace(',', '', $invoice->total));
             }
@@ -253,18 +255,22 @@ class ShiftCloseModal extends Component
         $totalWith = \App\Models\WithdrawCash::where('user_id',  auth()->user()->id)
             ->where('branch_id', $branch_id)->whereBetween('created_at', [$start_date, $end_date])->sum('amount');
         $this->categoryTotals['payment']['CASH'] = $totalCashPaid;
-        // $this->categoryTotals['payment']['UPI PAYMENT'] = $totalUpiPaid;
+        $this->categoryTotals['payment']['UPI PAYMENT'] =  ($totalUpiPaid+$totalOnlinePaid) ;
+        $this->categoryTotals['payment']['TOTAL'] = $totalCashPaid+ ($totalUpiPaid+$totalOnlinePaid) ;
+
         $this->categoryTotals['summary']['OPENING CASH'] = @$currentShift->opening_cash;
-        $this->categoryTotals['summary']['TOTAL SALES'] = $totalSubTotal + $discountTotal-$totalRefundReturn;
+        $this->categoryTotals['summary']['TOTAL SALES'] = $totalSubTotal + $discountTotal-$totalRefundReturn-$totalRoundOf;
         $this->categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
+        
         $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] = $totalWith * (-1);
         $this->categoryTotals['summary']['UPI PAYMENT'] = ($totalUpiPaid+$totalOnlinePaid) * (-1);
+        $this->categoryTotals['summary']['ROUND OFF'] = $totalRoundOf;
         //$this->categoryTotals['summary']['ONLINE PAYMENT'] = $totalOnlinePaid * (-1);
         if(!empty($this->creditCollacted->collacted_cash_amount))
         $this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] = $this->creditCollacted->collacted_cash_amount;
         // $this->categoryTotals['summary']['REFUND'] += $totalRefundReturn *(-1);
         $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['OPENING CASH'] + $this->categoryTotals['summary']['TOTAL SALES'] + $this->categoryTotals['summary']['DISCOUNT'] + $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $this->categoryTotals['summary']['UPI PAYMENT'] + @$this->categoryTotals['summary']['REFUND'] +
-            @$this->categoryTotals['summary']['ONLINE PAYMENT']+ @$this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'];
+            @$this->categoryTotals['summary']['ONLINE PAYMENT']+ @$this->categoryTotals['summary']['CREDIT COLLACTED BY CASH']+$totalRoundOf;
         $this->categoryTotals['summary']['REFUND'] = $totalRefund * (-1) + $totalRefundReturn * (-1);
         //$this->categoryTotals['summary']['REFUND RETURN'] = $totalRefundReturn*(-1);
         $this->categoryTotals['summary']['CREDIT'] = $totals->credit_total;

@@ -11,42 +11,45 @@
             </tr>
         </thead>
         <tbody>
-           
+            @if(count($holdTransactions)==0)
+            <tr>
+                <td colspan="6" class="text-center">No Hold Transactions Found</td>
+            </tr>
+            @else
             @foreach($holdTransactions as $sid => $transaction)
             @php
                 $sumqty=0;
-
                 foreach ($transaction->items as $key =>$item) {
                    $sumqty+=$item['quantity'];
                 }
             @endphp
                 <tr>
-                    {{-- <td>HOLD-{{ $sid+1 }}</td> --}}
-                    <td>{{ $transaction->invoice_number }}</td>
+                {{-- <td>HOLD-{{ $sid+1 }}</td> --}}
+                <td>{{ $transaction->invoice_number }}</td>
 
-                    @if (auth()->user()->hasRole('warehouse'))
-                    <td>{{ !empty($transaction->partyUser) ? $transaction->partyUser->first_name : 'N/A' }}</td>
-                    @else
-                    <td>{{ !empty($transaction->commissionUser) ? $transaction->commissionUser->first_name: 'N/A' }}</td>
+                @if (auth()->user()->hasRole('warehouse'))
+                <td>{{ !empty($transaction->partyUser) ? $transaction->partyUser->first_name : 'N/A' }}</td>
+                @else
+                <td>{{ !empty($transaction->commissionUser) ? $transaction->commissionUser->first_name: 'N/A' }}</td>
+                @endif
 
-                    @endif
-
-                    <td>{{ $transaction->created_at->format('d-m-Y H:i') }}</td>
-                    <td>{{ $sumqty }}</td>
-                    <td>₹{{ $transaction->total}}</td>
-                    <td>
-                        <button wire:click="resumeTransaction('{{ $transaction->id }}', '{{ $transaction->commission_user_id }}', '{{ $transaction->party_user_id }}')" class="btn btn-success btn-sm">
-                            Resume
-                        </button>
-                        <button class="btn btn-primary btn-sm" wire:click="printInvoice('{{ $transaction->id }}')">
-                          <i class="fas fa-print"></i>
-                          </button>
-                        <button class="btn btn-danger btn-sm" onclick="confirmDelete({{ $transaction->id }})">
-                            Delete
-                        </button>
-                    </td>
+                <td>{{ $transaction->created_at->format('d-m-Y H:i') }}</td>
+                <td>{{ $sumqty }}</td>
+                <td>₹{{ $transaction->total}}</td>
+                <td>
+                    <button wire:click="resumeTransaction('{{ $transaction->id }}', '{{ $transaction->commission_user_id }}', '{{ $transaction->party_user_id }}')" class="btn btn-success btn-sm">
+                    Resume
+                    </button>
+                    <button class="btn btn-primary btn-sm" wire:click="printInvoice('{{ $transaction->id }}')">
+                      <i class="fas fa-print"></i>
+                      </button>
+                    <button class="btn btn-danger btn-sm" onclick="confirmDelete({{ $transaction->id }})">
+                    Delete
+                    </button>
+                </td>
                 </tr>
             @endforeach
+            @endif
         </tbody>
     </table>
 </div>

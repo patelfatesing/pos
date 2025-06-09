@@ -248,7 +248,7 @@ class ShiftManageController extends Controller
                 ->first();
 
             $invoices = Invoice::where(['user_id' => $shift->user_id])->where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->where('status', '!=', 'Hold')->latest()->get();
-            $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = 0;
+            $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid =$totalRoundOf= $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = 0;
 
             foreach ($invoices as $invoice) {
                 $items = $invoice->items; // decode items from longtext JSON
@@ -268,7 +268,7 @@ class ShiftManageController extends Controller
                                 $categoryTotals['sales'][$category] = 0;
                             }
 
-                            $categoryTotals['sales'][$category] += $amount;
+                            $categoryTotals['sales'][$category] += $amount+$invoice->roundof;
                         }
                     }
                 }
@@ -282,6 +282,8 @@ class ShiftManageController extends Controller
                 $totalSubTotal += (!empty($invoice->total)) ? parseCurrency($invoice->total) : 0;
                 $totalUpiPaid  += (!empty($invoice->upi_amount)  && is_numeric($invoice->upi_amount)) ? (int)$invoice->upi_amount  : 0;
                 $totalOnlinePaid  += (!empty($invoice->online_amount)  && is_numeric($invoice->online_amount)) ? (int)$invoice->online_amount  : 0;
+                 $totalRoundOf  += (!empty($invoice->roundof)  && is_numeric($invoice->roundof)) ? (int)$invoice->roundof  : 0;
+                
                 if ($invoice->status == "Returned") {
                     $totalRefundReturn += floatval(str_replace(',', '', $invoice->total));
                 }
@@ -302,29 +304,31 @@ class ShiftManageController extends Controller
                 }
             }
             $creditCollacted = \DB::table('credit_collections')
-                ->selectRaw('
+            ->selectRaw('
             SUM(cash_amount) as collacted_cash_amount,
             SUM(online_amount) as collacted_online_amount,
             SUM(upi_amount) as collacted_upi_amount
             ')
-                ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
-                ->first();
+            ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
+            ->first();
             $todayCash = $totalPaid;
             $totalWith = \App\Models\WithdrawCash::where('user_id',  $shift->user_id)
                 ->where('branch_id', $shift->branch_id)->whereBetween('created_at', [$shift->start_time, $shift->end_time])->sum('amount');
             $categoryTotals['payment']['CASH'] = $totalCashPaid;
-            // $categoryTotals['payment']['UPI PAYMENT'] = $totalUpiPaid;
+            $categoryTotals['payment']['UPI PAYMENT'] =  ($totalUpiPaid+$totalOnlinePaid) ;
+            $categoryTotals['payment']['TOTAL'] = $totalCashPaid+ ($totalUpiPaid+$totalOnlinePaid) ;
             $categoryTotals['summary']['OPENING CASH'] = @$shift->opening_cash;
-            $categoryTotals['summary']['TOTAL SALES'] = $totalSubTotal + $discountTotal - $totalRefundReturn;
+            $categoryTotals['summary']['TOTAL SALES'] = $totalSubTotal + $discountTotal-$totalRefundReturn-$totalRoundOf;
             $categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
             $categoryTotals['summary']['WITHDRAWAL PAYMENT'] = $totalWith * (-1);
             $categoryTotals['summary']['UPI PAYMENT'] = ($totalUpiPaid + $totalOnlinePaid) * (-1);
+             $categoryTotals['summary']['ROUND OFF'] = $totalRoundOf;
             //$categoryTotals['summary']['ONLINE PAYMENT'] = $totalOnlinePaid * (-1);
             if (!empty($creditCollacted->collacted_cash_amount))
                 $categoryTotals['summary']['CREDIT COLLACTED BY CASH'] = $creditCollacted->collacted_cash_amount;
             // $categoryTotals['summary']['REFUND'] += $totalRefundReturn *(-1);
             $categoryTotals['summary']['TOTAL'] = $categoryTotals['summary']['OPENING CASH'] + $categoryTotals['summary']['TOTAL SALES'] + $categoryTotals['summary']['DISCOUNT'] + $categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $categoryTotals['summary']['UPI PAYMENT'] + @$categoryTotals['summary']['REFUND'] +
-                @$categoryTotals['summary']['ONLINE PAYMENT'] + @$categoryTotals['summary']['CREDIT COLLACTED BY CASH'];
+                @$categoryTotals['summary']['ONLINE PAYMENT'] + @$categoryTotals['summary']['CREDIT COLLACTED BY CASH']+$totalRoundOf;
             $categoryTotals['summary']['REFUND'] = $totalRefund * (-1) + $totalRefundReturn * (-1);
             //$categoryTotals['summary']['REFUND RETURN'] = $totalRefundReturn*(-1);
             $categoryTotals['summary']['CREDIT'] = $totals->credit_total;
