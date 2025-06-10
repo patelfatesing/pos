@@ -298,6 +298,27 @@
                                     {{ format_inr($item->net_amount) }}
 
                                 </td>
+                                @if($this->removeCrossHold==true)
+                                <td class="col-actions text-center">
+                                    <button class="btn btn-danger"
+                                        onclick="Swal.fire({
+                                            title: 'Do you want to remove this product ?',
+                                            text: 'This action cannot be reverted!',
+                                            icon: 'warning',
+                                            showCancelButton: true,
+                                            confirmButtonText: 'Yes, remove it',
+                                            cancelButtonText: 'Cancel',
+                                            reverseButtons: true
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                @this.removeItem({{ $item->id }},'resume','{{$this->invoice_no}}');
+                                            }
+                                        });"
+                                        title="Remove item">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </td>
+                                @else
                                 <td  class="col-actions text-center">
                                     <button class="btn btn-danger" wire:click="removeItem({{ $item->id }})"
                                         title="Remove item">
@@ -305,6 +326,7 @@
                                     </button>
 
                                 </td>
+                                @endif
                             </tr>
 
                         @empty
