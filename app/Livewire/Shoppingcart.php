@@ -123,13 +123,14 @@ class Shoppingcart extends Component
     public $language;
     public $refundDesc = "";
     public bool $useCredit = false;  // Tracks checkbox state
+    public bool $removeCrossHold=false;
     public $partyUserDetails;
     public $partyUserDiscountAmt = 0;
     public $finalDiscountPartyAmount = 0;
     public $productStock = [];
     public $roundedTotal=0;
+    public $invoice_no = '';
     //public $product_in_stocks = [];
-
 
     // This method is triggered whenever the checkbox is checked or unchecked
     public function updatedUseCredit($value)
@@ -1350,6 +1351,10 @@ class Shoppingcart extends Component
             $this->selectedCommissionUser = $data['commission_user_id'];
             $this->calculateCommission();
         }
+         if(!empty($data['type']) && $data['type']=="resume")  {
+            $this->removeCrossHold=true;
+            $this->invoice_no=$data['invoice_number'] ?? "";
+        }
     }
     public function updateNewProductDetails()
     {
@@ -1572,7 +1577,7 @@ class Shoppingcart extends Component
         }
     }
 
-    public function removeItem($id)
+    public function removeItem($id,$type="",$invoiceNo="")
     {
         // dd($this);
         $userId = auth()->id(); // Get the currently authenticated user's ID
@@ -1582,6 +1587,16 @@ class Shoppingcart extends Component
 
         if ($cartItem === 0) {
             return;
+        }
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+        
+        if(!empty($invoiceNo) && $cartItem == 1){
+
+            Invoice::where('user_id', auth()->id())
+            ->where('branch_id', $branch_id)
+            ->where('invoice_number', $invoiceNo)
+            ->where('status', 'Resumed')
+            ->delete();
         }
 
         $newParty = $this->partyAmount / $cartItem;
@@ -1619,6 +1634,7 @@ class Shoppingcart extends Component
     }
     public function calculateCommission()
     {
+         $this->dispatch("resetPicAll");
         $this->dispatch('user-selection-updated', ['userId' => $this->selectedUser]);
         $sum = $commissionTotal = 0;
         $user = Commissionuser::where('status', 'Active')->where('is_deleted', '!=', 'Yes')->find($this->selectedCommissionUser);
@@ -1659,6 +1675,7 @@ class Shoppingcart extends Component
 
     public function calculateParty()
     {
+        $this->dispatch("resetPicAll");
         $sum = $partyCredit = 0;
         $user = Partyuser::where('status', 'Active')->find($this->selectedPartyUser);
         if (!empty($user)) {
@@ -2389,7 +2406,7 @@ class Shoppingcart extends Component
             Cart::where('user_id', auth()->user()->id)
                 ->where('status', '!=', Cart::STATUS_HOLD)
                 ->delete();
-            $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown','useCredit','showCheckbox','roundedTotal');
+            $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown','useCredit','showCheckbox','roundedTotal','removeCrossHold');
         } catch (\Illuminate\Validation\ValidationException $e) {
             // 🔔 Flash message for Laravel Blade
             $this->dispatch('notiffication-error', ['message' => 'Something went wrong']);
@@ -2911,7 +2928,7 @@ class Shoppingcart extends Component
             Cart::where('user_id', auth()->user()->id)
                 ->where('status', '!=', Cart::STATUS_HOLD)
                 ->delete();
-            $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown','useCredit','showCheckbox','roundedTotal');
+            $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown','useCredit','showCheckbox','roundedTotal','removeCrossHold');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             // 🔔 Flash message for Laravel Blade

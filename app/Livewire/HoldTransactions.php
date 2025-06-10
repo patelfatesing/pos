@@ -71,7 +71,9 @@ class HoldTransactions extends Component
         $this->dispatch('close-hold-modal');
          $this->dispatch('updateCustomerDetailHold', [
             'party_user_id' => $party_user_id,
-            'commission_user_id' => $commission_user_id
+            'commission_user_id' => $commission_user_id,
+            'type'=>'resume',
+            'invoice_number'=>$transaction->invoice_number
         ]);
         $this->dispatch('notiffication-success', ['message' => 'Transaction resumed successfully']);
 
