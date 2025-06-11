@@ -5,9 +5,10 @@
     @if ($showModal)
         <div class="modal fade show d-block" tabindex="-1">
             <div @class([
-    'modal-dialog modal-dialog-scrollable modal-xl ',
-    'modal-dialog modal-dialog-scrollable  close-modal-xl' => $this->showYesterDayShiftTime == true
-]) >
+                'modal-dialog modal-dialog-scrollable modal-xl ',
+                'modal-dialog modal-dialog-scrollable  close-modal-xl' =>
+                    $this->showYesterDayShiftTime == true,
+            ])>
                 <div class="modal-content shadow-sm rounded-4 border-0">
 
                     {{-- Modal Header --}}
@@ -17,11 +18,10 @@
                                 <i class="bi bi-cash-coin me-2"></i> Shift Close Summary - {{ $branch_name ?? 'Shop' }}
                             </h5>
                         </div>
-                        @if($this->showYesterDayShiftTime==false)
-
-                        <button type="button" class="close" wire:click="$set('showModal', false)">
-                            <span aria-hidden="true">×</span>
-                        </button>
+                        @if ($this->showYesterDayShiftTime == false)
+                            <button type="button" class="close" wire:click="$set('showModal', false)">
+                                <span aria-hidden="true">×</span>
+                            </button>
                         @endif
                     </div>
 
@@ -45,14 +45,20 @@
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h4 class="mb-0">Sales Details</h4>
 
-                                            <button type="button"  wire:click="openClosingStocksModal" class="btn btn-secondary btn-sm"
-                                                title="View Stock Status">
+                                            <button type="button" wire:click="openClosingStocksModal"
+                                                class="btn btn-secondary btn-sm" title="View Stock Status">
                                                 View Stock Status
                                             </button>
-                                            <button type="button"  wire:click="addphysicalStock" class="btn btn-secondary btn-sm"
-                                                title="View Stock Status">
+                                            <button type="button" wire:click="addphysicalStock"
+                                                class="btn btn-secondary btn-sm" title="View Stock Status">
                                                 Add Physical Stock
                                             </button>
+                                            @if($this->showYesterDayShiftTime)
+                                                <button type="button"  wire:click="removeHold" class="btn btn-secondary btn-sm"
+                                                    title="View Stock Status">
+                                                    Remove Hold
+                                                </button>
+                                            @endif
                                         </div>
 
                                         <hr class="mb-4">
@@ -117,12 +123,12 @@
                                                     <div class="row text-left mt-2">
                                                         <div class="col-6 border-end">
                                                             <div class="small text-muted">Start Time</div>
-                                                            <div class="fw-semibold">{{ $shift->start_time ?? '-' }}
+                                                            <div class="fw-semibold">{{ $this->currentShift->start_time ?? '-' }}
                                                             </div>
                                                         </div>
                                                         <div class="col-6">
                                                             <div class="small text-muted">End Time</div>
-                                                            <div class="fw-semibold">{{ $shift->end_time ?? '-' }}</div>
+                                                            <div class="fw-semibold">{{ $this->currentShift->end_time ?? '-' }}</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -273,8 +279,22 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                       
+                                        @php
+                                            $totalOpening = $totalAdded = $totalTransferred = $totalSold = $totalClosing = $totalPhysical = $totalDifference = 0;
+                                        @endphp
+
                                         @foreach ($this->stockStatus as $index => $item)
+                                            @php
+                                                $totalOpening += $item['opening_stock'];
+                                                $totalAdded += $item['added_stock'];
+                                                $totalTransferred += $item['transferred_stock'];
+                                                $totalSold += $item['sold_stock'];
+                                                $totalClosing += $item['closing_stock'];
+                                                $totalPhysical += !empty($item['physical_stock'])
+                                                    ? $item['physical_stock']
+                                                    : 0;
+                                                $totalDifference += $item['difference_in_stock'];
+                                            @endphp
                                             <tr>
                                                 <td>{{ $index + 1 }}</td>
                                                 <td>{{ $item['product']['name'] }}</td>
@@ -283,10 +303,21 @@
                                                 <td>{{ $item['transferred_stock'] }}</td>
                                                 <td>{{ $item['sold_stock'] }}</td>
                                                 <td>{{ $item['closing_stock'] }}</td>
-                                                <td>{{ (!empty($item['physical_stock']))?$item['physical_stock']:0; }}</td>
+                                                <td>{{ !empty($item['physical_stock']) ? $item['physical_stock'] : 0 }}
+                                                </td>
                                                 <td>{{ $item['difference_in_stock'] }}</td>
                                             </tr>
                                         @endforeach
+                                        <tr class="fw-bold">
+                                            <td colspan="2" class="text-end">Total</td>
+                                            <td>{{ $totalOpening }}</td>
+                                            <td>{{ $totalAdded }}</td>
+                                            <td>{{ $totalTransferred }}</td>
+                                            <td>{{ $totalSold }}</td>
+                                            <td>{{ $totalClosing }}</td>
+                                            <td>{{ $totalPhysical }}</td>
+                                            <td>{{ $totalDifference }}</td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -296,7 +327,7 @@
                     </div>
 
                     <div class="modal-footer">
-                        
+
 
                         <button class="btn btn-outline-secondary" wire:click="closeStockModal">Close</button>
                     </div>
@@ -309,8 +340,8 @@
         <div class="modal-backdrop fade show"></div>
     @endif
     @if ($showPhysicalModal)
-        <div class="modal fade @if ($showPhysicalModal) show d-block @endif" id="showPhysicalModal" tabindex="-1"
-            style="z-index: 1056;" @if ($showPhysicalModal) style="display: block;" @endif>
+        <div class="modal fade @if ($showPhysicalModal) show d-block @endif" id="showPhysicalModal"
+            tabindex="-1" style="z-index: 1056;" @if ($showPhysicalModal) style="display: block;" @endif>
             <div class="modal-dialog modal-dialog-scrollable modal-lg">
                 <div class="modal-content shadow rounded-3">
 
@@ -324,7 +355,7 @@
                     <div class="modal-body">
                         @if (!empty($this->addstockStatus))
                             <div class="table-responsive">
-                                <form wire:submit.prevent="save" id="stockPhysicalForm" >
+                                <form wire:submit.prevent="save" id="stockPhysicalForm">
                                     <table class="table table-bordered table-striped">
                                         <thead class="table-light">
                                             <tr>
@@ -333,16 +364,17 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                           
-                                            <input type="hidden" wire:model="shft_id" >
+
+                                            <input type="hidden" wire:model="shft_id">
                                             @foreach ($this->addstockStatus as $index => $product)
                                                 <tr>
                                                     <td class="border px-4 py-2">
                                                         {{ $product['product']['name'] }}
                                                     </td>
                                                     <td class="border px-4 py-2">
-                                                        <input type="number" wire:model="products.{{ $product['product_id'] }}.qty"
-                                                            class="form-control" >
+                                                        <input type="number"
+                                                            wire:model="products.{{ $product['product_id'] }}.qty"
+                                                            class="form-control">
                                                         @error("products.{$product['product_id']}.qty")
                                                             <span class="text-danger small">{{ $message }}</span>
                                                         @enderror
@@ -367,11 +399,14 @@
                             <label class="form-label fw-bold mb-2">Physical Stock Image Capture</label>
                             <div class="d-flex flex-wrap align-items-center gap-3">
                                 <div>
-                                    <video id="webcam" width="200" height="150" autoplay class="border rounded"></video>
-                                    <canvas id="canvas" width="200" height="150" style="display: none;"></canvas>
+                                    <video id="webcam" width="200" height="150" autoplay
+                                        class="border rounded"></video>
+                                    <canvas id="canvas" width="200" height="150"
+                                        style="display: none;"></canvas>
                                 </div>
                                 <div class="d-flex flex-column align-items-center gap-2">
-                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="takeSnapshot()">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        onclick="takeSnapshot()">
                                         <i class="bi bi-camera"></i> Capture
                                     </button>
                                     @if ($capturedImage)
@@ -400,7 +435,7 @@
     @endif
 </div>
 <script>
-       window.addEventListener('test', (event) => {
+    window.addEventListener('test', (event) => {
         setTimeout(() => {
             let video = document.getElementById('webcam');
             let canvas = document.getElementById('canvas');
@@ -408,11 +443,13 @@
 
             // Start webcam
             if (navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: true })
-                    .then(function (stream) {
+                navigator.mediaDevices.getUserMedia({
+                        video: true
+                    })
+                    .then(function(stream) {
                         video.srcObject = stream;
                     })
-                    .catch(function (error) {
+                    .catch(function(error) {
                         console.log("Webcam error: ", error);
                     });
             }
@@ -422,7 +459,7 @@
             //     let image_data_url = canvas.toDataURL('image/jpeg');
             //     Livewire.dispatch('setCapturedImage', { image: image_data_url });
             // }
-            window.takeSnapshot = function () {
+            window.takeSnapshot = function() {
                 if (!video || !canvas) return;
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
@@ -430,7 +467,9 @@
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 const imageDataUrl = canvas.toDataURL('image/jpeg');
                 //console.log('Captured Image Data URL:', imageDataUrl);
-                Livewire.dispatch('setCapturedImage', { image: imageDataUrl });
+                Livewire.dispatch('setCapturedImage', {
+                    image: imageDataUrl
+                });
             };
         }, 300); // allow DOM to fully render
     });
