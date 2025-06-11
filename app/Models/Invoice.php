@@ -30,7 +30,9 @@ class Invoice extends Model
         'total_item_total',
         'change_amount',
         'online_amount',
-        'roundof'
+        'roundof',
+        'ref_no',
+        'hold_date'
     ];
 
     protected $casts = [
