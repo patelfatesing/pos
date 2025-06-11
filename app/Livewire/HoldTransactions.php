@@ -90,12 +90,10 @@ class HoldTransactions extends Component
 
         $pdfPath = storage_path('app/public/invoices/hold_invoice_' . $invoice->invoice_number . '.pdf');
 
-        if (!file_exists($pdfPath)) {
-            $partyUser = PartyUser::where('status', 'Active')->find($invoice->party_user_id);
-            $pdf = App::make('dompdf.wrapper');
-            $pdf->loadView('hold', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'hold' => true,'customer_name' => @$partyUser->first_name]);
-            $pdf->save($pdfPath);
-        }
+        $partyUser = PartyUser::where('status', 'Active')->find($invoice->party_user_id);
+        $pdf = App::make('dompdf.wrapper');
+        $pdf->loadView('hold', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'hold' => true,'customer_name' => @$partyUser->first_name]);
+        $pdf->save($pdfPath);
         
         $this->dispatch('triggerPrint', [
             'pdfPath' => asset('storage/invoices/hold_invoice_' . $invoice->invoice_number . '.pdf')

@@ -247,7 +247,8 @@ class ShiftManageController extends Controller
                 ->selectRaw('SUM(credit_amount) as credit_total, SUM(debit_amount) as debit_total')
                 ->first();
 
-            $invoices = Invoice::where(['user_id' => $shift->user_id])->where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->where('status', '!=', 'Hold')->latest()->get();
+            $invoices = Invoice::where(['user_id' => $shift->user_id])->where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->whereNotIn('status',[ 'Hold','resumed','archived'])->latest()->get();
+
             $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid =$totalRoundOf= $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = 0;
 
             foreach ($invoices as $invoice) {
@@ -257,20 +258,23 @@ class ShiftManageController extends Controller
                     $items = json_decode($items, true); // decode if not already an array
                 }
 
-                if (is_array($items)) {
+               if (is_array($items)) {
+                    $totalSalesNew=0;
                     foreach ($items as $item) {
-                        if (!empty($item['subcategory'])) {
+                        if(!empty($item['subcategory'])){
 
                             $category =  Str::upper($item['subcategory'])  ?? 'Unknown';
                             $amount = $item['price'] ?? 0;
-
-                            if (!isset($categoryTotals['sales'][$category])) {
+        
+                            if (!isset($this->categoryTotals['sales'][$category])) {
                                 $categoryTotals['sales'][$category] = 0;
                             }
-
+        
                             $categoryTotals['sales'][$category] += $amount+$invoice->roundof;
+                            $totalSalesNew= $categoryTotals['sales'][$category];
                         }
                     }
+                    $categoryTotals['sales']["TOTAL"] = $totalSalesNew;
                 }
                 $closing_sales = @$categoryTotals['sales'];
                 // $discountTotal += ($invoice->commission_amount ?? 0) + ($invoice->party_amount ?? 0);

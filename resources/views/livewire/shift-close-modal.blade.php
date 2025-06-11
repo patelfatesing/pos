@@ -53,6 +53,12 @@
                                                 title="View Stock Status">
                                                 Add Physical Stock
                                             </button>
+                                            @if($this->showYesterDayShiftTime)
+                                                <button type="button"  wire:click="removeHold" class="btn btn-secondary btn-sm"
+                                                    title="View Stock Status">
+                                                    Remove Hold
+                                                </button>
+                                            @endif
                                         </div>
 
                                         <hr class="mb-4">
@@ -117,12 +123,12 @@
                                                     <div class="row text-left mt-2">
                                                         <div class="col-6 border-end">
                                                             <div class="small text-muted">Start Time</div>
-                                                            <div class="fw-semibold">{{ $shift->start_time ?? '-' }}
+                                                            <div class="fw-semibold">{{ $this->currentShift->start_time ?? '-' }}
                                                             </div>
                                                         </div>
                                                         <div class="col-6">
                                                             <div class="small text-muted">End Time</div>
-                                                            <div class="fw-semibold">{{ $shift->end_time ?? '-' }}</div>
+                                                            <div class="fw-semibold">{{ $this->currentShift->end_time ?? '-' }}</div>
                                                         </div>
                                                     </div>
                                                 </div>
