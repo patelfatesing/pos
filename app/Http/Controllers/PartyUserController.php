@@ -57,7 +57,7 @@ class PartyUserController extends Controller
 
             $action = '<div class="d-flex align-items-center list-action">
             <a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                    href="#" onclick="party_cust_price_change(' . $partyUser->id . ')"><i class="ri-currency-fill"></i></a>     
+                    href="' . url('/cust-product-price-change/form/' . $partyUser->id) . '"><i class="ri-currency-fill"></i></a>     
             <a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
                                         href="' . url('/party-users/view/' . $partyUser->id) . '"><i class="ri-eye-line mr-0"></i></a>
             <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
@@ -194,6 +194,7 @@ class PartyUserController extends Controller
             ->select(
                 'products.id',
                 'products.name',
+                'products.mrp',
                 'products.sell_price',
                 DB::raw('IFNULL(party_customer_products_price.cust_discount_price, 0) as cust_discount_price') // Default to 0 if no discount
             )
@@ -207,6 +208,7 @@ class PartyUserController extends Controller
                 'products.id',
                 'products.name',
                 'products.sell_price',
+                'products.mrp',
                 'party_customer_products_price.cust_discount_price',
             )
             ->get();
@@ -250,7 +252,7 @@ class PartyUserController extends Controller
 
             foreach ($request['items'] as $key => $item) {
 
-                $cust_pro = PartyCustomerProductsPrice::where('id', $key)->where('party_user_id', $cust_user_id)->first();
+                $cust_pro = PartyCustomerProductsPrice::where('product_id', $key)->where('party_user_id', $cust_user_id)->first();
 
                 $cust_discount_price = 0;
                 $cust_discount_amt = 0;
