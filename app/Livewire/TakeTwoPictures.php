@@ -21,6 +21,7 @@ class TakeTwoPictures extends Component
     private const SESSION_KEY_PRODUCT = 'product_photo_path';
     private const SESSION_KEY_CUSTOMER = 'customer_photo_path';
     private const SESSION_KEY_TIMESTAMP = 'photos_timestamp';
+    protected $listeners = ['resetPicAll'];
 
     /**
      * Validation rules for the photos
@@ -213,6 +214,20 @@ class TakeTwoPictures extends Component
         $this->isProductPhotoTaken = false;
         $this->isCustomerPhotoTaken = false;
         $this->resetValidation();
+        $this->dispatch('photos-reset');
+    }
+     public function resetPicAll(): void
+    {
+        $this->reset(['productPhoto', 'customerPhoto']);
+        $this->isProductPhotoTaken = false;
+        $this->isCustomerPhotoTaken = false;
+        $this->resetValidation();
+        // Remove stored photo paths from session
+        session()->forget([
+            auth()->id()."_".Auth::user()->role->name."_".self::SESSION_KEY_PRODUCT,
+            auth()->id()."_".Auth::user()->role->name."_".self::SESSION_KEY_CUSTOMER,
+            auth()->id()."_".Auth::user()->role->name."_".self::SESSION_KEY_TIMESTAMP,
+        ]);
         $this->dispatch('photos-reset');
     }
 

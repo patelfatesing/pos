@@ -36,7 +36,22 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        @php
+                                            $totalOpening = $totalAdded = $totalTransferred = $totalSold = $totalClosing = $totalPhysical = $totalDifference = 0;
+                                        @endphp
+
                                         @forelse ($rawStockData as $stock)
+                                            @php
+                                                $totalOpening += $stock->opening_stock;
+                                                $totalAdded += $stock->added_stock;
+                                                $totalTransferred += $stock->transferred_stock;
+                                                $totalSold += $stock->sold_stock;
+                                                $totalClosing += $stock->closing_stock;
+                                                $totalPhysical += !empty($stock->physical_stock)
+                                                    ? $stock->physical_stock
+                                                    : 0;
+                                                $totalDifference += $stock->difference_in_stock;
+                                            @endphp
                                             <tr>
                                                 <td>{{ $stock->product->name ?? 'N/A' }}</td>
                                                 <td>{{ $stock->opening_stock }}</td>
@@ -53,6 +68,17 @@
                                                     available.</td>
                                             </tr>
                                         @endforelse
+
+                                        <tr class="fw-bold">
+                                            <td colspan="1" class="text-end">Total</td>
+                                            <td>{{ $totalOpening }}</td>
+                                            <td>{{ $totalAdded }}</td>
+                                            <td>{{ $totalTransferred }}</td>
+                                            <td>{{ $totalSold }}</td>
+                                            <td>{{ $totalClosing }}</td>
+                                            <td>{{ $totalPhysical }}</td>
+                                            <td>{{ $totalDifference }}</td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>

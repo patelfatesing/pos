@@ -185,7 +185,7 @@ if (!function_exists('getDiscountPrice')) {
 }
 
 if (!function_exists('stockStatusChange')) {
-    function stockStatusChange($product_id, $branch_id, $qty, $type)
+    function stockStatusChange($product_id, $branch_id, $qty, $type,$shift_id="")
     {
         $date = Carbon::today();
 
@@ -204,7 +204,8 @@ if (!function_exists('stockStatusChange')) {
                     'branch_id' => $branch_id,
                     'product_id' => $product_id,
                     'date' => $date,
-                    'opening_stock' => $qty
+                    'opening_stock' => $qty,
+                    'shift_id'=>$shift_id
                 ]);
             }
         }
@@ -224,7 +225,9 @@ if (!function_exists('stockStatusChange')) {
                     'branch_id' => $branch_id,
                     'product_id' => $product_id,
                     'date' => $date,
-                    'opening_stock' => $qty
+                    'opening_stock' => $qty,
+                    'shift_id'=>$shift_id
+
                 ]);
             }
         }
@@ -244,7 +247,8 @@ if (!function_exists('stockStatusChange')) {
                     'branch_id' => $branch_id,
                     'product_id' => $product_id,
                     'date' => $date,
-                    'sold_stock' => $qty
+                    'sold_stock' => $qty,
+                    'shift_id'=>$shift_id
                 ]);
             }
         }

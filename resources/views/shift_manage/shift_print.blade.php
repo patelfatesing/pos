@@ -1,76 +1,48 @@
-@extends('layouts.backend.layouts')
-<style>
-    .custom-pdf-viewer {
-        width: 100%;
-        height: 900px;
-    }
-</style>
-@section('page-content')
-    <!-- Wrapper Start -->
-    <div class="wrapper">
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: sans-serif; font-size: 12px; }
+        .title { font-weight: bold; font-size: 16px; text-align: center; }
+        .section { margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ccc; padding: 4px; text-align: left; }
+    </style>
+</head>
+<body>
+    <div class="title">SR SHOP – Shift Report</div>
 
-        <div class="content-page">
-            <div class="container-fluid add-form-list">
-                <div class="row">
-                    <div class="col-sm-12 col-lg-12">
-                        <div class="iq-card">
-                            <div class="iq-card-header d-flex justify-content-between">
-                                <div class="iq-header-title">
-                                    <h4 class="card-title">Create Demand Order</h4>
-                                </div>
-                            </div>
-                            <div class="iq-card-body">
-                                <form id="form-wizard1" class="text-center mt-4">
-                                    <ul id="top-tab-list" class="p-0">
-                                        <li id="account">
-                                            <a href="javascript:void();">
-                                                <i class="ri-lock-unlock-line"></i><span>Search Details</span>
-                                            </a>
-                                        </li>
-                                        <li id="personal">
-                                            <a href="javascript:void();">
-                                                <i class="ri-user-fill"></i><span>Prediction</span>
-                                            </a>
-                                        </li>
-                                        <li id="payment">
-                                            <a href="javascript:void();">
-                                                <i class="ri-camera-fill"></i><span>Final Select</span>
-                                            </a>
-                                        </li>
-                                        <li class="active" id="confirm">
-                                            <a href="javascript:void();">
-                                                <i class="ri-check-fill"></i><span>Finish</span>
-                                            </a>
-                                        </li>
-                                    </ul>
+    <div class="section">
+        <p><strong>User Staff:</strong> {{ $shift->user->name ?? 'N/A' }}</p>
+        <p><strong>Start Date:</strong> {{ $shift->start_time }}</p>
+        <p><strong>End Date:</strong> {{ $shift->end_time }}</p>
+    </div>
 
-                                    <fieldset>
-                                        <div class="card shadow-sm border-0 ">
+    <div class="section">
+        <strong>Payment Summary:</strong>
+        <table>
+            <tr><td>Cash</td><td>{{ $categoryTotals['payment']['CASH'] ?? 0 }}</td></tr>
+            <tr><td>UPI Payment</td><td>{{ $categoryTotals['payment']['UPI PAYMENT'] ?? 0 }}</td></tr>
+            <tr><td>Total</td><td>{{ $categoryTotals['payment']['TOTAL'] ?? 0 }}</td></tr>
+        </table>
+    </div>
 
-                                            <div class="" style="min-height: 700px;">
-                                                <iframe src="{{ $pdfPath }}" class="rounded border custom-pdf-viewer"
-                                                    allowfullscreen></iframe>
-                                            </div>
-                                          
-                                        </div>
-                                        <a href="{{ route('demand-order.step1') }}"
-                                            class="btn btn-dark previous action-button-previous float-right mr-3">Complete</a>
-                                        {{-- <a href="{{ $pdfPath }}" download
-                                            class="btn btn-primary next action-button ">
-                                            <i class="ri-download-2-line"></i> Download PDF
-                                        </a> --}}
+    <div class="section">
+        <strong>Sales Summary:</strong>
+        <table>
+            @foreach ($categoryTotals['sales'] ?? [] as $category => $amount)
+                <tr><td>{{ $category }}</td><td>{{ $amount }}</td></tr>
+            @endforeach
+        </table>
+    </div>
 
-                                    </fieldset>
-
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-        <!-- Wrapper End -->
-    @endsection
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <div class="section">
+        <strong>Summary:</strong>
+        <table>
+            @foreach ($categoryTotals['summary'] ?? [] as $key => $val)
+                <tr><td>{{ $key }}</td><td>{{ $val }}</td></tr>
+            @endforeach
+        </table>
+    </div>
+</body>
+</html>

@@ -167,7 +167,7 @@
 
         .mb-4,
         .my-4 {
-            margin-bottom: 0px !important;
+            margin-bottom: 4px !important;
         }
 
         .card .card-header {

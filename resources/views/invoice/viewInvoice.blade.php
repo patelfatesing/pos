@@ -34,7 +34,7 @@
                                     <h4 class="card-title mb-0">Invoice #{{ $invoice->invoice_number }}</h4>
                                 </div>
                                 <div class="invoice-btn">
-                                    
+
                                     @if ($invoice->party_user_id != '')
                                         <button
                                             onClick="showPhoto({{ $invoice->id }},{{ $invoice->party_user_id }},'{{ $invoice->invoice_number }}')"
@@ -75,7 +75,7 @@
                                                     <tr>
                                                         <th scope="col">Transaction Date</th>
                                                         <th scope="col">Transaction Status</th>
-                                                        <th scope="col">Transaction No</th>
+                                                        <th scope="col">Transaction No(Ref)</th>
 
                                                     </tr>
                                                 </thead>
@@ -88,7 +88,12 @@
                                                                 {{ $invoice->status }}
                                                             </span>
                                                         </td>
-                                                        <td>{{ $invoice->invoice_number }}</td>
+                                                        <td>
+                                                            {{ $invoice->invoice_number }}
+                                                            @if (Str::startsWith($invoice->invoice_number, 'HOLD-'))
+                                                                ({{ $invoice->created_at->format('Y-m-d H:i:s') }})
+                                                            @endif
+                                                        </td>
 
                                                     </tr>
                                                 </tbody>
@@ -136,20 +141,31 @@
                                         <div class="or-detail rounded">
                                             <div class="p-3">
                                                 <h5 class="mb-3">Transaction Details</h5>
-                                                <div class="mb-2">
-                                                    <h6>Sub Total</h6>
-                                                    <p>₹{{ number_format($invoice->sub_total, 2) }}</p>
+                                                <div class="mb-2 d-flex justify-content-between">
+                                                    <h6 class="mb-0">Payment Mode:</h6>
+                                                    <p class="mb-0">{{ $invoice->payment_mode }}</p>
+                                                </div>
+                                                <div class="mb-2 d-flex justify-content-between">
+                                                    <h6 class="mb-0">Sub Total:</h6>
+                                                    <p class="mb-0">₹{{ number_format($invoice->sub_total, 2) }}</p>
+
                                                 </div>
                                                 @if ($invoice->commission_amount > 0)
-                                                    <div class="mb-2">
-                                                        <h6>Commission Deduction</h6>
+                                                    <div class="mb-2 d-flex justify-content-between">
+                                                        <h6>Commission Deduction: </h6>
                                                         <p>- ₹{{ number_format($invoice->commission_amount, 2) }}</p>
                                                     </div>
                                                 @endif
                                                 @if ($invoice->party_amount > 0)
-                                                    <div class="mb-2">
-                                                        <h6>Party Deduction</h6>
+                                                    <div class="mb-2 d-flex justify-content-between">
+                                                        <h6>Party Deduction: </h6>
                                                         <p>- ₹{{ number_format($invoice->party_amount, 2) }}</p>
+                                                    </div>
+                                                @endif
+                                                @if ($invoice->roundof > 0)
+                                                    <div class="mb-2 d-flex justify-content-between">
+                                                        <h6>Roundof: </h6>
+                                                        <p>- ₹{{ number_format($invoice->roundof, 2) }}</p>
                                                     </div>
                                                 @endif
                                             </div>

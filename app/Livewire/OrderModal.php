@@ -56,6 +56,14 @@ class OrderModal extends Component
         }
 
         $pdfPath = storage_path('app/public/invoices/duplicate_' . $invoice->invoice_number . '.pdf');
+        $refNo = $invoice->invoice_number;
+
+        if (stripos($refNo, 'HOLD') !== false) {
+            $createdAt = $invoice->created_at; // instance of Carbon
+            $refNo = $refNo. '-' . $createdAt->format('H:i');
+        }else{
+            $refNo="";
+        }
 
         $partyUser = PartyUser::where('status', 'Active')->find($invoice->party_user_id);
         $pdf = App::make('dompdf.wrapper');
@@ -64,7 +72,8 @@ class OrderModal extends Component
             'items' => $invoice->items,
             'branch' => auth()->user()->userinfo->branch,
             'duplicate' => true,
-            'customer_name' => $partyUser->first_name
+            'customer_name' => $partyUser->first_name,
+            'ref_no'=>$refNo
         ]);
         // Always (re)generate the PDF, updating if it already exists
         $pdf->save($pdfPath);

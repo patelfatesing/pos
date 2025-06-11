@@ -267,6 +267,8 @@ Route::middleware('auth')->group(function () {
     Route::put('/party-users/{Partyuser}', [PartyUserController::class, 'update'])->name('party-users.update');
     Route::delete('/party-users/{Partyuser}', [PartyUserController::class, 'destroy'])->name('party-users.destroy');
     Route::get('/cust-product-price-change/form/{id}', [PartyUserController::class, 'custProductPriceChangeForm']);
+    Route::get('/cust-product-price-change/form/{id}', [PartyUserController::class, 'custProductPriceChangeForm']);
+ 
     Route::post('/cust-product-price-change/price_change-store', [PartyUserController::class, 'custPriceChange'])->name('cust-product-price-change-store');
     Route::post('/party-users/get-commission-data', [PartyUserController::class, 'getDataCommission'])->name('party-users.get.commission.data');
     Route::get('/cust-trasaction-photo/view/{id}', [PartyUserController::class, 'custTrasactionPhoto'])->name('cust-trasaction-photo-view');
@@ -372,6 +374,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/shift-manage/{id}', [ShiftManageController::class, 'showPhoto'])->name('shift-manage.photo');
     Route::get('/shift-manage/view/{id}/{shift_id}/{strartdate}/{endTime}', [ShiftManageController::class, 'view'])->name('purchase.shift-manage');
     Route::get('/shift-manage/stock-details/{id}', [ShiftManageController::class, 'stockDetails'])->name('purchase.stock-details');
+    Route::get('/shift-manage/print-shift/{id}', [ShiftManageController::class, 'printShift'])->name('purchase.print-shift');
     
 });
 
