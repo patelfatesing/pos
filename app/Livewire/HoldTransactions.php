@@ -39,8 +39,12 @@ class HoldTransactions extends Component
 
     public function resumeTransaction($id,$commission_user_id="",$party_user_id="")
     {
+        $invoice_number = Invoice::generateInvoiceNumber();
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
         $transaction = Invoice::where(['user_id' => auth()->user()->id])->where('id', $id)->where(['branch_id' => $branch_id])->where('status', 'Hold')->first();
+        $createdAt = Carbon::parse($transaction->hold_date); // ensure Carbon instance
+        $transaction->ref_no = $transaction->invoice_number ;
+        $transaction->invoice_number=$invoice_number;
         $transaction->status="resumed";
         $transaction->save();
         
@@ -92,7 +96,7 @@ class HoldTransactions extends Component
 
         $partyUser = PartyUser::where('status', 'Active')->find($invoice->party_user_id);
         $pdf = App::make('dompdf.wrapper');
-        $pdf->loadView('hold', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'hold' => true,'customer_name' => @$partyUser->first_name]);
+        $pdf->loadView('hold', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'hold' => true,'customer_name' => @$partyUser->first_name,"hold_date"=>$invoice->hold_date,"ref_no"=>$invoice->ref_no]);
         $pdf->save($pdfPath);
         
         $this->dispatch('triggerPrint', [
