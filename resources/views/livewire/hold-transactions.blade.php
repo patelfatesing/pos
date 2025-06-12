@@ -33,7 +33,7 @@
                 <td>{{ !empty($transaction->commissionUser) ? $transaction->commissionUser->first_name: 'N/A' }}</td>
                 @endif
 
-                <td>{{ $transaction->created_at->format('d-m-Y H:i') }}</td>
+                <td>{{ $transaction->hold_date }}</td>
                 <td>{{ $sumqty }}</td>
                 <td>₹{{ $transaction->total}}</td>
                 <td>

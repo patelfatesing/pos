@@ -159,10 +159,12 @@ class Shoppingcart extends Component
 
     public function printLastInvoice()
     {
-        $invoice = \App\Models\Invoice::latest('id')->first();
+
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+        $invoice =  Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$this->shift->start_time, $this->shift->end_time])->latest('id')->first();
 
         if (!$invoice) {
-            // Handle case where no invoice exists
+            $this->dispatch('notiffication-error', ['message' => 'No invoice exists.']);
             return;
         }
 
@@ -1194,7 +1196,6 @@ class Shoppingcart extends Component
                 // ->where('total', $this->cashAmount)
                 ->first();
             $invoice_number_to_use = $resumedInvoice->invoice_number ?? $invoice_number;
-
             $invoice = Invoice::updateOrCreate(
                 [
                     'invoice_number' => $invoice_number_to_use,
@@ -1202,6 +1203,9 @@ class Shoppingcart extends Component
                     'user_id' => auth()->id(),
                 ],
                 [
+                    'invoice_number' => $resumedInvoice->ref_no ?? $invoice_number_to_use,
+                    'hold_date' => now(),
+                    'ref_no' => $resumedInvoice->invoice_number ?? null,
                     'commission_user_id' => $commissionUser->id ?? null,
                     'party_user_id' => $partyUser->id ?? null,
                     'items' => $cartItems->map(fn($item) => [
@@ -2388,7 +2392,7 @@ class Shoppingcart extends Component
                 // $this->dispatch('triggerPrint');
                 // Generate PDF and store it in local storage
                 $pdf = App::make('dompdf.wrapper');
-                $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => $partyUser->first_name]);
+                $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => $partyUser->first_name,"ref_no"=>$invoice->ref_no,"hold_date"=>$invoice->hold_date]);
                 $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
                 $pdf->save($pdfPath);
                 //  $this->dispatch('triggerPrint', [
