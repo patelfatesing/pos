@@ -68,6 +68,41 @@
                                                     @enderror
                                                 </div>
 
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Category *</label>
+                                                <select name="category_id" id="category_id"
+                                                    class="selectpicker form-control" data-style="py-0">
+                                                    <option value="">All Categories</option>
+                                                    @foreach ($categories as $category)
+                                                        <option value="{{ $category->id }}"
+                                                            {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                                            {{ $category->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                @error('category_id')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Sub Category *</label>
+                                                <select id="sub_category_ids" name="subcategory_id" class="form-control"
+                                                    data-style="py-0">
+                                                    <option value="">All Sub Categories</option>
+                                                    @if (old('subcategory_id'))
+                                                        <option value="{{ old('subcategory_id') }}" selected>
+                                                            {{ old('subcategory_id') }}</option>
+                                                    @endif
+                                                </select>
+                                                @error('subcategory_id')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
                                                 <div class="col-md-4">
                                                     <label for="purchase_date" class="form-label">Date</label>
                                                     <input type="date" class="form-control" id="purchase_date"
@@ -177,32 +212,6 @@
     $(document).ready(function() {
 
         let srNo = 1;
-
-        // Pre-fill product fields on select
-        // $('#avg_sales').change(function() {
-        //     const data = $(this).val();
-        //     const product_id = $(this).val();
-        //     $.ajax({
-        //         url: "{{ url('/vendor/get-product-details/') }}/" + product_id,
-        //         type: "GET",
-        //         dataType: "json",
-        //         success: function(data) {
-        //             console.log(data);
-        //             $('#batch').val(data.batch_no);
-        //             $('#mfg_date').val(data.mfg_date);
-        //             $('#mrp').val(data.cost_price);
-        //             $('#rate').val(data.sell_price);
-        //             $('#qty').val(1);
-        //             updateAmount();
-        //             addProduct(data);
-
-        //         },
-        //         error: function() {
-        //             alert('Failed to fetch subcategories. Please try again.');
-        //         }
-        //     });
-        //     if (!data) return;
-        // });
 
         // Auto-calculate amount on qty/rate change
         $('#qty, #rate').on('input', function() {
@@ -329,3 +338,37 @@
         }
     });
 </script>
+ <script>
+        $(document).ready(function() {
+            $('#category_id').on('change', function() {
+
+                var categoryId = $(this).val();
+                if (categoryId) {
+                    $.ajax({
+                        url: "{{ url('/products/subcategory') }}/" + categoryId,
+                        type: "GET",
+                        dataType: "json",
+                        success: function(data) {
+                            $('#sub_category_ids').empty();
+                            $('#sub_category_ids').append(
+                                '<option value="" disabled selected>Select Sub Category</option>'
+                            );
+                            $.each(data, function(key, value) {
+                                $("#fate").text(value.name);
+                                $('#sub_category_ids').append('<option value="' + value
+                                    .id + '">' + value.name + '</option>');
+                            });
+                        },
+                        error: function() {
+                            alert('Failed to fetch subcategories. Please try again.');
+                        }
+                    });
+                } else {
+                    $('#sub_category_ids').empty();
+                    $('#sub_category_ids').append(
+                        '<option value="" disabled selected>Select Sub Category</option>');
+                }
+            });
+
+        });
+    </script>

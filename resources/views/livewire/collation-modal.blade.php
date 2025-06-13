@@ -36,9 +36,9 @@
                                     <tr>
                                         <th>#</th>
                                         <th>Name</th>
-                                        {{-- <th>Mobile</th>
-                                        <th>Email</th> --}}
-                                        <th>Address</th>
+                                        <th>Mobile</th>
+                                        {{-- <th>Email</th>
+                                        <th>Address</th> --}}
                                         <th>Credit</th>
                                         <th>Used Credit</th>
                                         <th>Left Credit</th>
@@ -51,9 +51,9 @@
                                         <tr>
                                             <td>{{ $index + 1 }}</td>
                                             <td>{{ $user->first_name }}</td>
-                                            {{-- <td>{{ $user->mobile_number }}</td>
-                                            <td>{{ $user->email }}</td> --}}
-                                            <td>{{ $user->address }}</td>
+                                            <td>{{ $user->mobile_number }}</td>
+                                            {{-- <td>{{ $user->email }}</td>
+                                            <td>{{ $user->address }}</td> --}}
                                             <td>{{ number_format($user->credit_points, 2) }}</td>
                                             <td>{{ number_format($user->use_credit, 2) }}</td>
                                              <td>{{ number_format($user->left_credit, 2) }}</td>
