@@ -741,14 +741,14 @@ class Shoppingcart extends Component
             $partyUser->credit_points += $this->creditPay;
             $partyUser->save();
         }
-        if (!empty($partyUser->id)) {
+        if (!empty($partyUser->id) && $this->creditPay >0 ) {
             CreditHistory::create(
 
                 [
                     'invoice_id' => $invoice->id,
                     'party_user_id' => $partyUser->id ?? null,
-                    'credit_amount' => 0.00,
-                    'debit_amount' => $this->creditPay,
+                    'credit_amount' => $this->creditPay,
+                    'debit_amount' => 0.00,
                     'total_amount' => $this->cashAmount,
                     'total_purchase_items' => $this->cashAmount,
                     'store_id' => $branch_id,
@@ -2375,11 +2375,11 @@ class Shoppingcart extends Component
                     'created_by' => auth()->id(),
                 ]);
             }
-            if (!empty($partyUser->id)) {
-
+            if (!empty($partyUser->id) && $this->creditPay >0 ) {
+                
                 CreditHistory::create([
                     'invoice_id' => $invoice->id,
-                    'credit_amount' => $this->creditPay,
+                    'debit_amount' => $this->creditPay,
                     'total_amount' => $this->cashAmount,
                     'total_purchase_items' => $totalQuantity,
                     'party_user_id' => $partyUser->id ?? null,
@@ -2613,14 +2613,14 @@ class Shoppingcart extends Component
         //         ]
         //     );
         // }
-        if (!empty($partyUser->id)) {
+        if (!empty($partyUser->id) && $this->creditPay >0 ) {
             CreditHistory::create(
 
                 [
                     'invoice_id' => $invoice->id,
                     'party_user_id' => $partyUser->id ?? null,
-                    'credit_amount' => 0.00,
-                    'debit_amount' => $this->creditPay,
+                    'credit_amount' => $this->creditPay,
+                    'debit_amount' =>0.00,
                     'total_amount' => $this->cashAmount,
                     'total_purchase_items' => $this->cashAmount,
                     'store_id' => $branch_id,
@@ -2897,11 +2897,10 @@ class Shoppingcart extends Component
                     'created_by' => auth()->id(),
                 ]);
             }
-            if (!empty($partyUser->id)) {
-
+            if (!empty($partyUser->id) && $this->creditPay >0 ) {
                 CreditHistory::create([
                     'invoice_id' => $invoice->id,
-                    'credit_amount' => $this->creditPay,
+                    'debit_amount' => $this->creditPay,
                     'total_amount' => $this->cashAmount,
                     'total_purchase_items' => $totalQuantity,
                     'party_user_id' => $partyUser->id ?? null,
