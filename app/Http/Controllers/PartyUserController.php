@@ -224,18 +224,18 @@ class PartyUserController extends Controller
         $validated = $request->validate([
             'cust_user_id' => 'required|exists:party_users,id',
             'items' => 'required|array',
-            'items.*.sell_price' => 'required|numeric|min:1',
+            'items.*.mrp' => 'required|numeric|min:1',
             'items.*.cust_discount_price' => 'required|numeric|min:1',
             'notes' => 'nullable|string',
         ]);
 
         // Manually check each item's discount price
         $errors = [];
-        foreach ($request->items as $id => $item) {
-            if ($item['cust_discount_price'] > $item['sell_price']) {
-                $errors["items.$id.cust_discount_price"] = ['Discount price must be less than or equal to sell price.'];
-            }
-        }
+        // foreach ($request->items as $id => $item) {
+        //     if ($item['cust_discount_price'] > $item['mrp']) {
+        //         $errors["items.$id.cust_discount_price"] = ['Discount price must be less than or equal to sell price.'];
+        //     }
+        // }
 
         if (!empty($errors)) {
             return response()->json([
@@ -257,12 +257,12 @@ class PartyUserController extends Controller
                 $cust_discount_price = 0;
                 $cust_discount_amt = 0;
 
-                if ($item['cust_discount_price'] == $item['sell_price']) {
-                    $cust_discount_price = $item['sell_price'];
+                if ($item['cust_discount_price'] == $item['mrp']) {
+                    $cust_discount_price = $item['mrp'];
                     $cust_discount_amt = 0;
                 } else {
                     $cust_discount_price = $item['cust_discount_price'];
-                    $cust_discount_amt = $item['sell_price'] - $item['cust_discount_price'];
+                    $cust_discount_amt = $item['mrp'] - $item['cust_discount_price'];
                 }
 
                 if (!empty($cust_pro)) {

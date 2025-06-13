@@ -178,6 +178,10 @@
                     pageLength: 25,
                     dom: 'Blfrtip',
                     buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
+                    aoColumnDefs: [{
+                        bSortable: false,
+                        aTargets: [1, 4] // make "action" column unsortable
+                    }],
                     footerCallback: function(row, data) {
                         let totalQty = 0;
                         let totalPrice = 0;
