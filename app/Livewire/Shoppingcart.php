@@ -31,6 +31,7 @@ use App\Models\CommissionUserImage;
 use App\Models\PartyUserImage;
 use App\Models\DailyProductStock;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Collection;
 
 class Shoppingcart extends Component
 {
@@ -205,7 +206,7 @@ class Shoppingcart extends Component
     public function addToCartBarCode()
     {
         if (!$this->selectedProduct) return;
-        $currentProduct = $this->cartitems->firstWhere('product_id', $this->selectedProduct->id);
+        $currentProduct = collect($this->cartitems)->firstWhere('product_id', $this->selectedProduct->id);
         $currentQty = $currentProduct ? $currentProduct->quantity : 0;
         $currentQty = $currentQty + 1;
         $totalQuantity = $this->selectedSalesReturn ? collect($this->selectedSalesReturn->items)->sum('quantity') : 0;
@@ -345,7 +346,7 @@ class Shoppingcart extends Component
             // $this->updateQty($item->id);
             $this->dispatch('updateNewProductDetails');
 
-            $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'search');
+            $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown','useCredit','showCheckbox','roundedTotal','removeCrossHold','cashNotes');
             //  session()->flash('success', 'Product added to the cart successfully');
             $this->dispatch('notiffication-sucess', ['message' => 'Product added to the cart successfully']);
         } else {
@@ -1811,7 +1812,7 @@ class Shoppingcart extends Component
     {
 
         if (auth()->user()) {
-            $currentProduct = $this->cartitems->firstWhere('product_id', $id);
+            $currentProduct = collect($this->cartitems)->firstWhere('product_id', $id);
             $currentQty = $currentProduct ? $currentProduct->quantity : 0;
             $currentQty = $currentQty + 1;
             $totalQuantity = $this->selectedSalesReturn ? collect($this->selectedSalesReturn->items)->sum('quantity') : 0;
@@ -2669,7 +2670,7 @@ class Shoppingcart extends Component
         Cart::where('user_id', auth()->user()->id)
             ->where('status', '!=', Cart::STATUS_HOLD)
             ->delete();
-        $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'cartitems', 'searchSalesReturn');
+        $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown','useCredit','showCheckbox','roundedTotal','removeCrossHold','cashNotes');
         $this->invoiceData = $invoice;
 
         $pdf = App::make('dompdf.wrapper');
