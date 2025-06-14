@@ -1045,11 +1045,25 @@ class Shoppingcart extends Component
         $this->products = Product::all();
 
         // $date = Carbon::yesterday();
+        $lastShift = UserShift::getYesterdayShift(auth()->user()->id, $branch_id);
 
-        $this->productStock = DailyProductStock::with('product')
-            ->where('branch_id', $branch_id)
-            ->whereDate('date', Carbon::today())
-            ->get();
+        $stocksQuery = DailyProductStock::with('product')
+            ->where('branch_id', $branch_id);
+
+        if (!empty($lastShift)) {
+            // Match with shift_id
+            $stocksQuery->where('shift_id', $lastShift->shift_id);
+        } else {
+            // Match where shift_id is null
+            $stocksQuery->whereNull('shift_id');
+        }
+        $this->productStock = $stocksQuery->get();
+
+        // $this->productStock = DailyProductStock::with('product')
+        //     ->where('branch_id', $branch_id)
+        //     ->whereDate('date', Carbon::today())
+        //     ->get();
+        
 
         foreach ($this->noteDenominations as $index => $denomination) {
             $this->cashNotes[$index][$denomination] = ['in' => 0, 'out' => 0];

@@ -360,7 +360,7 @@
 
                             <td>
                                 @php
-                                    $this->roundedTotal=$this->cashAmount-$this->cartItemTotalSum;
+                                    $this->roundedTotal=$this->cashAmount+$this->creditPay-$this->cartItemTotalSum;
                                 @endphp
                                 {{ format_inr($this->roundedTotal) }}
                                 <input type="hidden" id="roundedTotal" value="{{ $this->roundedTotal }}" wire:model="roundedTotal">
