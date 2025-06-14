@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('alert:expiry')->dailyAt('00:50'); // Runs daily at 6 PM
+Schedule::command('product:update-sell-price')->dailyAt('01:41');

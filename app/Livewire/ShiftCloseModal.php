@@ -156,6 +156,7 @@ class ShiftCloseModal extends Component
             $this->showYesterDayShiftTime=true;
          }else{
              $date = Carbon::today();
+            
          }
         $this->currentShift = UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $date)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "pending"])->first();
         
