@@ -242,7 +242,7 @@ $action .= '<a class="badge bg-primary ml-2 view-invoices"
         return view('shift_manage.view', compact('invoices', 'shift_id'));
     }
 
-    public function closeShift($id)
+    public function closeShift($id,$return="htmlfile")
     {
         $shift = ShiftClosing::findOrFail($id);
 
@@ -345,8 +345,8 @@ $action .= '<a class="badge bg-primary ml-2 view-invoices"
                 @$categoryTotals['summary']['ONLINE PAYMENT'] + @$categoryTotals['summary']['CREDIT COLLACTED BY CASH'] + $totalRoundOf;
             $categoryTotals['summary']['REFUND'] = $totalRefund * (-1) + $totalRefundReturn * (-1);
             //$categoryTotals['summary']['REFUND RETURN'] = $totalRefundReturn*(-1);
-            $categoryTotals['summary']['CREDIT'] = $totals->credit_total;
-            $categoryTotals['summary']['REFUND_CREDIT'] = $totals->debit_total;
+            $categoryTotals['summary']['CREDIT'] = $totals->debit_total;
+            $categoryTotals['summary']['REFUND_CREDIT'] = $totals->credit_total;
             if (!empty($categoryTotals['summary']['REFUND_CREDIT'])) {
                 $categoryTotals['summary']['REFUND_CREDIT'] = (int)$categoryTotals['summary']['REFUND_CREDIT'] * (-1);
             }
@@ -363,38 +363,65 @@ $action .= '<a class="badge bg-primary ml-2 view-invoices"
                 // echo "<pre>";
                 // print_r($denominations1);
                 if (is_array($denominations1)) {
-                    foreach ($denominations1 as $denomination => $notes) {
-                        foreach ($notes as $noteValue => $action) {
-                            // Check for 'in' (added notes) and 'out' (removed notes)
-                            if (isset($action['in'])) {
-                                if (!isset($noteCount[$noteValue])) {
-                                    $noteCount[$noteValue] = 0;
+                    // Handle array of objects: [{"10":{"in":"0"}},{"20":{"in":"0"}},...]
+                    if (array_keys($denominations1) === range(0, count($denominations1) - 1)) {
+                        foreach ($denominations1 as $item) {
+                            if (is_array($item)) {
+                                foreach ($item as $noteValue => $action) {
+                                    if (isset($action['in'])) {
+                                        if (!isset($noteCount[$noteValue])) {
+                                            $noteCount[$noteValue] = 0;
+                                        }
+                                        $noteCount[$noteValue] += (int)$action['in'];
+                                    }
+                                    if (isset($action['out'])) {
+                                        if (!isset($noteCount[$noteValue])) {
+                                            $noteCount[$noteValue] = 0;
+                                        }
+                                        $noteCount[$noteValue] -= (int)$action['out'];
+                                    }
                                 }
-                                $noteCount[$noteValue] += $action['in'];
                             }
-                            if (isset($action['out'])) {
-                                if (!isset($noteCount[$noteValue])) {
-                                    $noteCount[$noteValue] = 0;
+                        }
+                    } else {
+                        // Handle object with nested arrays: {"5":{"500":{"in":4}}, "3":{"100":{"out":1}}}
+                        foreach ($denominations1 as $outer) {
+                            if (is_array($outer)) {
+                                foreach ($outer as $noteValue => $action) {
+                                    if (isset($action['in'])) {
+                                        if (!isset($noteCount[$noteValue])) {
+                                            $noteCount[$noteValue] = 0;
+                                        }
+                                        $noteCount[$noteValue] += (int)$action['in'];
+                                    }
+                                    if (isset($action['out'])) {
+                                        if (!isset($noteCount[$noteValue])) {
+                                            $noteCount[$noteValue] = 0;
+                                        }
+                                        $noteCount[$noteValue] -= (int)$action['out'];
+                                    }
                                 }
-                                $noteCount[$noteValue] -= $action['out'];
                             }
                         }
                     }
                 }
             }
-            
             $shiftcash = $noteCount;
             $closing_cash = $shift->closing_cash;
             $cash_discrepancy = $shift->cash_discrepancy;
             //dd($shiftcash);
             // Render a Blade view and pass any needed data
             $html = view('shift_manage.closed', ['shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy, 'branch_name' => $branch_name])->render();
+            if($return=="html"){
+                return  ['shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy, 'branch_name' => $branch_name];
+            }else{
 
-            return response()->json([
-                'message' => 'Shift closed successfully',
-                'html' => $html,
-                'code' => 200
-            ]);
+                return response()->json([
+                    'message' => 'Shift closed successfully',
+                    'html' => $html,
+                    'code' => 200
+                ]);
+            }
         }
 
         return response()->json([
@@ -428,135 +455,13 @@ $action .= '<a class="badge bg-primary ml-2 view-invoices"
     public function printShift($id)
     {
         $shift = ShiftClosing::findOrFail($id);
-        $branch_data = Branch::select('name')->where('id', $shift->branch_id)->firstOrFail();
-        $branch_name = $branch_data->name;
 
+        
+        
         if (!$shift->closing_shift_time) {
-            $categoryTotals = [];
-            $totals = CreditHistory::whereBetween('created_at', [$shift->start_time, $shift->end_time])
-                ->where('store_id', $shift->branch_id)
-                ->selectRaw('SUM(credit_amount) as credit_total, SUM(debit_amount) as debit_total')
-                ->first();
-
-            $invoices = Invoice::where('user_id', $shift->user_id)
-                ->where('branch_id', $shift->branch_id)
-                ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
-                ->where('status', '!=', 'Hold')
-                ->latest()->get();
-
-            $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalRoundOf = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = 0;
-
-            foreach ($invoices as $invoice) {
-                $items = is_string($invoice->items) ? json_decode($invoice->items, true) : $invoice->items;
-
-                if (is_array($items)) {
-                    foreach ($items as $item) {
-                        if (!empty($item['subcategory'])) {
-                            $category = Str::upper($item['subcategory']) ?? 'Unknown';
-                            $amount = $item['price'] ?? 0;
-
-                            if (!isset($categoryTotals['sales'][$category])) {
-                                $categoryTotals['sales'][$category] = 0;
-                            }
-
-                            $categoryTotals['sales'][$category] += $amount + $invoice->roundof;
-                        }
-                    }
-                }
-
-                $discountTotal += (int)($invoice->commission_amount ?? 0) + (int)($invoice->party_amount ?? 0);
-                $totalCashPaid += (int)($invoice->cash_amount ?? 0);
-                $totalSubTotal += parseCurrency($invoice->total ?? 0);
-                $totalUpiPaid  += (int)($invoice->upi_amount ?? 0);
-                $totalOnlinePaid += (int)($invoice->online_amount ?? 0);
-                $totalRoundOf += (int)($invoice->roundof ?? 0);
-
-                if ($invoice->status == "Returned") {
-                    $totalRefundReturn += floatval(str_replace(',', '', $invoice->total));
-                }
-
-                $totalCreditPay += (int)($invoice->creditpay ?? 0);
-                $totalSales += (int)($invoice->sub_total ?? 0);
-                $totalPaid += (int)($invoice->total ?? 0);
-
-                if ($invoice->status == "Refunded") {
-                    $refund = Refund::where('invoice_id', $invoice->id)->where('user_id', auth()->id())->first();
-                    if ($refund) {
-                        $totalRefund += (int)($refund->amount ?? 0);
-                    }
-                }
-            }
-
-            $creditCollacted = \DB::table('credit_collections')
-                ->selectRaw('SUM(cash_amount) as collacted_cash_amount, SUM(online_amount) as collacted_online_amount, SUM(upi_amount) as collacted_upi_amount')
-                ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
-                ->first();
-
-            $totalWith = \App\Models\WithdrawCash::where('user_id', $shift->user_id)
-                ->where('branch_id', $shift->branch_id)
-                ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
-                ->sum('amount');
-
-            $categoryTotals['payment']['CASH'] = $totalCashPaid;
-            $categoryTotals['payment']['UPI PAYMENT'] = $totalUpiPaid + $totalOnlinePaid;
-            $categoryTotals['payment']['TOTAL'] = $totalCashPaid + $totalUpiPaid + $totalOnlinePaid;
-
-            $categoryTotals['summary']['OPENING CASH'] = $shift->opening_cash;
-            $categoryTotals['summary']['TOTAL SALES'] = $totalSubTotal + $discountTotal - $totalRefundReturn - $totalRoundOf;
-            $categoryTotals['summary']['DISCOUNT'] = -$discountTotal;
-            $categoryTotals['summary']['WITHDRAWAL PAYMENT'] = -$totalWith;
-            $categoryTotals['summary']['UPI PAYMENT'] = - ($totalUpiPaid + $totalOnlinePaid);
-            $categoryTotals['summary']['ROUND OFF'] = $totalRoundOf;
-            if (!empty($creditCollacted->collacted_cash_amount)) {
-                $categoryTotals['summary']['CREDIT COLLACTED BY CASH'] = $creditCollacted->collacted_cash_amount;
-            }
-
-            $categoryTotals['summary']['REFUND'] = -$totalRefund - $totalRefundReturn;
-            $categoryTotals['summary']['CREDIT'] = $totals->credit_total;
-            $categoryTotals['summary']['REFUND_CREDIT'] = - ((int) $totals->debit_total);
-
-            $categoryTotals['summary']['TOTAL'] = $categoryTotals['summary']['OPENING CASH'] +
-                $categoryTotals['summary']['TOTAL SALES'] +
-                $categoryTotals['summary']['DISCOUNT'] +
-                $categoryTotals['summary']['WITHDRAWAL PAYMENT'] +
-                $categoryTotals['summary']['UPI PAYMENT'] +
-                ($categoryTotals['summary']['CREDIT COLLACTED BY CASH'] ?? 0) +
-                $totalRoundOf;
-
-            $cashBreakdowns = CashBreakdown::where('user_id', $shift->user_id)
-                ->where('branch_id', $shift->branch_id)
-                ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
-                ->get();
-
-            $noteCount = [];
-            foreach ($cashBreakdowns as $breakdown) {
-                $denominations1 = json_decode($breakdown->denominations, true);
-                if (is_array($denominations1)) {
-                    foreach ($denominations1 as $denomination => $notes) {
-                        foreach ($notes as $noteValue => $action) {
-                            if (isset($action['in'])) {
-                                $noteCount[$noteValue] = ($noteCount[$noteValue] ?? 0) + $action['in'];
-                            }
-                            if (isset($action['out'])) {
-                                $noteCount[$noteValue] = ($noteCount[$noteValue] ?? 0) - $action['out'];
-                            }
-                        }
-                    }
-                }
-            }
-
-            $shiftcash = $noteCount;
-            $closing_cash = $shift->closing_cash;
-            $cash_discrepancy = $shift->cash_discrepancy;
-
-            $pdf = Pdf::loadView('shift_manage.shift_print', [
-                'shift' => $shift,
-                'categoryTotals' => $categoryTotals,
-                'shiftcash' => $shiftcash,
-                'closing_cash' => $closing_cash,
-                'cash_discrepancy' => $cash_discrepancy,
-                'branch_name' => $branch_name
-            ]);
+            $closeShift=$this->closeShift($id,"html");
+            
+             $pdf = Pdf::loadView('shift_manage.shift_print',['shift' => $closeShift['shift'], "categoryTotals" => $closeShift['categoryTotals'], "shiftcash" => $closeShift['shiftcash'], "closing_cash" => $closeShift['closing_cash'], 'cash_discrepancy' => $closeShift['cash_discrepancy'], 'branch_name' => $closeShift['branch_name']]);
 
             return $pdf->download('shift_report_' . $shift->id . '.pdf');
         }

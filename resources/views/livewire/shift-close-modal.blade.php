@@ -138,6 +138,21 @@
                                                         <i class="bi bi-check-circle me-1"></i> Close Shift
                                                     </button>
                                                 </div>
+                                                 @if($this->showYesterDayShiftTime)
+                                                   
+                                                    <button type="button" class="btn btn-outline-danger  "   data-toggle="tooltip" data-placement="top" title="Logout"   onclick="confirmLogout()">
+                                                    <span class="font-weight-bold"> {{ Auth::user()->name }}</span>
+                                                    &nbsp;&nbsp;&nbsp;
+                                                    <i class="fas fa-sign-out-alt"></i>
+                                                    </button>
+
+
+                                                    {{-- Logout Form --}}
+                                                    <form id="logout-form" action="{{ route('logout') }}" method="POST"
+                                                    style="display: none;">
+                                                    @csrf
+                                                    </form>
+                                                @endif
                                             </div>
                                             <hr>
                                             {{-- Cash Breakdown --}}
