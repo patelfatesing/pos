@@ -46,8 +46,13 @@ class UserShift extends Model
     }
     public static function getYesterdayShift($user_id, $branch_id)
     {
-        return UserShift::whereDate('start_time', Carbon::yesterday())->where(['user_id' => $user_id])->where(['branch_id' => $branch_id])->where(['status' => "pending"])->first();
+        return UserShift::where('status', 'pending')
+        ->where('user_id', $user_id)
+        ->where('branch_id', $branch_id)
+        ->whereDate('start_time', '<', Carbon::today())
+        ->latest('id')
+        ->first();
+
     }
-    
 
 }

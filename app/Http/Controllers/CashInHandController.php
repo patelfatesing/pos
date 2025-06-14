@@ -54,7 +54,7 @@ class CashInHandController extends Controller
             'total' => $request->amount,
         ]);
 
-        UserShift::updateOrCreate(
+        $userShift=UserShift::updateOrCreate(
             [
                 'user_id' => auth()->id(),
                 'branch_id' => $branch_id,
@@ -79,6 +79,7 @@ class CashInHandController extends Controller
             DailyProductStock::updateOrCreate(
                 [
                     'product_id' => $key->product_id,
+                    'shift_id'=>$userShift->id,
                     'branch_id' => $branch_id,
                     'date' => Carbon::today(),
                     'opening_stock' => $key->closing_stock,

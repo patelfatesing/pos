@@ -2151,7 +2151,7 @@ class Shoppingcart extends Component
                     $arr_low_stock[$productId] = $productId;
                 }
 
-                stockStatusChange($inventory->product->id, $branch_id, $totalQuantity, 'sold_stock');
+                stockStatusChange($inventory->product->id, $branch_id, $totalQuantity, 'sold_stock',$this->shift->id);
 
                 if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
                     // Deduct only from the first inventory if it has enough quantity
@@ -2459,7 +2459,7 @@ class Shoppingcart extends Component
             $product = $this->cartitems->firstWhere('product_id', $productId)->product;
             $inventories = $product->inventories;
             $inventory = $product->inventorie;
-            stockStatusChange($inventory->product->id, $branch_id, $totalQuantity, 'add_stock');
+            stockStatusChange($inventory->product->id, $branch_id, $totalQuantity, 'add_stock',$this->shift->id);
                
             if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
                 // Deduct only from the first inventory if it has enough quantity
@@ -2733,7 +2733,7 @@ class Shoppingcart extends Component
                     $arr_low_stock[$productId] = $productId;
                 }
 
-                stockStatusChange($inventory->product->id, $branch_id, $totalQuantity, 'sold_stock');
+                stockStatusChange($inventory->product->id, $branch_id, $totalQuantity, 'sold_stock',$this->shift->id);
 
 
                 if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
