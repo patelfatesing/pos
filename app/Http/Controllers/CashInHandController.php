@@ -101,6 +101,7 @@ class CashInHandController extends Controller
         
         $stocks = $stocksQuery->get();
         foreach ($stocks as $key) {
+            $key->shift_id=$userShift->id;
             $key->opening_stock=$key->closing_stock;
             $key->save();
             // DailyProductStock::updateOrCreate(
