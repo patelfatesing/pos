@@ -22,7 +22,7 @@ class DashboardController extends Controller
         
         // Redirect non-admin users to items.cart
         if ($roleName !== 'admin') {
-            return redirect()->route('items.cart');
+         return redirect(route('dashboard'));
         }
 
         // Only admin users will reach this point

@@ -4,21 +4,19 @@
     @endphp
 
     <div class="col-md-7">
-        <div class="iq-sidebar-logo d-flex align-items-center justify-content-between">
-            <!-- Left Side: Logo -->
-            <a href="{{ route('items.cart') }}" class="header-logo d-flex align-items-center">
-                <img src="{{ asset('assets/images/logo.png') }}" class="img-fluid rounded-normal light-logo"
-                    alt="LiquorHub Logo" style="height: 1.2em; width: auto;">
-                <h5 class="logo-title light-logo ml-3 mb-0 font-weight-bold text-dark">LiquorHub</h5>
+       <div class="d-flex align-items-center justify-content-between px-3 py-2 bg-white">
+            <a href="{{ route('items.cart') }}" class="d-flex align-items-center text-decoration-none">
+                <img src="{{ asset('assets/images/logo.png') }}" class="img-fluid rounded mr-2" alt="LiquorHub Logo" style="height: 2em;">
+                <h5 class="mb-0 font-weight-bold text-dark" style="color:#32bdea !important">LiquorHub</h5>
             </a>
-
-            <!-- Right Side: Sidebar Toggle Button -->
-            <div class="iq-menu-bt-sidebar">
-
-                <h6 class="text-right mb-0 ">{{ __('messages.store_location') }}<span
-                        class="text-muted">{{ $this->branch_name }}</span></h6>
+            <div class="d-flex flex-wrap justify-content-end text-right ml-auto">
+                <small class="mx-2"> <strong>Shift No:</strong>{{ $this->shift->shift_no ?? "" }}</small>
+                <small class="mx-2"><strong>Start: </strong>{{ $this->shift->start_time ?? "" }}</small>
+                <small class="mx-2"> <strong>End: </strong>{{ $this->shift->end_time ?? "" }}</small>
+                <small class="mx-2"><strong>{{ __('messages.store_location') }}: </strong>{{ $this->branch_name }}</small>
             </div>
         </div>
+
 
         <div class="row">
             <div class="col-md-3">
