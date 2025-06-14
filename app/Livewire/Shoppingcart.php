@@ -346,7 +346,9 @@ class Shoppingcart extends Component
             // $this->updateQty($item->id);
             $this->dispatch('updateNewProductDetails');
 
-            $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown','useCredit','showCheckbox','roundedTotal','removeCrossHold','cashNotes');
+            // $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown','useCredit','showCheckbox','roundedTotal','removeCrossHold','cashNotes');
+             $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'search');
+
             //  session()->flash('success', 'Product added to the cart successfully');
             $this->dispatch('notiffication-sucess', ['message' => 'Product added to the cart successfully']);
         } else {
