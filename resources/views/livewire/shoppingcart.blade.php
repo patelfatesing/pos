@@ -4,7 +4,7 @@
     @endphp
 
     <div class="col-md-7">
-       <div class="d-flex align-items-center justify-content-between px-3 py-2 bg-white border-bottom">
+       <div class="d-flex align-items-center justify-content-between px-3 py-2 bg-white">
             <a href="{{ route('items.cart') }}" class="d-flex align-items-center text-decoration-none">
                 <img src="{{ asset('assets/images/logo.png') }}" class="img-fluid rounded mr-2" alt="LiquorHub Logo" style="height: 2em;">
                 <h5 class="mb-0 font-weight-bold text-dark" style="color:#32bdea !important">LiquorHub</h5>
