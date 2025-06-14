@@ -10,9 +10,9 @@
                 <h5 class="mb-0 font-weight-bold text-dark" style="color:#32bdea !important">LiquorHub</h5>
             </a>
             <div class="d-flex flex-wrap justify-content-end text-right ml-auto">
-                <small class="mx-2"> <strong>Shift No:</strong>{{ $this->shift->shift_no }}</small>
-                <small class="mx-2"><strong>Start: </strong>{{ $this->shift->start_time }}</small>
-                <small class="mx-2"> <strong>End: </strong>{{ $this->shift->end_time }}</small>
+                <small class="mx-2"> <strong>Shift No:</strong>{{ $this->shift->shift_no ?? "" }}</small>
+                <small class="mx-2"><strong>Start: </strong>{{ $this->shift->start_time ?? "" }}</small>
+                <small class="mx-2"> <strong>End: </strong>{{ $this->shift->end_time ?? "" }}</small>
                 <small class="mx-2"><strong>{{ __('messages.store_location') }}: </strong>{{ $this->branch_name }}</small>
             </div>
         </div>
