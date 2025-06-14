@@ -2218,15 +2218,20 @@ function updateNote(id, delta, denomination) {
             title: 'Error!',
             text: 'Shift start is not allowed before 12:00 AM. Please try again after 12:00 AM.',
             icon: 'error',
-            showConfirmButton: false,
             position: 'center',
             toast: false,
-            timerProgressBar: false,
             backdrop: true,
             allowOutsideClick: false,
             showCloseButton: false,
+            showCancelButton: false,
+            confirmButtonText: 'Logout',
             customClass: {
                 popup: 'large-alert'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Submit the POST logout form
+                document.getElementById('logout-form').submit();
             }
         });
     });
