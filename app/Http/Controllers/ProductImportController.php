@@ -400,6 +400,7 @@ class ProductImportController extends Controller
                     'branch_id' => $from_store_id,
                     'date' => $date,
                     'opening_stock' => !empty($product['quantity']) ? $product['quantity'] : 0,
+                    'closing_stock' => !empty($product['quantity']) ? $product['quantity'] : 0,
                 ]
             );
 
