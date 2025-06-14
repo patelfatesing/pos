@@ -152,6 +152,10 @@ class ShiftManageController extends Controller
                 href="' . url('/shift-manage/' . $row->id) . '" title="View Physical Stock Photo">
                 <i class="ri-image-line"></i>
                 </a>';
+$action .= '<a class="badge bg-primary ml-2 view-invoices" 
+    href="' . url('/shift-manage/print-shift/' . $row->id) . '" title="Print Shift PDF" target="_blank">
+    <i class="ri-file-pdf-line"></i>
+</a>';
 
             $action .= '</div>';
 
@@ -378,6 +382,7 @@ class ShiftManageController extends Controller
                     }
                 }
             }
+            
             $shiftcash = $noteCount;
             $closing_cash = $shift->closing_cash;
             $cash_discrepancy = $shift->cash_discrepancy;

@@ -93,10 +93,11 @@
 <div>
     <strong>{{ @$type == 'refund' ? 'Refund' : 'Invoice' }}:</strong> {{ $invoice->invoice_number }}<br>
     @if(!empty($ref_no))
-    <strong>Ref:</strong> {{ $ref_no }}<br>
+    <strong>Ref:</strong> {{ $ref_no."-".\Carbon\Carbon::parse($hold_date)->format('H:i') }}<br>
     @endif
     <strong>Name:</strong> {{ $customer_name ?? '' }}<br>
     <strong>Date:</strong> {{ now()->format('d/m/Y H:i') }}
+    
 </div>
 
 <div class="line"></div>

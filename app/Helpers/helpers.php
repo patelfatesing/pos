@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Product;
 use App\Models\PartyCustomerProductsPrice;
 use App\Models\DailyProductStock;
+use App\Models\ShiftClosing;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -75,8 +76,8 @@ if (!function_exists('getNotificationsByNotifyTo')) {
         }
 
         return $query->orderBy('created_at', 'desc')
-                     ->limit($limit)
-                     ->get();
+            ->limit($limit)
+            ->get();
     }
 }
 
@@ -132,7 +133,7 @@ if (!function_exists('format_inr')) {
         $numericAmount = (float) $cleanAmount;
 
         $sign = $numericAmount < 0 ? '-' : '';
-    return $sign . '₹' . number_format(abs($numericAmount), 0);
+        return $sign . '₹' . number_format(abs($numericAmount), 0);
     }
 }
 
@@ -185,7 +186,7 @@ if (!function_exists('getDiscountPrice')) {
 }
 
 if (!function_exists('stockStatusChange')) {
-    function stockStatusChange($product_id, $branch_id, $qty, $type,$shift_id="")
+    function stockStatusChange($product_id, $branch_id, $qty, $type, $shift_id = "")
     {
         $date = Carbon::today();
 
@@ -193,42 +194,90 @@ if (!function_exists('stockStatusChange')) {
 
             $existing = DailyProductStock::where('branch_id', $branch_id)
                 ->where('product_id', $product_id)
-                ->whereDate('date', $date)
+                // ->whereDate('date', $date)
+                ->where('shift_id', $shift_id)
                 ->first();
 
             if (!empty($existing)) {
                 $existing->added_stock += $qty;
                 $existing->save();
             } else {
-                DailyProductStock::create([
-                    'branch_id' => $branch_id,
-                    'product_id' => $product_id,
-                    'date' => $date,
-                    'opening_stock' => $qty,
-                    'shift_id'=>$shift_id
-                ]);
+
+                $running_shift = ShiftClosing::where('branch_id', $branch_id)
+                    ->where('status', 'pending')
+                    ->first();
+
+                if (!empty($running_shift)) {
+                    $existing_ck = DailyProductStock::where('branch_id', $branch_id)
+                        ->where('product_id', $product_id)
+                        ->first();
+                    if (!empty($existing_ck)) {
+                        $existing_ck->added_stock += $qty;
+                        $existing_ck->shift_id = $running_shift->id;
+                        $existing_ck->save();
+                    } else {
+                        DailyProductStock::create([
+                            'branch_id' => $branch_id,
+                            'product_id' => $product_id,
+                            'date' => $date,
+                            'opening_stock' => $qty,
+                            'shift_id' => $running_shift->id
+                        ]);
+                    }
+                } else {
+                    DailyProductStock::create([
+                        'branch_id' => $branch_id,
+                        'product_id' => $product_id,
+                        'date' => $date,
+                        'opening_stock' => $qty
+                    ]);
+                }
             }
         }
+
 
         if ($type == "transfer_stock") {
 
             $existing = DailyProductStock::where('branch_id', $branch_id)
                 ->where('product_id', $product_id)
-                ->whereDate('date', $date)
+                // ->whereDate('date', $date)
+                ->where('shift_id', $shift_id)
                 ->first();
 
             if (! empty($existing)) {
                 $existing->transferred_stock += $qty;
                 $existing->save();
             } else {
-                DailyProductStock::create([
-                    'branch_id' => $branch_id,
-                    'product_id' => $product_id,
-                    'date' => $date,
-                    'opening_stock' => $qty,
-                    'shift_id'=>$shift_id
 
-                ]);
+                $running_shift = ShiftClosing::where('branch_id', $branch_id)
+                    ->where('status', 'pending')
+                    ->first();
+
+                if (!empty($running_shift)) {
+                    $existing_ck = DailyProductStock::where('branch_id', $branch_id)
+                        ->where('product_id', $product_id)
+                        ->first();
+                    if (!empty($existing_ck)) {
+                        $existing_ck->transferred_stock += $qty;
+                        $existing_ck->shift_id = $running_shift->id;
+                        $existing_ck->save();
+                    } else {
+                        DailyProductStock::create([
+                            'branch_id' => $branch_id,
+                            'product_id' => $product_id,
+                            'date' => $date,
+                            'opening_stock' => $qty,
+                            'shift_id' => $running_shift->id
+                        ]);
+                    }
+                } else {
+                    DailyProductStock::create([
+                        'branch_id' => $branch_id,
+                        'product_id' => $product_id,
+                        'date' => $date,
+                        'opening_stock' => $qty
+                    ]);
+                }
             }
         }
 
@@ -236,20 +285,30 @@ if (!function_exists('stockStatusChange')) {
 
             $existing = DailyProductStock::where('branch_id', $branch_id)
                 ->where('product_id', $product_id)
-                ->whereDate('date', $date)
+                // ->whereDate('date', $date)
+                ->where('shift_id', $shift_id)
                 ->first();
 
             if (! empty($existing)) {
                 $existing->sold_stock += $qty;
                 $existing->save();
             } else {
-                DailyProductStock::create([
-                    'branch_id' => $branch_id,
-                    'product_id' => $product_id,
-                    'date' => $date,
-                    'sold_stock' => $qty,
-                    'shift_id'=>$shift_id
-                ]);
+                if ($shift_id == "") {
+                    DailyProductStock::create([
+                        'branch_id' => $branch_id,
+                        'product_id' => $product_id,
+                        'date' => $date,
+                        'sold_stock' => $qty
+                    ]);
+                } else {
+                    DailyProductStock::create([
+                        'branch_id' => $branch_id,
+                        'product_id' => $product_id,
+                        'date' => $date,
+                        'sold_stock' => $qty,
+                        'shift_id' => $shift_id
+                    ]);
+                }
             }
         }
     }

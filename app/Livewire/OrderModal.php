@@ -73,7 +73,8 @@ class OrderModal extends Component
             'branch' => auth()->user()->userinfo->branch,
             'duplicate' => true,
             'customer_name' => $partyUser->first_name,
-            'ref_no'=>$refNo
+            'ref_no'=>$invoice->ref_no,
+            "hold_date"=>$invoice->hold_date
         ]);
         // Always (re)generate the PDF, updating if it already exists
         $pdf->save($pdfPath);
