@@ -302,8 +302,8 @@ class ShiftCloseModal extends Component
             @$this->categoryTotals['summary']['ONLINE PAYMENT']+ @$this->categoryTotals['summary']['CREDIT COLLACTED BY CASH']+$totalRoundOf;
         $this->categoryTotals['summary']['REFUND'] = $totalRefund * (-1) + $totalRefundReturn * (-1);
         //$this->categoryTotals['summary']['REFUND RETURN'] = $totalRefundReturn*(-1);
-        $this->categoryTotals['summary']['CREDIT'] = $totals->credit_total;
-        $this->categoryTotals['summary']['REFUND_CREDIT'] = $totals->debit_total;
+        $this->categoryTotals['summary']['CREDIT'] = $totals->debit_total;
+        $this->categoryTotals['summary']['REFUND_CREDIT'] = $totals->credit_total;
         if (!empty($this->categoryTotals['summary']['REFUND_CREDIT'])) {
             $this->categoryTotals['summary']['REFUND_CREDIT'] = (int)$this->categoryTotals['summary']['REFUND_CREDIT'] * (-1);
         }
