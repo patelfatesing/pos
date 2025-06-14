@@ -958,8 +958,6 @@ class Shoppingcart extends Component
         if (!empty($alredyCloseshift)) {
             $this->dispatch('close-shift-12am');
             return;
-        } else if (!empty($yesterDayShift)) {
-            $this->dispatch('openModalYesterdayShift');
         } else if (empty($currentShift)) {
             $this->dispatch('openModal');
         }
