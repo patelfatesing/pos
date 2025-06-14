@@ -149,7 +149,7 @@
                         <a href="#"
                             class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
                             wire:click.prevent="addToCart({{ $product->id }})">
-                            <span><strong>{{ $product->name }} ({{ $product->size }})</strong></span>
+                            <span><strong>{{ $product->name }}</strong></span>
                             <span class="text-muted">{{ format_inr(@$product->sell_price) }}</span>
                         </a>
                     @endforeach
@@ -360,7 +360,7 @@
 
                             <td>
                                 @php
-                                    $this->roundedTotal=$this->cashAmount-$this->cartItemTotalSum;
+                                    $this->roundedTotal=$this->cashAmount+$this->creditPay-$this->cartItemTotalSum;
                                 @endphp
                                 {{ format_inr($this->roundedTotal) }}
                                 <input type="hidden" id="roundedTotal" value="{{ $this->roundedTotal }}" wire:model="roundedTotal">
