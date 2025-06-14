@@ -154,7 +154,11 @@
         <td class="left">Credit:</td>
         <td class="right">{{ number_format((float)$invoice->creditpay ?? 0, 2) }}</td>
     </tr>
-    <tr>
+     <tr>
+        <td class="left">Round Of:</td>
+        <td class="right">{{ number_format((float)$invoice->roundof ?? 0, 2) }}</td>
+    </tr>
+    {{-- <tr>
         <td class="left">Total Savings:</td>
         <td class="right">{{ number_format(
         (float)str_replace(',', '', $invoice->sub_total) - 
@@ -162,7 +166,7 @@
         2
         )
         }}</td>
-    </tr>
+    </tr> --}}
     <tr class="bold">
         <td class="left">Total Paid:</td>
         <td class="right">{{ $invoice->total }}</td>
