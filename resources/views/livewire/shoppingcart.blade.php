@@ -906,8 +906,19 @@
                                 <tr>
                                     <td>{{ $product->product->name }}</td>
                                     <td>
+                                        @php
+                                            $stock="";
+                                            $lastShift = App\Models\UserShift::getYesterdayShift(auth()->user()->id, $branch_id);
+                                            if(empty($lastShift))
+                                            {
+                                                $stock=$product->opening_stock;
+                                            }else{
+                                                $stock=product->closing_stock;
+                                            }
+
+                                        @endphp
                                         <input type="number" name="productStocks[{{ $product->id }}]"
-                                            class="form-control text-center" value="{{ $product->closing_stock }}"
+                                            class="form-control text-center" value="{{ $stock }}"
                                             readonly>
                                     </td>
                                 </tr>
