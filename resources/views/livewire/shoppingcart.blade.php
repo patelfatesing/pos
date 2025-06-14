@@ -908,7 +908,7 @@
                                     <td>
                                         @php
                                             $stock="";
-                                            $lastShift = App\Models\UserShift::getYesterdayShift(auth()->user()->id, $branch_id);
+                                            $lastShift = App\Models\UserShift::getYesterdayShift(auth()->user()->id, $data->userInfo->branch_id);
                                             if(empty($lastShift))
                                             {
                                                 $stock=$product->opening_stock;
