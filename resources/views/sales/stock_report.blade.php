@@ -111,6 +111,14 @@
         $(document).ready(function() {
             var table;
 
+            // Helper: Currency-safe renderer
+            function moneyRenderer() {
+                return function(data, type) {
+                    const num = parseFloat(data || 0);
+                    return (type === 'sort' || type === 'type') ? num : '₹' + num.toFixed(2);
+                };
+            }
+
             function loadData(filters = {}) {
                 $.ajax({
                     url: '{{ route('sales.fetch-stock-data') }}',
@@ -135,7 +143,9 @@
                     data: data,
                     columns: [{
                             data: null,
-                            render: (data, type, row, meta) => meta.row + 1,
+                            render: function(data, type, row, meta) {
+                                return meta.row + 1;
+                            },
                             className: 'text-center'
                         },
                         {
@@ -152,23 +162,30 @@
                         },
                         {
                             data: 'mrp',
-                            render: data => '₹' + parseFloat(data || 0).toFixed(2)
+                            render: moneyRenderer(),
+                            className: 'text-end'
                         },
                         {
                             data: 'selling_price',
-                            render: data => '₹' + parseFloat(data || 0).toFixed(2)
+                            render: moneyRenderer(),
+                            className: 'text-end'
                         },
                         {
                             data: 'cost_price',
-                            render: data => '₹' + parseFloat(data || 0).toFixed(2)
+                            render: moneyRenderer(),
+                            className: 'text-end'
                         },
                         {
                             data: 'all_qty',
-                            render: data => parseInt(data || 0)
+                            render: function(data) {
+                                return parseInt(data || 0);
+                            },
+                            className: 'text-end'
                         },
                         {
                             data: 'all_price',
-                            render: data => '₹' + parseFloat(data || 0).toFixed(2)
+                            render: moneyRenderer(),
+                            className: 'text-end'
                         }
                     ],
                     lengthMenu: [
@@ -178,10 +195,11 @@
                     pageLength: 25,
                     dom: 'Blfrtip',
                     buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
-                    aoColumnDefs: [{
-                        bSortable: false,
-                        aTargets: [1, 4] // make "action" column unsortable
-                    }],
+                    columnDefs: [{
+                            targets: [1, 4],
+                            orderable: false
+                        } // branch_name & category_name not sortable
+                    ],
                     footerCallback: function(row, data) {
                         let totalQty = 0;
                         let totalPrice = 0;

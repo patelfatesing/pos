@@ -20,7 +20,7 @@ class HolidayController extends Controller
 
         if ($search = $request->input('search')) {
             $query->where('title', 'like', "%{$search}%")
-                  ->orWhereDate('date', Carbon::parse($search)->format('Y-m-d'));
+                ->orWhereDate('date', Carbon::parse($search)->format('Y-m-d'));
         }
 
         $holidays = $query
@@ -44,15 +44,31 @@ class HolidayController extends Controller
     /**
      * Store a newly created holiday in storage.
      */
+
     public function store(Request $request)
     {
-        $data = $this->validatedData($request);
 
-        Holiday::create($data);
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:100'],
+            'holiday_date' => [
+                'required',
+                'date',
+                Rule::unique('holidays', 'date')->where(function ($query) use ($request) {
+                    return $query->where('branch_id', $request->branch_id);
+                }),
+            ],
+            'branch_id' => ['required', 'exists:branches,id'],
+            'description' => ['nullable', 'string', 'max:255'],
+        ]);
 
-        return redirect()
-            ->route('holidays.index')
-            ->with('success', 'Holiday added successfully.');
+        Holiday::create([
+            'title' => $validated['title'],
+            'date' => $validated['holiday_date'],
+            'branch_id' => $validated['branch_id'],
+            'description' => $validated['description'] ?? null,
+        ]);
+
+        return response()->json(['message' => 'Holiday saved.'], 200);
     }
 
     /**
