@@ -89,8 +89,7 @@ class CashInHandController extends Controller
         $lastShift = UserShift::getYesterdayShift(auth()->user()->id, $branch_id);
 
         $stocksQuery = DailyProductStock::with('product')
-            ->where('branch_id', $branch_id)
-            ->whereDate('date', Carbon::yesterday());
+            ->where('branch_id', $branch_id);
 
         if (!empty($lastShift)) {
             // Match with shift_id
@@ -101,18 +100,18 @@ class CashInHandController extends Controller
         }
         
         $stocks = $stocksQuery->get();
-
         foreach ($stocks as $key) {
-
-            DailyProductStock::updateOrCreate(
-                [
-                    'product_id' => $key->product_id,
-                    'shift_id'=>$userShift->id,
-                    'branch_id' => $branch_id,
-                    'date' => Carbon::today(),
-                    'opening_stock' => $key->closing_stock,
-                ]
-            );
+            $key->opening_stock=$key->closing_stock;
+            $key->save();
+            // DailyProductStock::updateOrCreate(
+            //     [
+            //         'product_id' => $key->product_id,
+            //         'shift_id'=>$userShift->id,
+            //         'branch_id' => $branch_id,
+            //         'date' => Carbon::today(),
+            //         'opening_stock' => $key->closing_stock,
+            //     ]
+            // );
         }
 
         //return redirect()->route('items.cart')->with('notification-sucess', 'Cash in hand saved.');
