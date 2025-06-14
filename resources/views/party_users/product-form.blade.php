@@ -51,7 +51,7 @@
                                                                 placeholder="Enter discount price">
 
                                                             <input type="hidden"
-                                                                name="items[{{ $product->id }}][sell_price]"
+                                                                name="items[{{ $product->id }}][mrp]"
                                                                 value="{{ $product->mrp }}">
 
                                                             @error('items.' . $product->id . '.cust_discount_price')
