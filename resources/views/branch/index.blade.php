@@ -91,6 +91,62 @@
         </div>
     </div>
 
+    <!-- Add this in your Blade layout -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <!-- Modal -->
+    <div class="modal fade bd-example-modal-lg" id="AddHolidayModal" tabindex="-1" aria-labelledby="AddHolidayModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form id="addHolidayForm" method="POST" action="{{ route('holidays.store') }}">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="AddHolidayModalLabel">
+                            <i class="ri-calendar-event-line"></i> Add Holiday
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <!-- Hidden branch_id -->
+                        <input type="hidden" name="branch_id" id="hd_branch_id" value="{{ $currentBranch->id ?? 1 }}">
+
+                        <!-- Title -->
+                        <div class="form-group">
+                            <label for="holiday_title">Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="holiday_title" name="title"
+                                value="{{ old('title') }}" maxlength="100">
+                        </div>
+
+                        <!-- Holiday Date -->
+                        @php
+                            $today = \Carbon\Carbon::now('Asia/Kolkata')->toDateString();
+                        @endphp
+                        <div class="form-group">
+                            <label for="holiday_date">Holiday Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="holiday_date" name="holiday_date"
+                                value="{{ old('holiday_date', $today) }}" min="{{ $today }}">
+                        </div>
+
+                        <!-- Description -->
+                        <div class="form-group">
+                            <label for="holiday_desc">Description (optional)</label>
+                            <textarea class="form-control" id="holiday_desc" name="description" rows="2" maxlength="255">{{ old('description') }}</textarea>
+                        </div>
+
+                        <div id="holidayErrors"></div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" id="holidaySaveBtn">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <style>
         .scrollable-content {
             max-height: 450px;
@@ -320,6 +376,63 @@
             // Allow focus again on click
             scrollable.addEventListener('click', () => {
                 scrollable.focus();
+            });
+        });
+
+        function add_store_holiday(storeId) {
+            $('#hd_store_id').val(storeId);
+
+            $('#AddHolidayModal').modal('show');
+
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const offset = today.getTimezoneOffset();
+            today.setMinutes(today.getMinutes() - offset); // adjust to local timezone
+            const minDate = today.toISOString().split('T')[0];
+            document.getElementById('holiday_date').setAttribute('min', minDate);
+        });
+
+        $('#addHolidayForm').on('submit', function(e) {
+            e.preventDefault();
+            let $form = $(this);
+            let $submitBtn = $('#holidaySaveBtn');
+            $submitBtn.prop('disabled', true);
+
+            let formData = $form.serialize();
+
+            $.ajax({
+                url: $form.attr('action'),
+                method: 'POST',
+                data: formData,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(res) {
+                    $('#AddHolidayModal').modal('hide');
+                    alert('Holiday added successfully.');
+                    location.reload();
+                },
+                error: function(xhr) {
+                    $('#holidayErrors').empty();
+                    $('.is-invalid').removeClass('is-invalid');
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        $.each(errors, function(key, messages) {
+                            let input = $('[name="' + key + '"]');
+                            input.addClass('is-invalid');
+                            input.after('<div class="invalid-feedback d-block">' + messages[0] +
+                                '</div>');
+                        });
+                    } else {
+                        alert('Something went wrong.');
+                        console.log(xhr.responseText);
+                    }
+                },
+                complete: function() {
+                    $submitBtn.prop('disabled', false);
+                }
             });
         });
     </script>
