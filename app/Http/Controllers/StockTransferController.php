@@ -13,6 +13,7 @@ use App\Models\Inventory;
 use App\Models\User;
 use App\Models\StockTransfer;
 use Illuminate\Support\Str;
+use App\Models\ShiftClosing;
 
 class StockTransferController extends Controller
 {
@@ -183,6 +184,18 @@ class StockTransferController extends Controller
             if ($request->from_store_id == $request->to_store_id) {
                 return back()->withErrors(['to_store_id' => 'The destination store must be different from the source store.'])->withInput();
             }
+
+            $running_shift = ShiftClosing::where('branch_id', $request->to_store_id)
+                ->where('status', 'pending')
+                ->first();
+
+
+            if (!$running_shift) {            // null  ➔ destination store not open
+                return back()
+                    ->withErrors(['to_store_id' => 'The destination store is not open.'])
+                    ->withInput();
+            }
+
 
             // Step 1: Pre-check inventory levels
             $errors = [];

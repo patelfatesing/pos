@@ -382,6 +382,7 @@ $action .= '<a class="badge bg-primary ml-2 view-invoices"
                     }
                 }
             }
+            
             $shiftcash = $noteCount;
             $closing_cash = $shift->closing_cash;
             $cash_discrepancy = $shift->cash_discrepancy;
