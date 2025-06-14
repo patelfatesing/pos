@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\Partyuser;
 use Livewire\WithPagination;
 use Illuminate\Container\Attributes\DB;
+use App\Models\CreditHistory;
 
 class CollationModal extends Component
 {
@@ -256,7 +257,18 @@ class CollationModal extends Component
                 'note_data' => json_encode($this->cashNotes),
                 'created_at' => now(),
             ]);
-
+            CreditHistory::create(
+                [
+                    'invoice_id' => null,
+                    'party_user_id' => $user->id ?? null,
+                    'credit_amount' => $collectedAmount,
+                    'debit_amount' => 0.00,
+                    'total_amount' => $collectedAmount,
+                    //'total_purchase_items' => $collectedAmount,
+                    'store_id' => $branch_id,
+                    'created_by' => auth()->id(),
+                ]
+            );
             //DB::commit();
 
             $this->reset(['cashNotes', 'totals', 'selectedUser', 'showCollectModal']);

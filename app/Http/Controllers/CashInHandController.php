@@ -53,6 +53,22 @@ class CashInHandController extends Controller
             'denominations' => $cashNotes,
             'total' => $request->amount,
         ]);
+        $datePart = now()->format('dmy'); // e.g., 1106 for 11 June
+
+        $lastShift = UserShift::where([
+            'user_id' => auth()->id(),
+            'branch_id' => $branch_id,
+            //'status' => 'pending',
+           // 'created_at' => Carbon::now(),
+            ])
+            ->whereDate('created_at', now())
+            ->count() + 1;
+
+        $branchName = auth()->user()->userinfo->branch->name ?? '';
+        $branchPrefix = strtoupper(substr(preg_replace('/\s+/', '', $branchName), 0, 2)); // First 2 letters, uppercase, no spaces
+
+        $shiftNo = $branchPrefix ."-". $datePart . '-' . str_pad($lastShift, 2, '0', STR_PAD_LEFT);
+
 
         $userShift=UserShift::updateOrCreate(
             [
@@ -64,15 +80,27 @@ class CashInHandController extends Controller
             [
                 'start_time' => $start,
                 'end_time' => $end,
+                'shift_no'=>$shiftNo,
                 'opening_cash' => $request->amount,
                 'cash_break_id' => $cashBreakdown->id,
             ]
         );
 
-        $stocks = DailyProductStock::with('product')
+        $lastShift = UserShift::getYesterdayShift(auth()->user()->id, $branch_id);
+
+        $stocksQuery = DailyProductStock::with('product')
             ->where('branch_id', $branch_id)
-            ->whereDate('date', Carbon::yesterday())
-            ->get();
+            ->whereDate('date', Carbon::yesterday());
+
+        if (!empty($lastShift)) {
+            // Match with shift_id
+            $stocksQuery->where('shift_id', $lastShift->shift_id);
+        } else {
+            // Match where shift_id is null
+            $stocksQuery->whereNull('shift_id');
+        }
+        
+        $stocks = $stocksQuery->get();
 
         foreach ($stocks as $key) {
 
