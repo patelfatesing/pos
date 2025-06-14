@@ -114,18 +114,21 @@ class PurchaseController extends Controller
                 $batch = $product['batch'];
                 $expiryDatePlusOneYear = Carbon::parse($product['mfg_date'])->addYear();
 
-                $record = Product::with('inventorie')->where('id', $product_id)->where('is_deleted', 'no')->firstOrFail();
-
+                $store_id = 1; // Assuming store_id is always 1 for this example, adjust as needed
+                $record = Product::with(['inventorieUnfiltered' => function ($query) use ($store_id) {
+                    $query->where('store_id', $store_id);
+                }])->where('id', $product_id)->where('is_deleted', 'no')->firstOrFail();
+                
                 $inventoryService = new \App\Services\InventoryService();
 
-                if (!empty($record->inventorie)) {
+                if (!empty($record->inventorieUnfiltered)) {
 
                     // $product['qnt'] = $product['qnt'] + $record->inventorie[0]->quantity;
 
                     $batchNumber = strtoupper($request->sku) . '-' . now()->format('Ymd') . '-' . Str::upper(Str::random(4));
-                    if ($record->inventorie->batch_no == $batch) {
+                    if ($record->inventorieUnfiltered->batch_no == $batch) {
 
-                        $inventory = Inventory::findOrFail($record->inventorie->id);
+                        $inventory = Inventory::findOrFail($record->inventorieUnfiltered->id);
 
                         $qnt =  $product['qnt'] + $inventory->quantity;
                         $inventory->updated_at = now();
