@@ -92,7 +92,7 @@
                                                         @if ($invoice->ref_no != '')
                                                             <td>
                                                                 {{ $invoice->ref_no }}
-                                                                ({{ $invoice->created_at->format('Y-m-d H:i:s') }})
+                                                                ({{ $invoice->updated_at->format('Y-m-d H:i:s') }})
                                                             </td>
                                                         @endif
                                                     </tr>
