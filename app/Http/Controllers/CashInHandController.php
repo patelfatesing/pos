@@ -93,7 +93,7 @@ class CashInHandController extends Controller
 
         if (!empty($lastShift)) {
             // Match with shift_id
-            $stocksQuery->where('shift_id', $lastShift->shift_id);
+            $stocksQuery->where('shift_id', $lastShift->id);
         } else {
             // Match where shift_id is null
             $stocksQuery->whereNull('shift_id');
@@ -102,6 +102,7 @@ class CashInHandController extends Controller
         $stocks = $stocksQuery->get();
         foreach ($stocks as $key) {
             $key->shift_id=$userShift->id;
+            $key->date=Carbon::today();
             $key->opening_stock=$key->closing_stock;
             $key->save();
             // DailyProductStock::updateOrCreate(

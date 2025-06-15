@@ -18,7 +18,8 @@ class DailyProductStock extends Model
         'transferred_stock',
         'sold_stock',
         'closing_stock',
-        'shift_id'
+        'shift_id',
+        'difference_in_stock'
     ];
 
     protected $dates = ['date'];

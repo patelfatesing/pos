@@ -951,13 +951,15 @@ class Shoppingcart extends Component
 
         $this->shift = $currentShift = UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "pending"])->first();
         //
-        $yesterDayShift = UserShift::getYesterdayShift(auth()->user()->id, $branch_id);
+        $yesterDayShift = UserShift::getYesterdayShift(auth()->user()->id, $branch_id,"pending");
         //$now = Carbon::now();
         //$cutoff = Carbon::createFromTime(23, 50, 0); // 11:50 PM today
         $alredyCloseshift =  UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "completed"])->first();
         if (!empty($alredyCloseshift)) {
             $this->dispatch('close-shift-12am');
             return;
+        } else if (!empty($yesterDayShift))  {
+            $this->dispatch('openModalYesterdayShift');
         } else if (empty($currentShift)) {
             $this->dispatch('openModal');
         }
@@ -989,29 +991,53 @@ class Shoppingcart extends Component
         $noteCount = [];
 
         foreach ($cashBreakdowns as $breakdown) {
-            $denominations1 = json_decode($breakdown->denominations, true);
-            // echo "<pre>";
-            // print_r($denominations1);
-            if (is_array($denominations1)) {
-                foreach ($denominations1 as $denomination => $notes) {
-                    foreach ($notes as $noteValue => $action) {
-                        // Check for 'in' (added notes) and 'out' (removed notes)
-                        if (isset($action['in'])) {
-                            if (!isset($noteCount[$noteValue])) {
-                                $noteCount[$noteValue] = 0;
+                $denominations1 = json_decode($breakdown->denominations, true);
+                // echo "<pre>";
+                // print_r($denominations1);
+                if (is_array($denominations1)) {
+                    // Handle array of objects: [{"10":{"in":"0"}},{"20":{"in":"0"}},...]
+                    if (array_keys($denominations1) === range(0, count($denominations1) - 1)) {
+                        foreach ($denominations1 as $item) {
+                            if (is_array($item)) {
+                                foreach ($item as $noteValue => $action) {
+                                    if (isset($action['in'])) {
+                                        if (!isset($noteCount[$noteValue])) {
+                                            $noteCount[$noteValue] = 0;
+                                        }
+                                        $noteCount[$noteValue] += (int)$action['in'];
+                                    }
+                                    if (isset($action['out'])) {
+                                        if (!isset($noteCount[$noteValue])) {
+                                            $noteCount[$noteValue] = 0;
+                                        }
+                                        $noteCount[$noteValue] -= (int)$action['out'];
+                                    }
+                                }
                             }
-                            $noteCount[$noteValue] += $action['in'];
                         }
-                        if (isset($action['out'])) {
-                            if (!isset($noteCount[$noteValue])) {
-                                $noteCount[$noteValue] = 0;
+                    } else {
+                        // Handle object with nested arrays: {"5":{"500":{"in":4}}, "3":{"100":{"out":1}}}
+                        foreach ($denominations1 as $outer) {
+                            if (is_array($outer)) {
+                                foreach ($outer as $noteValue => $action) {
+                                    if (isset($action['in'])) {
+                                        if (!isset($noteCount[$noteValue])) {
+                                            $noteCount[$noteValue] = 0;
+                                        }
+                                        $noteCount[$noteValue] += (int)$action['in'];
+                                    }
+                                    if (isset($action['out'])) {
+                                        if (!isset($noteCount[$noteValue])) {
+                                            $noteCount[$noteValue] = 0;
+                                        }
+                                        $noteCount[$noteValue] -= (int)$action['out'];
+                                    }
+                                }
                             }
-                            $noteCount[$noteValue] -= $action['out'];
                         }
                     }
                 }
             }
-        }
         $this->shiftcash = $noteCount;
         $this->availableNotes = json_encode($this->shiftcash);
         //$this->checkTime();
@@ -1045,20 +1071,19 @@ class Shoppingcart extends Component
         $this->products = Product::all();
 
         // $date = Carbon::yesterday();
+        //Completed hse to opening ma balance avse
         $lastShift = UserShift::getYesterdayShift(auth()->user()->id, $branch_id);
-
         $stocksQuery = DailyProductStock::with('product')
             ->where('branch_id', $branch_id);
-
         if (!empty($lastShift)) {
             // Match with shift_id
-            $stocksQuery->where('shift_id', $lastShift->shift_id);
+            $stocksQuery->where('shift_id', $lastShift->id);
         } else {
             // Match where shift_id is null
             $stocksQuery->whereNull('shift_id');
         }
         $this->productStock = $stocksQuery->get();
-
+        
         // $this->productStock = DailyProductStock::with('product')
         //     ->where('branch_id', $branch_id)
         //     ->whereDate('date', Carbon::today())
