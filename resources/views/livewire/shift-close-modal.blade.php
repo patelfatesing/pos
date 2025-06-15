@@ -53,9 +53,9 @@
                                                 class="btn btn-secondary btn-sm" title="View Stock Status">
                                                 Add Physical Stock
                                             </button>
-                                            @if($this->showYesterDayShiftTime)
-                                                <button type="button"  wire:click="removeHold" class="btn btn-secondary btn-sm"
-                                                    title="View Stock Status">
+                                            @if ($this->showYesterDayShiftTime)
+                                                <button type="button" wire:click="removeHold"
+                                                    class="btn btn-secondary btn-sm" title="View Stock Status">
                                                     Remove Hold
                                                 </button>
                                             @endif
@@ -123,12 +123,14 @@
                                                     <div class="row text-left mt-2">
                                                         <div class="col-6 border-end">
                                                             <div class="small text-muted">Start Time</div>
-                                                            <div class="fw-semibold">{{ $this->currentShift->start_time ?? '-' }}
+                                                            <div class="fw-semibold">
+                                                                {{ $this->currentShift->start_time ?? '-' }}
                                                             </div>
                                                         </div>
                                                         <div class="col-6">
                                                             <div class="small text-muted">End Time</div>
-                                                            <div class="fw-semibold">{{ $this->currentShift->end_time ?? '-' }}</div>
+                                                            <div class="fw-semibold">
+                                                                {{ $this->currentShift->end_time ?? '-' }}</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -138,19 +140,20 @@
                                                         <i class="bi bi-check-circle me-1"></i> Close Shift
                                                     </button>
                                                 </div>
-                                                 @if($this->showYesterDayShiftTime)
-                                                   
-                                                    <button type="button" class="btn btn-outline-danger  "   data-toggle="tooltip" data-placement="top" title="Logout"   onclick="confirmLogout()">
-                                                    <span class="font-weight-bold"> {{ Auth::user()->name }}</span>
-                                                    &nbsp;&nbsp;&nbsp;
-                                                    <i class="fas fa-sign-out-alt"></i>
+                                                @if ($this->showYesterDayShiftTime)
+                                                    <button type="button" class="btn btn-outline-danger  "
+                                                        data-toggle="tooltip" data-placement="top" title="Logout"
+                                                        onclick="confirmLogout()">
+                                                        <span class="font-weight-bold"> {{ Auth::user()->name }}</span>
+                                                        &nbsp;&nbsp;&nbsp;
+                                                        <i class="fas fa-sign-out-alt"></i>
                                                     </button>
 
 
                                                     {{-- Logout Form --}}
-                                                    <form id="logout-form" action="{{ route('logout') }}" method="POST"
-                                                    style="display: none;">
-                                                    @csrf
+                                                    <form id="logout-form" action="{{ route('logout') }}"
+                                                        method="POST" style="display: none;">
+                                                        @csrf
                                                     </form>
                                                 @endif
                                             </div>
@@ -323,7 +326,7 @@
                                                 <td>{{ $item['difference_in_stock'] }}</td>
                                             </tr>
                                         @endforeach
-                                        <tr class="fw-bold">
+                                        <tr class="fw-bold text-end">
                                             <td colspan="2" class="text-end">Total</td>
                                             <td>{{ $totalOpening }}</td>
                                             <td>{{ $totalAdded }}</td>
