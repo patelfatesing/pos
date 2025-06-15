@@ -284,7 +284,7 @@ class ShiftManageController extends Controller
                             $category =  Str::upper($item['subcategory'])  ?? 'Unknown';
                             $amount = $item['price'] ?? 0;
 
-                            if (!isset($this->categoryTotals['sales'][$category])) {
+                            if (!isset($categoryTotals['sales'][$category])) {
                                 $categoryTotals['sales'][$category] = 0;
                             }
 
