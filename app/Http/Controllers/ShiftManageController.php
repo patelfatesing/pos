@@ -13,6 +13,7 @@ use App\Models\Refund;
 use App\Models\CreditHistory;
 use App\Models\DailyProductStock;
 use App\Models\Branch;
+use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class ShiftManageController extends Controller
@@ -152,7 +153,7 @@ class ShiftManageController extends Controller
                 href="' . url('/shift-manage/' . $row->id) . '" title="View Physical Stock Photo">
                 <i class="ri-image-line"></i>
                 </a>';
-$action .= '<a class="badge bg-primary ml-2 view-invoices" 
+            $action .= '<a class="badge bg-primary ml-2 view-invoices" 
     href="' . url('/shift-manage/print-shift/' . $row->id) . '" title="Print Shift PDF" target="_blank">
     <i class="ri-file-pdf-line"></i>
 </a>';
@@ -242,12 +243,15 @@ $action .= '<a class="badge bg-primary ml-2 view-invoices"
         return view('shift_manage.view', compact('invoices', 'shift_id'));
     }
 
-    public function closeShift($id,$return="htmlfile")
+    public function closeShift($id, $return = "htmlfile")
     {
         $shift = ShiftClosing::findOrFail($id);
+        // dd($shift->user_id);
 
+        $user_data = User::select('name')->where('id', $shift->user_id)->firstOrFail();
         $branch_data = Branch::select('name')->where('id', $shift->branch_id)->firstOrFail();
         $branch_name = $branch_data->name;
+        $user_name = $user_data->name;
 
         if (!$shift->closing_shift_time) {
             // $shift->closing_shift_time = now();
@@ -260,23 +264,29 @@ $action .= '<a class="badge bg-primary ml-2 view-invoices"
                 ->first();
 
             $invoices = Invoice::where(['user_id' => $shift->user_id])->where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->where('status', '!=', 'Hold')->latest()->get();
-            $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalRoundOf = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = 0;
+            $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalRoundOf = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = $totalSalesQty = 0;
 
+            $transaction_total = 0;
             $totalSalesNew=0;
-            foreach ($invoices as $invoice) {
+
+          foreach ($invoices as $invoice) {
+                $transaction_total += $transaction_total;
                 $items = $invoice->items; // decode items from longtext JSON
 
                 if (is_string($items)) {
                     $items = json_decode($items, true); // decode if not already an array
                 }
 
+                if (is_array($items)) {
+                    $totalSalesNew = 0;
                if (is_array($items)) {
+
                     foreach ($items as $item) {
-                        if(!empty($item['subcategory'])){
+                        if (!empty($item['subcategory'])) {
 
                             $category =  Str::upper($item['subcategory'])  ?? 'Unknown';
                             $amount = $item['price'] ?? 0;
-        
+
                             if (!isset($this->categoryTotals['sales'][$category])) {
                                 $categoryTotals['sales'][$category] = 0;
                             }
@@ -284,6 +294,7 @@ $action .= '<a class="badge bg-primary ml-2 view-invoices"
                             $categoryTotals['sales'][$category] += $amount;
                             $totalSalesNew+= $amount;
                         }
+                        $totalSalesQty += $item['quantity'] ?? 0;
                     }
                 }
                 $categoryTotals['sales']["TOTAL"] = $totalSalesNew;
@@ -318,6 +329,7 @@ $action .= '<a class="badge bg-primary ml-2 view-invoices"
                     }
                 }
             }
+
             $creditCollacted = \DB::table('credit_collections')
                 ->selectRaw('
             SUM(cash_amount) as collacted_cash_amount,
@@ -331,6 +343,9 @@ $action .= '<a class="badge bg-primary ml-2 view-invoices"
                 ->where('branch_id', $shift->branch_id)->whereBetween('created_at', [$shift->start_time, $shift->end_time])->sum('amount');
             $categoryTotals['payment']['CASH'] = $totalCashPaid;
             $categoryTotals['payment']['UPI PAYMENT'] =  ($totalUpiPaid + $totalOnlinePaid);
+            $categoryTotals['payment']['totalSalesQty'] =  $totalSalesQty;
+            $categoryTotals['payment']['transactionTotal'] =  $transaction_total;
+            
             $categoryTotals['payment']['TOTAL'] = $totalCashPaid + ($totalUpiPaid + $totalOnlinePaid);
             $categoryTotals['summary']['OPENING CASH'] = @$shift->opening_cash;
             $categoryTotals['summary']['TOTAL SALES'] = $totalSubTotal + $discountTotal - $totalRefundReturn - $totalRoundOf;
@@ -351,6 +366,7 @@ $action .= '<a class="badge bg-primary ml-2 view-invoices"
             if (!empty($categoryTotals['summary']['REFUND_CREDIT'])) {
                 $categoryTotals['summary']['REFUND_CREDIT'] = (int)$categoryTotals['summary']['REFUND_CREDIT'] * (-1);
             }
+            
             $cashBreakdowns = CashBreakdown::where('user_id', $shift->user_id)
                 ->where('branch_id', $shift->branch_id)
                 // ->where('type', '!=', 'cashinhand')
@@ -407,15 +423,20 @@ $action .= '<a class="badge bg-primary ml-2 view-invoices"
                     }
                 }
             }
+
+            $totalOpeningStock = DailyProductStock::where('shift_id', $id)
+                ->sum('opening_stock');
+                // dd($totalOpeningStock);
+
             $shiftcash = $noteCount;
             $closing_cash = $shift->closing_cash;
             $cash_discrepancy = $shift->cash_discrepancy;
             //dd($shiftcash);
             // Render a Blade view and pass any needed data
-            $html = view('shift_manage.closed', ['shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy, 'branch_name' => $branch_name])->render();
-            if($return=="html"){
-                return  ['shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy, 'branch_name' => $branch_name];
-            }else{
+            $html = view('shift_manage.closed', ['opening_stock'=>$totalOpeningStock,'user_name' => $user_name, 'shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy, 'branch_name' => $branch_name])->render();
+            if ($return == "html") {
+                return  ['user_name' => $user_name, 'shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy, 'branch_name' => $branch_name];
+            } else {
 
                 return response()->json([
                     'message' => 'Shift closed successfully',
@@ -457,11 +478,11 @@ $action .= '<a class="badge bg-primary ml-2 view-invoices"
     {
         $shift = ShiftClosing::findOrFail($id);
 
-        
-        
         if (!$shift->closing_shift_time) {
-            $closeShift=$this->closeShift($id,"html");
-             $pdf = Pdf::loadView('shift_manage.shift_print',['shift' => $closeShift['shift'], "categoryTotals" => $closeShift['categoryTotals'], "shiftcash" => $closeShift['shiftcash'], "closing_cash" => $closeShift['closing_cash'], 'cash_discrepancy' => $closeShift['cash_discrepancy'], 'branch_name' => $closeShift['branch_name']]);
+            $closeShift = $this->closeShift($id, "html");
+
+            $pdf = Pdf::loadView('shift_manage.shift_print', ['user_name' => $closeShift['user_name'], 'shift' => $closeShift['shift'], "categoryTotals" => $closeShift['categoryTotals'], "shiftcash" => $closeShift['shiftcash'], "closing_cash" => $closeShift['closing_cash'], 'cash_discrepancy' => $closeShift['cash_discrepancy'], 'branch_name' => $closeShift['branch_name']]);
+
 
             return $pdf->download('shift_report_' . $shift->id . '.pdf');
         }
