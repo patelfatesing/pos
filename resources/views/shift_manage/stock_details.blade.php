@@ -69,15 +69,15 @@
                                             </tr>
                                         @endforelse
 
-                                        <tr class="fw-bold">
-                                            <td colspan="1" class="text-end">Total</td>
-                                            <td>{{ $totalOpening }}</td>
-                                            <td>{{ $totalAdded }}</td>
-                                            <td>{{ $totalTransferred }}</td>
-                                            <td>{{ $totalSold }}</td>
-                                            <td>{{ $totalClosing }}</td>
-                                            <td>{{ $totalPhysical }}</td>
-                                            <td>{{ $totalDifference }}</td>
+                                        <tr class="fw-bold text-end">
+                                            <th colspan="1">Total</th>
+                                            <th>{{ $totalOpening }}</th>
+                                            <th>{{ $totalAdded }}</th>
+                                            <th>{{ $totalTransferred }}</th>
+                                            <th>{{ $totalSold }}</th>
+                                            <th>{{ $totalClosing }}</th>
+                                            <th>{{ $totalPhysical }}</th>
+                                            <th>{{ $totalDifference }}</th>
                                         </tr>
                                     </tbody>
                                 </table>

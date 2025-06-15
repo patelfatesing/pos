@@ -64,6 +64,8 @@
     <div class="header">{{ $branch_name ?? 'Shop' }} - Shift Report </div>
 
     <div style="font-size:11px; margin-bottom:6px;">
+        <strong>User Staff:</strong> {{ $user_name }}<br>
+
         <strong>Start:</strong> {{ $shift->start_time }}<br>
         <strong>End:</strong> {{ $shift->end_time }}
     </div>
@@ -72,7 +74,7 @@
         <tr valign="top">
             <!-- Summary Column -->
             <td width="50%" style="padding-left:10px; vertical-align:top;">
-                <h3>Sales</h3>
+                {{-- <h3>Sales</h3> --}}
                 <table class="table">
                     <thead>
                         <tr>
@@ -91,7 +93,7 @@
             </td>
             <!-- Sales Column -->
             <td width="50%" style="padding-right:10px; vertical-align:top;">
-                <h3>Payment</h3>
+                {{-- <h3>Payment</h3> --}}
                 <table class="table">
                     <thead>
                         <tr>
@@ -107,10 +109,7 @@
                         @endforeach
                     </tbody>
                 </table>
-
             </td>
-
-
         </tr>
     </table>
 
@@ -119,8 +118,13 @@
 
             <!-- Summary Column -->
             <td width="50%" style="padding-left:10px; vertical-align:top;">
-                <h3>Payment Summary</h3>
+                {{-- <h3>Payment Summary</h3> --}}
                 <table class="table">
+                    {{-- <thead>
+                        <tr>
+                            <th colspan="2">Payment Summary</th>
+                        </tr>
+                    </thead> --}}
                     <tbody>
                         @foreach ($categoryTotals['summary'] ?? [] as $k => $v)
                             <tr @if (strtoupper($k) === 'TOTAL') class="highlight" @endif>
@@ -137,8 +141,13 @@
             </td>
             <!-- Sales Column -->
             <td width="50%" style="padding-right:10px; vertical-align:top;">
-                <h3>Denomination</h3>
+                {{-- <h3>Denomination</h3> --}}
                 <table class="table">
+                    <thead>
+                        <tr>
+                            <th colspan="6">Denomination</th>
+                        </tr>
+                    </thead>
                     <thead>
                         <tr>
                             <th>Denomination</th>
@@ -177,16 +186,17 @@
         </tr>
     </table>
 
-    <!-- Cash Details Full Width -->
-    <h3 class="cash-header">💵 Cash Details</h3>
-
     <table class="table" cellspacing="0" cellpadding="0" style="margin-top:20px;">
         <tr valign="top">
 
             <!-- Summary Column -->
             <td width="50%" style="padding-left:10px; vertical-align:top;">
-                <h3>Payment Summary</h3>
                 <table class="table">
+                    <thead>
+                        <tr>
+                            <th colspan="2">Payment Summary</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         @foreach ($categoryTotals['summary'] ?? [] as $k => $v)
                             <tr @if (strtoupper($k) === 'TOTAL') class="highlight" @endif>
@@ -203,7 +213,6 @@
             </td>
             <!-- Sales Column -->
             <td width="50%" style="padding-right:10px; vertical-align:top;">
-                <h3>Denomination</h3>
                 <table class="table" style="margin-top:10px;">
                     <tr>
                         <td><strong>System Cash Sales</strong></td>
@@ -226,4 +235,5 @@
         </tr>
     </table>
 </body>
+
 </html>

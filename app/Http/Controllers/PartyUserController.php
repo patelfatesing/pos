@@ -28,7 +28,8 @@ class PartyUserController extends Controller
         $orderColumn = $request->input('columns.' . $orderColumnIndex . '.data', 'id');
         $orderDirection = $request->input('order.0.dir', 'asc');
 
-        $query = Partyuser::with('images')->where('status', 'Active');
+        // $query = Partyuser::with('images')->where('status', 'Active');
+        $query = Partyuser::with('images');
 
         // **Search filter**
         if (!empty($searchValue)) {
@@ -39,7 +40,7 @@ class PartyUserController extends Controller
             });
         }
 
-        $recordsTotal = Partyuser::where('status', 'Active')->count();
+        $recordsTotal = Partyuser::count();
         $recordsFiltered = $query->count();
 
         $data = $query->orderBy($orderColumn, $orderDirection)
@@ -101,7 +102,7 @@ class PartyUserController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'first_name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255|unique:party_users,first_name',
             'email' => 'nullable|email|max:255|unique:party_users,email',
             'phone' => 'nullable|digits:10|regex:/^[0-9]+$/|unique:party_users,phone',
             'address' => 'nullable|string|max:255',
@@ -109,6 +110,7 @@ class PartyUserController extends Controller
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ], [
             'first_name.required' => 'Customer name is required.',
+            'first_name.unique' => 'Customer name has already been taken.',
             // 'phone.required' => 'Mobile number is required.',
             'phone.digits' => 'Mobile number must be exactly 10 digits.',
             'phone.unique' => 'This mobile number is already in use.',
@@ -149,7 +151,7 @@ class PartyUserController extends Controller
     public function update(Request $request, Partyuser $Partyuser)
     {
         $data = $request->validate([
-            'first_name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255|unique:party_users,first_name,' . $Partyuser->id,
             'email' => 'nullable|email|max:255|unique:party_users,email,' . $Partyuser->id,
             'phone' => 'nullable|digits:10|regex:/^[0-9]+$/|unique:party_users,phone,' . $Partyuser->id,
             'address' => 'nullable|string|max:255',
