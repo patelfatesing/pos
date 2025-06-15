@@ -64,10 +64,7 @@
     <div class="header">{{ $branch_name ?? 'Shop' }} - Shift Report </div>
 
     <div style="font-size:11px; margin-bottom:6px;">
-<<<<<<< Updated upstream
-=======
         <strong>User Staff:</strong> {{ $user_name }}<br>
->>>>>>> Stashed changes
         <strong>Start:</strong> {{ $shift->start_time }}<br>
         <strong>End:</strong> {{ $shift->end_time }}
     </div>

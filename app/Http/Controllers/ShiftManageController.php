@@ -266,11 +266,7 @@ class ShiftManageController extends Controller
             $invoices = Invoice::where(['user_id' => $shift->user_id])->where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->where('status', '!=', 'Hold')->latest()->get();
             $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalRoundOf = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = $totalSalesQty = 0;
 
-<<<<<<< Updated upstream
-            $totalSalesNew=0;
-=======
             $transaction_total = 0;
->>>>>>> Stashed changes
             foreach ($invoices as $invoice) {
                 $transaction_total += $transaction_total;
                 $items = $invoice->items; // decode items from longtext JSON
@@ -279,12 +275,8 @@ class ShiftManageController extends Controller
                     $items = json_decode($items, true); // decode if not already an array
                 }
 
-<<<<<<< Updated upstream
-               if (is_array($items)) {
-=======
                 if (is_array($items)) {
                     $totalSalesNew = 0;
->>>>>>> Stashed changes
                     foreach ($items as $item) {
                         if (!empty($item['subcategory'])) {
 
@@ -483,14 +475,9 @@ class ShiftManageController extends Controller
         $shift = ShiftClosing::findOrFail($id);
 
         if (!$shift->closing_shift_time) {
-<<<<<<< Updated upstream
-            $closeShift=$this->closeShift($id,"html");
-             $pdf = Pdf::loadView('shift_manage.shift_print',['shift' => $closeShift['shift'], "categoryTotals" => $closeShift['categoryTotals'], "shiftcash" => $closeShift['shiftcash'], "closing_cash" => $closeShift['closing_cash'], 'cash_discrepancy' => $closeShift['cash_discrepancy'], 'branch_name' => $closeShift['branch_name']]);
-=======
             $closeShift = $this->closeShift($id, "html");
 
             $pdf = Pdf::loadView('shift_manage.shift_print', ['user_name' => $closeShift['user_name'], 'shift' => $closeShift['shift'], "categoryTotals" => $closeShift['categoryTotals'], "shiftcash" => $closeShift['shiftcash'], "closing_cash" => $closeShift['closing_cash'], 'cash_discrepancy' => $closeShift['cash_discrepancy'], 'branch_name' => $closeShift['branch_name']]);
->>>>>>> Stashed changes
 
             return $pdf->download('shift_report_' . $shift->id . '.pdf');
         }
