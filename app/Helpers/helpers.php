@@ -209,6 +209,7 @@ if (!function_exists('stockStatusChange')) {
 
                 if (!empty($running_shift)) {
                     $existing_ck = DailyProductStock::where('branch_id', $branch_id)
+                        ->where('shift_id', $running_shift->id)
                         ->where('product_id', $product_id)
                         ->first();
                     if (!empty($existing_ck)) {
@@ -253,10 +254,14 @@ if (!function_exists('stockStatusChange')) {
                     ->where('status', 'pending')
                     ->first();
 
+
                 if (!empty($running_shift)) {
+
                     $existing_ck = DailyProductStock::where('branch_id', $branch_id)
+                        ->where('shift_id', $running_shift->id)
                         ->where('product_id', $product_id)
                         ->first();
+
                     if (!empty($existing_ck)) {
                         $existing_ck->transferred_stock += $qty;
                         $existing_ck->shift_id = $running_shift->id;
@@ -289,7 +294,7 @@ if (!function_exists('stockStatusChange')) {
                 ->where('shift_id', $shift_id)
                 ->first();
 
-            if (! empty($existing)) {
+            if (!empty($existing)) {
                 $existing->sold_stock += $qty;
                 $existing->save();
             } else {
