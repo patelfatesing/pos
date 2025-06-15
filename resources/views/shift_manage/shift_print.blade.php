@@ -65,6 +65,7 @@
 
     <div style="font-size:11px; margin-bottom:6px;">
         <strong>User Staff:</strong> {{ $user_name }}<br>
+
         <strong>Start:</strong> {{ $shift->start_time }}<br>
         <strong>End:</strong> {{ $shift->end_time }}
     </div>

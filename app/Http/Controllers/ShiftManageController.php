@@ -267,7 +267,9 @@ class ShiftManageController extends Controller
             $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalRoundOf = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = $totalSalesQty = 0;
 
             $transaction_total = 0;
-            foreach ($invoices as $invoice) {
+            $totalSalesNew=0;
+
+          foreach ($invoices as $invoice) {
                 $transaction_total += $transaction_total;
                 $items = $invoice->items; // decode items from longtext JSON
 
@@ -277,6 +279,8 @@ class ShiftManageController extends Controller
 
                 if (is_array($items)) {
                     $totalSalesNew = 0;
+               if (is_array($items)) {
+
                     foreach ($items as $item) {
                         if (!empty($item['subcategory'])) {
 
@@ -478,6 +482,7 @@ class ShiftManageController extends Controller
             $closeShift = $this->closeShift($id, "html");
 
             $pdf = Pdf::loadView('shift_manage.shift_print', ['user_name' => $closeShift['user_name'], 'shift' => $closeShift['shift'], "categoryTotals" => $closeShift['categoryTotals'], "shiftcash" => $closeShift['shiftcash'], "closing_cash" => $closeShift['closing_cash'], 'cash_discrepancy' => $closeShift['cash_discrepancy'], 'branch_name' => $closeShift['branch_name']]);
+
 
             return $pdf->download('shift_report_' . $shift->id . '.pdf');
         }
