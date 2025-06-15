@@ -65,7 +65,6 @@
 
     <div style="font-size:11px; margin-bottom:6px;">
         <strong>Start:</strong> {{ $shift->start_time }}<br>
-        <strong>Start:</strong> {{ $shift->start_time }}<br>
         <strong>End:</strong> {{ $shift->end_time }}
     </div>
     <!-- Sales and Summary Side-by-Side -->
@@ -81,7 +80,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($categoryTotals['payment'] ?? [] as $k => $v)
+                        @foreach ($categoryTotals['payment'] as $k => $v)
                             <tr @if (strtoupper($k) === 'TOTAL') class="highlight" @endif>
                                 <td>{{ strtoupper($k) }}</td>
                                 <td>{{ format_inr($v) }}</td>

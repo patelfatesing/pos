@@ -104,10 +104,13 @@
     <tbody>
         @php
             $total=0;
+            $qty=0;
         @endphp
         @foreach($items as $index => $item)
         @php
+            $item['price']=$item['price']*$item['quantity'];
             $total+=(float)$item['price'];
+            $qty+=$item['quantity'];
 
         @endphp
         <tr>
@@ -127,10 +130,14 @@
 
 <table class="table">
     <tr>
-        <td class="left">Purchased:</td>
-        <td class="right">0</td>
+        <td class="left">Pieces Purchased :</td>
+        <td class="right">{{$qty}}</td>
     </tr>
     <tr>
+        <td class="left">Total:</td>
+        <td class="right">{{ number_format((float)$total, 2) }}</td>
+    </tr>
+     <tr>
         <td class="left">Discount:</td>
         <td class="right">{{ number_format((float)$invoice->party_amount, 2) }}</td>
     </tr>
@@ -146,10 +153,10 @@
         <td class="left">Total Savings:</td>
         <td class="right">0</td>
     </tr> --}}
-    <tr class="bold">
+    {{-- <tr class="bold">
         <td class="left">Total Paid:</td>
         <td class="right">0</td>
-    </tr>
+    </tr> --}}
 </table>
 <div class="line"></div>
 

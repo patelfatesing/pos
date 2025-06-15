@@ -223,6 +223,7 @@ class ShiftCloseModal extends Component
 
         // $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->where('status', '!=', 'Hold')->where('invoice_number', 'not like', '%Hold%')->latest()->get();
         $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->whereNotIn('status',[ 'Hold','resumed','archived'])->latest()->get();
+        $totalSalesNew=0;
         foreach ($invoices as $invoice) {
             $items = $invoice->items; // decode items from longtext JSON
 
@@ -231,7 +232,6 @@ class ShiftCloseModal extends Component
             }
 
             if (is_array($items)) {
-                $totalSalesNew=0;
                 foreach ($items as $item) {
                     if(!empty($item['subcategory'])){
 
@@ -242,12 +242,12 @@ class ShiftCloseModal extends Component
                             $this->categoryTotals['sales'][$category] = 0;
                         }
 
-                        $this->categoryTotals['sales'][$category] += $amount+$invoice->roundof;
-                        $totalSalesNew= $this->categoryTotals['sales'][$category];
+                        $this->categoryTotals['sales'][$category] += $amount;
+                        $totalSalesNew+= $amount;
                     }
                 }
-                $this->categoryTotals['sales']["TOTAL"] = $totalSalesNew;
             }
+            $this->categoryTotals['sales']["TOTAL"] = $totalSalesNew;
 
             $this->closing_sales=@$this->categoryTotals['sales'];
             // $discountTotal += ($invoice->commission_amount ?? 0) + ($invoice->party_amount ?? 0);
