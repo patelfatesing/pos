@@ -75,8 +75,9 @@
                                                     <tr>
                                                         <th scope="col">Transaction Date</th>
                                                         <th scope="col">Transaction Status</th>
-                                                        <th scope="col">Transaction No(Ref)</th>
-
+                                                        @if ($invoice->ref_no != '')
+                                                            <th scope="col">Transaction No(Ref)</th>
+                                                        @endif
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -88,13 +89,12 @@
                                                                 {{ $invoice->status }}
                                                             </span>
                                                         </td>
-                                                        <td>
-                                                            {{ $invoice->invoice_number }}
-                                                            @if (Str::startsWith($invoice->invoice_number, 'HOLD-'))
-                                                                ({{ $invoice->created_at->format('Y-m-d H:i:s') }})
-                                                            @endif
-                                                        </td>
-
+                                                        @if ($invoice->ref_no != '')
+                                                            <td>
+                                                                {{ $invoice->ref_no }}
+                                                                ({{ $invoice->updated_at->format('Y-m-d H:i:s') }})
+                                                            </td>
+                                                        @endif
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -164,8 +164,8 @@
                                                 @endif
                                                 @if ($invoice->roundof > 0)
                                                     <div class="mb-2 d-flex justify-content-between">
-                                                        <h6>Roundof: </h6>
-                                                        <p>- ₹{{ number_format($invoice->roundof, 2) }}</p>
+                                                        <h6>Round off: </h6>
+                                                        <p> ₹{{ number_format($invoice->roundof, 2) }}</p>
                                                     </div>
                                                 @endif
                                             </div>
@@ -173,7 +173,11 @@
                                                 class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
                                                 <h6>Total</h6>
                                                 <h3 class="text-primary font-weight-700">
-                                                    ₹{{ number_format((float) $invoice->sub_total - (float) $invoice->party_amount, 2) }}
+                                                    @if ($invoice->roundof > 0)
+                                                        ₹{{ number_format((float) $invoice->sub_total + number_format($invoice->roundof, 2) - (float) $invoice->party_amount, 2) }}
+                                                    @else
+                                                        ₹{{ number_format((float) $invoice->sub_total - (float) $invoice->party_amount, 2) }}
+                                                    @endif
                                                 </h3>
                                             </div>
                                         </div>

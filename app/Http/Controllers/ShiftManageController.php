@@ -263,7 +263,7 @@ class ShiftManageController extends Controller
                 ->selectRaw('SUM(credit_amount) as credit_total, SUM(debit_amount) as debit_total')
                 ->first();
 
-                
+
             $invoices = Invoice::where(['user_id' => $shift->user_id])->where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->where('status', '!=', 'Hold')->latest()->get();
             $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalRoundOf = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = $totalSalesQty = 0;
 
@@ -289,7 +289,7 @@ class ShiftManageController extends Controller
                             }
 
                             $categoryTotals['sales'][$category] += $amount;
-                            $totalSalesNew+= $amount;
+                            $totalSalesNew += $amount;
                         }
                         $totalSalesQty += $item['quantity'] ?? 0;
                     }
@@ -342,7 +342,7 @@ class ShiftManageController extends Controller
             $categoryTotals['payment']['UPI PAYMENT'] =  ($totalUpiPaid + $totalOnlinePaid);
             $categoryTotals['payment']['totalSalesQty'] =  $totalSalesQty;
             $categoryTotals['payment']['transactionTotal'] =  $transaction_total;
-            
+
             $categoryTotals['payment']['TOTAL'] = $totalCashPaid + ($totalUpiPaid + $totalOnlinePaid);
             $categoryTotals['summary']['OPENING CASH'] = @$shift->opening_cash;
             $categoryTotals['summary']['TOTAL SALES'] = $totalSubTotal + $discountTotal - $totalRefundReturn - $totalRoundOf;
@@ -363,7 +363,7 @@ class ShiftManageController extends Controller
             if (!empty($categoryTotals['summary']['REFUND_CREDIT'])) {
                 $categoryTotals['summary']['REFUND_CREDIT'] = (int)$categoryTotals['summary']['REFUND_CREDIT'] * (-1);
             }
-            
+
             $cashBreakdowns = CashBreakdown::where('user_id', $shift->user_id)
                 ->where('branch_id', $shift->branch_id)
                 // ->where('type', '!=', 'cashinhand')
@@ -423,14 +423,14 @@ class ShiftManageController extends Controller
 
             $totalOpeningStock = DailyProductStock::where('shift_id', $id)
                 ->sum('opening_stock');
-                // dd($totalOpeningStock);
+            // dd($totalOpeningStock);
 
             $shiftcash = $noteCount;
             $closing_cash = $shift->closing_cash;
             $cash_discrepancy = $shift->cash_discrepancy;
             //dd($shiftcash);
             // Render a Blade view and pass any needed data
-            $html = view('shift_manage.closed', ['opening_stock'=>$totalOpeningStock,'user_name' => $user_name, 'shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy, 'branch_name' => $branch_name])->render();
+            $html = view('shift_manage.closed', ['opening_stock' => $totalOpeningStock, 'user_name' => $user_name, 'shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy, 'branch_name' => $branch_name])->render();
             if ($return == "html") {
                 return  ['user_name' => $user_name, 'shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy, 'branch_name' => $branch_name];
             } else {
@@ -465,7 +465,7 @@ class ShiftManageController extends Controller
 
         $rawStockData = DailyProductStock::with('product')
             ->where('branch_id', $branch_id)
-            ->whereDate('date', Carbon::today())
+            ->where('shift_id', $id)
             ->get();
 
         return view('shift_manage.stock_details', compact('rawStockData'));

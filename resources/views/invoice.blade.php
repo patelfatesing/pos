@@ -96,7 +96,7 @@
     <strong>Ref:</strong> {{ $ref_no."-".\Carbon\Carbon::parse($hold_date)->format('H:i') }}<br>
     @endif
     <strong>Name:</strong> {{ $customer_name ?? '' }}<br>
-    <strong>Date:</strong> {{ now()->format('d/m/Y H:i') }}
+    <strong>Date:</strong> {{ \Carbon\Carbon::parse($invoice->created_at)->format('d/m/Y H:i')}}
     
 </div>
 
@@ -155,7 +155,7 @@
         <td class="right">{{ number_format((float)$invoice->creditpay ?? 0, 2) }}</td>
     </tr>
      <tr>
-        <td class="left">Round Of:</td>
+        <td class="left">Round Off:</td>
         <td class="right">{{ number_format((float)$invoice->roundof ?? 0, 2) }}</td>
     </tr>
     {{-- <tr>
