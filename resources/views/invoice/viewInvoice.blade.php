@@ -174,9 +174,9 @@
                                                 <h6>Total</h6>
                                                 <h3 class="text-primary font-weight-700">
                                                     @if ($invoice->roundof > 0)
-                                                        ₹{{ number_format((float) $invoice->sub_total - (float) $invoice->party_amount, 2) }}
-                                                    @else
                                                         ₹{{ number_format((float) $invoice->sub_total + number_format($invoice->roundof, 2) - (float) $invoice->party_amount, 2) }}
+                                                    @else
+                                                        ₹{{ number_format((float) $invoice->sub_total - (float) $invoice->party_amount, 2) }}
                                                     @endif
                                                 </h3>
                                             </div>
