@@ -886,12 +886,13 @@
 
     <div class="modal fade" id="stockStatusModal" tabindex="-1" aria-labelledby="stockStatusModalLabel"
         aria-hidden="true" data-backdrop="static" data-keyboard="false" wire:ignore.self>
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h6 class="mt-4 mb-2">{{ __('messages.product_opening_stock') }}</h6>
-                    <button type="button" class="btn-close btn-close-white" data-dismiss="modal" aria-label="Close"
-                        wire:click="#"><span aria-hidden="true">×</span></button>
+                    <h6 class="">{{ __('messages.product_opening_stock') }}</h6>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
                 </div>
                 <div class="modal-body">
                     <table class="customtable table">
@@ -903,6 +904,7 @@
                         </thead>
                         <tbody>
                             @foreach ($productStock as $product)
+                        
                                 <tr>
                                     <td>{{ $product->product->name }}</td>
                                     <td>
@@ -913,7 +915,7 @@
                                             {
                                                 $stock=$product->opening_stock;
                                             }else{
-                                                $stock=product->closing_stock;
+                                                $stock=$product->closing_stock;
                                             }
 
                                         @endphp
@@ -924,6 +926,15 @@
                                 </tr>
                             @endforeach
                         </tbody>
+                         <!-- Add total in footer -->
+                        <tfoot>
+                            <tr>
+                                <th class="text-end">{{ __('messages.total') }}</th>
+                                <th>
+                                    <input type="number" class="form-control text-center" value="{{ count($productStock) }}" readonly>
+                                </th>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
                 <div class="modal-footer">
