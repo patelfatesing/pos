@@ -610,9 +610,9 @@ class StockController extends Controller
                 ->where('status', 'pending')
                 ->first();
 
-            if (!$running_shift) {            // null  ➔ destination store not 
-                return response()->json(['status' => 'error', 'message' => 'The destination store is not open.']);
-            }
+            // if (!$running_shift) {            // null  ➔ destination store not 
+            //     return response()->json(['status' => 'error', 'message' => 'The destination store is not open.']);
+            // }
 
 
             if ($from_store_id == 1) {

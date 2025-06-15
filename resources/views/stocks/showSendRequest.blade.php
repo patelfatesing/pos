@@ -17,23 +17,18 @@
                 @endif
 
                 <table id="stock-requests-table" class="table datatable table-bordered table-striped">
-
                     <thead>
-
                         <tr>
                             <th>Store</th>
                             <th>Requested By</th>
                             <th data-type="date" data-format="YYYY/DD/MM">Requested At</th>
                             <th>Status</th>
                             <th>Actions</th>
-
                         </tr>
                     </thead>
-
                     <tbody>
                     </tbody>
                 </table>
-
                 <!-- Page end  -->
             </div>
         </div>

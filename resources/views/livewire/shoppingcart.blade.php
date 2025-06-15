@@ -4,21 +4,19 @@
     @endphp
 
     <div class="col-md-7">
-        <div class="iq-sidebar-logo d-flex align-items-center justify-content-between">
-            <!-- Left Side: Logo -->
-            <a href="{{ route('items.cart') }}" class="header-logo d-flex align-items-center">
-                <img src="{{ asset('assets/images/logo.png') }}" class="img-fluid rounded-normal light-logo"
-                    alt="LiquorHub Logo" style="height: 1.2em; width: auto;">
-                <h5 class="logo-title light-logo ml-3 mb-0 font-weight-bold text-dark">LiquorHub</h5>
+       <div class="d-flex align-items-center justify-content-between px-3 py-2 bg-white">
+            <a href="{{ route('items.cart') }}" class="d-flex align-items-center text-decoration-none">
+                <img src="{{ asset('assets/images/logo.png') }}" class="img-fluid rounded mr-2" alt="LiquorHub Logo" style="height: 2em;">
+                <h5 class="mb-0 font-weight-bold text-dark" style="color:#32bdea !important">LiquorHub</h5>
             </a>
-
-            <!-- Right Side: Sidebar Toggle Button -->
-            <div class="iq-menu-bt-sidebar">
-
-                <h6 class="text-right mb-0 ">{{ __('messages.store_location') }}<span
-                        class="text-muted">{{ $this->branch_name }}</span></h6>
+            <div class="d-flex flex-wrap justify-content-end text-right ml-auto">
+                <small class="mx-2"> <strong>Shift No:</strong>{{ $this->shift->shift_no ?? "" }}</small>
+                <small class="mx-2"><strong>Start: </strong>{{ $this->shift->start_time ?? "" }}</small>
+                <small class="mx-2"> <strong>End: </strong>{{ $this->shift->end_time ?? "" }}</small>
+                <small class="mx-2"><strong>{{ __('messages.store_location') }}: </strong>{{ $this->branch_name }}</small>
             </div>
         </div>
+
 
         <div class="row">
             <div class="col-md-3">
@@ -360,7 +358,8 @@
 
                             <td>
                                 @php
-                                    $this->roundedTotal=$this->cashAmount+$this->creditPay-$this->cartItemTotalSum;
+                                    $this->roundedTotal = (float)$this->cashAmount + (float)$this->creditPay - (float)$this->cartItemTotalSum;
+
                                 @endphp
                                 {{ format_inr($this->roundedTotal) }}
                                 <input type="hidden" id="roundedTotal" value="{{ $this->roundedTotal }}" wire:model="roundedTotal">
@@ -888,12 +887,13 @@
 
     <div class="modal fade" id="stockStatusModal" tabindex="-1" aria-labelledby="stockStatusModalLabel"
         aria-hidden="true" data-backdrop="static" data-keyboard="false" wire:ignore.self>
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h6 class="mt-4 mb-2">{{ __('messages.product_opening_stock') }}</h6>
-                    <button type="button" class="btn-close btn-close-white" data-dismiss="modal" aria-label="Close"
-                        wire:click="#"><span aria-hidden="true">×</span></button>
+                    <h6 class="">{{ __('messages.product_opening_stock') }}</h6>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
                 </div>
                 <div class="modal-body">
                     <table class="customtable table">
@@ -904,17 +904,42 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @php
+                                $sum=0;
+                            @endphp
                             @foreach ($productStock as $product)
+                        
                                 <tr>
                                     <td>{{ $product->product->name }}</td>
                                     <td>
+                                        @php
+                                            $stock="";
+                                            $lastShift = App\Models\UserShift::getYesterdayShift(auth()->user()->id, $data->userInfo->branch_id);
+                                            if(empty($lastShift))
+                                            {
+                                                $stock=$product->opening_stock;
+                                            }else{
+                                                $stock=$product->closing_stock;
+                                            }
+                                            $sum+=$stock;
+
+                                        @endphp
                                         <input type="number" name="productStocks[{{ $product->id }}]"
-                                            class="form-control text-center" value="{{ $product->closing_stock }}"
+                                            class="form-control text-center" value="{{ $stock }}"
                                             readonly>
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
+                         <!-- Add total in footer -->
+                        <tfoot>
+                            <tr>
+                                <th class="text-end">{{ __('messages.total') }}</th>
+                                <th>
+                                    <input type="number" class="form-control text-center" value="{{ $sum }}" readonly>
+                                </th>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
                 <div class="modal-footer">
