@@ -45,6 +45,7 @@ class InvoiceController extends Controller
             'total' => $invoice->total,
             'commissionUser' => $commissionUser,
             'partyUser' => $partyUser,
+            'customer_name' => $partyUser->first_name,
             'created_at'=> $invoice->created_at,
         ]);
         return $pdf->download($invoice->invoice_number . '.pdf');

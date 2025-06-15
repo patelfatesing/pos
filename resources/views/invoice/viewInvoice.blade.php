@@ -164,7 +164,7 @@
                                                 @endif
                                                 @if ($invoice->roundof > 0)
                                                     <div class="mb-2 d-flex justify-content-between">
-                                                        <h6>Round of: </h6>
+                                                        <h6>Round off: </h6>
                                                         <p> ₹{{ number_format($invoice->roundof, 2) }}</p>
                                                     </div>
                                                 @endif
