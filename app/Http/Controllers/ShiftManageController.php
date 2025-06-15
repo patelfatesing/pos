@@ -263,6 +263,7 @@ class ShiftManageController extends Controller
                 ->selectRaw('SUM(credit_amount) as credit_total, SUM(debit_amount) as debit_total')
                 ->first();
 
+                
             $invoices = Invoice::where(['user_id' => $shift->user_id])->where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->where('status', '!=', 'Hold')->latest()->get();
             $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalRoundOf = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = $totalSalesQty = 0;
 
