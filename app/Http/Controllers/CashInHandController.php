@@ -101,19 +101,24 @@ class CashInHandController extends Controller
         
         $stocks = $stocksQuery->get();
         foreach ($stocks as $key) {
-            $key->shift_id=$userShift->id;
-            $key->date=Carbon::today();
-            $key->opening_stock=$key->closing_stock;
-            $key->save();
-            // DailyProductStock::updateOrCreate(
-            //     [
-            //         'product_id' => $key->product_id,
-            //         'shift_id'=>$userShift->id,
-            //         'branch_id' => $branch_id,
-            //         'date' => Carbon::today(),
-            //         'opening_stock' => $key->closing_stock,
-            //     ]
-            // );
+            if($key->shift_id==null || $key->shift_id== '') {
+
+                $key->shift_id=$userShift->id;
+                $key->date=Carbon::today();
+                $key->opening_stock=$key->closing_stock;
+                $key->save();
+            }else{
+
+                DailyProductStock::updateOrCreate(
+                    [
+                        'product_id' => $key->product_id,
+                        'shift_id'=>$userShift->id,
+                        'branch_id' => $branch_id,
+                        'date' => Carbon::today(),
+                        'opening_stock' => $key->closing_stock,
+                    ]
+                );
+            }
         }
 
         //return redirect()->route('items.cart')->with('notification-sucess', 'Cash in hand saved.');

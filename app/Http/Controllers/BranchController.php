@@ -39,21 +39,47 @@ class BranchController extends Controller
 
         foreach ($cashBreakdowns as $breakdown) {
             $denominations1 = json_decode($breakdown->denominations, true);
+            // echo "<pre>";
+            // print_r($denominations1);
             if (is_array($denominations1)) {
-                foreach ($denominations1 as $denomination => $notes) {
-                    foreach ($notes as $noteValue => $action) {
-                        // Check for 'in' (added notes) and 'out' (removed notes)
-                        if (isset($action['in'])) {
-                            if (!isset($noteCount[$noteValue])) {
-                                $noteCount[$noteValue] = 0;
+                // Handle array of objects: [{"10":{"in":"0"}},{"20":{"in":"0"}},...]
+                if (array_keys($denominations1) === range(0, count($denominations1) - 1)) {
+                    foreach ($denominations1 as $item) {
+                        if (is_array($item)) {
+                            foreach ($item as $noteValue => $action) {
+                                if (isset($action['in'])) {
+                                    if (!isset($noteCount[$noteValue])) {
+                                        $noteCount[$noteValue] = 0;
+                                    }
+                                    $noteCount[$noteValue] += (int)$action['in'];
+                                }
+                                if (isset($action['out'])) {
+                                    if (!isset($noteCount[$noteValue])) {
+                                        $noteCount[$noteValue] = 0;
+                                    }
+                                    $noteCount[$noteValue] -= (int)$action['out'];
+                                }
                             }
-                            $noteCount[$noteValue] += $action['in'];
                         }
-                        if (isset($action['out'])) {
-                            if (!isset($noteCount[$noteValue])) {
-                                $noteCount[$noteValue] = 0;
+                    }
+                } else {
+                    // Handle object with nested arrays: {"5":{"500":{"in":4}}, "3":{"100":{"out":1}}}
+                    foreach ($denominations1 as $outer) {
+                        if (is_array($outer)) {
+                            foreach ($outer as $noteValue => $action) {
+                                if (isset($action['in'])) {
+                                    if (!isset($noteCount[$noteValue])) {
+                                        $noteCount[$noteValue] = 0;
+                                    }
+                                    $noteCount[$noteValue] += (int)$action['in'];
+                                }
+                                if (isset($action['out'])) {
+                                    if (!isset($noteCount[$noteValue])) {
+                                        $noteCount[$noteValue] = 0;
+                                    }
+                                    $noteCount[$noteValue] -= (int)$action['out'];
+                                }
                             }
-                            $noteCount[$noteValue] -= $action['out'];
                         }
                     }
                 }
