@@ -262,6 +262,7 @@ $action .= '<a class="badge bg-primary ml-2 view-invoices"
             $invoices = Invoice::where(['user_id' => $shift->user_id])->where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->where('status', '!=', 'Hold')->latest()->get();
             $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalRoundOf = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = 0;
 
+            $totalSalesNew=0;
             foreach ($invoices as $invoice) {
                 $items = $invoice->items; // decode items from longtext JSON
 
@@ -270,7 +271,6 @@ $action .= '<a class="badge bg-primary ml-2 view-invoices"
                 }
 
                if (is_array($items)) {
-                    $totalSalesNew=0;
                     foreach ($items as $item) {
                         if(!empty($item['subcategory'])){
 
@@ -281,11 +281,12 @@ $action .= '<a class="badge bg-primary ml-2 view-invoices"
                                 $categoryTotals['sales'][$category] = 0;
                             }
 
-                            $categoryTotals['sales'][$category] += $amount + $invoice->roundof;
+                            $categoryTotals['sales'][$category] += $amount;
+                            $totalSalesNew+= $amount;
                         }
                     }
-                    $categoryTotals['sales']["TOTAL"] = $totalSalesNew;
                 }
+                $categoryTotals['sales']["TOTAL"] = $totalSalesNew;
                 $closing_sales = @$categoryTotals['sales'];
                 // $discountTotal += ($invoice->commission_amount ?? 0) + ($invoice->party_amount ?? 0);
                 $discountTotal += (!empty($invoice->commission_amount) && is_numeric($invoice->commission_amount)) ? (int)$invoice->commission_amount : 0;
@@ -460,7 +461,6 @@ $action .= '<a class="badge bg-primary ml-2 view-invoices"
         
         if (!$shift->closing_shift_time) {
             $closeShift=$this->closeShift($id,"html");
-            
              $pdf = Pdf::loadView('shift_manage.shift_print',['shift' => $closeShift['shift'], "categoryTotals" => $closeShift['categoryTotals'], "shiftcash" => $closeShift['shiftcash'], "closing_cash" => $closeShift['closing_cash'], 'cash_discrepancy' => $closeShift['cash_discrepancy'], 'branch_name' => $closeShift['branch_name']]);
 
             return $pdf->download('shift_report_' . $shift->id . '.pdf');
