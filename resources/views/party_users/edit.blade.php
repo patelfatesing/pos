@@ -38,7 +38,7 @@
                                             <div class="floating-label form-group">
                                                 <label>Email</label>
                                                 <input type="email" name="email" class="form-control"
-                                                    value="{{ old('email', $partyUser->email) }}" required>
+                                                    value="{{ old('email', $partyUser->email) }}">
                                                 @error('email')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -49,7 +49,7 @@
                                             <div class="floating-label form-group">
                                                 <label>Phone</label>
                                                 <input type="text" name="phone" class="form-control"
-                                                    value="{{ old('phone', $partyUser->phone) }}" required>
+                                                    value="{{ old('phone', $partyUser->phone) }}">
                                                 @error('phone')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
