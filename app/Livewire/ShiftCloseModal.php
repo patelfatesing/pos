@@ -247,7 +247,6 @@ class ShiftCloseModal extends Component
                     }
                 }
             }
-            $this->categoryTotals['sales']["TOTAL"] = $totalSalesNew;
 
             $this->closing_sales=@$this->categoryTotals['sales'];
             // $discountTotal += ($invoice->commission_amount ?? 0) + ($invoice->party_amount ?? 0);
@@ -281,6 +280,8 @@ class ShiftCloseModal extends Component
             }
         }
         $this->todayCash = $totalPaid;
+        $this->categoryTotals['sales']["TOTAL"] = $totalSalesNew;
+
         $totalWith = \App\Models\WithdrawCash::where('user_id',  auth()->user()->id)
             ->where('branch_id', $branch_id)->whereBetween('created_at', [$start_date, $end_date])->sum('amount');
         $this->categoryTotals['payment']['CASH'] = $totalCashPaid;
