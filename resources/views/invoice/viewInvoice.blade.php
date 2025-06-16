@@ -82,7 +82,7 @@
                                                 </thead>
                                                 <tbody>
                                                     <tr>
-                                                        <td>{{ $invoice->created_at->format('Y-m-d H:i:s') }}</td>
+                                                        <td>{{ $invoice->updated_at->format('Y-m-d H:i:s') }}</td>
                                                         <td>
                                                             <span
                                                                 class="badge badge-{{ $invoice->status == 'Paid' ? 'success' : 'danger' }}">
@@ -92,7 +92,7 @@
                                                         @if ($invoice->ref_no != '')
                                                             <td>
                                                                 {{ $invoice->ref_no }}
-                                                                ({{ $invoice->updated_at->format('Y-m-d H:i:s') }})
+                                                                ({{ $invoice->created_at->format('Y-m-d H:i:s') }})
                                                             </td>
                                                         @endif
                                                     </tr>

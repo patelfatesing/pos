@@ -12,7 +12,7 @@ class CommissionUserController extends Controller
 {
     public function index()
     {
-        $commissionUsers = Commissionuser::with('images')->where('status', 'Active')->latest()->get();
+        $commissionUsers = Commissionuser::with('images')->latest()->get();
         return view('commission_users.index', compact('commissionUsers'));
     }
 
@@ -145,13 +145,13 @@ class CommissionUserController extends Controller
 
     public function edit($id)
     {
-        $commissionUser = Commissionuser::with('images')->where('status', 'Active')->where('id', $id)->firstOrFail();
+        $commissionUser = Commissionuser::with('images')->where('id', $id)->firstOrFail();
         return view('commission_users.edit', compact('commissionUser'));
     }
 
     public function view($id)
     {
-        $commissionUser = Commissionuser::with('images')->where('status', 'Active')->where('id', $id)->firstOrFail();
+        $commissionUser = Commissionuser::with('images')->where('id', $id)->firstOrFail();
         return view('commission_users.view', compact('commissionUser'));
     }
 
@@ -252,7 +252,7 @@ class CommissionUserController extends Controller
 
     public function statusChange(Request $request)
     {
-        $user = Commissionuser::where('status', 'Active')->findOrFail($request->id);
+        $user = Commissionuser::findOrFail($request->id);
         $user->is_active = $request->status;
         $user->save();
 
@@ -303,7 +303,7 @@ class CommissionUserController extends Controller
 
     public function destroy($id)
     {
-        $record = Commissionuser::where('status', 'Active')->findOrFail($id);
+        $record = Commissionuser::findOrFail($id);
         $record->is_deleted = "Yes";
         $record->save();
         //$Commissionuser->delete();

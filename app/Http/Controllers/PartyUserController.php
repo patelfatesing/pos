@@ -14,7 +14,7 @@ class PartyUserController extends Controller
 {
     public function index()
     {
-        $partyUsers = Partyuser::with('images')->where('status', 'Active')->latest()->get();
+        $partyUsers = Partyuser::with('images')->latest()->get();
         return view('party_users.index', compact('partyUsers'));
     }
 
@@ -138,13 +138,13 @@ class PartyUserController extends Controller
 
     public function edit($id)
     {
-        $partyUser = Partyuser::with('images')->where('id', $id)->where('status', 'Active')->firstOrFail();
+        $partyUser = Partyuser::with('images')->where('id', $id)->firstOrFail();
         return view('party_users.edit', compact('partyUser'));
     }
 
     public function view($id)
     {
-        $partyUser = Partyuser::with('images')->where('id', $id)->where('status', 'Active')->firstOrFail();
+        $partyUser = Partyuser::with('images')->where('id', $id)->firstOrFail();
         return view('party_users.view', compact('partyUser'));
     }
 
@@ -181,7 +181,7 @@ class PartyUserController extends Controller
     public function destroy($id)
     {
         // Find the user and soft delete
-        $record = Partyuser::where('status', 'Active')->findOrFail($id);
+        $record = Partyuser::findOrFail($id);
         $record->is_delete = "Yes";
         $record->save();
 
@@ -190,7 +190,7 @@ class PartyUserController extends Controller
 
     public function custProductPriceChangeForm($id)
     {
-        $partyUser = Partyuser::select('first_name', 'id')->where('status', 'Active')->where('id', $id)->first();
+        $partyUser = Partyuser::select('first_name', 'id')->where('id', $id)->first();
 
         $products = DB::table('products')
             ->select(
@@ -409,7 +409,7 @@ class PartyUserController extends Controller
 
     public function statusChange(Request $request)
     {
-        $user = Partyuser::where('status', 'Active')->findOrFail($request->id);
+        $user = Partyuser::findOrFail($request->id);
         $user->status = $request->status;
         $user->save();
 
