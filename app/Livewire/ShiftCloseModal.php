@@ -463,7 +463,7 @@ class ShiftCloseModal extends Component
 
         foreach ($this->products as $product_id =>  $product) {
             $dailyProductStock = DailyProductStock::where('branch_id', $branch_id)
-                ->where('product_id', $product_id)->whereDate('date', $dateMatch)
+                ->where('product_id', $product_id)->where('shift_id', $this->currentShift->id)
                 ->first();
             if(!empty($dailyProductStock)){
                 // Calculate closing_stock using the formula
@@ -478,9 +478,9 @@ class ShiftCloseModal extends Component
                 $dailyProductStock->save();
             }
         }
-        $shift = UserShift::where('id', $this->shft_id)
+        $shift = UserShift::where('id', $this->currentShift->id)
             ->where('branch_id', $branch_id)
-            ->whereBetween('created_at', [$this->currentShift->start_time, $this->currentShift->end_time])
+            // ->whereBetween('created_at', [$this->currentShift->start_time, $this->currentShift->end_time])
             ->where('status', 'pending')
             ->update([
                 'physical_stock_added' => true,
