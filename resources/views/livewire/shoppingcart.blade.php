@@ -358,7 +358,8 @@
 
                             <td>
                                 @php
-                                    $this->roundedTotal=$this->cashAmount+$this->creditPay-$this->cartItemTotalSum;
+                                    $this->roundedTotal = (float)$this->cashAmount + (float)$this->creditPay - (float)$this->cartItemTotalSum;
+
                                 @endphp
                                 {{ format_inr($this->roundedTotal) }}
                                 <input type="hidden" id="roundedTotal" value="{{ $this->roundedTotal }}" wire:model="roundedTotal">
@@ -903,6 +904,9 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @php
+                                $sum=0;
+                            @endphp
                             @foreach ($productStock as $product)
                         
                                 <tr>
@@ -917,6 +921,7 @@
                                             }else{
                                                 $stock=$product->closing_stock;
                                             }
+                                            $sum+=$stock;
 
                                         @endphp
                                         <input type="number" name="productStocks[{{ $product->id }}]"
@@ -931,7 +936,7 @@
                             <tr>
                                 <th class="text-end">{{ __('messages.total') }}</th>
                                 <th>
-                                    <input type="number" class="form-control text-center" value="{{ count($productStock) }}" readonly>
+                                    <input type="number" class="form-control text-center" value="{{ $sum }}" readonly>
                                 </th>
                             </tr>
                         </tfoot>
