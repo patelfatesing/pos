@@ -15,7 +15,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6 text-center">
-                    <h6>Customer Photo</h6>
+                    <h6>Product Photo</h6>
                     @if (!empty($photos->image_path) && \Illuminate\Support\Facades\Storage::disk('public')->exists($photos->image_path))
                         <img src="{{ asset('storage/' . $photos->image_path) }}" 
                             class="rounded shadow w-full max-h-64 object-contain" 
@@ -27,7 +27,7 @@
                     @endif
                 </div>
                 <div class="col-md-6 text-center">
-                    <h6>Product Photo</h6>
+                    <h6>Customer Photo</h6>
                     @if (!empty($photos->product_image_path) && \Illuminate\Support\Facades\Storage::disk('public')->exists($photos->product_image_path))
 
                         <img src="{{ asset('storage/' . $photos->product_image_path) }}" 
