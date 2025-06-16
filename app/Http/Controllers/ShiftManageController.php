@@ -264,10 +264,11 @@ class ShiftManageController extends Controller
                 ->first();
 
 
-            $invoices = Invoice::where(['user_id' => $shift->user_id])->where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->where('status', '!=', 'Hold')->latest()->get();
-            $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalRoundOf = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = $totalSalesQty = 0;
-
-            $transaction_total = 0;
+                $invoices = Invoice::where(['user_id' => $shift->user_id])->where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->where('status', '!=', 'Hold')->latest()->get();
+                $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalRoundOf = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = $totalSalesQty = 0;
+                
+                $transaction_total = 0;
+                $totalSalesNew = 0;
             foreach ($invoices as $invoice) {
                 $transaction_total += $transaction_total;
                 $items = $invoice->items; // decode items from longtext JSON
@@ -277,7 +278,6 @@ class ShiftManageController extends Controller
                 }
 
                 if (is_array($items)) {
-                    $totalSalesNew = 0;
                     foreach ($items as $item) {
                         if (!empty($item['subcategory'])) {
 
@@ -294,7 +294,6 @@ class ShiftManageController extends Controller
                         $totalSalesQty += $item['quantity'] ?? 0;
                     }
                 }
-                $categoryTotals['sales']["TOTAL"] = $totalSalesNew;
                 $closing_sales = @$categoryTotals['sales'];
                 // $discountTotal += ($invoice->commission_amount ?? 0) + ($invoice->party_amount ?? 0);
                 $discountTotal += (!empty($invoice->commission_amount) && is_numeric($invoice->commission_amount)) ? (int)$invoice->commission_amount : 0;
@@ -336,6 +335,8 @@ class ShiftManageController extends Controller
                 ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
                 ->first();
             $todayCash = $totalPaid;
+            $categoryTotals['sales']["TOTAL"] = $totalSalesNew;
+
             $totalWith = \App\Models\WithdrawCash::where('user_id',  $shift->user_id)
                 ->where('branch_id', $shift->branch_id)->whereBetween('created_at', [$shift->start_time, $shift->end_time])->sum('amount');
             $categoryTotals['payment']['CASH'] = $totalCashPaid;
