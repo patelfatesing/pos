@@ -398,14 +398,16 @@ class Shoppingcart extends Component
                 $this->errorInCredit = true;
                 $this->dispatch('notiffication-error', ['message' => 'Credit payment cannot be greater than available credit.']);
                 $this->creditPay = 0;
-                $this->cashAmount = ((int)$this->sub_total - (int)$this->partyAmount - (int)$this->creditPay);
+                $finalTotal=round_up_to_nearest_10($this->sub_total - $this->partyAmount);
+                $this->cashAmount = (float)$finalTotal - (float)$this->creditPay;
                 $this->clearCashNotes();
 
                 return;
             } else {
                 $this->errorInCredit = false;
             }
-            $this->cashAmount = ((int)$this->sub_total - (int)$this->partyAmount - (int)$this->creditPay);
+            $finalTotal=round_up_to_nearest_10($this->sub_total - $this->partyAmount);
+            $this->cashAmount = (float)$finalTotal - (float)$this->creditPay;
             $this->clearCashNotes();
         } else {
             $this->cashAmount = ((int)$this->sub_total - (int)$this->partyAmount);
@@ -429,7 +431,6 @@ class Shoppingcart extends Component
 
     public function toggleBox()
     {
-        dd($this);
         if (auth()->user()->hasRole('warehouse')) {
 
             $warehouse_product_photo_path = session(auth()->id() . '_warehouse_product_photo_path', []);
