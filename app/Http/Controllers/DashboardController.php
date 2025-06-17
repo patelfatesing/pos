@@ -19,9 +19,10 @@ class DashboardController extends Controller
     {
         // Get role name from session
         $roleName = strtolower(session('role_name'));
-        
         // Redirect non-admin users to items.cart
-        if ($roleName !== 'admin') {
+        if($roleName=="warehouse" || $roleName== "cashier"){
+            return redirect()->route('items.cart');
+        }else if ($roleName !== 'admin') {
          return redirect(route('dashboard'));
         }
 
