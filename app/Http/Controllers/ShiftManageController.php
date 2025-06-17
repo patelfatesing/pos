@@ -341,8 +341,8 @@ class ShiftManageController extends Controller
                 ->where('branch_id', $shift->branch_id)->whereBetween('created_at', [$shift->start_time, $shift->end_time])->sum('amount');
             $categoryTotals['payment']['CASH'] = $totalCashPaid;
             $categoryTotals['payment']['UPI PAYMENT'] =  ($totalUpiPaid + $totalOnlinePaid);
-            $categoryTotals['payment']['totalSalesQty'] =  $totalSalesQty;
-            $categoryTotals['payment']['transactionTotal'] =  $transaction_total;
+            // $categoryTotals['payment']['totalSalesQty'] =  $totalSalesQty;
+            // $categoryTotals['payment']['transactionTotal'] =  $transaction_total;
 
             $categoryTotals['payment']['TOTAL'] = $totalCashPaid + ($totalUpiPaid + $totalOnlinePaid);
             $categoryTotals['summary']['OPENING CASH'] = @$shift->opening_cash;

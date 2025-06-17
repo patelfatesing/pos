@@ -1467,7 +1467,7 @@
                             </div>
                             <p id="result" class="mt-3 fw-bold text-success"></p>
                             <div class="mt-4">
-                                @if ($this->showOnline == true)
+                                @if ($this->showOnline == true && $this->cashAmount>0)
                                     <button id="paymentSubmit" class="btn btn-primary btn-sm mr-2 btn-block mt-4"
                                         wire:click="onlinePaymentCheckout" wire:loading.attr="disabled">
                                         {{ __('messages.submit') }}

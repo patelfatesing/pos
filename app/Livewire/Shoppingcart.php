@@ -394,15 +394,7 @@ class Shoppingcart extends Component
         if ($this->creditPay > 0) {
             $user = Partyuser::where('status', 'Active')->find($this->selectedPartyUser);
 
-            if ($this->creditPay > $this->cashAmount) {
-                $this->errorInCredit = true;
-                $this->dispatch('notiffication-error', ['message' => 'Credit payment cannot be greater than cash amount']);
-                $this->creditPay = 0;
-                $this->cashAmount = ((int)$this->sub_total - (int)$this->partyAmount - (int)$this->creditPay);
-                $this->clearCashNotes();
-
-                return;
-            } else if ($this->creditPay > ($user->credit_points - $user->use_credit)) {
+            if ($this->creditPay > ($user->credit_points - $user->use_credit)) {
                 $this->errorInCredit = true;
                 $this->dispatch('notiffication-error', ['message' => 'Credit payment cannot be greater than available credit.']);
                 $this->creditPay = 0;
@@ -437,6 +429,7 @@ class Shoppingcart extends Component
 
     public function toggleBox()
     {
+        dd($this);
         if (auth()->user()->hasRole('warehouse')) {
 
             $warehouse_product_photo_path = session(auth()->id() . '_warehouse_product_photo_path', []);
