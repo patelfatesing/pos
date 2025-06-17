@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 use Carbon\Carbon;
 use App\Models\Inventory;
 use Illuminate\Support\Facades\Auth;
+use App\Models\ShiftClosing;
 
 class PurchaseController extends Controller
 {
@@ -64,6 +65,15 @@ class PurchaseController extends Controller
             'products.*.amount' => 'required|numeric',
         ]);
 
+        $running_shift = ShiftClosing::where('branch_id', 1)
+            ->where('status', 'pending')
+            ->first();
+
+        if (!$running_shift) {            // null  ➔ destination store not open
+            return back()
+                ->withErrors(['to_store_id' => 'The Warehouse is not open.'])
+                ->withInput();
+        }
 
         DB::beginTransaction();
 
@@ -118,7 +128,7 @@ class PurchaseController extends Controller
                 $record = Product::with(['inventorieUnfiltered' => function ($query) use ($store_id) {
                     $query->where('store_id', $store_id);
                 }])->where('id', $product_id)->where('is_deleted', 'no')->firstOrFail();
-                
+
                 $inventoryService = new \App\Services\InventoryService();
 
                 if (!empty($record->inventorieUnfiltered)) {
