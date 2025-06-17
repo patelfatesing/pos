@@ -108,7 +108,7 @@ class ShiftManageController extends Controller
                 $status = "Closed";
             }
             $totalInvoicedAmount = \App\Models\Invoice::where('user_id', $row->user_id)
-                ->where('branch_id', $row->branch_id)
+                ->where('branch_id', $row->branch_id)->whereNotIn('status',[ 'Hold','resumed','archived'])
                 ->whereBetween('created_at', [$row->start_time, $endTime])
                 ->count();
             //$totalSales = $transactions->whereBetween('created_at', [$row->start_time, $endTime])->where('branch_id', $row->branch_id)->get();
