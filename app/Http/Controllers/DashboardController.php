@@ -28,7 +28,7 @@ class DashboardController extends Controller
         // Only admin users will reach this point
         $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
 
-        $totals = Invoice::selectRaw('SUM(total) as total_sales, SUM(total_item_qty) as total_products')->first();
+        $totals = Invoice::selectRaw('SUM(total) as total_sales, SUM(total_item_qty) as total_products')->whereNotIn('status',[ 'Hold','resumed','archived'])->first();
 
         $totalSales = $totals->total_sales;
         $totalProducts = $totals->total_products;
