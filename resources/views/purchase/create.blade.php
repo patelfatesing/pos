@@ -12,9 +12,13 @@
                             <div class="card-header d-flex justify-content-between">
                                 <div class="header-title">
                                     <h4 class="card-title">Delivery Invoice</h4>
+                                    @error('to_store_id')
+                                        <span class="text-danger">{{ $message }}</span>
+                                    @enderror
                                 </div>
                                 <div>
                                     <a href="{{ route('purchase.list') }}" class="btn btn-secondary">Back</a>
+                                    
                                 </div>
                             </div>
                             <div class="card-body">
@@ -142,11 +146,12 @@
                                                                         @enderror
                                                                     </td>
                                                                     <td>
-                                                                        <input type="hidden" name="products[{{ $i }}][mrp]"
+                                                                        <input type="hidden"
+                                                                            name="products[{{ $i }}][mrp]"
                                                                             value="{{ $product['mrp'] }}">
                                                                         <input type="number" class="form-control mrp"
-                                                                            step="0.01"
-                                                                            value="{{ $product['mrp'] }}" disabled>
+                                                                            step="0.01" value="{{ $product['mrp'] }}"
+                                                                            disabled>
                                                                         @error("products.$i.mrp")
                                                                             <span
                                                                                 class="text-danger">{{ $message }}</span>

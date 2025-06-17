@@ -606,13 +606,13 @@ class StockController extends Controller
                 return response()->json(['status' => 'error', 'message' => 'Request already processed.']);
             }
 
-            $running_shift = ShiftClosing::where('branch_id', $request->to_store_id)
+            $running_shift = ShiftClosing::where('branch_id', $stockRequest->requested_by)
                 ->where('status', 'pending')
                 ->first();
 
-            // if (!$running_shift) {            // null  ➔ destination store not 
-            //     return response()->json(['status' => 'error', 'message' => 'The destination store is not open.']);
-            // }
+            if (!$running_shift) {            // null  ➔ destination store not 
+                return response()->json(['status' => 'error', 'message' => 'The destination store is not open.']);
+            }
 
 
             if ($from_store_id == 1) {
