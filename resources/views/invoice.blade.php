@@ -141,7 +141,8 @@
             <td></td>
             <td></td>
             <td class="center">{{ $invoice->total_item_qty }}</td>
-            <td class="right">{{ number_format((float) $invoice->total_item_total, 2) }}</td>
+            <td class="right">{{ number_format(round((float) $invoice->total_item_total), 2) }}</td>
+
         </tr>
     </table>
 
@@ -154,8 +155,9 @@
         </tr>
         <tr>
             <td class="left">Discount:</td>
-            <td class="right">{{ number_format((float) $invoice->party_amount, 2) }}</td>
+            <td class="right">{{ number_format(round((float) $invoice->party_amount), 2) }}</td>
         </tr>
+
         <tr>
             <td class="left">Credit:</td>
             <td class="right">{{ number_format((float) $invoice->creditpay ?? 0, 2) }}</td>
