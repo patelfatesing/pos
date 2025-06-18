@@ -358,10 +358,10 @@
 
                             <td>
                                 @php
-                                    $this->roundedTotal = (float)$this->cashAmount + (float)$this->creditPay - (float)$this->cartItemTotalSum;
+                                    $this->roundedTotal = (float)$this->cashAmount + (float)$this->creditPay - round($this->cartItemTotalSum);
 
                                 @endphp
-                                {{ format_inr($this->roundedTotal) }}
+                                {{ $this->roundedTotal }}
                                 <input type="hidden" id="roundedTotal" value="{{ $this->roundedTotal }}" wire:model="roundedTotal">
                             </td>
                             <td class="table-success fw-bold">
