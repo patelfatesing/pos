@@ -289,21 +289,21 @@ class ShiftCloseModal extends Component
         $this->categoryTotals['payment']['TOTAL'] = $totalCashPaid+ ($totalUpiPaid+$totalOnlinePaid) ;
 
         $this->categoryTotals['summary']['OPENING CASH'] = @$this->currentShift->opening_cash;
-        $this->categoryTotals['summary']['TOTAL SALES'] = $totalSubTotal + $discountTotal-$totalRefundReturn-$totalRoundOf;
+        $this->categoryTotals['summary']['TOTAL SALES'] =$totals->debit_total+ $totalSubTotal + $discountTotal-$totalRefundReturn-$totalRoundOf;
         $this->categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
 
         $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] = $totalWith * (-1);
         $this->categoryTotals['summary']['UPI PAYMENT'] = ($totalUpiPaid+$totalOnlinePaid) * (-1);
         $this->categoryTotals['summary']['ROUND OFF'] = $totalRoundOf;
+        $this->categoryTotals['summary']['CREDIT'] = $totals->debit_total *(-1);
         //$this->categoryTotals['summary']['ONLINE PAYMENT'] = $totalOnlinePaid * (-1);
         if(!empty($this->creditCollacted->collacted_cash_amount))
             $this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] = $this->creditCollacted->collacted_cash_amount;
         // $this->categoryTotals['summary']['REFUND'] += $totalRefundReturn *(-1);
         $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['OPENING CASH'] + $this->categoryTotals['summary']['TOTAL SALES'] + $this->categoryTotals['summary']['DISCOUNT'] + $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $this->categoryTotals['summary']['UPI PAYMENT'] + @$this->categoryTotals['summary']['REFUND'] +
-            @$this->categoryTotals['summary']['ONLINE PAYMENT']+ @$this->categoryTotals['summary']['CREDIT COLLACTED BY CASH']+$totalRoundOf;
+            @$this->categoryTotals['summary']['ONLINE PAYMENT']+ @$this->categoryTotals['summary']['CREDIT COLLACTED BY CASH']+$totalRoundOf+$this->categoryTotals['summary']['CREDIT'];
         $this->categoryTotals['summary']['REFUND'] = $totalRefund * (-1) + $totalRefundReturn * (-1);
         //$this->categoryTotals['summary']['REFUND RETURN'] = $totalRefundReturn*(-1);
-        $this->categoryTotals['summary']['CREDIT'] = $totals->debit_total;
         $this->categoryTotals['summary']['REFUND_CREDIT'] = $totals->credit_total;
         if (!empty($this->categoryTotals['summary']['REFUND_CREDIT'])) {
             $this->categoryTotals['summary']['REFUND_CREDIT'] = (int)$this->categoryTotals['summary']['REFUND_CREDIT'] * (-1);
@@ -433,14 +433,7 @@ class ShiftCloseModal extends Component
     // }
     public function save()
     {
-        $this->validate([
-            'products.*.qty' => 'required|integer',
-        ]);
-          if($this->showYesterDayShiftTime){
-            $dateMatch = Carbon::yesterday();
-        }else{
-            $dateMatch = Carbon::today();
-        }
+       
         if (empty($this->products)) {
             $this->dispatch('notiffication-error', ['message' => 'Please add qty of product ']);
             return;

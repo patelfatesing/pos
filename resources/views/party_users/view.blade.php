@@ -31,15 +31,21 @@
                                     </div>
                                     <div class="card-body">
                                         <ul class="nav nav-pills mb-3 nav-fill" id="pills-tab-1" role="tablist">
-                                            <li class="nav-item">
+                                            {{-- <li class="nav-item">
                                                 <a class="nav-link active" id="pills-home-tab-fill" data-toggle="pill"
                                                     href="#pills-home-fill" role="tab" aria-controls="pills-home"
                                                     aria-selected="true"><span class="text-dark">Customer Info</a>
+                                            </li> --}}
+                                            <li class="nav-item">
+                                                <a class="nav-link active" id="pills-profile-tab-fill" data-toggle="pill"
+                                                    href="#pills-profile-fill" role="tab" aria-controls="pills-profile"
+                                                    aria-selected="false"><span class="text-dark">Transaction
+                                                        History</span></a>
                                             </li>
                                             <li class="nav-item">
                                                 <a class="nav-link" id="pills-profile-tab-fill" data-toggle="pill"
-                                                    href="#pills-profile-fill" role="tab" aria-controls="pills-profile"
-                                                    aria-selected="false"><span class="text-dark">Credit/Transaction
+                                                    href="#pills-contact-fill" role="tab" aria-controls="pills-profile"
+                                                    aria-selected="false"><span class="text-dark">Credit 
                                                         History</span></a>
                                             </li>
 
@@ -169,10 +175,23 @@
                                             </div>
                                             <div class="tab-pane fade" id="pills-contact-fill" role="tabpanel"
                                                 aria-labelledby="pills-contact-tab-fill">
-                                                <p>Lorem Ipsum is simply dummy text of the printing and typesetting
-                                                    industry. Lorem Ipsum has been the industry's standard dummy text
-                                                    ever since the 1500s, when an unknown printer took a galley of type
-                                                    and scrambled it to make a type specimen book.</p>
+                                                <div class="table-responsive rounded mb-3">
+                                                    <table class="table data-tables table-striped"
+                                                        id="credit_history_table" style="width: 100%">
+
+                                                        <thead class="bg-white text-uppercase">
+
+                                                            <tr class="ligth ligth-data">
+                                                                <th>Transaction Number</th>
+                                                                <th>Transaction Date</th>
+                                                                <th>Credit Amount</th>
+                                                                <th>Debit Amount</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="ligth-body">
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -282,6 +301,63 @@
             }],
             order: [
                 [2, 'desc']
+            ], // 🟢 Sort by created_at DESC by default
+            dom: "Bfrtip",
+            buttons: ['pageLength'],
+            lengthMenu: [
+                [10, 25, 50],
+                ['10 rows', '25 rows', '50 rows']
+            ]
+        });
+
+        if ($.fn.DataTable.isDataTable('#credit_history_table')) {
+            $('#credit_history_table').DataTable().clear().destroy();
+        }
+
+        $('#credit_history_table').DataTable({
+            pageLength: 10,
+            responsive: true,
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '{{ url('party-users/get-credit-history') }}',
+                type: 'POST',
+                data: function(d) {
+                    d.customer_id = customer_id;
+                }
+            },
+            columns: [{
+                    data: 'invoice_number',
+                    name: 'invoice_number'
+                },
+               
+                  {
+                    data: 'invoice_date',
+                    name: 'invoice_date',
+                    render: function(data, type, row) {
+                        if(row.invoice_date==null){
+
+                            return row.created_at;
+                        }else{
+                            return row.invoice_date;
+                        }
+                    },
+                },
+                {
+                    data: 'credit_amount',
+                    name: 'credit_amount'
+                },
+                 {
+                    data: 'debit_amount',
+                    name: 'debit_amount'
+                },
+            ],
+            aoColumnDefs: [{
+                bSortable: false,
+                aTargets: [1] // make "action" column unsortable
+            }],
+            order: [
+                [1, 'desc']
             ], // 🟢 Sort by created_at DESC by default
             dom: "Bfrtip",
             buttons: ['pageLength'],
