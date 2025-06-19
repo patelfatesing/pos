@@ -29,9 +29,10 @@ class DashboardController extends Controller
         // Only admin users will reach this point
         $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
 
-        $totals = Invoice::selectRaw('SUM(total) as total_sales, SUM(total_item_qty) as total_products')->whereNotIn('status',[ 'Hold','resumed','archived'])->first();
+        $totals = Invoice::selectRaw('SUM(total) as total_sales, SUM(creditpay) as total_creditpay, SUM(total_item_qty) as total_products')->whereNotIn('status',[ 'Hold','resumed','archived'])->first();
 
         $totalSales = $totals->total_sales;
+        $total_creditpay = $totals->total_creditpay;
         $totalProducts = $totals->total_products;
 
         $inventorySummary = \DB::table('inventories')
@@ -41,7 +42,7 @@ class DashboardController extends Controller
 
         $data= [
             'store'         => "Selete Store",
-            'sales'         => $totalSales,
+            'sales'         => $totalSales+$total_creditpay,
             'products'        => $totalProducts,
             'total_cost_price'     => $inventorySummary->total_cost_price,
             'top_products'  => $totalSales,

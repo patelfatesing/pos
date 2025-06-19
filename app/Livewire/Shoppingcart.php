@@ -1038,8 +1038,15 @@ class Shoppingcart extends Component
 
         // return view('shift_closing.show', compact('shift'));
         //$this->loadCartData();
-        $this->commissionUsers = Commissionuser::where('status', 'Active')->where('is_deleted', '!=', 'Yes')->get(); // Assuming you have a model for this
-        $this->partyUsers = Partyuser::where('status', 'Active')->where('is_delete', '!=', 'Yes')->get(); // Assuming you have a model for this
+        $this->commissionUsers = Commissionuser::where('status', 'Active')
+        ->where('is_deleted', '!=', 'Yes')
+        ->orderBy('first_name', 'asc') // Replace 'name' with the actual column you want to sort by
+        ->get();
+
+        $this->partyUsers = Partyuser::where('status', 'Active')
+        ->orderBy('first_name', 'asc') // Replace 'name' with the actual column you want to sort by
+        ->get();
+
         foreach ($this->cartitems as $item) {
             $this->quantities[$item->id] = $item->quantity;
         }
