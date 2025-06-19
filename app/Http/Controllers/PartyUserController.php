@@ -391,6 +391,98 @@ class PartyUserController extends Controller
             'data' => $data,
         ]);
     }
+    public function getCreditHistory(Request $request)
+    {
+        $draw = $request->input('draw', 1);
+        $start = $request->input('start', 0);
+        $length = $request->input('length', 10);
+        $searchValue = $request->input('search.value', '');
+        $orderColumnIndex = $request->input('order.0.column', 0);
+        $orderDirection = $request->input('order.0.dir', 'desc');
+
+        $columns = [
+            'invoice_id',
+            'invoice_number',
+            'invoice_date',
+            'invoice_total',
+            'commission_amount',
+            'commission_user_id',
+            'commission_user_name',
+            'commission_type',
+            'commission_value',
+            'applies_to',
+            'start_date',
+            'end_date',
+            'debit_amount'
+        ];
+
+        $orderColumn = $columns[$orderColumnIndex] ?? 'invoice_date';
+        if (!in_array($orderDirection, ['asc', 'desc'])) {
+            $orderDirection = 'desc';
+        }
+
+            // Base query
+        $query = DB::table('credit_histories as ch')
+        ->select(
+            'i.id as invoice_id',
+            'i.invoice_number',
+            'i.created_at as invoice_date',
+            'i.total as invoice_total',
+            'i.creditpay as commission_amount',
+            'cu.id as party_user_id',
+            'cu.first_name as commission_user_name',
+            'cu.credit_points',
+            'ch.total_purchase_items',
+            'ch.credit_amount',
+            'ch.debit_amount',
+            'ch.status',
+            'ch.created_at',
+            'ch.id as commission_id',
+            'pi.image_path',
+            'pi.id as party_user_image_id',
+            'pi.transaction_id',
+            'pi.type',
+        )
+        ->leftJoin('invoices as i', 'ch.invoice_id', '=', 'i.id')
+        ->leftJoin('party_users as cu', 'ch.party_user_id', '=', 'cu.id')
+        ->leftJoin('party_images as pi', 'ch.invoice_id', '=', 'pi.transaction_id');
+
+
+
+        // Total record count before filters
+        $recordsTotal = DB::table('invoices')
+            ->whereNotNull('party_user_id')
+            ->count();
+
+        // Apply search filter
+        if (!empty($searchValue)) {
+            $query->where(function ($q) use ($searchValue) {
+                $q->where('i.invoice_number', 'like', "%$searchValue%")
+                    ->orWhere('cu.first_name', 'like', "%$searchValue%");
+            });
+        }
+
+        if ($request->customer_id) {
+            $query->where('cu.id', $request->customer_id);
+        }
+
+        // Count after filters
+        $recordsFiltered = $query->count();
+
+        // Get data with order and pagination
+        $data = $query
+            ->orderBy($orderColumn, $orderDirection)
+            ->offset($start)
+            ->limit($length)
+            ->get();
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $data,
+        ]);
+    }
 
     public function custTrasactionPhoto($id, Request $request)
     {
