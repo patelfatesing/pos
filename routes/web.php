@@ -274,7 +274,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/party-users/get-commission-data', [PartyUserController::class, 'getDataCommission'])->name('party-users.get.commission.data');
     Route::get('/cust-trasaction-photo/view/{id}', [PartyUserController::class, 'custTrasactionPhoto'])->name('cust-trasaction-photo-view');
     Route::post('/party-users/status-change', [PartyUserController::class, 'statusChange'])->name('party-users.status-change');
-
+    Route::post('/party-users/get-credit-history', [PartyUserController::class, 'getCreditHistory'])->name('party-users.get.credit.history');
+   
     // });
 
     Route::get('/stock-transfer/craete-transfer', [StockTransferController::class, 'craeteTransfer'])->name('stock-transfer.craete-transfer');
