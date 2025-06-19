@@ -60,7 +60,10 @@
                                                 <td>{{ $stock->sold_stock }}</td>
                                                 <td>{{ $stock->closing_stock }}</td>
                                                 <td>{{ $stock->physical_stock }}</td>
-                                                <td>{{ $stock->difference_in_stock }}</td>
+                                                <td
+                                                    style="background-color: {{ $stock->difference_in_stock < 0 ? '#ffcccc' : 'transparent' }}">
+                                                    {{ $stock->difference_in_stock }}
+                                                </td>
                                             </tr>
                                         @empty
                                             <tr>
