@@ -13,9 +13,6 @@
         <div class="content-page">
             <div class="container-fluid">
                 <h1>Stock Inventory</h1>
-
-
-
                 <!-- Inventory Table -->
                 <div class="col-lg-12">
                     <!-- Store Filter -->
@@ -41,7 +38,7 @@
                                     <th>Expiry Date</th>
                                     <th>Stock Low Level</th>
                                     <th>Last updated</th>
-                                    
+
                                 </tr>
                             </thead>
                             <tfoot>

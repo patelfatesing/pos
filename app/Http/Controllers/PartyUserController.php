@@ -43,10 +43,16 @@ class PartyUserController extends Controller
         $recordsTotal = Partyuser::count();
         $recordsFiltered = $query->count();
 
-        $data = $query->orderBy($orderColumn, $orderDirection)
-            ->offset($start)
-            ->limit($length)
-            ->get();
+        // pagination: only when length > 0
+        if ($length > 0) {
+            $query->skip($start)->take($length);
+        }
+
+        $data = $query->orderBy($orderColumn, $orderDirection)->get();
+        // $data = $query->orderBy($orderColumn, $orderDirection)
+        //     ->offset($start)
+        //     ->limit($length)
+        //     ->get();
 
         $records = [];
 
@@ -421,31 +427,31 @@ class PartyUserController extends Controller
             $orderDirection = 'desc';
         }
 
-            // Base query
+        // Base query
         $query = DB::table('credit_histories as ch')
-        ->select(
-            'i.id as invoice_id',
-            'i.invoice_number',
-            'i.created_at as invoice_date',
-            'i.total as invoice_total',
-            'i.creditpay as commission_amount',
-            'cu.id as party_user_id',
-            'cu.first_name as commission_user_name',
-            'cu.credit_points',
-            'ch.total_purchase_items',
-            'ch.credit_amount',
-            'ch.debit_amount',
-            'ch.status',
-            'ch.created_at',
-            'ch.id as commission_id',
-            'pi.image_path',
-            'pi.id as party_user_image_id',
-            'pi.transaction_id',
-            'pi.type',
-        )
-        ->leftJoin('invoices as i', 'ch.invoice_id', '=', 'i.id')
-        ->leftJoin('party_users as cu', 'ch.party_user_id', '=', 'cu.id')
-        ->leftJoin('party_images as pi', 'ch.invoice_id', '=', 'pi.transaction_id');
+            ->select(
+                'i.id as invoice_id',
+                'i.invoice_number',
+                'i.created_at as invoice_date',
+                'i.total as invoice_total',
+                'i.creditpay as commission_amount',
+                'cu.id as party_user_id',
+                'cu.first_name as commission_user_name',
+                'cu.credit_points',
+                'ch.total_purchase_items',
+                'ch.credit_amount',
+                'ch.debit_amount',
+                'ch.status',
+                'ch.created_at',
+                'ch.id as commission_id',
+                'pi.image_path',
+                'pi.id as party_user_image_id',
+                'pi.transaction_id',
+                'pi.type',
+            )
+            ->leftJoin('invoices as i', 'ch.invoice_id', '=', 'i.id')
+            ->leftJoin('party_users as cu', 'ch.party_user_id', '=', 'cu.id')
+            ->leftJoin('party_images as pi', 'ch.invoice_id', '=', 'pi.transaction_id');
 
 
 
