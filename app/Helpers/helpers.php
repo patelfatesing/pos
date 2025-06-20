@@ -48,22 +48,6 @@ if (!function_exists('sendNotification')) {
     }
 }
 
-// if (!function_exists('getNotificationsByNotifyTo')) {
-//     function getNotificationsByNotifyTo($userId, $branch_id, $limit = 50)
-//     {
-//         if ($branch_id != "") {
-//             return Notification::where('notify_to', $branch_id)
-//                 ->orderBy('created_at', 'desc')
-//                 ->limit($limit)
-//                 ->get();
-//         } else {
-//             return Notification::where('notify_to', null)
-//                 ->orderBy('created_at', 'desc')
-//                 ->limit($limit)
-//                 ->get();
-//         }
-//     }
-// }
 if (!function_exists('getNotificationsByNotifyTo')) {
     function getNotificationsByNotifyTo($userId, $branch_id, $limit = 50)
     {
@@ -200,6 +184,7 @@ if (!function_exists('stockStatusChange')) {
 
             if (!empty($existing)) {
                 $existing->added_stock += $qty;
+                $existing->closing_stock = closingStock($existing->opening_stock,$existing->added_stock,$existing->transferred_stock,$existing->sold_stock);
                 $existing->save();
             } else {
 
@@ -215,6 +200,7 @@ if (!function_exists('stockStatusChange')) {
                     if (!empty($existing_ck)) {
                         $existing_ck->added_stock += $qty;
                         $existing_ck->shift_id = $running_shift->id;
+                        $existing_ck->closing_stock = closingStock($existing_ck->opening_stock,$existing_ck->added_stock,$existing_ck->transferred_stock,$existing_ck->sold_stock);
                         $existing_ck->save();
                     } else {
                         DailyProductStock::create([
@@ -222,6 +208,7 @@ if (!function_exists('stockStatusChange')) {
                             'product_id' => $product_id,
                             'date' => $date,
                             'opening_stock' => $qty,
+                            'closing_stock' => $qty,
                             'shift_id' => $running_shift->id
                         ]);
                     }
@@ -230,7 +217,8 @@ if (!function_exists('stockStatusChange')) {
                         'branch_id' => $branch_id,
                         'product_id' => $product_id,
                         'date' => $date,
-                        'opening_stock' => $qty
+                        'opening_stock' => $qty,
+                        'closing_stock' => $qty,
                     ]);
                 }
             }
@@ -247,6 +235,7 @@ if (!function_exists('stockStatusChange')) {
 
             if (! empty($existing)) {
                 $existing->transferred_stock += $qty;
+                $existing->closing_stock = closingStock($existing->opening_stock,$existing->added_stock,$existing->transferred_stock,$existing->sold_stock);
                 $existing->save();
             } else {
 
@@ -265,6 +254,7 @@ if (!function_exists('stockStatusChange')) {
                     if (!empty($existing_ck)) {
                         $existing_ck->transferred_stock += $qty;
                         $existing_ck->shift_id = $running_shift->id;
+                        $existing_ck->closing_stock = closingStock($existing_ck->opening_stock,$existing_ck->added_stock,$existing_ck->transferred_stock,$existing_ck->sold_stock);
                         $existing_ck->save();
                     } else {
                         DailyProductStock::create([
@@ -272,6 +262,7 @@ if (!function_exists('stockStatusChange')) {
                             'product_id' => $product_id,
                             'date' => $date,
                             'opening_stock' => $qty,
+                            'closing_stock' => $qty,
                             'shift_id' => $running_shift->id
                         ]);
                     }
@@ -280,7 +271,8 @@ if (!function_exists('stockStatusChange')) {
                         'branch_id' => $branch_id,
                         'product_id' => $product_id,
                         'date' => $date,
-                        'opening_stock' => $qty
+                        'opening_stock' => $qty,
+                        'closing_stock' => $qty,
                     ]);
                 }
             }
@@ -296,6 +288,7 @@ if (!function_exists('stockStatusChange')) {
 
             if (!empty($existing)) {
                 $existing->sold_stock += $qty;
+                $existing->closing_stock = closingStock($existing->opening_stock,$existing->added_stock,$existing->transferred_stock,$existing->sold_stock);
                 $existing->save();
             } else {
                 if ($shift_id == "") {
@@ -303,7 +296,8 @@ if (!function_exists('stockStatusChange')) {
                         'branch_id' => $branch_id,
                         'product_id' => $product_id,
                         'date' => $date,
-                        'sold_stock' => $qty
+                        'sold_stock' => $qty,
+                        'closing_stock' => $qty,
                     ]);
                 } else {
                     DailyProductStock::create([
@@ -311,37 +305,40 @@ if (!function_exists('stockStatusChange')) {
                         'product_id' => $product_id,
                         'date' => $date,
                         'sold_stock' => $qty,
+                        'closing_stock' => $qty,
                         'shift_id' => $shift_id
                     ]);
                 }
             }
         }
     }
+}
 
-    if (!function_exists('getProductStockQuery')) {
-        function getProductStockQuery()
-        {
-            return DB::table('inventories')
-                ->select(
-                    'inventories.product_id',
-                    DB::raw('MAX(products.name) as name'),
-                    DB::raw('MAX(products.size) as size'),
-                    DB::raw('MAX(categories.name) as category_name'),
-                    DB::raw('MAX(sub_categories.name) as subcategory_name'),
-                    DB::raw('SUM(inventories.quantity) as current_stock'),
-                    DB::raw('MAX(products.reorder_level) as reorder_level')
-                )
-                ->join('products', 'inventories.product_id', '=', 'products.id')
-                ->join('categories', 'products.category_id', '=', 'categories.id')
-                ->join('sub_categories', 'products.subcategory_id', '=', 'sub_categories.id')
-                ->join('branches', 'inventories.store_id', '=', 'branches.id') // assuming branch_id in inventories
-                ->where('branches.is_warehouser', 'yes')
-                ->groupBy('inventories.product_id');
-        }
+if (!function_exists('getProductStockQuery')) {
+    function getProductStockQuery()
+    {
+        return DB::table('inventories')
+            ->select(
+                'inventories.product_id',
+                DB::raw('MAX(products.name) as name'),
+                DB::raw('MAX(products.size) as size'),
+                DB::raw('MAX(categories.name) as category_name'),
+                DB::raw('MAX(sub_categories.name) as subcategory_name'),
+                DB::raw('SUM(inventories.quantity) as current_stock'),
+                DB::raw('MAX(products.reorder_level) as reorder_level')
+            )
+            ->join('products', 'inventories.product_id', '=', 'products.id')
+            ->join('categories', 'products.category_id', '=', 'categories.id')
+            ->join('sub_categories', 'products.subcategory_id', '=', 'sub_categories.id')
+            ->join('branches', 'inventories.store_id', '=', 'branches.id') // assuming branch_id in inventories
+            ->where('branches.is_warehouser', 'yes')
+            ->groupBy('inventories.product_id');
     }
 }
 
+
 if (!function_exists('stockRealtimeUpdate')) {
+
     function stockRealtimeUpdate($product_id, $branch_id, $qty, $type, $shift_id = "")
     {
         $date = Carbon::today();
@@ -350,12 +347,13 @@ if (!function_exists('stockRealtimeUpdate')) {
 
             $existing = DailyProductStock::where('branch_id', $branch_id)
                 ->where('product_id', $product_id)
-                // ->whereDate('date', $date)
                 ->where('shift_id', $shift_id)
                 ->first();
 
+
             if (!empty($existing)) {
                 $existing->added_stock += $qty;
+                $existing->closing_stock = closingStock($existing->opening_stock, $existing->added_stock, $existing->transferred_stock, $existing->closing_stock);
                 $existing->save();
             } else {
 
@@ -368,9 +366,11 @@ if (!function_exists('stockRealtimeUpdate')) {
                         ->where('shift_id', $running_shift->id)
                         ->where('product_id', $product_id)
                         ->first();
+
                     if (!empty($existing_ck)) {
+
                         $existing_ck->added_stock += $qty;
-                        $existing_ck->shift_id = $running_shift->id;
+                        $existing_ck->closing_stock = closingStock($existing_ck->opening_stock, $existing_ck->added_stock, $existing_ck->transferred_stock, $existing_ck->closing_stock);
                         $existing_ck->save();
                     } else {
                         DailyProductStock::create([
@@ -378,6 +378,7 @@ if (!function_exists('stockRealtimeUpdate')) {
                             'product_id' => $product_id,
                             'date' => $date,
                             'opening_stock' => $qty,
+                            'closing_stock' => $qty,
                             'shift_id' => $running_shift->id
                         ]);
                     }
@@ -386,7 +387,8 @@ if (!function_exists('stockRealtimeUpdate')) {
                         'branch_id' => $branch_id,
                         'product_id' => $product_id,
                         'date' => $date,
-                        'opening_stock' => $qty
+                        'opening_stock' => $qty,
+                        'closing_stock' => $qty
                     ]);
                 }
             }
@@ -397,12 +399,12 @@ if (!function_exists('stockRealtimeUpdate')) {
 
             $existing = DailyProductStock::where('branch_id', $branch_id)
                 ->where('product_id', $product_id)
-                // ->whereDate('date', $date)
                 ->where('shift_id', $shift_id)
                 ->first();
 
             if (! empty($existing)) {
                 $existing->transferred_stock += $qty;
+                $existing->closing_stock = closingStock($existing->opening_stock, $existing->added_stock, $existing->transferred_stock, $existing->closing_stock);
                 $existing->save();
             } else {
 
@@ -420,7 +422,7 @@ if (!function_exists('stockRealtimeUpdate')) {
 
                     if (!empty($existing_ck)) {
                         $existing_ck->transferred_stock += $qty;
-                        $existing_ck->shift_id = $running_shift->id;
+                        $existing_ck->closing_stock = closingStock($existing_ck->opening_stock, $existing_ck->added_stock, $existing_ck->transferred_stock, $existing_ck->closing_stock);
                         $existing_ck->save();
                     } else {
                         DailyProductStock::create([
@@ -428,6 +430,7 @@ if (!function_exists('stockRealtimeUpdate')) {
                             'product_id' => $product_id,
                             'date' => $date,
                             'opening_stock' => $qty,
+                            'closing_stock' => $qty,
                             'shift_id' => $running_shift->id
                         ]);
                     }
@@ -442,20 +445,53 @@ if (!function_exists('stockRealtimeUpdate')) {
                 ->where('shift_id', $shift_id)
                 ->first();
 
-            if (!empty($existing_ck)) {
-                $existing_ck->transferred_stock += $qty;
-                $existing_ck->shift_id = $running_shift->id;
-                $existing_ck->save();
+            if (!empty($existing)) {
+                $existing->sold_stock += $qty;
+                $existing->closing_stock = closingStock($existing->opening_stock, $existing->added_stock, $existing->transferred_stock, $existing->closing_stock);
+                $existing->save();
+            } else {
+                if ($shift_id == "") {
+                    DailyProductStock::create([
+                        'branch_id' => $branch_id,
+                        'product_id' => $product_id,
+                        'date' => $date,
+                        'sold_stock' => $qty,
+                        'closing_stock' => $qty
+                    ]);
+                } else {
+                    DailyProductStock::create([
+                        'branch_id' => $branch_id,
+                        'product_id' => $product_id,
+                        'date' => $date,
+                        'sold_stock' => $qty,
+                        'closing_stock' => $qty,
+                        'shift_id' => $shift_id
+                    ]);
+                }
             }
-
-
-
-            DailyProductStock::create([
-                'branch_id' => $branch_id,
-                'product_id' => $product_id,
-                'date' => $date,
-                'sold_stock' => $qty
-            ]);
         }
     }
 }
+
+function closingStock(float|int $opening = 0, float|int $added = 0, float|int $transferred = 0, float|int $sold = 0)
+{
+    return ($opening + $added - $transferred - $sold);
+}
+
+
+// if (!function_exists('getNotificationsByNotifyTo')) {
+//     function getNotificationsByNotifyTo($userId, $branch_id, $limit = 50)
+//     {
+//         if ($branch_id != "") {
+//             return Notification::where('notify_to', $branch_id)
+//                 ->orderBy('created_at', 'desc')
+//                 ->limit($limit)
+//                 ->get();
+//         } else {
+//             return Notification::where('notify_to', null)
+//                 ->orderBy('created_at', 'desc')
+//                 ->limit($limit)
+//                 ->get();
+//         }
+//     }
+// }

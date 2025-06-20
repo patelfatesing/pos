@@ -75,6 +75,7 @@
                                                     <tr>
                                                         <th scope="col">Transaction Date</th>
                                                         <th scope="col">Transaction Status</th>
+                                                        <th scope="col">Credit</th>
                                                         @if ($invoice->ref_no != '')
                                                             <th scope="col">Transaction No(Ref)</th>
                                                         @endif
@@ -145,6 +146,16 @@
                                                     <h6 class="mb-0">Payment Mode:</h6>
                                                     <p class="mb-0">{{ $invoice->payment_mode }}</p>
                                                 </div>
+                                                <div class="mb-2 d-flex justify-content-between">
+                                                    <h6>Credit: </h6>
+
+                                                    @if ($invoice->creditpay != '')
+                                                        <p> ₹{{ number_format($invoice->creditpay, 2) }}</p>
+                                                    @else
+                                                        <p>-</p>
+                                                    @endif
+                                                </div>
+
                                                 <div class="mb-2 d-flex justify-content-between">
                                                     <h6 class="mb-0">Sub Total:</h6>
                                                     <p class="mb-0">₹{{ number_format($invoice->sub_total, 2) }}</p>
