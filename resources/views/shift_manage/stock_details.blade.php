@@ -52,7 +52,8 @@
                                                     : 0;
                                                 $totalDifference += $stock->difference_in_stock;
                                             @endphp
-                                            <tr>
+                                            <tr
+                                                style="background-color: {{ $stock->difference_in_stock < 0 ? '#ffcccc' : 'transparent' }}">
                                                 <td>{{ $stock->product->name ?? 'N/A' }}</td>
                                                 <td>{{ $stock->opening_stock }}</td>
                                                 <td>{{ $stock->added_stock }}</td>
@@ -60,7 +61,9 @@
                                                 <td>{{ $stock->sold_stock }}</td>
                                                 <td>{{ $stock->closing_stock }}</td>
                                                 <td>{{ $stock->physical_stock }}</td>
-                                                <td>{{ $stock->difference_in_stock }}</td>
+                                                <td>
+                                                    {{ $stock->difference_in_stock }}
+                                                </td>
                                             </tr>
                                         @empty
                                             <tr>
@@ -69,7 +72,7 @@
                                             </tr>
                                         @endforelse
 
-                                        <tr class="fw-bold text-end">
+                                        <tr class="fw-semibold text-end" style="font-size: 1.1rem;">
                                             <th colspan="1">Total</th>
                                             <th>{{ $totalOpening }}</th>
                                             <th>{{ $totalAdded }}</th>
@@ -77,7 +80,7 @@
                                             <th>{{ $totalSold }}</th>
                                             <th>{{ $totalClosing }}</th>
                                             <th>{{ $totalPhysical }}</th>
-                                            <th>{{ $totalDifference }}</th>
+                                            <th style="background-color: {{ $totalDifference < 0 ? '#ffcccc' : 'transparent' }}">{{ $totalDifference }}</th>
                                         </tr>
                                     </tbody>
                                 </table>
