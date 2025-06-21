@@ -16,12 +16,14 @@ class TakeTwoPictures extends Component
     public ?TemporaryUploadedFile $customerPhoto = null;
     public bool $isProductPhotoTaken = false;
     public bool $isCustomerPhotoTaken = false;
-
+    public bool $showHoldImg = false;
+    public $partyHoldPic="";
+    public $commissionHoldPic="";
     // Session keys for storing photo paths
     private const SESSION_KEY_PRODUCT = 'product_photo_path';
     private const SESSION_KEY_CUSTOMER = 'customer_photo_path';
     private const SESSION_KEY_TIMESTAMP = 'photos_timestamp';
-    protected $listeners = ['resetPicAll'];
+    protected $listeners = ['resetPicAll','setImg','setHoldImage','resetHoldPic'];
 
     /**
      * Validation rules for the photos
@@ -216,6 +218,11 @@ class TakeTwoPictures extends Component
         $this->resetValidation();
         $this->dispatch('photos-reset');
     }
+    public function resetHoldPic(): void
+    {
+        $this->reset(['partyHoldPic', 'commissionHoldPic','showHoldImg']);
+
+    }
      public function resetPicAll(): void
     {
         $this->reset(['productPhoto', 'customerPhoto']);
@@ -250,7 +257,59 @@ class TakeTwoPictures extends Component
 
         return $path ? $path: null;
     }
+   public function getHoldPhotoUrl(string $type): ?array
+    {
+        $userKeyPrefix = auth()->id() . "_" . Auth::user()->role->name;
 
+        if ($type === 'party') {
+            $customerPath = session($userKeyPrefix . '_party_custtomer_img');
+            $productPath = session($userKeyPrefix . '_party_product_img');
+
+            return [
+                $type.'_customer' => $customerPath ?: null,
+                $type.'_product' => $productPath ?: null,
+            ];
+        }else if ($type === 'commission') {
+            $customerPath = session($userKeyPrefix . '_commission_custtomer_img');
+            $productPath = session($userKeyPrefix . '_commission_product_img');
+
+            return [
+                $type.'_customer'  => $customerPath ?: null,
+                $type.'_product'=> $productPath ?: null,
+            ];
+        } 
+
+        return null;
+    }
+    public function setImg()
+    {
+        if(!empty($this->partyHoldPic)){
+             $this->showHoldImg = true;
+        }else{
+
+            $this->showHoldImg = false;
+        }
+       // $this->partyHoldPic=$this->getHoldPhotoUrl('party');
+        //$this->commissionHoldPic=$this->getHoldPhotoUrl('commission');
+    }
+    public function setHoldImage($imageData){
+        $type=$imageData['type'] ??'';
+        if($imageData['type']=="party")
+        {
+            $this->partyHoldPic=[
+                $type.'_customer' => $imageData['customer'] ?: null,
+                $type.'_product' => $imageData['product'] ?: null,
+            ];
+
+        }
+        else{
+            $this->partyHoldPic=[
+                $type.'_customer' => $imageData['customer'] ?: null,
+                $type.'_product' => $imageData['product'] ?: null,
+            ];
+        }
+
+    }
     /**
      * Render the component
      */
@@ -260,7 +319,7 @@ class TakeTwoPictures extends Component
             'canSave' => $this->areBothPhotosTaken(),
             'storedPhotos' => $this->hasStoredPhotos() ? $this->getStoredPhotoPaths() : null,
             'productPhotoUrl' => $this->getPhotoUrl('product'),
-            'customerPhotoUrl' => $this->getPhotoUrl('customer')
+            'customerPhotoUrl' => $this->getPhotoUrl('customer'),
         ]);
     }
 }

@@ -97,7 +97,7 @@
         
         <strong>Name:</strong> {{ $customer_name ?? '' }}<br>
         @if ($invoice->ref_no != '')
-            <strong>Date:</strong> {{ \Carbon\Carbon::parse($invoice->updated_at)->format('d/m/Y H:i') }}
+            <strong>Date:</strong> {{ \Carbon\Carbon::parse($invoice->updated_at)->format('d/m/Y H:i') }} <br>
             <strong>Transaction No(Ref):</strong>
             {{ $invoice->ref_no }}
             ({{ $invoice->created_at->format('Y-m-d H:i:s') }})
