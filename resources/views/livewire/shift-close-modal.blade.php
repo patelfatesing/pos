@@ -15,10 +15,10 @@
                     <div class="modal-header bg-primary text-white rounded-top-4">
                         <div class="d-flex flex-column">
                             <h5 class="modal-title fw-semibold">
-                                <i class="bi bi-cash-coin me-2"></i> Shift Close Summary - {{ $branch_name ?? 'Shop' }}
+                                <i class="bi bi-cash-coin me-2"></i> {{ $this->currentShift->shift_no ?? '' }} - Shift Close Summary - {{ $branch_name ?? 'Shop' }}
                             </h5>
                         </div>
-                        @if ($this->showYesterDayShiftTime == false)
+                        @if ($this->showYesterDayShiftTime == false && $this->shiftclosehidecross==false)
                             <button type="button" class="close" wire:click="$set('showModal', false)">
                                 <span aria-hidden="true">×</span>
                             </button>
