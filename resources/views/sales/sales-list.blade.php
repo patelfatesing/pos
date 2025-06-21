@@ -92,14 +92,6 @@
                 dom: 'Blfrtip',
                 buttons: [
                     {
-                        extend: 'csvHtml5',
-                        text: 'Export CSV',
-                        className: 'btn btn-sm btn-outline-primary',
-                        title: 'Transaction Report',
-                        filename: 'transaction_report_csv',
-                        exportOptions: { columns: ':visible' }
-                    },
-                    {
                         extend: 'excelHtml5',
                         text: 'Export Excel',
                         className: 'btn btn-sm btn-outline-success',

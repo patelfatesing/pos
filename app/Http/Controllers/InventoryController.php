@@ -91,10 +91,16 @@ class InventoryController extends Controller
         $recordsTotal = \App\Models\Inventory::count();
         $recordsFiltered = $query->count();
 
-        $data = $query->orderBy($orderColumn, $orderDirection)
-            ->offset($start)
-            ->limit($length)
-            ->get();
+        
+        // $data = $query->orderBy($orderColumn, $orderDirection)
+        //     ->offset($start)
+        //     ->limit($length)
+        //     ->get();
+        if ($length > 0) {
+            $query->skip($start)->take($length);
+        }
+
+        $data = $query->orderBy($orderColumn, $orderDirection)->get();
 
 
         $records = [];
