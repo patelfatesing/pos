@@ -1311,12 +1311,23 @@ class Shoppingcart extends Component
             $this->dispatch('notiffication-error', ['message' => 'No cart data to void.']);
             return;
         }
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
         // Clear the cart
         $cartItems->delete();
+        $resumeInv=Invoice::where('user_id', auth()->id())
+        ->where('branch_id', $branch_id)
+        ->where('status', 'Resumed')
+        ->first();
+        if(!empty($resumeInv)){
+
+            InvoiceHistory::logFromInvoice($resumeInv, 'Void Sales', auth()->id());
+            $resumeInv->delete();
+        }
+
 
         // Reset search-related properties
-        $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount');
+        $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount','selectedPartyUser','selectedCommissionUser','removeCrossHold');
 
         // Dispatch browser event or Livewire event
         $this->dispatch('notiffication-sucess', ['message' => 'Your transaction has been cleared.']);
@@ -1466,7 +1477,7 @@ class Shoppingcart extends Component
             // Optional: reset UI inputs
             //$this->dispatch('updateCartCount');
             $this->dispatch('updateNewProductDetails');
-            $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount','selectedPartyUser', 'selectedCommissionUser');
+            $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount','selectedPartyUser', 'selectedCommissionUser','removeCrossHold');
 
             $this->dispatch('notiffication-sucess', ['message' => 'Your transaction has been added to hold.']);
 
