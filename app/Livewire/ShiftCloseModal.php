@@ -455,12 +455,13 @@ class ShiftCloseModal extends Component
             // Example: PhysicalStock::create([... , 'image_path' => $filename]);
         }
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
-
+        $productIds=[];
         foreach ($this->products as $product_id =>  $product) {
             $dailyProductStock = DailyProductStock::where('branch_id', $branch_id)
                 ->where('product_id', $product_id)->where('shift_id', $this->currentShift->id)
                 ->first();
             if(!empty($dailyProductStock)){
+                $productIds[]=$product_id;
                 // Calculate closing_stock using the formula
                 $closingStock = $dailyProductStock->opening_stock
                     + $dailyProductStock->added_stock
@@ -471,6 +472,23 @@ class ShiftCloseModal extends Component
                 $dailyProductStock->closing_stock = $closingStock ?? 0;
                 $dailyProductStock->difference_in_stock = $closingStock-$product['qty'];
                 $dailyProductStock->save();
+            }
+        }
+        $dailyProductStockOthers = DailyProductStock::where('branch_id', $branch_id)
+        ->whereNotIn('product_id', $productIds)->where('shift_id', $this->currentShift->id)
+        ->get();
+        if(!empty($dailyProductStockOthers)){
+
+            foreach ($dailyProductStockOthers as $key => $dailyProductStockOther) {
+                $closingStock = $dailyProductStockOther->opening_stock
+                + $dailyProductStockOther->added_stock
+                - $dailyProductStockOther->transferred_stock
+                - $dailyProductStockOther->sold_stock;
+    
+                $dailyProductStockOther->physical_stock = 0;
+                $dailyProductStockOther->closing_stock = $closingStock ?? 0;
+                $dailyProductStockOther->difference_in_stock = $closingStock;
+                $dailyProductStockOther->save();
             }
         }
         $shift = UserShift::where('id', $this->currentShift->id)
