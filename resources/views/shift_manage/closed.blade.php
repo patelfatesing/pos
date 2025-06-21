@@ -5,9 +5,10 @@
              {{-- Modal Header --}}
              <div class="modal-header bg-primary text-white rounded-top-4">
                  <div class="d-flex flex-column">
-                     <h5 class="modal-title fw-semibold">
-                         <i class="bi bi-cash-coin me-2"></i> Shift Close Summary - {{ $branch_name ?? 'Shop' }}
-                     </h5>
+                    
+                      <h5 class="modal-title fw-semibold">
+                            <i class="bi bi-cash-coin me-2"></i> {{ $shift->shift_no ?? '' }} - Shift Close Summary - {{ $branch_name ?? 'Shop' }}
+                        </h5>
                  </div>
 
 

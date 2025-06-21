@@ -29,6 +29,7 @@ class UserShift extends Model
         'closing_sales',
         'physical_photo',
         'shift_no',
+        'cash_added'
     ];
 
 

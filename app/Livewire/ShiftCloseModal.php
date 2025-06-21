@@ -97,7 +97,7 @@ class ShiftCloseModal extends Component
     public $quantities = [];
     public $showSuggestions = false;
     public $showSuggestionsSales = false;
-
+    public $shiftclosehidecross=false;
     public $selectedNote;
     public $cashNotes = [];
     public $todayCash = 0;
@@ -196,7 +196,7 @@ class ShiftCloseModal extends Component
         // $this->currentShift = Shift::latest()->first();
         $this->branch_name = $this->currentShift->branch->name ?? 'Shop';
         $sales = ['DESI', 'BEER', 'ENGLISH'];
-        $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid =$totalRoundOf= 0;
+        $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid =$totalRoundOf=$totalPaidCredit= 0;
 
         $this->categoryTotals = [];
         $this->totalInvoicedAmount = \App\Models\Invoice::where('user_id', auth()->user()->id)
@@ -259,6 +259,7 @@ class ShiftCloseModal extends Component
             $totalUpiPaid  += (!empty($invoice->upi_amount)  && is_numeric($invoice->upi_amount)) ? (int)$invoice->upi_amount  : 0;
             $totalOnlinePaid  += (!empty($invoice->online_amount)  && is_numeric($invoice->online_amount)) ? (int)$invoice->online_amount  : 0;
             $totalRoundOf  += (!empty($invoice->roundof)  && is_numeric($invoice->roundof)) ? (int)$invoice->roundof  : 0;
+            $totalPaidCredit  += (!empty($invoice->paid_credit)  && is_numeric($invoice->paid_credit)) ? (int)$invoice->paid_credit  : 0;
 
             if ($invoice->status == "Returned") {
                 $totalRefundReturn += floatval(str_replace(',', '', $invoice->total));
@@ -289,7 +290,8 @@ class ShiftCloseModal extends Component
         $this->categoryTotals['payment']['TOTAL'] = $totalCashPaid+ ($totalUpiPaid+$totalOnlinePaid) ;
 
         $this->categoryTotals['summary']['OPENING CASH'] = @$this->currentShift->opening_cash;
-        $this->categoryTotals['summary']['TOTAL SALES'] =$totals->debit_total+ $totalSubTotal + $discountTotal-$totalRefundReturn-$totalRoundOf;
+        $this->categoryTotals['summary']['CASH ADDED'] = @$this->currentShift->cash_added;
+        $this->categoryTotals['summary']['TOTAL SALES'] =$totals->debit_total-$totalPaidCredit+ $totalSubTotal + $discountTotal-$totalRefundReturn-$totalRoundOf;
         $this->categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
 
         $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] = $totalWith * (-1);
@@ -300,11 +302,11 @@ class ShiftCloseModal extends Component
         if(!empty($this->creditCollacted->collacted_cash_amount))
             $this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] = $this->creditCollacted->collacted_cash_amount;
         // $this->categoryTotals['summary']['REFUND'] += $totalRefundReturn *(-1);
-        $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['OPENING CASH'] + $this->categoryTotals['summary']['TOTAL SALES'] + $this->categoryTotals['summary']['DISCOUNT'] + $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $this->categoryTotals['summary']['UPI PAYMENT'] + @$this->categoryTotals['summary']['REFUND'] +
+        $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['CASH ADDED']+$this->categoryTotals['summary']['OPENING CASH'] + $this->categoryTotals['summary']['TOTAL SALES'] + $this->categoryTotals['summary']['DISCOUNT'] + $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $this->categoryTotals['summary']['UPI PAYMENT'] + @$this->categoryTotals['summary']['REFUND'] +
             @$this->categoryTotals['summary']['ONLINE PAYMENT']+ @$this->categoryTotals['summary']['CREDIT COLLACTED BY CASH']+$totalRoundOf+$this->categoryTotals['summary']['CREDIT'];
         $this->categoryTotals['summary']['REFUND'] = $totalRefund * (-1) + $totalRefundReturn * (-1);
         //$this->categoryTotals['summary']['REFUND RETURN'] = $totalRefundReturn*(-1);
-        $this->categoryTotals['summary']['REFUND_CREDIT'] = $totals->credit_total;
+       // $this->categoryTotals['summary']['REFUND_CREDIT'] = $totals->credit_total;
         if (!empty($this->categoryTotals['summary']['REFUND_CREDIT'])) {
             $this->categoryTotals['summary']['REFUND_CREDIT'] = (int)$this->categoryTotals['summary']['REFUND_CREDIT'] * (-1);
         }
@@ -480,6 +482,7 @@ class ShiftCloseModal extends Component
                 'physical_photo' => $filename,
             ]);
         $this->showPhysicalModal = false;
+        $this->shiftclosehidecross=true;
         $this->dispatch('notiffication-sucess', ['message' => 'Physical sales added successfully']);
 
     }
