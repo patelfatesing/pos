@@ -105,7 +105,11 @@
             }
 
             inventoryTable = $('#inventory_table').DataTable({
-                pagelength: 10,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                pageLength: 10,
                 responsive: true,
                 processing: true,
                 serverSide: true,
