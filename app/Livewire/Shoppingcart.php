@@ -1250,10 +1250,13 @@ class Shoppingcart extends Component
                     'commission_user_id' => $commissionUser->id ?? null,
                     'party_user_id' => $partyUser->id ?? null,
                     'items' => $cartItems->map(fn($item) => [
+                        'product_id' => $item->product->id,
                         'name' => $item->product->name,
                         'quantity' => $item->quantity,
                         'category' => $item->product->category->name,
-                        'price' => $item->product->sell_price,
+                        'subcategory' => $item->product->subcategory->name,
+                        'price' => $item->net_amount,
+                        'mrp' => $item->mrp,
                     ]),
                     'sub_total' => $this->cashAmount,
                     'tax' => $this->tax,
@@ -1831,7 +1834,6 @@ class Shoppingcart extends Component
         $getNotification = getNotificationsByNotifyTo(auth()->id(), $branch_id, 10);
         $totals = $this->getTotals();
 
-        //    dd($getNotification);
         return view('livewire.shoppingcart', [
             'itemCarts' => $itemCarts,
             'narrations' => $this->narrations,
@@ -1844,7 +1846,7 @@ class Shoppingcart extends Component
             'searchSalesResults' => $this->searchSalesResults,
             'getNotification' => $getNotification,
             'totals' => $totals,
-
+            'branch_id' => $branch_id
         ]);
     }
 
