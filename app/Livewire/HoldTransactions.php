@@ -62,19 +62,14 @@ class HoldTransactions extends Component
             }
 
         }else if(!empty($commission_user_id)){
-             $commissionUserImage = CommissionUserImage::where('commission_user_id', $commission_user_id)->where('type', 'hold')->first("image_path","product_image_path");
-            if(!empty($commissionUserImage)){
+             $commissionUserImage = CommissionUserImage::where('commission_user_id', $commission_user_id)->where('type', 'hold')->first(["image_path","product_image_path"]);
+             if(!empty($commissionUserImage->image_path)){
                 $this->dispatch('setHoldImage', [
                 'type' => "commission",
                 'customer' => $commissionUserImage->image_path,
                 'product' => $commissionUserImage->product_image_path
                 ]);
-                // session([
-                // auth()->id()."_".auth()->user()->role->name."_commission_customer_id"=> $commission_user_id,
-                // auth()->id()."_".auth()->user()->role->name."_commission_custtomer_img" => $commissionUserImage->image_path,
-                // auth()->id()."_".auth()->user()->role->name."_commission_product_img" => $commissionUserImage->product_image_path,
-    
-                // ]);
+             
             }
         }
         

@@ -94,7 +94,7 @@
 
                     <div class="form-group">
                         <select id="commissionUser" class="form-control" wire:model="selectedCommissionUser"
-                            wire:change="calculateCommission">
+                            wire:change="calculateCommission" @if($removeCrossHold) disabled @endif>
                             <option value="">-- Select Commission Customer --</option>
                             @foreach ($commissionUsers as $user)
                                 <option value="{{ $user->id }}">{{ $user->first_name }}
@@ -2215,7 +2215,7 @@ function updateNote(id, delta, denomination) {
             }
         }).then((result) => {
             if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
-                location.reload(); // reload after OK click or auto close
+               // location.reload(); // reload after OK click or auto close
             }
         });
     });
@@ -3121,5 +3121,8 @@ $(document).ready(function () {
             icon: 'warning',
             confirmButtonText: 'OK'
         });
+    });
+     window.addEventListener('hold-saved', event => {
+        location.reload(); 
     });
 </script>

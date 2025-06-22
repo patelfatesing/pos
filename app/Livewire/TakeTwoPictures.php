@@ -9,7 +9,8 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Illuminate\Support\Facades\Auth;
 use App\Models\PartyUserImage;
 use App\Models\CommissionUserImage;
-
+use App\Models\Commissionuser;
+use App\Models\Partyuser;
 class TakeTwoPictures extends Component
 {
     use WithFileUploads;
@@ -21,11 +22,13 @@ class TakeTwoPictures extends Component
     public bool $showHoldImg = false;
     public $partyHoldPic="";
     public $commissionHoldPic="";
+    public $partyStatic=[];
+    public $commiStatic=[];
     // Session keys for storing photo paths
     private const SESSION_KEY_PRODUCT = 'product_photo_path';
     private const SESSION_KEY_CUSTOMER = 'customer_photo_path';
     private const SESSION_KEY_TIMESTAMP = 'photos_timestamp';
-    protected $listeners = ['resetPicAll','setImg','setHoldImage','resetHoldPic'];
+    protected $listeners = ['resetPicAll','setImg','setHoldImage','resetHoldPic','handleSetImg'];
 
     /**
      * Validation rules for the photos
@@ -222,7 +225,8 @@ class TakeTwoPictures extends Component
     }
     public function resetHoldPic(): void
     {
-        $this->reset(['partyHoldPic', 'commissionHoldPic','showHoldImg']);
+        //$this->reset(['partyHoldPic', 'commissionHoldPic','showHoldImg']);
+        $this->showHoldImg=false;
 
     }
      public function resetPicAll(): void
@@ -292,6 +296,8 @@ class TakeTwoPictures extends Component
             $this->showHoldImg = false;
         }
         $current_party_id = session('current_party_id');
+        $current_commission_id = session('current_commission_id');
+        
         if(!empty($current_party_id)){
             $partyUserImage = PartyUserImage::where('party_user_id', $current_party_id)->where('type', 'hold')->first(["image_path","product_image_path"]);
             if(!empty($partyUserImage)){
@@ -304,12 +310,14 @@ class TakeTwoPictures extends Component
                 $this->showHoldImg = true;
 
             }
+        }else{
+            $this->showHoldImg = false;
         }
-        if(!empty($current_party_id)){
-             $commissionUserImage = CommissionUserImage::where('commission_user_id', $current_party_id)->where('type', 'hold')->first("image_path","product_image_path");
+        if(!empty($current_commission_id)){
+            $commissionUserImage = CommissionUserImage::where('commission_user_id', $current_commission_id)->where('type', 'hold')->first(["image_path","product_image_path"]);
             if(!empty($commissionUserImage)){
                 $this->setHoldImage( [
-                'type' => "party",
+                'type' => "commission",
                 'customer' => $commissionUserImage->image_path,
                 'product' => $commissionUserImage->product_image_path
                 ]);
@@ -318,6 +326,26 @@ class TakeTwoPictures extends Component
         }
        // $this->partyHoldPic=$this->getHoldPhotoUrl('party');
         //$this->commissionHoldPic=$this->getHoldPhotoUrl('commission');
+    }
+     public function handleSetImg($partyUser,$commissionUser)
+    {
+         if(!empty($partyUser)){
+           $partyUserQ = PartyUser::where('status', 'Active')->find($partyUser);
+
+           if(!empty($partyUserQ->photo)){
+            $this->partyStatic['pic']= $partyUserQ->photo;
+            $this->partyStatic['first_name']= $partyUserQ->first_name;
+           }
+
+        }else if(!empty($commissionUser)){
+            $user = Commissionuser::where('status', 'Active')->where('is_deleted', '!=', 'Yes')->find($commissionUser);
+
+            if(!empty($user->photo)){
+                $this->commiStatic['pic']= $user->photo;
+                $this->commiStatic['first_name']= $user->first_name;
+            }
+        }
+        // Now you can use $userId as needed
     }
     public function setHoldImage($imageData){
         
