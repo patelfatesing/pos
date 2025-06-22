@@ -1011,7 +1011,9 @@
                                     <i class="fas fa-print"></i>
                                 </button>
                                  <livewire:order-modal />
+                                 @if (count($itemCarts) == 0)
                                   <livewire:collation-modal />
+                                  @endif
                             @endif
                             @livewire('button-timer', ['endTime' => $this->shiftEndTime])
 
@@ -3106,6 +3108,15 @@ $(document).ready(function () {
         
         Swal.fire({
             title: 'Note Limit Reached',
+            text: event.detail[0].message,
+            icon: 'warning',
+            confirmButtonText: 'OK'
+        });
+    });
+      window.addEventListener('note-add', event => {
+        
+        Swal.fire({
+            title: 'Add Cash',
             text: event.detail[0].message,
             icon: 'warning',
             confirmButtonText: 'OK'

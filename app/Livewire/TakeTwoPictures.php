@@ -7,6 +7,8 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Illuminate\Support\Facades\Auth;
+use App\Models\PartyUserImage;
+use App\Models\CommissionUserImage;
 
 class TakeTwoPictures extends Component
 {
@@ -289,10 +291,36 @@ class TakeTwoPictures extends Component
 
             $this->showHoldImg = false;
         }
+        $current_party_id = session('current_party_id');
+        if(!empty($current_party_id)){
+            $partyUserImage = PartyUserImage::where('party_user_id', $current_party_id)->where('type', 'hold')->first(["image_path","product_image_path"]);
+            if(!empty($partyUserImage)){
+             
+                $this->setHoldImage( [
+                'type' => "party",
+                'customer' => $partyUserImage->image_path,
+                'product' => $partyUserImage->product_image_path
+                ]);
+                $this->showHoldImg = true;
+
+            }
+        }
+        if(!empty($current_party_id)){
+             $commissionUserImage = CommissionUserImage::where('commission_user_id', $current_party_id)->where('type', 'hold')->first("image_path","product_image_path");
+            if(!empty($commissionUserImage)){
+                $this->setHoldImage( [
+                'type' => "party",
+                'customer' => $commissionUserImage->image_path,
+                'product' => $commissionUserImage->product_image_path
+                ]);
+                $this->showHoldImg = true;
+            }
+        }
        // $this->partyHoldPic=$this->getHoldPhotoUrl('party');
         //$this->commissionHoldPic=$this->getHoldPhotoUrl('commission');
     }
     public function setHoldImage($imageData){
+        
         $type=$imageData['type'] ??'';
         if($imageData['type']=="party")
         {

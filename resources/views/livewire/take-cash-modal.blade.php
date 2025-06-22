@@ -96,7 +96,34 @@
                                 </tr>
                             </tbody>
                         </table>
-                     
+                        <!-- Radio Buttons for Add Money or Change -->
+                        <div class="mb-3">
+                            <label class="fw-bold">Transaction Type:</label>
+                            
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input"
+                                    type="radio"
+                                    wire:model="transactionType"
+                                    wire:click="setTransactionType('change')"
+                                    name="transactionType"
+                                    id="change"
+                                    value="change">
+                                <label class="form-check-label" for="change">Change</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input"
+                                    type="radio"
+                                    wire:model="transactionType"
+                                    wire:click="setTransactionType('add')"
+                                    name="transactionType"
+                                    id="addMoney"
+                                    value="add">
+                                <label class="form-check-label" for="addMoney">Add Money</label>
+                            </div>
+
+                        </div>
+
+
                         <!-- Total Collected Display -->
                         <div class="text-end mt-3">
                             <h5>
@@ -107,13 +134,14 @@
                                 </span>
                             </h5>
                         </div>
-
-                        <!-- Submit Button -->
-                        <div class="text-right">
-                            <button wire:click="submitCredit" class="btn btn-primary mt-2">
-                                Submit
-                            </button>
-                        </div>
+                        @if($this->totalCollected>=0)
+                            <!-- Submit Button -->
+                            <div class="text-right">
+                                <button wire:click="submitCredit" class="btn btn-primary mt-2">
+                                    Submit
+                                </button>
+                            </div>
+                        @endif
 
                     </div>
                 </div>
