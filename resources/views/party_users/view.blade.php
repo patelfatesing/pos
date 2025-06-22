@@ -31,13 +31,13 @@
                                     </div>
                                     <div class="card-body">
                                         <ul class="nav nav-pills mb-3 nav-fill" id="pills-tab-1" role="tablist">
-                                            {{-- <li class="nav-item">
+                                            <li class="nav-item">
                                                 <a class="nav-link active" id="pills-home-tab-fill" data-toggle="pill"
                                                     href="#pills-home-fill" role="tab" aria-controls="pills-home"
                                                     aria-selected="true"><span class="text-dark">Customer Info</a>
-                                            </li> --}}
+                                            </li>
                                             <li class="nav-item">
-                                                <a class="nav-link active" id="pills-profile-tab-fill" data-toggle="pill"
+                                                <a class="nav-link " id="pills-profile-tab-fill" data-toggle="pill"
                                                     href="#pills-profile-fill" role="tab" aria-controls="pills-profile"
                                                     aria-selected="false"><span class="text-dark">Transaction
                                                         History</span></a>

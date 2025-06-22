@@ -1051,6 +1051,25 @@ class Shoppingcart extends Component
 
         $today = Carbon::today();
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+        $current_party_id = session('current_party_id');
+        if(!empty($current_party_id)){
+            $this->selectedPartyUser=$current_party_id;
+            $this->removeCrossHold=true;
+            $partyUserImage = PartyUserImage::where('party_user_id', $current_party_id)->where('type', 'hold')->first(["image_path","product_image_path"]);
+            if(!empty($partyUserImage)){
+                $this->dispatch('setHoldImage', [
+                'type' => "party",
+                'customer' => $partyUserImage->image_path,
+                'product' => $partyUserImage->product_image_path
+                ]);
+            }
+
+        }
+         $current_party_id = session('current_party_id');
+        if(!empty($current_commission_id)){
+            $this->selectedCommissionUser=$current_commission_id;
+            $this->removeCrossHold=true;
+        }
 
 
         $this->shift = $currentShift = UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "pending"])->first();
@@ -1398,10 +1417,13 @@ class Shoppingcart extends Component
                     'commission_user_id' => $commissionUser->id ?? null,
                     'party_user_id' => $partyUser->id ?? null,
                     'items' => $cartItems->map(fn($item) => [
+                        'product_id' => $item->product->id,
                         'name' => $item->product->name,
                         'quantity' => $item->quantity,
                         'category' => $item->product->category->name,
-                        'price' => $item->product->sell_price,
+                        'subcategory' => $item->product->subcategory->name,
+                        'price' => $item->net_amount,
+                        'mrp' => $item->mrp,
                     ]),
                     'sub_total' => $this->cashAmount,
                     'tax' => $this->tax,
