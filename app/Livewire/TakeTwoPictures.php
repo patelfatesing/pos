@@ -335,6 +335,8 @@ class TakeTwoPictures extends Component
            if(!empty($partyUserQ->photo)){
             $this->partyStatic['pic']= $partyUserQ->photo;
             $this->partyStatic['first_name']= $partyUserQ->first_name;
+           }else{
+            $this->partyStatic=[];
            }
 
         }else if(!empty($commissionUser)){
@@ -343,6 +345,8 @@ class TakeTwoPictures extends Component
             if(!empty($user->photo)){
                 $this->commiStatic['pic']= $user->photo;
                 $this->commiStatic['first_name']= $user->first_name;
+            }else{
+                $this->commiStatic=[];
             }
         }
         // Now you can use $userId as needed
