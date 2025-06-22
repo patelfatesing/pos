@@ -94,7 +94,7 @@
 
                     <div class="form-group">
                         <select id="commissionUser" class="form-control" wire:model="selectedCommissionUser"
-                            wire:change="calculateCommission">
+                            wire:change="calculateCommission" @if($removeCrossHold) disabled @endif>
                             <option value="">-- Select Commission Customer --</option>
                             @foreach ($commissionUsers as $user)
                                 <option value="{{ $user->id }}">{{ $user->first_name }}
@@ -668,7 +668,7 @@
                                         {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
                                         <div class="mb-3">
                                             <input type="hidden" name="store_id"
-                                                value="{{ @$data->userInfo->branch_id }}">
+                                                value="{{ @$branch_id }}">
                                         </div>
 
 
@@ -916,7 +916,7 @@
                                     <td>
                                         @php
                                             $stock="";
-                                            $lastShift = App\Models\UserShift::getYesterdayShift(auth()->user()->id, $data->userInfo->branch_id);
+                                            $lastShift = App\Models\UserShift::getYesterdayShift(auth()->user()->id, $branch_id);
                                             if(empty($lastShift))
                                             {
                                                 $stock=$product->opening_stock;
@@ -2215,7 +2215,7 @@ function updateNote(id, delta, denomination) {
             }
         }).then((result) => {
             if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
-                location.reload(); // reload after OK click or auto close
+               // location.reload(); // reload after OK click or auto close
             }
         });
     });
@@ -2681,7 +2681,7 @@ window.addEventListener('close-hold-modal', function () {
         cluster: "{{ config('broadcasting.connections.pusher.options.cluster') }}",
         encrypted: true,
     });
-    var branch_id='{{ @$data->userInfo->branch_id }}';
+    var branch_id='{{ @$branch_id }}';
     var channel = pusher.subscribe('drawer-channel');
     
     channel.bind('DrawerOpened', function(data) {
@@ -3121,5 +3121,8 @@ $(document).ready(function () {
             icon: 'warning',
             confirmButtonText: 'OK'
         });
+    });
+     window.addEventListener('hold-saved', event => {
+        location.reload(); 
     });
 </script>

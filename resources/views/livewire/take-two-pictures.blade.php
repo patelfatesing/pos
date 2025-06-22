@@ -20,19 +20,41 @@
                             <div class="col-md-12">
                                 <h6 class="mb-2">Last Hold Saved Photos:</h6>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-6">
                                 <strong>Product Photo :</strong>
                                 @if($this->partyHoldPic['party_product'])
                                     <a href="javascript:void(0)"  class="d-block">
-                                        <img src="{{ asset('storage/' . $this->partyHoldPic['party_product']) }}" alt="Product" class="img-thumbnail mt-2" style="max-height: 100px">
+                                        <img src="{{ asset('storage/' . $this->partyHoldPic['party_product']) }}" alt="Product" class="img-thumbnail mt-2" style="">
                                     </a>
                                 @endif
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-6">
                                 <strong>Customer Photo:</strong>
                                 @if($this->partyHoldPic['party_customer'])
                                     <a href="javascript:void(0)"  class="d-block">
-                                        <img src="{{ asset('storage/' . $this->partyHoldPic['party_customer']) }}" alt="Customer" class="img-thumbnail mt-2" style="max-height: 100px">
+                                        <img src="{{ asset('storage/' . $this->partyHoldPic['party_customer']) }}" alt="Customer" class="img-thumbnail mt-2" style="">
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                    @elseif($this->showHoldImg && !empty($this->partyHoldPic['commission_product']) && !empty($this->partyHoldPic['commission_customer']))
+                        <div class="row alert alert-info mb-3 lastsavepic" >
+                            <div class="col-md-12">
+                                <h6 class="mb-2">Last Hold Saved Photos:</h6>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Product Photo :</strong>
+                                @if($this->partyHoldPic['commission_product'])
+                                    <a href="javascript:void(0)"  class="d-block">
+                                        <img src="{{ asset('storage/' . $this->partyHoldPic['commission_product']) }}" alt="Product" class="img-thumbnail mt-2" style="">
+                                    </a>
+                                @endif
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Customer Photo:</strong>
+                                @if($this->partyHoldPic['commission_customer'])
+                                    <a href="javascript:void(0)"  class="d-block">
+                                        <img src="{{ asset('storage/' . $this->partyHoldPic['commission_customer']) }}" alt="Customer" class="img-thumbnail mt-2" style="">
                                     </a>
                                 @endif
                             </div>
@@ -158,20 +180,31 @@
                                     </div>
                                 </div>
                             </div>
-                            <br>
+                            <div class="col-md-4 text-center">
+
+                            </div>
+                             @if(!empty($this->partyStatic['pic']))
                             <div id="supPreview" class="col-md-4 text-center">
-                                <hr>
-                        </div>
-                        <div id="commissionPreview" class="col-md-4 text-center">
-                                <hr>
-                        </div>
+                                 <hr>
+                                    <label for="">{{$this->partyStatic['first_name']}}</label>
+                                    <img src="{{ asset('storage/' . $this->partyStatic['pic']) }}" alt="Customer" class="img-thumbnail mt-2" style="">
+                            </div>
+                             @endif
+                            @if(!empty($this->commiStatic['pic']))
+                            <div id="commissionPreview" class="col-md-4 text-center">
+                                    <hr>
+                                    <label for="">{{$this->commiStatic['first_name']}}</label>
+                                    <img src="{{ asset('storage/' . $this->commiStatic['pic']) }}" alt="Customer" class="img-thumbnail mt-2" style="">
+
+                            </div>
+                            @endif
                         </div>
                     @endif
                 </div>
 
                 <input type="file" wire:model="productPhoto" id="productInput" class="d-none" accept="image/*" />
                 <input type="file" wire:model="customerPhoto" id="customerInput" class="d-none" accept="image/*" />
-                @if(empty($this->partyHoldPic['party_product']) && empty($this->partyHoldPic['party_customer']))    
+                @if(empty($this->partyHoldPic['party_product']) && empty($this->partyHoldPic['party_customer']) && empty($this->partyHoldPic['commission_product']) && empty($this->partyHoldPic['commission_customer']))    
                     <div class="modal-footer">
                         <button wire:click="resetAll" class="btn btn-outline-secondary" type="button">
                             Reset All
@@ -197,149 +230,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     cameraModal.addEventListener('shown.bs.modal', function () {
         Livewire.dispatch('setImg');
-        // Get the value of partyUser from a hidden input or data attribute
         const partyUser = document.getElementById('partyUser') ? document.getElementById('partyUser').value : '';
-        // If you want to append an image based on partyUser value
-        if (partyUser) {
-            // Try .jpg first, then .jpeg, then .png if previous does not exist
-            let imgUrl = `/storage/party_user_photos/${partyUser}_partyuser.jpg`;
-            const tempImg = new Image();
-            tempImg.onload = function() {
-                // .jpg exists, use it
-                appendPartyUserImage(imgUrl);
-            };
-            tempImg.onerror = function() {
-                // .jpg does not exist, try .jpeg
-                imgUrl = `/storage/party_user_photos/${partyUser}_partyuser.jpeg`;
-                const tempImg2 = new Image();
-                tempImg2.onload = function() {
-                    appendPartyUserImage(imgUrl);
-                };
-                tempImg2.onerror = function() {
-                    // .jpeg does not exist, try .png
-                    imgUrl = `/storage/party_user_photos/${partyUser}_partyuser.png`;
-                    appendPartyUserImage(imgUrl);
-                };
-                tempImg2.src = imgUrl;
-            };
-            tempImg.src = imgUrl;
-            tempImg.src = imgUrl;
-
-            function appendPartyUserImage(url) {
-                const container = document.getElementById('supPreview');
-                if (container) {
-                    // Remove previous image if exists
-                    const oldImg = container.querySelector('.party-user-img');
-                    if (oldImg) oldImg.remove();
-
-                    // Remove old label if exists
-                    const oldLabel = container.querySelector('.party-user-label');
-                    if (oldLabel) oldLabel.remove();
-
-                    // Create label
-                    const label = document.createElement('div');
-                    label.className = 'mt-2 mb-1 text-muted small party-user-label';
-                    label.textContent = 'Party Customer Photo';
-                    container.appendChild(label);
-
-                    // Create and append image
-                    const img = document.createElement('img');
-                    img.src = url;
-                    img.className = 'img-fluid party-user-img mt-2';
-                    img.style.maxHeight = '120px';
-                    img.alt = 'Party User';
-
-                    // If image fails to load, show "No image"
-                    img.onerror = function() {
-                        img.remove();
-                        // Remove any previous "no image" message
-                        const oldNoImg = container.querySelector('.party-user-noimg');
-                        if (oldNoImg) oldNoImg.remove();
-                        const noImg = document.createElement('div');
-                        noImg.className = 'text-danger small mt-2 party-user-noimg';
-                        noImg.textContent = 'No image';
-                        container.appendChild(noImg);
-                    };
-
-                    container.appendChild(img);
-                }
-            }
-        }
         const commissionUser = document.getElementById('commissionUser') ? document.getElementById('commissionUser').value : '';
-        // If you want to append an image based on commissionUser value
-        if (commissionUser) {
-            // You can construct the image URL as needed
-            // Try .jpg first, then .png if .jpg does not exist
-            let imgUrl = `/storage/commission_photos/${commissionUser}_commissionuser.jpg`;
-            // Create a temporary image to check if .jpg exists
-            const tempImg = new Image();
-            tempImg.onload = function() {
-                // .jpg exists, use it
-                appendCommissionImage(imgUrl);
-            };
-            tempImg.onerror = function() {
-                // .jpg does not exist, try .jpeg
-                imgUrl = `/storage/commission_photos/${commissionUser}_commissionuser.jpeg`;
-                const tempImg2 = new Image();
-                tempImg2.onload = function() {
-                    appendCommissionImage(imgUrl);
-                };
-                tempImg2.onerror = function() {
-                    // .jpeg does not exist, try .png
-                    imgUrl = `/storage/commission_photos/${commissionUser}_commissionuser.png`;
-                    appendCommissionImage(imgUrl);
-                };
-                tempImg2.src = imgUrl;
-            };
-            tempImg.src = imgUrl;
-
-            function appendCommissionImage(url) {
-                const container = document.getElementById('commissionPreview');
-                if (container) {
-                    // Remove previous image if exists
-                    const oldImg = container.querySelector('.commission-user-img');
-                    if (oldImg) oldImg.remove();
-
-                    // Remove old label if exists
-                    const oldLabel = container.querySelector('.commission-user-label');
-                    if (oldLabel) oldLabel.remove();
-
-                    // Remove any previous "no image" message
-                    const oldNoImg = container.querySelector('.commission-user-noimg');
-                    if (oldNoImg) oldNoImg.remove();
-
-                    // Create label
-                    const label = document.createElement('div');
-                    label.className = 'mt-2 mb-1 text-muted small commission-user-label';
-                    label.textContent = 'Commission User Photo';
-                    container.appendChild(label);
-
-                    // Create and append the image
-                    const img = document.createElement('img');
-                    img.src = url;
-                    img.className = 'img-fluid commission-user-img mt-2';
-                    img.style.maxHeight = '120px';
-                    img.alt = 'Commission User';
-
-                    // If image fails to load, show "No image"
-                    img.onerror = function() {
-                        img.remove();
-                        // Remove any previous "no image" message
-                        const oldNoImg = container.querySelector('.commission-user-noimg');
-                        if (oldNoImg) oldNoImg.remove();
-                        const noImg = document.createElement('div');
-                        noImg.className = 'text-danger small mt-2 commission-user-noimg';
-                        noImg.textContent = 'No image';
-                        container.appendChild(noImg);
-                    };
-
-                    container.appendChild(img);
-                }
-            }
-         
-        }
-        
+        Livewire.dispatch('handleSetImg', { partyUser: partyUser ,commissionUser:commissionUser});
     });
 });
-</script>
 </script>
