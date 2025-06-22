@@ -2079,7 +2079,6 @@ class Shoppingcart extends Component
         $getNotification = getNotificationsByNotifyTo(auth()->id(), $branch_id, 10);
         $totals = $this->getTotals();
 
-        //    dd($getNotification);
         return view('livewire.shoppingcart', [
             'itemCarts' => $itemCarts,
             'narrations' => $this->narrations,
@@ -2092,7 +2091,7 @@ class Shoppingcart extends Component
             'searchSalesResults' => $this->searchSalesResults,
             'getNotification' => $getNotification,
             'totals' => $totals,
-
+            'branch_id' => $branch_id
         ]);
     }
 

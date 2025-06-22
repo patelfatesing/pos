@@ -668,7 +668,7 @@
                                         {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
                                         <div class="mb-3">
                                             <input type="hidden" name="store_id"
-                                                value="{{ @$data->userInfo->branch_id }}">
+                                                value="{{ @$branch_id }}">
                                         </div>
 
 
@@ -916,7 +916,7 @@
                                     <td>
                                         @php
                                             $stock="";
-                                            $lastShift = App\Models\UserShift::getYesterdayShift(auth()->user()->id, $data->userInfo->branch_id);
+                                            $lastShift = App\Models\UserShift::getYesterdayShift(auth()->user()->id, $branch_id);
                                             if(empty($lastShift))
                                             {
                                                 $stock=$product->opening_stock;
@@ -2681,7 +2681,7 @@ window.addEventListener('close-hold-modal', function () {
         cluster: "{{ config('broadcasting.connections.pusher.options.cluster') }}",
         encrypted: true,
     });
-    var branch_id='{{ @$data->userInfo->branch_id }}';
+    var branch_id='{{ @$branch_id }}';
     var channel = pusher.subscribe('drawer-channel');
     
     channel.bind('DrawerOpened', function(data) {
