@@ -94,7 +94,7 @@
 
                     <div class="form-group">
                         <select id="commissionUser" class="form-control" wire:model="selectedCommissionUser"
-                            wire:change="calculateCommission">
+                            wire:change="calculateCommission" @if($removeCrossHold) disabled @endif>
                             <option value="">-- Select Commission Customer --</option>
                             @foreach ($commissionUsers as $user)
                                 <option value="{{ $user->id }}">{{ $user->first_name }}
@@ -106,14 +106,16 @@
                 @endif
                 @if (auth()->user()->hasRole('warehouse'))
                     <div class="form-group">
-                        <select id="partyUser" class="form-control" wire:model="selectedPartyUser"
-                            wire:change="calculateParty">
-                            <option value="">-- {{ __('messages.select_party_customer') }} --</option>
-                            @foreach ($partyUsers as $user)
-                                <option value="{{ $user->id }}">{{ $user->first_name }}
-                                </option>
-                            @endforeach
-                        </select>
+                      <select id="partyUser" class="form-control"
+                        wire:model="selectedPartyUser"
+                        wire:change="calculateParty"
+                        @if($removeCrossHold) disabled @endif>
+                        <option value="">-- {{ __('messages.select_party_customer') }} --</option>
+                        @foreach ($partyUsers as $user)
+                            <option value="{{ $user->id }}">{{ $user->first_name }}</option>
+                        @endforeach
+                    </select>
+
 
                     </div>
                 @endif
@@ -987,6 +989,7 @@
                                     <i class="fas fa-warehouse"></i>
                                 </button>
                             @endif
+                            <livewire:take-cash-modal />
 
                             {{-- Show when item cart is empty --}}
                             @if (count($itemCarts) == 0)
@@ -1008,7 +1011,9 @@
                                     <i class="fas fa-print"></i>
                                 </button>
                                  <livewire:order-modal />
+                                 @if (count($itemCarts) == 0)
                                   <livewire:collation-modal />
+                                  @endif
                             @endif
                             @livewire('button-timer', ['endTime' => $this->shiftEndTime])
 
@@ -2210,7 +2215,7 @@ function updateNote(id, delta, denomination) {
             }
         }).then((result) => {
             if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
-                location.reload(); // reload after OK click or auto close
+               // location.reload(); // reload after OK click or auto close
             }
         });
     });
@@ -2885,4 +2890,239 @@ $(document).ready(function () {
     });
 
 });
+  document.addEventListener('DOMContentLoaded', function() {
+        let cameraStream = {
+            modal: document.getElementById('cameraModal'),
+            video: document.getElementById('video'),
+            canvas: document.getElementById('canvas'),
+            error: document.getElementById('cameraError'),
+            loading: document.getElementById('loadingIndicator'),
+            captureProduct: document.getElementById('captureProduct'),
+            captureCustomer: document.getElementById('captureCustomer'),
+            productPreview: document.getElementById('productPreview'),
+            customerPreview: document.getElementById('customerPreview'),
+            stream: null,
+            isCapturing: false,
+            hasProductPhoto: false,
+            hasCustomerPhoto: false,
+
+            async init() {
+                this.setupEventListeners();
+            },
+
+            setupEventListeners() {
+                this.modal.addEventListener('shown.bs.modal', () => this.startCamera());
+                this.modal.addEventListener('hidden.bs.modal', () => this.stopCamera());
+                this.captureProduct.addEventListener('click', () => this.capture('product'));
+                this.captureCustomer.addEventListener('click', () => this.capture('customer'));
+
+                //Listen for Livewire events
+                window.Livewire.on('photos-saved', () => {
+                    // Reset states before closing modal
+                    this.hasProductPhoto = false;
+                    this.hasCustomerPhoto = false;
+                    this.updateButtonStates();
+                    
+                    // Clear previews
+                    if (this.productPreview) this.productPreview.innerHTML = '';
+                    if (this.customerPreview) this.customerPreview.innerHTML = '';
+                    
+                    // Restart camera
+                    this.stopCamera();
+                    this.startCamera();
+                    
+                    // Close modal after a short delay to ensure camera cleanup
+                    setTimeout(() => {
+                        $('#cameraModal').modal('hide'); // jQuery-based approach
+
+                    }, 100);
+                });
+
+                window.Livewire.on('photo-reset', (type) => {
+                    if (type === 'product') {
+                        this.hasProductPhoto = false;
+                    } else if (type === 'customer') {
+                        this.hasCustomerPhoto = false;
+                    }
+                    this.updateButtonStates();
+                });
+
+                window.Livewire.on('photos-reset', () => {
+                    this.hasProductPhoto = false;
+                    this.hasCustomerPhoto = false;
+                    this.updateButtonStates();
+                });
+            },
+
+            async startCamera() {
+                try {
+                    this.error.classList.add('d-none');
+                    this.loading.classList.remove('d-none');
+                    this.disableAllButtons(true);
+
+                    if (this.stream) {
+                        this.stopCamera(); // Ensure any existing stream is stopped
+                    }
+
+                    this.stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { 
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 },
+                            facingMode: 'environment'
+                        } 
+                    });
+                    
+                    this.video.srcObject = this.stream;
+
+                    await this.video.play();
+                    
+                    // Only enable buttons if we have a valid stream
+                    if (this.stream.active) {
+                        this.disableAllButtons(false);
+                    }
+                    this.updateButtonStates();
+                } catch (err) {
+
+                    console.error('Camera access error:', err);
+                    this.error.classList.remove('d-none');
+                } finally {
+                    this.loading.classList.add('d-none');
+                }
+            },
+
+            stopCamera() {
+                if (this.stream) {
+                    this.stream.getTracks().forEach(track => {
+                        track.stop();
+                    });
+                    this.video.srcObject = null;
+                    this.stream = null;
+                }
+            },
+
+            disableAllButtons(disabled) {
+                this.captureProduct.disabled = disabled;
+                this.captureCustomer.disabled = disabled;
+            },
+
+            updateButtonStates() {
+                if (this.isCapturing) return;
+
+                // Enable/disable buttons based on which photos are captured
+                this.captureProduct.disabled = this.hasProductPhoto;
+                this.captureCustomer.disabled = this.hasCustomerPhoto;
+
+                // Update button text to show status
+                this.captureProduct.innerHTML = this.hasProductPhoto ? 
+                    '✅ Product Photo Taken' : 
+                    '📷 Capture Product';
+                this.captureCustomer.innerHTML = this.hasCustomerPhoto ? 
+                    '✅ Customer Photo Taken' : 
+                    '📷 Capture Customer';
+
+                // Update button styles
+                if (this.hasProductPhoto) {
+                    this.captureProduct.classList.remove('btn-outline-success');
+                    this.captureProduct.classList.add('btn-success');
+                } else {
+                    this.captureProduct.classList.add('btn-outline-success');
+                    this.captureProduct.classList.remove('btn-success');
+                }
+
+                if (this.hasCustomerPhoto) {
+                    this.captureCustomer.classList.remove('btn-outline-info');
+                    this.captureCustomer.classList.add('btn-info');
+                } else {
+                    this.captureCustomer.classList.add('btn-outline-info');
+                    this.captureCustomer.classList.remove('btn-info');
+                }
+            },
+
+            async capture(target) {
+                if (this.isCapturing) return;
+                this.isCapturing = true;
+
+                try {
+                    // Temporarily disable both buttons during capture
+                    this.disableAllButtons(true);
+
+                    const context = this.canvas.getContext('2d');
+                    context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+                    
+                    // Show immediate preview
+                    const previewContainer = target === 'product' ? this.productPreview : this.customerPreview;
+                    const tempPreview = document.createElement('div');
+                    tempPreview.className = 'position-relative';
+                    tempPreview.innerHTML = `
+                        <img src="${this.canvas.toDataURL('image/jpeg')}" class="img-fluid" style="max-height: 240px">
+                        <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2">×</button>
+                    `;
+                    previewContainer.innerHTML = '';
+                    previewContainer.appendChild(tempPreview);
+                    
+                    // Convert to blob and trigger file input
+                    await new Promise(resolve => {
+                        this.canvas.toBlob(blob => {
+                            const file = new File([blob], `${target}-${Date.now()}.jpg`, { 
+                                type: 'image/jpeg' 
+                            });
+                            
+                            const dt = new DataTransfer();
+                            dt.items.add(file);
+                            
+                            const input = document.getElementById(`${target}Input`);
+                            input.files = dt.files;
+
+                            // Create a new event that Livewire will detect
+                            const event = new Event('change', {
+                                bubbles: true,
+                                cancelable: true,
+                            });
+                            
+                            // Dispatch the event to trigger Livewire's file upload
+                            input.dispatchEvent(event);
+                            resolve();
+                        }, 'image/jpeg', 0.9);
+                    });
+
+                    // Update photo states
+                    if (target === 'product') {
+                        this.hasProductPhoto = true;
+                    } else {
+                        this.hasCustomerPhoto = true;
+                    }
+
+                } catch (error) {
+                    console.error('Capture error:', error);
+                } finally {
+                    this.isCapturing = false;
+                    // Update button states after capture
+                    this.updateButtonStates();
+                }
+            }
+        };
+
+        cameraStream.init();
+    });
+      window.addEventListener('note-unavailable', event => {
+        
+        Swal.fire({
+            title: 'Note Limit Reached',
+            text: event.detail[0].message,
+            icon: 'warning',
+            confirmButtonText: 'OK'
+        });
+    });
+      window.addEventListener('note-add', event => {
+        
+        Swal.fire({
+            title: 'Add Cash',
+            text: event.detail[0].message,
+            icon: 'warning',
+            confirmButtonText: 'OK'
+        });
+    });
+     window.addEventListener('hold-saved', event => {
+        location.reload(); 
+    });
 </script>

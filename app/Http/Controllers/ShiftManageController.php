@@ -265,7 +265,7 @@ class ShiftManageController extends Controller
 
 
                 $invoices = Invoice::where(['user_id' => $shift->user_id])->where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->where('status', '!=', 'Hold')->latest()->get();
-                $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalRoundOf = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = $totalSalesQty = 0;
+                $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalRoundOf = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = $totalSalesQty = $totalPaidCredit=0;
                 
                 $transaction_total = 0;
                 $totalSalesNew = 0;
@@ -305,7 +305,7 @@ class ShiftManageController extends Controller
                 $totalUpiPaid  += (!empty($invoice->upi_amount)  && is_numeric($invoice->upi_amount)) ? (int)$invoice->upi_amount  : 0;
                 $totalOnlinePaid  += (!empty($invoice->online_amount)  && is_numeric($invoice->online_amount)) ? (int)$invoice->online_amount  : 0;
                 $totalRoundOf  += (!empty($invoice->roundof)  && is_numeric($invoice->roundof)) ? (int)$invoice->roundof  : 0;
-
+                $totalPaidCredit  += (!empty($invoice->paid_credit)  && is_numeric($invoice->paid_credit)) ? (int)$invoice->paid_credit  : 0;
                 if ($invoice->status == "Returned") {
                     $totalRefundReturn += floatval(str_replace(',', '', $invoice->total));
                 }
@@ -346,6 +346,7 @@ class ShiftManageController extends Controller
 
             $categoryTotals['payment']['TOTAL'] = $totalCashPaid + ($totalUpiPaid + $totalOnlinePaid);
             $categoryTotals['summary']['OPENING CASH'] = @$shift->opening_cash;
+            $categoryTotals['summary']['CASH ADDED'] = @$shift->cash_added;
             $categoryTotals['summary']['TOTAL SALES'] =$totals->debit_total+ $totalSubTotal + $discountTotal-$totalRefundReturn-$totalRoundOf;
             $categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
             $categoryTotals['summary']['WITHDRAWAL PAYMENT'] = $totalWith * (-1);
@@ -357,12 +358,12 @@ class ShiftManageController extends Controller
             if (!empty($creditCollacted->collacted_cash_amount))
                 $categoryTotals['summary']['CREDIT COLLACTED BY CASH'] = $creditCollacted->collacted_cash_amount;
             // $categoryTotals['summary']['REFUND'] += $totalRefundReturn *(-1);
-            $categoryTotals['summary']['TOTAL'] = $categoryTotals['summary']['OPENING CASH'] + $categoryTotals['summary']['TOTAL SALES'] + $categoryTotals['summary']['DISCOUNT'] + $categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $categoryTotals['summary']['UPI PAYMENT'] + @$categoryTotals['summary']['REFUND'] +
+            $categoryTotals['summary']['TOTAL'] = $categoryTotals['summary']['OPENING CASH']+$categoryTotals['summary']['OPENING CASH'] + $categoryTotals['summary']['TOTAL SALES'] + $categoryTotals['summary']['DISCOUNT'] + $categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $categoryTotals['summary']['UPI PAYMENT'] + @$categoryTotals['summary']['REFUND'] +
                 @$categoryTotals['summary']['ONLINE PAYMENT'] + @$categoryTotals['summary']['CREDIT COLLACTED BY CASH'] + $totalRoundOf+$categoryTotals['summary']['CREDIT'];
             $categoryTotals['summary']['REFUND'] = $totalRefund * (-1) + $totalRefundReturn * (-1);
             //$categoryTotals['summary']['REFUND RETURN'] = $totalRefundReturn*(-1);
             //$categoryTotals['summary']['CREDIT'] = $totals->debit_total;
-            $categoryTotals['summary']['REFUND_CREDIT'] = $totals->credit_total;
+            //$categoryTotals['summary']['REFUND_CREDIT'] = $totals->credit_total;
             if (!empty($categoryTotals['summary']['REFUND_CREDIT'])) {
                 $categoryTotals['summary']['REFUND_CREDIT'] = (int)$categoryTotals['summary']['REFUND_CREDIT'] * (-1);
             }

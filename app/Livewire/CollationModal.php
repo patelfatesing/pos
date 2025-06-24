@@ -7,7 +7,7 @@ use App\Models\Partyuser;
 use Livewire\WithPagination;
 use Illuminate\Container\Attributes\DB;
 use App\Models\CreditHistory;
-
+use App\Models\Invoice;
 class CollationModal extends Component
 {
     use WithPagination;
@@ -196,6 +196,7 @@ class CollationModal extends Component
             return;
         }
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+        $remainingAmount = $collectedAmount;
 
         //DB::beginTransaction();
         //try {
@@ -207,6 +208,47 @@ class CollationModal extends Component
                return;
 
             }
+
+                $remainingAmount = $collectedAmount;
+
+                $unPaidInvoices = Invoice::where('user_id', auth()->id())
+                    ->where('branch_id', $branch_id)
+                    ->where('invoice_status', 'unpaid')
+                    ->where('creditpay', '>', 0)
+                    ->orderBy('id', 'asc')
+                    ->get();
+
+                foreach ($unPaidInvoices as $invoice) {
+                    $alreadyPaid = $invoice->paid_credit;
+                    $dueAmount = $invoice->creditpay - $alreadyPaid;
+                    if ($dueAmount <= 0) {
+                        $invoice->invoice_status = 'paid';
+                        $invoice->total = $dueAmount;
+                        $invoice->save();
+                        continue;
+                    }
+
+                    if ($remainingAmount <= 0) break;
+
+                    if ($remainingAmount >= $dueAmount) {
+                        $existingCredit=$invoice->paid_credit;
+                        // Fully pay this invoice
+                       // $invoice->creditpay=0;
+                        $invoice->paid_credit += $dueAmount;
+                        $invoice->total = $existingCredit+$dueAmount;
+                        $invoice->invoice_status = 'paid';
+                        $remainingAmount -= $dueAmount;
+                        $invoice->remaining_credit_pay=$invoice->creditpay - $invoice->paid_credit;
+                    } else {
+                        // Partially pay this invoice
+                        $invoice->paid_credit += $remainingAmount;
+                        $remainingAmount = 0;
+                        // Status remains unpaid
+                        $invoice->remaining_credit_pay=$invoice->creditpay - $invoice->paid_credit;
+                    }
+                    $invoice->save();
+                }
+
             if ($this->paymentType === 'online') {
                 if($user->left_credit==0){
                     $user->left_credit=$user->use_credit;

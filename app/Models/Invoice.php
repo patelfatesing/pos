@@ -32,7 +32,9 @@ class Invoice extends Model
         'online_amount',
         'roundof',
         'ref_no',
-        'hold_date'
+        'hold_date',
+        'paid_credit',
+        'invoice_status'
     ];
 
     protected $casts = [
