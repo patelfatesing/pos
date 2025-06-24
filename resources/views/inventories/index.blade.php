@@ -13,9 +13,6 @@
         <div class="content-page">
             <div class="container-fluid">
                 <h1>Stock Inventory</h1>
-
-
-
                 <!-- Inventory Table -->
                 <div class="col-lg-12">
                     <!-- Store Filter -->
@@ -41,7 +38,7 @@
                                     <th>Expiry Date</th>
                                     <th>Stock Low Level</th>
                                     <th>Last updated</th>
-                                    
+
                                 </tr>
                             </thead>
                             <tfoot>
@@ -108,7 +105,11 @@
             }
 
             inventoryTable = $('#inventory_table').DataTable({
-                pagelength: 10,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                pageLength: 10,
                 responsive: true,
                 processing: true,
                 serverSide: true,

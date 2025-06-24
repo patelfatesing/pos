@@ -7,7 +7,10 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Illuminate\Support\Facades\Auth;
-
+use App\Models\PartyUserImage;
+use App\Models\CommissionUserImage;
+use App\Models\Commissionuser;
+use App\Models\Partyuser;
 class TakeTwoPictures extends Component
 {
     use WithFileUploads;
@@ -16,11 +19,16 @@ class TakeTwoPictures extends Component
     public ?TemporaryUploadedFile $customerPhoto = null;
     public bool $isProductPhotoTaken = false;
     public bool $isCustomerPhotoTaken = false;
-
+    public bool $showHoldImg = false;
+    public $partyHoldPic="";
+    public $commissionHoldPic="";
+    public $partyStatic=[];
+    public $commiStatic=[];
     // Session keys for storing photo paths
     private const SESSION_KEY_PRODUCT = 'product_photo_path';
     private const SESSION_KEY_CUSTOMER = 'customer_photo_path';
     private const SESSION_KEY_TIMESTAMP = 'photos_timestamp';
+    protected $listeners = ['resetPicAll','setImg','setHoldImage','resetHoldPic','handleSetImg'];
 
     /**
      * Validation rules for the photos
@@ -215,6 +223,26 @@ class TakeTwoPictures extends Component
         $this->resetValidation();
         $this->dispatch('photos-reset');
     }
+    public function resetHoldPic(): void
+    {
+        //$this->reset(['partyHoldPic', 'commissionHoldPic','showHoldImg']);
+        $this->showHoldImg=false;
+
+    }
+     public function resetPicAll(): void
+    {
+        $this->reset(['productPhoto', 'customerPhoto']);
+        $this->isProductPhotoTaken = false;
+        $this->isCustomerPhotoTaken = false;
+        $this->resetValidation();
+        // Remove stored photo paths from session
+        session()->forget([
+            auth()->id()."_".Auth::user()->role->name."_".self::SESSION_KEY_PRODUCT,
+            auth()->id()."_".Auth::user()->role->name."_".self::SESSION_KEY_CUSTOMER,
+            auth()->id()."_".Auth::user()->role->name."_".self::SESSION_KEY_TIMESTAMP,
+        ]);
+        $this->dispatch('photos-reset');
+    }
 
     /**
      * Check if both photos are taken
@@ -235,7 +263,113 @@ class TakeTwoPictures extends Component
 
         return $path ? $path: null;
     }
+   public function getHoldPhotoUrl(string $type): ?array
+    {
+        $userKeyPrefix = auth()->id() . "_" . Auth::user()->role->name;
 
+        if ($type === 'party') {
+            $customerPath = session($userKeyPrefix . '_party_custtomer_img');
+            $productPath = session($userKeyPrefix . '_party_product_img');
+
+            return [
+                $type.'_customer' => $customerPath ?: null,
+                $type.'_product' => $productPath ?: null,
+            ];
+        }else if ($type === 'commission') {
+            $customerPath = session($userKeyPrefix . '_commission_custtomer_img');
+            $productPath = session($userKeyPrefix . '_commission_product_img');
+
+            return [
+                $type.'_customer'  => $customerPath ?: null,
+                $type.'_product'=> $productPath ?: null,
+            ];
+        } 
+
+        return null;
+    }
+    public function setImg()
+    {
+        if(!empty($this->partyHoldPic)){
+             $this->showHoldImg = true;
+        }else{
+
+            $this->showHoldImg = false;
+        }
+        $current_party_id = session('current_party_id');
+        $current_commission_id = session('current_commission_id');
+        
+        if(!empty($current_party_id)){
+            $partyUserImage = PartyUserImage::where('party_user_id', $current_party_id)->where('type', 'hold')->first(["image_path","product_image_path"]);
+            if(!empty($partyUserImage)){
+             
+                $this->setHoldImage( [
+                'type' => "party",
+                'customer' => $partyUserImage->image_path,
+                'product' => $partyUserImage->product_image_path
+                ]);
+                $this->showHoldImg = true;
+
+            }
+        }else{
+            $this->showHoldImg = false;
+        }
+        if(!empty($current_commission_id)){
+            $commissionUserImage = CommissionUserImage::where('commission_user_id', $current_commission_id)->where('type', 'hold')->first(["image_path","product_image_path"]);
+            if(!empty($commissionUserImage)){
+                $this->setHoldImage( [
+                'type' => "commission",
+                'customer' => $commissionUserImage->image_path,
+                'product' => $commissionUserImage->product_image_path
+                ]);
+                $this->showHoldImg = true;
+            }
+        }
+       // $this->partyHoldPic=$this->getHoldPhotoUrl('party');
+        //$this->commissionHoldPic=$this->getHoldPhotoUrl('commission');
+    }
+     public function handleSetImg($partyUser,$commissionUser)
+    {
+         if(!empty($partyUser)){
+           $partyUserQ = PartyUser::where('status', 'Active')->find($partyUser);
+
+           if(!empty($partyUserQ->photo)){
+            $this->partyStatic['pic']= $partyUserQ->photo;
+            $this->partyStatic['first_name']= $partyUserQ->first_name;
+           }else{
+            $this->partyStatic=[];
+           }
+
+        }else if(!empty($commissionUser)){
+            $user = Commissionuser::where('status', 'Active')->where('is_deleted', '!=', 'Yes')->find($commissionUser);
+
+            if(!empty($user->photo)){
+                $this->commiStatic['pic']= $user->photo;
+                $this->commiStatic['first_name']= $user->first_name;
+            }else{
+                $this->commiStatic=[];
+            }
+        }
+        // Now you can use $userId as needed
+    }
+    public function setHoldImage($imageData){
+        
+        $type=$imageData['type'] ??'';
+        if($imageData['type']=="party")
+        {
+            $this->partyHoldPic=[
+                $type.'_customer' => $imageData['customer'] ?: null,
+                $type.'_product' => $imageData['product'] ?: null,
+            ];
+
+        }
+        else{
+            $this->partyHoldPic=[
+                $type.'_customer' => $imageData['customer'] ?: null,
+                $type.'_product' => $imageData['product'] ?: null,
+            ];
+        }
+
+    }
     /**
      * Render the component
      */
@@ -245,7 +379,7 @@ class TakeTwoPictures extends Component
             'canSave' => $this->areBothPhotosTaken(),
             'storedPhotos' => $this->hasStoredPhotos() ? $this->getStoredPhotoPaths() : null,
             'productPhotoUrl' => $this->getPhotoUrl('product'),
-            'customerPhotoUrl' => $this->getPhotoUrl('customer')
+            'customerPhotoUrl' => $this->getPhotoUrl('customer'),
         ]);
     }
 }

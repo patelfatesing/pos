@@ -12,7 +12,7 @@ class CommissionUserController extends Controller
 {
     public function index()
     {
-        $commissionUsers = Commissionuser::with('images')->where('status', 'Active')->latest()->get();
+        $commissionUsers = Commissionuser::with('images')->latest()->get();
         return view('commission_users.index', compact('commissionUsers'));
     }
 
@@ -26,8 +26,8 @@ class CommissionUserController extends Controller
         $orderColumn = $request->input('columns.' . $orderColumnIndex . '.data', 'id');
         $orderDirection = $request->input('order.0.dir', 'asc');
 
-        $query = Commissionuser::with('images')->where('status', 'Active');
-
+        // $query = Commissionuser::with('images')->where('status', 'Active');
+        $query = Commissionuser::with('images');
         // **Search filter**
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
@@ -39,7 +39,7 @@ class CommissionUserController extends Controller
             });
         }
 
-        $recordsTotal = Commissionuser::where('status', 'Active')->count();
+        $recordsTotal = Commissionuser::count();
         $recordsFiltered = $query->count();
 
         $data = $query->orderBy($orderColumn, $orderDirection)
@@ -111,13 +111,16 @@ class CommissionUserController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'first_name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255|unique:commission_users,first_name',
             'email' => 'required|email|max:255|unique:commission_users,email',
             'commission_type' => 'required|in:fixed,percentage',
             'applies_to' => 'required|in:all,category,product',
             'reference_id' => 'nullable|string',
             'is_active' => 'required|boolean',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg'
+        ], [
+            'first_name.required' => 'Commission user name is required.',
+            'first_name.unique' => 'Commission User has already been taken.'
         ]);
 
         // if ($request->hasFile('image')) {
@@ -142,13 +145,13 @@ class CommissionUserController extends Controller
 
     public function edit($id)
     {
-        $commissionUser = Commissionuser::with('images')->where('status', 'Active')->where('id', $id)->firstOrFail();
+        $commissionUser = Commissionuser::with('images')->where('id', $id)->firstOrFail();
         return view('commission_users.edit', compact('commissionUser'));
     }
 
     public function view($id)
     {
-        $commissionUser = Commissionuser::with('images')->where('status', 'Active')->where('id', $id)->firstOrFail();
+        $commissionUser = Commissionuser::with('images')->where('id', $id)->firstOrFail();
         return view('commission_users.view', compact('commissionUser'));
     }
 
@@ -249,7 +252,7 @@ class CommissionUserController extends Controller
 
     public function statusChange(Request $request)
     {
-        $user = Commissionuser::where('status', 'Active')->findOrFail($request->id);
+        $user = Commissionuser::findOrFail($request->id);
         $user->is_active = $request->status;
         $user->save();
 
@@ -258,14 +261,17 @@ class CommissionUserController extends Controller
 
     public function update(Request $request, Commissionuser $Commissionuser)
     {
-
         $data = $request->validate([
-            'first_name' => 'required|string|max:255',
+
+            'first_name' => 'required|string|max:255|unique:commission_users,first_name,' . $Commissionuser->id,
             'commission_type' => 'required|in:fixed,percentage',
             'applies_to' => 'required|in:all,category,product',
             'reference_id' => 'nullable|string',
             'is_active' => 'required|boolean',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg',
+        ], [
+            'first_name.required' => 'Commission user name is required.',
+            'first_name.unique' => 'Commission User has already been taken.'
         ]);
 
         // Handle new photo upload
@@ -278,18 +284,17 @@ class CommissionUserController extends Controller
         //     // Store new photo
         //     $data['photo'] = $request->file('photo')->store('commission_photos', 'public');
         // }
-       
+
         if ($request->hasFile('photo')) {
             // Delete old photo if exists
             if ($Commissionuser->photo) {
                 \Storage::disk('public')->delete($Commissionuser->photo);
             }
             $extension = $request->file('photo')->getClientOriginalExtension();
-            $filename = $Commissionuser->id.'_commissionuser'. '.' . $extension;
+            $filename = $Commissionuser->id . '_commissionuser' . '.' . $extension;
 
             // Store new photo
             $data['photo'] = $request->file('photo')->storeAs('commission_photos', $filename, 'public');
-
         }
         $Commissionuser->update($data);
 
@@ -298,7 +303,7 @@ class CommissionUserController extends Controller
 
     public function destroy($id)
     {
-        $record = Commissionuser::where('status', 'Active')->findOrFail($id);
+        $record = Commissionuser::findOrFail($id);
         $record->is_deleted = "Yes";
         $record->save();
         //$Commissionuser->delete();

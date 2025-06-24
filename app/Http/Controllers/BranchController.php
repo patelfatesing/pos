@@ -20,44 +20,71 @@ class BranchController extends Controller
         $data = Branch::where('is_deleted', 'no')->get();
         return view('branch.index', compact('data'));
     }
+
     public function getAvailableNotes()
     {
 
-            $start_date =date('Y-m-d'); // your start date (set manually)
-            $end_date = date('Y-m-d') . ' 23:59:59'; // today's date till end of day
-            $noteCount = [];
-            $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+        $start_date = date('Y-m-d'); // your start date (set manually)
+        $end_date = date('Y-m-d') . ' 23:59:59'; // today's date till end of day
+        $noteCount = [];
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
-            // Decode cash JSON to array
-            $cashBreakdowns = CashBreakdown::select("denominations")->where('user_id', auth()->id())
-                ->where('branch_id', $branch_id)
-                // ->where('type', '!=', 'cashinhand')
-                ->whereBetween('created_at', [$start_date, $end_date])
-                ->get();
+        // Decode cash JSON to array
+        $cashBreakdowns = CashBreakdown::select("denominations")->where('user_id', auth()->id())
+            ->where('branch_id', $branch_id)
+            // ->where('type', '!=', 'cashinhand')
+            ->whereBetween('created_at', [$start_date, $end_date])
+            ->get();
 
 
-            foreach ($cashBreakdowns as $breakdown) {
-                $denominations1 = json_decode($breakdown->denominations, true);
-                if (is_array($denominations1)) {
-                    foreach ($denominations1 as $denomination => $notes) {
-                        foreach ($notes as $noteValue => $action) {
-                            // Check for 'in' (added notes) and 'out' (removed notes)
-                            if (isset($action['in'])) {
-                                if (!isset($noteCount[$noteValue])) {
-                                    $noteCount[$noteValue] = 0;
+        foreach ($cashBreakdowns as $breakdown) {
+            $denominations1 = json_decode($breakdown->denominations, true);
+            // echo "<pre>";
+            // print_r($denominations1);
+            if (is_array($denominations1)) {
+                // Handle array of objects: [{"10":{"in":"0"}},{"20":{"in":"0"}},...]
+                if (array_keys($denominations1) === range(0, count($denominations1) - 1)) {
+                    foreach ($denominations1 as $item) {
+                        if (is_array($item)) {
+                            foreach ($item as $noteValue => $action) {
+                                if (isset($action['in'])) {
+                                    if (!isset($noteCount[$noteValue])) {
+                                        $noteCount[$noteValue] = 0;
+                                    }
+                                    $noteCount[$noteValue] += (int)$action['in'];
                                 }
-                                $noteCount[$noteValue] += $action['in'];
+                                if (isset($action['out'])) {
+                                    if (!isset($noteCount[$noteValue])) {
+                                        $noteCount[$noteValue] = 0;
+                                    }
+                                    $noteCount[$noteValue] -= (int)$action['out'];
+                                }
                             }
-                            if (isset($action['out'])) {
-                                if (!isset($noteCount[$noteValue])) {
-                                    $noteCount[$noteValue] = 0;
+                        }
+                    }
+                } else {
+                    // Handle object with nested arrays: {"5":{"500":{"in":4}}, "3":{"100":{"out":1}}}
+                    foreach ($denominations1 as $outer) {
+                        if (is_array($outer)) {
+                            foreach ($outer as $noteValue => $action) {
+                                if (isset($action['in'])) {
+                                    if (!isset($noteCount[$noteValue])) {
+                                        $noteCount[$noteValue] = 0;
+                                    }
+                                    $noteCount[$noteValue] += (int)$action['in'];
                                 }
-                                $noteCount[$noteValue] -= $action['out'];
+                                if (isset($action['out'])) {
+                                    if (!isset($noteCount[$noteValue])) {
+                                        $noteCount[$noteValue] = 0;
+                                    }
+                                    $noteCount[$noteValue] -= (int)$action['out'];
+                                }
                             }
                         }
                     }
                 }
             }
+        }
         return response()->json($noteCount);
     }
 
@@ -102,6 +129,8 @@ class BranchController extends Controller
                 // href="#" onclick="delete_store(' . $store->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>';
             }
 
+            $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
+                    href="#" onclick="add_store_holiday(' . $store->id . ')"><i class="ri-calendar-event-line"></i></a>';
             $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="#" onclick="low_level_stock(' . $store->id . ')"><i class="ri-battery-low-line"></i></a>';
             $action .= '<a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit"
@@ -219,6 +248,7 @@ class BranchController extends Controller
 
         // return redirect()->route('branch.list')->with('success', 'Record deleted successfully.');
     }
+
     public function statusChange(Request $request)
     {
         $user = Branch::findOrFail($request->id);

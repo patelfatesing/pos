@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 use Carbon\Carbon;
 use App\Models\Inventory;
 use Illuminate\Support\Facades\Auth;
+use App\Models\ShiftClosing;
 
 class PurchaseController extends Controller
 {
@@ -64,6 +65,15 @@ class PurchaseController extends Controller
             'products.*.amount' => 'required|numeric',
         ]);
 
+        $running_shift = ShiftClosing::where('branch_id', 1)
+            ->where('status', 'pending')
+            ->first();
+
+        if (!$running_shift) {            // null  ➔ destination store not open
+            return back()
+                ->withErrors(['to_store_id' => 'The Warehouse is not open.'])
+                ->withInput();
+        }
 
         DB::beginTransaction();
 
@@ -114,18 +124,21 @@ class PurchaseController extends Controller
                 $batch = $product['batch'];
                 $expiryDatePlusOneYear = Carbon::parse($product['mfg_date'])->addYear();
 
-                $record = Product::with('inventorie')->where('id', $product_id)->where('is_deleted', 'no')->firstOrFail();
+                $store_id = 1; // Assuming store_id is always 1 for this example, adjust as needed
+                $record = Product::with(['inventorieUnfiltered' => function ($query) use ($store_id) {
+                    $query->where('store_id', $store_id);
+                }])->where('id', $product_id)->where('is_deleted', 'no')->firstOrFail();
 
                 $inventoryService = new \App\Services\InventoryService();
 
-                if (!empty($record->inventorie)) {
+                if (!empty($record->inventorieUnfiltered)) {
 
                     // $product['qnt'] = $product['qnt'] + $record->inventorie[0]->quantity;
 
                     $batchNumber = strtoupper($request->sku) . '-' . now()->format('Ymd') . '-' . Str::upper(Str::random(4));
-                    if ($record->inventorie->batch_no == $batch) {
+                    if ($record->inventorieUnfiltered->batch_no == $batch) {
 
-                        $inventory = Inventory::findOrFail($record->inventorie->id);
+                        $inventory = Inventory::findOrFail($record->inventorieUnfiltered->id);
 
                         $qnt =  $product['qnt'] + $inventory->quantity;
                         $inventory->updated_at = now();
@@ -194,18 +207,33 @@ class PurchaseController extends Controller
         $length = $request->input('length', 10);
         $searchValue = $request->input('search.value', '');
         $orderColumnIndex = $request->input('order.0.column', 0);
-        $orderColumn = $request->input('columns.' . $orderColumnIndex . '.data', 'id');
-        $orderDirection = $request->input('order.0.dir', 'asc');
+        $orderColumn = $request->input("columns.$orderColumnIndex.data", 'id');
+        $orderDirection = $request->input('order.0.dir', 'desc');
 
-        $query = Purchase::with('vendor'); // Eager load vendor
+        // Map frontend column names to actual DB columns
+        switch ($orderColumn) {
+            case 'party_name':
+                $orderColumn = 'vendor_lists.name';
+                break;
+            case 'bill_no':
+                $orderColumn = 'purchases.bill_no';
+                break;
+            case 'created_at':
+                $orderColumn = 'purchases.created_at';
+                break;
+            default:
+                $orderColumn = 'purchases.created_at';
+        }
+
+        // Join vendors table to support ordering by vendor name
+        $query = Purchase::select('purchases.*', 'vendor_lists.name as vendor_name')
+            ->leftJoin('vendor_lists', 'purchases.vendor_id', '=', 'vendor_lists.id');
 
         // Search filter
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
-                $q->where('bill_no', 'like', '%' . $searchValue . '%')
-                    ->orWhereHas('vendor', function ($q2) use ($searchValue) {
-                        $q2->where('name', 'like', '%' . $searchValue . '%');
-                    });
+                $q->where('purchases.bill_no', 'like', '%' . $searchValue . '%')
+                    ->orWhere('vendor_lists.name', 'like', '%' . $searchValue . '%');
             });
         }
 
@@ -222,17 +250,14 @@ class PurchaseController extends Controller
         foreach ($data as $purchase) {
             $records[] = [
                 'bill_no' => $purchase->bill_no,
-                'party_name' => $purchase->vendor->name ?? 'N/A',
+                'party_name' => $purchase->vendor_name ?? 'N/A',
                 'total' => number_format($purchase->total, 2),
                 'total_amount' => number_format($purchase->total_amount, 2),
                 'created_at' => date('d-m-Y h:i', strtotime($purchase->created_at)),
                 'action' => ' <div class="d-flex align-items-center list-action">
-                                        <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                                            href="' . url('/purchase/view/' . $purchase->id) . '"><i class="ri-eye-line mr-0"></i></a>
-                </div>'
-
-                // 'action' => "<a href='" . url('/purchase/view/' . $purchase->id) . "' class='btn btn-info mr-2'>View</a>
-                //              <button type='button' onclick='delete_purchase(" . $purchase->id . ")' class='btn btn-danger ml-2'>Delete</button>"
+                            <a class="badge badge-info mr-2" data-toggle="tooltip" title="View"
+                                href="' . url('/purchase/view/' . $purchase->id) . '"><i class="ri-eye-line mr-0"></i></a>
+                          </div>'
             ];
         }
 

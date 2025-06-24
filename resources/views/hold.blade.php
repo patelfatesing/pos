@@ -87,8 +87,7 @@
 <div>
     <strong>{{ @$type == 'refund' ? 'Refund' : 'Invoice' }}:</strong> {{ $invoice->invoice_number }}<br>
     <strong>Name:</strong> {{ $customer_name ?? '' }}<br>
-    <strong>Date:</strong> {{ now()->format('d/m/Y H:i') }}
-</div>
+    <strong>Date:</strong> {{ \Carbon\Carbon::parse($hold_date)->format('d/m/Y H:i')}}
 
 <div class="line"></div>
 
@@ -105,10 +104,13 @@
     <tbody>
         @php
             $total=0;
+            $qty=0;
         @endphp
         @foreach($items as $index => $item)
         @php
+            $item['price']=$item['price']*$item['quantity'];
             $total+=(float)$item['price'];
+            $qty+=$item['quantity'];
 
         @endphp
         <tr>
@@ -117,7 +119,7 @@
                 {{ strlen($item['name']) > 10 ? substr($item['name'], 0, 10) . '...' . substr($item['name'], -5) : $item['name'] }}
             </td>
             <td class="center">{{ $item['quantity'] }}</td>
-            <td class="center">{{ $item['price'] / $item['quantity'] }}</td>
+            <td class="center">{{ number_format($item['price'] / $item['quantity'], 2) }}</td>
             <td class="right">{{ number_format((float)$item['price'], 2) }}</td>
         </tr>
         @endforeach
@@ -128,10 +130,14 @@
 
 <table class="table">
     <tr>
-        <td class="left">Purchased:</td>
-        <td class="right">0</td>
+        <td class="left">Pieces Purchased :</td>
+        <td class="right">{{$qty}}</td>
     </tr>
     <tr>
+        <td class="left">Total:</td>
+        <td class="right">{{ number_format((float)$total, 2) }}</td>
+    </tr>
+     <tr>
         <td class="left">Discount:</td>
         <td class="right">{{ number_format((float)$invoice->party_amount, 2) }}</td>
     </tr>
@@ -140,13 +146,17 @@
         <td class="right">{{ number_format((float)$invoice->creditpay ?? 0, 2) }}</td>
     </tr>
     <tr>
+        <td class="left">Round Off:</td>
+        <td class="right">{{ number_format((float)$invoice->roundof ?? 0, 2) }}</td>
+    </tr>
+    {{-- <tr>
         <td class="left">Total Savings:</td>
         <td class="right">0</td>
-    </tr>
-    <tr class="bold">
+    </tr> --}}
+    {{-- <tr class="bold">
         <td class="left">Total Paid:</td>
         <td class="right">0</td>
-    </tr>
+    </tr> --}}
 </table>
 <div class="line"></div>
 
@@ -156,7 +166,7 @@
         <td></td>
         <td></td>
         <td class="center">{{ $invoice->total_item_qty }}</td>
-        <td class="right">{{ number_format((float)$total, 2) }}</td>
+        <td class="right">{{ $invoice->total}}</td>
     </tr>
 </table>
 

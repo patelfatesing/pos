@@ -28,6 +28,8 @@ class UserShift extends Model
         'cash_break_id',
         'closing_sales',
         'physical_photo',
+        'shift_no',
+        'cash_added'
     ];
 
 
@@ -44,10 +46,15 @@ class UserShift extends Model
         return $this->hasOne(Branch::class, 'id', 'branch_id');
 
     }
-    public static function getYesterdayShift($user_id, $branch_id)
+    public static function getYesterdayShift($user_id, $branch_id,$status="completed")
     {
-        return UserShift::whereDate('start_time', Carbon::yesterday())->where(['user_id' => $user_id])->where(['branch_id' => $branch_id])->where(['status' => "pending"])->first();
+        return UserShift::where('status', $status)
+        ->where('user_id', $user_id)
+        ->where('branch_id', $branch_id)
+        ->whereDate('start_time', '<', Carbon::today())
+        ->latest('id')
+        ->first();
+
     }
-    
 
 }

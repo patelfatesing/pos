@@ -36,8 +36,24 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        @php
+                                            $totalOpening = $totalAdded = $totalTransferred = $totalSold = $totalClosing = $totalPhysical = $totalDifference = 0;
+                                        @endphp
+
                                         @forelse ($rawStockData as $stock)
-                                            <tr>
+                                            @php
+                                                $totalOpening += $stock->opening_stock;
+                                                $totalAdded += $stock->added_stock;
+                                                $totalTransferred += $stock->transferred_stock;
+                                                $totalSold += $stock->sold_stock;
+                                                $totalClosing += $stock->closing_stock;
+                                                $totalPhysical += !empty($stock->physical_stock)
+                                                    ? $stock->physical_stock
+                                                    : 0;
+                                                $totalDifference += $stock->difference_in_stock;
+                                            @endphp
+                                            <tr
+                                                style="background-color: {{ $stock->difference_in_stock < 0 ? '#ffcccc' : 'transparent' }}">
                                                 <td>{{ $stock->product->name ?? 'N/A' }}</td>
                                                 <td>{{ $stock->opening_stock }}</td>
                                                 <td>{{ $stock->added_stock }}</td>
@@ -45,7 +61,9 @@
                                                 <td>{{ $stock->sold_stock }}</td>
                                                 <td>{{ $stock->closing_stock }}</td>
                                                 <td>{{ $stock->physical_stock }}</td>
-                                                <td>{{ $stock->difference_in_stock }}</td>
+                                                <td>
+                                                    {{ $stock->difference_in_stock }}
+                                                </td>
                                             </tr>
                                         @empty
                                             <tr>
@@ -53,6 +71,17 @@
                                                     available.</td>
                                             </tr>
                                         @endforelse
+
+                                        <tr class="fw-semibold text-end" style="font-size: 1.1rem;">
+                                            <th colspan="1">Total</th>
+                                            <th>{{ $totalOpening }}</th>
+                                            <th>{{ $totalAdded }}</th>
+                                            <th>{{ $totalTransferred }}</th>
+                                            <th>{{ $totalSold }}</th>
+                                            <th>{{ $totalClosing }}</th>
+                                            <th>{{ $totalPhysical }}</th>
+                                            <th style="background-color: {{ $totalDifference < 0 ? '#ffcccc' : 'transparent' }}">{{ $totalDifference }}</th>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>

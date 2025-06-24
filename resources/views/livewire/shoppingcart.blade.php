@@ -4,21 +4,19 @@
     @endphp
 
     <div class="col-md-7">
-        <div class="iq-sidebar-logo d-flex align-items-center justify-content-between">
-            <!-- Left Side: Logo -->
-            <a href="{{ route('items.cart') }}" class="header-logo d-flex align-items-center">
-                <img src="{{ asset('assets/images/logo.png') }}" class="img-fluid rounded-normal light-logo"
-                    alt="LiquorHub Logo" style="height: 1.2em; width: auto;">
-                <h5 class="logo-title light-logo ml-3 mb-0 font-weight-bold text-dark">LiquorHub</h5>
+       <div class="d-flex align-items-center justify-content-between px-3 py-2 bg-white">
+            <a href="{{ route('items.cart') }}" class="d-flex align-items-center text-decoration-none">
+                <img src="{{ asset('assets/images/logo.png') }}" class="img-fluid rounded mr-2" alt="LiquorHub Logo" style="height: 2em;">
+                <h5 class="mb-0 font-weight-bold text-dark" style="color:#32bdea !important">LiquorHub</h5>
             </a>
-
-            <!-- Right Side: Sidebar Toggle Button -->
-            <div class="iq-menu-bt-sidebar">
-
-                <h6 class="text-right mb-0 ">{{ __('messages.store_location') }}<span
-                        class="text-muted">{{ $this->branch_name }}</span></h6>
+            <div class="d-flex flex-wrap justify-content-end text-right ml-auto">
+                <small class="mx-2"> <strong>Shift No:</strong>{{ $this->shift->shift_no ?? "" }}</small>
+                <small class="mx-2"><strong>Start: </strong>{{ $this->shift->start_time ?? "" }}</small>
+                <small class="mx-2"> <strong>End: </strong>{{ $this->shift->end_time ?? "" }}</small>
+                <small class="mx-2"><strong>{{ __('messages.store_location') }}: </strong>{{ $this->branch_name }}</small>
             </div>
         </div>
+
 
         <div class="row">
             <div class="col-md-3">
@@ -96,7 +94,7 @@
 
                     <div class="form-group">
                         <select id="commissionUser" class="form-control" wire:model="selectedCommissionUser"
-                            wire:change="calculateCommission">
+                            wire:change="calculateCommission" @if($removeCrossHold) disabled @endif>
                             <option value="">-- Select Commission Customer --</option>
                             @foreach ($commissionUsers as $user)
                                 <option value="{{ $user->id }}">{{ $user->first_name }}
@@ -108,14 +106,16 @@
                 @endif
                 @if (auth()->user()->hasRole('warehouse'))
                     <div class="form-group">
-                        <select id="partyUser" class="form-control" wire:model="selectedPartyUser"
-                            wire:change="calculateParty">
-                            <option value="">-- {{ __('messages.select_party_customer') }} --</option>
-                            @foreach ($partyUsers as $user)
-                                <option value="{{ $user->id }}">{{ $user->first_name }}
-                                </option>
-                            @endforeach
-                        </select>
+                      <select id="partyUser" class="form-control"
+                        wire:model="selectedPartyUser"
+                        wire:change="calculateParty"
+                        @if($removeCrossHold) disabled @endif>
+                        <option value="">-- {{ __('messages.select_party_customer') }} --</option>
+                        @foreach ($partyUsers as $user)
+                            <option value="{{ $user->id }}">{{ $user->first_name }}</option>
+                        @endforeach
+                    </select>
+
 
                     </div>
                 @endif
@@ -149,7 +149,7 @@
                         <a href="#"
                             class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
                             wire:click.prevent="addToCart({{ $product->id }})">
-                            <span><strong>{{ $product->name }} ({{ $product->size }})</strong></span>
+                            <span><strong>{{ $product->name }}</strong></span>
                             <span class="text-muted">{{ format_inr(@$product->sell_price) }}</span>
                         </a>
                     @endforeach
@@ -298,6 +298,27 @@
                                     {{ format_inr($item->net_amount) }}
 
                                 </td>
+                                @if($this->removeCrossHold==true)
+                                <td class="col-actions text-center">
+                                    <button class="btn btn-danger"
+                                        onclick="Swal.fire({
+                                            title: 'Do you want to remove this product ?',
+                                            text: 'This action cannot be reverted!',
+                                            icon: 'warning',
+                                            showCancelButton: true,
+                                            confirmButtonText: 'Yes, remove it',
+                                            cancelButtonText: 'Cancel',
+                                            reverseButtons: true
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                @this.removeItem({{ $item->id }},'resume','{{$this->invoice_no}}');
+                                            }
+                                        });"
+                                        title="Remove item">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </td>
+                                @else
                                 <td  class="col-actions text-center">
                                     <button class="btn btn-danger" wire:click="removeItem({{ $item->id }})"
                                         title="Remove item">
@@ -305,6 +326,7 @@
                                     </button>
 
                                 </td>
+                                @endif
                             </tr>
 
                         @empty
@@ -337,8 +359,12 @@
                             </td>
 
                             <td>
-                                {{ format_inr($this->cashAmount) }}
-                                <input type="hidden" id="roundedTotal" value="{{ $this->cashAmount }}">
+                                @php
+                                    $this->roundedTotal = (float)$this->cashAmount + (float)$this->creditPay - round($this->cartItemTotalSum);
+
+                                @endphp
+                                {{ $this->roundedTotal }}
+                                <input type="hidden" id="roundedTotal" value="{{ $this->roundedTotal }}" wire:model="roundedTotal">
                             </td>
                             <td class="table-success fw-bold">
                                 {{ format_inr($this->cashAmount) }}
@@ -642,7 +668,7 @@
                                         {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
                                         <div class="mb-3">
                                             <input type="hidden" name="store_id"
-                                                value="{{ @$data->userInfo->branch_id }}">
+                                                value="{{ @$branch_id }}">
                                         </div>
 
 
@@ -863,12 +889,13 @@
 
     <div class="modal fade" id="stockStatusModal" tabindex="-1" aria-labelledby="stockStatusModalLabel"
         aria-hidden="true" data-backdrop="static" data-keyboard="false" wire:ignore.self>
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h6 class="mt-4 mb-2">{{ __('messages.product_opening_stock') }}</h6>
-                    <button type="button" class="btn-close btn-close-white" data-dismiss="modal" aria-label="Close"
-                        wire:click="#"><span aria-hidden="true">×</span></button>
+                    <h6 class="">{{ __('messages.product_opening_stock') }}</h6>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
                 </div>
                 <div class="modal-body">
                     <table class="customtable table">
@@ -879,17 +906,42 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @php
+                                $sum=0;
+                            @endphp
                             @foreach ($productStock as $product)
+                        
                                 <tr>
                                     <td>{{ $product->product->name }}</td>
                                     <td>
+                                        @php
+                                            $stock="";
+                                            $lastShift = App\Models\UserShift::getYesterdayShift(auth()->user()->id, $branch_id);
+                                            if(empty($lastShift))
+                                            {
+                                                $stock=$product->opening_stock;
+                                            }else{
+                                                $stock=$product->closing_stock;
+                                            }
+                                            $sum+=$stock;
+
+                                        @endphp
                                         <input type="number" name="productStocks[{{ $product->id }}]"
-                                            class="form-control text-center" value="{{ $product->closing_stock }}"
+                                            class="form-control text-center" value="{{ $stock }}"
                                             readonly>
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
+                         <!-- Add total in footer -->
+                        <tfoot>
+                            <tr>
+                                <th class="text-end">{{ __('messages.total') }}</th>
+                                <th>
+                                    <input type="number" class="form-control text-center" value="{{ $sum }}" readonly>
+                                </th>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
                 <div class="modal-footer">
@@ -937,6 +989,7 @@
                                     <i class="fas fa-warehouse"></i>
                                 </button>
                             @endif
+                            <livewire:take-cash-modal />
 
                             {{-- Show when item cart is empty --}}
                             @if (count($itemCarts) == 0)
@@ -958,7 +1011,9 @@
                                     <i class="fas fa-print"></i>
                                 </button>
                                  <livewire:order-modal />
+                                 @if (count($itemCarts) == 0)
                                   <livewire:collation-modal />
+                                  @endif
                             @endif
                             @livewire('button-timer', ['endTime' => $this->shiftEndTime])
 
@@ -1417,7 +1472,7 @@
                             </div>
                             <p id="result" class="mt-3 fw-bold text-success"></p>
                             <div class="mt-4">
-                                @if ($this->showOnline == true)
+                                @if ($this->showOnline == true && $this->cashAmount>0)
                                     <button id="paymentSubmit" class="btn btn-primary btn-sm mr-2 btn-block mt-4"
                                         wire:click="onlinePaymentCheckout" wire:loading.attr="disabled">
                                         {{ __('messages.submit') }}
@@ -2160,7 +2215,7 @@ function updateNote(id, delta, denomination) {
             }
         }).then((result) => {
             if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
-                location.reload(); // reload after OK click or auto close
+               // location.reload(); // reload after OK click or auto close
             }
         });
     });
@@ -2193,15 +2248,20 @@ function updateNote(id, delta, denomination) {
             title: 'Error!',
             text: 'Shift start is not allowed before 12:00 AM. Please try again after 12:00 AM.',
             icon: 'error',
-            showConfirmButton: false,
             position: 'center',
             toast: false,
-            timerProgressBar: false,
             backdrop: true,
             allowOutsideClick: false,
             showCloseButton: false,
+            showCancelButton: false,
+            confirmButtonText: 'Logout',
             customClass: {
                 popup: 'large-alert'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Submit the POST logout form
+                document.getElementById('logout-form').submit();
             }
         });
     });
@@ -2621,7 +2681,7 @@ window.addEventListener('close-hold-modal', function () {
         cluster: "{{ config('broadcasting.connections.pusher.options.cluster') }}",
         encrypted: true,
     });
-    var branch_id='{{ @$data->userInfo->branch_id }}';
+    var branch_id='{{ @$branch_id }}';
     var channel = pusher.subscribe('drawer-channel');
     
     channel.bind('DrawerOpened', function(data) {
@@ -2830,4 +2890,239 @@ $(document).ready(function () {
     });
 
 });
+  document.addEventListener('DOMContentLoaded', function() {
+        let cameraStream = {
+            modal: document.getElementById('cameraModal'),
+            video: document.getElementById('video'),
+            canvas: document.getElementById('canvas'),
+            error: document.getElementById('cameraError'),
+            loading: document.getElementById('loadingIndicator'),
+            captureProduct: document.getElementById('captureProduct'),
+            captureCustomer: document.getElementById('captureCustomer'),
+            productPreview: document.getElementById('productPreview'),
+            customerPreview: document.getElementById('customerPreview'),
+            stream: null,
+            isCapturing: false,
+            hasProductPhoto: false,
+            hasCustomerPhoto: false,
+
+            async init() {
+                this.setupEventListeners();
+            },
+
+            setupEventListeners() {
+                this.modal.addEventListener('shown.bs.modal', () => this.startCamera());
+                this.modal.addEventListener('hidden.bs.modal', () => this.stopCamera());
+                this.captureProduct.addEventListener('click', () => this.capture('product'));
+                this.captureCustomer.addEventListener('click', () => this.capture('customer'));
+
+                //Listen for Livewire events
+                window.Livewire.on('photos-saved', () => {
+                    // Reset states before closing modal
+                    this.hasProductPhoto = false;
+                    this.hasCustomerPhoto = false;
+                    this.updateButtonStates();
+                    
+                    // Clear previews
+                    if (this.productPreview) this.productPreview.innerHTML = '';
+                    if (this.customerPreview) this.customerPreview.innerHTML = '';
+                    
+                    // Restart camera
+                    this.stopCamera();
+                    this.startCamera();
+                    
+                    // Close modal after a short delay to ensure camera cleanup
+                    setTimeout(() => {
+                        $('#cameraModal').modal('hide'); // jQuery-based approach
+
+                    }, 100);
+                });
+
+                window.Livewire.on('photo-reset', (type) => {
+                    if (type === 'product') {
+                        this.hasProductPhoto = false;
+                    } else if (type === 'customer') {
+                        this.hasCustomerPhoto = false;
+                    }
+                    this.updateButtonStates();
+                });
+
+                window.Livewire.on('photos-reset', () => {
+                    this.hasProductPhoto = false;
+                    this.hasCustomerPhoto = false;
+                    this.updateButtonStates();
+                });
+            },
+
+            async startCamera() {
+                try {
+                    this.error.classList.add('d-none');
+                    this.loading.classList.remove('d-none');
+                    this.disableAllButtons(true);
+
+                    if (this.stream) {
+                        this.stopCamera(); // Ensure any existing stream is stopped
+                    }
+
+                    this.stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { 
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 },
+                            facingMode: 'environment'
+                        } 
+                    });
+                    
+                    this.video.srcObject = this.stream;
+
+                    await this.video.play();
+                    
+                    // Only enable buttons if we have a valid stream
+                    if (this.stream.active) {
+                        this.disableAllButtons(false);
+                    }
+                    this.updateButtonStates();
+                } catch (err) {
+
+                    console.error('Camera access error:', err);
+                    this.error.classList.remove('d-none');
+                } finally {
+                    this.loading.classList.add('d-none');
+                }
+            },
+
+            stopCamera() {
+                if (this.stream) {
+                    this.stream.getTracks().forEach(track => {
+                        track.stop();
+                    });
+                    this.video.srcObject = null;
+                    this.stream = null;
+                }
+            },
+
+            disableAllButtons(disabled) {
+                this.captureProduct.disabled = disabled;
+                this.captureCustomer.disabled = disabled;
+            },
+
+            updateButtonStates() {
+                if (this.isCapturing) return;
+
+                // Enable/disable buttons based on which photos are captured
+                this.captureProduct.disabled = this.hasProductPhoto;
+                this.captureCustomer.disabled = this.hasCustomerPhoto;
+
+                // Update button text to show status
+                this.captureProduct.innerHTML = this.hasProductPhoto ? 
+                    '✅ Product Photo Taken' : 
+                    '📷 Capture Product';
+                this.captureCustomer.innerHTML = this.hasCustomerPhoto ? 
+                    '✅ Customer Photo Taken' : 
+                    '📷 Capture Customer';
+
+                // Update button styles
+                if (this.hasProductPhoto) {
+                    this.captureProduct.classList.remove('btn-outline-success');
+                    this.captureProduct.classList.add('btn-success');
+                } else {
+                    this.captureProduct.classList.add('btn-outline-success');
+                    this.captureProduct.classList.remove('btn-success');
+                }
+
+                if (this.hasCustomerPhoto) {
+                    this.captureCustomer.classList.remove('btn-outline-info');
+                    this.captureCustomer.classList.add('btn-info');
+                } else {
+                    this.captureCustomer.classList.add('btn-outline-info');
+                    this.captureCustomer.classList.remove('btn-info');
+                }
+            },
+
+            async capture(target) {
+                if (this.isCapturing) return;
+                this.isCapturing = true;
+
+                try {
+                    // Temporarily disable both buttons during capture
+                    this.disableAllButtons(true);
+
+                    const context = this.canvas.getContext('2d');
+                    context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+                    
+                    // Show immediate preview
+                    const previewContainer = target === 'product' ? this.productPreview : this.customerPreview;
+                    const tempPreview = document.createElement('div');
+                    tempPreview.className = 'position-relative';
+                    tempPreview.innerHTML = `
+                        <img src="${this.canvas.toDataURL('image/jpeg')}" class="img-fluid" style="max-height: 240px">
+                        <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2">×</button>
+                    `;
+                    previewContainer.innerHTML = '';
+                    previewContainer.appendChild(tempPreview);
+                    
+                    // Convert to blob and trigger file input
+                    await new Promise(resolve => {
+                        this.canvas.toBlob(blob => {
+                            const file = new File([blob], `${target}-${Date.now()}.jpg`, { 
+                                type: 'image/jpeg' 
+                            });
+                            
+                            const dt = new DataTransfer();
+                            dt.items.add(file);
+                            
+                            const input = document.getElementById(`${target}Input`);
+                            input.files = dt.files;
+
+                            // Create a new event that Livewire will detect
+                            const event = new Event('change', {
+                                bubbles: true,
+                                cancelable: true,
+                            });
+                            
+                            // Dispatch the event to trigger Livewire's file upload
+                            input.dispatchEvent(event);
+                            resolve();
+                        }, 'image/jpeg', 0.9);
+                    });
+
+                    // Update photo states
+                    if (target === 'product') {
+                        this.hasProductPhoto = true;
+                    } else {
+                        this.hasCustomerPhoto = true;
+                    }
+
+                } catch (error) {
+                    console.error('Capture error:', error);
+                } finally {
+                    this.isCapturing = false;
+                    // Update button states after capture
+                    this.updateButtonStates();
+                }
+            }
+        };
+
+        cameraStream.init();
+    });
+      window.addEventListener('note-unavailable', event => {
+        
+        Swal.fire({
+            title: 'Note Limit Reached',
+            text: event.detail[0].message,
+            icon: 'warning',
+            confirmButtonText: 'OK'
+        });
+    });
+      window.addEventListener('note-add', event => {
+        
+        Swal.fire({
+            title: 'Add Cash',
+            text: event.detail[0].message,
+            icon: 'warning',
+            confirmButtonText: 'OK'
+        });
+    });
+     window.addEventListener('hold-saved', event => {
+        location.reload(); 
+    });
 </script>

@@ -9,6 +9,8 @@ use App\Models\Product;
 use App\Models\UserShift;
 use Carbon\Carbon;
 use App\Models\Partyuser;
+use App\Models\PartyUserImage;
+use App\Models\CommissionUserImage;
 use Illuminate\Support\Facades\App;
 
 class HoldTransactions extends Component
@@ -16,7 +18,9 @@ class HoldTransactions extends Component
     public $holdTransactions = [];
 
     protected $listeners = ['loadHoldTransactions'];
-
+    private const SESSION_KEY_PRODUCT = 'product_photo_path';
+    private const SESSION_KEY_CUSTOMER = 'customer_photo_path';
+    private const SESSION_KEY_TIMESTAMP = 'photos_timestamp';
     public function loadHoldTransactions()
     {
         $today = Carbon::today();
@@ -37,15 +41,41 @@ class HoldTransactions extends Component
 
     }
 
-    public function resumeTransaction($id)
+    public function resumeTransaction($id,$commission_user_id="",$party_user_id="")
     {
+        $invoice_number = Invoice::generateInvoiceNumber();
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
         $transaction = Invoice::where(['user_id' => auth()->user()->id])->where('id', $id)->where(['branch_id' => $branch_id])->where('status', 'Hold')->first();
+        $createdAt = Carbon::parse($transaction->hold_date); // ensure Carbon instance
+        $transaction->ref_no = $transaction->invoice_number ;
+        $transaction->invoice_number=$invoice_number;
         $transaction->status="resumed";
         $transaction->save();
+        if(!empty($party_user_id)){
+            $partyUserImage = PartyUserImage::where('transaction_id', $transaction->id)->where('party_user_id', $party_user_id)->where('type', 'hold')->first(["image_path","product_image_path"]);
+            if(!empty($partyUserImage)){
+                $this->dispatch('setHoldImage', [
+                'type' => "party",
+                'customer' => $partyUserImage->image_path,
+                'product' => $partyUserImage->product_image_path
+                ]);
+            }
+
+        }else if(!empty($commission_user_id)){
+             $commissionUserImage = CommissionUserImage::where('commission_user_id', $commission_user_id)->where('type', 'hold')->first(["image_path","product_image_path"]);
+             if(!empty($commissionUserImage->image_path)){
+                $this->dispatch('setHoldImage', [
+                'type' => "commission",
+                'customer' => $commissionUserImage->image_path,
+                'product' => $commissionUserImage->product_image_path
+                ]);
+             
+            }
+        }
         
         // Store in session that a transaction is being resumed
-        //session()->put('resumed_transaction_id', $id);
+        session()->put('current_party_id', $party_user_id);
+        session()->put('current_commission_id', $commission_user_id);
         //session()->put('resumed_transaction_time', now()); // optional timestamp
         foreach ($transaction->items as $key => $value) {
             $product =Product::where('name', $value['name'])->first();
@@ -61,14 +91,18 @@ class HoldTransactions extends Component
                 $item->save();
             }
         }
-
-
         $this->loadHoldTransactions(); // refresh list
         
         $this->dispatch('updateNewProductDetails');
         $this->dispatch('updateCartCount');
         $this->dispatch('setNotes');
         $this->dispatch('close-hold-modal');
+         $this->dispatch('updateCustomerDetailHold', [
+            'party_user_id' => $party_user_id,
+            'commission_user_id' => $commission_user_id,
+            'type'=>'resume',
+            'invoice_number'=>$transaction->invoice_number
+        ]);
         $this->dispatch('notiffication-success', ['message' => 'Transaction resumed successfully']);
 
     }
@@ -84,12 +118,10 @@ class HoldTransactions extends Component
 
         $pdfPath = storage_path('app/public/invoices/hold_invoice_' . $invoice->invoice_number . '.pdf');
 
-        if (!file_exists($pdfPath)) {
-            $partyUser = PartyUser::where('status', 'Active')->find($invoice->party_user_id);
-            $pdf = App::make('dompdf.wrapper');
-            $pdf->loadView('hold', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'hold' => true,'customer_name' => @$partyUser->first_name]);
-            $pdf->save($pdfPath);
-        }
+        $partyUser = PartyUser::where('status', 'Active')->find($invoice->party_user_id);
+        $pdf = App::make('dompdf.wrapper');
+        $pdf->loadView('hold', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'hold' => true,'customer_name' => @$partyUser->first_name,"hold_date"=>$invoice->hold_date,"ref_no"=>$invoice->ref_no]);
+        $pdf->save($pdfPath);
         
         $this->dispatch('triggerPrint', [
             'pdfPath' => asset('storage/invoices/hold_invoice_' . $invoice->invoice_number . '.pdf')
@@ -120,7 +152,14 @@ class HoldTransactions extends Component
             $this->dispatch('notiffication-success', ['message' => 'Transaction deleted successfully']);
         }
     }
-
+    private function storePhotoPathsInSession(string $productPath, string $customerPath): void
+    {
+        session([
+            auth()->id()."_".Auth::user()->role->name."_".self::SESSION_KEY_PRODUCT => $productPath,
+            auth()->id()."_".Auth::user()->role->name."_".self::SESSION_KEY_CUSTOMER => $customerPath,
+            auth()->id()."_".Auth::user()->role->name."_".self::SESSION_KEY_TIMESTAMP => now()->timestamp
+        ]);
+    }
     public function render()
     {
         return view('livewire.hold-transactions');

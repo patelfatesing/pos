@@ -3,20 +3,6 @@
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <!-- Styles -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
-
-    <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
@@ -67,10 +53,11 @@
 
                 <!-- Table -->
                 <div class="col-lg-12">
+
                     <div class="table-responsive rounded mb-3">
-                        <table class="table table-striped" id="stock-table" style="width:100%">
+                        <table class="table table-striped nowrap" id="stock-table" style="width:100%;">
                             <thead class="bg-white">
-                                <tr>
+                                <tr class="ligth ligth-data">
                                     <th>Sr. No.</th>
                                     <th>Branch</th>
                                     <th>Product</th>
@@ -111,6 +98,14 @@
         $(document).ready(function() {
             var table;
 
+            // Helper: Currency-safe renderer
+            function moneyRenderer() {
+                return function(data, type) {
+                    const num = parseFloat(data || 0);
+                    return (type === 'sort' || type === 'type') ? num : '₹' + num.toFixed(2);
+                };
+            }
+
             function loadData(filters = {}) {
                 $.ajax({
                     url: '{{ route('sales.fetch-stock-data') }}',
@@ -135,7 +130,9 @@
                     data: data,
                     columns: [{
                             data: null,
-                            render: (data, type, row, meta) => meta.row + 1,
+                            render: function(data, type, row, meta) {
+                                return meta.row + 1;
+                            },
                             className: 'text-center'
                         },
                         {
@@ -152,23 +149,30 @@
                         },
                         {
                             data: 'mrp',
-                            render: data => '₹' + parseFloat(data || 0).toFixed(2)
+                            render: moneyRenderer(),
+                            className: 'text-end'
                         },
                         {
                             data: 'selling_price',
-                            render: data => '₹' + parseFloat(data || 0).toFixed(2)
+                            render: moneyRenderer(),
+                            className: 'text-end'
                         },
                         {
                             data: 'cost_price',
-                            render: data => '₹' + parseFloat(data || 0).toFixed(2)
+                            render: moneyRenderer(),
+                            className: 'text-end'
                         },
                         {
                             data: 'all_qty',
-                            render: data => parseInt(data || 0)
+                            render: function(data) {
+                                return parseInt(data || 0);
+                            },
+                            className: 'text-end'
                         },
                         {
                             data: 'all_price',
-                            render: data => '₹' + parseFloat(data || 0).toFixed(2)
+                            render: moneyRenderer(),
+                            className: 'text-end'
                         }
                     ],
                     lengthMenu: [
@@ -177,7 +181,44 @@
                     ],
                     pageLength: 25,
                     dom: 'Blfrtip',
-                    buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
+                    buttons: [{
+                            extend: 'csvHtml5',
+                            text: 'Export CSV',
+                            className: 'btn btn-sm btn-outline-primary',
+                            title: 'Transaction Report',
+                            filename: 'transaction_report_csv',
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        },
+                        {
+                            extend: 'excelHtml5',
+                            text: 'Export Excel',
+                            className: 'btn btn-sm btn-outline-success',
+                            title: 'Transaction Report',
+                            filename: 'transaction_report_excel',
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        },
+                        {
+                            extend: 'pdfHtml5',
+                            text: 'Export PDF',
+                            className: 'btn btn-sm btn-outline-danger',
+                            title: 'Transaction Report',
+                            filename: 'transaction_report_pdf',
+                            orientation: 'landscape',
+                            pageSize: 'A4',
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        }
+                    ],
+                    columnDefs: [{
+                            targets: [1, 2, 3, 4],
+                            orderable: false
+                        } // branch_name & category_name not sortable
+                    ],
                     footerCallback: function(row, data) {
                         let totalQty = 0;
                         let totalPrice = 0;

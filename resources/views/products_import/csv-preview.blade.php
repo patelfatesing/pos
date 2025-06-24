@@ -81,7 +81,8 @@
                                                     <p class="mb-0">
                                                         Carefully map each database field to the corresponding column in
                                                         your uploaded file.
-                                                        Fields marked with a red asterisk <span class="text-danger">*</span> are mandatory and must be
+                                                        Fields marked with a red asterisk <span class="text-danger">*</span>
+                                                        are mandatory and must be
                                                         mapped to proceed.
 
                                                     </p>
@@ -115,6 +116,7 @@
                                                                 'cost_price',
                                                                 'selling_price',
                                                                 'minimum_stock_level',
+                                                                'brand'
                                                             ]))
                                                             <span class="text-danger">*</span>
                                                         @endif

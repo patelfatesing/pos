@@ -19,18 +19,20 @@ class DashboardController extends Controller
     {
         // Get role name from session
         $roleName = strtolower(session('role_name'));
-        
         // Redirect non-admin users to items.cart
-        if ($roleName !== 'admin') {
+        if($roleName=="warehouse" || $roleName== "cashier"){
             return redirect()->route('items.cart');
+        }else if ($roleName !== 'admin') {
+         return redirect(route('dashboard'));
         }
 
         // Only admin users will reach this point
         $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
 
-        $totals = Invoice::selectRaw('SUM(total) as total_sales, SUM(total_item_qty) as total_products')->first();
+        $totals = Invoice::selectRaw('SUM(total) as total_sales, SUM(creditpay) as total_creditpay, SUM(total_item_qty) as total_products')->whereNotIn('status',[ 'Hold','resumed','archived'])->first();
 
         $totalSales = $totals->total_sales;
+        $total_creditpay = $totals->total_creditpay;
         $totalProducts = $totals->total_products;
 
         $inventorySummary = \DB::table('inventories')
@@ -40,7 +42,7 @@ class DashboardController extends Controller
 
         $data= [
             'store'         => "Selete Store",
-            'sales'         => $totalSales,
+            'sales'         => $totalSales+$total_creditpay,
             'products'        => $totalProducts,
             'total_cost_price'     => $inventorySummary->total_cost_price,
             'top_products'  => $totalSales,
@@ -57,25 +59,45 @@ class DashboardController extends Controller
     {
         // Example: Fetch store
         $store = Branch::findOrFail($storeId);
+        $totals = Invoice::selectRaw('SUM(total) as total_sales, SUM(creditpay) as total_creditpay, SUM(total_item_qty) as total_products')->where('branch_id', $storeId)->whereNotIn('status',[ 'Hold','resumed','archived'])->first();
 
-        // Example: Fetch orders/sales for this store
-        $totalSales = Invoice::where('branch_id', $storeId)
-            // ->whereDate('created_at', today())
-             ->sum('total');
-
-        // // Example: Total number of orders today
-        $totalProducts = Invoice::where('branch_id', $storeId)
-           // ->whereDate('created_at', today())
-            ->sum('total_item_qty');
-
-        // // Example: Inventory count for this store
-
+        $totalSales = $totals->total_sales;
+        $total_creditpay = $totals->total_creditpay;
+        $totalProducts = $totals->total_products;
 
         $inventorySummary = \DB::table('inventories')
-        ->join('products', 'inventories.product_id', '=', 'products.id')
-        ->where('inventories.store_id', $storeId)
-         ->selectRaw('SUM(products.cost_price * inventories.quantity) as total_cost_price')
-        ->first();
+            ->join('products', 'inventories.product_id', '=', 'products.id')
+            ->selectRaw('SUM(products.cost_price * inventories.quantity) as total_cost_price')
+            ->where('inventories.store_id', $storeId)
+            ->first();
+
+        return [
+            'store'         => $store->name,
+            'sales'         => $totalSales+$total_creditpay,
+            'products'        => $totalProducts,
+            'total_cost_price'     => $inventorySummary->total_cost_price,
+            'top_products'  => $totalSales,
+        ];
+
+
+        // Example: Fetch orders/sales for this store
+        // $totalSales = Invoice::where('branch_id', $storeId)
+        //     // ->whereDate('created_at', today())
+        //      ->sum('total');
+
+        // // // Example: Total number of orders today
+        // $totalProducts = Invoice::where('branch_id', $storeId)
+        //    // ->whereDate('created_at', today())
+        //     ->sum('total_item_qty');
+
+        // // // Example: Inventory count for this store
+
+
+        // $inventorySummary = \DB::table('inventories')
+        // ->join('products', 'inventories.product_id', '=', 'products.id')
+        // ->where('inventories.store_id', $storeId)
+        //  ->selectRaw('SUM(products.cost_price * inventories.quantity) as total_cost_price')
+        // ->first();
 
         // // Example: Top selling products
         // $topProducts = OrderItem::whereHas('order', function ($query) use ($storeId) {
@@ -88,13 +110,13 @@ class DashboardController extends Controller
         //     ->take(5)
         //     ->get();
 
-        return [
-            'store'         => $store->name,
-            'sales'         => $totalSales,
-            'products'        => $totalProducts,
-            'total_cost_price'     => $inventorySummary->total_cost_price,
-            'top_products'  => $totalSales,
-        ];
+        // return [
+        //     'store'         => $store->name,
+        //     'sales'         => $totalSales,
+        //     'products'        => $totalProducts,
+        //     'total_cost_price'     => $inventorySummary->total_cost_price,
+        //     'top_products'  => $totalSales,
+        // ];
     }
 
 }   
