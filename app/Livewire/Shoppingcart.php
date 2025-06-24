@@ -2611,7 +2611,7 @@ class Shoppingcart extends Component
             //     'cash_break_id' => $cashBreakdown->id,
             //     //'billing_address'=> $address,
             // ]);
-            InvoiceHistory::logFromInvoice($invoice, 'created', auth()->id());
+            // InvoiceHistory::logFromInvoice($invoice, 'created', auth()->id());
 
 
             if ($this->selectedPartyUser) {
@@ -3154,7 +3154,7 @@ class Shoppingcart extends Component
                     'cash_break_id' => null,
                 ]
             );
-            InvoiceHistory::logFromInvoice($invoice, 'created', auth()->id());
+            // InvoiceHistory::logFromInvoice($invoice, 'created', auth()->id());
             if ($this->selectedPartyUser) {
                 $warehouse_product_photo_path = session(auth()->id() . '_warehouse_product_photo_path', []);
                 $warehouse_customer_photo_path = session(auth()->id() . '_warehouse_customer_photo_path', []);

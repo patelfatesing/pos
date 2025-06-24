@@ -251,7 +251,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/commission-users/', [CommissionUserController::class, 'store'])->name('commission-users.store');
     Route::get('/commission-users/edit/{id}', [CommissionUserController::class, 'edit'])->name('commission-users.edit');
     Route::put('/commission-users/{Commissionuser}', [CommissionUserController::class, 'update'])->name('commission-users.update');
-    Route::delete('/commission-users/{Commissionuser}', [CommissionUserController::class, 'destroy'])->name('commission-users.destroy');
+    Route::post('/commission-users/destroy', [CommissionUserController::class, 'destroy'])->name('commission-users.destroy');
     Route::get('/commission-cust/view/{id}', [CommissionUserController::class, 'view'])->name('commission-cust.view');
     Route::get('/commission-cust/trasaction-photo-view/{id}', [CommissionUserController::class, 'custTrasactionPhoto'])->name('commission-cust.trasaction-photo-view');
     Route::post('/commission-cust/get-commission-data', [CommissionUserController::class, 'getDataCommission'])->name('commission-cust.get.commission.data');
@@ -275,7 +275,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/cust-trasaction-photo/view/{id}', [PartyUserController::class, 'custTrasactionPhoto'])->name('cust-trasaction-photo-view');
     Route::post('/party-users/status-change', [PartyUserController::class, 'statusChange'])->name('party-users.status-change');
     Route::post('/party-users/get-credit-history', [PartyUserController::class, 'getCreditHistory'])->name('party-users.get.credit.history');
-   
+
     // });
 
     Route::get('/stock-transfer/craete-transfer', [StockTransferController::class, 'craeteTransfer'])->name('stock-transfer.craete-transfer');
@@ -319,6 +319,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/sales/stock-report', [SalesReportController::class, 'stockReport'])->name('sales.stock.report');
     Route::get('/sales/fetch-stock-data', [SalesReportController::class, 'fetchStockData'])->name('sales.fetch-stock-data');
+
+    Route::get('/sales/sale-stock-summary', [SalesReportController::class, 'saleStockSummary'])->name('sales.sale.stock.summary');
+    Route::get('/sales/sale-stock-summary-data', [SalesReportController::class, 'saleStockSummaryData'])->name('sales.sale.stock.summary.data');
 
     Route::get('/sales/commission-report', [SalesReportController::class, 'commissionReport'])->name('sales.commission.report');
     Route::get('/sales/fetch-commission-data', [SalesReportController::class, 'commissionInvoicesReport'])->name('sales.fetch-commission-data');

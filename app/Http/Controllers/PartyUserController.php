@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\PartyCustomerProductsPrice;
 use Illuminate\Support\Facades\Auth;
 use App\Models\CommissionUserImage;
+use App\Models\Invoice;
 
 class PartyUserController extends Controller
 {
@@ -40,6 +41,12 @@ class PartyUserController extends Controller
             });
         }
 
+        $query->where('is_delete', 'no');
+
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        }
+
         $recordsTotal = Partyuser::count();
         $recordsFiltered = $query->count();
 
@@ -69,8 +76,9 @@ class PartyUserController extends Controller
                                         href="' . url('/party-users/view/' . $partyUser->id) . '"><i class="ri-eye-line mr-0"></i></a>
             <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
                                         href="' . url('/party-users/edit/' . $partyUser->id) . '"><i class="ri-pencil-line mr-0"></i></a>
-                                  
-            </div>';
+              <a class="badge bg-danger mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
+                                        href="#" onclick="delete_party_user(' . $partyUser->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
+             </div>';
 
 
             $records[] = [
@@ -186,12 +194,17 @@ class PartyUserController extends Controller
 
     public function destroy($id)
     {
+
+        $tras = Invoice::where('party_user_id', $id)->first();
+
+        if (!empty($tras)) {
+            return response()->json(['status' => 'error', 'message' => "This Party user can'n delete."]);
+        }
         // Find the user and soft delete
         $record = Partyuser::findOrFail($id);
         $record->is_delete = "Yes";
         $record->save();
-
-        //return redirect()->route('users.list')->with('success', 'Party User has been deleted successfully.');
+        return response()->json(['success' => true, 'message' => 'Party User has been deleted successfully.']);
     }
 
     public function custProductPriceChangeForm($id)

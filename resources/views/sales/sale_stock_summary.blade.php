@@ -87,7 +87,6 @@
                                     <th>Selling Price</th>
                                     <th>Cost Price</th>
                                     <th>Qty</th>
-                                    <th>Sold</th>
                                     <th>Total Stock Value</th>
                                 </tr>
                             </thead>
@@ -96,16 +95,15 @@
                                 <tr>
                                     <th colspan="8" class="text-right">Total Quantity:</th>
                                     <th id="total-qty"></th>
-                                    <th id="total-sold"></th>
                                     <th id="total-price"></th>
                                 </tr>
                                 <tr>
                                     <th colspan="5" class="text-right">Selling Total:</th>
-                                    <th colspan="6" id="selling-total" class="text-left"></th>
+                                    <th colspan="5" id="selling-total" class="text-left"></th>
                                 </tr>
                                 <tr>
                                     <th colspan="5" class="text-right">Purchase Total:</th>
-                                    <th colspan="6" id="purchase-total" class="text-left"></th>
+                                    <th colspan="5" id="purchase-total" class="text-left"></th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -118,9 +116,12 @@
 @endsection
 
 @section('scripts')
+    <!-- Moment.js & DateRangePicker -->
+
+
     <script>
         $(document).ready(function() {
-            const start = moment().startOf('month');
+            const start = moment().subtract(29, 'days');
             const end = moment();
 
             $('#reportrange').daterangepicker({
@@ -178,8 +179,7 @@
                             data: 'product_name'
                         },
                         {
-                            data: 'barcode',
-                            orderable: false
+                            data: 'barcode'
                         },
                         {
                             data: 'category_name'
@@ -205,11 +205,6 @@
                             className: 'text-end'
                         },
                         {
-                            data: 'out_qty',
-                            render: d => parseInt(d || 0),
-                            className: 'text-end'
-                        },
-                        {
                             data: 'all_price',
                             render: moneyRenderer(),
                             className: 'text-end'
@@ -220,13 +215,12 @@
                         [10, 25, 50, 100, "All"]
                     ],
                     pageLength: 25,
-                    dom: "<'custom-toolbar-row'lfB>t<'row mt-2'<'col-md-6'i><'col-md-6'p>>",
+                    dom: 'Blfrtip',
                     buttons: [{
                             extend: 'excelHtml5',
                             className: 'btn btn-sm btn-outline-success',
-                            title: 'Stock Summary',
-                            filename: 'stock_summary_report_excel',
-                            footer: true, // ✅ important!
+                            title: 'Stock Report',
+                            filename: 'stock_report_excel',
                             exportOptions: {
                                 columns: ':visible'
                             }
@@ -234,11 +228,10 @@
                         {
                             extend: 'pdfHtml5',
                             className: 'btn btn-sm btn-outline-danger',
-                            title: 'Stock Summary',
-                            filename: 'stock_summary_report_pdf',
+                            title: 'Stock Report',
+                            filename: 'stock_report_pdf',
                             orientation: 'landscape',
                             pageSize: 'A4',
-                            footer: true, // ✅ important!
                             exportOptions: {
                                 columns: ':visible'
                             }
@@ -248,23 +241,18 @@
                         let totalQty = 0,
                             totalPrice = 0,
                             sellingTotal = 0,
-                            purchaseTotal = 0,
-                            totalSold = 0;
+                            purchaseTotal = 0;
                         data.forEach(row => {
                             let qty = parseFloat(row.all_qty || 0);
                             let selling = parseFloat(row.selling_price || 0);
                             let cost = parseFloat(row.cost_price || 0);
                             let allPrice = parseFloat(row.all_price || 0);
-                            let sold = parseFloat(row.out_qty || 0);
-
                             totalQty += qty;
                             totalPrice += allPrice;
                             sellingTotal += selling * qty;
                             purchaseTotal += cost * qty;
-                            totalSold += sold;
                         });
                         $('#total-qty').html(totalQty);
-                        $('#total-sold').html(totalSold);
                         $('#total-price').html('₹' + totalPrice.toFixed(2));
                         $('#selling-total').html('₹' + sellingTotal.toFixed(2));
                         $('#purchase-total').html('₹' + purchaseTotal.toFixed(2));
@@ -274,18 +262,6 @@
                 $('#store_id, #product_id, #category_id, #subcategory_id').change(refreshData);
                 $('#reset-filters').click(function() {
                     $('#store_id, #product_id, #category_id, #subcategory_id').val('');
-                    // Reset daterangepicker to default range (e.g., this month)
-                    const start = moment().startOf('month');
-                    const end = moment();
-
-                    $('#reportrange')
-                        .data('daterangepicker')
-                        .setStartDate(start);
-                    $('#reportrange')
-                        .data('daterangepicker')
-                        .setEndDate(end);
-                    $('#reportrange').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
-
                     refreshData();
                 });
             }
@@ -300,7 +276,7 @@
                 });
             }
 
-            loadData(); // initial load
+            loadData(); // initial call
         });
     </script>
 @endsection

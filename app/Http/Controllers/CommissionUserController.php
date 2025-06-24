@@ -7,6 +7,7 @@ use App\Models\CommissionUserImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Invoice;
 
 class CommissionUserController extends Controller
 {
@@ -39,13 +40,25 @@ class CommissionUserController extends Controller
             });
         }
 
+        $query->where('is_deleted', 'no');
+
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        }
+
         $recordsTotal = Commissionuser::count();
         $recordsFiltered = $query->count();
 
-        $data = $query->orderBy($orderColumn, $orderDirection)
-            ->offset($start)
-            ->limit($length)
-            ->get();
+        // pagination: only when length > 0
+        if ($length > 0) {
+            $query->skip($start)->take($length);
+        }
+
+        $data = $query->orderBy($orderColumn, $orderDirection)->get();
+        // $data = $query->orderBy($orderColumn, $orderDirection)
+        //     ->offset($start)
+        //     ->limit($length)
+        //     ->get();
 
         $records = [];
 
@@ -64,7 +77,9 @@ class CommissionUserController extends Controller
                                         href="' . url('/commission-users/edit/' . $commissionUser->id) . '"><i class="ri-pencil-line mr-0"></i></a>
            <a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
                                         href="' . url('/commission-cust/view/' . $commissionUser->id) . '"><i class="ri-eye-line mr-0"></i></a>
-            
+                                     <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
+                                        href="#" onclick="delete_commission_user(' . $commissionUser->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
+          
                                         </div>';
 
             // $action = '<div class="d-flex align-items-center list-action">
@@ -112,7 +127,7 @@ class CommissionUserController extends Controller
     {
         $data = $request->validate([
             'first_name' => 'required|string|max:255|unique:commission_users,first_name',
-            'email' => 'required|email|max:255|unique:commission_users,email',
+            'email' => 'nullable|email|max:255|unique:commission_users,email',
             'commission_type' => 'required|in:fixed,percentage',
             'applies_to' => 'required|in:all,category,product',
             'reference_id' => 'nullable|string',
@@ -301,12 +316,19 @@ class CommissionUserController extends Controller
         return redirect()->route('commission-users.list')->with('success', 'Commission User Updated');
     }
 
-    public function destroy($id)
+    public function destroy(Request $request)
     {
+        $id =  $request->id;
+        $tras = Invoice::where('commission_user_id', $id)->first();
+      
+        if (!empty($tras)) {
+            return response()->json(['status' => 'error', 'message' => "This Party user can'n delete."]);
+        }
+
         $record = Commissionuser::findOrFail($id);
         $record->is_deleted = "Yes";
         $record->save();
         //$Commissionuser->delete();
-        return response()->json(['success' => true, 'message' => 'Commission User Deleted']);
+        return response()->json(['success' => true, 'message' => 'Commission User has been deleted successfully.']);
     }
 }

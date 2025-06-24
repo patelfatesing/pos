@@ -32,9 +32,7 @@ class Invoice extends Model
         'online_amount',
         'roundof',
         'ref_no',
-        'hold_date',
-        'paid_credit',
-        'invoice_status'
+        'hold_date'
     ];
 
     protected $casts = [
@@ -83,7 +81,7 @@ class Invoice extends Model
         if(empty($type)){
             $latestInvoice=$latestInvoice->where('status', '!=', 'hold');
         }
-        $latestInvoice=$latestInvoice->orderBy('invoice_number', 'desc')
+        $latestInvoice=$latestInvoice->orderBy('id', 'desc')
         ->first();
         
         if ($latestInvoice) {

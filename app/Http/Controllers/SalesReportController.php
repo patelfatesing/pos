@@ -118,7 +118,7 @@ class SalesReportController extends Controller
                 'party_amount' => number_format($invoice->party_amount, 2),
                 'items_count' => $itemCount,
                 'branch_name' => $invoice->branch_name,
-                'payment_mode' => (!empty($invoice->payment_mode) && $invoice->payment_mode=="online")?"UPI":$invoice->payment_mode,
+                'payment_mode' => (!empty($invoice->payment_mode) && $invoice->payment_mode == "online") ? "UPI" : $invoice->payment_mode,
                 'created_at' => Carbon::parse($invoice->created_at)->format('Y-m-d H:i:s'),
             ];
         }
@@ -432,6 +432,16 @@ class SalesReportController extends Controller
         try {
             Log::info('Fetch stock data request received', $request->all());
 
+            // Parse date range
+            $startDate = null;
+            $endDate = null;
+
+            if ($request->has('date_range')) {
+                [$start, $end] = explode(' - ', $request->input('date_range'));
+                $startDate = Carbon::createFromFormat('Y-m-d', trim($start))->startOfDay();
+                $endDate = Carbon::createFromFormat('Y-m-d', trim($end))->endOfDay();
+            }
+
             $query = Inventory::select(
                 'inventories.store_id',
                 'products.id as product_id',
@@ -453,22 +463,19 @@ class SalesReportController extends Controller
                 ->join('branches', 'inventories.store_id', '=', 'branches.id')
                 ->join('categories', 'products.category_id', '=', 'categories.id')
                 ->leftJoin('sub_categories', 'products.subcategory_id', '=', 'sub_categories.id')
-                ->leftJoin('daily_product_stocks', function ($join) use ($request) {
+                ->leftJoin('daily_product_stocks', function ($join) use ($startDate, $endDate) {
                     $join->on('products.id', '=', 'daily_product_stocks.product_id')
                         ->on('branches.id', '=', 'daily_product_stocks.branch_id');
 
-                    if ($request->start_date && $request->end_date) {
-                        $join->whereBetween('daily_product_stocks.date', [
-                            Carbon::parse($request->start_date)->startOfDay(),
-                            Carbon::parse($request->end_date)->endOfDay()
-                        ]);
+                    if ($startDate && $endDate) {
+                        $join->whereBetween('daily_product_stocks.date', [$startDate, $endDate]);
                     }
                 })
                 ->where('products.is_active', 'yes')
                 ->where('products.is_deleted', 'no')
                 ->where('branches.is_deleted', 'no');
 
-            // Apply filters
+            // Filters
             if ($request->store_id) {
                 $query->where('inventories.store_id', $request->store_id);
             }
@@ -485,7 +492,7 @@ class SalesReportController extends Controller
                 $query->where('products.subcategory_id', $request->subcategory_id);
             }
 
-            // Add grouping to prevent duplicates
+            // Grouping
             $query->groupBy(
                 'inventories.store_id',
                 'products.id',
@@ -500,7 +507,7 @@ class SalesReportController extends Controller
                 'inventories.quantity'
             );
 
-            // Debug the SQL query
+            // Debug
             Log::info('SQL Query:', [
                 'sql' => $query->toSql(),
                 'bindings' => $query->getBindings()
@@ -634,5 +641,127 @@ class SalesReportController extends Controller
             'recordsFiltered' => $recordsFiltered,
             'data' => $data,
         ]);
+    }
+
+    public function saleStockSummary()
+    {
+        $branches = DB::table('branches')
+            ->where('is_deleted', 'no')
+            ->get();
+
+        $products = DB::table('products')
+            ->where('is_deleted', 'no')
+            ->where('is_active', 1)
+            ->get();
+
+        $categories = DB::table('categories')
+            ->where('is_deleted', 'no')
+            ->get();
+
+        $subcategories = DB::table('sub_categories')
+            ->where('is_deleted', 'no')
+            ->get();
+
+        return view('sales.sale_stock_summary', compact('branches', 'products', 'categories', 'subcategories'));
+    }
+
+    public function saleStockSummaryData(Request $request)
+    {
+        try {
+            Log::info('Fetch stock data request received', $request->all());
+
+            $query = Inventory::select(
+                'inventories.store_id',
+                'products.id as product_id',
+                'branches.name as branch_name',
+                'products.name as product_name',
+                'products.barcode',
+                'categories.name as category_name',
+                'products.mrp',
+                'products.sell_price as selling_price',
+                'products.discount_price as discount',
+                'products.cost_price',
+                DB::raw('COALESCE(SUM(daily_product_stocks.opening_stock), 0) as opening_stock'),
+                DB::raw('COALESCE(SUM(daily_product_stocks.added_stock), 0) as in_qty'),
+                DB::raw('COALESCE(SUM(daily_product_stocks.transferred_stock), 0) + COALESCE(SUM(daily_product_stocks.sold_stock), 0) as out_qty'),
+                'inventories.quantity as all_qty',
+                DB::raw('inventories.quantity * products.cost_price as all_price')
+            )
+                ->join('products', 'inventories.product_id', '=', 'products.id')
+                ->join('branches', 'inventories.store_id', '=', 'branches.id')
+                ->join('categories', 'products.category_id', '=', 'categories.id')
+                ->leftJoin('sub_categories', 'products.subcategory_id', '=', 'sub_categories.id')
+                ->leftJoin('daily_product_stocks', function ($join) use ($request) {
+                    $join->on('products.id', '=', 'daily_product_stocks.product_id')
+                        ->on('branches.id', '=', 'daily_product_stocks.branch_id');
+
+                    if ($request->start_date && $request->end_date) {
+                        $join->whereBetween('daily_product_stocks.date', [
+                            Carbon::parse($request->start_date)->startOfDay(),
+                            Carbon::parse($request->end_date)->endOfDay()
+                        ]);
+                    }
+                })
+                ->where('products.is_active', 'yes')
+                ->where('products.is_deleted', 'no')
+                ->where('branches.is_deleted', 'no');
+
+            // Apply filters
+            if ($request->store_id) {
+                $query->where('inventories.store_id', $request->store_id);
+            }
+
+            if ($request->product_id) {
+                $query->where('products.id', $request->product_id);
+            }
+
+            if ($request->category_id) {
+                $query->where('products.category_id', $request->category_id);
+            }
+
+            if ($request->subcategory_id) {
+                $query->where('products.subcategory_id', $request->subcategory_id);
+            }
+
+            // Add grouping to prevent duplicates
+            $query->groupBy(
+                'inventories.store_id',
+                'products.id',
+                'branches.name',
+                'products.name',
+                'products.barcode',
+                'categories.name',
+                'products.mrp',
+                'products.sell_price',
+                'products.discount_price',
+                'products.cost_price',
+                'inventories.quantity'
+            );
+
+            // Debug the SQL query
+            Log::info('SQL Query:', [
+                'sql' => $query->toSql(),
+                'bindings' => $query->getBindings()
+            ]);
+
+            $stocks = $query->get();
+
+            Log::info('Stock data retrieved', ['count' => $stocks->count()]);
+
+            return response()->json([
+                'draw' => $request->input('draw', 1),
+                'recordsTotal' => $stocks->count(),
+                'recordsFiltered' => $stocks->count(),
+                'data' => $stocks
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in fetchStockData: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+
+            return response()->json([
+                'error' => 'An error occurred while fetching stock data',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }
