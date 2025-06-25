@@ -47,12 +47,12 @@ class InvoiceHistory extends Model
     {
         self::create([
             'invoice_id'            => $invoice->id,
-            'cash_amount'           => $invoice->cash_amount ?? 0.00,
-            'upi_amount'            => $invoice->upi_amount ?? 0.00,
-            'online_amount'         => $invoice->online_amount ?? 0.00,
-            'creditpay'             => $invoice->creditpay ?? 0.00,
-            'remaining_credit_pay'  => $invoice->remaining_credit_pay ?? 0.00,
-            'paid_credit'           => $invoice->paid_credit ?? 0.00,
+            'cash_amount'           => self::sanitizeDecimal($invoice->cash_amount),
+            'upi_amount'            => self::sanitizeDecimal($invoice->upi_amount),
+            'online_amount'         => self::sanitizeDecimal($invoice->online_amount),
+            'creditpay'             => self::sanitizeDecimal($invoice->creditpay),
+            'remaining_credit_pay'  => self::sanitizeDecimal($invoice->remaining_credit_pay),
+            'paid_credit'           => self::sanitizeDecimal($invoice->paid_credit),
             'payment_mode'          => $invoice->payment_mode ?? null,
             'invoice_number'        => $invoice->invoice_number ?? '',
             'ref_no'                => $invoice->ref_no ?? null,
@@ -61,14 +61,14 @@ class InvoiceHistory extends Model
             'cash_break_id'         => $invoice->cash_break_id ?? null,
             'items'                 => is_array($invoice->items) ? json_encode($invoice->items) : ($invoice->items ?? '[]'),
             'total_item_qty'        => $invoice->total_item_qty ?? 0,
-            'total_item_total'      => $invoice->total_item_total ?? 0.00,
-            'sub_total'             => $invoice->sub_total ?? 0.00,
-            'tax'                   => $invoice->tax ?? 0.00,
-            'commission_amount'     => $invoice->commission_amount ?? 0.00,
-            'party_amount'          => $invoice->party_amount ?? 0.00,
-            'total'                 => $invoice->total ?? 0.00,
-            'roundof'               => $invoice->roundof ?? 0.00,
-            'change_amount'         => $invoice->change_amount ?? 0.00,
+            'total_item_total'      => self::sanitizeDecimal($invoice->total_item_total),
+            'sub_total'             => self::sanitizeDecimal($invoice->sub_total),
+            'tax'                   => self::sanitizeDecimal($invoice->tax),
+            'commission_amount'     => self::sanitizeDecimal($invoice->commission_amount),
+            'party_amount'          => self::sanitizeDecimal($invoice->party_amount),
+            'total'                 => self::sanitizeDecimal($invoice->total),
+            'roundof'               => self::sanitizeDecimal($invoice->roundof),
+            'change_amount'         => self::sanitizeDecimal($invoice->change_amount),
             'status'                => $invoice->status ?? 'pending',
             'invoice_status'        => $invoice->invoice_status ?? 'unpaid',
             'hold_date'             => $invoice->hold_date ?? null,
@@ -78,6 +78,18 @@ class InvoiceHistory extends Model
             'updated_by'            => $updatedBy,
             'history_created_at'    => now(),
         ]);
-
     }
+
+    /**
+     * Remove commas from decimal strings and convert to float.
+     */
+    protected static function sanitizeDecimal($value): float
+    {
+        if (is_null($value)) {
+            return 0.00;
+        }
+
+        return floatval(str_replace(',', '', $value));
+    }
+
 }
