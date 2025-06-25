@@ -85,9 +85,10 @@ class HoldTransactions extends Component
                 $item->user_id = auth()->user()->id;
                 $item->quantity = $value['quantity'];
                 $item->product_id = $product->id;
-                $item->amount = $value['price'];
-                $item->net_amount= $value['price'];
-                $item->mrp = $value['price'];
+                $item->amount = $value['mrp'];
+                $item->discount = $value['mrp']-$value['price'];
+                $item->net_amount= $value['mrp']-$item->discount;
+                $item->mrp = $value['mrp'];
                 $item->save();
             }
         }
