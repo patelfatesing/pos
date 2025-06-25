@@ -83,7 +83,7 @@ class Invoice extends Model
         if(empty($type)){
             $latestInvoice=$latestInvoice->where('status', '!=', 'hold');
         }
-        $latestInvoice=$latestInvoice->orderBy('invoice_number', 'desc')
+        $latestInvoice=$latestInvoice->orderBy('id', 'desc')
         ->first();
         
         if ($latestInvoice) {
