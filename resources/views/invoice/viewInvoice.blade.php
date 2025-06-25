@@ -37,14 +37,14 @@
 
                                     @if ($invoice->party_user_id != '')
                                         <button
-                                            onClick="showPhoto({{ $invoice->id }},{{ $invoice->party_user_id }},'{{ $invoice->invoice_number }}')"
+                                            onClick="showPhoto({{ $invoice->id }},'',{{ $invoice->party_user_id }})"
                                             class="btn btn-primary-dark mr-2">
                                             <i class="ri-eye-line mr-0"></i> View
                                         </button>
                                     @endif
                                     @if ($invoice->commission_user_id != '')
                                         <button
-                                            onClick="showPhoto({{ $invoice->id }},{{ $invoice->commission_user_id }},'{{ $invoice->invoice_number }}')"
+                                            onClick="showPhoto({{ $invoice->id }},{{ $invoice->commission_user_id }},'')"
                                             class="btn btn-primary-dark mr-2">
                                             <i class="ri-eye-line mr-0"></i> View
                                         </button>
@@ -222,9 +222,9 @@
     <script>
         const salesImgViewBase = "{{ url('sales-img-view') }}";
 
-        function showPhoto(id, commission_user_id = '', party_user_id = '', invoice_no = '') {
+        function showPhoto(id, commission_user_id = '', party_user_id = '') {
             let url =
-                `${salesImgViewBase}/${id}?commission_user_id=${commission_user_id}&party_user_id=${party_user_id}&invoice_no=${invoice_no}`;
+                `${salesImgViewBase}/${id}?commission_user_id=${commission_user_id}&party_user_id=${party_user_id}`;
 
             $.ajax({
                 url: url,
