@@ -14,6 +14,9 @@
     <link rel="stylesheet" href="../assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css">
     <link rel="stylesheet" href="../assets/vendor/remixicon/fonts/remixicon.css">
     <style>
+        .hideCamera{
+            display: none;
+        }
         .flex-grow-1{
             margin-left: 5% ! important;
         }
