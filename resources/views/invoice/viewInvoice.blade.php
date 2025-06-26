@@ -36,25 +36,25 @@
                                 <div class="invoice-btn">
 
                                     @if ($invoice->party_user_id != '')
-                                        <button
-                                            onClick="showPhoto({{ $invoice->id }},'',{{ $invoice->party_user_id }})"
+                                        <button onClick="showPhoto({{ $invoice->id }},'',{{ $invoice->party_user_id }})"
                                             class="btn btn-primary-dark mr-2">
-                                            <i class="ri-eye-line mr-0"></i> View
+                                            <i class="ri-eye-line mr-0"></i> View Photos
                                         </button>
                                     @endif
                                     @if ($invoice->commission_user_id != '')
                                         <button
                                             onClick="showPhoto({{ $invoice->id }},{{ $invoice->commission_user_id }},'')"
                                             class="btn btn-primary-dark mr-2">
-                                            <i class="ri-eye-line mr-0"></i> View
+                                            <i class="ri-eye-line mr-0"></i> View Photos
                                         </button>
                                     @endif
 
-                                    <button onclick="window.print()" class="btn btn-primary-dark mr-2">
-                                        <i class="las la-print"></i> Print
+                                    <button class="btn btn-primary-dark mr-2" data-toggle="modal"
+                                        data-target="#pdfModal">
+                                        <i class="las la-print"></i>View Invoice
                                     </button>
                                     <a href="{{ route('invoice.download', $invoice->id) }}" class="btn btn-primary-dark">
-                                        <i class="las la-file-download"></i> PDF
+                                        <i class="las la-file-download"></i> Download Invoice
                                     </a>
                                 </div>
                             </div>
@@ -75,7 +75,12 @@
                                                     <tr>
                                                         <th scope="col">Transaction Date</th>
                                                         <th scope="col">Transaction Status</th>
-                                                        <th scope="col">Credit</th>
+                                                        @if ($invoice->branch_id == 1 && !empty($invoice->creditpay) && $invoice->creditpay > 0)
+                                                            <th scope="col">Credit Status</th>
+                                                        @endif
+                                                        @if ($invoice->branch_id == 1 && !empty($invoice->creditpay) && $invoice->creditpay > 0)
+                                                            <th scope="col">Credit</th>
+                                                        @endif
                                                         @if ($invoice->ref_no != '')
                                                             <th scope="col">Transaction No(Ref)</th>
                                                         @endif
@@ -90,6 +95,21 @@
                                                                 {{ $invoice->status }}
                                                             </span>
                                                         </td>
+                                                        @if ($invoice->branch_id == 1 && !empty($invoice->creditpay) && $invoice->creditpay > 0)
+                                                            <td>
+                                                                <span
+                                                                    class="badge badge-{{ $invoice->invoice_status == 'Paid' ? 'success' : 'danger' }}">
+                                                                    {{ $invoice->invoice_status }}
+                                                                </span>
+                                                            </td>
+                                                        @endif
+                                                        @if ($invoice->branch_id == 1 && !empty($invoice->creditpay) && $invoice->creditpay > 0)
+                                                            <td>
+                                                                <span>
+                                                                    ₹{{ $invoice->creditpay }}
+                                                                </span>
+                                                            </td>
+                                                        @endif
                                                         @if ($invoice->ref_no != '')
                                                             <td>
                                                                 {{ $invoice->ref_no }}
@@ -185,9 +205,64 @@
                                                 <h6>Total</h6>
                                                 <h3 class="text-primary font-weight-700">
                                                     @if ($invoice->roundof > 0)
-                                                        ₹{{ number_format((float) $invoice->sub_total + number_format($invoice->roundof, 2) - (float) $invoice->party_amount, 2) }}
+                                                        @php
+                                                            $cleanTotal = floatval(
+                                                                str_replace(',', '', $invoice->sub_total ?? 0),
+                                                            );
+                                                            $cleanRoundof = floatval(
+                                                                str_replace(',', '', $invoice->roundof ?? 0),
+                                                            );
+
+                                                            $commisson = 0;
+                                                            if ($invoice->commission_amount > 0) {
+                                                                $commisson = floatval(
+                                                                    str_replace(
+                                                                        ',',
+                                                                        '',
+                                                                        $invoice->commission_amount ?? 0,
+                                                                    ),
+                                                                );
+                                                            }
+
+                                                            if ($invoice->party_amount > 0) {
+                                                                $commisson = floatval(
+                                                                    str_replace(',', '', $invoice->party_amount ?? 0),
+                                                                );
+                                                            }
+
+                                                            $grandTotal = $cleanTotal - $commisson + $cleanRoundof;
+                                                        @endphp
+                                                        ₹{{ number_format($grandTotal, 2) }}
                                                     @else
-                                                        ₹{{ number_format((float) $invoice->sub_total - (float) $invoice->party_amount, 2) }}
+                                                        @php
+                                                            $cleanTotal = floatval(
+                                                                str_replace(',', '', $invoice->sub_total ?? 0),
+                                                            );
+
+                                                            $commission_amount = floatval(
+                                                                str_replace(',', '', $invoice->commission_amount ?? 0),
+                                                            );
+
+                                                            $commisson = 0;
+                                                            if ($invoice->commission_amount > 0) {
+                                                                $commisson = floatval(
+                                                                    str_replace(
+                                                                        ',',
+                                                                        '',
+                                                                        $invoice->commission_amount ?? 0,
+                                                                    ),
+                                                                );
+                                                            }
+
+                                                            if ($invoice->party_amount > 0) {
+                                                                $commisson = floatval(
+                                                                    str_replace(',', '', $invoice->party_amount ?? 0),
+                                                                );
+                                                            }
+
+                                                            $grandTotal = $cleanTotal - $commisson;
+                                                        @endphp
+                                                        ₹{{ number_format($grandTotal, 2) }}
                                                     @endif
                                                 </h3>
                                             </div>
@@ -218,6 +293,26 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pdfModalLabel">Invoice PDF Preview</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <iframe src="{{ asset('storage/invoices/' . $invoice->invoice_number) }}" width="100%" height="600px"
+                        frameborder="0"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <script>
         const salesImgViewBase = "{{ url('sales-img-view') }}";

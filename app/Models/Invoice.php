@@ -39,7 +39,10 @@ class Invoice extends Model
 
     protected $casts = [
         'items' => 'array',
+        'total' => 'float',
+        'roundof' => 'float',
     ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -65,33 +68,35 @@ class Invoice extends Model
     {
         return number_format($value, 2);
     }
-     public function refunds()
+    public function refunds()
     {
         return $this->hasMany(Refund::class);
     }
-  public static function generateInvoiceNumber($type=""): string
+    public static function generateInvoiceNumber($type = ""): string
     {
         $today = Carbon::now()->format('ymd'); // e.g., 20250516
-        $prefix="";
-         if(!empty($type)){
-            $prefix .=$type."-";
+        $prefix = "";
+        if (!empty($type)) {
+            $prefix .= $type . "-";
         }
-        $datePrefix = $prefix. 'LH-' . $today;
+        $datePrefix = $prefix . 'LH-' . $today;
         // Find the latest invoice number for today
         $latestInvoice = Invoice::where('invoice_number', 'like', $datePrefix . '-%');
 
-        if(empty($type)){
-            $latestInvoice=$latestInvoice->where('status', '!=', 'hold');
+        if (empty($type)) {
+            $latestInvoice = $latestInvoice->where('status', '!=', 'hold');
         }
-        $latestInvoice=$latestInvoice->orderBy('id', 'desc')
+
+        $latestInvoice=$latestInvoice->orderBy('invoice_number', 'desc')
         ->first();
         
+
         if ($latestInvoice) {
             // Extract the sequence number (e.g., from LH-20250516-0003 get 0003)
             $parts = explode('-', $latestInvoice->invoice_number);
-            if(empty($type)){
+            if (empty($type)) {
                 $lastNumber = isset($parts[2]) ? (int)$parts[2] : 0;
-            }else{
+            } else {
                 $lastNumber = isset($parts[3]) ? (int)$parts[3] : 0;
             }
             $nextNumber = $lastNumber + 1;
@@ -119,5 +124,4 @@ class Invoice extends Model
         // }
         // return $newNumber; 
     }
-
 }

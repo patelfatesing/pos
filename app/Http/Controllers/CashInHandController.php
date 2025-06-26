@@ -116,6 +116,7 @@ class CashInHandController extends Controller
                         'branch_id' => $branch_id,
                         'date' => Carbon::today(),
                         'opening_stock' => $key->closing_stock,
+                        'closing_stock' => $key->closing_stock,
                     ]
                 );
             }
