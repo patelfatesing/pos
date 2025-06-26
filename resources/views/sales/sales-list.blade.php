@@ -31,10 +31,12 @@
 
                 <div class="table-responsive rounded mb-3">
                     <table class="table table-striped nowrap" id="invoice_table" style="width:100%;">
-                        <thead class="bg-white text-uppercase">
-                            <tr>
+                        <thead class="bg-white">
+                            <tr class="ligth ligth-data">
                                 <th class="text-nowrap">Sr. No.</th>
                                 <th class="text-nowrap">Invoice No</th>
+                                <th class="text-nowrap">Party Customer</th>
+                                <th class="text-nowrap">Commission Customer</th>
                                 <th class="text-nowrap">Commission Discount</th>
                                 <th class="text-nowrap">Party Discount</th>
                                 <th class="text-nowrap">Credit</th>
@@ -50,15 +52,17 @@
                         <tbody></tbody>
                         <tfoot>
                             <tr>
-                                <th></th>
-                                <th style="text-align:right">Total:</th>
+                                <th colspan="4" style="text-align:right">Total:</th>
                                 <th id="commission_total"></th>
                                 <th id="party_total"></th>
                                 <th id="credit_total"></th>
                                 <th id="sub_total_total"></th>
                                 <th id="grand_total"></th>
                                 <th id="item_count_total"></th>
-                                <th></th><th></th><th></th><th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
                             </tr>
                         </tfoot>
                     </table>
@@ -76,9 +80,11 @@
     </div>
 
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             $.ajaxSetup({
-                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
             });
 
             let table = $('#invoice_table').DataTable({
@@ -88,16 +94,23 @@
                 serverSide: true,
                 autoWidth: false,
                 bLengthChange: true,
-                order: [[1, 'desc']],
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                order: [
+                    [1, 'desc']
+                ],
                 dom: 'Blfrtip',
-                buttons: [
-                    {
+                buttons: [{
                         extend: 'excelHtml5',
                         text: 'Export Excel',
                         className: 'btn btn-sm btn-outline-success',
                         title: 'Transaction Report',
                         filename: 'transaction_report_excel',
-                        exportOptions: { columns: ':visible' }
+                        exportOptions: {
+                            columns: ':visible'
+                        }
                     },
                     {
                         extend: 'pdfHtml5',
@@ -115,15 +128,29 @@
                 ajax: {
                     url: '{{ url('sales/get-data') }}',
                     type: 'POST',
-                    data: function (d) {
+                    data: function(d) {
                         d.start_date = $('#start_date').val();
                         d.end_date = $('#end_date').val();
                         d.branch_id = $('#branch_id').val();
                     }
                 },
-                columns: [
-                    { data: null, render: (data, type, row, meta) => meta.row + 1, className: 'text-center text-nowrap' },
-                    { data: 'invoice_number', name: 'invoice_number', className: 'text-nowrap' },
+                columns: [{
+                        data: null,
+                        render: (data, type, row, meta) => meta.row + 1,
+                        className: 'text-center text-nowrap'
+                    },
+                    {
+                        data: 'invoice_number',
+                        name: 'invoice_number'
+                    },
+                    {
+                        data: 'party_user',
+                        name: 'party_user'
+                    },
+                    {
+                        data: 'commission_user',
+                        name: 'commission_user'
+                    },
                     {
                         data: 'commission_amount',
                         name: 'commission_amount',
@@ -154,16 +181,44 @@
                         render: data => '₹' + parseFloat(data.replace(/,/g, '')).toFixed(2),
                         className: 'text-nowrap'
                     },
-                    { data: 'items_count', name: 'items_count', className: 'text-nowrap' },
-                    { data: 'branch_name', name: 'branch_name', className: 'text-nowrap' },
-                    { data: 'status', name: 'status', className: 'text-nowrap' },
-                    { data: 'payment_mode', name: 'payment_mode', orderable: false, searchable: false, className: 'text-nowrap' },
-                    { data: 'created_at', name: 'created_at', className: 'text-nowrap' }
+                    {
+                        data: 'items_count',
+                        name: 'items_count',
+                        className: 'text-nowrap'
+                    },
+                    {
+                        data: 'branch_name',
+                        name: 'branch_name',
+                        className: 'text-nowrap'
+                    },
+                    {
+                        data: 'status',
+                        name: 'status',
+                        className: 'text-nowrap'
+                    },
+                    {
+                        data: 'payment_mode',
+                        name: 'payment_mode',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-nowrap'
+                    },
+                    {
+                        data: 'created_at',
+                        name: 'created_at',
+                        className: 'text-nowrap'
+                    }
                 ],
-                footerCallback: function (row, data) {
+                footerCallback: function(row, data) {
                     const api = this.api();
-                    const intVal = i => typeof i === 'string' ? parseFloat(i.replace(/[₹,]/g, '')) || 0 : (typeof i === 'number' ? i : 0);
-                    let commission = 0, party = 0, credit = 0, subtotal = 0, total = 0, items = 0;
+                    const intVal = i => typeof i === 'string' ? parseFloat(i.replace(/[₹,]/g, '')) ||
+                        0 : (typeof i === 'number' ? i : 0);
+                    let commission = 0,
+                        party = 0,
+                        credit = 0,
+                        subtotal = 0,
+                        total = 0,
+                        items = 0;
 
                     data.forEach(row => {
                         commission += intVal(row.commission_amount);
@@ -174,16 +229,16 @@
                         items += intVal(row.items_count);
                     });
 
-                    $(api.column(2).footer()).html('₹' + commission.toFixed(2));
-                    $(api.column(3).footer()).html('₹' + party.toFixed(2));
-                    $(api.column(4).footer()).html('₹' + credit.toFixed(2));
-                    $(api.column(5).footer()).html('₹' + subtotal.toFixed(2));
-                    $(api.column(6).footer()).html('₹' + total.toFixed(2));
-                    $(api.column(7).footer()).html(items);
+                    $(api.column(4).footer()).html('₹' + commission.toFixed(2));
+                    $(api.column(5).footer()).html('₹' + party.toFixed(2));
+                    $(api.column(6).footer()).html('₹' + credit.toFixed(2));
+                    $(api.column(7).footer()).html('₹' + subtotal.toFixed(2));
+                    $(api.column(8).footer()).html('₹' + total.toFixed(2));
+                    $(api.column(9).footer()).html(items);
                 }
             });
 
-            $('#storeSearch').on('click', function () {
+            $('#storeSearch').on('click', function() {
                 table.draw();
             });
         });
@@ -191,15 +246,16 @@
         const salesImgViewBase = "{{ url('sales-img-view') }}";
 
         function showPhoto(id, commission_user_id = '', party_user_id = '', invoice_no = '') {
-            const url = `${salesImgViewBase}/${id}?commission_user_id=${commission_user_id}&party_user_id=${party_user_id}&invoice_no=${invoice_no}`;
+            const url =
+                `${salesImgViewBase}/${id}?commission_user_id=${commission_user_id}&party_user_id=${party_user_id}&invoice_no=${invoice_no}`;
             $.ajax({
                 url: url,
                 type: 'GET',
-                success: function (response) {
+                success: function(response) {
                     $('#salesCustPhotoModalContent').html(response);
                     $('#salesCustPhotoShowModal').modal('show');
                 },
-                error: function () {
+                error: function() {
                     alert('Photos not found.');
                 }
             });

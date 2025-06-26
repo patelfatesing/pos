@@ -94,7 +94,7 @@
 
     <div>
         <strong>{{ @$type == 'refund' ? 'Refund' : 'Invoice' }}:</strong> {{ $invoice->invoice_number }}<br>
-        
+
         <strong>Name:</strong> {{ $customer_name ?? '' }}<br>
         @if ($invoice->ref_no != '')
             <strong>Date:</strong> {{ \Carbon\Carbon::parse($invoice->updated_at)->format('d/m/Y H:i') }} <br>
@@ -153,10 +153,20 @@
             <td class="left">Purchased:</td>
             <td class="right">{{ number_format((float) $invoice->sub_total, 2) }}</td>
         </tr>
-        <tr>
-            <td class="left">Discount:</td>
-            <td class="right">{{ number_format(round((float) $invoice->party_amount), 2) }}</td>
-        </tr>
+        @if ($invoice->commission_amount > 0)
+            <tr>
+                <td class="left">Commission Discount Deduction :</td>
+                <td class="right">-{{ number_format(round((float) $invoice->commission_amount), 2) }}</td>
+            </tr>
+        @endif
+        @if ($invoice->party_amount > 0)
+            <tr>
+
+                <td class="left">Party Discount Deduction:</td>
+                <td class="right">-{{ number_format(round((float) $invoice->party_amount), 2) }}</td>
+            </tr>
+        @endif
+
 
         <tr>
             <td class="left">Credit:</td>

@@ -45,6 +45,7 @@ class ShiftManageController extends Controller
             ->leftJoin('users', 'shift_closings.user_id', '=', 'users.id')
             ->select(
                 'shift_closings.id',
+                'shift_closings.shift_no',
                 'shift_closings.branch_id',
                 'shift_closings.user_id',
                 'branches.name as branch_name',
@@ -108,7 +109,7 @@ class ShiftManageController extends Controller
                 $status = "Closed";
             }
             $totalInvoicedAmount = \App\Models\Invoice::where('user_id', $row->user_id)
-                ->where('branch_id', $row->branch_id)->whereNotIn('status',[ 'Hold','resumed','archived'])
+                ->where('branch_id', $row->branch_id)->whereNotIn('status', ['Hold', 'resumed', 'archived'])
                 ->whereBetween('created_at', [$row->start_time, $endTime])
                 ->count();
             //$totalSales = $transactions->whereBetween('created_at', [$row->start_time, $endTime])->where('branch_id', $row->branch_id)->get();
@@ -162,6 +163,7 @@ class ShiftManageController extends Controller
 
 
             $records[] = [
+                'shift_no' => $row->shift_no,
                 'branch_name' => $row->branch_name,
                 'user_name' => $row->user_name,
                 'start_time' => \Carbon\Carbon::parse($row->start_time)->format('d-m-Y h:i A'),
@@ -264,11 +266,11 @@ class ShiftManageController extends Controller
                 ->first();
 
 
-                $invoices = Invoice::where(['user_id' => $shift->user_id])->where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->where('status', '!=', 'Hold')->latest()->get();
-                $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalRoundOf = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = $totalSalesQty = $totalPaidCredit=0;
-                
-                $transaction_total = 0;
-                $totalSalesNew = 0;
+            $invoices = Invoice::where(['user_id' => $shift->user_id])->where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->where('status', '!=', 'Hold')->latest()->get();
+            $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalRoundOf = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = $totalSalesQty = $totalPaidCredit = 0;
+
+            $transaction_total = 0;
+            $totalSalesNew = 0;
             foreach ($invoices as $invoice) {
                 $transaction_total += $transaction_total;
                 $items = $invoice->items; // decode items from longtext JSON
@@ -347,19 +349,19 @@ class ShiftManageController extends Controller
             $categoryTotals['payment']['TOTAL'] = $totalCashPaid + ($totalUpiPaid + $totalOnlinePaid);
             $categoryTotals['summary']['OPENING CASH'] = @$shift->opening_cash;
             $categoryTotals['summary']['CASH ADDED'] = @$shift->cash_added;
-            $categoryTotals['summary']['TOTAL SALES'] =$totals->debit_total+ $totalSubTotal + $discountTotal-$totalRefundReturn;
+            $categoryTotals['summary']['TOTAL SALES'] = $totals->debit_total + $totalSubTotal + $discountTotal - $totalRefundReturn - $totalRoundOf;
             $categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
             $categoryTotals['summary']['WITHDRAWAL PAYMENT'] = $totalWith * (-1);
             $categoryTotals['summary']['UPI PAYMENT'] = ($totalUpiPaid + $totalOnlinePaid) * (-1);
             $categoryTotals['summary']['ROUND OFF'] = $totalRoundOf;
-            $categoryTotals['summary']['CREDIT'] = $totals->debit_total *(-1);
+            $categoryTotals['summary']['CREDIT'] = $totals->debit_total * (-1);
 
             //$categoryTotals['summary']['ONLINE PAYMENT'] = $totalOnlinePaid * (-1);
             if (!empty($creditCollacted->collacted_cash_amount))
                 $categoryTotals['summary']['CREDIT COLLACTED BY CASH'] = $creditCollacted->collacted_cash_amount;
             // $categoryTotals['summary']['REFUND'] += $totalRefundReturn *(-1);
-            $categoryTotals['summary']['TOTAL'] = $categoryTotals['summary']['OPENING CASH'] + $categoryTotals['summary']['TOTAL SALES'] + $categoryTotals['summary']['DISCOUNT'] + $categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $categoryTotals['summary']['UPI PAYMENT'] + @$categoryTotals['summary']['REFUND'] +
-                @$categoryTotals['summary']['ONLINE PAYMENT'] + @$categoryTotals['summary']['CREDIT COLLACTED BY CASH'] - $totalRoundOf+$categoryTotals['summary']['CREDIT'];
+            $categoryTotals['summary']['TOTAL'] = $categoryTotals['summary']['OPENING CASH'] + $categoryTotals['summary']['OPENING CASH'] + $categoryTotals['summary']['TOTAL SALES'] + $categoryTotals['summary']['DISCOUNT'] + $categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $categoryTotals['summary']['UPI PAYMENT'] + @$categoryTotals['summary']['REFUND'] +
+                @$categoryTotals['summary']['ONLINE PAYMENT'] + @$categoryTotals['summary']['CREDIT COLLACTED BY CASH'] + $totalRoundOf + $categoryTotals['summary']['CREDIT'];
             $categoryTotals['summary']['REFUND'] = $totalRefund * (-1) + $totalRefundReturn * (-1);
             //$categoryTotals['summary']['REFUND RETURN'] = $totalRefundReturn*(-1);
             //$categoryTotals['summary']['CREDIT'] = $totals->debit_total;
@@ -461,18 +463,33 @@ class ShiftManageController extends Controller
         return view('shift_manage.photo', compact('shift'));
     }
 
-    public function stockDetails($id)
+    public function stockDetails($id, Request $request)
     {
         $shift = ShiftClosing::findOrFail($id);
-
         $branch_id = $shift->branch_id;
 
-        $rawStockData = DailyProductStock::with('product')
-            ->where('branch_id', $branch_id)
-            ->where('shift_id', $id)
+        $branch_name = Branch::findOrFail($branch_id);
+
+        $subcategories = DB::table('sub_categories')
+            ->where('is_deleted', 'no')
             ->get();
 
-        return view('shift_manage.stock_details', compact('rawStockData'));
+        $subcategoryId = $request->input('subcategory_id');
+
+        $rawStockQuery = DailyProductStock::with(['product.subcategory'])
+            ->where('branch_id', $branch_id)
+            ->where('shift_id', $id);
+
+        // Apply subcategory filter if selected
+        if (!empty($subcategoryId)) {
+            $rawStockQuery->whereHas('product', function ($query) use ($subcategoryId) {
+                $query->where('subcategory_id', $subcategoryId);
+            });
+        }
+
+        $rawStockData = $rawStockQuery->get();
+
+        return view('shift_manage.stock_details', compact('rawStockData', 'subcategories', 'shift','branch_name'));
     }
 
     public function printShift($id)
