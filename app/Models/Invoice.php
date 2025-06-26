@@ -79,7 +79,10 @@ class Invoice extends Model
         if (!empty($type)) {
             $prefix .= $type . "-";
         }
-        $datePrefix = $prefix . 'LH-' . $today;
+        $branchName = auth()->user()->userinfo->branch->name ?? '';
+        $branchPrefix = strtoupper(substr(preg_replace('/\s+/', '', $branchName), 0, 2)); // First 2 letters, uppercase, no spaces
+
+        $datePrefix = $prefix . $branchPrefix.'-' . $today;
         // Find the latest invoice number for today
         $latestInvoice = Invoice::where('invoice_number', 'like', $datePrefix . '-%');
 
