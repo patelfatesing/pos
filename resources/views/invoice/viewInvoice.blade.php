@@ -306,7 +306,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <iframe src="{{ asset('storage/invoices/' . $invoice->invoice_number."pdf") }}" width="100%" height="600px"
+                    <iframe src="{{ asset('storage/invoices/' . $invoice->invoice_number.".pdf") }}" width="100%" height="600px"
                         frameborder="0"></iframe>
                 </div>
             </div>
