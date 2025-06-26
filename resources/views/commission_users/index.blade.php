@@ -1,184 +1,273 @@
-@extends('layouts.backend.layouts')
+@extends('layouts.backend.datatable_layouts')
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+@section('styles')
+    <style>
+        .add-list {
+            white-space: nowrap;
+        }
+
+        .custom-toolbar-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .custom-toolbar-row .dataTables_length {
+            order: 1;
+        }
+
+        .custom-toolbar-row .dt-buttons {
+            order: 2;
+        }
+
+        .custom-toolbar-row .status-filter {
+            order: 3;
+        }
+
+        .custom-toolbar-row .dataTables_filter {
+            order: 4;
+            margin-left: auto;
+        }
+
+        .dataTables_wrapper .dataTables_filter label,
+        .dataTables_wrapper .dataTables_length label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 0;
+        }
+
+        .dt-buttons .btn {
+            margin-right: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .custom-toolbar-row>div {
+                flex: 1 1 100%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+@endsection
+
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <!-- Wrapper Start -->
-    <div class="wrapper">
 
+    <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-                <div class="row">
+                <!-- Page Header -->
+                <div class="row align-items-center mb-3">
                     <div class="col-lg-12">
                         <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                             <div>
-                                <h4 class="mb-3">Commission Customer</h4>
+                                <h4 class="mb-3">Commission Customer List</h4>
                             </div>
                             <a href="{{ route('commission-users.create') }}" class="btn btn-primary add-list">
                                 <i class="las la-plus mr-3"></i>Create New Commission Customer
                             </a>
                         </div>
                     </div>
-                    <div class="col-lg-12">
+                </div>
 
-                        <div class="table-responsive rounded mb-3">
-                            <table class="table data-tables table-striped" id="commission_users_table">
-                                <thead class="bg-white text-uppercase">
+                <!-- Table -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="table-responsive rounded">
+                            <table class="table table-striped table-bordered nowrap" id="commission_users_table"
+                                style="width:100%;">
+                                <thead class="bg-white">
                                     <tr class="ligth ligth-data">
+                                        <th>Sr No</th> <!-- Added this line -->
                                         <th>Customer Name</th>
                                         <th>Commission Type</th>
                                         <th>Applies To</th>
                                         <th>Status</th>
                                         <th>Created Date</th>
-                                        <th data-type="date" data-format="YYYY/DD/MM">Updated Date</th>
-                                        {{-- <th>Customer Status</th> --}}
+                                        <th>Updated Date</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                </tbody>
+                                <tbody></tbody>
                             </table>
                         </div>
                     </div>
-                    <!-- Page end  -->
                 </div>
+
             </div>
         </div>
-        <!-- Wrapper End-->
+    </div>
+@endsection
 
-        <script>
-            $(document).ready(function() {
-
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
-
-                $('#commission_users_table').DataTable().clear().destroy();
-
-                $('#commission_users_table').DataTable({
-                    pagelength: 10,
-                    responsive: true,
-                    processing: true,
-                    ordering: true,
-                    bLengthChange: true,
-                    serverSide: true,
-
-                    "ajax": {
-                        "url": '{{ url('commission-users/get-data') }}',
-                        "type": "post",
-                        "data": function(d) {},
-                    },
-                    aoColumns: [{
-                            data: 'first_name'
-                        },
-                        {
-                            data: 'commission_type'
-                        },
-                        {
-                            data: 'applies_to'
-                        },
-
-                        {
-                            data: 'is_active'
-                        },
-                        {
-                            data: 'created_at'
-                        },
-                        {
-                            data: 'updated_at'
-                        },
-                        //  {
-                        //     data: 'is_deleted'
-                        // },
-                        {
-                            data: 'action'
-                        }
-                    ],
-                    aoColumnDefs: [{
-                        bSortable: false,
-                        aTargets: [2, 3, 4,6] // make "action" column unsortable
-                    }],
-                    order: [
-                        [4, 'desc']
-                    ], // 🟢 Sort by created_at DESC by default
-                    dom: "Bfrtip",
-                    lengthMenu: [
-                        [10, 25, 50],
-                        ['10 rows', '25 rows', '50 rows', 'All']
-                    ],
-                    buttons: ['pageLength']
-
-                });
-
+@section('scripts')
+    <script>
+        $(document).ready(function() {
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
             });
 
-            function delete_commission_user(id) {
-
-                Swal.fire({
-                    title: "Are you sure?",
-                    text: "You won't be able to revert this!",
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonText: "Yes, delete it!",
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            type: "delete", // "method" also works
-                            url: "{{ route('commission-users.destroy', ':id') }}".replace(':id', id),
-                            headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                            },
-                            data: {
-                                id: id
-                            },
-                            success: function(response) {
-                                $('#commission_users_table').DataTable().ajax.reload();
-
-                            },
-                            error: function(xhr) {
-                                swal("Error!", "Something went wrong.", "error");
-                            }
-                        });
+            const table = $('#commission_users_table').DataTable({
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                ajax: {
+                    url: '{{ url('commission-users/get-data') }}',
+                    type: 'POST',
+                    data: function(d) {
+                        d.status = $('#status').val();
                     }
-                });
-
-            }
-
-            function statusChange(id, newStatus) {
-                Swal.fire({
-                    title: "Are you sure?",
-                    text: "Do you want to change the status?",
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonText: "Yes, change it!",
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            type: "POST",
-                            url: "{{ url('commission-cust/status-change') }}", // Update this to your route
-                            headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                            },
-                            data: {
-                                id: id,
-                                status: newStatus
-                            },
-                            success: function(response) {
-                                Swal.fire("Success!", "Status has been changed.", "success").then(() => {
-                                    $('#commission_users_table').DataTable().ajax.reload(null,
-                                        false); // ✅ Only reload DataTable
-                                });
-                            },
-                            error: function(xhr) {
-                                Swal.fire("Error!", "Something went wrong.", "error");
-                            }
-                        });
+                },
+                columns: [{
+                        data: null,
+                        name: 'sr_no',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {
+                        data: 'first_name'
+                    },
+                    {
+                        data: 'commission_type', orderable: false
+                    },
+                    {
+                        data: 'applies_to', orderable: false
+                    },
+                    {
+                        data: 'is_active'
+                    },
+                    {
+                        data: 'created_at'
+                    },
+                    {
+                        data: 'updated_at'
+                    },
+                    {
+                        data: 'action', orderable: false
                     }
-                });
-            }
-        </script>
-    @endsection
+                ],
+                order: [
+                    [6, 'desc']
+                ],
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                pageLength: 10,
+
+                dom: "<'custom-toolbar-row'lfB>t<'row mt-2'<'col-md-6'i><'col-md-6'p>>",
+
+                buttons: [{
+                        extend: 'excelHtml5',
+                        className: 'btn btn-sm btn-outline-success',
+                        title: 'Commission Customer',
+                        filename: 'commission_customer_excel',
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        className: 'btn btn-sm btn-outline-danger',
+                        title: 'Commission Customer',
+                        filename: 'commission_customer_pdf',
+                        orientation: 'landscape',
+                        pageSize: 'A4',
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    }
+                ],
+                initComplete: function() {
+                    // Inject Status Filter
+                    $('<div class="status-filter">' +
+                        '<select id="status" class="form-control">' +
+                        '<option value="">All Status</option>' +
+                        '<option value="active">Active</option>' +
+                        '<option value="inactive">Inactive</option>' +
+                        '</select>' +
+                        '</div>').insertAfter('.dt-buttons');
+
+                    $('#status').on('change', function() {
+                        table.ajax.reload();
+                    });
+                }
+            });
+        });
+
+        function delete_commission_user(id) {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, delete it!",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "post",
+                        url: "{{ route('commission-users.destroy') }}",
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        data: {
+                            id: id
+                        },
+                        success: function(response) {
+                            if (response.status === "error") {
+                                Swal.fire("Error!", response.message, "error");
+                                return;
+                            }
+                            Swal.fire("Deleted!", response.message, "success").then(() => {
+                                $('#commission_users_table').DataTable().ajax.reload(null,
+                                    false);
+                            });
+                        },
+                        error: function() {
+                            Swal.fire("Error!", "Something went wrong.", "error");
+                        }
+                    });
+                }
+            });
+        }
+
+        function statusChange(id, newStatus) {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "Do you want to change the status?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, change it!",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ url('commission-cust/status-change') }}",
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        data: {
+                            id: id,
+                            status: newStatus
+                        },
+                        success: function() {
+                            Swal.fire("Success!", "Status has been changed.", "success").then(() => {
+                                $('#commission_users_table').DataTable().ajax.reload(null,
+                                    false);
+                            });
+                        },
+                        error: function() {
+                            Swal.fire("Error!", "Something went wrong.", "error");
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+@endsection

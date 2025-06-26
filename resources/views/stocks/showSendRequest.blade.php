@@ -75,7 +75,6 @@
 
             $.get('{{ url("stock-requests/popup-details/") }}/' + id, function(res) {
                 let rows = '';
-                console.log(res,"===res===");
                 res.items.forEach(item => {
                     rows += `
                         <tr>
@@ -169,36 +168,5 @@
 
         });
 
-        function delete_store(id) {
-
-            Swal.fire({
-                title: "Are you sure?",
-                text: "You won't be able to revert this!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Yes, delete it!",
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        type: "delete", // "method" also works
-                        url: "{{ url('store/delete') }}/" + id, // Ensure correct Laravel URL
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        data: {
-                            id: id
-                        },
-                        success: function(response) {
-                            swal("Deleted!", "The store has been deleted.", "success")
-                                .then(() => location.reload());
-                        },
-                        error: function(xhr) {
-                            swal("Error!", "Something went wrong.", "error");
-                        }
-                    });
-                }
-            });
-
-        }
     </script>
 @endsection

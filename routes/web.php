@@ -251,7 +251,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/commission-users/', [CommissionUserController::class, 'store'])->name('commission-users.store');
     Route::get('/commission-users/edit/{id}', [CommissionUserController::class, 'edit'])->name('commission-users.edit');
     Route::put('/commission-users/{Commissionuser}', [CommissionUserController::class, 'update'])->name('commission-users.update');
-    Route::delete('/commission-users/{Commissionuser}', [CommissionUserController::class, 'destroy'])->name('commission-users.destroy');
+    Route::post('/commission-users/destroy', [CommissionUserController::class, 'destroy'])->name('commission-users.destroy');
     Route::get('/commission-cust/view/{id}', [CommissionUserController::class, 'view'])->name('commission-cust.view');
     Route::get('/commission-cust/trasaction-photo-view/{id}', [CommissionUserController::class, 'custTrasactionPhoto'])->name('commission-cust.trasaction-photo-view');
     Route::post('/commission-cust/get-commission-data', [CommissionUserController::class, 'getDataCommission'])->name('commission-cust.get.commission.data');
@@ -375,7 +375,7 @@ Route::middleware('auth')->group(function () {
     Route::post('shift-manage/close-shift/{id}', [ShiftManageController::class, 'closeShift'])->name('shift-manage.close-shift');
     Route::get('/shift-manage/{id}', [ShiftManageController::class, 'showPhoto'])->name('shift-manage.photo');
     Route::get('/shift-manage/view/{id}/{shift_id}/{strartdate}/{endTime}', [ShiftManageController::class, 'view'])->name('purchase.shift-manage');
-    Route::get('/shift-manage/stock-details/{id}', [ShiftManageController::class, 'stockDetails'])->name('purchase.stock-details');
+    Route::get('/shift-manage/stock-details/{id}', [ShiftManageController::class, 'stockDetails'])->name('shift-manage.stock-details');
     Route::get('/shift-manage/print-shift/{id}', [ShiftManageController::class, 'printShift'])->name('purchase.print-shift');
 
     Route::post('/holidays', [HolidayController::class, 'store'])

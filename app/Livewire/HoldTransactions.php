@@ -75,6 +75,7 @@ class HoldTransactions extends Component
         
         // Store in session that a transaction is being resumed
         session()->put('current_party_id', $party_user_id);
+        session()->put('current_transaction_id', $transaction->id);
         session()->put('current_commission_id', $commission_user_id);
         //session()->put('resumed_transaction_time', now()); // optional timestamp
         foreach ($transaction->items as $key => $value) {
@@ -85,9 +86,10 @@ class HoldTransactions extends Component
                 $item->user_id = auth()->user()->id;
                 $item->quantity = $value['quantity'];
                 $item->product_id = $product->id;
-                $item->amount = $value['price'];
-                $item->net_amount= $value['price'];
-                $item->mrp = $value['price'];
+                $item->amount = $value['mrp'];
+                $item->discount = $value['mrp']-$value['price'];
+                $item->net_amount= $value['mrp']-$item->discount;
+                $item->mrp = $value['mrp'];
                 $item->save();
             }
         }

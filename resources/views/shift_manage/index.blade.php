@@ -51,6 +51,7 @@
                     <table class="table data-tables table-striped" id="shift_tbl">
                         <thead class="bg-white text-uppercase">
                             <tr class="ligth ligth-data">
+                                <th>Shift No</th>
                                 <th>Store</th>
                                 <th>User</th>
                                 <th>Shift Start</th>
@@ -187,6 +188,11 @@
                     }
                 },
                 columns: [{
+                        data: 'shift_no',
+                        name: 'shift_no',
+                        orderable: false
+                    },
+                    {
                         data: 'branch_name',
                         name: 'branch_name',
                         orderable: false

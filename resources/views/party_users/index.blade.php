@@ -1,37 +1,87 @@
-@extends('layouts.backend.layouts')
+@extends('layouts.backend.datatable_layouts')
+
+@section('styles')
+    <style>
+        .add-list {
+            white-space: nowrap;
+        }
+
+        .custom-toolbar-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .custom-toolbar-row .dataTables_length {
+            order: 1;
+        }
+
+        .custom-toolbar-row .dt-buttons {
+            order: 2;
+        }
+
+        .custom-toolbar-row .status-filter {
+            order: 3;
+        }
+
+        .custom-toolbar-row .dataTables_filter {
+            order: 4;
+            margin-left: auto;
+        }
+
+        .dataTables_wrapper .dataTables_filter label,
+        .dataTables_wrapper .dataTables_length label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 0;
+        }
+
+        .dt-buttons .btn {
+            margin-right: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .custom-toolbar-row>div {
+                flex: 1 1 100%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+@endsection
 
 @section('page-content')
-    {{-- CSRF & Scripts --}}
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap4.min.css">
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
-    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
-    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap4.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <!-- Wrapper Start -->
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-                <div class="row">
-                    <div class="col-lg-12 d-flex flex-wrap align-items-center justify-content-between mb-4">
-                        <div>
-                            <h4 class="mb-3">Party Customer List</h4>
-                        </div>
-                        <a href="{{ route('party-users.create') }}" class="btn btn-primary add-list">
-                            <i class="las la-plus mr-3"></i>Add New Party Customer
-                        </a>
-                    </div>
 
+                <!-- Page Header -->
+                <div class="row align-items-center mb-3">
                     <div class="col-lg-12">
-                        <div class="table-responsive rounded mb-3">
-                            <table class="table table-striped table-bordered nowrap" id="party_users_table" style="width:100%;">
-                                <thead class="bg-white text-uppercase">
-                                    <tr class="light light-data">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+                            <div>
+                                <h4 class="mb-3">Party Customer List</h4>
+                            </div>
+                            <a href="{{ route('party-users.create') }}" class="btn btn-primary add-list">
+                                <i class="las la-plus mr-3"></i>Create New Party Customer
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="table-responsive rounded">
+                            <table class="table table-striped table-bordered nowrap" id="party_users_table"
+                                style="width:100%;">
+                                <thead class="bg-white">
+                                    <tr class="ligth ligth-data">
+                                        <th>Sr No</th> <!-- Added this line -->
                                         <th>Customer Name</th>
                                         <th>Email</th>
                                         <th>Phone</th>
@@ -47,6 +97,7 @@
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -58,49 +109,113 @@
             <div class="modal-content" id="custModalContent"></div>
         </div>
     </div>
+@endsection
 
+@section('scripts')
     <script>
         $(document).ready(function() {
-            // Setup CSRF token
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
 
-            // Destroy any existing instance
-            $('#party_users_table').DataTable().clear().destroy();
-
-            // Initialize DataTable
-            $('#party_users_table').DataTable({
+            const table = $('#party_users_table').DataTable({
                 processing: true,
                 serverSide: true,
                 responsive: true,
                 ajax: {
                     url: '{{ url('party-users/get-data') }}',
                     type: 'POST',
+                    data: function(d) {
+                        d.status = $('#status').val();
+                    }
                 },
-                columns: [
-                    { data: 'first_name' },
-                    { data: 'email' },
-                    { data: 'phone' },
-                    { data: 'credit_points' },
-                    { data: 'status' },
-                    { data: 'created_at' },
-                    { data: 'updated_at' },
-                    { data: 'action', orderable: false, searchable: false }
+                columns: [{
+                        data: null,
+                        name: 'sr_no',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    }, {
+                        data: 'first_name'
+                    },
+                    {
+                        data: 'email'
+                    },
+                    {
+                        data: 'phone'
+                    },
+                    {
+                        data: 'credit_points'
+                    },
+                    {
+                        data: 'status'
+                    },
+                    {
+                        data: 'created_at'
+                    },
+                    {
+                        data: 'updated_at'
+                    },
+                    {
+                        data: 'action',
+                        orderable: false,
+                        searchable: false
+                    }
                 ],
-                order: [[6, 'desc']], // Sort by updated_at descending
+                order: [
+                    [7, 'desc']
+                ],
+                
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, "All"]
                 ],
                 pageLength: 10,
-                dom: '<"row mb-3"<"col-sm-6"l><"col-sm-6"f>>rt<"row mt-3"<"col-sm-6"i><"col-sm-6"p>>'
+
+                dom: "<'custom-toolbar-row'lfB>t<'row mt-2'<'col-md-6'i><'col-md-6'p>>",
+
+                buttons: [{
+                        extend: 'excelHtml5',
+                        className: 'btn btn-outline-success btn-sm me-2',
+                        title: 'Commission Customer',
+                        filename: 'commission_customer_excel',
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        className: 'btn btn-outline-danger btn-sm',
+                        title: 'Commission Customer',
+                        filename: 'commission_customer_pdf',
+                        orientation: 'landscape',
+                        pageSize: 'A4',
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    }
+                ],
+                initComplete: function() {
+                    // Inject status filter in correct order
+                    $('<div class="status-filter">' +
+                        '<select id="status" class="form-control">' +
+                        '<option value="">All Status</option>' +
+                        '<option value="active">Active</option>' +
+                        '<option value="inactive">Inactive</option>' +
+                        '</select>' +
+                        '</div>').insertAfter('.dt-buttons');
+
+                    $('#status').on('change', function() {
+                        table.ajax.reload();
+                    });
+                }
             });
         });
 
-        // Delete party user
         function delete_party_user(id) {
             Swal.fire({
                 title: "Are you sure?",
@@ -113,11 +228,15 @@
                     $.ajax({
                         type: "DELETE",
                         url: "{{ route('party-users.destroy', ':id') }}".replace(':id', id),
-                        success: function(response) {
+                        success: function(res) {
+                            if (res.status === "error") {
+                                Swal.fire("Error!", res.message, "error");
+                                return;
+                            }
                             $('#party_users_table').DataTable().ajax.reload();
                             Swal.fire("Deleted!", "The party user has been deleted.", "success");
                         },
-                        error: function(xhr) {
+                        error: function() {
                             Swal.fire("Error!", "An error occurred while deleting.", "error");
                         }
                     });
@@ -125,7 +244,6 @@
             });
         }
 
-        // Open price change modal
         function party_cust_price_change(id) {
             $.ajax({
                 url: '/cust-product-price-change/form/' + id,
@@ -140,7 +258,6 @@
             });
         }
 
-        // Status change
         function statusChange(id, newStatus) {
             Swal.fire({
                 title: "Are you sure?",
@@ -150,21 +267,14 @@
                 confirmButtonText: "Yes, change it!",
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.ajax({
-                        type: "POST",
-                        url: "{{ url('party-users/status-change') }}",
-                        data: {
-                            id: id,
-                            status: newStatus
-                        },
-                        success: function(response) {
-                            Swal.fire("Success!", "Status has been changed.", "success").then(() => {
-                                $('#party_users_table').DataTable().ajax.reload(null, false);
-                            });
-                        },
-                        error: function(xhr) {
-                            Swal.fire("Error!", "Something went wrong.", "error");
-                        }
+                    $.post("{{ url('party-users/status-change') }}", {
+                        id: id,
+                        status: newStatus
+                    }).done(function() {
+                        Swal.fire("Success!", "Status has been changed.", "success");
+                        $('#party_users_table').DataTable().ajax.reload(null, false);
+                    }).fail(function() {
+                        Swal.fire("Error!", "Something went wrong.", "error");
                     });
                 }
             });

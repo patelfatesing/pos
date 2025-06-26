@@ -227,6 +227,7 @@ class TakeTwoPictures extends Component
     {
         //$this->reset(['partyHoldPic', 'commissionHoldPic','showHoldImg']);
         $this->showHoldImg=false;
+        $this->partyHoldPic=[];
 
     }
      public function resetPicAll(): void
@@ -297,9 +298,11 @@ class TakeTwoPictures extends Component
         }
         $current_party_id = session('current_party_id');
         $current_commission_id = session('current_commission_id');
-        
+        $current_transaction_id = session('current_transaction_id');
+
         if(!empty($current_party_id)){
-            $partyUserImage = PartyUserImage::where('party_user_id', $current_party_id)->where('type', 'hold')->first(["image_path","product_image_path"]);
+            
+            $partyUserImage = PartyUserImage::where('party_user_id', $current_party_id)->where('transaction_id', $current_transaction_id)->where('type', 'hold')->first(["image_path","product_image_path"]);
             if(!empty($partyUserImage)){
              
                 $this->setHoldImage( [
@@ -314,7 +317,7 @@ class TakeTwoPictures extends Component
             $this->showHoldImg = false;
         }
         if(!empty($current_commission_id)){
-            $commissionUserImage = CommissionUserImage::where('commission_user_id', $current_commission_id)->where('type', 'hold')->first(["image_path","product_image_path"]);
+            $commissionUserImage = CommissionUserImage::where('commission_user_id', $current_commission_id)->where('transaction_id', $current_transaction_id)->where('type', 'hold')->first(["image_path","product_image_path"]);
             if(!empty($commissionUserImage)){
                 $this->setHoldImage( [
                 'type' => "commission",

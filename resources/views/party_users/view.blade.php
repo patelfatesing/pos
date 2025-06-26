@@ -140,7 +140,7 @@
                                                                         <div class="d-flex align-items-center">
                                                                             <strong>Used Credit:-</strong>
                                                                             <p class="mb-0">
-                                                                                {{ format_inr($partyUser->credit_points - $partyUser->left_credit) }}
+                                                                                {{ format_inr($partyUser->use_credit) }}
                                                                             </p>
                                                                         </div>
 

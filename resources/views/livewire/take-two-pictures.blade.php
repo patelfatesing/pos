@@ -13,16 +13,21 @@
                     <h5 class="modal-title">Capture Product and Customer Photos</h5>
                     <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">×</button>
                 </div>
-
+                @php
+                    $hideCameraClass="";
+                    if(!empty($this->partyHoldPic['party_product']) && !empty($this->partyHoldPic['party_customer'])){
+                        $hideCameraClass="hideCamera";
+                    }
+                @endphp
                 <div class="modal-body">
-                    @if($this->showHoldImg && !empty($this->partyHoldPic['party_product']) && !empty($this->partyHoldPic['party_customer']))
+                    @if(!empty($this->partyHoldPic['party_product']) && !empty($this->partyHoldPic['party_customer']))
                         <div class="row alert alert-info mb-3 lastsavepic" >
                             <div class="col-md-12">
                                 <h6 class="mb-2">Last Hold Saved Photos:</h6>
                             </div>
                             <div class="col-md-6">
                                 <strong>Product Photo :</strong>
-                                @if($this->partyHoldPic['party_product'])
+                                @if(!empty($this->partyHoldPic['party_product']))
                                     <a href="javascript:void(0)"  class="d-block">
                                         <img src="{{ asset('storage/' . $this->partyHoldPic['party_product']) }}" alt="Product" class="img-thumbnail mt-2" style="">
                                     </a>
@@ -30,21 +35,23 @@
                             </div>
                             <div class="col-md-6">
                                 <strong>Customer Photo:</strong>
-                                @if($this->partyHoldPic['party_customer'])
+                                @if(!empty($this->partyHoldPic['party_customer']))
                                     <a href="javascript:void(0)"  class="d-block">
                                         <img src="{{ asset('storage/' . $this->partyHoldPic['party_customer']) }}" alt="Customer" class="img-thumbnail mt-2" style="">
                                     </a>
                                 @endif
                             </div>
                         </div>
-                    @elseif($this->showHoldImg && !empty($this->partyHoldPic['commission_product']) && !empty($this->partyHoldPic['commission_customer']))
+                    @endif
+                    {{-- @elseif($this->showHoldImg && !empty($this->partyHoldPic['commission_product']) && !empty($this->partyHoldPic['commission_customer'])) --}}
+                    @if( !empty($this->partyHoldPic['commission_product']) && !empty($this->partyHoldPic['commission_customer']))
                         <div class="row alert alert-info mb-3 lastsavepic" >
                             <div class="col-md-12">
                                 <h6 class="mb-2">Last Hold Saved Photos:</h6>
                             </div>
                             <div class="col-md-6">
                                 <strong>Product Photo :</strong>
-                                @if($this->partyHoldPic['commission_product'])
+                                @if(!empty($this->partyHoldPic['commission_product']))
                                     <a href="javascript:void(0)"  class="d-block">
                                         <img src="{{ asset('storage/' . $this->partyHoldPic['commission_product']) }}" alt="Product" class="img-thumbnail mt-2" style="">
                                     </a>
@@ -52,14 +59,15 @@
                             </div>
                             <div class="col-md-6">
                                 <strong>Customer Photo:</strong>
-                                @if($this->partyHoldPic['commission_customer'])
+                                @if(!empty($this->partyHoldPic['commission_customer']))
                                     <a href="javascript:void(0)"  class="d-block">
                                         <img src="{{ asset('storage/' . $this->partyHoldPic['commission_customer']) }}" alt="Customer" class="img-thumbnail mt-2" style="">
                                     </a>
                                 @endif
                             </div>
                         </div>
-                    @else 
+                    @endif
+                    {{-- @else  --}}
 
                         @if (session()->has('error'))
                             <div class="alert alert-danger">
@@ -102,7 +110,7 @@
                         </div>
                         
                         @endif
-                        <div class="row mb-3">
+                        <div class="row mb-3 {{$hideCameraClass}}">
                             <div class="col-md-6 text-center">
                                 <h6>Live Camera</h6>
                                 <div class="position-relative">
@@ -199,12 +207,12 @@
                             </div>
                             @endif
                         </div>
-                    @endif
+                    {{-- @endif --}}
                 </div>
 
                 <input type="file" wire:model="productPhoto" id="productInput" class="d-none" accept="image/*" />
                 <input type="file" wire:model="customerPhoto" id="customerInput" class="d-none" accept="image/*" />
-                @if(empty($this->partyHoldPic['party_product']) && empty($this->partyHoldPic['party_customer']) && empty($this->partyHoldPic['commission_product']) && empty($this->partyHoldPic['commission_customer']))    
+                @if(empty($this->partyHoldPic['party_product']) && empty($this->partyHoldPic['party_customer']) && empty($this->partyHoldPic['commission_product']) && empty($this->partyHoldPic['commission_customer']) && $this->showHoldImg==false)    
                     <div class="modal-footer">
                         <button wire:click="resetAll" class="btn btn-outline-secondary" type="button">
                             Reset All

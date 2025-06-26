@@ -1,8 +1,25 @@
-@extends('layouts.backend.layouts')
+@extends('layouts.backend.datatable_layouts')
+
+@section('styles')
+    <style>
+        .table td,
+        .table th {
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        .daterangepicker {
+            z-index: 3000 !important;
+        }
+
+        tfoot th.text-right {
+            text-align: right;
+        }
+    </style>
+@endsection
 
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
@@ -46,6 +63,10 @@
                             @endforeach
                         </select>
                     </div>
+                    <div class="col-md-2 mb-2">
+                        <input type="text" id="reportrange" class="form-control"
+                            style="background: white; cursor: pointer;" />
+                    </div>
                     <div class="col-md-1 mb-2">
                         <button id="reset-filters" class="btn btn-secondary">Reset</button>
                     </div>
@@ -53,7 +74,6 @@
 
                 <!-- Table -->
                 <div class="col-lg-12">
-
                     <div class="table-responsive rounded mb-3">
                         <table class="table table-striped nowrap" id="stock-table" style="width:100%;">
                             <thead class="bg-white">
@@ -67,6 +87,7 @@
                                     <th>Selling Price</th>
                                     <th>Cost Price</th>
                                     <th>Qty</th>
+                                    <th>Sold</th>
                                     <th>Total Stock Value</th>
                                 </tr>
                             </thead>
@@ -75,15 +96,16 @@
                                 <tr>
                                     <th colspan="8" class="text-right">Total Quantity:</th>
                                     <th id="total-qty"></th>
+                                    <th id="total-sold"></th>
                                     <th id="total-price"></th>
                                 </tr>
                                 <tr>
                                     <th colspan="5" class="text-right">Selling Total:</th>
-                                    <th colspan="5" id="selling-total" class="text-left"></th>
+                                    <th colspan="6" id="selling-total" class="text-left"></th>
                                 </tr>
                                 <tr>
                                     <th colspan="5" class="text-right">Purchase Total:</th>
-                                    <th colspan="5" id="purchase-total" class="text-left"></th>
+                                    <th colspan="6" id="purchase-total" class="text-left"></th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -93,12 +115,30 @@
             </div>
         </div>
     </div>
+@endsection
 
+@section('scripts')
     <script>
         $(document).ready(function() {
-            var table;
+            const start = moment().startOf('month');
+            const end = moment();
 
-            // Helper: Currency-safe renderer
+            $('#reportrange').daterangepicker({
+                startDate: start,
+                endDate: end,
+                locale: {
+                    format: 'YYYY-MM-DD'
+                },
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')]
+                }
+            }, refreshData);
+
+            let table;
+
             function moneyRenderer() {
                 return function(data, type) {
                     const num = parseFloat(data || 0);
@@ -119,7 +159,6 @@
                         }
                     },
                     error: function(xhr) {
-                        console.error('Error:', xhr.responseText);
                         alert('Failed to load data.');
                     }
                 });
@@ -130,10 +169,7 @@
                     data: data,
                     columns: [{
                             data: null,
-                            render: function(data, type, row, meta) {
-                                return meta.row + 1;
-                            },
-                            className: 'text-center'
+                            render: (d, t, r, m) => m.row + 1
                         },
                         {
                             data: 'branch_name'
@@ -142,7 +178,8 @@
                             data: 'product_name'
                         },
                         {
-                            data: 'barcode'
+                            data: 'barcode',
+                            orderable: false
                         },
                         {
                             data: 'category_name'
@@ -164,9 +201,12 @@
                         },
                         {
                             data: 'all_qty',
-                            render: function(data) {
-                                return parseInt(data || 0);
-                            },
+                            render: d => parseInt(d || 0),
+                            className: 'text-end'
+                        },
+                        {
+                            data: 'out_qty',
+                            render: d => parseInt(d || 0),
                             className: 'text-end'
                         },
                         {
@@ -180,119 +220,87 @@
                         [10, 25, 50, 100, "All"]
                     ],
                     pageLength: 25,
-                    dom: 'Blfrtip',
+                    dom: "<'custom-toolbar-row'lfB>t<'row mt-2'<'col-md-6'i><'col-md-6'p>>",
                     buttons: [{
-                            extend: 'csvHtml5',
-                            text: 'Export CSV',
-                            className: 'btn btn-sm btn-outline-primary',
-                            title: 'Transaction Report',
-                            filename: 'transaction_report_csv',
-                            exportOptions: {
-                                columns: ':visible'
-                            }
-                        },
-                        {
                             extend: 'excelHtml5',
-                            text: 'Export Excel',
                             className: 'btn btn-sm btn-outline-success',
-                            title: 'Transaction Report',
-                            filename: 'transaction_report_excel',
+                            title: 'Stock Summary',
+                            filename: 'stock_summary_report_excel',
+                            footer: true, // ✅ important!
                             exportOptions: {
                                 columns: ':visible'
                             }
                         },
                         {
                             extend: 'pdfHtml5',
-                            text: 'Export PDF',
                             className: 'btn btn-sm btn-outline-danger',
-                            title: 'Transaction Report',
-                            filename: 'transaction_report_pdf',
+                            title: 'Stock Summary',
+                            filename: 'stock_summary_report_pdf',
                             orientation: 'landscape',
                             pageSize: 'A4',
+                            footer: true, // ✅ important!
                             exportOptions: {
                                 columns: ':visible'
                             }
                         }
                     ],
-                    columnDefs: [{
-                            targets: [1, 2, 3, 4],
-                            orderable: false
-                        } // branch_name & category_name not sortable
-                    ],
                     footerCallback: function(row, data) {
-                        let totalQty = 0;
-                        let totalPrice = 0;
-                        let sellingTotal = 0;
-                        let purchaseTotal = 0;
-
+                        let totalQty = 0,
+                            totalPrice = 0,
+                            sellingTotal = 0,
+                            purchaseTotal = 0,
+                            totalSold = 0;
                         data.forEach(row => {
                             let qty = parseFloat(row.all_qty || 0);
-                            let sellingPrice = parseFloat(row.selling_price || 0);
-                            let costPrice = parseFloat(row.cost_price || 0);
+                            let selling = parseFloat(row.selling_price || 0);
+                            let cost = parseFloat(row.cost_price || 0);
                             let allPrice = parseFloat(row.all_price || 0);
+                            let sold = parseFloat(row.out_qty || 0);
 
                             totalQty += qty;
                             totalPrice += allPrice;
-                            sellingTotal += sellingPrice * qty;
-                            purchaseTotal += costPrice * qty;
+                            sellingTotal += selling * qty;
+                            purchaseTotal += cost * qty;
+                            totalSold += sold;
                         });
-
                         $('#total-qty').html(totalQty);
+                        $('#total-sold').html(totalSold);
                         $('#total-price').html('₹' + totalPrice.toFixed(2));
                         $('#selling-total').html('₹' + sellingTotal.toFixed(2));
                         $('#purchase-total').html('₹' + purchaseTotal.toFixed(2));
                     }
                 });
 
-                $('#store_id, #product_id, #category_id, #subcategory_id').change(function() {
-                    refreshData();
-                });
-
+                $('#store_id, #product_id, #category_id, #subcategory_id').change(refreshData);
                 $('#reset-filters').click(function() {
                     $('#store_id, #product_id, #category_id, #subcategory_id').val('');
+                    // Reset daterangepicker to default range (e.g., this month)
+                    const start = moment().startOf('month');
+                    const end = moment();
+
+                    $('#reportrange')
+                        .data('daterangepicker')
+                        .setStartDate(start);
+                    $('#reportrange')
+                        .data('daterangepicker')
+                        .setEndDate(end);
+                    $('#reportrange').val(start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD'));
+
                     refreshData();
                 });
             }
 
             function refreshData() {
-                const filters = {
+                loadData({
                     store_id: $('#store_id').val(),
                     product_id: $('#product_id').val(),
                     category_id: $('#category_id').val(),
-                    subcategory_id: $('#subcategory_id').val()
-                };
-                loadData(filters);
+                    subcategory_id: $('#subcategory_id').val(),
+                    date_range: $('#reportrange').val()
+                });
             }
 
-            // Load data initially
-            loadData();
+            loadData(); // initial load
         });
     </script>
-@endsection
-
-@section('styles')
-    <style>
-        .table td,
-        .table th {
-            white-space: nowrap;
-            vertical-align: middle;
-        }
-
-        .dataTables_wrapper .dataTables_length select {
-            min-width: 65px;
-        }
-
-        .daterangepicker {
-            z-index: 3000;
-        }
-
-        .buttons-html5,
-        .buttons-print {
-            margin: 0 5px;
-        }
-
-        tfoot th.text-right {
-            text-align: right;
-        }
-    </style>
 @endsection
