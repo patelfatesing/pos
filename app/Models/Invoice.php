@@ -86,8 +86,10 @@ class Invoice extends Model
         if (empty($type)) {
             $latestInvoice = $latestInvoice->where('status', '!=', 'hold');
         }
-        $latestInvoice = $latestInvoice->orderBy('invoice_number', 'desc')
-            ->first();
+
+        $latestInvoice=$latestInvoice->orderBy('invoice_number', 'desc')
+        ->first();
+        
 
         if ($latestInvoice) {
             // Extract the sequence number (e.g., from LH-20250516-0003 get 0003)
