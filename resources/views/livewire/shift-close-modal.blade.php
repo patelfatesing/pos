@@ -374,6 +374,18 @@
                     </div>
 
                     <div class="modal-body">
+                         <!-- Search Box -->
+                        <div class="mb-3">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" 
+                                       wire:model.live="search" 
+                                       class="form-control" 
+                                       placeholder="Search by product name..">
+                            </div>
+                        </div>
                         @if (!empty($this->addstockStatus))
                             <div class="table-responsive">
                                 <form wire:submit.prevent="save" id="stockPhysicalForm">

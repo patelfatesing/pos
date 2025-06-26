@@ -2516,9 +2516,17 @@ class Shoppingcart extends Component
                 session()->forget(auth()->id() . '_warehouse_product_photo_path', []);
                 session()->forget(auth()->id() . '_warehouse_customer_photo_path', []);
             } else if ($this->selectedCommissionUser) {
+                $commissionUserImage = CommissionUserImage::where('commission_user_id', $this->selectedCommissionUser)->where('type', 'hold')->first(["image_path", "product_image_path"]);
+                
+                if (!empty($commissionUserImage->image_path) && !empty($commissionUserImage->product_image_path)) {
+                    
+                    $cashier_product_photo_path = $commissionUserImage->product_image_path;
+                    $cashier_customer_photo_path = $commissionUserImage->image_path;
+                }else{
 
-                $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
-                $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
+                    $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
+                    $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
+                }
                 if (!empty($cashier_product_photo_path) && !empty($cashier_customer_photo_path)) {
 
                     $userImgName = basename($cashier_customer_photo_path) ?? '';
@@ -3019,8 +3027,15 @@ class Shoppingcart extends Component
             );
             InvoiceHistory::logFromInvoice($invoice, 'created', auth()->id());
             if ($this->selectedPartyUser) {
-                $warehouse_product_photo_path = session(auth()->id() . '_warehouse_product_photo_path', []);
-                $warehouse_customer_photo_path = session(auth()->id() . '_warehouse_customer_photo_path', []);
+                $partyUserImage = PartyUserImage::where('party_user_id', $this->selectedPartyUser)->where('transaction_id', $invoice->id)->where('type', 'hold')->first(["image_path", "product_image_path"]);
+                if (!empty($partyUserImage->image_path) && !empty($partyUserImage->product_image_path)) {
+                    $warehouse_product_photo_path = $partyUserImage->product_image_path;
+                    $warehouse_customer_photo_path = $partyUserImage->image_path;
+                } else {
+
+                    $warehouse_product_photo_path = session(auth()->id() . '_warehouse_product_photo_path', "");
+                    $warehouse_customer_photo_path = session(auth()->id() . '_warehouse_customer_photo_path', "");
+                }
                 $userImgName = basename($warehouse_customer_photo_path);
                 $productImgName = basename($warehouse_product_photo_path);
                 // Define source and destination paths
@@ -3053,9 +3068,16 @@ class Shoppingcart extends Component
                 session()->forget(auth()->id() . '_warehouse_product_photo_path', []);
                 session()->forget(auth()->id() . '_warehouse_customer_photo_path', []);
             } else if ($this->selectedCommissionUser) {
+                $commissionUserImage = CommissionUserImage::where('commission_user_id', $this->selectedCommissionUser)->where('type', 'hold')->first(["image_path", "product_image_path"]);
+                if (!empty($commissionUserImage->image_path) && !empty($commissionUserImage->product_image_path)) {
+                    
+                    $cashier_product_photo_path = $commissionUserImage->product_image_path;
+                    $cashier_customer_photo_path = $commissionUserImage->image_path;
+                }else{
 
-                $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
-                $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
+                    $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
+                    $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
+                }
                 if (!empty($cashier_product_photo_path) && !empty($cashier_customer_photo_path)) {
 
                     $userImgName = basename($cashier_customer_photo_path) ?? '';

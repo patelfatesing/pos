@@ -87,7 +87,7 @@ class ShiftCloseModal extends Component
     public $quantities = [];
     public $showSuggestions = false;
     public $showSuggestionsSales = false;
-
+    public $shiftclosehidecross=false;
     public $selectedNote;
     public $cashNotes = [];
     public $todayCash = 0;
@@ -140,7 +140,7 @@ class ShiftCloseModal extends Component
     public function getCurrentShift()
     {
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
-        $this->currentShift = UserShift::getYesterdayShift(auth()->user()->id, $branch_id, "pending");
+        $this->currentShift = UserShift::getYesterdayShift(auth()->user()->id, $branch_id,"pending");
         $date = "";
         if (!empty($this->currentShift)) {
             $date = \Carbon\Carbon::parse($this->currentShift->start_time)->toDateString();
@@ -150,7 +150,6 @@ class ShiftCloseModal extends Component
         }
         $this->currentShift = UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $date)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "pending"])->first();
     }
-
     public function removeHold()
     {
         $date = \Carbon\Carbon::parse($this->currentShift->start_time)->toDateString();
@@ -180,12 +179,12 @@ class ShiftCloseModal extends Component
         //         $this->dispatch('close-shift-12am');
         //         return;
         // }
-        $this->currentShift = $this->currentShift;
+        $this->currentShift=$this->currentShift;
         $this->shft_id = $this->currentShift->id ?? null;
         // $this->currentShift = Shift::latest()->first();
         $this->branch_name = $this->currentShift->branch->name ?? 'Shop';
         $sales = ['DESI', 'BEER', 'ENGLISH'];
-        $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = $totalRoundOf = 0;
+        $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid =$totalRoundOf=$totalPaidCredit= 0;
 
         $this->categoryTotals = [];
         $this->totalInvoicedAmount = \App\Models\Invoice::where('user_id', auth()->user()->id)
@@ -211,8 +210,8 @@ class ShiftCloseModal extends Component
             ->first();
 
         // $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->where('status', '!=', 'Hold')->where('invoice_number', 'not like', '%Hold%')->latest()->get();
-        $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->whereNotIn('status', ['Hold', 'resumed', 'archived'])->latest()->get();
-        $totalSalesNew = 0;
+        $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->whereNotIn('status',[ 'Hold','resumed','archived'])->latest()->get();
+        $totalSalesNew=0;
         foreach ($invoices as $invoice) {
             $items = $invoice->items; // decode items from longtext JSON
 
@@ -222,7 +221,7 @@ class ShiftCloseModal extends Component
 
             if (is_array($items)) {
                 foreach ($items as $item) {
-                    if (!empty($item['subcategory'])) {
+                    if(!empty($item['subcategory'])){
 
                         $category =  Str::upper($item['subcategory'])  ?? 'Unknown';
                         $amount = $item['price'] ?? 0;
@@ -232,12 +231,12 @@ class ShiftCloseModal extends Component
                         }
 
                         $this->categoryTotals['sales'][$category] += $amount;
-                        $totalSalesNew += $amount;
+                        $totalSalesNew+= $amount;
                     }
                 }
             }
 
-            $this->closing_sales = @$this->categoryTotals['sales'];
+            $this->closing_sales=@$this->categoryTotals['sales'];
             // $discountTotal += ($invoice->commission_amount ?? 0) + ($invoice->party_amount ?? 0);
             $discountTotal += (!empty($invoice->commission_amount) && is_numeric($invoice->commission_amount)) ? (int)$invoice->commission_amount : 0;
             $discountTotal += (!empty($invoice->party_amount) && is_numeric($invoice->party_amount)) ? (int)$invoice->party_amount : 0;
@@ -248,6 +247,7 @@ class ShiftCloseModal extends Component
             $totalUpiPaid  += (!empty($invoice->upi_amount)  && is_numeric($invoice->upi_amount)) ? (int)$invoice->upi_amount  : 0;
             $totalOnlinePaid  += (!empty($invoice->online_amount)  && is_numeric($invoice->online_amount)) ? (int)$invoice->online_amount  : 0;
             $totalRoundOf  += (!empty($invoice->roundof)  && is_numeric($invoice->roundof)) ? (int)$invoice->roundof  : 0;
+            $totalPaidCredit  += (!empty($invoice->paid_credit)  && is_numeric($invoice->paid_credit)) ? (int)$invoice->paid_credit  : 0;
 
             if ($invoice->status == "Returned") {
                 $totalRefundReturn += floatval(str_replace(',', '', $invoice->total));
@@ -274,26 +274,27 @@ class ShiftCloseModal extends Component
         $totalWith = \App\Models\WithdrawCash::where('user_id',  auth()->user()->id)
             ->where('branch_id', $branch_id)->whereBetween('created_at', [$start_date, $end_date])->sum('amount');
         $this->categoryTotals['payment']['CASH'] = $totalCashPaid;
-        $this->categoryTotals['payment']['UPI PAYMENT'] =  ($totalUpiPaid + $totalOnlinePaid);
-        $this->categoryTotals['payment']['TOTAL'] = $totalCashPaid + ($totalUpiPaid + $totalOnlinePaid);
+        $this->categoryTotals['payment']['UPI PAYMENT'] =  ($totalUpiPaid+$totalOnlinePaid) ;
+        $this->categoryTotals['payment']['TOTAL'] = $totalCashPaid+ ($totalUpiPaid+$totalOnlinePaid) ;
 
         $this->categoryTotals['summary']['OPENING CASH'] = @$this->currentShift->opening_cash;
-        $this->categoryTotals['summary']['TOTAL SALES'] = $totals->debit_total + $totalSubTotal + $discountTotal - $totalRefundReturn;
+        $this->categoryTotals['summary']['CASH ADDED'] = @$this->currentShift->cash_added;
+        $this->categoryTotals['summary']['TOTAL SALES'] =$totals->debit_total-$totalPaidCredit+ $totalSubTotal + $discountTotal-$totalRefundReturn-$totalRoundOf;
         $this->categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
 
         $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] = $totalWith * (-1);
-        $this->categoryTotals['summary']['UPI PAYMENT'] = ($totalUpiPaid + $totalOnlinePaid) * (-1);
+        $this->categoryTotals['summary']['UPI PAYMENT'] = ($totalUpiPaid+$totalOnlinePaid) * (-1);
         $this->categoryTotals['summary']['ROUND OFF'] = $totalRoundOf;
-        $this->categoryTotals['summary']['CREDIT'] = $totals->debit_total * (-1);
+        $this->categoryTotals['summary']['CREDIT'] = $totals->debit_total *(-1);
         //$this->categoryTotals['summary']['ONLINE PAYMENT'] = $totalOnlinePaid * (-1);
-        if (!empty($this->creditCollacted->collacted_cash_amount))
+        if(!empty($this->creditCollacted->collacted_cash_amount))
             $this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] = $this->creditCollacted->collacted_cash_amount;
         // $this->categoryTotals['summary']['REFUND'] += $totalRefundReturn *(-1);
-        $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['OPENING CASH'] + $this->categoryTotals['summary']['TOTAL SALES'] + $this->categoryTotals['summary']['DISCOUNT'] + $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $this->categoryTotals['summary']['UPI PAYMENT'] + @$this->categoryTotals['summary']['REFUND'] +
-            @$this->categoryTotals['summary']['ONLINE PAYMENT'] + @$this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] - $totalRoundOf + $this->categoryTotals['summary']['CREDIT'];
+        $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['CASH ADDED']+$this->categoryTotals['summary']['OPENING CASH'] + $this->categoryTotals['summary']['TOTAL SALES'] + $this->categoryTotals['summary']['DISCOUNT'] + $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $this->categoryTotals['summary']['UPI PAYMENT'] + @$this->categoryTotals['summary']['REFUND'] +
+            @$this->categoryTotals['summary']['ONLINE PAYMENT']+ @$this->categoryTotals['summary']['CREDIT COLLACTED BY CASH']+$totalRoundOf+$this->categoryTotals['summary']['CREDIT'];
         $this->categoryTotals['summary']['REFUND'] = $totalRefund * (-1) + $totalRefundReturn * (-1);
         //$this->categoryTotals['summary']['REFUND RETURN'] = $totalRefundReturn*(-1);
-        $this->categoryTotals['summary']['REFUND_CREDIT'] = $totals->credit_total;
+       // $this->categoryTotals['summary']['REFUND_CREDIT'] = $totals->credit_total;
         if (!empty($this->categoryTotals['summary']['REFUND_CREDIT'])) {
             $this->categoryTotals['summary']['REFUND_CREDIT'] = (int)$this->categoryTotals['summary']['REFUND_CREDIT'] * (-1);
         }
@@ -307,53 +308,53 @@ class ShiftCloseModal extends Component
         $noteCount = [];
 
         foreach ($cashBreakdowns as $breakdown) {
-            $denominations1 = json_decode($breakdown->denominations, true);
-            // echo "<pre>";
-            // print_r($denominations1);
-            if (is_array($denominations1)) {
-                // Handle array of objects: [{"10":{"in":"0"}},{"20":{"in":"0"}},...]
-                if (array_keys($denominations1) === range(0, count($denominations1) - 1)) {
-                    foreach ($denominations1 as $item) {
-                        if (is_array($item)) {
-                            foreach ($item as $noteValue => $action) {
-                                if (isset($action['in'])) {
-                                    if (!isset($noteCount[$noteValue])) {
-                                        $noteCount[$noteValue] = 0;
+                $denominations1 = json_decode($breakdown->denominations, true);
+                // echo "<pre>";
+                // print_r($denominations1);
+                if (is_array($denominations1)) {
+                    // Handle array of objects: [{"10":{"in":"0"}},{"20":{"in":"0"}},...]
+                    if (array_keys($denominations1) === range(0, count($denominations1) - 1)) {
+                        foreach ($denominations1 as $item) {
+                            if (is_array($item)) {
+                                foreach ($item as $noteValue => $action) {
+                                    if (isset($action['in'])) {
+                                        if (!isset($noteCount[$noteValue])) {
+                                            $noteCount[$noteValue] = 0;
+                                        }
+                                        $noteCount[$noteValue] += (int)$action['in'];
                                     }
-                                    $noteCount[$noteValue] += (int)$action['in'];
-                                }
-                                if (isset($action['out'])) {
-                                    if (!isset($noteCount[$noteValue])) {
-                                        $noteCount[$noteValue] = 0;
+                                    if (isset($action['out'])) {
+                                        if (!isset($noteCount[$noteValue])) {
+                                            $noteCount[$noteValue] = 0;
+                                        }
+                                        $noteCount[$noteValue] -= (int)$action['out'];
                                     }
-                                    $noteCount[$noteValue] -= (int)$action['out'];
                                 }
                             }
                         }
-                    }
-                } else {
-                    // Handle object with nested arrays: {"5":{"500":{"in":4}}, "3":{"100":{"out":1}}}
-                    foreach ($denominations1 as $outer) {
-                        if (is_array($outer)) {
-                            foreach ($outer as $noteValue => $action) {
-                                if (isset($action['in'])) {
-                                    if (!isset($noteCount[$noteValue])) {
-                                        $noteCount[$noteValue] = 0;
+                    } else {
+                        // Handle object with nested arrays: {"5":{"500":{"in":4}}, "3":{"100":{"out":1}}}
+                        foreach ($denominations1 as $outer) {
+                            if (is_array($outer)) {
+                                foreach ($outer as $noteValue => $action) {
+                                    if (isset($action['in'])) {
+                                        if (!isset($noteCount[$noteValue])) {
+                                            $noteCount[$noteValue] = 0;
+                                        }
+                                        $noteCount[$noteValue] += (int)$action['in'];
                                     }
-                                    $noteCount[$noteValue] += (int)$action['in'];
-                                }
-                                if (isset($action['out'])) {
-                                    if (!isset($noteCount[$noteValue])) {
-                                        $noteCount[$noteValue] = 0;
+                                    if (isset($action['out'])) {
+                                        if (!isset($noteCount[$noteValue])) {
+                                            $noteCount[$noteValue] = 0;
+                                        }
+                                        $noteCount[$noteValue] -= (int)$action['out'];
                                     }
-                                    $noteCount[$noteValue] -= (int)$action['out'];
                                 }
                             }
                         }
                     }
                 }
             }
-        }
         //print_r($noteCount);exit;
         // Decode cash JSON to array
         $this->shiftcash = $noteCount;
@@ -364,11 +365,11 @@ class ShiftCloseModal extends Component
 
     public function openClosingStocksModal()
     {
-
+        
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
         $user_id = auth()->id();
 
-        if (isset($this->currentShift->physical_stock_added) && $this->currentShift->physical_stock_added == 0) {
+        if (isset($this->currentShift->physical_stock_added) && $this->currentShift->physical_stock_added==0) {
             $this->dispatch('notiffication-error', ['message' => 'Please add physical sales first']);
             return;
         }
@@ -390,30 +391,15 @@ class ShiftCloseModal extends Component
 
     public function addphysicalStock()
     {
-        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+        //$branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
-        if ($this->currentShift->physical_stock_added == 1) {
+        if ($this->currentShift->physical_stock_added==1) {
             $this->dispatch('notiffication-error', ['message' => 'Physical stock already added.']);
             return;
         }
         $this->showPhysicalModal = true;
         $this->dispatch('test');
-
-        $rawStockData = DailyProductStock::with('product')
-            ->where('branch_id', $branch_id)
-            ->where('shift_id', $this->currentShift->id)
-            ->get()->toArray();
-
-        $this->addstockStatus = array_map(function ($item) {
-            $item['closing_stock'] =
-                $item['opening_stock'] +
-                $item['added_stock'] -
-                $item['transferred_stock'] -
-                $item['sold_stock'];
-
-            return $item;
-        }, $rawStockData);
-
+        //$this->getDataPhysicalStock();
         // ✅ Initialize $this->products with default qty = 0
         foreach ($this->addstockStatus as $item) {
             $this->products[$item['product_id']] = [
@@ -431,7 +417,7 @@ class ShiftCloseModal extends Component
 
     public function save()
     {
-
+       
         if (empty($this->products)) {
             $this->dispatch('notiffication-error', ['message' => 'Please add qty of product ']);
             return;
@@ -491,6 +477,7 @@ class ShiftCloseModal extends Component
                 'physical_photo' => $filename,
             ]);
         $this->showPhysicalModal = false;
+        $this->shiftclosehidecross=true;
         $this->dispatch('notiffication-sucess', ['message' => 'Physical sales added successfully']);
     }
 
@@ -545,10 +532,10 @@ class ShiftCloseModal extends Component
                 ->where('id', $this->currentShift->id)
                 ->first();
 
-            if ($shift->physical_stock_added == 0) {
+            if ($shift->physical_stock_added==0) {
                 $this->dispatch('notiffication-error', ['message' => 'Please add physical sales first']);
                 return;
-            } else if (!$shift) {
+            }else if (!$shift) {
                 $this->addError('shift', 'No active shift found for this user.');
                 return;
             }
@@ -565,7 +552,7 @@ class ShiftCloseModal extends Component
             $shift->upi_payment = str_replace([',', '₹'], '', $this->categoryTotals['payment']['UPI PAYMENT'] ?? 0);
             $shift->withdrawal_payment = str_replace([',', '₹'], '', $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] ?? 0);
             $shift->cash = str_replace([',', '₹'], '', $this->closingCash ?? 0);
-            $shift->closing_sales = json_encode($this->closing_sales);
+            $shift->closing_sales=json_encode($this->closing_sales);
             $shift->status = 'completed';
             $shift->save();
             //  Invoice::where(['user_id' => $user_id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->delete();
@@ -595,10 +582,10 @@ class ShiftCloseModal extends Component
             //     }
             // }
 
-            session()->forget(auth()->id() . '_warehouse_product_photo_path', []);
-            session()->forget(auth()->id() . '_warehouse_customer_photo_path', []);
-            session()->forget(auth()->id() . '_cashier_product_photo_path', []);
-            session()->forget(auth()->id() . '_cashier_customer_photo_path', []);
+            session()->forget(auth()->id().'_warehouse_product_photo_path', []);
+            session()->forget(auth()->id().'_warehouse_customer_photo_path', []);
+            session()->forget(auth()->id().'_cashier_product_photo_path', []);
+            session()->forget(auth()->id().'_cashier_customer_photo_path', []);
 
             Auth::logout();
 
@@ -625,9 +612,43 @@ class ShiftCloseModal extends Component
         $expected = $this->categoryTotals['summary']['TOTAL'] ?? 0;
         $this->diffCash = round($this->closingCash - $expected, 2);
     }
+    public function getDataPhysicalStock(){
+        $this->getCurrentShift();
 
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
+        $query = DailyProductStock::with('product')
+            ->where('branch_id', $branch_id)
+            ->where('shift_id', $this->currentShift->id);
+
+        // Add search condition
+        if ($this->search) {
+            $query->whereHas('product', function ($q) {
+                $q->where('name', 'like', '%' . $this->search . '%')  // assuming product name is in `name`
+                ->orWhere('sku', 'like', '%' . $this->search . '%'); // add other searchable fields if needed
+            });
+        }
+
+        $rawStockData = $query->get()->toArray();
+
+        // Calculate closing stock
+        $this->addstockStatus = array_map(function ($item) {
+            $item['closing_stock'] =
+                $item['opening_stock'] +
+                $item['added_stock'] -
+                $item['transferred_stock'] -
+                $item['sold_stock'];
+
+            return $item;
+        }, $rawStockData);
+    }
     public function render()
     {
-        return view('livewire.shift-close-modal');
+        
+        $this->getDataPhysicalStock();
+
+        return view('livewire.shift-close-modal', [
+            'dailyStockData' => $this->addstockStatus
+        ]);
     }
 }
