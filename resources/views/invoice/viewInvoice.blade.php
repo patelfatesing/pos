@@ -36,8 +36,7 @@
                                 <div class="invoice-btn">
 
                                     @if ($invoice->party_user_id != '')
-                                        <button
-                                            onClick="showPhoto({{ $invoice->id }},'',{{ $invoice->party_user_id }})"
+                                        <button onClick="showPhoto({{ $invoice->id }},'',{{ $invoice->party_user_id }})"
                                             class="btn btn-primary-dark mr-2">
                                             <i class="ri-eye-line mr-0"></i> View
                                         </button>
@@ -75,7 +74,12 @@
                                                     <tr>
                                                         <th scope="col">Transaction Date</th>
                                                         <th scope="col">Transaction Status</th>
-                                                        <th scope="col">Credit</th>
+                                                        @if ($invoice->branch_id == 1 && !empty($invoice->creditpay) && $invoice->creditpay > 0)
+                                                            <th scope="col">Credit Status</th>
+                                                        @endif
+                                                        @if ($invoice->branch_id == 1 && !empty($invoice->creditpay) && $invoice->creditpay > 0)
+                                                            <th scope="col">Credit</th>
+                                                        @endif
                                                         @if ($invoice->ref_no != '')
                                                             <th scope="col">Transaction No(Ref)</th>
                                                         @endif
@@ -90,6 +94,21 @@
                                                                 {{ $invoice->status }}
                                                             </span>
                                                         </td>
+                                                        @if ($invoice->branch_id == 1 && !empty($invoice->creditpay) && $invoice->creditpay > 0)
+                                                            <td>
+                                                                <span
+                                                                    class="badge badge-{{ $invoice->invoice_status == 'Paid' ? 'success' : 'danger' }}">
+                                                                    {{ $invoice->invoice_status }}
+                                                                </span>
+                                                            </td>
+                                                        @endif
+                                                        @if ($invoice->branch_id == 1 && !empty($invoice->creditpay) && $invoice->creditpay > 0)
+                                                            <td>
+                                                                <span>
+                                                                    ₹{{ $invoice->creditpay }}
+                                                                </span>
+                                                            </td>
+                                                        @endif
                                                         @if ($invoice->ref_no != '')
                                                             <td>
                                                                 {{ $invoice->ref_no }}
@@ -185,9 +204,64 @@
                                                 <h6>Total</h6>
                                                 <h3 class="text-primary font-weight-700">
                                                     @if ($invoice->roundof > 0)
-                                                        ₹{{ number_format((float) $invoice->sub_total + number_format($invoice->roundof, 2) - (float) $invoice->party_amount, 2) }}
+                                                        @php
+                                                            $cleanTotal = floatval(
+                                                                str_replace(',', '', $invoice->sub_total ?? 0),
+                                                            );
+                                                            $cleanRoundof = floatval(
+                                                                str_replace(',', '', $invoice->roundof ?? 0),
+                                                            );
+
+                                                            $commisson = 0;
+                                                            if ($invoice->commission_amount > 0) {
+                                                                $commisson = floatval(
+                                                                    str_replace(
+                                                                        ',',
+                                                                        '',
+                                                                        $invoice->commission_amount ?? 0,
+                                                                    ),
+                                                                );
+                                                            }
+
+                                                            if ($invoice->party_amount > 0) {
+                                                                $commisson = floatval(
+                                                                    str_replace(',', '', $invoice->party_amount ?? 0),
+                                                                );
+                                                            }
+
+                                                            $grandTotal = $cleanTotal - $commisson + $cleanRoundof;
+                                                        @endphp
+                                                        ₹{{ number_format($grandTotal, 2) }}
                                                     @else
-                                                        ₹{{ number_format((float) $invoice->sub_total - (float) $invoice->party_amount, 2) }}
+                                                        @php
+                                                            $cleanTotal = floatval(
+                                                                str_replace(',', '', $invoice->sub_total ?? 0),
+                                                            );
+
+                                                            $commission_amount = floatval(
+                                                                str_replace(',', '', $invoice->commission_amount ?? 0),
+                                                            );
+
+                                                            $commisson = 0;
+                                                            if ($invoice->commission_amount > 0) {
+                                                                $commisson = floatval(
+                                                                    str_replace(
+                                                                        ',',
+                                                                        '',
+                                                                        $invoice->commission_amount ?? 0,
+                                                                    ),
+                                                                );
+                                                            }
+
+                                                            if ($invoice->party_amount > 0) {
+                                                                $commisson = floatval(
+                                                                    str_replace(',', '', $invoice->party_amount ?? 0),
+                                                                );
+                                                            }
+
+                                                            $grandTotal = $cleanTotal - $commisson;
+                                                        @endphp
+                                                        ₹{{ number_format($grandTotal, 2) }}
                                                     @endif
                                                 </h3>
                                             </div>
