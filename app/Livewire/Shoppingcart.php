@@ -634,7 +634,7 @@ class Shoppingcart extends Component
             }
         } else {
             if (!empty($this->selectedCommissionUser)) {
-                 $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
+                $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
                 $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
 
                 // $CommissionUserImage = CommissionUserImage::where('commission_user_id', $this->selectedCommissionUser)->first(["image_path", "product_image_path"]);
@@ -2516,9 +2516,17 @@ class Shoppingcart extends Component
                 session()->forget(auth()->id() . '_warehouse_product_photo_path', []);
                 session()->forget(auth()->id() . '_warehouse_customer_photo_path', []);
             } else if ($this->selectedCommissionUser) {
+                $commissionUserImage = CommissionUserImage::where('commission_user_id', $this->selectedCommissionUser)->where('type', 'hold')->first(["image_path", "product_image_path"]);
 
-                $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
-                $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
+                if (!empty($commissionUserImage->image_path) && !empty($commissionUserImage->product_image_path)) {
+
+                    $cashier_product_photo_path = $commissionUserImage->product_image_path;
+                    $cashier_customer_photo_path = $commissionUserImage->image_path;
+                } else {
+
+                    $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
+                    $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
+                }
                 if (!empty($cashier_product_photo_path) && !empty($cashier_customer_photo_path)) {
 
                     $userImgName = basename($cashier_customer_photo_path) ?? '';
@@ -2571,7 +2579,7 @@ class Shoppingcart extends Component
 
                 CreditHistory::create([
                     'invoice_id' => $invoice->id,
-                    'debit_amount' => $this->creditPay,
+                    'credit_amount' => $this->creditPay,
                     'total_amount' => $this->cashAmount,
                     'total_purchase_items' => $totalQuantity,
                     'party_user_id' => $partyUser->id ?? null,
@@ -2634,7 +2642,8 @@ class Shoppingcart extends Component
         $commissionUser = CommissionUser::where('status', 'Active')->where('is_deleted', '!=', 'Yes')->find($this->selectedCommissionUser);
         $partyUser = PartyUser::where('status', 'Active')->find($this->selectedPartyUser);
         if (!empty($partyUser)) {
-            $partyUser->credit_points += $this->creditPay;
+            $partyUser->left_credit += $this->creditPay;
+            $partyUser->use_credit += $this->creditPay;
             $partyUser->save();
         }
         $cartitems = $this->cartitems;
@@ -2901,7 +2910,8 @@ class Shoppingcart extends Component
             $commissionUser = CommissionUser::where('status', 'Active')->where('is_deleted', '!=', 'Yes')->find($this->selectedCommissionUser);
             $partyUser = PartyUser::where('status', 'Active')->find($this->selectedPartyUser);
             if (!empty($partyUser)) {
-                $partyUser->credit_points -= $this->creditPay;
+                $partyUser->use_credit = (int)$partyUser->use_credit + (int)$this->creditPay;
+                $partyUser->left_credit = (int)$partyUser->credit_points - (int)$partyUser->use_credit;
                 $partyUser->save();
             }
 
@@ -3019,8 +3029,15 @@ class Shoppingcart extends Component
             );
             InvoiceHistory::logFromInvoice($invoice, 'created', auth()->id());
             if ($this->selectedPartyUser) {
-                $warehouse_product_photo_path = session(auth()->id() . '_warehouse_product_photo_path', []);
-                $warehouse_customer_photo_path = session(auth()->id() . '_warehouse_customer_photo_path', []);
+                $partyUserImage = PartyUserImage::where('party_user_id', $this->selectedPartyUser)->where('transaction_id', $invoice->id)->where('type', 'hold')->first(["image_path", "product_image_path"]);
+                if (!empty($partyUserImage->image_path) && !empty($partyUserImage->product_image_path)) {
+                    $warehouse_product_photo_path = $partyUserImage->product_image_path;
+                    $warehouse_customer_photo_path = $partyUserImage->image_path;
+                } else {
+
+                    $warehouse_product_photo_path = session(auth()->id() . '_warehouse_product_photo_path', "");
+                    $warehouse_customer_photo_path = session(auth()->id() . '_warehouse_customer_photo_path', "");
+                }
                 $userImgName = basename($warehouse_customer_photo_path);
                 $productImgName = basename($warehouse_product_photo_path);
                 // Define source and destination paths
@@ -3053,9 +3070,16 @@ class Shoppingcart extends Component
                 session()->forget(auth()->id() . '_warehouse_product_photo_path', []);
                 session()->forget(auth()->id() . '_warehouse_customer_photo_path', []);
             } else if ($this->selectedCommissionUser) {
+                $commissionUserImage = CommissionUserImage::where('commission_user_id', $this->selectedCommissionUser)->where('type', 'hold')->first(["image_path", "product_image_path"]);
+                if (!empty($commissionUserImage->image_path) && !empty($commissionUserImage->product_image_path)) {
 
-                $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
-                $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
+                    $cashier_product_photo_path = $commissionUserImage->product_image_path;
+                    $cashier_customer_photo_path = $commissionUserImage->image_path;
+                } else {
+
+                    $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
+                    $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
+                }
                 if (!empty($cashier_product_photo_path) && !empty($cashier_customer_photo_path)) {
 
                     $userImgName = basename($cashier_customer_photo_path) ?? '';
@@ -3110,7 +3134,7 @@ class Shoppingcart extends Component
 
                 CreditHistory::create([
                     'invoice_id' => $invoice->id,
-                    'debit_amount' => $this->creditPay,
+                    'credit_amount' => $this->creditPay,
                     'total_amount' => $this->cashAmount,
                     'total_purchase_items' => $totalQuantity,
                     'party_user_id' => $partyUser->id ?? null,
@@ -3182,6 +3206,31 @@ class Shoppingcart extends Component
             }
         }
         Log::info("this->partyUserDiscountAmt::::" . $this->partyUserDiscountAmt);
+    }
+
+    public function customerInvoiceLedger()
+    {
+
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+        $invoice =  Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$this->shift->start_time, $this->shift->end_time])->latest('id')->first();
+
+        if (!$invoice) {
+            $this->dispatch('notiffication-error', ['message' => 'Sorry, the invoice preview could not be generated. Please check if the invoice exists and try again.']);
+            return;
+        }
+
+        $pdfPath = storage_path('app/public/invoices/duplicate_' . $invoice->invoice_number . '.pdf');
+
+        if (!file_exists($pdfPath)) {
+            $pdf = App::make('dompdf.wrapper');
+            $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'duplicate' => true]);
+            $pdf->save($pdfPath);
+        }
+        $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'cartitems');
+
+        $this->dispatch('triggerPrint', [
+            'pdfPath' => asset('storage/invoices/duplicate_' . $invoice->invoice_number . '.pdf')
+        ]);
     }
 
     // public function checkout()
@@ -3310,7 +3359,7 @@ class Shoppingcart extends Component
 
     // }
 
-        // public function calculateBreakdown()
+    // public function calculateBreakdown()
     // {
     //     $remaining = $this->cashAmount;
     //     $this->totalBreakdown = [];
@@ -3325,7 +3374,7 @@ class Shoppingcart extends Component
     //     $this->remainingAmount = $remaining;
     // }
 
-    
+
     // public function loadHoldTransactions()
     // {
     //     $this->holdTransactions = Cart::where('user_id', auth()->user()->id)->where('status', Cart::STATUS_HOLD)->get();
