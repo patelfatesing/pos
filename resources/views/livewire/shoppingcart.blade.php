@@ -4,33 +4,33 @@
     @endphp
 
     <div class="col-md-7">
-       <div class="d-flex align-items-center justify-content-between px-3 py-2 bg-white">
+        <div class="d-flex align-items-center justify-content-between px-3 py-2 bg-white">
             <a href="{{ route('items.cart') }}" class="d-flex align-items-center text-decoration-none">
-                <img src="{{ asset('assets/images/logo.png') }}" class="img-fluid rounded mr-2" alt="LiquorHub Logo" style="height: 2em;">
+                <img src="{{ asset('assets/images/logo.png') }}" class="img-fluid rounded mr-2" alt="LiquorHub Logo"
+                    style="height: 2em;">
                 <h5 class="mb-0 font-weight-bold text-dark" style="color:#32bdea !important">LiquorHub</h5>
             </a>
             <div class="d-flex flex-wrap justify-content-end text-right ml-auto">
-                <small class="mx-2"> <strong>Shift No:</strong>{{ $this->shift->shift_no ?? "" }}</small>
-                <small class="mx-2"><strong>Start: </strong>{{ $this->shift->start_time ?? "" }}</small>
-                <small class="mx-2"> <strong>End: </strong>{{ $this->shift->end_time ?? "" }}</small>
-                <small class="mx-2"><strong>{{ __('messages.store_location') }}: </strong>{{ $this->branch_name }}</small>
+                <small class="mx-2"> <strong>Shift No:</strong>{{ $this->shift->shift_no ?? '' }}</small>
+                <small class="mx-2"><strong>Start: </strong>{{ $this->shift->start_time ?? '' }}</small>
+                <small class="mx-2"> <strong>End: </strong>{{ $this->shift->end_time ?? '' }}</small>
+                <small class="mx-2"><strong>{{ __('messages.store_location') }}:
+                    </strong>{{ $this->branch_name }}</small>
             </div>
         </div>
-
 
         <div class="row">
             <div class="col-md-3">
                 <div class="mb-3">
-                  <div class="input-group">
-                    <input type="number" wire:model.live="search" wire:keydown.enter="addToCartBarCode"
-                        class="form-control" placeholder="{{ __('messages.scan_barcode') }}" autofocus>
+                    <div class="input-group">
+                        <input type="number" wire:model.live="search" wire:keydown.enter="addToCartBarCode"
+                            class="form-control" placeholder="{{ __('messages.scan_barcode') }}" autofocus>
 
-                    <button type="button" wire:click="$set('search', '')" class="btn btn-outline-primary">
-                        Clear
-                    </button>
-                </div>
+                        <button type="button" wire:click="$set('search', '')" class="btn btn-outline-primary">
+                            Clear
+                        </button>
+                    </div>
 
-                   
                     {{-- @if ($selectedProduct)
                         <div class="search-results">
 
@@ -42,9 +42,7 @@
                             </div>
                         </div>
                     @endif --}}
-
                 </div>
-
             </div>
             <div class="col-md-2">
                 <div class="mb-3">
@@ -94,7 +92,7 @@
 
                     <div class="form-group">
                         <select id="commissionUser" class="form-control" wire:model="selectedCommissionUser"
-                            wire:change="calculateCommission" @if($removeCrossHold) disabled @endif>
+                            wire:change="calculateCommission" @if ($removeCrossHold) disabled @endif>
                             <option value="">-- Select Commission Customer --</option>
                             @foreach ($commissionUsers as $user)
                                 <option value="{{ $user->id }}">{{ $user->first_name }}
@@ -106,21 +104,20 @@
                 @endif
                 @if (auth()->user()->hasRole('warehouse'))
                     <div class="form-group">
-                      <select id="partyUser" class="form-control"
-                        wire:model="selectedPartyUser"
-                        wire:change="calculateParty"
-                        @if($removeCrossHold) disabled @endif>
-                        <option value="">-- {{ __('messages.select_party_customer') }} --</option>
-                        @foreach ($partyUsers as $user)
-                            <option value="{{ $user->id }}">{{ $user->first_name }}</option>
-                        @endforeach
-                    </select>
+                        <select id="partyUser" class="form-control" wire:model="selectedPartyUser"
+                            wire:change="calculateParty" @if ($removeCrossHold) disabled @endif>
+                            <option value="">-- {{ __('messages.select_party_customer') }} --</option>
+                            @foreach ($partyUsers as $user)
+                                <option value="{{ $user->id }}">{{ $user->first_name }}</option>
+                            @endforeach
+                        </select>
 
 
                     </div>
                 @endif
 
             </div>
+
             <livewire:take-two-pictures />
             @if ($selectedPartyUser || $selectedCommissionUser)
                 {{-- <div class="col-md-1">
@@ -131,6 +128,7 @@
 
                 </div> --}}
             @endif
+
             @if (auth()->user()->hasRole('warehouse'))
                 <div class="col-md-2">
 
@@ -141,6 +139,7 @@
             @endif
 
         </div>
+
         @if ($this->showSuggestions && count($searchResults) > 0)
             <div id="search-suggestion-wrapper" class="search-results col-md-6">
 
@@ -155,16 +154,17 @@
                     @endforeach
                 </div>
             </div>
-        @elseif(strlen($this->searchTerm) > 0 &&  count($searchResults) == 0)
+        @elseif(strlen($this->searchTerm) > 0 && count($searchResults) == 0)
             <div id="search-suggestion-wrapper" class="search-results col-md-6">
-            <div class="list-group">
-                <div class="list-group-item text-center text-muted">
-                    No product found.
+                <div class="list-group">
+                    <div class="list-group-item text-center text-muted">
+                        No product found.
+                    </div>
                 </div>
             </div>
-        </div>
         @endif
-         @if(!$this->selectedProduct && strlen($this->search) > 0)
+
+        @if (!$this->selectedProduct && strlen($this->search) > 0)
             <div id="search-suggestion-wrapper" class="search-results col-md-6">
                 <div class="list-group">
                     <div class="list-group-item text-center text-muted">
@@ -175,11 +175,9 @@
         @endif
 
         <div class="table-responsive" id="main_tb">
-
             <div class=" {{ count($itemCarts) > 5 ? ' cart-table-scroll scrollable' : '' }}">
-
                 <table class="customtable table table-bordered" id="cartTable">
-                   <thead class="thead-light">
+                    <thead class="thead-light">
                         <tr>
                             <th class="col-product">{{ __('messages.product') }}</th>
                             <th class="col-qty text-center">{{ __('messages.qty') }}</th>
@@ -201,7 +199,7 @@
                                     <strong>{{ $item->product->name }}</strong><br>
                                     <small>{{ $item->product->description }}</small>
                                 </td>
-                                <td class="col-qty" >
+                                <td class="col-qty">
                                     @if (auth()->user()->hasRole('cashier'))
                                         <div class="d-flex align-items-center justify-content-between">
                                             <input type="number" min="1"
@@ -298,10 +296,10 @@
                                     {{ format_inr($item->net_amount) }}
 
                                 </td>
-                                @if($this->removeCrossHold==true)
-                                <td class="col-actions text-center">
-                                    <button class="btn btn-danger"
-                                        onclick="Swal.fire({
+                                @if ($this->removeCrossHold == true)
+                                    <td class="col-actions text-center">
+                                        <button class="btn btn-danger"
+                                            onclick="Swal.fire({
                                             title: 'Do you want to remove this product ?',
                                             text: 'This action cannot be reverted!',
                                             icon: 'warning',
@@ -311,21 +309,21 @@
                                             reverseButtons: true
                                         }).then((result) => {
                                             if (result.isConfirmed) {
-                                                @this.removeItem({{ $item->id }},'resume','{{$this->invoice_no}}');
+                                                @this.removeItem({{ $item->id }},'resume','{{ $this->invoice_no }}');
                                             }
                                         });"
-                                        title="Remove item">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </td>
+                                            title="Remove item">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </td>
                                 @else
-                                <td  class="col-actions text-center">
-                                    <button class="btn btn-danger" wire:click="removeItem({{ $item->id }})"
-                                        title="Remove item">
-                                        <i class="fas fa-times"></i>
-                                    </button>
+                                    <td class="col-actions text-center">
+                                        <button class="btn btn-danger" wire:click="removeItem({{ $item->id }})"
+                                            title="Remove item">
+                                            <i class="fas fa-times"></i>
+                                        </button>
 
-                                </td>
+                                    </td>
                                 @endif
                             </tr>
 
@@ -348,7 +346,6 @@
                             <th>{{ __('messages.qty') }}</th>
                             <th>{{ __('messages.rounded_off') }}</th>
                             <th>{{ __('messages.total_payable') }}</th>
-
                         </tr>
                     </thead>
                     <tbody>
@@ -360,11 +357,14 @@
 
                             <td>
                                 @php
-                                    $this->roundedTotal = (float)$this->cashAmount + (float)$this->creditPay - round($this->cartItemTotalSum);
-
+                                    $this->roundedTotal =
+                                        (float) $this->cashAmount +
+                                        (float) $this->creditPay -
+                                        round($this->cartItemTotalSum);
                                 @endphp
                                 {{ $this->roundedTotal }}
-                                <input type="hidden" id="roundedTotal" value="{{ $this->roundedTotal }}" wire:model="roundedTotal">
+                                <input type="hidden" id="roundedTotal" value="{{ $this->roundedTotal }}"
+                                    wire:model="roundedTotal">
                             </td>
                             <td class="table-success fw-bold">
                                 {{ format_inr($this->cashAmount) }}
@@ -415,544 +415,11 @@
                             </td>
 
                         </tr>
-
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-
-
-    <!-- Bootstrap Modal -->
-    <div class="modal fade" id="holdTransactionsModal" tabindex="-1" aria-labelledby="holdModalLabel"
-        aria-hidden="true" wire:ignore.self>
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="holdModalLabel">{{ __('messages.hold_transactions') }} </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    @livewire('hold-transactions', ['holdTransactions' => $holdTransactions])
-
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <!-- Single Modal -->
-    <div class="modal fade " id="captureModal" tabindex="-1" aria-labelledby="captureModalLabel"
-        aria-hidden="true" data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog modal-dialog-centered modal-mg">
-            <div class="modal-content shadow-sm rounded-4 border-0">
-                <div class="modal-header bg-primary text-white rounded-top-4">
-                    <h5 class="modal-title fw-semibold" id="captureModalLabel">
-                        <i class="bi bi-camera-video me-2"></i>{{ __('messages.image_capture') }}
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-
-                <div class="modal-body px-4 py-4">
-                    <!-- Step 1: Product -->
-                  
-                    <div id="step1" class="{{ !empty($this->productImage) && !empty($this->userImage) ? 'd-none' : '' }}">
-                        <h6 class="text-muted mb-3">Step 1: Capture Product Image</h6>
-                        <div class="border rounded-3 overflow-hidden mb-3 text-center p-2 bg-light">
-                            <img src="{{ asset('assets/images/bottle.png') }}" alt="Sample Product"
-                                class="rounded-3 shadow-sm" width="200" height="150" id="productImagePreview">
-                            <canvas id="canvas1" class="d-none"></canvas>
-                        </div>
-                        <div class="border rounded-3 overflow-hidden mb-3">
-                            <video id="video1" class="w-100" autoplay></video>
-                        </div>
-                        <button type="button" class="btn btn-outline-primary w-100"
-                            onclick="captureImage('product')">
-                            <i class="bi bi-camera me-1"></i>Capture Product Image
-                        </button>
-                        <button type="button" class="btn btn-primary w-100 mt-2" onclick="goToStep(2)">
-                            Next: Customer Image
-                        </button>
-                    </div>
-
-                    <!-- Step 2: User -->
-                    <div id="step2" class="d-none mt-4">
-                        <h6 class="text-muted mb-3">Step 2: Capture Customer Image</h6>
-                        <div class="border rounded-3 overflow-hidden mb-3 text-center p-2 bg-light">
-                            <img src="{{ asset('assets/images/user/07.jpg') }}" alt="Sample Customer"
-                                class="rounded-circle shadow-sm" width="150" height="150"
-                                id="userImagePreview">
-                            <canvas id="canvas2" class="d-none"></canvas>
-                        </div>
-                        <div class="border rounded-3 overflow-hidden mb-3">
-                            <video id="video2" class="w-100" autoplay></video>
-                        </div>
-                        <div class="d-flex justify-content-between gap-2">
-                            <button type="button" class="btn btn-outline-primary w-100"
-                                onclick="captureImage('user')">
-                                <i class="bi bi-camera me-1"></i>Capture Customer Image
-                            </button>
-                            <button type="button" class="btn btn-primary w-100" onclick="goToStep(3)">
-                                Next: Review
-                            </button>
-
-                        </div>
-                    </div>
-
-                    <div id="step3" class="{{ !empty($this->productImage) && !empty($this->userImage) ? '' : 'd-none mt-4' }}" >
-                        @php
-                            $stepTitle=!empty($this->productImage) && !empty($this->userImage) ? 'Uploaded Images' : 'Step 3: Review & Confirm';
-                        @endphp
-                        <h6 class="text-muted mb-3">{{$stepTitle}}</h6>
-                      
-                        <div class="row mb-3">
-                            
-                            <div class="col-6 text-center mb-3">
-                                <p class="text-sm font-medium text-gray-600 mb-2">Product Image</p>
-                                <img id="imgproduct"  src="{{ $this->productImage ? asset('storage/' . $this->productImage)  : asset('assets/images/bottle.png') }}" class="rounded shadow-sm border" width="160" height="150" alt="Captured Product">
-
-                            </div>
-                            <div class="col-6 text-center mb-3">
-                                <p class="text-sm font-medium text-gray-600 mb-2">User Image</p>
-                                <img id="imguser"
-                                    src="{{ $this->userImage ? asset('storage/' . $this->userImage) : asset('assets/images/user/07.jpg') }}"
-                                    class="rounded shadow-sm border" width="150" height="150" alt="Captured Customer">
-
-                            </div>
-                          
-                        </div>
-                        <div class="d-flex justify-content-between gap-2">
-                            <button type="button" class="btn btn-outline-warning w-100" onclick="goToStep(1)">
-                                <i class="bi bi-arrow-left-circle me-1"></i>Retake Product Image
-                            </button>
-                            <button type="button" class="btn btn-outline-warning w-100" onclick="goToStep(2)">
-                                <i class="bi bi-arrow-left-circle me-1"></i>Retake User Image
-                            </button>
-                            <button type="button" class="btn btn-success w-100" data-dismiss="modal">
-                                <i class="bi bi-check-circle me-1"></i>Confirm
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    
-    {{-- <form action="{{ route('shift-close.withdraw') }}" method="POST">
-        @csrf --}}
-
-    <div class="modal fade" id="cashout" tabindex="-1" aria-labelledby="cashout" aria-hidden="true"
-        data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog modal-dialog-scrollable modal-mg">
-            <div class="modal-content shadow-sm rounded-4 border-0">
-                <div class="modal-header bg-primary text-white rounded-top-4">
-                    <h5 class="modal-title fw-semibold" id="cashout">
-                        <i class="bi bi-camera-video me-2"></i>{{ __('messages.withdraw_cash_details') }}
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-
-                <div class="modal-body p-6">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <form method="POST" action="{{ route('shift-close.withdraw') }}">
-                                @csrf
-
-                                <div class="card shadow-sm rounded-2xl p-4">
-
-                                    <div class="table-responsive">
-                                        <table class="customtable table table-bordered align-middle text-center">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th>{{ __('messages.currency') }}</th>
-                                                    <th>{{ __('messages.notes') }}</th>
-                                                    <th>{{ __('messages.amount') }}</th>
-
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($noteDenominations as $key => $denomination)
-                                                    <tr>
-                                                        <td>{{ $denomination }} X</td>
-                                                        <td>
-                                                            <div
-                                                                class="d-flex justify-content-center align-items-center">
-                                                                <button type="button"
-                                                                    class="btn btn-sm btn-danger custom-btn"
-                                                                    onclick="updateNote('{{ $key }}_{{ $denomination }}', -1, {{ $denomination }})">
-                                                                    <i class="fas fa-minus"></i>
-                                                                </button>
-                                                                <span
-                                                                    id="display_{{ $key }}_{{ $denomination }}"
-                                                                    class="mx-3">0</span>
-                                                                <button type="button"
-                                                                    class="btn btn-sm btn-success custom-btn"
-                                                                    onclick="updateNote('{{ $key }}_{{ $denomination }}', 1, {{ $denomination }})">
-                                                                    +
-                                                                </button>
-                                                                <input type="hidden"
-                                                                    name="withcashNotes.{{ $key }}.{{ $denomination }}"
-                                                                    id="withcashnotes_{{ $key }}_{{ $denomination }}"
-                                                                    value="0">
-                                                            </div>
-                                                        </td>
-                                                        <td id="withcashsum_{{ $key }}_{{ $denomination }}">
-                                                            0</td>
-                                                    </tr>
-                                                @endforeach
-                                                <tr class="fw-bold">
-                                                    <td colspan="2" class="text-end">{{ __('messages.total_withdrawal_amount') }}</td>
-                                                    <td id="totalNoteCashwith">0</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                    <input type="hidden" name="amount" id="withamountTotal"
-                                        class="form-control mb-3" readonly required>
-
-                                    <div class="mb-3">
-                                        <label for="narration" class="form-label">{{ __('messages.select_reason_for_withdrawal') }}</label>
-                                        <select name="narration" id="narration" class="form-control" required>
-                                            <option value="">-- {{ __('messages.select_reason') }} --</option>
-                                            @foreach ($narrations as $narration)
-                                                <option value="{{ $narration }}">{{ $narration }}</option>
-                                            @endforeach
-                                        </select>
-
-                                    </div>
-
-                                    <div class="text-right">
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-paper-plane me-1"></i> {{ __('messages.click_to_transfer') }}
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="storeStockRequest" tabindex="-1" aria-labelledby="storeStockRequest"
-        aria-hidden="true" data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog modal-dialog-scrollable modal-mg">
-            <div class="modal-content shadow-sm rounded-4 border-0">
-                <div class="modal-header bg-primary text-white rounded-top-4">
-                    <h5 class="modal-title fw-semibold" id="cashout">
-                        <i class="bi bi-camera-video me-2"></i>{{ __('messages.stock_request') }}
-
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-
-                <div class="modal-body p-6">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="card">
-                                <div class="card-body">
-                                    <form method="POST" action="{{ route('stock.store') }}">
-                                        @csrf
-                                        {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
-                                        <div class="mb-3">
-                                            <input type="hidden" name="store_id"
-                                                value="{{ @$branch_id }}">
-                                        </div>
-
-
-                                        <div id="product-items">
-                                            <h5>Products</h5>
-                                            <div class="item-row mb-3">
-
-                                                <select name="items[0][product_id]" class="form-control d-inline w-50 product-select-sh"
-                                                    required>
-                                                    <option value="">-- {{ __('messages.select_product') }} --</option>
-                                                    @foreach ($product_in_stocks as $pro)
-                                                        <option value="{{ $pro->id }}">{{ $pro->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                @error('items')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                                <input type="number" name="items[0][quantity]"
-                                                    class="form-control d-inline w-25 ms-2" placeholder="Qty"
-                                                    min="1" required>
-
-                                                <button type="button"
-                                                    class="btn btn-danger btn-sm ms-2 remove-item">X</button>
-                                            </div>
-                                        </div>
-
-                                        <button type="button" id="add-item" class="btn btn-secondary btn-sm mb-3">+
-                                            {{ __('messages.add_another_product') }}</button>
-
-                                        <div class="mb-3">
-                                            <label for="notes" class="form-label">{{ __('messages.notes') }}</label>
-                                            <textarea name="notes" id="notes" class="form-control"></textarea>
-                                        </div>
-
-                                        <button type="submit" class="btn btn-primary">{{ __('messages.submit_request') }}</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="warehouseStockRequest" tabindex="-1" aria-labelledby="warehouseStockRequest"
-        aria-hidden="true" data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog modal-dialog-scrollable modal-lg">
-            <div class="modal-content shadow-sm rounded-4 border-0">
-                <div class="modal-header bg-primary text-white rounded-top-4">
-                    <h5 class="modal-title fw-semibold" id="cashout">
-                        <i class="bi bi-camera-video me-2"></i>{{ __('messages.stock_request') }}
-
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-
-                <div class="modal-body p-6">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="card">
-
-                                <div class="card-body">
-
-                                    <form id="warehouseForm" method="POST" action="{{ route('stock.warehouse') }}">
-                                        @csrf
-
-                                        <div class="product_items mb-3">
-
-                                            <select name="store_id" id="main_store_id"  class="form-control d-inline w-50" required>
-                                                <option value="">-- {{ __('messages.select_store') }} --</option>
-                                                @foreach ($stores as $product)
-                                                    @if ($product->id != 1)
-                                                        <option value="{{ $product->id }}">{{ $product->name }}
-                                                        </option>
-                                                    @endif
-                                                @endforeach
-                                            </select>
-                                            @error('items')
-                                                <span class="text-danger">{{ $message }}</span>
-                                            @enderror
-
-                                        </div>
-                                        {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
-                                        <div id="product-items-wh">
-                                            
-                                            <h5>Products</h5>
-                                            <div class="row item-row-wh product_items mb-3">
-                                                <div class="col-md-4">
-
-                                                    <select name="items[0][product_id]" class="form-control  product-select"
-                                                        required>
-                                                        <option value="">-- {{ __('messages.select_product') }} --</option>
-                                                        @foreach ($allProducts as $product)
-                                                            <option value="{{ $product->id }}">{{ $product->name }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    {{-- @error('items.0.product_id')
-                                                        <div class="invalid-feedback">{{ $message }}</div>
-                                                    @enderror --}}
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <input type="number" name="items[0][quantity]"
-                                                        class="form-control  ms-2" placeholder="Qty"
-                                                        min="1" required>
-
-                                                  
-                                                </div>
-                                                <div class="col-md-4">
-
-                                                    <button type="button"
-                                                        class="btn btn-danger btn-sm ms-2 remove-item-wh">X</button>
-                                                    </div>
-                                                    
-                                                    <div class="availability-container-wh mt-2 small text-muted">
-                                                        <!-- Filled dynamically with AJAX -->
-                                                    </div>
-                                                </div>
-                                          
-                                        </div>
-
-                                        <div class="mb-3">
-                                            {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
-                                            <div id="product-availability" class="mt-3">
-                                                <!-- Availability information will be displayed here -->
-                                            </div>
-                                        </div>
-                                        <button type="button" id="add-item-wh" class="btn btn-secondary btn-sm mb-3">+
-                                            {{ __('messages.add_another_product') }}</button>
-
-                                        <div class="mb-3">
-                                            <label for="notes" class="form-label">{{ __('messages.notes') }}</label>
-                                            <textarea name="notes" id="notes" class="form-control"></textarea>
-                                        </div>
-
-                                        <button type="submit" class="btn btn-primary">{{ __('messages.submit_request') }}</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-    <!-- Modal HTML -->
-    <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
-        data-backdrop="static" data-keyboard="false" wire:ignore.self>
-        <div class="modal-dialog">
-            <form method="POST" action="{{ route('cash-in-hand') }}">
-                @csrf
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">{{ __('messages.cash_in_hand_details') }}</h5>
-                    </div>
-                    <div class="modal-body">
-
-                        <input type="hidden" name="amount" id="holdamountTotal" class="form-control mb-3"
-                            placeholder="Enter opening amount" readonly>
-
-                        <table class="customtable table">
-                            <thead>
-                                <tr>
-                                    <th>{{ __('messages.currency') }}</th>
-                                    <th>{{ __('messages.notes') }}</th>
-                                    <th>{{ __('messages.amount') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($noteDenominations as $key => $denomination)
-                                    <tr>
-                                        <td>{{ $denomination }}</td>
-                                        <td>
-                                            <div class="input-group" style="max-width: 150px;">
-                                                <button class="btn btn-sm btn-danger custom-btn btn-decrease"
-                                                    type="button" data-denomination="{{ $denomination }}"><i
-                                                        class="fa fa-minus"></i></button>
-                                                <input type="text"
-                                                    name="cashNotes.{{ $key }}.{{ $denomination }}"
-                                                    class="form-control text-center note-input"
-                                                    id="cashhandsum_{{ $denomination }}"
-                                                    data-denomination="{{ $denomination }}" value="0" readonly>
-                                                <button class="btn btn-sm btn-success custom-btn btn-increase"
-                                                    type="button"
-                                                    data-denomination="{{ $denomination }}">+</button>
-                                            </div>
-                                        </td>
-                                        <td id="discashhandsum_{{ $denomination }}">0</td>
-                                    </tr>
-                                @endforeach
-                                <tr>
-                                    <td colspan="2" class="text-end fw-bold">{{ __('messages.total_cash') }}</td>
-                                    <td id="totalNoteCashHand">0</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        @error('amount')
-                            <span class="text-red">{{ $message }}</span>
-                        @enderror
-
-                        <button type="button" class="btn btn-secondary btn-sm" id="openStockStatusBtn">
-                            {{ __('messages.view_stock_status') }}
-                        </button>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary btn-sm mr-2">{{ __('messages.save') }}</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="modal fade" id="stockStatusModal" tabindex="-1" aria-labelledby="stockStatusModalLabel"
-        aria-hidden="true" data-backdrop="static" data-keyboard="false" wire:ignore.self>
-        <div class="modal-dialog modal-dialog-scrollable modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h6 class="">{{ __('messages.product_opening_stock') }}</h6>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <table class="customtable table">
-                        <thead>
-                            <tr>
-                                <th>{{ __('messages.product') }}</th>
-                                <th>{{ __('messages.opening_stock') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @php
-                                $sum=0;
-                            @endphp
-                            @foreach ($productStock as $product)
-                        
-                                <tr>
-                                    <td>{{ $product->product->name }}</td>
-                                    <td>
-                                        @php
-                                            $stock="";
-                                            $lastShift = App\Models\UserShift::getYesterdayShift(auth()->user()->id, $branch_id);
-                                            if(empty($lastShift))
-                                            {
-                                                $stock=$product->opening_stock;
-                                            }else{
-                                                $stock=$product->closing_stock;
-                                            }
-                                            $sum+=$stock;
-
-                                        @endphp
-                                        <input type="number" name="productStocks[{{ $product->id }}]"
-                                            class="form-control text-center" value="{{ $stock }}"
-                                            readonly>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                         <!-- Add total in footer -->
-                        <tfoot>
-                            <tr>
-                                <th class="text-end">{{ __('messages.total') }}</th>
-                                <th>
-                                    <input type="number" class="form-control text-center" value="{{ $sum }}" readonly>
-                                </th>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-                <div class="modal-footer">
-
-                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" aria-label="Close"
-                        wire:click="#">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
 
     <div class="col-md-5">
         {{-- @include('layouts.flash-message') --}}
@@ -968,7 +435,8 @@
 
                             <livewire:fullscreen-toggle />
                             {{-- Refresh Button --}}
-                            <button onclick="location.reload()" class="btn btn-primary ml-2" title="{{ __('messages.refresh_page') }}">
+                            <button onclick="location.reload()" class="btn btn-primary ml-2"
+                                title="{{ __('messages.refresh_page') }}">
                                 <i class="fas fa-sync-alt"></i>
                             </button>
 
@@ -1007,13 +475,15 @@
                             @endif
                             @if (auth()->user()->hasRole('warehouse'))
                                 <button wire:click="printLastInvoice" class="btn btn-primary ml-2"
-                                    data-toggle="tooltip" data-placement="top" title="{{ __('messages.print_the_last_invoice') }}">
+                                    data-toggle="tooltip" data-placement="top"
+                                    title="{{ __('messages.print_the_last_invoice') }}">
                                     <i class="fas fa-print"></i>
                                 </button>
-                                 <livewire:order-modal />
-                                 @if (count($itemCarts) == 0)
-                                  <livewire:collation-modal />
-                                  @endif
+                                <livewire:order-modal />
+                                <livewire:customer-credit-ledger-modal />
+                                @if (count($itemCarts) == 0)
+                                    <livewire:collation-modal />
+                                @endif
                             @endif
                             @livewire('button-timer', ['endTime' => $this->shiftEndTime])
 
@@ -1032,8 +502,9 @@
                             @endif
                             <!-- Modal -->
                             {{-- Logout --}}
-                           
-                            <button type="button" class="btn btn-outline-danger d-flex align-items-center "   data-toggle="tooltip" data-placement="top" title="Logout"   onclick="confirmLogout()">
+
+                            <button type="button" class="btn btn-outline-danger d-flex align-items-center "
+                                data-toggle="tooltip" data-placement="top" title="Logout" onclick="confirmLogout()">
                                 <span class="font-weight-bold"> {{ Auth::user()->name }}</span>
                                 &nbsp;&nbsp;&nbsp;
                                 <i class="fas fa-sign-out-alt"></i>
@@ -1063,7 +534,6 @@
                     <div id="cash-payment">
 
                         <form onsubmit="event.preventDefault();" class="needs-validation" novalidate>
-
 
                             {{-- <h6 class="mb-3">💵 {{ __('messages.enter_cash_denominations') }}</h6> --}}
                             <div class="row g-3">
@@ -1189,7 +659,8 @@
                                 <div class="row">
                                     <div class="col-md-12">
                                         <label>{{ __('messages.refund_description') }}</label>
-                                        <textarea id="refundDesc" class="form-control" wire:model="refundDesc" placeholder="{{ __('messages.enter_refund_description') }}"></textarea>
+                                        <textarea id="refundDesc" class="form-control" wire:model="refundDesc"
+                                            placeholder="{{ __('messages.enter_refund_description') }}"></textarea>
                                     </div>
                                 </div>
                             @endif
@@ -1267,7 +738,8 @@
                                             </button>
                                         @endif
                                     @endif
-                                    <div wire:loading class=" text-muted">{{ __('messages.processing_payment') }}...</div>
+                                    <div wire:loading class=" text-muted">{{ __('messages.processing_payment') }}...
+                                    </div>
                                 </div>
                             @endif
                         </form>
@@ -1396,7 +868,8 @@
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label for="cash" class="form-label">{{ __('messages.upi_amount') }}</label>
+                                        <label for="cash"
+                                            class="form-label">{{ __('messages.upi_amount') }}</label>
 
                                         <input type="number" id="onlineAmount" step="0.01"
                                             wire:model.live.debounce.500ms="upi" class="form-control" min="0"
@@ -1472,7 +945,7 @@
                             </div>
                             <p id="result" class="mt-3 fw-bold text-success"></p>
                             <div class="mt-4">
-                                @if ($this->showOnline == true && $this->cashAmount>0)
+                                @if ($this->showOnline == true && $this->cashAmount > 0)
                                     <button id="paymentSubmit" class="btn btn-primary btn-sm mr-2 btn-block mt-4"
                                         wire:click="onlinePaymentCheckout" wire:loading.attr="disabled">
                                         {{ __('messages.submit') }}
@@ -1486,7 +959,8 @@
                                     @endif
                                 @endif
 
-                                <div wire:loading class=" text-muted">{{ __('messages.processing_payment') }}...</div>
+                                <div wire:loading class=" text-muted">{{ __('messages.processing_payment') }}...
+                                </div>
                             </div>
 
                         </form>
@@ -1505,7 +979,6 @@
 
             </div>
         </div>
-
     </div>
 
     {{-- @if ($invoiceData)
@@ -1513,7 +986,548 @@
             @include('livewire.printinvoice')
         </div>
     @endif --}}
+    <!-- Bootstrap Modal -->
+    <div class="modal fade" id="holdTransactionsModal" tabindex="-1" aria-labelledby="holdModalLabel"
+        aria-hidden="true" wire:ignore.self>
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="holdModalLabel">{{ __('messages.hold_transactions') }} </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    @livewire('hold-transactions', ['holdTransactions' => $holdTransactions])
 
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Single Modal -->
+    <div class="modal fade " id="captureModal" tabindex="-1" aria-labelledby="captureModalLabel"
+        aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered modal-mg">
+            <div class="modal-content shadow-sm rounded-4 border-0">
+                <div class="modal-header bg-primary text-white rounded-top-4">
+                    <h5 class="modal-title fw-semibold" id="captureModalLabel">
+                        <i class="bi bi-camera-video me-2"></i>{{ __('messages.image_capture') }}
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+
+                <div class="modal-body px-4 py-4">
+                    <!-- Step 1: Product -->
+
+                    <div id="step1"
+                        class="{{ !empty($this->productImage) && !empty($this->userImage) ? 'd-none' : '' }}">
+                        <h6 class="text-muted mb-3">Step 1: Capture Product Image</h6>
+                        <div class="border rounded-3 overflow-hidden mb-3 text-center p-2 bg-light">
+                            <img src="{{ asset('assets/images/bottle.png') }}" alt="Sample Product"
+                                class="rounded-3 shadow-sm" width="200" height="150" id="productImagePreview">
+                            <canvas id="canvas1" class="d-none"></canvas>
+                        </div>
+                        <div class="border rounded-3 overflow-hidden mb-3">
+                            <video id="video1" class="w-100" autoplay></video>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary w-100"
+                            onclick="captureImage('product')">
+                            <i class="bi bi-camera me-1"></i>Capture Product Image
+                        </button>
+                        <button type="button" class="btn btn-primary w-100 mt-2" onclick="goToStep(2)">
+                            Next: Customer Image
+                        </button>
+                    </div>
+
+                    <!-- Step 2: User -->
+                    <div id="step2" class="d-none mt-4">
+                        <h6 class="text-muted mb-3">Step 2: Capture Customer Image</h6>
+                        <div class="border rounded-3 overflow-hidden mb-3 text-center p-2 bg-light">
+                            <img src="{{ asset('assets/images/user/07.jpg') }}" alt="Sample Customer"
+                                class="rounded-circle shadow-sm" width="150" height="150"
+                                id="userImagePreview">
+                            <canvas id="canvas2" class="d-none"></canvas>
+                        </div>
+                        <div class="border rounded-3 overflow-hidden mb-3">
+                            <video id="video2" class="w-100" autoplay></video>
+                        </div>
+                        <div class="d-flex justify-content-between gap-2">
+                            <button type="button" class="btn btn-outline-primary w-100"
+                                onclick="captureImage('user')">
+                                <i class="bi bi-camera me-1"></i>Capture Customer Image
+                            </button>
+                            <button type="button" class="btn btn-primary w-100" onclick="goToStep(3)">
+                                Next: Review
+                            </button>
+
+                        </div>
+                    </div>
+
+                    <div id="step3"
+                        class="{{ !empty($this->productImage) && !empty($this->userImage) ? '' : 'd-none mt-4' }}">
+                        @php
+                            $stepTitle =
+                                !empty($this->productImage) && !empty($this->userImage)
+                                    ? 'Uploaded Images'
+                                    : 'Step 3: Review & Confirm';
+                        @endphp
+                        <h6 class="text-muted mb-3">{{ $stepTitle }}</h6>
+
+                        <div class="row mb-3">
+
+                            <div class="col-6 text-center mb-3">
+                                <p class="text-sm font-medium text-gray-600 mb-2">Product Image</p>
+                                <img id="imgproduct"
+                                    src="{{ $this->productImage ? asset('storage/' . $this->productImage) : asset('assets/images/bottle.png') }}"
+                                    class="rounded shadow-sm border" width="160" height="150"
+                                    alt="Captured Product">
+
+                            </div>
+                            <div class="col-6 text-center mb-3">
+                                <p class="text-sm font-medium text-gray-600 mb-2">User Image</p>
+                                <img id="imguser"
+                                    src="{{ $this->userImage ? asset('storage/' . $this->userImage) : asset('assets/images/user/07.jpg') }}"
+                                    class="rounded shadow-sm border" width="150" height="150"
+                                    alt="Captured Customer">
+
+                            </div>
+
+                        </div>
+                        <div class="d-flex justify-content-between gap-2">
+                            <button type="button" class="btn btn-outline-warning w-100" onclick="goToStep(1)">
+                                <i class="bi bi-arrow-left-circle me-1"></i>Retake Product Image
+                            </button>
+                            <button type="button" class="btn btn-outline-warning w-100" onclick="goToStep(2)">
+                                <i class="bi bi-arrow-left-circle me-1"></i>Retake User Image
+                            </button>
+                            <button type="button" class="btn btn-success w-100" data-dismiss="modal">
+                                <i class="bi bi-check-circle me-1"></i>Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- <form action="{{ route('shift-close.withdraw') }}" method="POST">
+        @csrf --}}
+
+    <div class="modal fade" id="cashout" tabindex="-1" aria-labelledby="cashout" aria-hidden="true"
+        data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-dialog-scrollable modal-mg">
+            <div class="modal-content shadow-sm rounded-4 border-0">
+                <div class="modal-header bg-primary text-white rounded-top-4">
+                    <h5 class="modal-title fw-semibold" id="cashout">
+                        <i class="bi bi-camera-video me-2"></i>{{ __('messages.withdraw_cash_details') }}
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+
+                <div class="modal-body p-6">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <form method="POST" action="{{ route('shift-close.withdraw') }}">
+                                @csrf
+
+                                <div class="card shadow-sm rounded-2xl p-4">
+
+                                    <div class="table-responsive">
+                                        <table class="customtable table table-bordered align-middle text-center">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>{{ __('messages.currency') }}</th>
+                                                    <th>{{ __('messages.notes') }}</th>
+                                                    <th>{{ __('messages.amount') }}</th>
+
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($noteDenominations as $key => $denomination)
+                                                    <tr>
+                                                        <td>{{ $denomination }} X</td>
+                                                        <td>
+                                                            <div
+                                                                class="d-flex justify-content-center align-items-center">
+                                                                <button type="button"
+                                                                    class="btn btn-sm btn-danger custom-btn"
+                                                                    onclick="updateNote('{{ $key }}_{{ $denomination }}', -1, {{ $denomination }})">
+                                                                    <i class="fas fa-minus"></i>
+                                                                </button>
+                                                                <span
+                                                                    id="display_{{ $key }}_{{ $denomination }}"
+                                                                    class="mx-3">0</span>
+                                                                <button type="button"
+                                                                    class="btn btn-sm btn-success custom-btn"
+                                                                    onclick="updateNote('{{ $key }}_{{ $denomination }}', 1, {{ $denomination }})">
+                                                                    +
+                                                                </button>
+                                                                <input type="hidden"
+                                                                    name="withcashNotes.{{ $key }}.{{ $denomination }}"
+                                                                    id="withcashnotes_{{ $key }}_{{ $denomination }}"
+                                                                    value="0">
+                                                            </div>
+                                                        </td>
+                                                        <td
+                                                            id="withcashsum_{{ $key }}_{{ $denomination }}">
+                                                            0</td>
+                                                    </tr>
+                                                @endforeach
+                                                <tr class="fw-bold">
+                                                    <td colspan="2" class="text-end">
+                                                        {{ __('messages.total_withdrawal_amount') }}</td>
+                                                    <td id="totalNoteCashwith">0</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <input type="hidden" name="amount" id="withamountTotal"
+                                        class="form-control mb-3" readonly required>
+
+                                    <div class="mb-3">
+                                        <label for="narration"
+                                            class="form-label">{{ __('messages.select_reason_for_withdrawal') }}</label>
+                                        <select name="narration" id="narration" class="form-control" required>
+                                            <option value="">-- {{ __('messages.select_reason') }} --</option>
+                                            @foreach ($narrations as $narration)
+                                                <option value="{{ $narration }}">{{ $narration }}</option>
+                                            @endforeach
+                                        </select>
+
+                                    </div>
+
+                                    <div class="text-right">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-paper-plane me-1"></i>
+                                            {{ __('messages.click_to_transfer') }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="storeStockRequest" tabindex="-1" aria-labelledby="storeStockRequest"
+        aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-dialog-scrollable modal-mg">
+            <div class="modal-content shadow-sm rounded-4 border-0">
+                <div class="modal-header bg-primary text-white rounded-top-4">
+                    <h5 class="modal-title fw-semibold" id="cashout">
+                        <i class="bi bi-camera-video me-2"></i>{{ __('messages.stock_request') }}
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+
+                <div class="modal-body p-6">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <form method="POST" action="{{ route('stock.store') }}">
+                                        @csrf
+                                        {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
+                                        <div class="mb-3">
+                                            <input type="hidden" name="store_id" value="{{ @$branch_id }}">
+                                        </div>
+
+
+                                        <div id="product-items">
+                                            <h5>Products</h5>
+                                            <div class="item-row mb-3">
+
+                                                <select name="items[0][product_id]"
+                                                    class="form-control d-inline w-50 product-select-sh" required>
+                                                    <option value="">-- {{ __('messages.select_product') }} --
+                                                    </option>
+                                                    @foreach ($product_in_stocks as $pro)
+                                                        <option value="{{ $pro->id }}">{{ $pro->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                @error('items')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                                <input type="number" name="items[0][quantity]"
+                                                    class="form-control d-inline w-25 ms-2" placeholder="Qty"
+                                                    min="1" required>
+
+                                                <button type="button"
+                                                    class="btn btn-danger btn-sm ms-2 remove-item">X</button>
+                                            </div>
+                                        </div>
+
+                                        <button type="button" id="add-item" class="btn btn-secondary btn-sm mb-3">+
+                                            {{ __('messages.add_another_product') }}</button>
+
+                                        <div class="mb-3">
+                                            <label for="notes"
+                                                class="form-label">{{ __('messages.notes') }}</label>
+                                            <textarea name="notes" id="notes" class="form-control"></textarea>
+                                        </div>
+
+                                        <button type="submit"
+                                            class="btn btn-primary">{{ __('messages.submit_request') }}</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="warehouseStockRequest" tabindex="-1" aria-labelledby="warehouseStockRequest"
+        aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <div class="modal-content shadow-sm rounded-4 border-0">
+                <div class="modal-header bg-primary text-white rounded-top-4">
+                    <h5 class="modal-title fw-semibold" id="cashout">
+                        <i class="bi bi-camera-video me-2"></i>{{ __('messages.stock_request') }}
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+
+                <div class="modal-body p-6">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <form id="warehouseForm" method="POST"
+                                        action="{{ route('stock.warehouse') }}">
+                                        @csrf
+                                        <div class="product_items mb-3">
+                                            <select name="store_id" id="main_store_id"
+                                                class="form-control d-inline w-50" required>
+                                                <option value="">-- {{ __('messages.select_store') }} --
+                                                </option>
+                                                @foreach ($stores as $product)
+                                                    @if ($product->id != 1)
+                                                        <option value="{{ $product->id }}">{{ $product->name }}
+                                                        </option>
+                                                    @endif
+                                                @endforeach
+                                            </select>
+                                            @error('items')
+                                                <span class="text-danger">{{ $message }}</span>
+                                            @enderror
+
+                                        </div>
+                                        {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
+                                        <div id="product-items-wh">
+
+                                            <h5>Products</h5>
+                                            <div class="row item-row-wh product_items mb-3">
+                                                <div class="col-md-4">
+                                                    <select name="items[0][product_id]"
+                                                        class="form-control  product-select" required>
+                                                        <option value="">-- {{ __('messages.select_product') }}
+                                                            --</option>
+                                                        @foreach ($allProducts as $product)
+                                                            <option value="{{ $product->id }}">
+                                                                {{ $product->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    {{-- @error('items.0.product_id')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror --}}
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <input type="number" name="items[0][quantity]"
+                                                        class="form-control  ms-2" placeholder="Qty" min="1"
+                                                        required>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <button type="button"
+                                                        class="btn btn-danger btn-sm ms-2 remove-item-wh">X</button>
+                                                </div>
+
+                                                <div class="availability-container-wh mt-2 small text-muted">
+                                                    <!-- Filled dynamically with AJAX -->
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
+                                            <div id="product-availability" class="mt-3">
+                                                <!-- Availability information will be displayed here -->
+                                            </div>
+                                        </div>
+                                        <button type="button" id="add-item-wh"
+                                            class="btn btn-secondary btn-sm mb-3">+
+                                            {{ __('messages.add_another_product') }}</button>
+
+                                        <div class="mb-3">
+                                            <label for="notes"
+                                                class="form-label">{{ __('messages.notes') }}</label>
+                                            <textarea name="notes" id="notes" class="form-control"></textarea>
+                                        </div>
+
+                                        <button type="submit"
+                                            class="btn btn-primary">{{ __('messages.submit_request') }}</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal HTML -->
+    <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
+        data-backdrop="static" data-keyboard="false" wire:ignore.self>
+        <div class="modal-dialog">
+            <form method="POST" action="{{ route('cash-in-hand') }}">
+                @csrf
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">{{ __('messages.cash_in_hand_details') }}</h5>
+                    </div>
+                    <div class="modal-body">
+
+                        <input type="hidden" name="amount" id="holdamountTotal" class="form-control mb-3"
+                            placeholder="Enter opening amount" readonly>
+
+                        <table class="customtable table">
+                            <thead>
+                                <tr>
+                                    <th>{{ __('messages.currency') }}</th>
+                                    <th>{{ __('messages.notes') }}</th>
+                                    <th>{{ __('messages.amount') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($noteDenominations as $key => $denomination)
+                                    <tr>
+                                        <td>{{ $denomination }}</td>
+                                        <td>
+                                            <div class="input-group" style="max-width: 150px;">
+                                                <button class="btn btn-sm btn-danger custom-btn btn-decrease"
+                                                    type="button" data-denomination="{{ $denomination }}"><i
+                                                        class="fa fa-minus"></i></button>
+                                                <input type="text"
+                                                    name="cashNotes.{{ $key }}.{{ $denomination }}"
+                                                    class="form-control text-center note-input"
+                                                    id="cashhandsum_{{ $denomination }}"
+                                                    data-denomination="{{ $denomination }}" value="0" readonly>
+                                                <button class="btn btn-sm btn-success custom-btn btn-increase"
+                                                    type="button"
+                                                    data-denomination="{{ $denomination }}">+</button>
+                                            </div>
+                                        </td>
+                                        <td id="discashhandsum_{{ $denomination }}">0</td>
+                                    </tr>
+                                @endforeach
+                                <tr>
+                                    <td colspan="2" class="text-end fw-bold">{{ __('messages.total_cash') }}</td>
+                                    <td id="totalNoteCashHand">0</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        @error('amount')
+                            <span class="text-red">{{ $message }}</span>
+                        @enderror
+
+                        <button type="button" class="btn btn-secondary btn-sm" id="openStockStatusBtn">
+                            {{ __('messages.view_stock_status') }}
+                        </button>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit"
+                            class="btn btn-primary btn-sm mr-2">{{ __('messages.save') }}</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal fade" id="stockStatusModal" tabindex="-1" aria-labelledby="stockStatusModalLabel"
+        aria-hidden="true" data-backdrop="static" data-keyboard="false" wire:ignore.self>
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="">{{ __('messages.product_opening_stock') }}</h6>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="customtable table">
+                        <thead>
+                            <tr>
+                                <th>{{ __('messages.product') }}</th>
+                                <th>{{ __('messages.opening_stock') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @php
+                                $sum = 0;
+                            @endphp
+                            @foreach ($productStock as $product)
+                                <tr>
+                                    <td>{{ $product->product->name }}</td>
+                                    <td>
+                                        @php
+                                            $stock = '';
+                                            $lastShift = App\Models\UserShift::getYesterdayShift(
+                                                auth()->user()->id,
+                                                $branch_id,
+                                            );
+                                            if (empty($lastShift)) {
+                                                $stock = $product->opening_stock;
+                                            } else {
+                                                $stock = $product->closing_stock;
+                                            }
+                                            $sum += $stock;
+
+                                        @endphp
+                                        <input type="number" name="productStocks[{{ $product->id }}]"
+                                            class="form-control text-center" value="{{ $stock }}" readonly>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                        <!-- Add total in footer -->
+                        <tfoot>
+                            <tr>
+                                <th class="text-end">{{ __('messages.total') }}</th>
+                                <th>
+                                    <input type="number" class="form-control text-center"
+                                        value="{{ $sum }}" readonly>
+                                </th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="modal-footer">
+
+                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" aria-label="Close"
+                        wire:click="#">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Numpad Modal -->
     <div wire:ignore.self class="modal fade" id="numpadModal" tabindex="-1" aria-labelledby="numpadLabel"
@@ -1647,9 +1661,32 @@
     });
 
     document.addEventListener('livewire:init', () => {
+        Livewire.on('openCustomerCreditModal', () => {
+            //   var myModal = new bootstrap.Modal(document.getElementById('myModal'));
+            const myModal = new bootstrap.Modal(document.getElementById('myModal'), {
+                backdrop: 'static',
+                keyboard: false
+            });
+            myModal.show();
+        });
+    });
+
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('openModal', () => {
+            //   var myModal = new bootstrap.Modal(document.getElementById('myModal'));
+            const myModal = new bootstrap.Modal(document.getElementById('myModal'), {
+                backdrop: 'static',
+                keyboard: false
+            });
+            myModal.show();
+        });
+    });
+
+    document.addEventListener('livewire:init', () => {
         Livewire.on('closingStocksOpenModal', () => {
             //   var myModal = new bootstrap.Modal(document.getElementById('myModal'));
-            const closingStocksModal = new bootstrap.Modal(document.getElementById('closingStocksModal'), {
+            const closingStocksModal = new bootstrap.Modal(document.getElementById(
+                'closingStocksModal'), {
                 backdrop: 'static',
                 keyboard: false
             });
@@ -1905,11 +1942,13 @@
                 .then(data => {
                     if (data.path) {
                         var alertmsg = (type === 'product') ? 'Product' : 'Customer';
-                          if (type === 'product') {
-                            document.getElementById('imgproduct').src = data.orignal_path+ '?t=' + new Date().getTime();
+                        if (type === 'product') {
+                            document.getElementById('imgproduct').src = data.orignal_path + '?t=' +
+                                new Date().getTime();
                             goToStep(2);
                         } else if (type === 'user') {
-                            document.getElementById('imguser').src = data.orignal_path + '?t=' + new Date().getTime();
+                            document.getElementById('imguser').src = data.orignal_path + '?t=' + new Date()
+                                .getTime();
                             goToStep(3);
                         }
                         Swal.fire({
@@ -2086,53 +2125,51 @@
     // });
 </script>
 <script>
-   
+    function updateNote(id, delta, denomination) {
+        fetch('/get-available-notes', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(availableNotes => {
+                const input = document.getElementById('withcashnotes_' + id);
+                let current = parseInt(input.value || 0);
 
-function updateNote(id, delta, denomination) {
-    fetch('/get-available-notes', {
-        method: 'GET',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(availableNotes => {
-        const input = document.getElementById('withcashnotes_' + id);
-        let current = parseInt(input.value || 0);
+                const key = denomination.toString();
+                const maxNotes = availableNotes[key];
 
-        const key = denomination.toString();
-        const maxNotes = availableNotes[key];
+                if (delta > 0 && (!maxNotes || current >= maxNotes)) {
+                    Swal.fire({
+                        title: 'Note Limit Reached',
+                        text: `No more ${denomination} notes available.`,
+                        icon: 'warning',
+                        confirmButtonText: 'OK'
+                    });
+                    return;
+                }
 
-        if (delta > 0 && (!maxNotes || current >= maxNotes)) {
-            Swal.fire({
-                title: 'Note Limit Reached',
-                text: `No more ${denomination} notes available.`,
-                icon: 'warning',
-                confirmButtonText: 'OK'
+                current += delta;
+                if (current < 0) current = 0;
+
+                input.value = current;
+                document.getElementById('display_' + id).innerText = current;
+                document.getElementById('withcashsum_' + id).innerText = '' + (current * denomination);
+
+                calculateTotal();
+            })
+            .catch(error => {
+                //console.error('Error fetching available notes:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Could not fetch available notes. Please try again.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
             });
-            return;
-        }
-
-        current += delta;
-        if (current < 0) current = 0;
-
-        input.value = current;
-        document.getElementById('display_' + id).innerText = current;
-        document.getElementById('withcashsum_' + id).innerText = '' + (current * denomination);
-
-        calculateTotal();
-    })
-    .catch(error => {
-        //console.error('Error fetching available notes:', error);
-        Swal.fire({
-            title: 'Error',
-            text: 'Could not fetch available notes. Please try again.',
-            icon: 'error',
-            confirmButtonText: 'OK'
-        });
-    });
-}
+    }
 
     function calculateTotal() {
         let total = 0;
@@ -2215,7 +2252,7 @@ function updateNote(id, delta, denomination) {
             }
         }).then((result) => {
             if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
-               // location.reload(); // reload after OK click or auto close
+                // location.reload(); // reload after OK click or auto close
             }
         });
     });
@@ -2276,21 +2313,21 @@ function updateNote(id, delta, denomination) {
     //     $('#numpadModal').modal('hide');
 
     // });
-window.addEventListener('close-hold-modal', function () {
-    // Hide modal
-    const modal = document.getElementById('holdTransactionsModal');
-    modal.style.display = 'none';
-    modal.classList.remove('show'); // Optional: remove show class
-    modal.setAttribute('aria-hidden', 'true');
+    window.addEventListener('close-hold-modal', function() {
+        // Hide modal
+        const modal = document.getElementById('holdTransactionsModal');
+        modal.style.display = 'none';
+        modal.classList.remove('show'); // Optional: remove show class
+        modal.setAttribute('aria-hidden', 'true');
 
-    // Remove backdrop manually
-    const backdrops = document.querySelectorAll('.modal-backdrop');
-    backdrops.forEach(backdrop => backdrop.remove());
+        // Remove backdrop manually
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => backdrop.remove());
 
-    // Optional: remove 'modal-open' class from body to restore scroll
-    document.body.classList.remove('modal-open');
-    document.body.style.paddingRight = '';
-});
+        // Optional: remove 'modal-open' class from body to restore scroll
+        document.body.classList.remove('modal-open');
+        document.body.style.paddingRight = '';
+    });
 
     window.addEventListener('product-added', () => {
         // optional: play sound or flash success
@@ -2412,7 +2449,7 @@ window.addEventListener('close-hold-modal', function () {
                 e.target.closest('.item-row').remove();
             }
         }
-         if (e.target && e.target.classList.contains('remove-item-wh')) {
+        if (e.target && e.target.classList.contains('remove-item-wh')) {
             if (document.querySelectorAll('.item-row-wh').length > 1) {
                 e.target.closest('.item-row-wh').remove();
             }
@@ -2445,8 +2482,8 @@ window.addEventListener('close-hold-modal', function () {
     //         // Increment the item index
     //         itemIndex++;
     // });
-     document.getElementById('add-item-wh').addEventListener('click', function() {
-            const template = `
+    document.getElementById('add-item-wh').addEventListener('click', function() {
+        const template = `
                 <div class="row item-row-wh product_items mb-3">
                      <div class="col-md-4">
                         <select name="items[${itemIndex}][product_id]" class="form-control  product-select">
@@ -2465,10 +2502,10 @@ window.addEventListener('close-hold-modal', function () {
                     <div class="availability-container-wh mt-2 small text-muted"></div>
                 </div>
             `;
-            
-            document.getElementById('product-items-wh').insertAdjacentHTML('beforeend', template);
-            itemIndex++;
-        });
+
+        document.getElementById('product-items-wh').insertAdjacentHTML('beforeend', template);
+        itemIndex++;
+    });
 
     // document.addEventListener('DOMContentLoaded', function() {
     //     const inputs = document.querySelectorAll('.note-input');
@@ -2660,6 +2697,7 @@ window.addEventListener('close-hold-modal', function () {
             stockStatusModal.show();
         });
     });
+
     function goToStep(stepNumber) {
         // Hide all steps
         document.getElementById('step1').classList.add('d-none');
@@ -2673,7 +2711,7 @@ window.addEventListener('close-hold-modal', function () {
         if (stepNumber === 3) {
             const productImage = document.getElementById('productImagePreview').src;
             const userImage = document.getElementById('userImagePreview').src;
-           // document.getElementById('reviewProductImage').src = productImage;
+            // document.getElementById('reviewProductImage').src = productImage;
             //document.getElementById('reviewUserImage').src = userImage;
         }
     }
@@ -2681,9 +2719,9 @@ window.addEventListener('close-hold-modal', function () {
         cluster: "{{ config('broadcasting.connections.pusher.options.cluster') }}",
         encrypted: true,
     });
-    var branch_id='{{ @$branch_id }}';
+    var branch_id = '{{ @$branch_id }}';
     var channel = pusher.subscribe('drawer-channel');
-    
+
     channel.bind('DrawerOpened', function(data) {
 
         if (data.notify_to == branch_id) {
@@ -2715,67 +2753,71 @@ window.addEventListener('close-hold-modal', function () {
             });
         }
     });
-     $(document).ready(function() {
-            // Event listener for product selection change
-          // Event listener for product selection change
-           $(document).on('change', '.product-select-sh', function() {
-                const productId = $(this).val();
-                const currentSelect = $(this);
+    $(document).ready(function() {
+        // Event listener for product selection change
+        // Event listener for product selection change
+        $(document).on('change', '.product-select-sh', function() {
+            const productId = $(this).val();
+            const currentSelect = $(this);
 
-                // Check if this product is already selected in another row
-                if (productId) {
-                    const isDuplicate = $('.product-select-sh').not(this).toArray().some(select => select.value ===
-                        productId);
-                    if (isDuplicate) {
-                        showAlert('error', 'LiquorHub!','This product is already selected. Please choose a different product');
-                        currentSelect.val('');
-                        container.empty();
-                        return false;
-                    }
-                }
-           });
-            $(document).on('change', '.product-select', function() {
-                const productId = $(this).val();
-                const from_store_id =branch_id;
-                const to_store_id = $("#main_store_id").val();
-                const itemRow = $(this).closest('.item-row-wh');
-                const container = itemRow.find('.availability-container-wh');
-                const indexMatch = $(this).attr('name').match(/\[(\d+)\]/);
-                const itemIndex = indexMatch ? indexMatch[1] : 0;
-
-                const currentSelect = $(this);
-
-                // Check if this product is already selected in another row
-                if (productId) {
-                    const isDuplicate = $('.product-select').not(this).toArray().some(select => select.value ===
-                        productId);
-                    if (isDuplicate) {
-                        showAlert('error', 'LiquorHub!','This product is already selected. Please choose a different product');
-                        currentSelect.val('');
-                        container.empty();
-                        return false;
-                    }
-                }
-                if(from_store_id == ""){
-                    showAlert('error', 'LiquorHub!','Please first select from store.!');
+            // Check if this product is already selected in another row
+            if (productId) {
+                const isDuplicate = $('.product-select-sh').not(this).toArray().some(select => select
+                    .value ===
+                    productId);
+                if (isDuplicate) {
+                    showAlert('error', 'LiquorHub!',
+                        'This product is already selected. Please choose a different product');
+                    currentSelect.val('');
+                    container.empty();
                     return false;
                 }
+            }
+        });
+        $(document).on('change', '.product-select', function() {
+            const productId = $(this).val();
+            const from_store_id = branch_id;
+            const to_store_id = $("#main_store_id").val();
+            const itemRow = $(this).closest('.item-row-wh');
+            const container = itemRow.find('.availability-container-wh');
+            const indexMatch = $(this).attr('name').match(/\[(\d+)\]/);
+            const itemIndex = indexMatch ? indexMatch[1] : 0;
 
-            
+            const currentSelect = $(this);
 
-                if (productId) {
-                    // AJAX request to fetch product availability
-                    $.ajax({
-                        url: "{{ url('/products/get-availability-branch') }}/" + productId +
-                            "?from=" + encodeURIComponent(from_store_id) +
-                            "&to=" + encodeURIComponent(to_store_id),
-                        type: "GET",
-                        dataType: "json",
-                        success: function(data) {
-                            //console.log(data);
+            // Check if this product is already selected in another row
+            if (productId) {
+                const isDuplicate = $('.product-select').not(this).toArray().some(select => select
+                    .value ===
+                    productId);
+                if (isDuplicate) {
+                    showAlert('error', 'LiquorHub!',
+                        'This product is already selected. Please choose a different product');
+                    currentSelect.val('');
+                    container.empty();
+                    return false;
+                }
+            }
+            if (from_store_id == "") {
+                showAlert('error', 'LiquorHub!', 'Please first select from store.!');
+                return false;
+            }
 
-                            let html = `<div class="row">`;
-                            html += `
+
+
+            if (productId) {
+                // AJAX request to fetch product availability
+                $.ajax({
+                    url: "{{ url('/products/get-availability-branch') }}/" + productId +
+                        "?from=" + encodeURIComponent(from_store_id) +
+                        "&to=" + encodeURIComponent(to_store_id),
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data) {
+                        //console.log(data);
+
+                        let html = `<div class="row">`;
+                        html += `
                                 <div class="col-md-12">
                                     <div class="form-check">
                                         <label class="form-check-label" for="branch_">
@@ -2787,110 +2829,116 @@ window.addEventListener('close-hold-modal', function () {
                             `;
 
 
-                            html += '</div>';
-                            container.html(html);
-                        },
-                        error: function() {
-                            container.html(
-                                '<span class="text-danger">Failed to load availability. Please try again.</span>'
-                            );
-                        }
-                    });
-                } else {
-                    container.empty(); // Clear container if no product is selected
-                }
-            });
-
-
-            // Enable/disable quantity input based on checkbox selection
-            $(document).on('change', '.branch-checkbox', function() {
-                const quantityInput = $(this).closest('.col-md-6').next('.col-md-6').find(
-                    '.branch-quantity');
-                if ($(this).is(':checked')) {
-                    quantityInput.prop('disabled', false);
-                } else {
-                    quantityInput.prop('disabled', true).val(''); // Clear value when disabled
-                }
-            });
-
-            // Validate branch quantities
-            $(document).on('input', '.branch-quantity', function() {
-                const itemRow = $(this).closest('.item-row');
-                const totalRequestedQty = parseInt(itemRow.find('input[name$="[quantity]"]').val()) || 0;
-                let totalBranchQty = 0;
-
-                // Calculate the total quantity across all branches
-                itemRow.find('.branch-quantity').each(function() {
-                    const branchQty = parseInt($(this).val()) || 0;
-                    totalBranchQty += branchQty;
+                        html += '</div>';
+                        container.html(html);
+                    },
+                    error: function() {
+                        container.html(
+                            '<span class="text-danger">Failed to load availability. Please try again.</span>'
+                        );
+                    }
                 });
-
-                // Check if the total branch quantity exceeds the requested quantity
-                if (totalBranchQty > totalRequestedQty) {
-                    alert('The total quantity across branches cannot exceed the requested quantity.');
-                    $(this).val(''); // Clear the invalid input
-                }
-            });
+            } else {
+                container.empty(); // Clear container if no product is selected
+            }
         });
-</script>
 
-<script>
-$(document).ready(function () {
 
-    $('#warehouseForm').on('submit', function (e) {
-        e.preventDefault();
+        // Enable/disable quantity input based on checkbox selection
+        $(document).on('change', '.branch-checkbox', function() {
+            const quantityInput = $(this).closest('.col-md-6').next('.col-md-6').find(
+                '.branch-quantity');
+            if ($(this).is(':checked')) {
+                quantityInput.prop('disabled', false);
+            } else {
+                quantityInput.prop('disabled', true).val(''); // Clear value when disabled
+            }
+        });
 
-        // Clear previous errors
-        $('.text-danger').remove();
-        $('.is-invalid').removeClass('is-invalid');
+        // Validate branch quantities
+        $(document).on('input', '.branch-quantity', function() {
+            const itemRow = $(this).closest('.item-row');
+            const totalRequestedQty = parseInt(itemRow.find('input[name$="[quantity]"]').val()) || 0;
+            let totalBranchQty = 0;
 
-        let form = $(this);
-        let formData = new FormData(this);
+            // Calculate the total quantity across all branches
+            itemRow.find('.branch-quantity').each(function() {
+                const branchQty = parseInt($(this).val()) || 0;
+                totalBranchQty += branchQty;
+            });
 
-        $.ajax({
-            url: form.attr('action'),
-            method: 'POST',
-            data: formData,
-            contentType: false,
-            processData: false,
-
-            success: function (response) {
-                showAlert('success', 'LiquorHub!','Stock submitted successfully!');
-                $('#warehouseStockRequest').modal('hide'); // Replace with your actual modal ID
-                $('.modal-backdrop.show').remove();
-                $('.availability-container-wh').html("");
-
-                form.trigger("reset");
-            },
-
-            error: function (xhr) {
-                if (xhr.status === 422) {
-                    let errors = xhr.responseJSON.errors;
-                    //console.log(errors);
-                    // Loop through the errors
-                    Object.keys(errors).forEach(function (key) {
-                        //console.log(key);
-                        let nameAttr = key.replace(/\.(\d+)\./g, '[$1][').replace(/\./g, ']') + ']';
-                        let selector = `[name="${nameAttr}"]`;
-
-                        let field = $(selector);
-                        if (field.length) {
-                            field.addClass('is-invalid');
-                            field.after(`<div class="text-danger">${errors[key]}</div>`);
-                        } else {
-                            // Fallback for unmatched errors
-                            $('#warehouseForm').prepend(`<div class="text-danger">${errors[key]}</div>`);
-                        }
-                    });
-
-                    // Show the modal again (if it's closed somehow)
-                }
+            // Check if the total branch quantity exceeds the requested quantity
+            if (totalBranchQty > totalRequestedQty) {
+                alert('The total quantity across branches cannot exceed the requested quantity.');
+                $(this).val(''); // Clear the invalid input
             }
         });
     });
+</script>
 
-});
-  document.addEventListener('DOMContentLoaded', function() {
+<script>
+    $(document).ready(function() {
+
+        $('#warehouseForm').on('submit', function(e) {
+            e.preventDefault();
+
+            // Clear previous errors
+            $('.text-danger').remove();
+            $('.is-invalid').removeClass('is-invalid');
+
+            let form = $(this);
+            let formData = new FormData(this);
+
+            $.ajax({
+                url: form.attr('action'),
+                method: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+
+                success: function(response) {
+                    showAlert('success', 'LiquorHub!', 'Stock submitted successfully!');
+                    $('#warehouseStockRequest').modal(
+                        'hide'); // Replace with your actual modal ID
+                    $('.modal-backdrop.show').remove();
+                    $('.availability-container-wh').html("");
+
+                    form.trigger("reset");
+                },
+
+                error: function(xhr) {
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        //console.log(errors);
+                        // Loop through the errors
+                        Object.keys(errors).forEach(function(key) {
+                            //console.log(key);
+                            let nameAttr = key.replace(/\.(\d+)\./g, '[$1][')
+                                .replace(/\./g, ']') + ']';
+                            let selector = `[name="${nameAttr}"]`;
+
+                            let field = $(selector);
+                            if (field.length) {
+                                field.addClass('is-invalid');
+                                field.after(
+                                    `<div class="text-danger">${errors[key]}</div>`
+                                );
+                            } else {
+                                // Fallback for unmatched errors
+                                $('#warehouseForm').prepend(
+                                    `<div class="text-danger">${errors[key]}</div>`
+                                );
+                            }
+                        });
+
+                        // Show the modal again (if it's closed somehow)
+                    }
+                }
+            });
+        });
+
+    });
+    document.addEventListener('DOMContentLoaded', function() {
         let cameraStream = {
             modal: document.getElementById('cameraModal'),
             video: document.getElementById('video'),
@@ -2922,15 +2970,15 @@ $(document).ready(function () {
                     this.hasProductPhoto = false;
                     this.hasCustomerPhoto = false;
                     this.updateButtonStates();
-                    
+
                     // Clear previews
                     if (this.productPreview) this.productPreview.innerHTML = '';
                     if (this.customerPreview) this.customerPreview.innerHTML = '';
-                    
+
                     // Restart camera
                     this.stopCamera();
                     this.startCamera();
-                    
+
                     // Close modal after a short delay to ensure camera cleanup
                     setTimeout(() => {
                         $('#cameraModal').modal('hide'); // jQuery-based approach
@@ -2964,18 +3012,22 @@ $(document).ready(function () {
                         this.stopCamera(); // Ensure any existing stream is stopped
                     }
 
-                    this.stream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { 
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 },
+                    this.stream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            width: {
+                                ideal: 1280
+                            },
+                            height: {
+                                ideal: 720
+                            },
                             facingMode: 'environment'
-                        } 
+                        }
                     });
-                    
+
                     this.video.srcObject = this.stream;
 
                     await this.video.play();
-                    
+
                     // Only enable buttons if we have a valid stream
                     if (this.stream.active) {
                         this.disableAllButtons(false);
@@ -3013,11 +3065,11 @@ $(document).ready(function () {
                 this.captureCustomer.disabled = this.hasCustomerPhoto;
 
                 // Update button text to show status
-                this.captureProduct.innerHTML = this.hasProductPhoto ? 
-                    '✅ Product Photo Taken' : 
+                this.captureProduct.innerHTML = this.hasProductPhoto ?
+                    '✅ Product Photo Taken' :
                     '📷 Capture Product';
-                this.captureCustomer.innerHTML = this.hasCustomerPhoto ? 
-                    '✅ Customer Photo Taken' : 
+                this.captureCustomer.innerHTML = this.hasCustomerPhoto ?
+                    '✅ Customer Photo Taken' :
                     '📷 Capture Customer';
 
                 // Update button styles
@@ -3048,9 +3100,10 @@ $(document).ready(function () {
 
                     const context = this.canvas.getContext('2d');
                     context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-                    
+
                     // Show immediate preview
-                    const previewContainer = target === 'product' ? this.productPreview : this.customerPreview;
+                    const previewContainer = target === 'product' ? this.productPreview : this
+                        .customerPreview;
                     const tempPreview = document.createElement('div');
                     tempPreview.className = 'position-relative';
                     tempPreview.innerHTML = `
@@ -3059,17 +3112,18 @@ $(document).ready(function () {
                     `;
                     previewContainer.innerHTML = '';
                     previewContainer.appendChild(tempPreview);
-                    
+
                     // Convert to blob and trigger file input
                     await new Promise(resolve => {
                         this.canvas.toBlob(blob => {
-                            const file = new File([blob], `${target}-${Date.now()}.jpg`, { 
-                                type: 'image/jpeg' 
-                            });
-                            
+                            const file = new File([blob],
+                                `${target}-${Date.now()}.jpg`, {
+                                    type: 'image/jpeg'
+                                });
+
                             const dt = new DataTransfer();
                             dt.items.add(file);
-                            
+
                             const input = document.getElementById(`${target}Input`);
                             input.files = dt.files;
 
@@ -3078,7 +3132,7 @@ $(document).ready(function () {
                                 bubbles: true,
                                 cancelable: true,
                             });
-                            
+
                             // Dispatch the event to trigger Livewire's file upload
                             input.dispatchEvent(event);
                             resolve();
@@ -3104,8 +3158,8 @@ $(document).ready(function () {
 
         cameraStream.init();
     });
-      window.addEventListener('note-unavailable', event => {
-        
+    window.addEventListener('note-unavailable', event => {
+
         Swal.fire({
             title: 'Note Limit Reached',
             text: event.detail[0].message,
@@ -3113,8 +3167,8 @@ $(document).ready(function () {
             confirmButtonText: 'OK'
         });
     });
-      window.addEventListener('note-add', event => {
-        
+    window.addEventListener('note-add', event => {
+
         Swal.fire({
             title: 'Add Cash',
             text: event.detail[0].message,
@@ -3122,7 +3176,7 @@ $(document).ready(function () {
             confirmButtonText: 'OK'
         });
     });
-     window.addEventListener('hold-saved', event => {
-        location.reload(); 
+    window.addEventListener('hold-saved', event => {
+        location.reload();
     });
 </script>
