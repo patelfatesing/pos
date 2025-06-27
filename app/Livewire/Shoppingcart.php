@@ -1932,6 +1932,7 @@ class Shoppingcart extends Component
 
     public function calculateCommission()
     {
+        $this->dispatch('resetHoldPic');
         $this->dispatch("resetPicAll");
         $this->dispatch('user-selection-updated', ['userId' => $this->selectedUser]);
         $sum = $commissionTotal = 0;
@@ -1973,6 +1974,7 @@ class Shoppingcart extends Component
 
     public function calculateParty()
     {
+        $this->dispatch('resetHoldPic');
         $this->dispatch("resetPicAll");
         $sum = $partyCredit = 0;
         $user = Partyuser::where('status', 'Active')->find($this->selectedPartyUser);
@@ -2588,9 +2590,10 @@ class Shoppingcart extends Component
                 ]);
             }
             //dd($invoice);
+            $first_name=(!empty($partyUser->first_name))?$partyUser->first_name:@$commissionUser->first_name;
             $this->dispatch('resetHoldPic');
             $pdf = App::make('dompdf.wrapper');
-            $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => @$partyUser->first_name, "ref_no" => $invoice->ref_no, "hold_date" => $invoice->hold_date]);
+            $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => @$first_name, "ref_no" => $invoice->ref_no, "hold_date" => $invoice->hold_date]);
             $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
             $pdf->save($pdfPath);
             if (auth()->user()->hasRole('warehouse')) {

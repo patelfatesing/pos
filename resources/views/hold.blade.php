@@ -119,8 +119,8 @@
                 {{ strlen($item['name']) > 10 ? substr($item['name'], 0, 10) . '...' . substr($item['name'], -5) : $item['name'] }}
             </td>
             <td class="center">{{ $item['quantity'] }}</td>
-            <td class="center">{{ number_format($item['price'] / $item['quantity'], 2) }}</td>
-            <td class="right">{{ number_format((float)$item['price'], 2) }}</td>
+            <td class="center">{{ $item['mrp'] }}</td>
+            <td class="right">{{ $item['quantity']*$item['mrp']}}</td>
         </tr>
         @endforeach
     </tbody>

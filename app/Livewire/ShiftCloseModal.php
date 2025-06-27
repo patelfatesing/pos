@@ -279,13 +279,13 @@ class ShiftCloseModal extends Component
 
         $this->categoryTotals['summary']['OPENING CASH'] = @$this->currentShift->opening_cash;
         $this->categoryTotals['summary']['CASH ADDED'] = @$this->currentShift->cash_added;
-        $this->categoryTotals['summary']['TOTAL SALES'] =$totals->debit_total-$totalPaidCredit+ $totalSubTotal + $discountTotal-$totalRefundReturn-$totalRoundOf;
+        $this->categoryTotals['summary']['TOTAL SALES'] =$totals->credit_total-$totalPaidCredit+ $totalSubTotal + $discountTotal-$totalRefundReturn-$totalRoundOf;
         $this->categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
 
         $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] = $totalWith * (-1);
         $this->categoryTotals['summary']['UPI PAYMENT'] = ($totalUpiPaid+$totalOnlinePaid) * (-1);
         $this->categoryTotals['summary']['ROUND OFF'] = $totalRoundOf;
-        $this->categoryTotals['summary']['CREDIT'] = $totals->debit_total *(-1);
+        $this->categoryTotals['summary']['CREDIT'] = $totals->credit_total *(-1);
         //$this->categoryTotals['summary']['ONLINE PAYMENT'] = $totalOnlinePaid * (-1);
         if(!empty($this->creditCollacted->collacted_cash_amount))
             $this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] = $this->creditCollacted->collacted_cash_amount;
