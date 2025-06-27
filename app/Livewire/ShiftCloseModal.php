@@ -612,6 +612,7 @@ class ShiftCloseModal extends Component
         $expected = $this->categoryTotals['summary']['TOTAL'] ?? 0;
         $this->diffCash = round($this->closingCash - $expected, 2);
     }
+
     public function getDataPhysicalStock(){
         $this->getCurrentShift();
 
@@ -619,7 +620,7 @@ class ShiftCloseModal extends Component
 
         $query = DailyProductStock::with('product')
             ->where('branch_id', $branch_id)
-            ->where('shift_id', $this->currentShift->id);
+            ->where('shift_id', optional($this->currentShift)->id);
 
         // Add search condition
         if ($this->search) {

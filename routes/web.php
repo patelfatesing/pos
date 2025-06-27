@@ -40,6 +40,7 @@ use Illuminate\Support\Facades\Response;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\HolidayController;
+use App\Http\Controllers\CreditHistoryController;
 
 // Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
 // Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
@@ -275,7 +276,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/cust-trasaction-photo/view/{id}', [PartyUserController::class, 'custTrasactionPhoto'])->name('cust-trasaction-photo-view');
     Route::post('/party-users/status-change', [PartyUserController::class, 'statusChange'])->name('party-users.status-change');
     Route::post('/party-users/get-credit-history', [PartyUserController::class, 'getCreditHistory'])->name('party-users.get.credit.history');
-   
+
     // });
 
     Route::get('/stock-transfer/craete-transfer', [StockTransferController::class, 'craeteTransfer'])->name('stock-transfer.craete-transfer');
@@ -380,6 +381,10 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/holidays', [HolidayController::class, 'store'])
         ->name('holidays.store');
+
+    // routes/web.php
+    Route::get('credit/credit-ledger', [CreditHistoryController::class, 'index'])->name('credit.credit-ledger');
+    Route::post('credit/credit-ledger-data', [CreditHistoryController::class, 'creditLedgerData'])->name('credit.credit-ledger-data');
 });
 
 
