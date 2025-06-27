@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\UserShift;
 use Carbon\Carbon;
 use App\Models\Partyuser;
+use App\Models\CommissionUser;
 use App\Models\PartyUserImage;
 use App\Models\CommissionUserImage;
 use Illuminate\Support\Facades\App;
@@ -119,8 +120,14 @@ class HoldTransactions extends Component
         }
 
         $pdfPath = storage_path('app/public/invoices/hold_invoice_' . $invoice->invoice_number . '.pdf');
+        if(!empty($invoice->party_user_id)){
 
-        $partyUser = PartyUser::where('status', 'Active')->find($invoice->party_user_id);
+            $partyUser = PartyUser::where('status', 'Active')->find($invoice->party_user_id);
+        }else if(!empty($invoice->commission_user_id)){
+            
+            $partyUser = CommissionUser::where('status', 'Active')->where('is_deleted', '!=', 'Yes')->find($invoice->commission_user_id);
+        }
+
         $pdf = App::make('dompdf.wrapper');
         $pdf->loadView('hold', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'hold' => true,'customer_name' => @$partyUser->first_name,"hold_date"=>$invoice->hold_date,"ref_no"=>$invoice->ref_no]);
         $pdf->save($pdfPath);
