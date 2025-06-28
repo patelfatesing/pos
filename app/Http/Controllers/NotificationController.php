@@ -82,6 +82,7 @@ class NotificationController extends Controller
             }
 
             $expiredProducts = $query
+                ->where('i.quantity', '>', 0)
                 ->select(
                     'i.id as inventory_id',
                     'i.product_id',
@@ -99,7 +100,6 @@ class NotificationController extends Controller
                 ->orderBy('i.batch_no')
                 ->get();
 
-            // dd($expiredProducts);
             return view('notification.expire-product-form', compact('expiredProducts'));
         }
 
@@ -158,12 +158,12 @@ class NotificationController extends Controller
             // $from_store = $data->from_store;
             // $to_store = $data->to_store;
             $priceChange =  DB::table('product_price_change_history as ppl')
-                    ->join('products as p', 'ppl.product_id', '=', 'p.id')
-                    ->orderBy('ppl.changed_at', 'desc')
-                    ->select('p.name', 'ppl.old_price', 'ppl.new_price', 'ppl.changed_at', 'ppl.created_at')
-                    ->where('ppl.id', $id)
-                    ->take(10)
-                    ->first();
+                ->join('products as p', 'ppl.product_id', '=', 'p.id')
+                ->orderBy('ppl.changed_at', 'desc')
+                ->select('p.name', 'ppl.old_price', 'ppl.new_price', 'ppl.changed_at', 'ppl.created_at')
+                ->where('ppl.id', $id)
+                ->take(10)
+                ->first();
 
             return view('notification.price-change-form', compact('priceChange'));
         }
