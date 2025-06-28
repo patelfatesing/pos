@@ -44,7 +44,21 @@
                                             <tbody>
                                                 @foreach ($invoices as $key => $invoice)
                                                     <tr>
-                                                        <td>{{ $invoice->invoice_number }}</td>
+                                                        <td>
+                                                            @if ($invoice->status == 'Hold')
+                                                                <a class="badge badge-success" data-toggle="tooltip"
+                                                                    data-placement="top" title="View"
+                                                                    href="{{ url('/view-hold-invoice/' . $invoice->id) }}">
+                                                                    {{ $invoice->invoice_number }}
+                                                                </a>
+                                                            @else
+                                                                <a class="badge badge-success" data-toggle="tooltip"
+                                                                    data-placement="top" title="View"
+                                                                    href="{{ url('/view-invoice/' . $invoice->id) }}">
+                                                                    {{ $invoice->invoice_number }}
+                                                                </a>
+                                                            @endif
+                                                        </td>
                                                         <td>{{ $invoice->cash_amount }}</td>
                                                         <td>{{ $invoice->upi_amount + $invoice->online_amount }}</td>
                                                         {{-- <td>{{ $invoice->online_amount }}</td> --}}
