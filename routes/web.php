@@ -234,7 +234,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/invoice/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show');
     Route::get('/invoice/{invoice}/download', [InvoiceController::class, 'download'])->name('invoice.download');
     Route::get('/view-invoice/{invoice}', [InvoiceController::class, 'viewInvoice'])->name('invoice.view-invoice');
-
+    Route::get('/view-hold-invoice/{invoice}', [InvoiceController::class, 'viewHoldInvoice'])->name('invoice.view-hold-invoice');
 
     Route::get('/pack-size/list', [PackSizeController::class, 'index'])->name('packsize.list');
     Route::post('/pack-size/get-data', [PackSizeController::class, 'getData'])->name('packsize.getData');

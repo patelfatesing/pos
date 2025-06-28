@@ -146,7 +146,7 @@ class ShiftManageController extends Controller
             }
             // }
             $action .= '<a class="badge bg-primary ml-2 view-invoices" 
-                href="' . url('/shift-manage/view/' . $row->branch_id . "/" . $row->id . "/" . $row->start_time) . "/" . $endTime . '" title="View Transactions">
+                href="' . url('/shift-manage/view/' . $row->branch_id . "/" . $row->id).'" title="View Transactions">
                 <i class="ri-eye-line"></i>
                 </a>';
 
@@ -241,6 +241,7 @@ class ShiftManageController extends Controller
         $invoices = $query
             ->orderBy('created_at', 'desc')
             ->select(
+                'id',
                 'invoice_number',
                 'cash_amount',
                 'upi_amount',

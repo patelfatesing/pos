@@ -198,8 +198,8 @@ class CollationModal extends Component
         $remainingAmount = $collectedAmount;
 
         $unPaidInvoices = Invoice::where('branch_id', $branch_id)
-            ->where('party_user_id', $user->id)
-            ->where('invoice_status', 'unpaid')
+            ->where('party_user_id', $this->selectedUser->id)
+            ->whereIn('invoice_status', ['unpaid', 'partial_paid']) // Include both statuses
             ->where('creditpay', '>', 0)
             ->orderBy('id', 'asc')
             ->get();
@@ -209,45 +209,47 @@ class CollationModal extends Component
             $dueAmount = $invoice->creditpay - $alreadyPaid;
 
             if ($dueAmount <= 0) {
+                // Already paid
                 $invoice->invoice_status = 'paid';
-                $invoice->total = $dueAmount;
+                $invoice->remaining_credit_pay = 0;
                 $invoice->save();
 
-                // Update credit_histories status
                 DB::table('credit_histories')
                     ->where('invoice_id', $invoice->id)
-                    ->where('party_user_id', $user->id)
-                    ->update(['status' => 'paid','debit_amount'=>$dueAmount]);
-
+                    ->where('party_user_id', $this->selectedUser->id)
+                    ->update([
+                        'status' => 'paid',
+                        'debit_amount' => $invoice->paid_credit,
+                    ]);
                 continue;
             }
 
             if ($remainingAmount <= 0) break;
 
             if ($remainingAmount >= $dueAmount) {
-                $existingCredit = $invoice->paid_credit;
-
                 // Fully pay this invoice
                 $invoice->paid_credit += $dueAmount;
-                $invoice->total = $existingCredit + $dueAmount;
-                $invoice->invoice_status = 'partial_paid';
+                $invoice->invoice_status = 'paid';
                 $remainingAmount -= $dueAmount;
-                $invoice->remaining_credit_pay = $invoice->creditpay - $invoice->paid_credit;
             } else {
-                // Partially pay this invoice
+                // Partial pay
                 $invoice->paid_credit += $remainingAmount;
+                $invoice->invoice_status = 'partial_paid';
                 $remainingAmount = 0;
-                $invoice->remaining_credit_pay = $invoice->creditpay - $invoice->paid_credit;
             }
 
+            $invoice->remaining_credit_pay = $invoice->creditpay - $invoice->paid_credit;
             $invoice->save();
 
-            // Update credit_histories status to match invoice status
             DB::table('credit_histories')
                 ->where('invoice_id', $invoice->id)
-                ->where('party_user_id', $user->id)
-                ->update(['status' => $invoice->invoice_status,'debit_amount'=>$invoice->remaining_credit_pay]);
+                ->where('party_user_id', $this->selectedUser->id)
+                ->update([
+                    'status' => $invoice->invoice_status,
+                    'debit_amount' => $invoice->paid_credit, // use paid amount
+                ]);
         }
+
 
         if ($this->paymentType === 'online') {
             if ($user->left_credit == 0) {
@@ -277,7 +279,7 @@ class CollationModal extends Component
 
         $user->save();
         $denominations = array_values($this->cashNotes);
-        
+
         if ($this->paymentType != 'online') {
             $cashBreakdown = \App\Models\CashBreakdown::create([
                 'user_id' => auth()->id(),
