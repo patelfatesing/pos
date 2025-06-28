@@ -94,8 +94,9 @@
 
     <div>
         <strong>{{ @$type == 'refund' ? 'Refund' : 'Invoice' }}:</strong> {{ $invoice->invoice_number }}<br>
-
+         @if (empty($customer_name))
         <strong>Name:</strong> {{ $customer_name ?? '' }}<br>
+        @endif
         @if ($invoice->ref_no != '')
             <strong>Date:</strong> {{ \Carbon\Carbon::parse($invoice->updated_at)->format('d/m/Y H:i') }} <br>
             <strong>Transaction No(Ref):</strong>
@@ -126,8 +127,8 @@
                         {{ strlen($item['name']) > 10 ? substr($item['name'], 0, 10) . '...' . substr($item['name'], -5) : $item['name'] }}
                     </td>
                     <td class="center">{{ $item['quantity'] }}</td>
-                    <td class="center">{{ $item['price'] / $item['quantity'] }}</td>
-                    <td class="right">{{ number_format((float) $item['price'], 2) }}</td>
+                    <td class="center">{{ $item['mrp'] }}</td>
+                    <td class="right">{{ $item['quantity']*$item['mrp']}}</td>
                 </tr>
             @endforeach
         </tbody>
