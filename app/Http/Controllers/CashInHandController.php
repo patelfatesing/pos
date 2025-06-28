@@ -43,7 +43,7 @@ class CashInHandController extends Controller
 
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
         $start = date('Y-m-d H:i:s'); // current time
-        $end = date('Y-m-d H:i:s', strtotime('+8 hours 30 minutes'));
+        $end = date('Y-m-d')." 23:59:15";
         $cashNotes = json_encode($cashNotes) ?? [];
         // 💾 Save cash breakdown
         $cashBreakdown = \App\Models\CashBreakdown::create([
