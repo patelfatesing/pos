@@ -94,7 +94,7 @@
 
     <div>
         <strong>{{ @$type == 'refund' ? 'Refund' : 'Invoice' }}:</strong> {{ $invoice->invoice_number }}<br>
-         @if (empty($customer_name))
+         @if (!empty($customer_name))
         <strong>Name:</strong> {{ $customer_name ?? '' }}<br>
         @endif
         @if ($invoice->ref_no != '')
@@ -142,7 +142,7 @@
             <td></td>
             <td></td>
             <td class="center">{{ $invoice->total_item_qty }}</td>
-            <td class="right">{{ number_format(round((float) $invoice->total_item_total), 2) }}</td>
+            <td class="right">{{ number_format((float) $invoice->sub_total, 2) }}</td>
 
         </tr>
     </table>
