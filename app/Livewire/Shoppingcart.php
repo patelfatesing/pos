@@ -1510,10 +1510,11 @@ class Shoppingcart extends Component
             // Optional: reset UI inputs
             //$this->dispatch('updateCartCount');
             $this->dispatch('resetHoldPic');
-
+            $this->dispatch('resetPicAll');
+            
             $this->dispatch('updateNewProductDetails');
             $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount', 'selectedPartyUser', 'selectedCommissionUser', 'removeCrossHold');
-
+            session()->forget(['current_party_id', 'current_commission_id']);
             $this->dispatch('notiffication-sucess', ['message' => 'Your transaction has been added to hold.']);
             $this->dispatch("hold-saved");
 
