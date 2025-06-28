@@ -9,14 +9,14 @@
     <div class="wrapper">
 
         <div class="content-page">
-            
+
             <div class="container-fluid add-form-list">
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between">
                                 <div class="header-title">
-                                    <h4 class="card-title">View Transaction</h4>
+                                    <h4 class="card-title">View Transaction - {{ $branch_name }}</h4>
                                 </div>
                                 <div>
                                     <a href="{{ route('shift-manage.list') }}" class="btn btn-secondary">Back</a>
@@ -59,6 +59,21 @@
                                                     </tr>
                                                 @endforeach
                                             </tbody>
+                                            <tfoot class="table-light">
+                                                <tr>
+                                                    <th class="text-end">Total</th>
+                                                    <th>{{ number_format($totalCashAmount, 2) }}</th>
+                                                    <th>{{ number_format($totalUPIAmount, 2) }}</th>
+                                                    <th>{{ number_format($totalCreditPay, 2) }}</th>
+                                                    <th></th>
+                                                    <th>{{ $totalItems }}</th>
+                                                    <th>{{ number_format($totalSubTotal, 2) }}</th>
+                                                    <th>{{ number_format($totalTotal, 2) }}</th>
+                                                    <th></th>
+                                                    <th></th>
+                                                </tr>
+                                            </tfoot>
+
                                         </table>
                                         <div class="d-flex justify-content-center mt-3">
                                             {{ $invoices->links('pagination::bootstrap-5') }}
