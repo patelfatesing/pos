@@ -81,7 +81,7 @@
                                             <tr
                                                 style="background-color: {{ $stock->difference_in_stock < 0 ? '#ffcccc' : 'transparent' }}">
                                                 <td>{{ $stock->product->name ?? 'N/A' }}</td>
-                                                <td>{{ $stock->product->category->name ?? 'N/A' }}</td>
+                                                <td>{{ $stock->product->subcategory->name ?? 'N/A' }}</td>
                                                 <td class="text-center">{{ $stock->opening_stock }}</td>
                                                 <td class="text-center">{{ $stock->added_stock }}</td>
                                                 <td class="text-center">{{ $stock->transferred_stock }}</td>
