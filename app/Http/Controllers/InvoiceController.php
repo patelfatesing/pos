@@ -11,7 +11,7 @@ use App\Models\Partyuser;
 
 class InvoiceController extends Controller
 {
-    //
+
     public function show(Invoice $invoice)
     {
         $commissionUser = Commissionuser::where('id', $invoice->commission_user_id)
@@ -29,7 +29,7 @@ class InvoiceController extends Controller
         $commissionUser = Commissionuser::where('id', $invoice->commission_user_id)
             ->where('status', 'Active')
             ->first();
-            
+
         $partyUser = Partyuser::where('id', $invoice->party_user_id)
             ->where('status', 'Active')
             ->first();
@@ -68,5 +68,15 @@ class InvoiceController extends Controller
             ->where('status', 'Active')
             ->first();
         return view('invoice.viewInvoice', compact('invoice', 'commissionUser', 'partyUser'));
+    }
+
+    public function viewHoldInvoice(Invoice $invoice)
+    {
+        $commissionUser = Commissionuser::where('status', 'Active')->find($invoice->commission_user_id);
+
+        $partyUser = Partyuser::where('id', $invoice->party_user_id)
+            ->where('status', 'Active')
+            ->first();
+        return view('invoice.viewHoldInvoice', compact('invoice', 'commissionUser', 'partyUser'));
     }
 }
