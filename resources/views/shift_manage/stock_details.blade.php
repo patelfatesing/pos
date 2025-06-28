@@ -34,6 +34,10 @@
                                         @endforeach
                                     </select>
                                 </div>
+                                <div class="col-md-3 mb-2">
+                                    <input type="text" name="search" class="form-control" placeholder="Search Product"
+                                        value="{{ request('search') }}">
+                                </div>
                                 <div class="col-md-1 mb-2">
                                     <a href="{{ route('shift-manage.stock-details', $shift->id) }}"
                                         class="btn btn-secondary">Reset</a>
@@ -47,7 +51,7 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th>Product</th>
-                                            <th>Sub Category</th>
+                                            <th>Category</th>
                                             <th>Opening Stock</th>
                                             <th>Added Stock</th>
                                             <th>Transferred Stock</th>
@@ -77,14 +81,14 @@
                                             <tr
                                                 style="background-color: {{ $stock->difference_in_stock < 0 ? '#ffcccc' : 'transparent' }}">
                                                 <td>{{ $stock->product->name ?? 'N/A' }}</td>
-                                                <td>{{ $stock->product->subcategory->name ?? 'N/A' }}</td>
-                                                <td>{{ $stock->opening_stock }}</td>
-                                                <td>{{ $stock->added_stock }}</td>
-                                                <td>{{ $stock->transferred_stock }}</td>
-                                                <td>{{ $stock->sold_stock }}</td>
-                                                <td>{{ $stock->closing_stock }}</td>
-                                                <td>{{ $stock->physical_stock }}</td>
-                                                <td>
+                                                <td>{{ $stock->product->category->name ?? 'N/A' }}</td>
+                                                <td class="text-center">{{ $stock->opening_stock }}</td>
+                                                <td class="text-center">{{ $stock->added_stock }}</td>
+                                                <td class="text-center">{{ $stock->transferred_stock }}</td>
+                                                <td class="text-center">{{ $stock->sold_stock }}</td>
+                                                <td class="text-center">{{ $stock->closing_stock }}</td>
+                                                <td class="text-center">{{ $stock->physical_stock }}</td>
+                                                <td class="text-center">
                                                     {{ $stock->difference_in_stock }}
                                                 </td>
                                             </tr>
@@ -95,8 +99,8 @@
                                             </tr>
                                         @endforelse
 
-                                        <tr class="fw-semibold text-end" style="font-size: 1.1rem;">
-                                            <th colspan="2">Total</th>
+                                        <tr class="fw-semibold text-end text-center" style="font-size: 1.4rem;">
+                                            <th colspan="2">TOTAL</th>
                                             <th>{{ $totalOpening }}</th>
                                             <th>{{ $totalAdded }}</th>
                                             <th>{{ $totalTransferred }}</th>
