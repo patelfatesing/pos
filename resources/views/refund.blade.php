@@ -102,8 +102,8 @@
         <tr>
             <th style="width: 5%;">#</th>
             <th style="width: 50%;" class="left">Item</th>
-            <th style="width: 15%;" class="center">Rate</th>
             <th style="width: 15%;" class="center">Qty</th>
+            <th style="width: 15%;" class="center">Rate</th>
             <th style="width: 30%;" class="right">Amount</th>
         </tr>
     </thead>
@@ -114,9 +114,9 @@
             <td class="left">
                 {{ strlen($item['name']) > 10 ? substr($item['name'], 0, 10) . '...' . substr($item['name'], -5) : $item['name'] }}
             </td>
-            <td class="center">{{ $item['price']/ $item['quantity']}}</td>
             <td class="center">{{ $item['quantity'] }}</td>
-            <td class="right">{{ number_format($item['price'], 2) }}</td>
+            <td class="center">{{ $item['mrp']}}</td>
+            <td class="right">{{ $item['quantity']*$item['mrp']}}</td>
         </tr>
         @endforeach
     </tbody>
@@ -157,6 +157,12 @@
         <td class="left">Credit:</td>
         <td class="right">
             {{ $refund->refund_credit_amount > 0 ? '-' . $refund->refund_credit_amount : $refund->refund_credit_amount }}
+        </td>
+    </tr>
+    <tr>
+        <td class="left">Round Off:</td>
+        <td class="right">
+            {{ number_format((float) $invoice->roundof ?? 0, 2) }}
         </td>
     </tr>
 
