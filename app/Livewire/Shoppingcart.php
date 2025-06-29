@@ -2881,9 +2881,9 @@ class Shoppingcart extends Component
             ->delete();
         $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'useCredit', 'showCheckbox', 'roundedTotal', 'removeCrossHold', 'cashNotes', "searchSalesReturn");
         $this->invoiceData = $invoice;
-
+        $first_name=(!empty($partyUser->first_name))?$partyUser->first_name:@$commissionUser->first_name;
         $pdf = App::make('dompdf.wrapper');
-        $pdf->loadView('refund', ['invoice' => $invoice, 'items' => $refund->items_refund, 'branch' => auth()->user()->userinfo->branch, 'type' => 'refund', 'refund' => $refund, 'customer_name' => $partyUser->first_name]);
+        $pdf->loadView('refund', ['invoice' => $invoice, 'items' => $refund->items_refund, 'branch' => auth()->user()->userinfo->branch, 'type' => 'refund', 'refund' => $refund, 'customer_name' => $first_name]);
         $pdfPath = storage_path('app/public/invoices/refund_' . $invoice->invoice_number . '.pdf');
         $pdf->save($pdfPath);
         //     $this->dispatch('triggerPrint', [
@@ -3151,9 +3151,10 @@ class Shoppingcart extends Component
             if (!empty($commissionUser)) {
                 $commissionUser_name = $commissionUser->first_name;
             }
+            $first_name=(!empty($partyUser->first_name))?$partyUser->first_name:@$commissionUser->first_name;
 
             $pdf = App::make('dompdf.wrapper');
-            $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => $commissionUser_name, "ref_no" => $invoice->ref_no, "hold_date" => $invoice->hold_date]);
+            $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => $first_name, "ref_no" => $invoice->ref_no, "hold_date" => $invoice->hold_date]);
             $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
             $pdf->save($pdfPath);
             if (auth()->user()->hasRole('warehouse')) {
