@@ -296,7 +296,9 @@ class ShiftManageController extends Controller
 
             $transaction_total = 0;
             $totalSalesNew = 0;
+            $cashBreakinIds=[];
             foreach ($invoices as $invoice) {
+                $cashBreakinIds[] = $invoice->cash_break_id;
                 $transaction_total += $transaction_total;
                 $items = $invoice->items; // decode items from longtext JSON
 
@@ -352,7 +354,7 @@ class ShiftManageController extends Controller
                     }
                 }
             }
-
+            $cashBreakinIds=array_filter(array_unique($cashBreakinIds));
             $creditCollacted = \DB::table('credit_collections')
                 ->selectRaw('
             SUM(cash_amount) as collacted_cash_amount,
@@ -400,10 +402,10 @@ class ShiftManageController extends Controller
             }
 
             $cashBreakdowns = CashBreakdown::where('user_id', $shift->user_id)
-                ->where('branch_id', $shift->branch_id)
-                // ->where('type', '!=', 'cashinhand')
-                ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
-                ->get();
+            ->where('branch_id', $shift->branch_id)
+            //->where('type', '!=', 'cashinhand')
+            ->whereIn('id', $cashBreakinIds)
+            ->get();
 
             $noteCount = [];
 
