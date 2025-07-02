@@ -296,9 +296,7 @@ class ShiftManageController extends Controller
 
             $transaction_total = 0;
             $totalSalesNew = 0;
-            $cashBreakinIds=[];
             foreach ($invoices as $invoice) {
-                $cashBreakinIds[] = $invoice->cash_break_id;
                 $transaction_total += $transaction_total;
                 $items = $invoice->items; // decode items from longtext JSON
 
@@ -354,7 +352,7 @@ class ShiftManageController extends Controller
                     }
                 }
             }
-            $cashBreakinIds=array_filter(array_unique($cashBreakinIds));
+
             $creditCollacted = \DB::table('credit_collections')
                 ->selectRaw('
             SUM(cash_amount) as collacted_cash_amount,
@@ -377,7 +375,7 @@ class ShiftManageController extends Controller
             $categoryTotals['summary']['OPENING CASH'] = @$shift->opening_cash;
             $categoryTotals['summary']['CASH ADDED'] = @$shift->cash_added;
 
-            $categoryTotals['summary']['TOTAL SALES'] = $totals->debit_total + $totalSubTotal + $discountTotal - $totalRefundReturn;
+            $categoryTotals['summary']['TOTAL SALES'] = $totals->debit_total + $totalSubTotal + $discountTotal - $totalRefundReturn-$totalRoundOf;
 
             $categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
             $categoryTotals['summary']['WITHDRAWAL PAYMENT'] = $totalWith * (-1);
@@ -391,7 +389,7 @@ class ShiftManageController extends Controller
             // $categoryTotals['summary']['REFUND'] += $totalRefundReturn *(-1);
 
             $categoryTotals['summary']['TOTAL'] = $categoryTotals['summary']['OPENING CASH'] + $categoryTotals['summary']['TOTAL SALES'] + $categoryTotals['summary']['DISCOUNT'] + $categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $categoryTotals['summary']['UPI PAYMENT'] + @$categoryTotals['summary']['REFUND'] +
-                @$categoryTotals['summary']['ONLINE PAYMENT'] + @$categoryTotals['summary']['CREDIT COLLACTED BY CASH'] - $totalRoundOf + $categoryTotals['summary']['CREDIT'];
+                @$categoryTotals['summary']['ONLINE PAYMENT'] + @$categoryTotals['summary']['CREDIT COLLACTED BY CASH'] + $totalRoundOf + $categoryTotals['summary']['CREDIT'];
 
             $categoryTotals['summary']['REFUND'] = $totalRefund * (-1) + $totalRefundReturn * (-1);
             //$categoryTotals['summary']['REFUND RETURN'] = $totalRefundReturn*(-1);
@@ -402,10 +400,10 @@ class ShiftManageController extends Controller
             }
 
             $cashBreakdowns = CashBreakdown::where('user_id', $shift->user_id)
-            ->where('branch_id', $shift->branch_id)
-            //->where('type', '!=', 'cashinhand')
-            ->whereIn('id', $cashBreakinIds)
-            ->get();
+                ->where('branch_id', $shift->branch_id)
+                // ->where('type', '!=', 'cashinhand')
+                ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
+                ->get();
 
             $noteCount = [];
 

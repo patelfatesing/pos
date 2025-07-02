@@ -542,14 +542,6 @@ class ShiftCloseModal extends Component
                 return;
             }
 
-            // Save cash breakdown
-            $cashBreakdown = CashBreakdown::create([
-                'user_id' => $user_id,
-                'branch_id' => $branch_id,
-                'denominations' => json_encode($this->shiftcash),
-                'total' => $this->todayCash,
-            ]);
-
             // Update shift data
             $shift = UserShift::where('user_id', $user_id)
                 ->where('branch_id', $branch_id)
@@ -570,7 +562,7 @@ class ShiftCloseModal extends Component
             $shift->opening_cash = str_replace([',', '₹'], '', $this->categoryTotals['summary']['OPENING CASH'] ?? 0);
             $shift->cash_discrepancy = str_replace([',', '₹'], '', $this->diffCash ?? 0);
             $shift->closing_cash = str_replace([',', '₹'], '', $this->closingCash);
-            $shift->cash_break_id = $cashBreakdown->id;
+            //$shift->cash_break_id = $cashBreakdown->id;
             $shift->deshi_sales = str_replace([',', '₹'], '', $this->categoryTotals['sales']['DESI'] ?? 0);
             $shift->beer_sales = str_replace([',', '₹'], '', $this->categoryTotals['sales']['BEER'] ?? 0);
             $shift->english_sales = str_replace([',', '₹'], '', $this->categoryTotals['sales']['ENGLISH'] ?? 0);
