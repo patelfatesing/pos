@@ -309,6 +309,8 @@ class TakeCashModal extends Component
         ]);
         $this->cashNotes = []; // Reset
         $this->showCollectModal = false;
+        $this->clearCashNotes();
+        $this->dispatch('notiffication-sucess', ['message' => 'Cash added successfully.']);
     }
 
     public function render()
