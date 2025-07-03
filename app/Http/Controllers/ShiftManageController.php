@@ -537,10 +537,10 @@ class ShiftManageController extends Controller
 
         if (!$shift->closing_shift_time) {
             $closeShift = $this->closeShift($id, "html");
+            $pdf = Pdf::loadView('shift_manage.shift_print', ['user_name' => $closeShift['user_name'], 'shift' => $closeShift['shift'], "categoryTotals" => $closeShift['categoryTotals'], "shiftcash" => $closeShift['shiftcash'], "closing_cash" => $closeShift['closing_cash'], 'cash_discrepancy' => $closeShift['cash_discrepancy'] ,'closeShift'=> $closeShift,'branch_name' => $closeShift['branch_name']]);
 
-            $pdf = Pdf::loadView('shift_manage.shift_print', ['user_name' => $closeShift['user_name'], 'shift' => $closeShift['shift'], "categoryTotals" => $closeShift['categoryTotals'], "shiftcash" => $closeShift['shiftcash'], "closing_cash" => $closeShift['closing_cash'], 'cash_discrepancy' => $closeShift['cash_discrepancy'], 'branch_name' => $closeShift['branch_name']]);
+            return $pdf->download('shift_report_' . Str::slug($shift->shift_no) . '.pdf');
 
-            return $pdf->download('shift_report_' . $shift->id . '.pdf');
         }
 
         return response()->json([
