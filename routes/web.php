@@ -359,6 +359,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/demand-order/store', [DemandOrderController::class, 'store'])->name('demand-order.store');
     Route::get('/demand-order/edit/{id}', [DemandOrderController::class, 'edit'])->name('demand-orders.edit');
     Route::get('/demand-order/create-pre', [DemandOrderController::class, 'createPrediction'])->name('demand-order.create.pre');
+    Route::get('/demand-order/view/{id}', [DemandOrderController::class, 'view'])->name('demand-order.view');
 
     // Product Import Routes
     Route::prefix('products')->name('products.')->group(function () {
