@@ -18,7 +18,7 @@ class DemandOrderController extends Controller
 {
     public function index()
     {
-        $demandOrders = DemandOrder::with('vendor')->latest()->paginate(10);
+        $demandOrders = DemandOrder::with('vendor')->with('products')->latest()->paginate(10);
         return view('demand_orders.index', compact('demandOrders'));
     }
 
@@ -132,6 +132,32 @@ class DemandOrderController extends Controller
         $categories = Category::all();
 
         return view('demand_orders.step1', compact('vendors', 'products','categories'));
+    }
+    public function view($id)
+    {
+        $demandOrderProducts = \DB::table('demand_order_products')
+            ->join('demand_orders', 'demand_order_products.demand_order_id', '=', 'demand_orders.id')
+            ->join('products', 'demand_order_products.product_id', '=', 'products.id')
+            ->where('demand_order_products.demand_order_id', $id)
+            ->select(
+                'demand_order_products.id',
+                'demand_order_products.demand_order_id',
+                'demand_order_products.product_id',
+                'products.name as product_name',
+                'demand_order_products.quantity',
+                'demand_order_products.barcode',
+                'demand_order_products.mrp',
+                'demand_order_products.rate',
+                'demand_order_products.sell_price',
+                'demand_order_products.delivery_status',
+                'demand_order_products.delivery_quantity',
+                'demand_order_products.created_at',
+                'demand_order_products.updated_at'
+            )
+            ->orderBy('demand_order_products.created_at', 'desc')
+            ->paginate(15);
+                
+        return view('demand_orders.product', compact('demandOrderProducts'));
     }
     public function postStep1(Request $request)
     {
@@ -324,7 +350,7 @@ class DemandOrderController extends Controller
             $PurchaseController = new PurchaseController();
             $productDetails = $PurchaseController->getProductDetails($productId);
             $productDetailsAry = (array) $productDetails;
-            $productDetailsAry['amount'] = $productDetails->cost_price * $qty;
+            $productDetailsAry['amount'] = @$productDetails->cost_price * $qty;
             $selectedProducts[] = [
                 'product_id' => $productId,
                 'order_qty' => $qty,
@@ -377,8 +403,8 @@ class DemandOrderController extends Controller
                 'product_id' => $product['product_id'],
                 'quantity' => $product['qnt'],
                 'barcode' => $product['barcode'] ?? null,
-                'mrp' => $product['mrp'],
-                'rate' => $product['rate'],
+                'mrp' => $product['mrp'] ?? 0,
+                'rate' => $product['rate'] ?? 0,
                 'sell_price' => $product['amount'],
                 'delivery_status' => 'partially',
                 'delivery_quantity' => 0,
