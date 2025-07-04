@@ -9,7 +9,22 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class StockRequest extends Model
 {
     protected $fillable = [
-        'store_id', 'requested_by', 'approved_by', 'status', 'notes','total_product','total_quantity', 'requested_at', 'approved_at','created_by','total_request_quantity','','','','','',
+        'store_id',
+        'requested_by',
+        'approved_by',
+        'status',
+        'notes',
+        'total_product',
+        'total_quantity',
+        'requested_at',
+        'approved_at',
+        'created_by',
+        'total_request_quantity',
+        '',
+        '',
+        '',
+        '',
+        '',
     ];
 
     protected $casts = [
@@ -19,28 +34,38 @@ class StockRequest extends Model
         'updated_at' => 'datetime'
     ];
 
-    public function branch(): BelongsTo {
-        return $this->belongsTo(Branch::class,'requested_by');
-    }
-
-    public function tobranch(): BelongsTo {
-        return $this->belongsTo(Branch::class,'store_id');
-    }
-
-    public function requestedBy(): BelongsTo {
+    public function branch(): BelongsTo
+    {
         return $this->belongsTo(Branch::class, 'requested_by');
     }
 
-    public function approvedBy(): BelongsTo {
+    public function tobranch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class, 'store_id');
+    }
+
+    public function requestedBy(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class, 'requested_by');
+    }
+
+    public function approvedBy(): BelongsTo
+    {
         return $this->belongsTo(User::class, 'approved_by');
     }
 
-    public function items(): HasMany {
+    public function items(): HasMany
+    {
         return $this->hasMany(StockRequestItem::class);
     }
 
     public function user()
-{
-    return $this->belongsTo(User::class, 'created_by');
-}
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function approvals()
+    {
+        return $this->hasMany(StockRequestApprove::class, 'stock_request_id');
+    }
 }

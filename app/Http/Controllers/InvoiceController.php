@@ -60,23 +60,23 @@ class InvoiceController extends Controller
         return $pdf->download($invoice->invoice_number . '.pdf');
     }
 
-    public function viewInvoice(Invoice $invoice)
+    public function viewInvoice(Invoice $invoice,$shift_id = '')
     {
         $commissionUser = Commissionuser::where('status', 'Active')->find($invoice->commission_user_id);
 
         $partyUser = Partyuser::where('id', $invoice->party_user_id)
             ->where('status', 'Active')
             ->first();
-        return view('invoice.viewInvoice', compact('invoice', 'commissionUser', 'partyUser'));
+        return view('invoice.viewInvoice', compact('invoice', 'commissionUser', 'partyUser', 'shift_id'));
     }
 
-    public function viewHoldInvoice(Invoice $invoice)
+    public function viewHoldInvoice(Invoice $invoice,$shift_id)
     {
         $commissionUser = Commissionuser::where('status', 'Active')->find($invoice->commission_user_id);
 
         $partyUser = Partyuser::where('id', $invoice->party_user_id)
             ->where('status', 'Active')
             ->first();
-        return view('invoice.viewHoldInvoice', compact('invoice', 'commissionUser', 'partyUser'));
+        return view('invoice.viewHoldInvoice', compact('invoice', 'commissionUser', 'partyUser','shift_id'));
     }
 }

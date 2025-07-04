@@ -326,6 +326,7 @@ class StockTransferController extends Controller
             $data['id'] = $transferNumber;
             $data['from_store'] = Branch::find($request->from_store_id)->name;
             $data['to_store'] = Branch::find($request->to_store_id)->name;
+            $data['type'] = 'transfer_stock';
 
             if ($request->to_store_id != 1) {
                 sendNotification('transfer_stock', 'Stock transfer completed successfully', 1, Auth::id(), json_encode($data), 0);
