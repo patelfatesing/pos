@@ -1,239 +1,198 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
+    <title>Shift End Report</title>
     <style>
         body {
-            font-family: DejaVu Sans, sans-serif;
+            font-family: Arial, sans-serif;
             font-size: 12px;
-            margin: 0;
-            padding: 20px;
+            margin: 20px;
+            color: #333;
         }
 
-        .header {
-            background: #2CA9E1;
-            color: #fff;
-            padding: 12px;
-            font-size: 16px;
+        .title {
+            font-size: 20px;
             font-weight: bold;
+            text-align: center;
+            margin-bottom: 5px;
         }
 
-        .table {
+        .subtitle {
+            font-size: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            padding-bottom: 3px;
+        }
+
+        table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 10px;
+            margin-top: 8px;
         }
 
-        .table th,
-        .table td {
+        th,
+        td {
             border: 1px solid #ddd;
             padding: 6px;
-            text-align: right;
-        }
-
-        .table th:first-child,
-        .table td:first-child {
             text-align: left;
         }
 
-        .highlight td {
-            background: #e8f5e9;
+        th {
+            background-color: #f9f9f9;
+        }
+
+        .bold {
             font-weight: bold;
         }
 
-        h3 {
-            background: #34b3f1;
-            color: #fff;
-            padding: 6px;
-            margin: 0 0 10px 0;
-            font-size: 14px;
+        .text-right {
+            text-align: right;
         }
 
-        .cash-header {
-            background: #F57C00;
-            color: #fff;
-            padding: 6px;
-            margin: -10px -10px 10px -10px;
-            font-size: 14px;
+        .highlight {
+            background-color: #f0f0f0;
         }
     </style>
 </head>
 
 <body>
-    <div class="header">{{ $branch_name ?? 'Shop' }} - Shift Report </div>
 
-    <div style="font-size:11px; margin-bottom:6px;">
-        <strong>User Staff:</strong> {{ $user_name }}<br>
+    <div class="title">{{ $branch_name }} – Shift End Report</div>
+    <div class="subtitle">{{ now()->format('d/m/Y, h:i A') }}</div>
 
-        <strong>Start:</strong> {{ $shift->start_time }}<br>
-        <strong>End:</strong> {{ $shift->end_time }}
+    <div class="section">
+        <div class="section-title">Shift Details</div>
+        <table>
+            {{-- <tr>
+                <td><strong>User Staff:</strong></td>
+                <td>{{ $shift->user->name ?? 'N/A' }}</td>
+            </tr> --}}
+            <tr>
+                <td><strong>Start Date:</strong></td>
+                <td>{{ $shift->start_time ? \Carbon\Carbon::parse($shift->start_time)->format('d/m/Y, h:i A') : 'N/A' }}</td>
+            </tr>
+            <tr>
+                <td><strong>End Date:</strong></td>
+                <td>{{ $shift->end_time ? \Carbon\Carbon::parse($shift->end_time)->format('d/m/Y, h:i A') : 'N/A' }}</td>
+            </tr>
+            <tr>
+                <td><strong>Generated At:</strong></td>
+                <td>{{ now()->setTimezone('Asia/Kolkata')->format('d/m/Y, h:i A') }}</td>
+            </tr>
+        </table>
     </div>
-    <!-- Sales and Summary Side-by-Side -->
-    <table class="table" cellspacing="0" cellpadding="0" style="margin-top:20px;">
-        <tr valign="top">
-            <!-- Summary Column -->
-            <td width="50%" style="padding-left:10px; vertical-align:top;">
-                {{-- <h3>Sales</h3> --}}
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th colspan="2">Payment</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($categoryTotals['payment'] as $k => $v)
-                            <tr @if (strtoupper($k) === 'TOTAL') class="highlight" @endif>
-                                <td>{{ strtoupper($k) }}</td>
-                                <td>{{ format_inr($v) }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </td>
-            <!-- Sales Column -->
-            <td width="50%" style="padding-right:10px; vertical-align:top;">
-                {{-- <h3>Payment</h3> --}}
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th colspan="2">Sales</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($categoryTotals['sales'] ?? [] as $k => $v)
-                            <tr @if (strtoupper($k) === 'TOTAL') class="highlight" @endif>
-                                <td>{{ strtoupper($k) }}</td>
-                                <td>{{ format_inr($v) }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </td>
-        </tr>
-    </table>
 
-    <table class="table" cellspacing="0" cellpadding="0" style="margin-top:20px;">
-        <tr valign="top">
+    <div class="section">
+        <div class="section-title">Sales Summary</div>
+        <table>
+            @foreach ($categoryTotals['sales'] ?? [] as $category => $amount)
+                @php
+                    $class=$category === 'TOTAL' ? 'bold highlight' : '';
+                    $category=$category === 'TOTAL' ? 'Total' : $category;
+                @endphp
+                <tr class="{{$class}}">
+                    <td>{{ $category }}</td>
+                    <td class="text-right">{{ $amount }}</td>
+                </tr>
+            @endforeach
+        </table>
+    </div>
 
-            <!-- Summary Column -->
-            <td width="50%" style="padding-left:10px; vertical-align:top;">
-                {{-- <h3>Payment Summary</h3> --}}
-                <table class="table">
-                    {{-- <thead>
-                        <tr>
-                            <th colspan="2">Payment Summary</th>
-                        </tr>
-                    </thead> --}}
-                    <tbody>
-                        @foreach ($categoryTotals['summary'] ?? [] as $k => $v)
-                            <tr @if (strtoupper($k) === 'TOTAL') class="highlight" @endif>
-                                <td>{{ strtoupper(str_replace('_', ' ', $k)) }}
-                                    @if (in_array(strtoupper($k), ['CREDIT', 'REFUND_CREDIT']))
-                                        <small>(Excluded from Cash)</small>
-                                    @endif
-                                </td>
-                                <td>{{ format_inr($v) }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </td>
-            <!-- Sales Column -->
-            <td width="50%" style="padding-right:10px; vertical-align:top;">
-                {{-- <h3>Denomination</h3> --}}
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th colspan="6">Denomination</th>
-                        </tr>
-                    </thead>
-                    <thead>
-                        <tr>
-                            <th>Denomination</th>
-                            <th>Notes</th>
-                            <th>x</th>
-                            <th>Amount</th>
-                            <th>=</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @php $totalDenom = 0; @endphp
-                        @foreach ($shiftcash ?? [] as $denom => $qty)
-                            @php
-                                $row = $denom * $qty;
-                                $totalDenom += $row;
-                            @endphp
-                            <tr>
-                                <td>{{ format_inr($denom) }}</td>
-                                <td>{{ $qty }}</td>
-                                <td>x</td>
-                                <td>{{ format_inr($denom) }}</td>
-                                <td>=</td>
-                                <td>{{ format_inr($row) }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                    <tfoot>
-                        <tr class="highlight">
-                            <td colspan="5">Total</td>
-                            <td>{{ format_inr($totalDenom) }}</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </td>
-        </tr>
-    </table>
+    <div class="section">
+        <div class="section-title">Payment Summary</div>
+        <table>
+            <tr>
+                <td>Cash</td>
+                <td class="text-right">{{ $categoryTotals['payment']['CASH'] ?? 0 }}</td>
+            </tr>
+            <tr>
+                <td>UPI</td>
+                <td class="text-right">{{ $categoryTotals['payment']['UPI PAYMENT'] ?? 0 }}</td>
+            </tr>
+            <tr class="bold highlight">
+                <td>Total</td>
+                <td class="text-right">{{ $categoryTotals['payment']['TOTAL'] ?? 0 }}</td>
+            </tr>
+        </table>
+    </div>
 
-    <table class="table" cellspacing="0" cellpadding="0" style="margin-top:20px;">
-        <tr valign="top">
+    <div class="section">
+        <div class="section-title">Cash Denomination</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Denomination (Rs.)</th>
+                    <th>Qty</th>
+                    <th class="text-right">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php $denoTotal = 0; @endphp
+                @foreach ([10, 20, 50, 100, 200, 500] as $deno)
+                    @php
+                        $qty = $shiftcash[$deno] ?? 0;
+                        $amount = $qty * $deno;
+                        $denoTotal += $amount;
+                    @endphp
+                    <tr>
+                        <td>{{ $deno }}</td>
+                        <td>{{ $qty }}</td>
+                        <td class="text-right">{{ $amount }}</td>
+                    </tr>
+                @endforeach
+                <tr class="bold highlight">
+                    <td colspan="2">Total Denomination</td>
+                    <td class="text-right">{{ $denoTotal }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
-            <!-- Summary Column -->
-            <td width="50%" style="padding-left:10px; vertical-align:top;">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th colspan="2">Payment Summary</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($categoryTotals['summary'] ?? [] as $k => $v)
-                            <tr @if (strtoupper($k) === 'TOTAL') class="highlight" @endif>
-                                <td>{{ strtoupper(str_replace('_', ' ', $k)) }}
-                                    @if (in_array(strtoupper($k), ['CREDIT', 'REFUND_CREDIT']))
-                                        <small>(Excluded from Cash)</small>
-                                    @endif
-                                </td>
-                                <td>{{ format_inr($v) }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </td>
-            <!-- Sales Column -->
-            <td width="50%" style="padding-right:10px; vertical-align:top;">
-                <table class="table" style="margin-top:10px;">
-                    <tr>
-                        <td><strong>System Cash Sales</strong></td>
-                        <td class="text-end">{{ format_inr($totalDenom) }}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Total Cash Amount</strong></td>
-                        <td class="text-end">{{ format_inr($categoryTotals['summary']['TOTAL'] ?? 0) }}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Closing Cash</strong></td>
-                        <td class="text-end">{{ format_inr($closing_cash ?? 0) }}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Discrepancy Cash</strong></td>
-                        <td class="text-end">{{ format_inr($cash_discrepancy ?? 0) }}</td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
+    <div class="section">
+        <div class="section-title">Summary</div>
+        <table>
+            @foreach ($categoryTotals['summary'] ?? [] as $key => $val)
+                <tr>
+                    <td>{{ $key }}</td>
+                    <td class="text-right">{{ $val }}</td>
+                </tr>
+            @endforeach
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Cash Comparison</div>
+        <table>
+            <tr>
+                <td><strong>System Cash:</strong></td>
+                <td class="text-right">
+                    {{ $categoryTotals['payment']['CASH'] + ($categoryTotals['summary']['CREDIT COLLACTED BY CASH'] ?? 0) }}
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Closing Cash:</strong></td>
+                <td class="text-right">{{ $closing_cash ?? 0 }}</td>
+            </tr>
+            <tr class="bold highlight">
+                <td><strong>Difference:</strong></td>
+                <td class="text-right">{{ $cash_discrepancy ?? 0 }}</td>
+            </tr>
+        </table>
+    </div>
+
 </body>
 
 </html>

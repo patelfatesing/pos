@@ -16,8 +16,8 @@
                             <div>
                                 <h4 class="mb-3">Demand Order List</h4>
                             </div>
-                            <a href="{{ route('purchase.create') }}" class="btn btn-primary add-list">
-                                <i class="las la-plus mr-3"></i>Add New Demand Order
+                            <a href="{{ route('demand-order.step1') }}" class="btn btn-primary add-list">
+                                <i class="las la-plus mr-3"></i>Add Demand Order
                             </a>
                         </div>
                     </div>
@@ -26,9 +26,9 @@
                             <table class="table data-tables table-striped">
                                 <thead>
                                     <tr>
-                                        <th>PO Number</th>
                                         <th>Vendor</th>
                                         <th>Purchase Date</th>
+                                        <th>Shipping Date</th>
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>
@@ -36,12 +36,12 @@
                                 <tbody>
                                     @foreach($demandOrders as $order)
                                     <tr>
-                                        <td>{{ $order->purchase_order_no }}</td>
                                         <td>{{ $order->vendor->name }}</td>
                                         <td>{{ $order->purchase_date }}</td>
+                                        <td>{{ $order->shipping_date }}</td>
                                         <td>{{ ucfirst($order->status) }}</td>
                                         <td>
-                                            <a href="{{ route('demand_orders.show', $order->id) }}" class="btn btn-info btn-sm">View</a>
+                                            <a href="{{ route('demand-order.view', $order->id) }}" class="btn btn-info btn-sm">View</a>
                                         </td>
                                     </tr>
                                     @endforeach
