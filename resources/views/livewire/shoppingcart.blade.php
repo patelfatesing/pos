@@ -473,13 +473,13 @@
                                     <i class="fas fa-hand-paper"></i>
                                 </button>
                             @endif
+                            <livewire:order-modal />
                             @if (auth()->user()->hasRole('warehouse'))
                                 <button wire:click="printLastInvoice" class="btn btn-primary ml-2"
                                     data-toggle="tooltip" data-placement="top"
                                     title="{{ __('messages.print_the_last_invoice') }}">
                                     <i class="fas fa-print"></i>
                                 </button>
-                                <livewire:order-modal />
                                 <livewire:customer-credit-ledger-modal />
                                 @if (count($itemCarts) == 0)
                                     <livewire:collation-modal />

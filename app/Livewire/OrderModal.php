@@ -9,6 +9,7 @@ use App\Models\UserShift;
 use App\Models\Refund;
 use Illuminate\Support\Facades\App;
 use App\Models\Partyuser;
+use App\Models\Commissionuser;
 
 class OrderModal extends Component
 {
@@ -64,8 +65,13 @@ class OrderModal extends Component
         }else{
             $refNo="";
         }
+         if(!empty($invoice->party_user_id)){
 
-        $partyUser = PartyUser::where('status', 'Active')->find($invoice->party_user_id);
+            $partyUser = PartyUser::where('status', 'Active')->find($invoice->party_user_id);
+        }else if(!empty($invoice->commission_user_id)){
+            
+            $partyUser = Commissionuser::where('status', 'Active')->where('is_deleted', '!=', 'Yes')->find($invoice->commission_user_id);
+        }
         $pdf = App::make('dompdf.wrapper');
         $pdf->loadView('invoice', [
             'invoice' => $invoice,
