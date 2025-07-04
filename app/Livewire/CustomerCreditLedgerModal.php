@@ -85,7 +85,8 @@ class CustomerCreditLedgerModal extends Component
 
     public function render()
     {
-        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+        $branch_id = auth()->user()->userinfo->branch->id ?? "";
+
         $query = DB::table('credit_histories')
             ->leftJoin('invoices', 'credit_histories.invoice_id', '=', 'invoices.id')
             ->leftJoin('party_users', 'credit_histories.party_user_id', '=', 'party_users.id')
@@ -104,7 +105,6 @@ class CustomerCreditLedgerModal extends Component
                 'invoices.invoice_number',
                 'branches.name as branch_name'
             );
-
 
         if ($this->startDate && $this->endDate) {
             $query->whereBetween('credit_histories.created_at', [
@@ -127,18 +127,22 @@ class CustomerCreditLedgerModal extends Component
             });
         }
 
-        $records = $query->orderBy('credit_histories.created_at', 'desc')->paginate(10);
+        // Clone the query for totals
+        $creditQuery = (clone $query)->where('credit_histories.type', 'credit');
+        $debitQuery = (clone $query)->where('credit_histories.type', 'debit');
 
-        $totalCredit = $records->sum('credit_amount');
-        $totalDebit = $records->sum('debit_amount');
-        // $openingBalance = $user->opening_balance ?? 0;
+        $totalCredit = $creditQuery->sum('credit_histories.credit_amount');
+        $totalDebit = $debitQuery->sum('credit_histories.debit_amount');
         $netOutstanding = $totalDebit - $totalCredit;
+
+        // Fetch paginated records
+        $records = $query->orderBy('credit_histories.created_at', 'desc')->paginate(10);
 
         return view('livewire.customer-credit-ledger-modal', [
             'creditLedgers' => $records,
             'totalCredit' => $totalCredit,
             'totalDebit' => $totalDebit,
-            'netOutstanding' =>$netOutstanding
+            'netOutstanding' => $netOutstanding,
         ]);
     }
 }

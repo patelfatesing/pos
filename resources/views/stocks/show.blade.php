@@ -39,10 +39,10 @@
     <!-- Wrapper End-->
 
     <!-- Approve Modal -->
-
+    <!-- Modal -->
     <div class="modal fade bd-example-modal-lg" id="approvedStockModal" tabindex="-1" role="dialog"
         aria-labelledby="approvedStockModalLabel" aria-hidden="true">
-        <div class="modal-dialog  modal-lg" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <form id="approveForm">
                     @csrf
@@ -55,16 +55,14 @@
                     <div class="modal-body">
                         <input type="hidden" name="request_id" id="request_id">
                         <input type="hidden" name="from_store_id" id="from_store_id">
-                        <table class="table table-bordered">
-                            <thead>
 
-                            </thead>
-                            <tbody id="requested-store-info">
-                            </tbody>
-                            <tbody id="request-items-body">
-                                <!-- Dynamically loaded -->
-                            </tbody>
-                        </table>
+                        <div class="mb-3">
+                            <h5 class="mb-0 text-primary">Requested From: <span id="requested-from-text"></span></h5>
+                        </div>
+
+                        <div id="request-items-body">
+                            <!-- Dynamic table will load here -->
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -76,63 +74,76 @@
     </div>
 
     <script>
+        function getTotalRequestedQty(data, productId) {
+            return data
+                .filter(row => row.product_id === productId)
+                .reduce((sum, row) => sum + row.requested_qty, 0);
+        }
+
         $(document).on('click', '.open-approve-modal', function() {
             const id = $(this).data('id');
 
             $('#request_id').val(id);
-            $('#request-items-body').html('<tr><td colspan="3">Loading...</td></tr>');
+            $('#request-items-body').html('<p>Loading...</p>');
 
-            $.get('{{ url('stock-requests/popup-details/') }}/' + id, function(res) {
-                $('#from_store_id').val(res.stockRequest.store_id);
+            $.get(`{{ url('stock-requests/popup-details/') }}/${id}`, function(res) {
+                $('#from_store_id').val(res.source_id);
+                $('#requested-from-text').text(res.stockRequest.branch_name ?? 'N/A');
 
-                let storeHtml = '';
-                let requestedStoreInfo = `
-        <div class="">
-            <h5 class="mb-2 text-primary">Requested From: ${res.stockRequest.branch_name ?? 'N/A'}</h5>
-        </div>
-    `;
-                // Loop through each store group
-                Object.values(res.items_by_store).forEach(store => {
-                    let rows = '';
-                    store.items.forEach(item => {
-                        rows += `
-                <tr class="mt-2">
-                    <td>${item.product_name}</td>
-                    <td>${item.req_quantity}</td>
-                    <td>${item.store_ava_quantity}</td>
-                    <td>
-                        <input type="number" class="form-control" name="items[${item.store_id}][${item.product_id}]" value="${item.req_quantity}" min="1">
-                    </td>
-                </tr>
-            `;
-                    });
+                // Build table
+                let rowsHtml = '';
+                res.items_flat.forEach(row => {
+                    const availableQty = row.store_ava_quantity ?? 0;
+                    rowsHtml += `
+                    <tr class="product-row" 
+                        data-product-id="${row.product_id}" 
+                        data-available="${row.store_ava_quantity}" 
+                        data-requested="${row.requested_qty}">
+                        <td>
+                            <input type="checkbox" class="row-checkbox">
+                        </td>
+                        <td>${row.product_name}</td>
+                        <td>${row.requested_qty}</td>
+                        <td>${row.store_ava_quantity}</td>
+                        <td>${row.store_name}</td>
+                        <td>
+                            <input type="number" class="form-control form-control-sm approve-input" 
+                                name="items[${row.store_id}][${row.product_id}]" 
+                                value="0" 
+                                min="0" max="${row.store_ava_quantity}">
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-danger remove-row">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+                });
 
-                    storeHtml += `
-            <div class="mb-2 mt-2">
-                <h5 class="text-success">${store.store_name}</h5>
-                <table class="table table-bordered">
-                    <thead class="table-secondary">
+                $('#request-items-body').html(`
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
                         <tr>
+                            <th></th>
                             <th>Product</th>
                             <th>Requested Qty</th>
-                            <th>Available in</th>
+                            <th>Available</th>
+                            <th>Store</th>
                             <th>Approve Qty</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${rows}
+                        ${rowsHtml}
                     </tbody>
                 </table>
-            </div>
-        `;
-                });
+            `);
 
-                // Inject into modal
-                $('#requested-store-info').html(requestedStoreInfo);
-                $('#request-items-body').html(storeHtml);
                 $('#approvedStockModal').modal('show');
             });
+        });
 
+        $(document).on('click', '.remove-row', function() {
+            $(this).closest('tr').remove();
         });
 
         $('#approveForm').on('submit', function(e) {
@@ -148,14 +159,53 @@
                     alert(res.message);
                     $('#approvedStockModal').modal('hide');
                     $('#stock-requests-table').DataTable().ajax.reload(null, false);
-
                 },
-                error: function(xhr) {
+                error: function() {
                     alert('Approval failed');
                 }
             });
         });
 
+        $(document).on('input', '.approve-input', function() {
+            const $row = $(this).closest('.product-row');
+            const productId = $row.data('product-id');
+            applyProductApprovalRules(productId);
+        });
+
+        function applyProductApprovalRules() {
+            $('.approve-input').off('input').on('input', function() {
+                const $input = $(this);
+                const $row = $input.closest('.product-row');
+                const productId = $row.data('product-id');
+                const requestedQty = parseFloat($row.data('requested')) || 0;
+
+                let totalApproved = 0;
+
+                // Calculate total approved qty for this product across all branches
+                $(`.product-row[data-product-id="${productId}"]`).each(function() {
+                    const val = parseFloat($(this).find('.approve-input').val()) || 0;
+                    totalApproved += val;
+                });
+
+                // If total exceeds requested, alert and reset current input
+                if (totalApproved > requestedQty) {
+                    alert(`You can only approve up to ${requestedQty} qty for this product.`);
+
+                    const currentInputVal = parseFloat($input.val()) || 0;
+                    const approvedElsewhere = totalApproved - currentInputVal;
+                    const remaining = requestedQty - approvedElsewhere;
+
+                    $input.val(remaining >= 0 ? remaining : 0);
+                }
+
+                // Toggle checkbox for this row
+                const finalVal = parseFloat($input.val()) || 0;
+                $row.find('.row-checkbox').prop('checked', finalVal > 0);
+            });
+        }
+    </script>
+
+    <script>
         $(document).ready(function() {
 
             $.ajaxSetup({
@@ -217,6 +267,5 @@
             });
 
         });
-
     </script>
 @endsection

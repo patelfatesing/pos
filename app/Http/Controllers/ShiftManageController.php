@@ -146,7 +146,7 @@ class ShiftManageController extends Controller
             }
             // }
             $action .= '<a class="badge bg-primary ml-2 view-invoices" 
-                href="' . url('/shift-manage/view/' . $row->branch_id . "/" . $row->id).'" title="View Transactions">
+                href="' . url('/shift-manage/view/' . $row->branch_id . "/" . $row->id) . '" title="View Transactions">
                 <i class="ri-eye-line"></i>
                 </a>';
 
@@ -211,12 +211,14 @@ class ShiftManageController extends Controller
         return response()->json(['data' => $invoices]);
     }
 
-    public function view($id, $shift_id)
+    public function view($id, $shift_id, Request $request)
     {
-        $shift = ShiftClosing::findOrFail($shift_id);
+        $perPage = $request->input('per_page', 10);
 
-        $branch = Branch::find($id);
+        $shift = ShiftClosing::findOrFail($shift_id);
+        $branch = Branch::findOrFail($id);
         $branch_name = $branch->name;
+
         $query = \DB::table('invoices')
             ->where('branch_id', $id)
             ->whereBetween('created_at', [$shift->start_time, $shift->end_time]);
@@ -227,7 +229,7 @@ class ShiftManageController extends Controller
             $query->where('status', 'Paid');
         }
 
-        // Clone for totals (use same filters)
+        // Clone for totals
         $totals = (clone $query)->selectRaw('
         SUM(cash_amount) as total_cash,
         SUM(upi_amount + online_amount) as total_upi,
@@ -237,9 +239,8 @@ class ShiftManageController extends Controller
         SUM(total) as total_total
     ')->first();
 
-        // Now paginate the original query
-        $invoices = $query
-            ->orderBy('created_at', 'desc')
+        // Paginate with per_page and preserve query
+        $invoices = $query->orderBy('created_at', 'desc')
             ->select(
                 'id',
                 'invoice_number',
@@ -255,7 +256,8 @@ class ShiftManageController extends Controller
                 'status',
                 'created_at'
             )
-            ->paginate(10);
+            ->paginate($perPage)
+            ->appends(['per_page' => $perPage]);
 
         return view('shift_manage.view', [
             'invoices' => $invoices,
@@ -266,7 +268,9 @@ class ShiftManageController extends Controller
             'totalItems' => $totals->total_items,
             'totalSubTotal' => $totals->total_subtotal,
             'totalTotal' => $totals->total_total,
-            'branch_name' => $branch_name
+            'branch_name' => $branch_name,
+            'id' => $id,
+            'perPage' => $perPage,
         ]);
     }
 
@@ -375,7 +379,8 @@ class ShiftManageController extends Controller
             $categoryTotals['summary']['OPENING CASH'] = @$shift->opening_cash;
             $categoryTotals['summary']['CASH ADDED'] = @$shift->cash_added;
 
-            $categoryTotals['summary']['TOTAL SALES'] = $totals->debit_total + $totalSubTotal + $discountTotal - $totalRefundReturn-$totalRoundOf;
+            $categoryTotals['summary']['TOTAL SALES'] = $totals->debit_total + $totalSubTotal + $discountTotal - $totalRefundReturn - $totalRoundOf;
+
 
             $categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
             $categoryTotals['summary']['WITHDRAWAL PAYMENT'] = $totalWith * (-1);
@@ -537,10 +542,8 @@ class ShiftManageController extends Controller
 
         if (!$shift->closing_shift_time) {
             $closeShift = $this->closeShift($id, "html");
-            $pdf = Pdf::loadView('shift_manage.shift_print', ['user_name' => $closeShift['user_name'], 'shift' => $closeShift['shift'], "categoryTotals" => $closeShift['categoryTotals'], "shiftcash" => $closeShift['shiftcash'], "closing_cash" => $closeShift['closing_cash'], 'cash_discrepancy' => $closeShift['cash_discrepancy'] ,'closeShift'=> $closeShift,'branch_name' => $closeShift['branch_name']]);
-
+            $pdf = Pdf::loadView('shift_manage.shift_print', ['user_name' => $closeShift['user_name'], 'shift' => $closeShift['shift'], "categoryTotals" => $closeShift['categoryTotals'], "shiftcash" => $closeShift['shiftcash'], "closing_cash" => $closeShift['closing_cash'], 'cash_discrepancy' => $closeShift['cash_discrepancy'], 'closeShift' => $closeShift, 'branch_name' => $closeShift['branch_name']]);
             return $pdf->download('shift_report_' . Str::slug($shift->shift_no) . '.pdf');
-
         }
 
         return response()->json([

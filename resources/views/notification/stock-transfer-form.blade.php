@@ -25,35 +25,65 @@
             <div class="card">
                 <div class="card-header"><strong>Transfer Items</strong></div>
                 <div class="card-body p-0">
-                    <table class="table table-bordered mb-0">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Product</th>
-                                <th>Transfer Number</th>
-                                <th>Transfer Date</th>
-                                <th>Quantity</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($stockTransfer as $index => $item)
+                    @if ($transfer_type == 'approved_stock')
+                        <table class="table table-bordered mb-0">
+                            <thead>
                                 <tr>
-                                    <td>{{ $index + 1 }}</td>
-                                    <td>{{ $item->product_name }}</td>
-                                    <td>{{ $item->transfer_number }}</td>
-                                    <td>{{ $item->transferred_at }}</td>
-                                    <td>{{ $item->quantity }}</td>
-                                    <td>{{ $item->status }}</td>
+                                    <th>#</th>
+                                    <th>Product</th>
+                                    <th>Transfer Date</th>
+                                    <th>Quantity</th>
+                                    <th>Status</th>
                                 </tr>
-                            @endforeach
-                            @if ($stockTransfer->isEmpty())
+                            </thead>
+                            <tbody>
+                                @foreach ($stockTransfer as $index => $item)
+                                    <tr>
+                                        <td>{{ $index + 1 }}</td>
+                                        <td>{{ $item->product_name }}</td>
+                                        <td>{{ $item->approved_at }}</td>
+                                        <td>{{ $item->approved_quantity }}</td>
+                                        <td>{{ $item->status }}</td>
+                                    </tr>
+                                @endforeach
+                                @if ($stockTransfer->isEmpty())
+                                    <tr>
+                                        <td colspan="6" class="text-center">No items found.</td>
+                                    </tr>
+                                @endif
+                            </tbody>
+                        </table>
+                    @else
+                        <table class="table table-bordered mb-0">
+                            <thead>
                                 <tr>
-                                    <td colspan="6" class="text-center">No items found.</td>
+                                    <th>#</th>
+                                    <th>Product</th>
+                                    <th>Transfer Number</th>
+                                    <th>Transfer Date</th>
+                                    <th>Quantity</th>
+                                    <th>Status</th>
                                 </tr>
-                            @endif
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach ($stockTransfer as $index => $item)
+                                    <tr>
+                                        <td>{{ $index + 1 }}</td>
+                                        <td>{{ $item->product_name }}</td>
+                                        <td>{{ $item->transfer_number }}</td>
+                                        <td>{{ $item->transferred_at }}</td>
+                                        <td>{{ $item->quantity }}</td>
+                                        <td>{{ $item->status }}</td>
+                                    </tr>
+                                @endforeach
+                                @if ($stockTransfer->isEmpty())
+                                    <tr>
+                                        <td colspan="6" class="text-center">No items found.</td>
+                                    </tr>
+                                @endif
+                            </tbody>
+                        </table>
+                    @endif
                 </div>
             </div>
             <!-- Page end  -->

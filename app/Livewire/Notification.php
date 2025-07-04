@@ -21,8 +21,9 @@ class Notification extends Component
     public $selectedNotificationDataId = null;
     public $branch_name = null;
     public $to_store = null;
-    public $from_store = null; // Assuming this is set somewhere in your code
+    public $from_store = null;
     public $branch_id = null;
+    public $transfer_type = null;
 
     protected $listeners = ['closePopupExternally' => 'closeNotification'];
 
@@ -122,27 +123,60 @@ class Notification extends Component
                     ->get();
                 break;
             case 'transfer_stock':
-
+                
                 $data = json_decode($nf->details);
                 $ids = explode(',', $data->product_id);
-                $this->from_store = $data->from_store;
-                $this->to_store = $data->to_store;
-                $this->selectedNotificationData = DB::table('stock_transfers as i')
-                    ->join('products as p', 'i.product_id', '=', 'p.id')
-                    ->where('i.transfer_number', $red_id)
-                    ->select(
-                        'i.id as id',
-                        'i.product_id',
-                        'p.name as product_name',
-                        'p.brand',
-                        'i.transfer_number',
-                        'i.quantity',
-                        'p.sku',
-                        'p.barcode',
-                        'i.to_branch_id'
-                    )
-                    ->orderBy('i.created_at')
-                    ->get();
+                if ($ids['type'] == 'approved_stock') {
+
+                    $this->transfer_type = 'approved_stock';
+
+                    $this->from_store = $data->from_store;
+                    $this->to_store = $data->to_store;
+
+                    $this->selectedNotificationData = DB::table('stock_request_approves as sra')
+                        ->join('stock_request_items as sri', 'sra.stock_request_item_id', '=', 'sri.id')
+                        ->join('stock_requests as sr', 'sra.stock_request_id', '=', 'sr.id')
+                        ->join('products as p', 'sra.product_id', '=', 'p.id')
+                        ->where('sra.stock_request_id', $ids['req_id'])
+                        ->where('sra.destination_store_id', $ids['store_id'])
+                        ->select(
+                            'sra.id as id',
+                            'sra.product_id',
+                            'p.name as product_name',
+                            'p.brand',
+                            'sra.stock_request_id',
+                            'sra.approved_quantity',
+                            'sra.destination_store_id',
+                            'sra.source_store_id',
+                            'sra.approved_at',
+                            'sr.status',
+                            'p.sku',
+                            'p.barcode'
+                        )
+                        ->orderBy('sra.approved_at', 'desc')
+                        ->get();
+                } else {
+
+                    $this->transfer_type = 'transfer_stock';
+                    $this->from_store = $data->from_store;
+                    $this->to_store = $data->to_store;
+                    $this->selectedNotificationData = DB::table('stock_transfers as i')
+                        ->join('products as p', 'i.product_id', '=', 'p.id')
+                        ->where('i.transfer_number', $red_id)
+                        ->select(
+                            'i.id as id',
+                            'i.product_id',
+                            'p.name as product_name',
+                            'p.brand',
+                            'i.transfer_number',
+                            'i.quantity',
+                            'p.sku',
+                            'p.barcode',
+                            'i.to_branch_id'
+                        )
+                        ->orderBy('i.created_at')
+                        ->get();
+                }
                 break;
             default:
                 $this->selectedNotificationData = collect([

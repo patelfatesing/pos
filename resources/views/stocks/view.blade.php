@@ -34,12 +34,9 @@
                             </div>
                             <div class="col-sm-4">
                                 <p><strong>Status:</strong>
-
                                     @if ($stockRequest->status === 'pending')
-                                        <button class="btn btn-warning btn-sm open-approve-modal mt-1"
-                                            data-id="{{ $stockRequest->id }}">
-                                            Pending
-                                        </button>
+                                        <span class="badge bg-warning">Pending
+                                        </span>
                                     @else
                                         <span class="badge bg-success">Approved
                                         </span>
