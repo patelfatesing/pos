@@ -349,7 +349,7 @@ class ShiftManageController extends Controller
                 $totalPaid     += (!empty($invoice->total)       && is_numeric($invoice->total)) ? (int)$invoice->total : 0;
                 if ($invoice->status == "Refunded") {
                     $refund = Refund::where('invoice_id', $invoice->id)
-                        ->where('user_id', auth()->id())
+                        ->where('user_id', $shift->user_id)
                         ->first();
                     if ($refund) {
                         $totalRefund     += (!empty($refund->amount)       && is_numeric($refund->amount)) ? (int)$refund->amount : 0;
@@ -368,6 +368,11 @@ class ShiftManageController extends Controller
             $todayCash = $totalPaid;
             $categoryTotals['sales']["TOTAL"] = $totalSalesNew;
 
+            $cashAdded = CashBreakdown::where('user_id', $shift->user_id)
+            ->where('branch_id', $shift->branch_id)
+            ->where('type',  'add cash')
+            ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
+            ->sum('total');
             $totalWith = \App\Models\WithdrawCash::where('user_id',  $shift->user_id)
                 ->where('branch_id', $shift->branch_id)->whereBetween('created_at', [$shift->start_time, $shift->end_time])->sum('amount');
             $categoryTotals['payment']['CASH'] = $totalCashPaid;
@@ -377,29 +382,29 @@ class ShiftManageController extends Controller
 
             $categoryTotals['payment']['TOTAL'] = $totalCashPaid + ($totalUpiPaid + $totalOnlinePaid);
             $categoryTotals['summary']['OPENING CASH'] = @$shift->opening_cash;
-            $categoryTotals['summary']['CASH ADDED'] = @$shift->cash_added;
+            $categoryTotals['summary']['CASH ADDED'] = @$cashAdded;
 
-            $categoryTotals['summary']['TOTAL SALES'] = $totals->debit_total + $totalSubTotal + $discountTotal - $totalRefundReturn - $totalRoundOf;
+            $categoryTotals['summary']['TOTAL SALES'] = $totals->credit_total - $totalPaidCredit + $totalSubTotal + $discountTotal - $totalRefundReturn - $totalRoundOf;
 
 
             $categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
             $categoryTotals['summary']['WITHDRAWAL PAYMENT'] = $totalWith * (-1);
             $categoryTotals['summary']['UPI PAYMENT'] = ($totalUpiPaid + $totalOnlinePaid) * (-1);
             $categoryTotals['summary']['ROUND OFF'] = $totalRoundOf;
-            $categoryTotals['summary']['CREDIT'] = $totals->debit_total * (-1);
+            $categoryTotals['summary']['CREDIT'] = $totals->credit_total * (-1);
 
             //$categoryTotals['summary']['ONLINE PAYMENT'] = $totalOnlinePaid * (-1);
             if (!empty($creditCollacted->collacted_cash_amount))
                 $categoryTotals['summary']['CREDIT COLLACTED BY CASH'] = $creditCollacted->collacted_cash_amount;
             // $categoryTotals['summary']['REFUND'] += $totalRefundReturn *(-1);
 
-            $categoryTotals['summary']['TOTAL'] = $categoryTotals['summary']['OPENING CASH'] + $categoryTotals['summary']['TOTAL SALES'] + $categoryTotals['summary']['DISCOUNT'] + $categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $categoryTotals['summary']['UPI PAYMENT'] + @$categoryTotals['summary']['REFUND'] +
-                @$categoryTotals['summary']['ONLINE PAYMENT'] + @$categoryTotals['summary']['CREDIT COLLACTED BY CASH'] + $totalRoundOf + $categoryTotals['summary']['CREDIT'];
-
+            $categoryTotals['summary']['TOTAL'] = $categoryTotals['summary']['CASH ADDED']+$categoryTotals['summary']['OPENING CASH'] + $categoryTotals['summary']['TOTAL SALES'] + $categoryTotals['summary']['DISCOUNT'] + $categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $categoryTotals['summary']['UPI PAYMENT'] + @$categoryTotals['summary']['REFUND'] +
+                @$categoryTotals['summary']['ONLINE PAYMENT'] + @$categoryTotals['summary']['CREDIT COLLACTED BY CASH'] + $totalRoundOf + $categoryTotals['summary']['CREDIT']+$totalRefundReturn;
+            
             $categoryTotals['summary']['REFUND'] = $totalRefund * (-1) + $totalRefundReturn * (-1);
             //$categoryTotals['summary']['REFUND RETURN'] = $totalRefundReturn*(-1);
             //$categoryTotals['summary']['CREDIT'] = $totals->debit_total;
-            //$categoryTotals['summary']['REFUND_CREDIT'] = $totals->credit_total;
+            $categoryTotals['summary']['REFUND_CREDIT'] = $totals->debit_total;
             if (!empty($categoryTotals['summary']['REFUND_CREDIT'])) {
                 $categoryTotals['summary']['REFUND_CREDIT'] = (int)$categoryTotals['summary']['REFUND_CREDIT'] * (-1);
             }
