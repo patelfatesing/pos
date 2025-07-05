@@ -121,8 +121,41 @@ class NotificationController extends Controller
         if ($type === 'approved_stock') {
             $data = json_decode($nf->details);
             $id  = $data->id;
-            $stockRequest = StockRequest::with(['branch', 'tobranch', 'user', 'items.product'])->findOrFail($id);
-            return view('notification.stock-approved-form', compact('stockRequest'));
+            if ($data->type == 'approved_stock') {
+                $transfer_type = $data->type;
+                $stockTransfer = DB::table('stock_request_approves as sra')
+                    ->join('stock_request_items as sri', 'sra.stock_request_item_id', '=', 'sri.id')
+                    ->join('stock_requests as sr', 'sra.stock_request_id', '=', 'sr.id')
+                    ->join('products as p', 'sra.product_id', '=', 'p.id')
+                    ->join('branches as sb', 'sra.source_store_id', '=', 'sb.id') // Join to get source branch name
+                    ->where('sra.stock_request_id', $data->req_id)
+                    ->where('sra.destination_store_id', $data->store_id)
+                    ->select(
+                        'sra.id as id',
+                        'sra.product_id',
+                        'p.name as product_name',
+                        'p.brand',
+                        'sra.stock_request_id',
+                        'sra.approved_quantity',
+                        'sra.destination_store_id',
+                        'sra.source_store_id',
+                        'sb.name as source_branch_name', // Add source branch name
+                        'sra.approved_at',
+                        'sr.status',
+                        'p.sku',
+                        'p.barcode'
+                    )
+                    ->orderBy('sra.approved_at', 'desc')
+                    ->get();
+
+
+                $stockRequest = StockRequest::with(['branch', 'tobranch', 'user', 'items.product'])->findOrFail($id);
+
+                return view('notification.stock-approved-form', compact('stockRequest', 'stockTransfer', 'transfer_type'));
+            } else {
+                $stockRequest = StockRequest::with(['branch', 'tobranch', 'user', 'items.product'])->findOrFail($id);
+                return view('notification.stock-approved-form', compact('stockRequest'));
+            }
         }
 
         if ($type === 'transfer_stock') {
@@ -179,7 +212,7 @@ class NotificationController extends Controller
                     ->get();
             }
 
-            return view('notification.stock-transfer-form', compact('stockTransfer', 'from_store', 'to_store','transfer_type'));
+            return view('notification.stock-transfer-form', compact('stockTransfer', 'from_store', 'to_store', 'transfer_type'));
         }
 
         if ($type === 'price_change') {

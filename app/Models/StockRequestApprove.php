@@ -38,12 +38,12 @@ class StockRequestApprove extends Model
 
     public function sourceBranch(): BelongsTo
     {
-        return $this->belongsTo(Branch::class, 'source_branch_id');
+        return $this->belongsTo(Branch::class, 'source_store_id');
     }
 
     public function destinationBranch(): BelongsTo
     {
-        return $this->belongsTo(Branch::class, 'destination_branch_id');
+        return $this->belongsTo(Branch::class, 'destination_store_id');
     }
 
     public function approver(): BelongsTo

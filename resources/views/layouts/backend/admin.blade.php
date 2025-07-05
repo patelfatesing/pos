@@ -173,7 +173,7 @@
                             </a>
                         </li>
                         <li class="">
-                            <a href="{{ route('demand-order.step1') }}">
+                            <a href="{{ route('demand-order.list') }}">
                                 <i class="las la-minus"></i><span>Demand Order</span>
                             </a>
                         </li>

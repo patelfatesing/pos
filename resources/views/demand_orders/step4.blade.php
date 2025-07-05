@@ -53,7 +53,7 @@
                                             </div>
                                           
                                         </div>
-                                        <a href="{{ route('demand-order.step1') }}"
+                                        <a href="{{ route('demand-order.list') }}"
                                             class="btn btn-dark previous action-button-previous float-right mr-3">Complete</a>
                                         {{-- <a href="{{ $pdfPath }}" download
                                             class="btn btn-primary next action-button ">

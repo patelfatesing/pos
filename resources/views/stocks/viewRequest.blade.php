@@ -118,14 +118,12 @@
                     { data: 'size' },
                     { data: 'approved_quantity' },
                     {
-                        data: null,
+                        data: 'source_store_id',
+                        name: 'source_store_id',
                         render: function(data, type, row) {
-                            return fromStoreName;
-                        },
-                        orderable: false,
-                        searchable: false
-                    }
-                ],
+                            return row.source_store_id ? row.source_store_id : 'N/A';
+                        }
+                    }                ],
                 footerCallback: function(row, data, start, end, display) {
                     var api = this.api();
 
