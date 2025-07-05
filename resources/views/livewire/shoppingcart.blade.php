@@ -1511,10 +1511,12 @@
                         <!-- Add total in footer -->
                         <tfoot>
                             <tr>
-                                <th class="text-end">{{ __('messages.total') }}</th>
+                                <th class="text-end w-semibold text-end text-center" style="font-size: 1.4rem;">
+                                    {{ __('messages.total') }}</th>
                                 <th>
-                                    <input type="number" class="form-control text-center"
-                                        value="{{ $sum }}" readonly>
+                                    <span class="text-end w-semibold text-center"
+                                        style="font-size: 1.4rem;">
+                                    {{ $sum }}</span>
                                 </th>
                             </tr>
                         </tfoot>
@@ -2753,7 +2755,7 @@
             });
         }
     });
-    
+
     $(document).ready(function() {
         // Event listener for product selection change
         // Event listener for product selection change
@@ -2901,7 +2903,7 @@
 
                     showAlert('success', 'LiquorHub!', 'Stock submitted successfully!');
                     $('#warehouseStockRequest').modal(
-                    'hide'); // Replace with your actual modal ID
+                        'hide'); // Replace with your actual modal ID
                     $('.modal-backdrop.show').remove();
                     $('.availability-container-wh').html("");
 

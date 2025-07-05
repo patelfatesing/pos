@@ -395,6 +395,7 @@ class DemandOrderController extends Controller
             'shipping_date' => $step2Data['shipping_date'],
             'notes' => $my3['notes'],
             'status' =>  'order',
+            'file_name' =>  $filename,
         ]);
 
         foreach ($data['products'] as $product) {
