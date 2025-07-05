@@ -271,7 +271,11 @@ class ShiftCloseModal extends Component
         }
         $this->todayCash = $totalPaid;
         $this->categoryTotals['sales']["TOTAL"] = $totalSalesNew;
-
+        $cashAdded = CashBreakdown::where('user_id', auth()->id())
+        ->where('branch_id', $branch_id)
+        ->where('type',  'add cash')
+        ->whereBetween('created_at', [$start_date, $end_date])
+        ->sum('total');
         $totalWith = \App\Models\WithdrawCash::where('user_id',  auth()->user()->id)
             ->where('branch_id', $branch_id)->whereBetween('created_at', [$start_date, $end_date])->sum('amount');
         $this->categoryTotals['payment']['CASH'] = $totalCashPaid;
@@ -279,7 +283,7 @@ class ShiftCloseModal extends Component
         $this->categoryTotals['payment']['TOTAL'] = $totalCashPaid + ($totalUpiPaid + $totalOnlinePaid);
 
         $this->categoryTotals['summary']['OPENING CASH'] = @$this->currentShift->opening_cash;
-        $this->categoryTotals['summary']['CASH ADDED'] = @$this->currentShift->cash_added;
+        $this->categoryTotals['summary']['CASH ADDED'] = @$cashAdded;
         $this->categoryTotals['summary']['TOTAL SALES'] = $totals->credit_total - $totalPaidCredit + $totalSubTotal + $discountTotal - $totalRefundReturn - $totalRoundOf;
         $this->categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
 
@@ -292,10 +296,10 @@ class ShiftCloseModal extends Component
             $this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] = $this->creditCollacted->collacted_cash_amount;
         // $this->categoryTotals['summary']['REFUND'] += $totalRefundReturn *(-1);
         $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['CASH ADDED'] + $this->categoryTotals['summary']['OPENING CASH'] + $this->categoryTotals['summary']['TOTAL SALES'] + $this->categoryTotals['summary']['DISCOUNT'] + $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $this->categoryTotals['summary']['UPI PAYMENT'] + @$this->categoryTotals['summary']['REFUND'] +
-            @$this->categoryTotals['summary']['ONLINE PAYMENT'] + @$this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] + $totalRoundOf + $this->categoryTotals['summary']['CREDIT'];
+            @$this->categoryTotals['summary']['ONLINE PAYMENT'] + @$this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] + $totalRoundOf + $this->categoryTotals['summary']['CREDIT']+$totalRefundReturn;
         $this->categoryTotals['summary']['REFUND'] = $totalRefund * (-1) + $totalRefundReturn * (-1);
         //$this->categoryTotals['summary']['REFUND RETURN'] = $totalRefundReturn*(-1);
-        // $this->categoryTotals['summary']['REFUND_CREDIT'] = $totals->credit_total;
+        $this->categoryTotals['summary']['REFUND_CREDIT'] = $totals->debit_total;
         if (!empty($this->categoryTotals['summary']['REFUND_CREDIT'])) {
             $this->categoryTotals['summary']['REFUND_CREDIT'] = (int)$this->categoryTotals['summary']['REFUND_CREDIT'] * (-1);
         }
