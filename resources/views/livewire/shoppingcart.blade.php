@@ -910,13 +910,13 @@
                                 @if (auth()->user()->hasRole('warehouse'))
                                     <div class="mb-2">
                                         <label for="useCreditCheck">
-                                            <input type="checkbox" wire:click="toggleCheck" />
+                                            <input type="checkbox" wire:model="showCheckbox" wire:click="toggleCheck" />
 
                                             <strong>{{ __('messages.use_credit_to_pay') }}</strong>
                                         </label>
                                     </div>
 
-                                    @if ($useCredit)
+                                     @if ($this->useCredit && $this->showCheckbox)
                                         <div class="d-flex justify-content-between align-items-center mb-2">
                                             <label class="mb-0">
                                                 <strong>{{ __('messages.credit') }}</strong>
