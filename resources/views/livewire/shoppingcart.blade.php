@@ -218,7 +218,7 @@
                                                 wire:click="decrementQty({{ $item->id }})">−</button>
                                             <div class="relative">
                                                 <input id="numberInput-{{ $item->id }}" type="number"
-                                                    min="1"
+                                                    
                                                     class="custom-input form-control text-center number-input"
                                                     wire:model.lazy="quantities.{{ $item->id }}"
                                                     wire:keydown="updateQty({{ $item->id }})"
