@@ -170,7 +170,7 @@ if (!function_exists('getDiscountPrice')) {
 }
 
 if (!function_exists('stockStatusChange')) {
-    function stockStatusChange($product_id, $branch_id, $qty, $type, $shift_id = "")
+    function stockStatusChange($product_id, $branch_id, $qty, $type, $shift_id = "",$orderType="")
     {
         $date = Carbon::today();
 
@@ -184,6 +184,9 @@ if (!function_exists('stockStatusChange')) {
 
             if (!empty($existing)) {
                 $existing->added_stock += $qty;
+                if($orderType=="refunded_order"){
+                    $existing->sold_stock -= $qty;
+                }
                 $existing->closing_stock = closingStock($existing->opening_stock,$existing->added_stock,$existing->transferred_stock,$existing->sold_stock);
                 $existing->save();
             } else {
