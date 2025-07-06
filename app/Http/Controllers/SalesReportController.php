@@ -80,7 +80,8 @@ class SalesReportController extends Controller
                     ->orWhere('invoices.status', 'like', "%{$searchValue}%")
                     ->orWhere('branches.name', 'like', "%{$searchValue}%")
                     ->orWhere('party_users.first_name', 'like', "%{$searchValue}%")
-                    ->orWhere('commission_users.first_name', 'like', "%{$searchValue}%");
+                    ->orWhere('commission_users.first_name', 'like', "%{$searchValue}%")
+                    ->orWhere('invoices.items', 'like', "%{$searchValue}%"); // This enables product search inside the items JSON
             });
         }
 
