@@ -65,20 +65,25 @@ class OrderModal extends Component
         }else{
             $refNo="";
         }
+
+        $partyUserName = '';
          if(!empty($invoice->party_user_id)){
 
             $partyUser = PartyUser::where('status', 'Active')->find($invoice->party_user_id);
+            $partyUserName = $partyUser->first_name;
         }else if(!empty($invoice->commission_user_id)){
             
             $partyUser = Commissionuser::where('status', 'Active')->where('is_deleted', '!=', 'Yes')->find($invoice->commission_user_id);
+            $partyUserName = $partyUser->first_name;
         }
+        
         $pdf = App::make('dompdf.wrapper');
         $pdf->loadView('invoice', [
             'invoice' => $invoice,
             'items' => $invoice->items,
             'branch' => auth()->user()->userinfo->branch,
             'duplicate' => true,
-            'customer_name' => $partyUser->first_name,
+            'customer_name' => $partyUserName,
             'ref_no'=>$invoice->ref_no,
             "hold_date"=>$invoice->hold_date
         ]);
