@@ -1513,9 +1513,9 @@
                             <tr>
                                 <th class="text-end w-semibold text-end text-center" style="font-size: 1.4rem;">
                                     {{ __('messages.total') }}</th>
-                                <th>
-                                    <span class="text-end w-semibold text-center"
+                                <th class="text-end w-semibold text-center"
                                         style="font-size: 1.4rem;">
+                                    <span >
                                     {{ $sum }}</span>
                                 </th>
                             </tr>

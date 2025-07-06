@@ -182,7 +182,7 @@ class Shoppingcart extends Component
 
     public function updatedSearch($value)
     {
-        $this->selectedProduct = Product::where('barcode', $value)->first();
+        $this->selectedProduct = Product::where('barcode', $value)->where('is_active','yes')->where('is_deleted','no')->first();
         //  if (!$this->selectedProduct) {
         //     $this->dispatch('notiffication-error', [
         //         'message' => 'Product with this barcode not found please check with admin.'
@@ -1261,8 +1261,8 @@ class Shoppingcart extends Component
             // Match where shift_id is null
             $stocksQuery->whereNull('shift_id');
         }
-        $this->productStock = $stocksQuery->get();
-
+        //$this->productStock = $stocksQuery->get();
+        $this->products = Product::where('is_active', 'yes')->where('is_deleted','yes')->get();
         // $this->productStock = DailyProductStock::with('product')
         //     ->where('branch_id', $branch_id)
         //     ->whereDate('date', Carbon::today())
@@ -2092,7 +2092,7 @@ class Shoppingcart extends Component
         if (strlen($this->searchTerm) > 0) {
             $this->searchResults = Product::with('inventorie')
                 ->when($this->searchTerm, function ($query) {
-                    $query->where('name', 'like', '%' . $this->searchTerm . '%');
+                    $query->where('name', 'like', '%' . $this->searchTerm . '%')->where('is_deleted', 'no');
                 })
                 ->get();
             $this->showSuggestions = true;
