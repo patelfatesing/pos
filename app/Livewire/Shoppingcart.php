@@ -1061,7 +1061,15 @@ class Shoppingcart extends Component
         $this->shiftcash = $noteCount;
         $this->availableNotes = json_encode($this->shiftcash);
     }
+    public function LastShift(){
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
+        $yesterDayShift = UserShift::getYesterdayShift(auth()->user()->id, $branch_id, "pending");
+
+        if (!empty($yesterDayShift)) {
+        $this->dispatch('openModalYesterdayShift');
+        } 
+    }
     public function mount()
     {
         //$this->getImages();
@@ -1353,8 +1361,8 @@ class Shoppingcart extends Component
 
         if ($cartItems->count() === 0) {
             // No cart items to clear
-            $this->dispatch('notiffication-error', ['message' => 'No cart data to void.']);
-            return;
+           // $this->dispatch('notiffication-error', ['message' => 'No cart data to void.']);
+            //return;
         }
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
@@ -1369,10 +1377,12 @@ class Shoppingcart extends Component
             InvoiceHistory::logFromInvoice($resumeInv, 'Void Sales', auth()->id());
             $resumeInv->delete();
         }
-
+        $this->dispatch('resetHoldPic');
+        $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'useCredit', 'showCheckbox', 'roundedTotal', 'removeCrossHold', 'cashNotes');
+        session()->forget(['current_party_id', 'current_commission_id']);
 
         // Reset search-related properties
-        $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount', 'selectedPartyUser', 'selectedCommissionUser', 'removeCrossHold');
+        // $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount', 'selectedPartyUser', 'selectedCommissionUser', 'removeCrossHold');
 
         // Dispatch browser event or Livewire event
         $this->dispatch('notiffication-sucess', ['message' => 'Your transaction has been cleared.']);
