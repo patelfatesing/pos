@@ -15,7 +15,7 @@ class Partyuser extends Model
         'reference_id',
         'is_active',
         'first_name',
-        //'last_name',
+        'is_delete',
         'email',
         'phone',
         'address',
