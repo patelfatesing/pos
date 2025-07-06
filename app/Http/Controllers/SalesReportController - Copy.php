@@ -57,7 +57,6 @@ class SalesReportController extends Controller
                 'commission_users.first_name as commission_user'
             );
 
-        // Date filter
         if ($request->start_date && $request->end_date) {
             $query->whereBetween('invoices.created_at', [
                 Carbon::parse($request->start_date)->startOfDay(),
@@ -73,7 +72,7 @@ class SalesReportController extends Controller
 
         $totalRecords = $query->count();
 
-        // Search filter
+        // Search
         if (!empty($request->search['value'])) {
             $searchValue = $request->search['value'];
             $query->where(function ($q) use ($searchValue) {
@@ -81,43 +80,46 @@ class SalesReportController extends Controller
                     ->orWhere('invoices.status', 'like', "%{$searchValue}%")
                     ->orWhere('branches.name', 'like', "%{$searchValue}%")
                     ->orWhere('party_users.first_name', 'like', "%{$searchValue}%")
-                    ->orWhere('commission_users.first_name', 'like', "%{$searchValue}%");
+                    ->orWhere('commission_users.first_name', 'like', "%{$searchValue}%")
+                    ->orWhere('invoices.items', 'like', "%{$searchValue}%"); // This enables product search inside the items JSON
             });
         }
 
         $filteredRecords = $query->count();
 
-        // Column map — MUST match frontend column order
-        $columns = [
-            'invoices.id',              // 0
-            'invoices.invoice_number',  // 1
-            'party_users.first_name',   // 2
-            'commission_users.first_name', // 3
-            'invoices.commission_amount',  // 4
-            'invoices.party_amount',    // 5
-            'invoices.creditpay',       // 6
-            'invoices.sub_total',       // 7
-            'invoices.total',           // 8
-            'invoices.items',           // 9 (items_count)
-            'branches.name',            // 10
-            'invoices.status',          // 11
-            'invoices.payment_mode',    // 12
-            'invoices.created_at'       // 13 ✅
-        ];
-
+        // Sorting
         if ($request->order) {
-            $orderColumnIndex = $request->order[0]['column'];
+            $columns = [
+                'invoices.id',
+                'invoices.invoice_number',
+                'party_user',
+                'commission_user',
+                'invoices.status',
+                'invoices.sub_total',
+                'invoices.tax',
+                'invoices.total',
+                'invoices.commission_amount',
+                'invoices.branch_id',
+                'invoices.party_amount',
+                'invoices.items',
+                'invoices.created_at',
+                'branches.name'
+            ];
+
+            $orderColumn = $columns[$request->order[0]['column']] ?? 'invoices.created_at';
             $orderDir = $request->order[0]['dir'] ?? 'desc';
-            $orderColumn = $columns[$orderColumnIndex] ?? 'invoices.created_at';
-            $query->orderBy($orderColumn, $orderDir);
-        } else {
-            $query->orderBy('invoices.created_at', 'desc');
+
+            // $query->orderBy($orderColumn, $orderDir);
         }
 
         // Pagination
+
+        // pagination: only when length > 0
         if ($request->length > 0) {
             $query->skip($request->start)->take($request->length);
         }
+
+        $query->orderBy($orderColumn, $orderDir);
 
         $invoices = $query->get();
 
@@ -127,9 +129,19 @@ class SalesReportController extends Controller
             $items = json_decode($invoice->items, true);
             $itemCount = collect($items)->sum('quantity');
 
+            $action = '<div class="d-flex align-items-center list-action">
+            <a class="badge badge-success mr-2" data-toggle="tooltip" data-placement="top" title="View"
+            href="' . url('/view-invoice/' . $invoice->id) . '">' . $invoice->invoice_number . '</a>
+        </div>';
+
+            $photo = '<div class="d-flex align-items-center list-action">
+            <a class="badge badge-success mr-2" onClick="showPhoto(' . ($invoice->id ?? '') . ',\'' . ($invoice->commission_user_id ?? '') . '\',\'' . ($invoice->party_user_id ?? '') . '\',\'' . ($invoice->invoice_number ?? '') . '\')">Show</a>
+        </div>';
+
             $data[] = [
-                'invoice_number' => '<a href="' . url('/view-invoice/' . $invoice->id) . '" class="badge badge-success">' . $invoice->invoice_number . '</a>',
+                'invoice_number' => $action,
                 'status' => $invoice->status,
+                'photo' => $photo,
                 'sub_total' => number_format($invoice->sub_total, 2),
                 'total' => number_format($invoice->total, 2),
                 'commission_amount' => number_format($invoice->commission_amount, 2),
@@ -137,8 +149,8 @@ class SalesReportController extends Controller
                 'party_amount' => number_format($invoice->party_amount, 2),
                 'items_count' => $itemCount,
                 'branch_name' => $invoice->branch_name,
-                'payment_mode' => ($invoice->payment_mode == 'online') ? 'UPI' : $invoice->payment_mode,
-                'created_at' => date('Y-m-d H:i:s', strtotime($invoice->created_at)),
+                'payment_mode' => (!empty($invoice->payment_mode) && $invoice->payment_mode == "online") ? "UPI" : $invoice->payment_mode,
+                'created_at' => Carbon::parse($invoice->created_at)->format('Y-m-d H:i:s'),
                 'party_user' => $invoice->party_user ?? 'N/A',
                 'commission_user' => $invoice->commission_user ?? 'N/A',
             ];
