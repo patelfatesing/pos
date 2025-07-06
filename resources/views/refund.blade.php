@@ -133,17 +133,17 @@
 <table class="table">
     <tr class="total">
         <td class="left">TOTAL:</td>
-        <td class="right">{{ number_format((float)$refund->total_item_price,2 ) }}</td>
+        <td class="right">{{ number_format((float)$invoice->sub_total,2 ) }}</td>
     </tr>
 </table>
 
 <div class="line"></div>
 
 <table class="table">
-    <tr>
+    {{-- <tr>
         <td class="left">Refunded:</td>
         <td class="right">{{ $refund->total_mrp }}</td>
-    </tr>
+    </tr> --}}
     <tr>
         <td class="left">Refunded Items:</td>
         <td class="right">{{ $refund->total_item_qty }}</td>
