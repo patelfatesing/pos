@@ -19,11 +19,11 @@
                                 Close Summary - {{ $branch_name ?? 'Shop' }}
                             </h5>
                         </div>
-                        {{-- @if ($this->showYesterDayShiftTime == false && $this->shiftclosehidecross == false) --}}
+                        @if ($this->showYesterDayShiftTime == false && $this->shiftclosehidecross == false)
                         <button type="button" class="close" wire:click="$set('showModal', false)">
                             <span aria-hidden="true">×</span>
                         </button>
-                        {{-- @endif --}}
+                        @endif
                     </div>
 
                     {{-- Modal Body --}}
