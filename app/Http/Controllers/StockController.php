@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Models\StockTransfer;
 use Illuminate\Support\Str;
 use App\Models\ShiftClosing;
+use App\Models\StockRequestApprove;
 
 class StockController extends Controller
 {
@@ -55,19 +56,19 @@ class StockController extends Controller
      */
     public function storeWarehouse(Request $request)
     {
-
         $validated = $request->validate([
-            'store_id' => 'required|exists:branches,id',
+            // 'store_id' => 'required|exists:branches,id',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
         ], [
-            'store_id.required' => 'Please select the source store.',
+            // 'store_id.required' => 'Please select the source store.',
             'items.required' => 'At least one product is required.',
             'items.*.product_id.required' => 'Please select a product.',
             'items.*.quantity.required' => 'Please enter the quantity.',
             'items.*.quantity.min' => 'Quantity must be at least 1.',
         ]);
+
         DB::beginTransaction();
         $data = User::with('userInfo')
             ->where('users.id', Auth::id())
@@ -76,17 +77,16 @@ class StockController extends Controller
 
         $store_id = $request->store_id;
 
-        $branch_id = $data->userInfo->branch_id;
+        $wh_id = 1;
 
         $stockRequest = StockRequest::create([
             'store_id' => $store_id,
-            'requested_by' => 1,
+            'requested_by' => $wh_id,
             'notes' => $request->notes,
             'requested_at' => now(),
             'created_by' => Auth::id(),
         ]);
 
-        $totalProductCount = 0;
         $totalQuantitySum = 0;
         $uniqueProductIds = [];
         foreach ($request['items']  as $key =>  $item) {
@@ -98,47 +98,35 @@ class StockController extends Controller
                 ->get();
 
             $totalQuantity = (int)$inventories->sum('quantity');
-            if ($totalQuantity < $totalQty) {
-                $errors["items.$key.quantity"] = "Insufficient stock in source store. Available: $totalQuantity";
-            }
+            // if ($totalQuantity < $totalQty) {
+            //     $errors["items.$key.quantity"] = "Insufficient stock in source store. Available: $totalQuantity";
+            // }
             // $branches = $item['branches'] ?? [];
             // $quantities = $item['branch_quantities'] ?? [];
 
-            // Filter out unchecked branches
-            // $branchQuantities = [];
-            // foreach ($branches as $branch => $checked) {
-            //     if (isset($quantities[$branch])) {
-            //         $branchQuantities[$branch] = (int) $quantities[$branch];
-            //     }
-            // }
 
             // Optional: validate that branch total matches or doesn't exceed total
             $sum = $totalQty;
-            // if ($sum > $totalQty) {
-            //     return back()->withErrors(['items' => "Total quantity for product ID $productId is less than sum of branch quantities."])->withInput();
-            // }
 
             // Track unique product and sum quantity
-            // if ($sum > 0) {
             if (!in_array($productId, $uniqueProductIds)) {
                 $uniqueProductIds[] = $productId;
             }
             $totalQuantitySum += $sum;
-            // }
-
-            // foreach ($branches as $branch => $checked) {
-
-            //     $quantity = $item['branch_quantities'][$branch] ?? null;
-
             StockRequestItem::create([
                 'request_to_location_id' => $store_id,
                 'stock_request_id' => $stockRequest->id,
                 'product_id' => $productId,
                 'quantity' => $totalQty
             ]);
-            // }
 
+            $stores = Branch::select('name')->find($wh_id);
         }
+
+        $arr['id'] = (string) $stockRequest->id;
+        $arr['store_id'] = (string) $wh_id;
+        sendNotification('request_stock', $stores->name . ' some Product is stock request', null, $wh_id, json_encode($arr));
+
         if ($request->ajax() && !empty($errors)) {
             DB::rollback();
             return response()->json(['errors' => $errors], 422);
@@ -466,6 +454,9 @@ class StockController extends Controller
                     $action .= "<button class='btn btn-warning btn-sm ml-1 open-approve-modal' data-id='{$requestItem->id}'>Pending</button>";
                     // $action .=   '<a class="btn btn-warning btn-sm ml-1 mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     // href="' . url('/stock/stock-request-view/' . $requestItem->id) . '">Pending</a>';
+                } else {
+                    $action .=   '<a class="btn btn-warning btn-sm ml-1 mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
+                    href="' . url('/stock/view-request/' . $requestItem->id) . '">Approved</a>';
                 }
             }
             $action .= '</div>';
@@ -593,7 +584,6 @@ class StockController extends Controller
     {
         $request->validate([
             'items' => 'required|array',
-            // 'items.*' => 'required|integer|min:1',
         ]);
 
         DB::beginTransaction();
@@ -610,252 +600,160 @@ class StockController extends Controller
                 ->where('status', 'pending')
                 ->first();
 
-            if (!$running_shift) {            // null  ➔ destination store not 
+            if (!$running_shift) {
                 return response()->json(['status' => 'error', 'message' => 'The destination store is not open.']);
             }
 
+            $transferredProductsBySource = [];
 
-            if ($from_store_id == 1) {
-                $arr_low_stock = [];
-
-                foreach ($request->items as $key => $val) {
-                    $to_store_id = $key;
-                    foreach ($val as $product_id => $product_qun) {
-                        // Decrease from warehouse
-                        if (!empty($product_qun)) {
-
-                            $inventories = Inventory::where('product_id', $product_id)->where('store_id', $to_store_id)->orderBy('expiry_date')->get(); // optional: FIFO
-
-                            $totalQuantity = $inventories->sum('quantity');
-
-                            if ($totalQuantity < $product_qun) {
-                                return response()->json([
-                                    'status' => 'error',
-                                    'message' => "Not enough stock for product"
-                                ]);
-                            }
-
-                            $remainingQty = $product_qun;
-
-                            foreach ($inventories as $inventory) {
-                                if ($remainingQty <= 0) break;
-
-                                $deducted = min($inventory->quantity, $remainingQty);
-
-                                // Deduct from warehouse
-                                $inventory->quantity -= $deducted;
-                                $inventory->save();
-
-                                $low_qty_level = Inventory::lowLevelQty($product_id, 1);
-
-                                $total_qty = Inventory::countQty($product_id, 1);
-                                $total_qty = $total_qty + $deducted;
-
-                                if ($total_qty < $low_qty_level) {
-                                    // $arr['id'] = (string) $product_id;
-                                    $arr_llp = (string) $product_id;
-                                }
-
-                                // Add to store inventory
-                                $storeInventory = Inventory::firstOrNew([
-                                    'store_id' => $stockRequest->requested_by,
-                                    'location_id' => $from_store_id,
-                                    'product_id' => $product_id,
-                                    'batch_no' => $inventory->batch_no,
-                                    'expiry_date' => $inventory->expiry_date,
-                                    // 'reorder_level' => $inventory->reorder_level,
-                                    // 'cost_price' => $inventory->cost_price,
-                                    // 'sell_price' => $inventory->sell_price,
-                                ]);
-
-                                $storeInventory->quantity += $deducted;
-                                $storeInventory->save();
-
-                                // $low_qty_level = Inventory::lowLevelQty($product_id, $from_store_id);
-
-                                // $total_qty = Inventory::countQty($product_id, $from_store_id);
-                                // $total_qty = $total_qty - $deducted;
-
-                                // if ($total_qty < $low_qty_level) {
-                                //     $arr_low_stock[$product_id] = $product_id;
-                                // }
-
-                                // Transfer log
-                                $inventoryService = new \App\Services\InventoryService();
-                                $data = User::with('userInfo')
-                                    ->where('users.id', Auth::id())
-                                    ->where('is_deleted', 'no')
-                                    ->firstOrFail();
-
-                                $inventoryService->transferProduct(
-                                    $product_id,
-                                    $inventory->id,
-                                    $from_store_id,
-                                    $stockRequest->requested_by,
-                                    $deducted,
-                                    'warehouse_to_store',
-                                    'store'
-                                );
-
-                                $remainingQty -= $deducted;
-
-                                stockStatusChange($product_id, $key, $product_qun, 'transfer_stock');
-                                stockStatusChange($product_id, $from_store_id, $product_qun, 'add_stock');
-
-                                StockTransfer::create([
-                                    'stock_request_id' => $request->request_id,
-                                    'transfer_number' => $transferNumber,
-                                    'from_branch_id' => $from_store_id,
-                                    'to_branch_id' => $key,
-                                    'product_id' => $product_id,
-                                    'quantity' => $product_qun,
-                                    'status' => 'approved', // or 'completed' depending on flow
-                                    'transfer_by' => Auth::id(),
-                                    'transferred_at' => now(),
-                                ]);
-                            }
-                        } else {
-                            $stockItem = StockRequestItem::where('product_id', $product_id)->where('stock_request_id', $id)->firstOrFail(); // optional: FIFO
+            foreach ($request->items as $to_store_id => $products) {
+                foreach ($products as $product_id => $product_qty) {
+                    if (empty($product_qty)) {
+                        $stockItem = StockRequestItem::where('product_id', $product_id)
+                            ->where('stock_request_id', $id)
+                            ->first();
+                        if ($stockItem) {
                             $stockItem->quantity = 0;
                             $stockItem->save();
                         }
+                        continue;
                     }
-                }
 
-                // if (!empty($arr_low_stock)) {
+                    $inventories = Inventory::where('product_id', $product_id)
+                        ->where('store_id', $to_store_id)
+                        ->orderBy('expiry_date')
+                        ->get();
 
-                //     $arr['product_id'] =  implode(',', array_values($arr_low_stock));
-                //     $arr['store_id'] =  (string) $request->from_store_id;
-
-                //     // sendNotification('low_stock', 'Some products are running low', $request->from_store_id, Auth::id(), json_encode($arr));
-                //     sendNotification('low_stock', 'Some products are running low', null, Auth::id(), json_encode($arr));
-                // }
-            } else {
-
-                $arr_low_stock = [];
-
-                foreach ($request->items as $key => $val) {
-                    foreach ($val as $product_id => $product_qun) {
-                        // Decrease from warehouse
-
-                        if (!empty($product_qun)) {
-
-                            $inventories = Inventory::where('product_id', $product_id)->orderBy('expiry_date')->get(); // optional: FIFO
-
-                            $totalQuantity = $inventories->sum('quantity');
-
-                            if ($totalQuantity < $product_qun) {
-                                return response()->json([
-                                    'status' => 'error',
-                                    'message' => "Not enough stock for product"
-                                ]);
-                            }
-
-                            $remainingQty = $product_qun;
-
-
-                            foreach ($inventories as $inventory) {
-                                if ($remainingQty <= 0) break;
-
-                                $deducted = min($inventory->quantity, $remainingQty);
-
-                                // Deduct from warehouse
-                                $inventory->quantity -= $deducted;
-                                $inventory->save();
-
-                                // Add to store inventory
-                                $storeInventory = Inventory::firstOrNew([
-                                    'store_id' => $stockRequest->requested_by,
-                                    'location_id' => $from_store_id,
-                                    'product_id' => $product_id,
-                                    'batch_no' => $inventory->batch_no,
-                                    'expiry_date' => $inventory->expiry_date,
-                                    // 'reorder_level' => $inventory->reorder_level,
-                                    // 'cost_price' => $inventory->cost_price,
-                                    // 'sell_price' => $inventory->sell_price,
-                                ]);
-
-                                $storeInventory->quantity += $deducted;
-                                $storeInventory->save();
-
-                                // Transfer log
-                                $inventoryService = new \App\Services\InventoryService();
-                                $data = User::with('userInfo')
-                                    ->where('users.id', Auth::id())
-                                    ->where('is_deleted', 'no')
-                                    ->firstOrFail();
-
-                                $inventoryService->transferProduct(
-                                    $product_id,
-                                    $inventory->id,
-                                    $from_store_id,
-                                    $stockRequest->requested_by,
-                                    $deducted,
-                                    'warehouse_to_store',
-                                    'store'
-                                );
-
-                                $remainingQty -= $deducted;
-
-                                // $low_qty_level = Inventory::lowLevelQty($product_id, $from_store_id);
-
-                                // $total_qty = Inventory::countQty($product_id, $from_store_id);
-                                // $total_qty = $total_qty - $deducted;
-
-                                // if ($total_qty < $low_qty_level) {
-                                //     $arr_low_stock[$product_id] = $product_id;
-                                // }
-
-                                stockStatusChange($product_id, $key, $product_qun, 'transfer_stock');
-                                stockStatusChange($product_id, $from_store_id, $product_qun, 'add_stock');
-
-                                StockTransfer::create([
-                                    'stock_request_id' => $request->request_id,
-                                    'transfer_number' => $transferNumber,
-                                    'from_branch_id' => $from_store_id,
-                                    'to_branch_id' => $key,
-                                    'product_id' => $product_id,
-                                    'quantity' => $product_qun,
-                                    'status' => 'approved', // or 'completed' depending on flow
-                                    'transfer_by' => Auth::id(),
-                                    'transferred_at' => now(),
-                                ]);
-                            }
-
-                            // if (!empty($arr_low_stock)) {
-
-                            //     $arr['product_id'] =  implode(',', array_values($arr_low_stock));
-                            //     $arr['store_id'] =  (string) $request->from_store_id;
-
-                            //     sendNotification('low_stock', 'Some products are running low', $request->from_store_id, Auth::id(), json_encode($arr));
-                            //     // sendNotification('low_stock', 'Some products are running low', null, Auth::id(), json_encode($arr));
-                            // }
-                        } else {
-
-                            $stockItem = StockRequestItem::where('product_id', $product_id)->where('stock_request_id', $id)->firstOrFail(); // optional: FIFO
-                            $stockItem->quantity = 0;
-                            $stockItem->save();
-                        }
+                    $totalAvailable = $inventories->sum('quantity');
+                    if ($totalAvailable < $product_qty) {
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => "Not enough stock for product ID: {$product_id}"
+                        ]);
                     }
+
+                    $remainingQty = $product_qty;
+
+                    foreach ($inventories as $inventory) {
+                        if ($remainingQty <= 0) break;
+
+                        $deducted = min($inventory->quantity, $remainingQty);
+
+                        $inventory->quantity -= $deducted;
+                        $inventory->save();
+
+                        $storeInventory = Inventory::firstOrNew([
+                            'store_id' => $stockRequest->requested_by,
+                            'location_id' => $from_store_id,
+                            'product_id' => $product_id,
+                            'batch_no' => $inventory->batch_no,
+                            'expiry_date' => $inventory->expiry_date,
+                        ]);
+                        $storeInventory->quantity += $deducted;
+                        $storeInventory->save();
+                        $remainingQty -= $deducted;
+                    }
+
+                    // Track unique product IDs per destination store
+                    if (!isset($transferredProductsBySource[$to_store_id])) {
+                        $transferredProductsBySource[$to_store_id] = [];
+                    }
+
+                    if (!in_array($product_id, $transferredProductsBySource[$to_store_id])) {
+                        $transferredProductsBySource[$to_store_id][] = $product_id;
+                    }
+
+                    // Save approval info
+                    $stockRequestItem = StockRequestItem::where('product_id', $product_id)
+                        ->where('stock_request_id', $id)
+                        ->first();
+
+                    StockRequestApprove::create([
+                        'stock_request_id' => $id,
+                        'stock_request_item_id' => optional($stockRequestItem)->id,
+                        'product_id' => $product_id,
+                        'source_store_id' => $to_store_id,
+                        'destination_store_id' => $from_store_id,
+                        'approved_quantity' => $product_qty,
+                        'approved_by' => Auth::id(),
+                        'approved_at' => now(),
+                    ]);
+
+                    StockTransfer::create([
+                        'stock_request_id' => $id,
+                        'transfer_number' => $transferNumber,
+                        'from_branch_id' => $from_store_id,
+                        'to_branch_id' => $to_store_id,
+                        'product_id' => $product_id,
+                        'quantity' => $product_qty,
+                        'status' => 'approved',
+                        'transfer_by' => Auth::id(),
+                        'transferred_at' => now(),
+                    ]);
+
+                    $des_shift = ShiftClosing::where('branch_id', $from_store_id)
+                        ->where('status', 'pending')
+                        ->first();
+
+                    stockStatusChange($product_id, $to_store_id, $product_qty, 'transfer_stock', $des_shift->id);
+                    stockStatusChange($product_id, $from_store_id, $product_qty, 'add_stock', $running_shift->id);
                 }
             }
 
-            // if (!emptyArray($arr_llp)) {
-            // $ids =implode(',',$arr_llp);
-            // $arr['product_id'] = (string) $ids;
-            // sendNotification('low_stock', 'Store stock request', null, Auth::id(), json_encode($arr));
-            // }
+            // 🔔 Notify each destination store
+            $notificationData = [
+                'id' => (string) $stockRequest->id,
+                'store_id' => (string) $from_store_id,
+                'type' => 'approved_stock',
+                'req_id' => $id
+            ];
+
+            sendNotification(
+                'approved_stock',
+                'Admin your stock request has been approved',
+                $from_store_id,
+                Auth::id(),
+                json_encode($notificationData)
+            );
+
+            if (!empty($transferredProductsBySource)) {
+                foreach ($transferredProductsBySource as $to_store_id => $productIds) {
+                    // Notify each destination store about the transferred products
+                    $notificationData = [
+                        'id' => (string) $stockRequest->id,
+                        'type' => 'approved_stock',
+                        'req_id' => $id,
+                        'store_id' => (string) $to_store_id,
+                        'products' => implode(',', $productIds),
+                        'from_store' => Branch::find($to_store_id)->name,
+                        'to_store' => Branch::find($from_store_id)->name
+                    ];
+
+                    sendNotification(
+                        'transfer_stock',
+                        'Products have been transferred to your store',
+                        $to_store_id,
+                        Auth::id(),
+                        json_encode($notificationData)
+                    );
+                }
+            }
+
+            // Mark request as approved
             $stockRequest->status = 'approved';
             $stockRequest->approved_by = Auth::id();
             $stockRequest->approved_at = now();
             $stockRequest->save();
 
-            $arr['id'] = (string) $stockRequest->id;
-            // $arr['store_id'] = $branch_id;
-            sendNotification('approved_stock', 'Admin your stock request has been approved', $request->from_store_id, Auth::id(), json_encode($arr));
+            // Optional: log or return the transfer data
+            // Log::info('Transferred Products By Source:', $transferredProductsBySource);
 
             DB::commit();
-            return response()->json(['status' => 'success', 'message' => 'Approved successfully.']);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Approved successfully.',
+                'transferred' => $transferredProductsBySource, // optional for frontend/debug
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
@@ -866,6 +764,33 @@ class StockController extends Controller
     {
         $stockRequest = StockRequest::with(['branch', 'tobranch', 'user', 'items.product'])->findOrFail($id);
         return view('stocks.view', compact('stockRequest'));
+    }
+
+    public function viewRequest($id)
+    {
+
+        $stockRequest = StockRequest::with([
+            'branch',
+            'tobranch',
+            'user',
+            'items.product',
+            'approvals' => function ($q) {
+                $q->with('destinationBranch'); // optional: eager load store name
+            }
+        ])->findOrFail($id);
+
+        // Associate approvals with each product-store
+        $approvedItems = [];
+        foreach ($stockRequest->approvals as $approval) {
+            $approvedItems[] = [
+                'product_id' => $approval->product_id,
+                'destination_store_id' => $approval->destination_store_id,
+                'destination_store_name' => $approval->destinationStore->name ?? '-',
+                'approved_quantity' => $approval->approved_quantity,
+            ];
+        }
+
+        return view('stocks.viewRequest', compact('stockRequest'));
     }
 
     public function stockRequestView($id)
@@ -897,6 +822,62 @@ class StockController extends Controller
         $data['items'] = $storeWiseData;
 
         return view('stocks.stockRequestView', compact('stockRequest', 'data'));
+    }
+
+    public function getStockRequestDetailsApproved(Request $request)
+    {
+        $draw = $request->input('draw', 1);
+        $start = $request->input('start', 0);
+        $length = $request->input('length', 10);
+        $searchValue = $request->input('search.value', '');
+        $orderColumnIndex = $request->input('order.0.column', 0);
+        $orderColumn = $request->input("columns.$orderColumnIndex.data", 'name');
+        $orderDirection = $request->input('order.0.dir', 'asc');
+
+        $stockRequestId = $request->input('stock_request_id');
+
+        // Fetch approved records with relationships
+        $approvals = \App\Models\StockRequestApprove::where('stock_request_id', $stockRequestId)
+            ->with(['product', 'sourceBranch']) // assuming destinationStore() returns store/branch model
+            ->get();
+
+        // Prepare product list
+        $allProducts = $approvals->map(function ($item) {
+            return [
+                'name' => $item->product->name ?? '',
+                'size' => $item->product->size ?? '',
+                'source_store_id' => $item->sourceBranch->name ?? '',
+                'approved_quantity' => $item->approved_quantity ?? 0,
+            ];
+        });
+
+        // Filter by search term (case-insensitive)
+        if (!empty($searchValue)) {
+            $searchValue = strtolower($searchValue);
+            $allProducts = $allProducts->filter(function ($product) use ($searchValue) {
+                return str_contains(strtolower($product['name']), $searchValue) ||
+                    str_contains(strtolower($product['size']), $searchValue) ||
+                    str_contains(strtolower($product['source_store_id']), $searchValue);
+            });
+        }
+
+        $recordsFiltered = $allProducts->count();
+        $recordsTotal = $approvals->count();
+
+        // Sort
+        $allProducts = $allProducts->sortBy([
+            [$orderColumn, $orderDirection === 'asc' ? SORT_ASC : SORT_DESC],
+        ]);
+
+        // Paginate
+        $paginated = $allProducts->slice($start, $length)->values();
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $paginated,
+        ]);
     }
 
     public function getStockRequestDetails(Request $request)
@@ -949,6 +930,154 @@ class StockController extends Controller
             'recordsFiltered' => $recordsFiltered,
             'data' => $paginated,
         ]);
+    }
+
+    public function stockShow($id)
+    {
+        // Load stock request with related branch and product info
+        $stockRequest = StockRequest::with(['branch', 'items.product'])->findOrFail($id);
+
+        // Exclude source/requesting branch from destination list
+        $sourceId = $stockRequest->branch->id;
+
+        $allBranches = Branch::with('shiftClosings:id as shift_id,branch_id')
+            ->select('id', 'name')
+            ->where('id', '!=', $sourceId)
+            ->whereHas('shiftClosings', function ($q) {
+                $q->where('status', 'pending');
+            })
+            ->get()
+            ->keyBy('id');
+
+        $flattened = [];
+
+        foreach ($allBranches as $branchId => $branch) {
+
+            //    dd($branch->shiftClosings->first()?->shift_id);
+            foreach ($stockRequest->items as $resItems) {
+                $productId = $resItems->product_id;
+                $requestedQty = $resItems->quantity ?? 0;
+
+                if ($requestedQty <= 0) continue;
+
+                // Get product name
+                $product = $resItems->product;
+
+                // Check available quantity in current destination branch
+                $inventoryQty = Inventory::where('product_id', $productId)
+                    ->where('store_id', $branchId)
+                    ->value('quantity');
+
+                // Skip if not available
+                if (empty($inventoryQty) || $inventoryQty <= 0) continue;
+
+                $flattened[] = [
+                    'product_id' => $productId,
+                    'product_name' => $product->name ?? 'N/A',
+                    'store_id' => $branchId,
+                    'store_name' => $branch->name,
+                    'requested_qty' => $requestedQty,
+                    'store_ava_quantity' => $inventoryQty,
+                ];
+            }
+        }
+
+        return response()->json([
+            'stockRequest' => [
+                'branch_name' => $stockRequest->branch->name,
+            ],
+            'items_flat' => $flattened,
+            'source_id' => $sourceId
+        ]);
+    }
+
+    public function destroy(StockRequest $stockRequest)
+    {
+        $stockRequest->delete();
+        return redirect()->route('stock-requests.index')->with('success', 'Stock request deleted.');
+    }
+
+    public function storeWarehouse_ori(Request $request)
+    {
+
+        // $validated = $request->validate([
+        //     'items' => 'required|array|min:1',
+        //     'items.*.product_id' => 'required|exists:products,id',
+        //     'items.*.quantity' => 'required|numeric|min:1',
+        //     'items.*.branches' => 'required|array|min:1',
+        //     'items.*.branch_quantities' => 'required|array',
+        //     'notes' => 'nullable|string',
+        // ]);
+
+        $data = User::with('userInfo')
+            ->where('users.id', Auth::id())
+            ->where('is_deleted', 'no')
+            ->firstOrFail();
+
+        $store_id = $request->store_id;
+
+        $branch_id = $data->userInfo->branch_id;
+
+        $stockRequest = StockRequest::create([
+            'store_id' => 1,
+            'requested_by' => $store_id,
+            'notes' => $request->notes,
+            'requested_at' => now(),
+            'created_by' => Auth::id(),
+        ]);
+
+        $totalProductCount = 0;
+        $totalQuantitySum = 0;
+        $uniqueProductIds = [];
+
+        foreach ($validated['items'] as $item) {
+            $productId = $item['product_id'];
+            $totalQty = (int) $item['quantity'];
+            $branches = $item['branches'] ?? [];
+            $quantities = $item['branch_quantities'] ?? [];
+
+            // Filter out unchecked branches
+            $branchQuantities = [];
+            foreach ($branches as $branch => $checked) {
+                if (isset($quantities[$branch])) {
+                    $branchQuantities[$branch] = (int) $quantities[$branch];
+                }
+            }
+
+            // Optional: validate that branch total matches or doesn't exceed total
+            $sum = array_sum($branchQuantities);
+            if ($sum > $totalQty) {
+                return back()->withErrors(['items' => "Total quantity for product ID $productId is less than sum of branch quantities."])->withInput();
+            }
+
+            // Track unique product and sum quantity
+            if ($sum > 0) {
+                if (!in_array($productId, $uniqueProductIds)) {
+                    $uniqueProductIds[] = $productId;
+                }
+                $totalQuantitySum += $sum;
+            }
+
+            foreach ($branches as $branch => $checked) {
+
+                $quantity = $item['branch_quantities'][$branch] ?? null;
+
+                StockRequestItem::create([
+                    'request_to_location_id' => $branch,
+                    'stock_request_id' => $stockRequest->id,
+                    'product_id' => $productId,
+                    'quantity' => $quantity
+                ]);
+            }
+        }
+
+        // 🔄 Update totals
+        $stockRequest->update([
+            'total_product' => count($uniqueProductIds),
+            'total_quantity' => $totalQuantitySum
+        ]);
+
+        return redirect()->route('stock.requestList')->with('success', 'Stock request submitted successfully.');
     }
 
     public function approve_backup(Request $request, $id)
@@ -1044,139 +1173,5 @@ class StockController extends Controller
             DB::rollBack();
             return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
         }
-    }
-
-    public function stockShow($id)
-    {
-
-        $stockRequest = StockRequest::with(['branch', 'items.product'])->findOrFail($id);
-
-        $arr_val = [];
-        $storeWiseData = [];
-
-        foreach ($stockRequest->items as $item) {
-            $storeId = $item->request_to_location_id;
-
-            // Initialize group if not already
-            if (!isset($storeWiseData[$storeId])) {
-                $store = Branch::select('name')->find($storeId);
-
-                $storeWiseData[$storeId] = [
-                    'store_id' => $storeId,
-                    'store_name' => $store?->name ?? 'N/A',
-                    'items' => [],
-                ];
-            }
-
-            // Get inventory quantity
-            $inventory = Inventory::select('quantity')
-                ->where('product_id', $item->product_id)
-                ->where('store_id', $storeId)
-                ->first();
-
-            $storeWiseData[$storeId]['items'][] = [
-                'id' => $item->id,
-                'product_id' => $item->product_id,
-                'store_id' => $storeId,
-                'product_name' => $item->product->name ?? 'N/A',
-                'req_quantity' => $item->quantity,
-                'store_ava_quantity' => $inventory->quantity ?? 0,
-            ];
-        }
-
-        $data['stockRequest']['store_id'] = $stockRequest->branch->id;
-        $data['stockRequest']['branch_name'] = $stockRequest->branch->name;
-        $data['items_by_store'] = $storeWiseData;
-
-        return response()->json($data);
-    }
-
-    public function destroy(StockRequest $stockRequest)
-    {
-        $stockRequest->delete();
-        return redirect()->route('stock-requests.index')->with('success', 'Stock request deleted.');
-    }
-
-    public function storeWarehouse_ori(Request $request)
-    {
-
-        // $validated = $request->validate([
-        //     'items' => 'required|array|min:1',
-        //     'items.*.product_id' => 'required|exists:products,id',
-        //     'items.*.quantity' => 'required|numeric|min:1',
-        //     'items.*.branches' => 'required|array|min:1',
-        //     'items.*.branch_quantities' => 'required|array',
-        //     'notes' => 'nullable|string',
-        // ]);
-
-        $data = User::with('userInfo')
-            ->where('users.id', Auth::id())
-            ->where('is_deleted', 'no')
-            ->firstOrFail();
-
-        $store_id = $request->store_id;
-
-        $branch_id = $data->userInfo->branch_id;
-
-        $stockRequest = StockRequest::create([
-            'store_id' => 1,
-            'requested_by' => $store_id,
-            'notes' => $request->notes,
-            'requested_at' => now(),
-            'created_by' => Auth::id(),
-        ]);
-
-        $totalProductCount = 0;
-        $totalQuantitySum = 0;
-        $uniqueProductIds = [];
-
-        foreach ($validated['items'] as $item) {
-            $productId = $item['product_id'];
-            $totalQty = (int) $item['quantity'];
-            $branches = $item['branches'] ?? [];
-            $quantities = $item['branch_quantities'] ?? [];
-
-            // Filter out unchecked branches
-            $branchQuantities = [];
-            foreach ($branches as $branch => $checked) {
-                if (isset($quantities[$branch])) {
-                    $branchQuantities[$branch] = (int) $quantities[$branch];
-                }
-            }
-
-            // Optional: validate that branch total matches or doesn't exceed total
-            $sum = array_sum($branchQuantities);
-            if ($sum > $totalQty) {
-                return back()->withErrors(['items' => "Total quantity for product ID $productId is less than sum of branch quantities."])->withInput();
-            }
-
-            // Track unique product and sum quantity
-            if ($sum > 0) {
-                if (!in_array($productId, $uniqueProductIds)) {
-                    $uniqueProductIds[] = $productId;
-                }
-                $totalQuantitySum += $sum;
-            }
-
-            foreach ($branches as $branch => $checked) {
-
-                $quantity = $item['branch_quantities'][$branch] ?? null;
-
-                StockRequestItem::create([
-                    'request_to_location_id' => $branch,
-                    'stock_request_id' => $stockRequest->id,
-                    'product_id' => $productId,
-                    'quantity' => $quantity
-                ]);
-            }
-        }
-
-        // 🔄 Update totals
-        $stockRequest->update([
-            'total_product' => count($uniqueProductIds),
-            'total_quantity' => $totalQuantitySum
-        ]);
-
-        return redirect()->route('stock.requestList')->with('success', 'Stock request submitted successfully.');
     }
 }

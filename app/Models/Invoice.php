@@ -90,7 +90,8 @@ class Invoice extends Model
             $latestInvoice = $latestInvoice->where('status', '!=', 'hold');
         }
 
-        $latestInvoice=$latestInvoice->orderBy('invoice_number', 'desc')
+        $latestInvoice=$latestInvoice->orderByRaw("CAST(SUBSTRING_INDEX(invoice_number, '-', -1) AS UNSIGNED) DESC")
+
         ->first();
         
 

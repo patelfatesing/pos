@@ -910,13 +910,13 @@
                                 @if (auth()->user()->hasRole('warehouse'))
                                     <div class="mb-2">
                                         <label for="useCreditCheck">
-                                            <input type="checkbox" wire:click="toggleCheck" />
+                                            <input type="checkbox" wire:model="showCheckbox" wire:click="toggleCheck" />
 
                                             <strong>{{ __('messages.use_credit_to_pay') }}</strong>
                                         </label>
                                     </div>
 
-                                    @if ($useCredit)
+                                     @if ($this->useCredit && $this->showCheckbox)
                                         <div class="d-flex justify-content-between align-items-center mb-2">
                                             <label class="mb-0">
                                                 <strong>{{ __('messages.credit') }}</strong>
@@ -1313,7 +1313,7 @@
                                     <form id="warehouseForm" method="POST"
                                         action="{{ route('stock.warehouse') }}">
                                         @csrf
-                                        <div class="product_items mb-3">
+                                        {{-- <div class="product_items mb-3">
                                             <select name="store_id" id="main_store_id"
                                                 class="form-control d-inline w-50" required>
                                                 <option value="">-- {{ __('messages.select_store') }} --
@@ -1329,7 +1329,7 @@
                                                 <span class="text-danger">{{ $message }}</span>
                                             @enderror
 
-                                        </div>
+                                        </div> --}}
                                         {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
                                         <div id="product-items-wh">
 
@@ -1511,10 +1511,12 @@
                         <!-- Add total in footer -->
                         <tfoot>
                             <tr>
-                                <th class="text-end">{{ __('messages.total') }}</th>
+                                <th class="text-end w-semibold text-end text-center" style="font-size: 1.4rem;">
+                                    {{ __('messages.total') }}</th>
                                 <th>
-                                    <input type="number" class="form-control text-center"
-                                        value="{{ $sum }}" readonly>
+                                    <span class="text-end w-semibold text-center"
+                                        style="font-size: 1.4rem;">
+                                    {{ $sum }}</span>
                                 </th>
                             </tr>
                         </tfoot>
@@ -2753,6 +2755,7 @@
             });
         }
     });
+
     $(document).ready(function() {
         // Event listener for product selection change
         // Event listener for product selection change
@@ -2807,37 +2810,37 @@
 
             if (productId) {
                 // AJAX request to fetch product availability
-                $.ajax({
-                    url: "{{ url('/products/get-availability-branch') }}/" + productId +
-                        "?from=" + encodeURIComponent(from_store_id) +
-                        "&to=" + encodeURIComponent(to_store_id),
-                    type: "GET",
-                    dataType: "json",
-                    success: function(data) {
-                        //console.log(data);
+                // $.ajax({
+                //     url: "{{ url('/products/get-availability-branch') }}/" + productId +
+                //         "?from=" + encodeURIComponent(from_store_id) +
+                //         "&to=" + encodeURIComponent(to_store_id),
+                //     type: "GET",
+                //     dataType: "json",
+                //     success: function(data) {
+                //         //console.log(data);
 
-                        let html = `<div class="row">`;
-                        html += `
-                                <div class="col-md-12">
-                                    <div class="form-check">
-                                        <label class="form-check-label" for="branch_">
-                                             (Available Stock: ${data.to_count})
-                                        </label>
-                                    </div>
-                                </div>
-                               
-                            `;
+                //         let html = `<div class="row">`;
+                //         html += `
+                //                 <div class="col-md-12">
+                //                     <div class="form-check">
+                //                         <label class="form-check-label" for="branch_">
+                //                              (Available Stock: ${data.to_count})
+                //                         </label>
+                //                     </div>
+                //                 </div>
+
+                //             `;
 
 
-                        html += '</div>';
-                        container.html(html);
-                    },
-                    error: function() {
-                        container.html(
-                            '<span class="text-danger">Failed to load availability. Please try again.</span>'
-                        );
-                    }
-                });
+                //         html += '</div>';
+                //         container.html(html);
+                //     },
+                //     error: function() {
+                //         container.html(
+                //             '<span class="text-danger">Failed to load availability. Please try again.</span>'
+                //         );
+                //     }
+                // });
             } else {
                 container.empty(); // Clear container if no product is selected
             }
@@ -2897,6 +2900,7 @@
                 processData: false,
 
                 success: function(response) {
+
                     showAlert('success', 'LiquorHub!', 'Stock submitted successfully!');
                     $('#warehouseStockRequest').modal(
                         'hide'); // Replace with your actual modal ID
@@ -2904,6 +2908,8 @@
                     $('.availability-container-wh').html("");
 
                     form.trigger("reset");
+                    // Reload the current page
+                    location.reload();
                 },
 
                 error: function(xhr) {
@@ -2936,8 +2942,8 @@
                 }
             });
         });
-
     });
+
     document.addEventListener('DOMContentLoaded', function() {
         let cameraStream = {
             modal: document.getElementById('cameraModal'),
@@ -3158,8 +3164,8 @@
 
         cameraStream.init();
     });
-    window.addEventListener('note-unavailable', event => {
 
+    window.addEventListener('note-unavailable', event => {
         Swal.fire({
             title: 'Note Limit Reached',
             text: event.detail[0].message,
@@ -3167,6 +3173,7 @@
             confirmButtonText: 'OK'
         });
     });
+
     window.addEventListener('note-add', event => {
 
         Swal.fire({
@@ -3176,6 +3183,7 @@
             confirmButtonText: 'OK'
         });
     });
+
     window.addEventListener('hold-saved', event => {
         location.reload();
     });

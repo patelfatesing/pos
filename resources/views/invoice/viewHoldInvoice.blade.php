@@ -23,7 +23,8 @@
                                 <h4 class="mb-3">Transaction Invoice Details</h4>
                             </div>
                             <div>
-                                <a href="{{ route('sales.sales.list') }}" class="btn btn-secondary">Back</a>
+                                <a href="{{ route('shift-manage.view', ['id' => $invoice->branch_id, 'shift_id' => $shift_id]) }}"
+                                    class="btn btn-secondary">Back</a>
                             </div>
                         </div>
                     </div>
@@ -271,8 +272,7 @@
     </div>
 
     <!-- Modal -->
-    <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -282,8 +282,8 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <iframe src="{{ asset('storage/invoices/' . $invoice->invoice_number.".pdf") }}" width="100%" height="600px"
-                        frameborder="0"></iframe>
+                    <iframe src="{{ asset('storage/invoices/' . $invoice->invoice_number . '.pdf') }}" width="100%"
+                        height="600px" frameborder="0"></iframe>
                 </div>
             </div>
         </div>

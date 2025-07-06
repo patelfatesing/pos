@@ -16,6 +16,7 @@ class DemandOrder extends Model
         'shipping_date',
         'notes',
         'status',
+        'file_name',
     ];
 
     // 🔥 Relationship: A DemandOrder has many DemandOrderProducts

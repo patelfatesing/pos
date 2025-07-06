@@ -32,9 +32,10 @@ class CustomerCreditLedgerModal extends Component
 
     public function downloadPDF()
     {
-        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+        $branch_id = auth()->user()->userinfo->branch->id ?? "";
         $branch = Branch::find($branch_id);
-        $query = DB::table('credit_histories')
+
+        $baseQuery = DB::table('credit_histories')
             ->leftJoin('invoices', 'credit_histories.invoice_id', '=', 'invoices.id')
             ->leftJoin('party_users', 'credit_histories.party_user_id', '=', 'party_users.id')
             ->leftJoin('branches', 'credit_histories.store_id', '=', 'branches.id')
@@ -45,27 +46,40 @@ class CustomerCreditLedgerModal extends Component
                 'branches.name as branch_name'
             );
 
+        // Apply filters
         if ($this->startDate && $this->endDate) {
-            $query->whereBetween('credit_histories.created_at', [
+            $baseQuery->whereBetween('credit_histories.created_at', [
                 Carbon::parse($this->startDate)->startOfDay(),
                 Carbon::parse($this->endDate)->endOfDay()
             ]);
         }
 
-        if ($this->search) {
-            $query->where(function ($subQuery) {
+        if (!empty($branch_id)) {
+            $baseQuery->where('credit_histories.store_id', $branch_id);
+        }
+
+        if (!empty($this->search)) {
+            $baseQuery->where(function ($subQuery) {
                 $subQuery->where('party_users.first_name', 'like', '%' . $this->search . '%')
-                    ->orWhere('invoices.invoice_number', 'like', '%' . $this->search . '%');
+                    ->orWhere('invoices.invoice_number', 'like', '%' . $this->search . '%')
+                    ->orWhere('branches.name', 'like', '%' . $this->search . '%')
+                    ->orWhere('credit_histories.type', 'like', '%' . $this->search . '%')
+                    ->orWhere('credit_histories.status', 'like', '%' . $this->search . '%');
             });
         }
 
-        $ledgers = $query->orderByDesc('credit_histories.created_at')->get();
+        // Clone for totals
+        $creditQuery = (clone $baseQuery)->where('credit_histories.type', 'credit');
+        $debitQuery = (clone $baseQuery)->where('credit_histories.type', 'debit');
 
-        $totalCredit = $ledgers->sum('credit_amount');
-        $totalDebit = $ledgers->sum('debit_amount');
-
+        $totalCredit = $creditQuery->sum('credit_histories.credit_amount');
+        $totalDebit = $debitQuery->sum('credit_histories.debit_amount');
         $netOutstanding = $totalDebit - $totalCredit;
 
+        // Fetch all results
+        $ledgers = $baseQuery->orderByDesc('credit_histories.created_at')->get();
+
+        // Generate PDF
         $pdf = Pdf::loadView('pdfs.credit-ledger-list', [
             'ledgers' => $ledgers,
             'startDate' => $this->startDate,
@@ -83,9 +97,11 @@ class CustomerCreditLedgerModal extends Component
         }, 'customer_ledger_' . now()->format('Ymd_His') . '.pdf');
     }
 
+
     public function render()
     {
-        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+        $branch_id = auth()->user()->userinfo->branch->id ?? "";
+
         $query = DB::table('credit_histories')
             ->leftJoin('invoices', 'credit_histories.invoice_id', '=', 'invoices.id')
             ->leftJoin('party_users', 'credit_histories.party_user_id', '=', 'party_users.id')
@@ -104,7 +120,6 @@ class CustomerCreditLedgerModal extends Component
                 'invoices.invoice_number',
                 'branches.name as branch_name'
             );
-
 
         if ($this->startDate && $this->endDate) {
             $query->whereBetween('credit_histories.created_at', [
@@ -127,18 +142,22 @@ class CustomerCreditLedgerModal extends Component
             });
         }
 
-        $records = $query->orderBy('credit_histories.created_at', 'desc')->paginate(10);
+        // Clone the query for totals
+        $creditQuery = (clone $query)->where('credit_histories.type', 'credit');
+        $debitQuery = (clone $query)->where('credit_histories.type', 'debit');
 
-        $totalCredit = $records->sum('credit_amount');
-        $totalDebit = $records->sum('debit_amount');
-        // $openingBalance = $user->opening_balance ?? 0;
+        $totalCredit = $creditQuery->sum('credit_histories.credit_amount');
+        $totalDebit = $debitQuery->sum('credit_histories.debit_amount');
         $netOutstanding = $totalDebit - $totalCredit;
+
+        // Fetch paginated records
+        $records = $query->orderBy('credit_histories.created_at', 'desc')->paginate(10);
 
         return view('livewire.customer-credit-ledger-modal', [
             'creditLedgers' => $records,
             'totalCredit' => $totalCredit,
             'totalDebit' => $totalDebit,
-            'netOutstanding' =>$netOutstanding
+            'netOutstanding' => $netOutstanding,
         ]);
     }
 }

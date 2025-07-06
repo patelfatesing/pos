@@ -164,6 +164,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/stock/request-list', [StockController::class, 'show'])->name('stock.requestList');
     Route::post('/stock/get-request-data', [StockController::class, 'getRequestData'])->name('stock.getRequestData');
     Route::get('/stock/view/{id}', [StockController::class, 'view'])->name('stock.view');
+    Route::get('/stock/view-request/{id}', [StockController::class, 'viewRequest'])->name('stock.viewRequest');
     Route::get('/stock/stock-request-view/{id}', [StockController::class, 'stockRequestView'])->name('stock.stock-request-view');
     Route::post('/stock-requests/{id}/approve', [StockController::class, 'approve'])
         ->name('stock-requests.approve');
@@ -174,6 +175,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/stock/store-warehouse', [StockController::class, 'storeWarehouse'])->name('stock.warehouse');
     Route::get('/stock/send-request-list', [StockController::class, 'showSendRequest'])->name('stock.requestSendList');
     Route::post('/stock/get-send-request-data', [StockController::class, 'getSendRequestData'])->name('stock.getSendRequestData');
+    Route::post('/stock/get-stock-request-details-approved', [StockController::class, 'getStockRequestDetailsApproved'])->name('stock.get-stock-request-details-approved');
     Route::post('/stock/get-stock-request-details', [StockController::class, 'getStockRequestDetails'])->name('stock.get-stock-request-details');
 
     // Route::get('/stock/send-store-request-list', [StockController::class, 'showStoreSendRequest'])->name('stock.requestStoreSendList');
@@ -233,8 +235,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/invoice/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show');
     Route::get('/invoice/{invoice}/download', [InvoiceController::class, 'download'])->name('invoice.download');
-    Route::get('/view-invoice/{invoice}', [InvoiceController::class, 'viewInvoice'])->name('invoice.view-invoice');
-    Route::get('/view-hold-invoice/{invoice}', [InvoiceController::class, 'viewHoldInvoice'])->name('invoice.view-hold-invoice');
+    Route::get('/view-invoice/{invoice}/{shift_id?}', [InvoiceController::class, 'viewInvoice'])->name('invoice.view-invoice');
+    Route::get('/view-hold-invoice/{invoice}/{shift_id}', [InvoiceController::class, 'viewHoldInvoice'])->name('invoice.view-hold-invoice');
 
     Route::get('/pack-size/list', [PackSizeController::class, 'index'])->name('packsize.list');
     Route::post('/pack-size/get-data', [PackSizeController::class, 'getData'])->name('packsize.getData');
@@ -359,6 +361,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/demand-order/store', [DemandOrderController::class, 'store'])->name('demand-order.store');
     Route::get('/demand-order/edit/{id}', [DemandOrderController::class, 'edit'])->name('demand-orders.edit');
     Route::get('/demand-order/create-pre', [DemandOrderController::class, 'createPrediction'])->name('demand-order.create.pre');
+    Route::get('/demand-order/view/{id}', [DemandOrderController::class, 'view'])->name('demand-order.view');
 
     // Product Import Routes
     Route::prefix('products')->name('products.')->group(function () {
@@ -375,7 +378,7 @@ Route::middleware('auth')->group(function () {
     Route::post('shift-manage/invoices-by-branch', [ShiftManageController::class, 'getInvoicesByBranch'])->name('shift-manage.invoices-by-branch');
     Route::post('shift-manage/close-shift/{id}', [ShiftManageController::class, 'closeShift'])->name('shift-manage.close-shift');
     Route::get('/shift-manage/{id}', [ShiftManageController::class, 'showPhoto'])->name('shift-manage.photo');
-    Route::get('/shift-manage/view/{id}/{shift_id}', [ShiftManageController::class, 'view'])->name('purchase.shift-manage');
+    Route::get('/shift-manage/view/{id}/{shift_id}', [ShiftManageController::class, 'view'])->name('shift-manage.view');
     Route::get('/shift-manage/stock-details/{id}', [ShiftManageController::class, 'stockDetails'])->name('shift-manage.stock-details');
     Route::get('/shift-manage/print-shift/{id}', [ShiftManageController::class, 'printShift'])->name('purchase.print-shift');
 

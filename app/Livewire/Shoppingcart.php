@@ -332,7 +332,7 @@ class Shoppingcart extends Component
                 $this->useCredit = true;
                 $this->showCheckbox = true;
 
-                $this->creditPay = $this->selectedSalesReturn->creditpay;
+                //$this->creditPay = $this->selectedSalesReturn->creditpay;
                 //$this->creditPay = $this->selectedSalesReturn->creditpay/$sumQty;
 
             } else {
@@ -454,6 +454,7 @@ class Shoppingcart extends Component
                     $this->showBox = true;
                     $this->paymentType = "cash";
                     $this->total = $this->cashAmount;
+                    $this->showCheckbox = false;
                     $this->useCredit = false;
                 } else {
                     $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
@@ -484,6 +485,7 @@ class Shoppingcart extends Component
                         $this->paymentType = "cash";
                         $this->total = $this->cashAmount;
                         $this->useCredit = false;
+                        $this->showCheckbox = false;
                     } else {
                         $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                     }
@@ -502,6 +504,7 @@ class Shoppingcart extends Component
                     $this->paymentType = "cash";
                     $this->total = $this->cashAmount;
                     $this->useCredit = false;
+                    $this->showCheckbox = false;
                 } else {
                     $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                 }
@@ -534,8 +537,9 @@ class Shoppingcart extends Component
                     $this->shoeCashUpi = true;
                     $this->paymentType = "cashupi";
                     $this->headertitle = "Cash + UPI";
-                    $this->useCredit = false;
                     $this->total = $this->cashAmount;
+                    $this->useCredit = false;
+                    $this->showCheckbox = false;
                 } else {
                     $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                 }
@@ -572,8 +576,9 @@ class Shoppingcart extends Component
                         $this->shoeCashUpi = true;
                         $this->paymentType = "cashupi";
                         $this->headertitle = "Cash + UPI";
-                        $this->useCredit = false;
                         $this->total = $this->cashAmount;
+                        $this->useCredit = false;
+                        $this->showCheckbox = false;
                     } else {
                         $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                     }
@@ -596,6 +601,7 @@ class Shoppingcart extends Component
                     $this->paymentType = "cashupi";
                     $this->headertitle = "Cash + UPI";
                     $this->useCredit = false;
+                    $this->showCheckbox = false;
                     $this->total = $this->cashAmount;
                 } else {
                     $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
@@ -628,6 +634,8 @@ class Shoppingcart extends Component
                     $this->headertitle = "UPI";
                     $this->showOnline = true;
                     $this->total = $this->cashAmount;
+                    $this->useCredit = false;
+                    $this->showCheckbox = false;
                 } else {
                     $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                 }
@@ -670,6 +678,8 @@ class Shoppingcart extends Component
                         $this->headertitle = "UPI";
                         $this->showOnline = true;
                         $this->total = $this->cashAmount;
+                        $this->useCredit = false;
+                        $this->showCheckbox = false;
                     } else {
                         $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                     }
@@ -695,6 +705,8 @@ class Shoppingcart extends Component
                     $this->headertitle = "UPI";
                     $this->showOnline = true;
                     $this->total = $this->cashAmount;
+                    $this->useCredit = false;
+                    $this->showCheckbox = false;
                 } else {
                     $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                 }
@@ -766,6 +778,10 @@ class Shoppingcart extends Component
         $this->paymentType = "refund";
         $this->headertitle = "Refund";
         $this->paymentType = "cash";
+        if (!empty($this->selectedSalesReturn->creditpay)) {
+            $this->creditPay = $this->selectedSalesReturn->creditpay;
+            $this->cashAmount = $this->cashAmount - $this->creditPay;
+        }
 
         $this->total = $this->cashAmount;
     }
@@ -781,8 +797,17 @@ class Shoppingcart extends Component
         }
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
         $partyUser = PartyUser::where('status', 'Active')->find($this->selectedPartyUser);
+        if (!empty($this->selectedSalesReturn->creditpay)) {
+            $this->creditPay = $this->selectedSalesReturn->creditpay;
+            $this->cashAmount = $this->cashAmount - $this->creditPay;
+        }
+
         if (!empty($partyUser)) {
-            $partyUser->credit_points += $this->creditPay;
+            $partyUser->left_credit += $this->creditPay;
+             if($partyUser->left_credit >= $partyUser->credit_points){
+                $partyUser->credit_points += $this->creditPay;
+            }
+            $partyUser->use_credit -= $this->creditPay;
             $partyUser->save();
         }
         if (!empty($partyUser->id) && $this->creditPay > 0) {
@@ -791,8 +816,8 @@ class Shoppingcart extends Component
                 [
                     'invoice_id' => $invoice->id,
                     'party_user_id' => $partyUser->id ?? null,
-                    'credit_amount' => $this->creditPay,
-                    'debit_amount' => 0.00,
+                    'debit_amount' => $this->creditPay,
+                    'credit_amount' => 0.00,
                     'total_amount' => $this->cashAmount,
                     'total_purchase_items' => $this->cashAmount,
                     'store_id' => $branch_id,
@@ -1036,7 +1061,15 @@ class Shoppingcart extends Component
         $this->shiftcash = $noteCount;
         $this->availableNotes = json_encode($this->shiftcash);
     }
+    public function LastShift(){
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
+        $yesterDayShift = UserShift::getYesterdayShift(auth()->user()->id, $branch_id, "pending");
+
+        if (!empty($yesterDayShift)) {
+        $this->dispatch('openModalYesterdayShift');
+        } 
+    }
     public function mount()
     {
         //$this->getImages();
@@ -1328,8 +1361,8 @@ class Shoppingcart extends Component
 
         if ($cartItems->count() === 0) {
             // No cart items to clear
-            $this->dispatch('notiffication-error', ['message' => 'No cart data to void.']);
-            return;
+           // $this->dispatch('notiffication-error', ['message' => 'No cart data to void.']);
+            //return;
         }
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
@@ -1344,10 +1377,12 @@ class Shoppingcart extends Component
             InvoiceHistory::logFromInvoice($resumeInv, 'Void Sales', auth()->id());
             $resumeInv->delete();
         }
-
+        $this->dispatch('resetHoldPic');
+        $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'useCredit', 'showCheckbox', 'roundedTotal', 'removeCrossHold', 'cashNotes');
+        session()->forget(['current_party_id', 'current_commission_id']);
 
         // Reset search-related properties
-        $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount', 'selectedPartyUser', 'selectedCommissionUser', 'removeCrossHold');
+        // $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount', 'selectedPartyUser', 'selectedCommissionUser', 'removeCrossHold');
 
         // Dispatch browser event or Livewire event
         $this->dispatch('notiffication-sucess', ['message' => 'Your transaction has been cleared.']);
@@ -2662,7 +2697,11 @@ class Shoppingcart extends Component
         $partyUser = PartyUser::where('status', 'Active')->find($this->selectedPartyUser);
         if (!empty($partyUser)) {
             $partyUser->left_credit += $this->creditPay;
-            $partyUser->use_credit += $this->creditPay;
+            if($partyUser->left_credit >= $partyUser->credit_points){
+                $partyUser->credit_points += $this->creditPay;
+            }
+            $partyUser->use_credit -= $this->creditPay;
+
             $partyUser->save();
         }
         $cartitems = $this->cartitems;
@@ -2843,8 +2882,8 @@ class Shoppingcart extends Component
                 [
                     'invoice_id' => $invoice->id,
                     'party_user_id' => $partyUser->id ?? null,
-                    'credit_amount' => $this->creditPay,
-                    'debit_amount' => 0.00,
+                    'debit_amount' => $this->creditPay,
+                    'credit_amount' => 0.00,
                     'total_amount' => $this->cashAmount,
                     'total_purchase_items' => $this->cashAmount,
                     'store_id' => $branch_id,

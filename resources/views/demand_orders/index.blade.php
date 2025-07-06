@@ -16,8 +16,8 @@
                             <div>
                                 <h4 class="mb-3">Demand Order List</h4>
                             </div>
-                            <a href="{{ route('purchase.create') }}" class="btn btn-primary add-list">
-                                <i class="las la-plus mr-3"></i>Add New Demand Order
+                            <a href="{{ route('demand-order.step1') }}" class="btn btn-primary add-list">
+                                <i class="las la-plus mr-3"></i>Add Demand Order
                             </a>
                         </div>
                     </div>
@@ -26,28 +26,34 @@
                             <table class="table data-tables table-striped">
                                 <thead>
                                     <tr>
-                                        <th>PO Number</th>
                                         <th>Vendor</th>
                                         <th>Purchase Date</th>
+                                        <th>Shipping Date</th>
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($demandOrders as $order)
-                                    <tr>
-                                        <td>{{ $order->purchase_order_no }}</td>
-                                        <td>{{ $order->vendor->name }}</td>
-                                        <td>{{ $order->purchase_date }}</td>
-                                        <td>{{ ucfirst($order->status) }}</td>
-                                        <td>
-                                            <a href="{{ route('demand_orders.show', $order->id) }}" class="btn btn-info btn-sm">View</a>
-                                        </td>
-                                    </tr>
+                                    @foreach ($demandOrders as $order)
+                                        <tr>
+                                            <td>{{ $order->vendor->name }}</td>
+                                            <td>{{ $order->purchase_date }}</td>
+                                            <td>{{ $order->shipping_date }}</td>
+                                            <td>{{ ucfirst($order->status) }}</td>
+                                            <td>
+                                                <button class="btn btn-warning btn-sm"
+                                                    onclick="openPDF('{{ asset('storage/demand/' . $order->file_name) }}')"
+                                                    data-toggle="modal" data-target="#pdfModal">
+                                                    <i class="las la-file-pdf"></i> View File
+                                                    </button>
+                                                    <a href="{{ route('demand-order.view', $order->id) }}"
+                                                        class="btn btn-info btn-sm">View</a>
+                                            </td>
+                                        </tr>
                                     @endforeach
                                 </tbody>
                             </table>
-                        
+
                         </div>
                     </div>
                 </div>
@@ -55,8 +61,26 @@
         </div>
     </div>
     <!-- Wrapper End -->
+    <!-- Modal -->
+    <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">File Preview</h5>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <iframe id="pdfIframe" src="" width="100%" height="600px" frameborder="0"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
+        function openPDF(fileUrl) {
+            $('#pdfIframe').attr('src', fileUrl);
+        }
+
         $(document).ready(function() {
             $.ajaxSetup({
                 headers: {
@@ -98,7 +122,7 @@
                         searchable: false
                     }
                 ],
-                
+
                 aoColumnDefs: [{
                     bSortable: false,
                     aTargets: [4] // make "action" column unsortable

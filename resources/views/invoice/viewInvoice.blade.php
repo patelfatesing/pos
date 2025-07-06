@@ -23,7 +23,12 @@
                                 <h4 class="mb-3">Transaction Invoice Details</h4>
                             </div>
                             <div>
-                                <a href="{{ route('sales.sales.list') }}" class="btn btn-secondary">Back</a>
+                                @if (!empty($shift_id))
+                                    <a href="{{ route('shift-manage.view', ['id' => $invoice->branch_id, 'shift_id' => $shift_id]) }}"
+                                        class="btn btn-secondary">Back</a>
+                                @else
+                                    <a href="{{ route('sales.sales.list') }}" class="btn btn-secondary">Back</a>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -49,8 +54,7 @@
                                         </button>
                                     @endif
 
-                                    <button class="btn btn-primary-dark mr-2" data-toggle="modal"
-                                        data-target="#pdfModal">
+                                    <button class="btn btn-primary-dark mr-2" data-toggle="modal" data-target="#pdfModal">
                                         <i class="las la-print"></i>View Invoice
                                     </button>
                                     <a href="{{ route('invoice.download', $invoice->id) }}" class="btn btn-primary-dark">
@@ -306,8 +310,8 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <iframe src="{{ asset('storage/invoices/' . $invoice->invoice_number.".pdf") }}" width="100%" height="600px"
-                        frameborder="0"></iframe>
+                    <iframe src="{{ asset('storage/invoices/' . $invoice->invoice_number . '.pdf') }}" width="100%"
+                        height="600px" frameborder="0"></iframe>
                 </div>
             </div>
         </div>
