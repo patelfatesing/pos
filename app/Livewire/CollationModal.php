@@ -346,7 +346,7 @@ class CollationModal extends Component
             });
         }
 
-        $partyUsers = $query->paginate(10);
+        $partyUsers = $query->orderBy('use_credit', 'desc')->paginate(10);
 
         return view('livewire.collation-modal', [
             'partyUsers' => $partyUsers
