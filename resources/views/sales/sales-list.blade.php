@@ -95,114 +95,152 @@
 @endsection
 
 @section('scripts')
-<script>
-    $(document).ready(function() {
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
+    <script>
+        $(document).ready(function() {
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
 
-        let table = $('#invoice_table').DataTable({
-            scrollX: true,
-            responsive: true,
-            processing: true,
-            serverSide: true,
-            autoWidth: false,
-            order: [[1, 'desc']],
-            dom: 'Blfrtip',
-            lengthMenu: [
-                [10, 25, 50, 100, -1],
-                [10, 25, 50, 100, "All"]
-            ],
-            buttons: [
-                {
-                    extend: 'excelHtml5',
-                    text: 'Export Excel',
-                    className: 'btn btn-sm btn-outline-success',
-                    title: 'Transaction Report',
-                    filename: 'transaction_report_excel',
-                    exportOptions: { columns: ':visible' }
+            let table = $('#invoice_table').DataTable({
+                scrollX: true,
+                responsive: true,
+                processing: true,
+                serverSide: true,
+                autoWidth: false,
+                order: [
+                    [13, 'desc']
+                ], // created_at column
+                dom: 'Blfrtip',
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                buttons: [{
+                        extend: 'excelHtml5',
+                        text: 'Export Excel',
+                        className: 'btn btn-sm btn-outline-success',
+                        title: 'Transaction Report',
+                        filename: 'transaction_report_excel',
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: 'Export PDF',
+                        className: 'btn btn-sm btn-outline-danger',
+                        title: 'Transaction Report',
+                        filename: 'transaction_report_pdf',
+                        orientation: 'landscape',
+                        pageSize: 'A4',
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    }
+                ],
+                ajax: {
+                    url: '{{ url('sales/get-data') }}',
+                    type: 'POST',
+                    data: function(d) {
+                        d.start_date = $('#start_date').val();
+                        d.end_date = $('#end_date').val();
+                        d.branch_id = $('#branch_id').val();
+                    }
                 },
-                {
-                    extend: 'pdfHtml5',
-                    text: 'Export PDF',
-                    className: 'btn btn-sm btn-outline-danger',
-                    title: 'Transaction Report',
-                    filename: 'transaction_report_pdf',
-                    orientation: 'landscape',
-                    pageSize: 'A4',
-                    exportOptions: { columns: ':visible' }
+                columns: [{
+                        data: null,
+                        render: (data, type, row, meta) => meta.row + 1
+                    }, // index 0
+                    {
+                        data: 'invoice_number'
+                    }, // 1
+                    {
+                        data: 'party_user'
+                    }, // 2
+                    {
+                        data: 'commission_user'
+                    }, // 3
+                    {
+                        data: 'commission_amount'
+                    }, // 4
+                    {
+                        data: 'party_amount'
+                    }, // 5
+                    {
+                        data: 'creditpay'
+                    }, // 6
+                    {
+                        data: 'sub_total'
+                    }, // 7
+                    {
+                        data: 'total'
+                    }, // 8
+                    {
+                        data: 'items_count'
+                    }, // 9
+                    {
+                        data: 'branch_name'
+                    }, // 10
+                    {
+                        data: 'status'
+                    }, // 11
+                    {
+                        data: 'payment_mode'
+                    }, // 12
+                    {
+                        data: 'created_at'
+                    } // 13 ✅ default sort column
+                ],
+                footerCallback: function(row, data) {
+                    const api = this.api();
+                    const intVal = i => typeof i === 'string' ? parseFloat(i.replace(/[₹,]/g, '')) ||
+                        0 : (typeof i === 'number' ? i : 0);
+                    let commission = 0,
+                        party = 0,
+                        credit = 0,
+                        subtotal = 0,
+                        total = 0,
+                        items = 0;
+                    data.forEach(row => {
+                        commission += intVal(row.commission_amount);
+                        party += intVal(row.party_amount);
+                        credit += intVal(row.creditpay);
+                        subtotal += intVal(row.sub_total);
+                        total += intVal(row.total);
+                        items += intVal(row.items_count);
+                    });
+                    $(api.column(4).footer()).html('₹' + commission.toFixed(2));
+                    $(api.column(5).footer()).html('₹' + party.toFixed(2));
+                    $(api.column(6).footer()).html('₹' + credit.toFixed(2));
+                    $(api.column(7).footer()).html('₹' + subtotal.toFixed(2));
+                    $(api.column(8).footer()).html('₹' + total.toFixed(2));
+                    $(api.column(9).footer()).html(items);
                 }
-            ],
-            ajax: {
-                url: '{{ url('sales/get-data') }}',
-                type: 'POST',
-                data: function(d) {
-                    d.start_date = $('#start_date').val();
-                    d.end_date = $('#end_date').val();
-                    d.branch_id = $('#branch_id').val();
+            });
+
+            $('#storeSearch').on('click', function() {
+                table.draw();
+            });
+        });
+
+        const salesImgViewBase = "{{ url('sales-img-view') }}";
+
+        function showPhoto(id, commission_user_id = '', party_user_id = '', invoice_no = '') {
+            const url =
+                `${salesImgViewBase}/${id}?commission_user_id=${commission_user_id}&party_user_id=${party_user_id}&invoice_no=${invoice_no}`;
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function(response) {
+                    $('#salesCustPhotoModalContent').html(response);
+                    $('#salesCustPhotoShowModal').modal('show');
+                },
+                error: function() {
+                    alert('Photos not found.');
                 }
-            },
-            columns: [
-                { data: null, render: (data, type, row, meta) => meta.row + 1 },
-                { data: 'invoice_number', name: 'invoice_number' },
-                { data: 'party_user', name: 'party_user' },
-                { data: 'commission_user', name: 'commission_user' },
-                { data: 'commission_amount', name: 'commission_amount', render: data => '₹' + parseFloat(data.replace(/,/g, '') || 0).toFixed(2) },
-                { data: 'party_amount', name: 'party_amount', render: data => '₹' + parseFloat(data.replace(/,/g, '') || 0).toFixed(2) },
-                { data: 'creditpay', name: 'creditpay', render: data => '₹' + parseFloat(data.replace(/,/g, '') || 0).toFixed(2) },
-                { data: 'sub_total', name: 'sub_total', render: data => '₹' + parseFloat(data.replace(/,/g, '') || 0).toFixed(2) },
-                { data: 'total', name: 'total', render: data => '₹' + parseFloat(data.replace(/,/g, '') || 0).toFixed(2) },
-                { data: 'items_count', name: 'items_count' },
-                { data: 'branch_name', name: 'branch_name' },
-                { data: 'status', name: 'status' },
-                { data: 'payment_mode', name: 'payment_mode' },
-                { data: 'created_at', name: 'created_at' }
-            ],
-            footerCallback: function(row, data) {
-                const api = this.api();
-                const intVal = i => typeof i === 'string' ? parseFloat(i.replace(/[₹,]/g, '')) || 0 : (typeof i === 'number' ? i : 0);
-
-                let commission = 0, party = 0, credit = 0, subtotal = 0, total = 0, items = 0;
-
-                data.forEach(row => {
-                    commission += intVal(row.commission_amount);
-                    party += intVal(row.party_amount);
-                    credit += intVal(row.creditpay);
-                    subtotal += intVal(row.sub_total);
-                    total += intVal(row.total);
-                    items += intVal(row.items_count);
-                });
-
-                $(api.column(4).footer()).html('₹' + commission.toFixed(2));
-                $(api.column(5).footer()).html('₹' + party.toFixed(2));
-                $(api.column(6).footer()).html('₹' + credit.toFixed(2));
-                $(api.column(7).footer()).html('₹' + subtotal.toFixed(2));
-                $(api.column(8).footer()).html('₹' + total.toFixed(2));
-                $(api.column(9).footer()).html(items);
-            }
-        });
-
-        $('#storeSearch').on('click', function() {
-            table.draw();
-        });
-    });
-
-    const salesImgViewBase = "{{ url('sales-img-view') }}";
-    function showPhoto(id, commission_user_id = '', party_user_id = '', invoice_no = '') {
-        const url = `${salesImgViewBase}/${id}?commission_user_id=${commission_user_id}&party_user_id=${party_user_id}&invoice_no=${invoice_no}`;
-        $.ajax({
-            url: url,
-            type: 'GET',
-            success: function(response) {
-                $('#salesCustPhotoModalContent').html(response);
-                $('#salesCustPhotoShowModal').modal('show');
-            },
-            error: function() {
-                alert('Photos not found.');
-            }
-        });
-    }
-</script>
+            });
+        }
+    </script>
 @endsection

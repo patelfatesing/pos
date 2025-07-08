@@ -129,13 +129,22 @@
                 locale: {
                     format: 'YYYY-MM-DD'
                 },
+                autoUpdateInput: true,
                 ranges: {
                     'Today': [moment(), moment()],
                     'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
                     'Last 7 Days': [moment().subtract(6, 'days'), moment()],
                     'This Month': [moment().startOf('month'), moment().endOf('month')]
                 }
-            }, refreshData);
+            });
+
+            // ✅ Trigger only when Apply is clicked
+            $('#reportrange').on('apply.daterangepicker', function(ev, picker) {
+                $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format(
+                    'YYYY-MM-DD'));
+                refreshData();
+            });
+
 
             let table;
 
@@ -205,7 +214,7 @@
                             className: 'text-end'
                         },
                         {
-                            data: 'out_qty',
+                            data: 'sold_stock',
                             render: d => parseInt(d || 0),
                             className: 'text-end'
                         },

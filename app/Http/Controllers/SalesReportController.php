@@ -81,7 +81,8 @@ class SalesReportController extends Controller
                     ->orWhere('invoices.status', 'like', "%{$searchValue}%")
                     ->orWhere('branches.name', 'like', "%{$searchValue}%")
                     ->orWhere('party_users.first_name', 'like', "%{$searchValue}%")
-                    ->orWhere('commission_users.first_name', 'like', "%{$searchValue}%");
+                    ->orWhere('commission_users.first_name', 'like', "%{$searchValue}%")
+                    ->orWhere('invoices.items', 'like', "%{$searchValue}%");
             });
         }
 
@@ -478,6 +479,7 @@ class SalesReportController extends Controller
                 DB::raw('COALESCE(SUM(daily_product_stocks.added_stock), 0) as in_qty'),
                 DB::raw('COALESCE(SUM(daily_product_stocks.transferred_stock), 0) + COALESCE(SUM(daily_product_stocks.sold_stock), 0) as out_qty'),
                 'inventories.quantity as all_qty',
+                DB::raw('COALESCE(SUM(daily_product_stocks.sold_stock), 0) as sold_stock'),
                 DB::raw('inventories.quantity * products.cost_price as all_price')
             )
                 ->join('products', 'inventories.product_id', '=', 'products.id')
