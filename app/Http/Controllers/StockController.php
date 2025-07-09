@@ -448,12 +448,12 @@ class StockController extends Controller
             $action = '<div class="d-flex align-items-center list-action">
                     <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="' . url('/stock/view/' . $requestItem->id) . '"><i class="ri-eye-line mr-0"></i></a>';
-
+            
             if (in_array(session('role_name'), ['admin', 'warehouse'])) {
                 if ($requestItem->status === 'pending') {
-                    $action .= "<button class='btn btn-warning btn-sm ml-1 open-approve-modal' data-id='{$requestItem->id}'>Pending</button>";
-                    // $action .=   '<a class="btn btn-warning btn-sm ml-1 mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                    // href="' . url('/stock/stock-request-view/' . $requestItem->id) . '">Pending</a>';
+                    // $action .= "<button class='btn btn-warning btn-sm ml-1 open-approve-modal' data-id='{$requestItem->id}'>Pending</button>";
+                    $action .=   '<a class="btn btn-warning btn-sm ml-1 mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
+                    href="' . url('/stock-requests/popup-details/' . $requestItem->id) . '">Pending</a>';
                 } else {
                     $action .=   '<a class="btn btn-warning btn-sm ml-1 mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="' . url('/stock/view-request/' . $requestItem->id) . '">Approved</a>';
@@ -582,6 +582,8 @@ class StockController extends Controller
 
     public function approve(Request $request, $id)
     {
+
+        // dd($request->all());
         $request->validate([
             'items' => 'required|array',
         ]);
@@ -749,11 +751,7 @@ class StockController extends Controller
             // Log::info('Transferred Products By Source:', $transferredProductsBySource);
 
             DB::commit();
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Approved successfully.',
-                'transferred' => $transferredProductsBySource, // optional for frontend/debug
-            ]);
+            return redirect()->route('stock.requestList')->with('success', 'Stock request has beeb Approved successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
@@ -936,11 +934,9 @@ class StockController extends Controller
     {
         // Load stock request with related branch and product info
         $stockRequest = StockRequest::with(['branch', 'items.product'])->findOrFail($id);
-
-        // Exclude source/requesting branch from destination list
         $sourceId = $stockRequest->branch->id;
 
-        $allBranches = Branch::with('shiftClosings:id as shift_id,branch_id')
+        $allBranches = Branch::with('shiftClosings:id,branch_id')
             ->select('id', 'name')
             ->where('id', '!=', $sourceId)
             ->whereHas('shiftClosings', function ($q) {
@@ -952,23 +948,16 @@ class StockController extends Controller
         $flattened = [];
 
         foreach ($allBranches as $branchId => $branch) {
-
-            //    dd($branch->shiftClosings->first()?->shift_id);
             foreach ($stockRequest->items as $resItems) {
                 $productId = $resItems->product_id;
                 $requestedQty = $resItems->quantity ?? 0;
-
                 if ($requestedQty <= 0) continue;
 
-                // Get product name
                 $product = $resItems->product;
-
-                // Check available quantity in current destination branch
                 $inventoryQty = Inventory::where('product_id', $productId)
                     ->where('store_id', $branchId)
                     ->value('quantity');
 
-                // Skip if not available
                 if (empty($inventoryQty) || $inventoryQty <= 0) continue;
 
                 $flattened[] = [
@@ -982,13 +971,7 @@ class StockController extends Controller
             }
         }
 
-        return response()->json([
-            'stockRequest' => [
-                'branch_name' => $stockRequest->branch->name,
-            ],
-            'items_flat' => $flattened,
-            'source_id' => $sourceId
-        ]);
+        return view('stocks.requestView', compact('stockRequest', 'flattened', 'sourceId'));
     }
 
     public function destroy(StockRequest $stockRequest)

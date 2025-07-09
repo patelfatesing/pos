@@ -27,6 +27,7 @@ use App\Models\PartyCustomerProductsPrice;
 use App\Models\CommissionUserImage;
 use App\Models\PartyUserImage;
 use App\Models\DailyProductStock;
+use App\Models\ExpenseCategory;
 use Illuminate\Support\Facades\Storage;
 
 class Shoppingcart extends Component
@@ -45,11 +46,7 @@ class Shoppingcart extends Component
     public $partImsgs = [];
     public $shift;
     public $shiftcash;
-    public  $narrations = [
-        'Personal Expenses',
-        'Travel Expenses',
-        'Other'
-    ];
+    public  $narrations = [];
     public $errorInCredit = false;
     public $changeAmount = 0;
     public $showBox = false;
@@ -1235,6 +1232,7 @@ class Shoppingcart extends Component
             
             $this->partyAmount = $partyCredit;
         }
+
         $current_commission_id = session('current_commission_id');
         if (!empty($current_commission_id)) {
 
@@ -1263,7 +1261,6 @@ class Shoppingcart extends Component
                 ]);
             }
         }
-
 
         $this->shift = $currentShift = UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "pending"])->first();
         //
@@ -1354,6 +1351,7 @@ class Shoppingcart extends Component
                 }
             }
         }
+
         $this->shiftcash = $noteCount;
         $this->availableNotes = json_encode($this->shiftcash);
         //$this->checkTime();
@@ -1413,6 +1411,9 @@ class Shoppingcart extends Component
         //     ->whereDate('date', Carbon::today())
         //     ->get();
 
+         $this->narrations = ExpenseCategory::where('status', 1)
+        ->pluck('name', 'id')  // assuming the column name is `name`
+        ->toArray();
 
         foreach ($this->noteDenominations as $index => $denomination) {
             $this->cashNotes[$index][$denomination] = ['in' => 0, 'out' => 0];

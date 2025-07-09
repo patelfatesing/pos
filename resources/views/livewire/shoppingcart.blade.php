@@ -218,7 +218,6 @@
                                                 wire:click="decrementQty({{ $item->id }})">−</button>
                                             <div class="relative">
                                                 <input id="numberInput-{{ $item->id }}" type="number"
-                                                    
                                                     class="custom-input form-control text-center number-input"
                                                     wire:model.lazy="quantities.{{ $item->id }}"
                                                     wire:keydown="updateQty({{ $item->id }})"
@@ -910,13 +909,14 @@
                                 @if (auth()->user()->hasRole('warehouse'))
                                     <div class="mb-2">
                                         <label for="useCreditCheck">
-                                            <input type="checkbox" wire:model="showCheckbox" wire:click="toggleCheck" />
+                                            <input type="checkbox" wire:model="showCheckbox"
+                                                wire:click="toggleCheck" />
 
                                             <strong>{{ __('messages.use_credit_to_pay') }}</strong>
                                         </label>
                                     </div>
 
-                                     @if ($this->useCredit && $this->showCheckbox)
+                                    @if ($this->useCredit && $this->showCheckbox)
                                         <div class="d-flex justify-content-between align-items-center mb-2">
                                             <label class="mb-0">
                                                 <strong>{{ __('messages.credit') }}</strong>
@@ -1196,11 +1196,17 @@
                                             class="form-label">{{ __('messages.select_reason_for_withdrawal') }}</label>
                                         <select name="narration" id="narration" class="form-control" required>
                                             <option value="">-- {{ __('messages.select_reason') }} --</option>
-                                            @foreach ($narrations as $narration)
-                                                <option value="{{ $narration }}">{{ $narration }}</option>
+                                            @foreach ($narrations as $id => $name)
+                                                <option value="{{ $id }}">{{ $name }}</option>
                                             @endforeach
                                         </select>
-
+                                    </div>
+                                    {{-- Add this new textarea field below --}}
+                                    <div class="mb-3">
+                                        <label for="withdraw_notes"
+                                            class="form-label">{{ __('messages.notes') }}</label>
+                                        <textarea name="withdraw_notes" id="withdraw_notes" class="form-control" style="height: 70px !important;" rows="4"
+                                            placeholder="{{ __('messages.notes') }}"></textarea>
                                     </div>
 
                                     <div class="text-right">
@@ -1513,10 +1519,9 @@
                             <tr>
                                 <th class="text-end w-semibold text-end text-center" style="font-size: 1.4rem;">
                                     {{ __('messages.total') }}</th>
-                                <th class="text-end w-semibold text-center"
-                                        style="font-size: 1.4rem;">
-                                    <span >
-                                    {{ $sum }}</span>
+                                <th class="text-end w-semibold text-center" style="font-size: 1.4rem;">
+                                    <span>
+                                        {{ $sum }}</span>
                                 </th>
                             </tr>
                         </tfoot>
@@ -2460,53 +2465,18 @@
 
 
     let itemIndex1 = 1;
-    // document.getElementById('add-item-wh').addEventListener('click', function() {
-    //      // Clone the first item-row
-    //         const row = document.querySelector('.item-row-wh').cloneNode(true);
 
-    //         // Update the name attributes for the cloned row
-    //         row.querySelectorAll('select, input').forEach(el => {
-    //             const name = el.getAttribute('name');
-    //             const updatedName = name.replace(/\[\d+\]/, `[${itemIndex}]`);
-    //             el.setAttribute('name', updatedName);
-
-    //             // Clear the value for inputs
-    //             if (el.tagName === 'INPUT') el.value = '';
-    //         });
-
-    //         // Clear the availability-container for the cloned row
-    //         const container = row.querySelector('.availability-container-wh');
-    //         container.innerHTML = '';
-
-    //         // Append the cloned row to the product-items container
-    //         document.getElementById('product-items').appendChild(row);
-
-    //         // Increment the item index
-    //         itemIndex++;
-    // });
     document.getElementById('add-item-wh').addEventListener('click', function() {
-        const template = `
-                <div class="row item-row-wh product_items mb-3">
-                     <div class="col-md-4">
-                        <select name="items[${itemIndex}][product_id]" class="form-control  product-select">
-                                    <option value="">Select Product</option>
-                                    @foreach ($products as $product)
-                                        <option value="{{ $product->id }}">{{ $product->name }} ({{ $product->sku }})</option>
-                                    @endforeach
-                                </select>
-                     </div>
-                     <div class="col-md-4">
-                        <input type="number" name="items[${itemIndex}][quantity]" class="form-control  ms-2" placeholder="Qty" min="1">
-                     </div>
-                     <div class="col-md-4">
-                        <button type="button" class="btn btn-danger remove-item-wh">X</button>
-                        </div>
-                    <div class="availability-container-wh mt-2 small text-muted"></div>
-                </div>
-            `;
 
-        document.getElementById('product-items-wh').insertAdjacentHTML('beforeend', template);
-        itemIndex++;
+         const row = document.querySelector('.item-row-wh').cloneNode(true);
+        row.querySelectorAll('select, input').forEach(el => {
+            const name = el.getAttribute('name');
+            const updatedName = name.replace(/\[\d+\]/, `[${itemIndex}]`);
+            el.setAttribute('name', updatedName);
+            if (el.tagName === 'INPUT') el.value = '';
+        });
+        document.getElementById('product-items-wh').appendChild(row);
+        itemIndex++;    
     });
 
     // document.addEventListener('DOMContentLoaded', function() {

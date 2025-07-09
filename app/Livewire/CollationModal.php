@@ -170,6 +170,10 @@ class CollationModal extends Component
 
             $collectedAmount = $totalIn - $totalOut;
 
+            if (!empty($this->upiAmount)) {
+                $collectedAmount = $collectedAmount + $this->upiAmount;
+            }
+
             if ($collectedAmount <= 0) {
                 $this->dispatch('notiffication-error', ['message' => 'Collection amount must be greater than zero.']);
 

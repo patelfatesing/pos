@@ -109,6 +109,9 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                @php
+                                    $totalQty = $stockTransfer->sum('approved_quantity');
+                                @endphp
                                 @foreach ($stockTransfer as $index => $item)
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
@@ -125,6 +128,15 @@
                                     </tr>
                                 @endif
                             </tbody>
+                            @if ($stockTransfer->isNotEmpty())
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="3" class="text-end">Total:</th>
+                                        <th>{{ $totalQty }}</th>
+                                        <th></th>
+                                    </tr>
+                                </tfoot>
+                            @endif
                         </table>
                     @else
                         <table class="table table-bordered mb-0">
