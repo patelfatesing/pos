@@ -16,6 +16,7 @@ class CreditHistory extends Model
         'party_user_id',
         'store_id',
         'created_by',
-        'type'
+        'type',
+        'transaction_kind',
     ];
 }

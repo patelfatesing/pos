@@ -317,6 +317,7 @@ class CollationModal extends Component
                 //'total_purchase_items' => $collectedAmount,
                 'store_id' => $branch_id,
                 'type' => 'debit',
+                'transaction_kind' => 'collact_credit',
                 'status' => 'paid',
                 'created_by' => auth()->id(),
             ]
