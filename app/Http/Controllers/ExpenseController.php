@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class ExpenseController extends Controller
 {
@@ -32,22 +33,29 @@ class ExpenseController extends Controller
             $orderDirection = 'asc';
         }
 
-        // Start from expenses and join expense_categories
         $query = \DB::table('expenses')
             ->leftJoin('expense_categories', 'expenses.expense_category_id', '=', 'expense_categories.id')
+            ->leftJoin('branches', 'expenses.branch_id', '=', 'branches.id')
+            ->leftJoin('users', 'expenses.user_id', '=', 'users.id')
             ->select(
                 'expenses.id',
                 'expenses.title',
+                'expenses.description',
                 'expense_categories.name as category_name',
                 'expenses.amount',
                 'expenses.expense_date',
+                'branches.name as branch_name',
+                'users.name as user_name',
                 'expenses.created_at'
             );
 
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('expenses.title', 'like', '%' . $searchValue . '%')
-                ->orWhere('expense_categories.name', 'like', '%' . $searchValue . '%');
+                    ->orWhere('expenses.description', 'like', '%' . $searchValue . '%')
+                    ->orWhere('expense_categories.name', 'like', '%' . $searchValue . '%')
+                    ->orWhere('branches.name', 'like', '%' . $searchValue . '%')
+                    ->orWhere('users.name', 'like', '%' . $searchValue . '%');
             });
         }
 
@@ -62,17 +70,21 @@ class ExpenseController extends Controller
         $records = [];
 
         foreach ($data as $expense) {
-
-            $action = '<div class="d-flex align-items-center list-action">
-                            <a class="badge bg-success mr-2" data-toggle="tooltip" title="Edit"
-                                href="' . url('/exp/edit/' . $expense->id) . '"><i class="ri-pencil-line"></i></a>
-                    </div>';
+            $action = '';
+            // $action = '<div class="d-flex align-items-center list-action">
+            //             <a class="badge bg-success mr-2" data-toggle="tooltip" title="Edit"
+            //                 href="' . url('/exp/edit/' . $expense->id) . '"><i class="ri-pencil-line"></i></a>
+            //        </div>';
 
             $records[] = [
                 'title' => $expense->title,
+                'description' => Str::limit(strip_tags($expense->description), 50, '...') .
+                    '<a href="#" class="text-primary view-desc" data-desc="' . e($expense->description) . '"> View</a>',
                 'category_name' => $expense->category_name,
                 'amount' => number_format($expense->amount, 2),
-                'expense_date' => \Carbon\Carbon::parse($expense->expense_date)->format('d-m-Y'),
+                'branch_name' => $expense->branch_name,
+                'user_name' => $expense->user_name,
+                'created_at' => \Carbon\Carbon::parse($expense->created_at)->format('d-m-Y  h:i A'),
                 'action' => $action
             ];
         }
@@ -93,7 +105,7 @@ class ExpenseController extends Controller
         $categories = ExpenseCategory::where('status', true)->pluck('name', 'id');
         return view('expenses.create', compact('categories'));
     }
-    
+
     public function store(Request $request)
     {
         $request->validate([
@@ -103,13 +115,13 @@ class ExpenseController extends Controller
             'expense_date' => 'required|date',
             'description' => 'nullable|string',
         ]);
-    
+
         Expense::create($request->all());
-    
+
         return redirect()->route('exp.list')
             ->with('success', 'Expense added successfully.');
     }
-    
+
     /**
      * Show the form for editing the specified resource.
      */
@@ -118,7 +130,7 @@ class ExpenseController extends Controller
         $expense = Expense::where('id', $id)->firstOrFail();
         $expense->expense_date = Carbon::parse($expense->expense_date);
         $categories = ExpenseCategory::where('status', true)->pluck('name', 'id');
-        return view('expenses.edit', compact('expense','categories'));
+        return view('expenses.edit', compact('expense', 'categories'));
     }
 
     /**
@@ -126,12 +138,12 @@ class ExpenseController extends Controller
      */
     public function update(Request $request)
     {
-        
+
         $id = $request->id;
-        
+
         $Expense = Expense::findOrFail($id);
 
-          $validated = $request->validate([
+        $validated = $request->validate([
             'expense_category_id' => 'required|exists:expense_categories,id',
             'title' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
@@ -142,7 +154,6 @@ class ExpenseController extends Controller
         $Expense->update($validated);
 
         return redirect()->route('exp.list')->with('success', 'Expense updated successfully.');
-
     }
 
     /**

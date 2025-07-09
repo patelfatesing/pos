@@ -13,45 +13,58 @@
         }
 
         .title {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
-            text-align: center;
+            text-align: left;
+        }
+
+        .header-info {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             margin-bottom: 5px;
+        }
+
+        .generated {
+            font-size: 12px;
+            color: #666;
+            text-align: right;
         }
 
         .subtitle {
             font-size: 12px;
-            text-align: center;
-            margin-bottom: 20px;
             color: #666;
+            margin-bottom: 15px;
         }
 
         .section {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .section-title {
             font-size: 14px;
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #999;
             padding-bottom: 3px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 8px;
+            margin-top: 5px;
         }
 
         th,
         td {
-            border: 1px solid #ddd;
             padding: 6px;
             text-align: left;
+            border-bottom: 1px solid #ddd;
         }
 
         th {
-            background-color: #f9f9f9;
+            background-color: #f0f0f0;
         }
 
         .bold {
@@ -63,51 +76,94 @@
         }
 
         .highlight {
-            background-color: #f0f0f0;
+            background-color: #f9f9f9;
         }
     </style>
 </head>
 
 <body>
-
-    <div class="title">{{ $branch_name }} – Shift End Report</div>
-    <div class="subtitle">{{ now()->format('d/m/Y, h:i A') }}</div>
+    <div class="header-info">
+        <div class="generated">Generated : {{ now()->format('d/m/Y : h:i A') }}</div>
+        <div class="title">Shift end report - {{ $branch_name }}</div>
+    </div>
 
     <div class="section">
-        <div class="section-title">Shift Details</div>
         <table>
-            {{-- <tr>
-                <td><strong>User Staff:</strong></td>
-                <td>{{ $shift->user->name ?? 'N/A' }}</td>
-            </tr> --}}
             <tr>
-                <td><strong>Start Date:</strong></td>
-                <td>{{ $shift->start_time ? \Carbon\Carbon::parse($shift->start_time)->format('d/m/Y, h:i A') : 'N/A' }}</td>
+                <td><strong> Shift user :</strong></td>
+                <td>{{ $user_name ?? 'N/A' }}</td>
             </tr>
             <tr>
-                <td><strong>End Date:</strong></td>
-                <td>{{ $shift->end_time ? \Carbon\Carbon::parse($shift->end_time)->format('d/m/Y, h:i A') : 'N/A' }}</td>
+                <td><strong>Date :</strong></td>
+                <td>{{ \Carbon\Carbon::parse($shift->start_time)->format('d/m/Y') }}</td>
             </tr>
             <tr>
-                <td><strong>Generated At:</strong></td>
-                <td>{{ now()->setTimezone('Asia/Kolkata')->format('d/m/Y, h:i A') }}</td>
+                <td><strong>Shift start time :</strong></td>
+                <td>{{ \Carbon\Carbon::parse($shift->start_time)->format('h:i A') }}</td>
+            </tr>
+            <tr>
+                <td><strong>Shift end time :</strong></td>
+                <td>{{ \Carbon\Carbon::parse($shift->end_time)->format('h:i A') }}</td>
+            </tr>
+            <tr>
+                <td><strong>Total shift hours :</strong></td>
+                <td>{{ $shift->start_time && $shift->end_time? \Carbon\Carbon::parse($shift->start_time)->diff(\Carbon\Carbon::parse($shift->end_time))->format('%H:%I hours'): 'N/A' }}
+                </td>
             </tr>
         </table>
     </div>
 
     <div class="section">
-        <div class="section-title">Sales Summary</div>
+        <div class="section-title">Category</div>
         <table>
             @foreach ($categoryTotals['sales'] ?? [] as $category => $amount)
                 @php
-                    $class=$category === 'TOTAL' ? 'bold highlight' : '';
-                    $category=$category === 'TOTAL' ? 'Total' : $category;
+                    $category = $category === 'TOTAL' ? 'Total sales' : $category;
                 @endphp
-                <tr class="{{$class}}">
+                <tr>
                     <td>{{ $category }}</td>
                     <td class="text-right">{{ $amount }}</td>
                 </tr>
             @endforeach
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Stock Summary</div>
+        <table>
+            <tr>
+                <td>Opening stock</td>
+                <td class="text-right">{{ $stockTotals->total_opening_stock ?? 0 }}</td>
+            </tr>
+            <tr>
+                <td>Total transaction</td>
+                <td class="text-right">
+                    {{ ($stockTotals->total_added_stock ?? 0) + ($stockTotals->total_transferred_stock ?? 0) }}</td>
+            </tr>
+            <tr>
+                <td>Total Products sold</td>
+                <td class="text-right">{{ $stockTotals->total_sold_stock ?? 0 }}</td>
+            </tr>
+            <tr>
+                <td>Transfer IN</td>
+                <td class="text-right">{{ $stockTotals->total_added_stock ?? 0 }}</td>
+            </tr>
+            <tr>
+                <td>Transfer OUT</td>
+                <td class="text-right">{{ $stockTotals->total_transferred_stock ?? 0 }}</td>
+            </tr>
+            <tr>
+                <td>Closing stock</td>
+                <td class="text-right">{{ $stockTotals->total_closing_stock ?? 0 }}</td>
+            </tr>
+            <tr>
+                <td>Physical stock</td>
+                <td class="text-right">{{ $stockTotals->total_physical_stock ?? 0 }}</td>
+            </tr>
+            <tr class="bold highlight">
+                <td>Difference</td>
+                <td class="text-right">{{ $stockTotals->total_difference_in_stock ?? 0 }}</td>
+            </tr>
         </table>
     </div>
 
@@ -123,18 +179,38 @@
                 <td class="text-right">{{ $categoryTotals['payment']['UPI PAYMENT'] ?? 0 }}</td>
             </tr>
             <tr class="bold highlight">
-                <td>Total</td>
+                <td>Cash + UPI</td>
                 <td class="text-right">{{ $categoryTotals['payment']['TOTAL'] ?? 0 }}</td>
+            </tr>
+            <tr>
+                <td>Credit</td>
+                <td class="text-right">{{ $categoryTotals['summary']['CREDIT'] ?? 0 }}</td>
+            </tr>
+            <tr>
+                <td>Credit collection</td>
+                <td class="text-right">{{ $categoryTotals['summary']['CREDIT COLLACTED BY CASH'] ?? 0 }}</td>
             </tr>
         </table>
     </div>
 
     <div class="section">
-        <div class="section-title">Cash Denomination</div>
+        <div class="section-title">Sales Summary</div>
+        <table>
+            @foreach ($categoryTotals['summary'] ?? [] as $key => $val)
+                <tr>
+                    <td>{{ $key }}</td>
+                    <td class="text-right">{{ $val }}</td>
+                </tr>
+            @endforeach
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Cash Detail Denomination</div>
         <table>
             <thead>
                 <tr>
-                    <th>Denomination (Rs.)</th>
+                    <th>Denomination</th>
                     <th>Qty</th>
                     <th class="text-right">Amount</th>
                 </tr>
@@ -148,13 +224,13 @@
                         $denoTotal += $amount;
                     @endphp
                     <tr>
-                        <td>{{ $deno }}</td>
+                        <td>{{ $deno }} X {{ $qty }}</td>
                         <td>{{ $qty }}</td>
                         <td class="text-right">{{ $amount }}</td>
                     </tr>
                 @endforeach
                 <tr class="bold highlight">
-                    <td colspan="2">Total Denomination</td>
+                    <td colspan="2">Total Notes =</td>
                     <td class="text-right">{{ $denoTotal }}</td>
                 </tr>
             </tbody>
@@ -162,37 +238,36 @@
     </div>
 
     <div class="section">
-        <div class="section-title">Summary</div>
-        <table>
-            @foreach ($categoryTotals['summary'] ?? [] as $key => $val)
-                <tr>
-                    <td>{{ $key }}</td>
-                    <td class="text-right">{{ $val }}</td>
-                </tr>
-            @endforeach
-        </table>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Cash Comparison</div>
+        <div class="section-title">Cash Summary</div>
         <table>
             <tr>
-                <td><strong>System Cash:</strong></td>
+                <td>System cash</td>
                 <td class="text-right">
                     {{ $categoryTotals['payment']['CASH'] + ($categoryTotals['summary']['CREDIT COLLACTED BY CASH'] ?? 0) }}
                 </td>
             </tr>
             <tr>
-                <td><strong>Closing Cash:</strong></td>
+                <td>Withdrawal Payment (-)</td>
+                <td class="text-right">{{ $categoryTotals['summary']['WITHDRAWAL'] ?? 0 }}</td>
+            </tr>
+            <tr>
+                <td>Expense (-)</td>
+                <td class="text-right">{{ $categoryTotals['summary']['EXPENSE'] ?? 0 }}</td>
+            </tr>
+            <tr>
+                <td>Physical cash</td>
+                <td class="text-right">{{ $denoTotal }}</td>
+            </tr>
+            <tr>
+                <td>Closing Cash</td>
                 <td class="text-right">{{ $closing_cash ?? 0 }}</td>
             </tr>
             <tr class="bold highlight">
-                <td><strong>Difference:</strong></td>
+                <td>Discrepancy</td>
                 <td class="text-right">{{ $cash_discrepancy ?? 0 }}</td>
             </tr>
         </table>
     </div>
-
 </body>
 
 </html>
