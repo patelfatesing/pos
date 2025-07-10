@@ -212,7 +212,7 @@ class ShiftCloseModal extends Component
             ->first();
 
         // $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->where('status', '!=', 'Hold')->where('invoice_number', 'not like', '%Hold%')->latest()->get();
-        $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->whereNotIn('status', ['Hold', 'resumed', 'archived'])->latest()->get();
+        $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->whereNotIn('status', ['Hold', 'resumed', 'archived','Returned'])->latest()->get();
         $totalSalesNew = 0;
         foreach ($invoices as $invoice) {
             $items = $invoice->items; // decode items from longtext JSON
@@ -316,7 +316,7 @@ class ShiftCloseModal extends Component
 
         $cashBreakdowns = CashBreakdown::where('user_id', auth()->id())
             ->where('branch_id', $branch_id)
-            // ->where('type', '!=', 'cashinhand')
+             ->where('type', '!=', 'Returned')
             ->whereBetween('created_at', [$start_date, $end_date])
             ->get();
 

@@ -953,6 +953,8 @@ class Shoppingcart extends Component
         foreach ($groupedProducts as $productId => $totalQuantity) {
 
             $product = $this->cartitems->firstWhere('product_id', $productId)->product;
+            $inventory = $product->inventorie;
+            stockStatusChange($inventory->product->id, $branch_id, $totalQuantity, 'add_stock', $this->shift->id,"refunded_order");
             $inventories = $product->inventories;
 
             if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
@@ -964,33 +966,63 @@ class Shoppingcart extends Component
 
         // Delete associated cash breakdown entry
         if ($invoice->cash_break_id) {
-            CashBreakdown::where('id', $invoice->cash_break_id)->delete();
+            CashBreakdown::where('id', $invoice->cash_break_id)->update(['type' => 'Returned']);
         }
         $this->useCredit = true;
         $invoice->status = 'Returned';
         //$invoice->total = 0;
-        $invoice->items = $this->cartitems->map(function ($item) {
-            return [
-                'name' => $item->product->name ?? 'N/A',
-                'quantity' => 0,
-                'category' => $item->product->category->name ?? 'Uncategorized',
-                'price' => 0,
-            ];
-        });
+        // $invoice->items = $this->cartitems->map(function ($item) {
+        //     return [
+        //         'name' => $item->product->name ?? 'N/A',
+        //         'quantity' => 0,
+        //         'category' => $item->product->category->name ?? 'Uncategorized',
+        //         'price' => 0,
+        //     ];
+        // });
 
-        $invoice->cash_amount = 0;
-        $invoice->sub_total = 0;
-        $invoice->creditpay = 0;
-        $invoice->party_amount = 0;
+        // $invoice->cash_amount = 0;
+        // $invoice->sub_total = 0;
+        // $invoice->creditpay = 0;
+        // $invoice->party_amount = 0;
         $invoice->cash_break_id = null; // Clear the cash_break_id
         $invoice->save();
+        $refund = Refund::create([
+            'amount' => $this->cashAmount,
+            'description' => $this->refundDesc,
+            'invoice_id' => $invoice->id,
+            'total_item_qty' => $invoice->total_item_qty,
+            'total_item_price' => $invoice->total_item_total,
+            'total_mrp' => $invoice->total_item_total,
+            'party_amount' => $this->partyAmount,
+            'items_refund' => json_encode($invoice->items),
+            'refund_credit_amount' => $this->creditPay,
+            'store_id' => $branch_id,
+            'type'=>'return',
+            'user_id' => auth()->id(), // auto-assign current user
+        ]);
         $cartItems = Cart::where('user_id', auth()->id())->delete(); // <-- get all matching rows
 
         InvoiceHistory::logFromInvoice($invoice, 'returned', auth()->id());
-
-
+        $this->invoiceData = $invoice;
+         $commissionUser = Commissionuser::where('is_active', 1)
+            ->where('is_deleted', '!=', 'Yes')
+            ->orderBy('first_name', 'asc') // Replace 'name' with the actual column you want to sort by
+            ->first();
+        $first_name = (!empty($partyUser->first_name)) ? $partyUser->first_name : @$commissionUser->first_name;
+        $pdf = App::make('dompdf.wrapper');
+        $pdf->loadView('refund', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'type' => 'refund', 'refund' => $refund, 'customer_name' => $first_name]);
+        $pdfPath = storage_path('app/public/invoices/return_' . $invoice->invoice_number . '.pdf');
+        $pdf->save($pdfPath);
+      
+        
         $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'cartitems', 'searchSalesReturn');
-        $this->dispatch('notiffication-sucess', ['message' => 'Sales return initiated.']);
+        if (auth()->user()->hasRole('warehouse')) {
+
+            $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/return_' . $invoice->invoice_number . '.pdf')]);
+        }else{
+
+            $this->dispatch('notiffication-sucess', ['message' => 'Sales return initiated.']);
+        }
     }
 
     public function updatedCash($value)
