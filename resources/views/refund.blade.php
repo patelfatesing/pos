@@ -108,7 +108,16 @@
         </tr>
     </thead>
     <tbody>
+        @php
+            $total=0;
+            $qty=0;
+        @endphp
         @foreach($items as $index => $item)
+        @php
+            $total+=$item['mrp']*$item['quantity'];
+            $qty+=$item['quantity'];
+
+        @endphp
         <tr>
             <td>{{ $index + 1 }}</td>
             <td class="left">
@@ -133,7 +142,7 @@
 <table class="table">
     <tr class="total">
         <td class="left">TOTAL:</td>
-        <td class="right">{{ number_format((float)$invoice->sub_total,2 ) }}</td>
+        <td class="right">{{ number_format((float)$total,2 ) }}</td>
     </tr>
 </table>
 

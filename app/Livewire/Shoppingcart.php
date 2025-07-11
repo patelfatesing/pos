@@ -953,6 +953,8 @@ class Shoppingcart extends Component
         foreach ($groupedProducts as $productId => $totalQuantity) {
 
             $product = $this->cartitems->firstWhere('product_id', $productId)->product;
+            $inventory = $product->inventorie;
+            stockStatusChange($inventory->product->id, $branch_id, $totalQuantity, 'add_stock', $this->shift->id,"refunded_order");
             $inventories = $product->inventories;
 
             if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
@@ -964,33 +966,63 @@ class Shoppingcart extends Component
 
         // Delete associated cash breakdown entry
         if ($invoice->cash_break_id) {
-            CashBreakdown::where('id', $invoice->cash_break_id)->delete();
+            CashBreakdown::where('id', $invoice->cash_break_id)->update(['type' => 'Returned']);
         }
         $this->useCredit = true;
         $invoice->status = 'Returned';
         //$invoice->total = 0;
-        $invoice->items = $this->cartitems->map(function ($item) {
-            return [
-                'name' => $item->product->name ?? 'N/A',
-                'quantity' => 0,
-                'category' => $item->product->category->name ?? 'Uncategorized',
-                'price' => 0,
-            ];
-        });
+        // $invoice->items = $this->cartitems->map(function ($item) {
+        //     return [
+        //         'name' => $item->product->name ?? 'N/A',
+        //         'quantity' => 0,
+        //         'category' => $item->product->category->name ?? 'Uncategorized',
+        //         'price' => 0,
+        //     ];
+        // });
 
-        $invoice->cash_amount = 0;
-        $invoice->sub_total = 0;
-        $invoice->creditpay = 0;
-        $invoice->party_amount = 0;
+        // $invoice->cash_amount = 0;
+        // $invoice->sub_total = 0;
+        // $invoice->creditpay = 0;
+        // $invoice->party_amount = 0;
         $invoice->cash_break_id = null; // Clear the cash_break_id
         $invoice->save();
+        $refund = Refund::create([
+            'amount' => $this->cashAmount,
+            'description' => $this->refundDesc,
+            'invoice_id' => $invoice->id,
+            'total_item_qty' => $invoice->total_item_qty,
+            'total_item_price' => $invoice->total_item_total,
+            'total_mrp' => $invoice->total_item_total,
+            'party_amount' => $this->partyAmount,
+            'items_refund' => json_encode($invoice->items),
+            'refund_credit_amount' => $this->creditPay,
+            'store_id' => $branch_id,
+            'type'=>'return',
+            'user_id' => auth()->id(), // auto-assign current user
+        ]);
         $cartItems = Cart::where('user_id', auth()->id())->delete(); // <-- get all matching rows
 
         InvoiceHistory::logFromInvoice($invoice, 'returned', auth()->id());
-
-
+        $this->invoiceData = $invoice;
+         $commissionUser = Commissionuser::where('is_active', 1)
+            ->where('is_deleted', '!=', 'Yes')
+            ->orderBy('first_name', 'asc') // Replace 'name' with the actual column you want to sort by
+            ->first();
+        $first_name = (!empty($partyUser->first_name)) ? $partyUser->first_name : @$commissionUser->first_name;
+        $pdf = App::make('dompdf.wrapper');
+        $pdf->loadView('refund', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'type' => 'refund', 'refund' => $refund, 'customer_name' => $first_name]);
+        $pdfPath = storage_path('app/public/invoices/return_' . $invoice->invoice_number . '.pdf');
+        $pdf->save($pdfPath);
+      
+        
         $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'cartitems', 'searchSalesReturn');
-        $this->dispatch('notiffication-sucess', ['message' => 'Sales return initiated.']);
+        if (auth()->user()->hasRole('warehouse')) {
+
+            $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/return_' . $invoice->invoice_number . '.pdf')]);
+        }else{
+
+            $this->dispatch('notiffication-sucess', ['message' => 'Sales return initiated.']);
+        }
     }
 
     public function updatedCash($value)
@@ -1232,7 +1264,6 @@ class Shoppingcart extends Component
             
             $this->partyAmount = $partyCredit;
         }
-
         $current_commission_id = session('current_commission_id');
         if (!empty($current_commission_id)) {
 
@@ -1261,6 +1292,7 @@ class Shoppingcart extends Component
                 ]);
             }
         }
+
 
         $this->shift = $currentShift = UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "pending"])->first();
         //
@@ -1351,7 +1383,6 @@ class Shoppingcart extends Component
                 }
             }
         }
-
         $this->shiftcash = $noteCount;
         $this->availableNotes = json_encode($this->shiftcash);
         //$this->checkTime();
@@ -2859,8 +2890,8 @@ class Shoppingcart extends Component
         }
         $cartitems = $this->cartitems;
         // Group by product ID and sum total quantity
-        $groupedProducts = [];
-
+        $groupedProducts = $curentCartItemAry=[];
+        $curentCartItem=0;
         foreach ($this->cartitems as $cartitem) {
 
             $productId = $cartitem->product_id;
@@ -2870,7 +2901,10 @@ class Shoppingcart extends Component
             $totalQuantity = collect($this->selectedSalesReturn->items)
                 ->where('product_id', $productId)
                 ->sum('quantity');
-            $groupedProducts[$productId] = $totalQuantity - $cartitem->quantity;
+            //$groupedProducts[$productId] = $totalQuantity - $cartitem->quantity;
+            $groupedProducts[$productId] =$cartitem->quantity;
+            $curentCartItemAry[$productId] =$totalQuantity - $cartitem->quantity;
+            $curentCartItem+= $cartitem->quantity;
         }
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
@@ -2984,34 +3018,107 @@ class Shoppingcart extends Component
         //  $amountafterParty =(Integer) $lastInvoice->party_amount - $this->partyAmount;
         //  $totalQuantity = $filteredArray->sum(fn($item) => $item->quantity);
         //$total_item_total = $filteredArray->sum(fn($item) => $item->net_amount);
-        $invoice = Invoice::updateOrCreate(
-            [
+        $existInvoice = Invoice::where([
                 'user_id' => auth()->id(),
                 'branch_id' => $branch_id,
                 'invoice_number' => $invoice_number,
-            ],
-            [
-                'commission_user_id' => $commissionUser->id ?? null,
-                'party_user_id' => $partyUser->id ?? null,
-                'payment_mode' => $this->paymentType,
-                'items' => $filteredArray,
-                // 'upi_amount' => $fullRefund,
-                // 'creditpay' => $fullRefund,
-                'total_item_total' => $total_item_total,
-                'total_item_qty' => $totalQuantity,
-                'cash_amount' => $amountAfterRefund,
+        ])->first();
 
-                'sub_total' => $totalMrp * $totalQuantity,
-                // 'tax' => $fullRefund,
-                'status' => "Refunded",
-                //  'commission_amount' => $fullRefund,
-                'party_amount' => $newPartyAmt,
-                'total' => $amountAfterRefund,
-                'cash_break_id' => $cashBreakdown->id,
-                'change_amount' => 0,
-                //'billing_address'=> $address,
-            ]
-        );
+        if ($existInvoice) {
+            // If invoice exists, update it
+            $existInvoice->commission_user_id = $commissionUser->id ?? null;
+            $existInvoice->party_user_id = $partyUser->id ?? null;
+            $existInvoice->payment_mode = $this->paymentType;
+            $existInvoice->total_item_qty -= $curentCartItem;
+
+           // Remove refunded products from the invoice items and update quantities for partial refunds
+
+            // 1. Get product IDs from current cart (refunded items)
+            $refundedProductIds = $cartitems->pluck('product.id')->toArray();
+
+            // 2. Start with the original invoice items
+            $originalItems = collect($existInvoice->items);
+
+            // 3. For each original item, check if it's being refunded
+            $updatedItems = $originalItems->map(function ($item) use ($curentCartItemAry, $refundedProductIds) {
+                if (in_array($item['product_id'], $refundedProductIds)) {
+                    // If partially refunded, update quantity
+                    $remainingQty = $curentCartItemAry[$item['product_id']] ?? 0;
+                    if ($remainingQty > 0) {
+                        // Calculate unit price/mrp for proportional update
+                        $unitPrice = $item['price'] / $item['quantity'];
+                        $unitMrp = $item['mrp'] / $item['quantity'];
+                        return [
+                            'product_id' => $item['product_id'],
+                            'name' => $item['name'],
+                            'quantity' => $remainingQty,
+                            'category' => $item['category'],
+                            'subcategory' => $item['subcategory'] ?? null,
+                            'price' => round($unitPrice * $remainingQty, 2),
+                            'mrp' => round($item['mrp'], 2),
+                            
+                        ];
+                    }
+                    // If fully refunded, remove from items (return null)
+                    return null;
+                }
+                // Not refunded, keep as is
+                return $item;
+            })->filter()->values()->toArray();
+
+            $existInvoice->items = $updatedItems;
+            $existInvoice->total_item_total = $total_item_total;
+            $existInvoice->upi_amount =0;
+            $existInvoice->change_amount =0;
+            $existInvoice->creditpay -= $this->creditPay;
+            $existInvoice->cash_amount -= $this->cash;
+            $existInvoice->sub_total -= $this->sub_total;
+            //$existInvoice->tax = $this->tax;
+            $existInvoice->status = "Paid";
+            $existInvoice->invoice_status = ($this->creditPay == 0) ? "paid" : "unpaid";
+            $existInvoice->commission_amount -= $this->commissionAmount;
+            $existInvoice->party_amount -=$this->partyAmount;
+            $existInvoice->total =floatval(str_replace(',', '', $existInvoice->total))- (float)$this->cashAmount;
+            $existInvoice->cash_break_id = $cashBreakdown->id;
+            $existInvoice->roundof = $this->roundedTotal;
+            if($total_item_total==0){
+                $existInvoice->total= 0;
+                $existInvoice->cash_amount= 0;
+                $existInvoice->status = "Fully refunded";
+            }
+
+            $existInvoice->save();
+            $invoice = $existInvoice; // to maintain a reference
+        }
+
+        // $invoice = Invoice::updateOrCreate(
+        //     [
+        //         'user_id' => auth()->id(),
+        //         'branch_id' => $branch_id,
+        //         'invoice_number' => $invoice_number,
+        //     ],
+        //     [
+        //         'commission_user_id' => $commissionUser->id ?? null,
+        //         'party_user_id' => $partyUser->id ?? null,
+        //         'payment_mode' => $this->paymentType,
+        //         'items' => $filteredArray,
+        //         // 'upi_amount' => $fullRefund,
+        //         // 'creditpay' => $fullRefund,
+        //         'total_item_total' => $total_item_total,
+        //         'total_item_qty' => $totalQuantity,
+        //         'cash_amount' => $amountAfterRefund,
+
+        //         'sub_total' => $totalMrp * $totalQuantity,
+        //         // 'tax' => $fullRefund,
+        //         'status' => "Refunded",
+        //         //  'commission_amount' => $fullRefund,
+        //         'party_amount' => $newPartyAmt,
+        //         'total' => $amountAfterRefund,
+        //         'cash_break_id' => $cashBreakdown->id,
+        //         'change_amount' => 0,
+        //         //'billing_address'=> $address,
+        //     ]
+        // );
         InvoiceHistory::logFromInvoice($invoice, 'refunded', auth()->id());
 
         // if (!empty($commissionUser->id)) {
@@ -3037,6 +3144,7 @@ class Shoppingcart extends Component
                     'party_user_id' => $partyUser->id ?? null,
                     'debit_amount' => $this->creditPay,
                     'credit_amount' => 0.00,
+                    'transaction_kind' => 'refund',
                     'total_amount' => $this->cashAmount,
                     'total_purchase_items' => $this->cashAmount,
                     'store_id' => $branch_id,
