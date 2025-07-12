@@ -303,10 +303,10 @@ class ShiftCloseModal extends Component
         $this->categoryTotals['summary']['REFUND_CREDIT'] = $totals->debit_total;
         //$this->categoryTotals['summary']['ONLINE PAYMENT'] = $totalOnlinePaid * (-1);
         if (!empty($this->creditCollacted->collacted_cash_amount))
-            $this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] = $this->creditCollacted->collacted_cash_amount;
+            $this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] = @$this->creditCollacted->collacted_cash_amount;
         // $this->categoryTotals['summary']['REFUND'] += $totalRefundReturn *(-1);
         $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['CASH ADDED'] + $this->categoryTotals['summary']['OPENING CASH'] + $this->categoryTotals['summary']['TOTAL SALES'] + $this->categoryTotals['summary']['DISCOUNT'] + $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $this->categoryTotals['summary']['UPI PAYMENT'] + @$this->categoryTotals['summary']['REFUND'] +
-            @$this->categoryTotals['summary']['ONLINE PAYMENT'] + @$this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] + $totalRoundOf + $this->categoryTotals['summary']['CREDIT']+$totalRefundReturn;
+            @$this->categoryTotals['summary']['ONLINE PAYMENT'] + @$this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] + $totalRoundOf + $this->categoryTotals['summary']['CREDIT']+$totalRefundReturn+$this->creditCollacted->collacted_cash_amount;
         $this->categoryTotals['summary']['REFUND'] = $totalRefund * (-1) + $totalRefundReturn * (-1);
         //$this->categoryTotals['summary']['REFUND RETURN'] = $totalRefundReturn*(-1);
         

@@ -90,7 +90,7 @@
 <div class="line"></div>
 
 <div>
-    <strong>{{ @$type == 'refund' ? 'Refund' : 'Invoice' }}:</strong> {{ $invoice->invoice_number }}<br>
+    <strong>{{ @$type == 'refund' ? 'Refund' : 'Invoice' }}:</strong> {{ $refund->refund_number }}<br>
     <strong>Name:</strong> {{ $customer_name ?? '' }}<br>
     <strong>Date:</strong> {{ now()->format('d/m/Y H:i') }}
 </div>

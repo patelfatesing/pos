@@ -986,8 +986,14 @@ class Shoppingcart extends Component
         // $invoice->party_amount = 0;
         $invoice->cash_break_id = null; // Clear the cash_break_id
         $invoice->save();
+        // Count existing refunds for this invoice
+        $count = Refund::where('invoice_id', $invoice->id)->count();
+
+        // Generate refund number like WA-250712-01-R01
+        $refundNumber = $invoice->invoice_number . '-R' . str_pad($count + 1, 2, '0', STR_PAD_LEFT);
         $refund = Refund::create([
             'amount' => $this->cashAmount,
+            'refund_number' => $refundNumber,
             'description' => $this->refundDesc,
             'invoice_id' => $invoice->id,
             'total_item_qty' => $invoice->total_item_qty,
@@ -1011,14 +1017,13 @@ class Shoppingcart extends Component
         $first_name = (!empty($partyUser->first_name)) ? $partyUser->first_name : @$commissionUser->first_name;
         $pdf = App::make('dompdf.wrapper');
         $pdf->loadView('refund', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'type' => 'refund', 'refund' => $refund, 'customer_name' => $first_name]);
-        $pdfPath = storage_path('app/public/invoices/return_' . $invoice->invoice_number . '.pdf');
+        $pdfPath = storage_path('app/public/invoices/return_' . $refundNumber . '.pdf');
         $pdf->save($pdfPath);
-      
         
-        $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'cartitems', 'searchSalesReturn');
+        $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'cartitems', 'searchSalesReturn','removeCrossHold');
         if (auth()->user()->hasRole('warehouse')) {
 
-            $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/return_' . $invoice->invoice_number . '.pdf')]);
+            $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/return_' . $refundNumber . '.pdf')]);
         }else{
 
             $this->dispatch('notiffication-sucess', ['message' => 'Sales return initiated.']);
@@ -3163,7 +3168,13 @@ class Shoppingcart extends Component
         } else {
             $this->partyAmount = $this->finalDiscountPartyAmount;
         }
+        // Count existing refunds for this invoice
+        $count = Refund::where('invoice_id', $invoice->id)->count();
+
+        // Generate refund number like WA-250712-01-R01
+        $refundNumber = $invoice_number . '-R' . str_pad($count + 1, 2, '0', STR_PAD_LEFT);
         $refund = Refund::create([
+            'refund_number' => $refundNumber,
             'amount' => $this->cashAmount,
             'description' => $this->refundDesc,
             'invoice_id' => $invoice->id,
@@ -3199,12 +3210,12 @@ class Shoppingcart extends Component
         $first_name = (!empty($partyUser->first_name)) ? $partyUser->first_name : @$commissionUser->first_name;
         $pdf = App::make('dompdf.wrapper');
         $pdf->loadView('refund', ['invoice' => $invoice, 'items' => $refund->items_refund, 'branch' => auth()->user()->userinfo->branch, 'type' => 'refund', 'refund' => $refund, 'customer_name' => $first_name]);
-        $pdfPath = storage_path('app/public/invoices/refund_' . $invoice->invoice_number . '.pdf');
+        $pdfPath = storage_path('app/public/invoices/refund_' . $refundNumber . '.pdf');
         $pdf->save($pdfPath);
         //     $this->dispatch('triggerPrint', [
-        //        'pdfPath' => route('print.pdf', $invoice->invoice_number)
+        //        'pdfPath' => route('print.pdf', $refundNumber)
         //    ]);
-        $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/refund_' . $invoice->invoice_number . '.pdf')]);
+        $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/refund_' . $refundNumber . '.pdf')]);
 
         // } catch (\Throwable $th) {
         //     $this->dispatch('notiffication-error', ['message' => 'Something went wrong']);
@@ -3709,4 +3720,16 @@ class Shoppingcart extends Component
     //     $this->loadHoldTransactions(); // refresh list
     //     session()->flash('message', 'Transaction resumed!');
     // }
+
+    public function checkShiftStatus()
+    {
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+       
+        $yesterDayShift = UserShift::getYesterdayShift(auth()->user()->id, $branch_id, "pending");
+
+        if (!empty($yesterDayShift)) {
+            $this->dispatch('close-shift-12am');
+            return;
+        }
+    }
 }
