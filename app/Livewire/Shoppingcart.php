@@ -126,6 +126,7 @@ class Shoppingcart extends Component
     public $roundedTotal = 0;
     public $invoice_no = '';
     //public $product_in_stocks = [];
+    public bool $hasAppliedCreditPay = false;
 
     // This method is triggered whenever the checkbox is checked or unchecked
     public function updatedUseCredit($value)
@@ -889,9 +890,10 @@ class Shoppingcart extends Component
         $this->paymentType = "refund";
         $this->headertitle = "Refund";
         $this->paymentType = "cash";
-        if (!empty($this->selectedSalesReturn->creditpay)) {
+        if (!$this->hasAppliedCreditPay && !empty($this->selectedSalesReturn->creditpay)) {
             $this->creditPay = $this->selectedSalesReturn->creditpay;
             $this->cashAmount = $this->cashAmount - $this->creditPay;
+            $this->hasAppliedCreditPay = true; // ✅ So it runs only once
         }
 
         $this->total = $this->cashAmount;
@@ -3205,7 +3207,9 @@ class Shoppingcart extends Component
         Cart::where('user_id', auth()->user()->id)
             ->where('status', '!=', Cart::STATUS_HOLD)
             ->delete();
-        $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'useCredit', 'showCheckbox', 'roundedTotal', 'removeCrossHold', 'cashNotes', "searchSalesReturn");
+        session()->forget(['current_party_id', 'current_commission_id']);
+        $this->dispatch('resetHoldPic');
+        $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'useCredit', 'showCheckbox', 'roundedTotal', 'removeCrossHold', 'cashNotes', "searchSalesReturn","hasAppliedCreditPay");
         $this->invoiceData = $invoice;
         $first_name = (!empty($partyUser->first_name)) ? $partyUser->first_name : @$commissionUser->first_name;
         $pdf = App::make('dompdf.wrapper');
