@@ -2132,7 +2132,7 @@ class Shoppingcart extends Component
         // Recalculate cart item count after deletion
         $cartItem = Cart::where('user_id', $userId)->count();
         if ($cartItem == 0) {
-            $this->reset('selectedPartyUser', 'selectedCommissionUser');
+            $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'useCredit', 'showCheckbox', 'roundedTotal', 'removeCrossHold', 'cashNotes','searchSalesReturn');
         }
         //  $this->getDiscountPrice($cartDetails->product_id,$this->selectedPartyUser);
         //dd($this->partyAmount,$this->partyUserDiscountAmt);
@@ -2145,7 +2145,6 @@ class Shoppingcart extends Component
         } else {
             $this->partyAmount = $this->finalDiscountPartyAmount;
         }
-        $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'useCredit', 'showCheckbox', 'roundedTotal', 'removeCrossHold', 'cashNotes','searchSalesReturn');
         //    $this->loadCartData();
     }
 
