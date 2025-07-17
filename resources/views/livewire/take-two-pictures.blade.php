@@ -1,6 +1,6 @@
 <div>
 
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cameraModal">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cameraModal" @if ($this->selectedSalesReturn==true) disabled @endif>
         <i class="fas fa-camera me-2"></i>
 
     </button>

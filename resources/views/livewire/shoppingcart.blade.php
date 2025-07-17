@@ -117,9 +117,8 @@
                 @endif
 
             </div>
-            @if (empty($this->selectedSalesReturn))
             <livewire:take-two-pictures />
-            @endif
+            
             @if ($selectedPartyUser || $selectedCommissionUser)
                 {{-- <div class="col-md-1">
                     <button type="button" id="customer" class="btn btn-primary mr-2" data-toggle="modal"

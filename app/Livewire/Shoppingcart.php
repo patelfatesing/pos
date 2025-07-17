@@ -453,6 +453,7 @@ class Shoppingcart extends Component
             }
             //$this->cashAmount = $this->selectedSalesReturn->creditpay;
             // $this->updateQty($item->id);
+            $this->dispatch('refundSelected');
             $this->dispatch('updateNewProductDetails');
 
             // $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown','useCredit','showCheckbox','roundedTotal','removeCrossHold','cashNotes');
@@ -1023,6 +1024,7 @@ class Shoppingcart extends Component
         $pdf->save($pdfPath);
         
         $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'cartitems', 'searchSalesReturn','removeCrossHold');
+        $this->dispatch('removeRefundSelected');
         if (auth()->user()->hasRole('warehouse')) {
 
             $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/return_' . $refundNumber . '.pdf')]);
@@ -2143,7 +2145,7 @@ class Shoppingcart extends Component
         } else {
             $this->partyAmount = $this->finalDiscountPartyAmount;
         }
-
+        $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'useCredit', 'showCheckbox', 'roundedTotal', 'removeCrossHold', 'cashNotes','searchSalesReturn');
         //    $this->loadCartData();
     }
 
@@ -3220,7 +3222,7 @@ class Shoppingcart extends Component
         //        'pdfPath' => route('print.pdf', $refundNumber)
         //    ]);
         $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/refund_' . $refundNumber . '.pdf')]);
-
+        $this->dispatch('removeRefundSelected');
         // } catch (\Throwable $th) {
         //     $this->dispatch('notiffication-error', ['message' => 'Something went wrong']);
 
