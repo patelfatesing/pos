@@ -28,7 +28,7 @@
                         <div class="tab-content" id="salesTabContent">
                             <!-- Paid Orders Tab -->
                         <div class="tab-pane fade show active" id="paid" role="tabpanel" aria-labelledby="paid-tab">
-                            @if($orders->where('status', 'Paid')->count() > 0)
+                            @if($orders->count() > 0)
                                     <table class="table table-bordered table-hover">
                                         <thead class="table-light">
                                             <tr>
@@ -46,7 +46,7 @@
                                             @php
                                             $j=1;
                                             @endphp
-                                        @foreach($orders->where('status', 'Paid') as $index => $order)
+                                        @foreach($orders as $index => $order)
                                                 <tr>
                                                     <td>{{ $j++ }}</td>
                                                     <td>{{ $order->invoice_number }}</td>
@@ -80,7 +80,7 @@
                                     <p class="text-muted">No Paid Orders found.</p>
                                 @endif
                             </div>
-
+                            
                             <!-- Refunded Orders Tab -->
                             <div class="tab-pane fade" id="refunded" role="tabpanel" aria-labelledby="refunded-tab">
                         @if($refunds->count() > 0)
@@ -88,7 +88,7 @@
                                         <thead class="table-light">
                                             <tr>
                                                 <th>Sr</th>
-                                                <th>Invoice No</th>
+                                                <th>Refund No</th>
                                                 <th>Date</th>
                                                 <th>Customer Name</th>
                                                 <th>Payment Mode</th>
@@ -102,7 +102,7 @@
                                                 @php $order = $refund->invoice; @endphp
                                                 <tr class="table-warning">
                                                     <td>{{ $index + 1 }}</td>
-                                                    <td>{{ $order->invoice_number ?? '-' }}</td>
+                                                    <td>{{ $refund->refund_number ?? '-' }}</td>
                                                     <td>{{ $refund->created_at?->format('d/m/Y H:i') ?? '-' }}</td>
                                                     <td>
                                                 @if(auth()->user()->hasRole('warehouse'))
@@ -113,12 +113,22 @@
                                                     <td>{{ $order->payment_mode ?? '-' }}</td>
                                                     <td>{{ $refund->total_item_qty ?? 0 }}</td>
                                                     <td>{{ format_inr($refund->amount ?? 0) }}</td>
+                                                    @if($refund->type=="return")
+                                                        <td class="text-center">
+                                                            <button class="btn btn-sm btn-secondary"
+                                                                wire:click="printRefundInvoice('{{ asset('storage/invoices/return_' . $refund->refund_number . '.pdf') }}')">
+                                                                <i class="fa fa-file-pdf"></i>
+                                                            </button>
+                                                        </td>
+                                                    @else 
+
                                                     <td class="text-center">
                                                         <button class="btn btn-sm btn-secondary"
-                                                            wire:click="printRefundInvoice('{{ asset('storage/invoices/refund_' . $order->invoice_number . '.pdf') }}')">
+                                                            wire:click="printRefundInvoice('{{ asset('storage/invoices/refund_' . $refund->refund_number . '.pdf') }}')">
                                                             <i class="fa fa-file-pdf"></i>
                                                         </button>
                                                     </td>
+                                                    @endif
                                                 </tr>
                                             @endforeach
                                         </tbody>

@@ -92,7 +92,7 @@
 
                     <div class="form-group">
                         <select id="commissionUser" class="form-control" wire:model="selectedCommissionUser"
-                            wire:change="calculateCommission" @if ($removeCrossHold) disabled @endif>
+                            wire:change="calculateCommission" @if ($removeCrossHold || $this->selectedSalesReturn==true) disabled @endif>
                             <option value="">-- Select Commission Customer --</option>
                             @foreach ($commissionUsers as $user)
                                 <option value="{{ $user->id }}">{{ $user->first_name }}
@@ -105,7 +105,7 @@
                 @if (auth()->user()->hasRole('warehouse'))
                     <div class="form-group">
                         <select id="partyUser" class="form-control" wire:model="selectedPartyUser"
-                            wire:change="calculateParty" @if ($removeCrossHold) disabled @endif>
+                            wire:change="calculateParty" @if ($removeCrossHold || $this->selectedSalesReturn==true) disabled @endif>
                             <option value="">-- {{ __('messages.select_party_customer') }} --</option>
                             @foreach ($partyUsers as $user)
                                 <option value="{{ $user->id }}">{{ $user->first_name }}</option>
@@ -117,8 +117,8 @@
                 @endif
 
             </div>
-
             <livewire:take-two-pictures />
+            
             @if ($selectedPartyUser || $selectedCommissionUser)
                 {{-- <div class="col-md-1">
                     <button type="button" id="customer" class="btn btn-primary mr-2" data-toggle="modal"
@@ -3156,5 +3156,40 @@
 
     window.addEventListener('hold-saved', event => {
         location.reload();
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let shiftPending = false;
+        const attachClickAlert = (btn) => {
+             btn.addEventListener('click', function (e) {
+                 // Fetch shift status from Livewire on load
+                Livewire.dispatch('checkShiftStatus');
+
+            }, true); // ← use capture phase to block Livewire early
+        };
+
+        // Attach to existing buttons
+        document.querySelectorAll('button').forEach(btn => {
+            if (!btn.dataset.shiftCheckAttached) {
+                attachClickAlert(btn);
+                btn.dataset.shiftCheckAttached = true;
+            }
+        });
+
+        // Re-attach after Livewire updates
+        document.addEventListener("livewire:load", () => {
+            Livewire.hook('message.processed', () => {
+                document.querySelectorAll('button').forEach(btn => {
+                    if (!btn.dataset.shiftCheckAttached) {
+                        attachClickAlert(btn);
+                        btn.dataset.shiftCheckAttached = true;
+                    }
+                });
+
+                // Also refresh shift status
+                Livewire.dispatch('checkShiftStatus');
+            });
+        });
     });
 </script>

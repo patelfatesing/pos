@@ -101,7 +101,7 @@
             <strong>Date:</strong> {{ \Carbon\Carbon::parse($invoice->updated_at)->format('d/m/Y H:i') }} <br>
             <strong>Transaction No(Ref):</strong>
             {{ $invoice->ref_no }}
-            ({{ $invoice->created_at->format('Y-m-d H:i:s') }})
+            ({{ \Carbon\Carbon::parse($invoice->hold_date)->format('d/m/Y H:i') }})
         @else
             <strong>Date:</strong> {{ \Carbon\Carbon::parse($invoice->created_at)->format('d/m/Y H:i') }}
         @endif

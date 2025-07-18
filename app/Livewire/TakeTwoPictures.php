@@ -28,7 +28,8 @@ class TakeTwoPictures extends Component
     private const SESSION_KEY_PRODUCT = 'product_photo_path';
     private const SESSION_KEY_CUSTOMER = 'customer_photo_path';
     private const SESSION_KEY_TIMESTAMP = 'photos_timestamp';
-    protected $listeners = ['resetPicAll','setImg','setHoldImage','resetHoldPic','handleSetImg'];
+    protected $listeners = ['resetPicAll','setImg','setHoldImage','resetHoldPic','handleSetImg','refundSelected','removeRefundSelected'];
+    public $selectedSalesReturn=false;
 
     /**
      * Validation rules for the photos
@@ -230,6 +231,13 @@ class TakeTwoPictures extends Component
         $this->partyHoldPic=[];
 
     }
+    public function refundSelected(){
+        $this->selectedSalesReturn = true;
+    }
+    public function removeRefundSelected(){
+        $this->selectedSalesReturn = false;
+    }
+
      public function resetPicAll(): void
     {
         $this->reset(['productPhoto', 'customerPhoto']);

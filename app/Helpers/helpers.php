@@ -186,8 +186,11 @@ if (!function_exists('stockStatusChange')) {
                 $existing->added_stock += $qty;
                 if($orderType=="refunded_order"){
                     $existing->sold_stock -= $qty;
+                    $existing->closing_stock+= $qty;
+                }else{
+
+                    $existing->closing_stock = closingStock($existing->opening_stock,$existing->added_stock,$existing->transferred_stock,$existing->sold_stock);
                 }
-                $existing->closing_stock = closingStock($existing->opening_stock,$existing->added_stock,$existing->transferred_stock,$existing->sold_stock);
                 $existing->save();
             } else {
 
