@@ -1,7 +1,7 @@
 <div>
     <!-- Trigger Button -->
-    <button wire:click="openModal" class="btn btn-primary ml-2" title="Sales History">
-        <i class="fa fa-list"></i>
+    <button wire:click="openModal" class="btn btn-default ml-2" title="Sales History">
+        <img src="{{ asset('public/external/orderhistory14471-2h8.svg') }}" alt="Sales History Icon" />
     </button>
 
     <!-- Modal -->
