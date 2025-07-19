@@ -1,6 +1,7 @@
 <div>
-    <button type="button" class="btn btn-primary ml-2" wire:click.prevent="openModal" title="Close Shift">
-        <i class="fas fa-door-closed"></i>
+    <button type="button" class="btn btn-default ml-2" wire:click.prevent="openModal" title="Close Shift">
+        <img src="{{ asset('public/external/vector4471-zd04.svg') }}" alt="Close Shift Icon" />
+
     </button>
     @if ($showModal)
         <div class="modal fade show d-block" tabindex="-1">
