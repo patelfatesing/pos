@@ -569,6 +569,7 @@ class Shoppingcart extends Component
                     $this->total = $this->cashAmount;
                     $this->showCheckbox = false;
                     $this->useCredit = false;
+                    $this->dispatch('open-cash-modal');
                 } else {
                     $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                 }
@@ -599,6 +600,7 @@ class Shoppingcart extends Component
                         $this->total = $this->cashAmount;
                         $this->useCredit = false;
                         $this->showCheckbox = false;
+                        $this->dispatch('open-cash-modal');
                     } else {
                         $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                     }
@@ -618,12 +620,15 @@ class Shoppingcart extends Component
                     $this->total = $this->cashAmount;
                     $this->useCredit = false;
                     $this->showCheckbox = false;
+                    $this->dispatch('open-cash-modal');
                 } else {
                     $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                 }
                 //}
             }
         }
+        
+
     }
 
     public function cashupitoggleBox()
@@ -653,6 +658,7 @@ class Shoppingcart extends Component
                     $this->total = $this->cashAmount;
                     $this->useCredit = false;
                     $this->showCheckbox = false;
+                    $this->dispatch('online-cash-modal');
                 } else {
                     $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                 }
@@ -692,6 +698,7 @@ class Shoppingcart extends Component
                         $this->total = $this->cashAmount;
                         $this->useCredit = false;
                         $this->showCheckbox = false;
+                        $this->dispatch('online-cash-modal');
                     } else {
                         $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                     }
@@ -716,6 +723,7 @@ class Shoppingcart extends Component
                     $this->useCredit = false;
                     $this->showCheckbox = false;
                     $this->total = $this->cashAmount;
+                    $this->dispatch('online-cash-modal');
                 } else {
                     $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                 }
@@ -749,6 +757,7 @@ class Shoppingcart extends Component
                     $this->total = $this->cashAmount;
                     $this->useCredit = false;
                     $this->showCheckbox = false;
+                    $this->dispatch('online-cash-modal');
                 } else {
                     $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                 }
@@ -793,6 +802,7 @@ class Shoppingcart extends Component
                         $this->total = $this->cashAmount;
                         $this->useCredit = false;
                         $this->showCheckbox = false;
+                        $this->dispatch('online-cash-modal');
                     } else {
                         $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                     }
@@ -820,6 +830,7 @@ class Shoppingcart extends Component
                     $this->total = $this->cashAmount;
                     $this->useCredit = false;
                     $this->showCheckbox = false;
+                    $this->dispatch('online-cash-modal');
                 } else {
                     $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                 }
