@@ -137,6 +137,35 @@
                         pageSize: 'A4',
                         exportOptions: {
                             columns: ':visible'
+                        },
+                        customize: function(doc) {
+                            // Add current date at top-right
+                            const currentDate = new Date().toLocaleDateString('en-IN', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric'
+                            });
+
+                            doc.content.splice(0, 0, {
+                                text: 'Generate Date: ' + currentDate,
+                                alignment: 'right',
+                                margin: [0, 0, 0, 10],
+                                fontSize: 10
+                            });
+
+                            // Title styling
+                            doc.styles.title = {
+                                alignment: 'center',
+                                fontSize: 14,
+                                bold: true,
+                                margin: [0, 0, 0, 10]
+                            };
+
+                            // Table header styling
+                            doc.styles.tableHeader.alignment = 'left';
+
+                            // General font size
+                            doc.defaultStyle.fontSize = 9;
                         }
                     }
                 ],
@@ -152,46 +181,46 @@
                 columns: [{
                         data: null,
                         render: (data, type, row, meta) => meta.row + 1
-                    }, // index 0
+                    },
                     {
                         data: 'invoice_number'
-                    }, // 1
+                    },
                     {
                         data: 'party_user'
-                    }, // 2
+                    },
                     {
                         data: 'commission_user'
-                    }, // 3
+                    },
                     {
                         data: 'commission_amount'
-                    }, // 4
+                    },
                     {
                         data: 'party_amount'
-                    }, // 5
+                    },
                     {
                         data: 'creditpay'
-                    }, // 6
+                    },
                     {
                         data: 'sub_total'
-                    }, // 7
+                    },
                     {
                         data: 'total'
-                    }, // 8
+                    },
                     {
                         data: 'items_count'
-                    }, // 9
+                    },
                     {
                         data: 'branch_name'
-                    }, // 10
+                    },
                     {
                         data: 'status'
-                    }, // 11
+                    },
                     {
                         data: 'payment_mode'
-                    }, // 12
+                    },
                     {
                         data: 'created_at'
-                    } // 13 ✅ default sort column
+                    } // Sort by default
                 ],
                 footerCallback: function(row, data) {
                     const api = this.api();
@@ -203,6 +232,7 @@
                         subtotal = 0,
                         total = 0,
                         items = 0;
+
                     data.forEach(row => {
                         commission += intVal(row.commission_amount);
                         party += intVal(row.party_amount);
@@ -211,6 +241,7 @@
                         total += intVal(row.total);
                         items += intVal(row.items_count);
                     });
+
                     $(api.column(4).footer()).html('₹' + commission.toFixed(2));
                     $(api.column(5).footer()).html('₹' + party.toFixed(2));
                     $(api.column(6).footer()).html('₹' + credit.toFixed(2));
@@ -220,6 +251,7 @@
                 }
             });
 
+            // Refresh on filter
             $('#storeSearch').on('click', function() {
                 table.draw();
             });
