@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://unpkg.com/animate.css@4.1.1/animate.css" />
     <link rel="stylesheet" href="{{ asset('style.css') }}">
     <link rel="stylesheet" href="{{ asset('index.css') }}">
-
+    
     <!-- Fonts -->
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&amp;display=swap"
@@ -160,6 +160,71 @@
         border-radius: 28px;
         background-color: rgba(255, 255, 255, 1);
     }
+    .sidebar {
+    background-color: #009fe3;
+    min-height: auto;
+    border-radius: 10px ! important;
+    margin-left: 0px ! important;
+    width: 70px ! important;
+}
+.sidebar-item img {
+    width: unset ! important;
+    height: unset ! important;
+    margin-bottom: unset ! important;
+    object-fit: contain;
+}
+.custom-modal-header{
+    background: #e9f2f9;
+}
+.cash-summary-group1922 {
+    background-color: rgba(223, 236, 219, 1) ! important;
+}
+.table-dark {
+    --bs-table-color:rgba(28, 86, 8, 1) ! important;
+    --bs-table-bg: rgba(223, 236, 219, 1) ! important;
+    --bs-table-striped-bg:rgba(223, 236, 219, 1) ! important;
+    --bs-table-border-color:rgba(28, 86, 8, 1) ! important;
+    --bs-table-active-bg:rgba(223, 236, 219, 1) ! important;
+    --bs-table-hover-bg:rgba(223, 236, 219, 1) ! important;
+    --bs-table-active-color:rgba(28, 86, 8, 1) ! important;
+    --bs-table-striped-color:rgba(28, 86, 8, 1) ! important;
+}
+.cash-summary-frame282 {
+        padding: 13px 15px;
+
+   border-radius: 20px;
+    background-color: rgba(222, 237, 249, 1);
+}
+.custom-hr {
+    margin: 6px 0;
+    color: inherit;
+    border: 0;
+    border-top: unset;
+    
+}
+.submit-btn{
+    color: rgba(255, 255, 255, 1) !important;
+    background-color: rgba(0, 179, 179, 1) !important;
+}
+.rounded-start {
+    border-bottom-left-radius: 40px !important;
+    border-top-left-radius: 40px !important;
+}
+.rounded-end {
+    border-top-right-radius: 40px !important;
+    border-bottom-right-radius: 40px !important;
+}
+
+.btn-gray{
+    background-color: rgba(234, 236, 234, 1)!important;
+}
+.currency-center{
+    background-color: #cfebeb !important;
+}
+.cash-summary-text61 {
+    color: rgba(36, 81, 118, 1);
+ 
+}
     </style>
 </head>
 
@@ -189,6 +254,8 @@
     <script src="../assets/js/app.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Add in the <head> section -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         setTimeout(function() {
