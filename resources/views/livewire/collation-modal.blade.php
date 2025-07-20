@@ -1,13 +1,13 @@
 <div>
     <!-- Trigger Button -->
-    <button wire:click="openModal" class="btn btn-primary ml-2" title="Collect Credit">
-       <i class="fa fa-file-invoice-dollar"></i>
-
+    <button wire:click="openModal" class="btn ml-2" title="Collect Credit">
+        <img src="{{ asset('public/external/investment114471-sc1b.svg') }}" alt="Collect Credit Icon" />
     </button>
 
     <!-- Main Modal -->
     @if ($showModal)
-        <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);"wire:keydown.escape="$set('showModal', false)">
+        <div class="modal d-block" tabindex="-1"
+            style="background-color: rgba(0,0,0,0.5);"wire:keydown.escape="$set('showModal', false)">
             <div class="modal-dialog modal-xl">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -23,10 +23,8 @@
                                 <span class="input-group-text">
                                     <i class="fas fa-search"></i>
                                 </span>
-                                <input type="text" 
-                                       wire:model.live="search" 
-                                       class="form-control" 
-                                       placeholder="Search by name, phone, or credit points...">
+                                <input type="text" wire:model.live="search" class="form-control"
+                                    placeholder="Search by name, phone, or credit points...">
                             </div>
                         </div>
 
@@ -56,15 +54,15 @@
                                             <td>{{ $user->address }}</td> --}}
                                             <td>{{ number_format($user->credit_points, 2) }}</td>
                                             <td>{{ number_format($user->use_credit, 2) }}</td>
-                                             <td>{{ number_format($user->left_credit, 2) }}</td>
+                                            <td>{{ number_format($user->left_credit, 2) }}</td>
                                             <td>{{ ucfirst(str_replace('_', ' ', $user->payment_status)) }}</td>
-                                            
+
                                             <td>
-                                                @if(number_format($user->use_credit, 2) !="0.00")
-                                                <button wire:click="openCollectModal({{ $user->id }})"
-                                                    class="btn btn-sm btn-success">
-                                                    <i class="fa fa-money-bill"></i> Collect
-                                                </button>
+                                                @if (number_format($user->use_credit, 2) != '0.00')
+                                                    <button wire:click="openCollectModal({{ $user->id }})"
+                                                        class="btn btn-sm btn-success">
+                                                        <i class="fa fa-money-bill"></i> Collect
+                                                    </button>
                                                 @else
                                                     -
                                                 @endif
@@ -73,7 +71,7 @@
                                     @empty
                                         <tr>
                                             <td colspan="9" class="text-center">
-                                                @if($search)
+                                                @if ($search)
                                                     No users found matching "{{ $search }}"
                                                 @else
                                                     No users available
@@ -225,40 +223,28 @@
                         @if ($paymentType === 'online')
                             <div class="form-group mt-3">
                                 <label for="onlineAmount">Enter Online Payment Amount</label>
-                              
-                                <input
-                                type="number"
-                                wire:model="onlineAmount"
-                                wire:input="calculateTotal"
-                                class="form-control"
-                                id="onlineAmount"
-                                placeholder="Enter amount"
-                                >
+
+                                <input type="number" wire:model="onlineAmount" wire:input="calculateTotal"
+                                    class="form-control" id="onlineAmount" placeholder="Enter amount">
                             </div>
                         @endif
 
                         <!-- UPI Payment Input -->
-                       @if ($paymentType === 'cash+upi')
-                        <div class="form-group mt-3">
-                            <label for="upiAmount">Enter UPI Payment Amount</label>
-                            <input
-                                type="number"
-                                wire:model="upiAmount"
-                                wire:input="calculateTotal"
-                                class="form-control"
-                                id="upiAmount"
-                                placeholder="Enter UPI amount"
-                            >
-                        </div>
-                    @endif
+                        @if ($paymentType === 'cash+upi')
+                            <div class="form-group mt-3">
+                                <label for="upiAmount">Enter UPI Payment Amount</label>
+                                <input type="number" wire:model="upiAmount" wire:input="calculateTotal"
+                                    class="form-control" id="upiAmount" placeholder="Enter UPI amount">
+                            </div>
+                        @endif
 
-                            
+
                         <!-- Total Collected Display -->
                         <div class="text-end mt-3">
                             <h5>
                                 Total Collected Amount:
                                 <span class="badge bg-secondary">
-                                    {{$this->totalCollected}}
+                                    {{ $this->totalCollected }}
                                     {{-- @if ($paymentType === 'cash')
                                         {{ format_inr(($totals['totalIn'] ?? 0) - ($totals['totalOut'] ?? 0)) }}
                                     @elseif($paymentType === 'online')
