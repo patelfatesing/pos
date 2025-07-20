@@ -488,14 +488,15 @@
                 </div>
                 <!-- Bottom Bar -->
                 <div class="row bottom-bar text-center mt-2">
-                    <div class="col-md-4">Qty: </div>
-                    <div class="col-md-4">Round Off: </div>
-                    <div class="col-md-4">Total Payable: </div>
+                    <div class="col-md-4">Qty </div>
+                    <div class="col-md-4">Round Off </div>
+                    <div class="col-md-4">Total Payable </div>
                 </div>
                 <div class="row text-center mt-1">
                     <div class="col-md-4">
+                        <input type="hidden" id="cartCount" value="{{ $this->cartCount }}">
                         <strong>
-                            <input type="hidden" id="cartCount" value="{{ $this->cartCount }}">
+                             <span class="main-screen-text70"> {{ $this->cartCount }}</span>
                         </strong>
                     </div>
                     <div class="col-md-4">
