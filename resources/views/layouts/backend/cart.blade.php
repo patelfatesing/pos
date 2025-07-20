@@ -164,12 +164,12 @@
     background-color: #009fe3;
     min-height: auto;
     border-radius: 10px ! important;
-    margin-left: 0px ! important;
-    width: 70px ! important;
+    /* margin-left: 0px ! important; */
+    /* width: 70px ! important; */
 }
 .sidebar-item img {
-    width: unset ! important;
-    height: unset ! important;
+    /* width: unset ! important;
+    height: unset ! important; */
     margin-bottom: unset ! important;
     object-fit: contain;
 }

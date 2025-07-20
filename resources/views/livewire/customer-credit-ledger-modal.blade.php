@@ -1,7 +1,7 @@
 <div>
     <!-- Trigger Button -->
-    <button wire:click="openModal" class="btn btn-primary ml-2" title="Customer Credit Ledger">
-        <i class="fas fa-file-invoice"></i>
+    <button wire:click="openModal" class="btn btn-default ml-2" title="Customer Credit Ledger">
+        <img src="{{ asset('public/external/customer_credit_icon_final.jpg') }}" alt="Customer Credit Ledger Icon" />
     </button>
 
     <!-- Main Modal -->

@@ -79,7 +79,7 @@
                                                 $totalDifference += $stock->difference_in_stock;
                                             @endphp
                                             <tr
-                                                style="background-color: {{ $stock->difference_in_stock < 0 ? '#ffcccc' : 'transparent' }}">
+                                                style="background-color: {{ $stock->difference_in_stock != 0 ? '#ffcccc' : 'transparent' }}">
                                                 <td>{{ $stock->product->name ?? 'N/A' }}</td>
                                                 <td>{{ $stock->product->subcategory->name ?? 'N/A' }}</td>
                                                 <td class="text-center">{{ $stock->opening_stock }}</td>
@@ -108,8 +108,9 @@
                                             <th>{{ $totalClosing }}</th>
                                             <th>{{ $totalPhysical }}</th>
                                             <th
-                                                style="background-color: {{ $totalDifference < 0 ? '#ffcccc' : 'transparent' }}">
-                                                {{ $totalDifference }}</th>
+                                                style="background-color: {{ $totalDifference != 0 ? '#ffcccc' : 'transparent' }}">
+                                                {{ $totalDifference }}
+                                            </th>
                                         </tr>
                                     </tbody>
                                 </table>
