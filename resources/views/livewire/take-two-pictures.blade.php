@@ -11,7 +11,7 @@
             <div class="modal-content p-4">
                 <div class="modal-header border-0">
                     <h5 class="modal-title">Capture Product and Customer Photos</h5>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">×</button>
+                    <button type="button" class=" btn btn-default close" data-bs-dismiss="modal" aria-label="Close">×</button>
                 </div>
                 @php
                     $hideCameraClass = '';
@@ -121,9 +121,9 @@
                             <h6>Live Camera</h6>
                             <div class="position-relative">
                                 <div id="loadingIndicator" class="position-absolute top-50 start-50 translate-middle">
-                                    <div class="spinner-border text-primary" role="status">
+                                    {{-- <div class="spinner-border text-primary" role="status">
                                         <span class="visually-hidden">Loading...</span>
-                                    </div>
+                                    </div> --}}
                                 </div>
                                 <video id="video" autoplay playsinline width="320" height="240"
                                     class="border"></video>
@@ -237,8 +237,8 @@
                         </button>
                         <button wire:click="save" class="btn btn-primary"
                             @if (!$canSave) disabled @endif>
-                            <span wire:loading wire:target="save"
-                                class="spinner-border spinner-border-sm me-1"></span>
+                            {{-- <span wire:loading wire:target="save"
+                                class="spinner-border spinner-border-sm me-1"></span> --}}
                             Save Both Photos
                         </button>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
