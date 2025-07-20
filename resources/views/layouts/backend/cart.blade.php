@@ -147,11 +147,11 @@
         background-color: rgba(0, 179, 179, 1);
         color: rgba(255, 255, 255, 1);  
         }
-        .btn:hover {
-        color: unset ! important;
-        background-color: unset ! important;
-        border-color: unset ! important;
-        }
+        /* .btn:hover {
+            color: inherit !important;
+            background-color: inherit !important;
+            border-color: inherit !important;
+        } */
         .custom-border {
         
         border-color: rgba(0, 179, 179, 1);
@@ -202,7 +202,7 @@
     border-top: unset;
     
 }
-.submit-btn{
+.submit-btn,.submit-btn tr th,.physical-table tr th{
     color: rgba(255, 255, 255, 1) !important;
     background-color: rgba(0, 179, 179, 1) !important;
 }
@@ -224,6 +224,22 @@
 .cash-summary-text61 {
     color: rgba(36, 81, 118, 1);
  
+}
+.btn-primary,.btn-primary:hover {
+    background-color: #009fe3;
+}
+.btn-warning,.btn-warning:hover{
+    background-color: rgba(255, 126, 65, 1);
+    color: white !important;
+}
+.close-text{
+    color: black !important;
+}
+.text-success td,.table-success tr th ,.table-success-new  td{
+    color:1C5609 !important;
+}
+.sidebar-item button {
+    height: 36px;
 }
     </style>
 </head>
