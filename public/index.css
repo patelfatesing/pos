@@ -2770,7 +2770,7 @@ tr.active1 td {
     }
 
     .customtable .table-secondary {
-        background-color: #e6f4e6 !important;
+        background-color: rgba(223, 236, 219, 1) !important;
         font-weight: bold;
         color: #198754;
     }
@@ -2807,3 +2807,64 @@ tr.active1 td {
     }
 
 
+.nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+    color: rgba(42, 165, 165, 1) !important;
+  }
+
+   
+.collect-credit-frame2742 {
+  gap: 10px;
+  width: 68px;
+  height: 25px;
+  display: flex;
+  padding: 5px 33px;
+  position: absolute;
+  align-items: center;
+  flex-shrink: 0;
+  border-radius: 6px;
+  justify-content: center;
+  background-color: rgba(46, 158, 209, 1);
+}
+
+.width_300{
+  width: 350px;
+}
+
+
+
+    .cash-adjust button.custom-btn:hover {
+        background-color: #e0f7fa;
+    }
+
+    .cash-adjust input.cash-input {
+        width: 55px;
+        
+    }
+
+    .table td, .table th {
+        vertical-align: middle;
+    }
+
+    .bg-light {
+        background-color: #f5f5f5 !important;
+    }
+
+    .table>:not(caption)>*>* {
+    background-color: none !important;
+    }
+
+    tr.active td {
+      background-color: rgba(248, 237, 200, 1) !important;
+    }
+    
+    .cameraModalHht{
+      height: 36px;
+    }
+
+    .cameraBtnPdg{
+      padding-top: 0px;
+    }
+
+    .offcanvas-body {
+    padding: 1rem;
+}

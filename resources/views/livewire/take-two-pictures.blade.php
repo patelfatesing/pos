@@ -1,8 +1,8 @@
 <div>
 
-    <button class="btn btn-default" data-bs-toggle="modal" data-bs-target="#cameraModal"
+    <button class="btn btn-default cameraBtnPdg" data-bs-toggle="modal" data-bs-target="#cameraModal"
         @if ($this->selectedSalesReturn == true) disabled @endif>
-        <img src="{{ asset('public/external/camera114471-6eja.svg') }}" alt="Separator" class="" />
+        <img src="{{ asset('public/external/camera114471-6eja.svg') }}" alt="Separator" class="cameraModalHht" />
     </button>
 
     <!-- Modal -->
