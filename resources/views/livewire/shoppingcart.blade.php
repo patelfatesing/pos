@@ -20,11 +20,10 @@
                             class="main-screen-vector11" />
                     </div>
                 </div>
-                <img src="{{ asset('public/external/expand14471-lu4b.svg') }}" wire:click="toggleFullscreen"
-                    alt="expand14471" class="main-screen-expand1" />
-                <img src="{{ asset('public/external/bell14471-yfps.svg') }}" alt="bell14471"
-                    class="main-screen-bell1" />
-                <div class="main-screen-frame245">
+                <livewire:fullscreen-toggle />
+                <livewire:notification />
+                <livewire:language-switcher />
+                {{-- <div class="main-screen-frame245">
                     <div class="main-screen-group188">
                         <span class="main-screen-text10">English</span>
                         <div class="main-screen-layer12">
@@ -34,7 +33,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> --}}
                 <button type="button" class="btn btn-deafult" data-toggle="tooltip" data-placement="top" title="Logout"
                     onclick="confirmLogout()">
                     {{-- <span class="font-weight-bold"> {{ Auth::user()->name }}</span> --}}
@@ -135,7 +134,7 @@
                     </div>
                     @if (auth()->user()->hasRole('warehouse'))
                         <div class="col-12 col-md-3">
-                            <div class="position-relative">
+                            <div class="position-relative1">
                                 <input type="text" wire:model.live="searchSalesReturn"
                                     wire:keydown.enter="addToSalesreturn"
                                     class="form-control rounded-pill ps-4 pe-5 custom-border"
@@ -152,7 +151,7 @@
                 <div class="row g-2 mt-2">
                     <div class="col-md-9">
                         <form wire:submit.prevent="searchTerm" class="mb-0">
-                            <div class="position-relative">
+                            <div class="position-relative1">
                                 <input type="text" wire:model.live.debounce.500ms="searchTerm"
                                     placeholder="{{ __('messages.enter_product_name') }}"
                                     class="form-control rounded-pill ps-4 pe-5 custom-border" id="searchInput"
@@ -429,7 +428,7 @@
                     <div class="col-md-4">
                         <input type="hidden" id="cartCount" value="{{ $this->cartCount }}">
                         <strong>
-                             <span class="main-screen-text70"> {{ $this->cartCount }}</span>
+                            <span class="main-screen-text70"> {{ $this->cartCount }}</span>
                         </strong>
                     </div>
                     <div class="col-md-4">
@@ -801,24 +800,6 @@
                                                 <form id="warehouseForm" method="POST"
                                                     action="{{ route('stock.warehouse') }}">
                                                     @csrf
-                                                    {{-- <div class="product_items mb-3">
-                                                                <select name="store_id" id="main_store_id"
-                                                                    class="form-control d-inline w-50" required>
-                                                                    <option value="">-- {{ __('messages.select_store') }} --
-                                                                    </option>
-                                                                    @foreach ($stores as $product)
-                                                                        @if ($product->id != 1)
-                                                                            <option value="{{ $product->id }}">{{ $product->name }}
-                                                                            </option>
-                                                                        @endif
-                                                                    @endforeach
-                                                                </select>
-                                                                @error('items')
-                                                                    <span class="text-danger">{{ $message }}</span>
-                                                                @enderror
-                    
-                                                            </div> --}}
-                                                    {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
                                                     <div id="product-items-wh">
 
                                                         <h5>Products</h5>
@@ -901,8 +882,8 @@
                                     <input type="hidden" name="amount" id="holdamountTotal"
                                         class="form-control mb-3" placeholder="Enter opening amount" readonly>
 
-                                    <table class="customtable table">
-                                        <thead>
+                                    <table class="table table-bordered text-center align-middle mb-0">
+                                        <thead class="table-success" style="background-color: #1aa59a; color: #fff;">
                                             <tr>
                                                 <th>{{ __('messages.currency') }}</th>
                                                 <th>{{ __('messages.notes') }}</th>
@@ -912,37 +893,45 @@
                                         <tbody>
                                             @foreach ($noteDenominations as $key => $denomination)
                                                 <tr>
-                                                    <td>{{ $denomination }}</td>
+                                                    <td class="fw-semibold">{{ $denomination }} <span
+                                                            class="mx-1">x</span></td>
                                                     <td>
-                                                        <div class="input-group" style="max-width: 150px;">
-                                                            <button
-                                                                class="btn btn-sm btn-danger custom-btn btn-decrease"
-                                                                type="button"
-                                                                data-denomination="{{ $denomination }}"><i
-                                                                    class="fa fa-minus"></i></button>
-                                                            <input type="text"
-                                                                name="cashNotes.{{ $key }}.{{ $denomination }}"
-                                                                class="form-control text-center note-input"
-                                                                id="cashhandsum_{{ $denomination }}"
-                                                                data-denomination="{{ $denomination }}"
-                                                                value="0" readonly>
-                                                            <button
-                                                                class="btn btn-sm btn-success custom-btn btn-increase"
-                                                                type="button"
-                                                                data-denomination="{{ $denomination }}">+</button>
+                                                        <div class="d-flex justify-content-center align-items-center">
+                                                            <div class="rounded-pill d-flex align-items-center px-1"
+                                                                style="background-color: #f1f2f3;">
+                                                                <button type="button"
+                                                                    class="btn btn-sm border-0 bg-transparent fw-bold btn-decrease"
+                                                                    data-denomination="{{ $denomination }}"
+                                                                    style="font-size: 1.2rem;">−</button>
+                                                                <input type="text"
+                                                                    name="cashNotes[{{ $key }}][{{ $denomination }}]"
+                                                                    id="cashhandsum_{{ $denomination }}"
+                                                                    class="form-control text-center border-0 bg-white px-1 note-input"
+                                                                    value="1" readonly
+                                                                    data-denomination="{{ $denomination }}"
+                                                                    style="width: 40px; font-weight: 600;">
+                                                                <button type="button"
+                                                                    class="btn btn-sm border-0 bg-transparent fw-bold btn-increase"
+                                                                    data-denomination="{{ $denomination }}"
+                                                                    style="font-size: 1.2rem;">+</button>
+                                                            </div>
                                                         </div>
                                                     </td>
-                                                    <td id="discashhandsum_{{ $denomination }}">0</td>
+                                                    <td class="text-end fw-semibold amount-cell"
+                                                        id="discashhandsum_{{ $denomination }}">
+                                                        ₹{{ number_format($denomination, 2) }}</td>
                                                 </tr>
                                             @endforeach
-                                            <tr>
-                                                <td colspan="2" class="text-end fw-bold">
-                                                    {{ __('messages.total_cash') }}
-                                                </td>
-                                                <td id="totalNoteCashHand">0</td>
-                                            </tr>
                                         </tbody>
+                                        <tfoot>
+                                            <tr style="background-color: #e9f7e9;">
+                                                <td class="fw-bold text-start" colspan="2">
+                                                    {{ __('messages.total_cash') }}</td>
+                                                <td class="fw-bold text-end" id="totalNoteCashHand">₹0.00</td>
+                                            </tr>
+                                        </tfoot>
                                     </table>
+
                                     @error('amount')
                                         <span class="text-red">{{ $message }}</span>
                                     @enderror
