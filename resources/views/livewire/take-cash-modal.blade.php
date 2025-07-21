@@ -13,7 +13,7 @@
             <div class="modal-dialog modal-lg modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title text-dark">Cash + UPI</h5>
+                        <h5 class="modal-title text-dark">Add Case</h5>
                         <button type="button" class="close" wire:click="$set('showCollectModal', false)">
                             <span aria-hidden="true">×</span>
                         </button>

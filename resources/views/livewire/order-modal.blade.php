@@ -5,12 +5,13 @@
     </button>
 
     <!-- Modal -->
-    @if($showModal)
-    <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" wire:keydown.escape="$set('showModal', false)">
+    @if ($showModal)
+        <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);"
+            wire:keydown.escape="$set('showModal', false)">
             <div class="modal-dialog modal-xl">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Sales History</h5>
+                        <h5 class="modal-title text-dark">Sales History</h5>
 
                         <button type="button" class="close" wire:click="$set('showModal', false)">
                             <span aria-hidden="true">×</span>
@@ -19,18 +20,21 @@
                     <div class="modal-body">
                         <ul class="nav nav-tabs" id="salesTab" role="tablist">
                             <li class="nav-item" role="presentation">
-                            <a class="nav-link active" id="paid-tab" data-bs-toggle="tab" href="#paid" role="tab" aria-controls="paid" aria-selected="true">Sales</a>
+                                <a class="nav-link active" id="paid-tab" data-bs-toggle="tab" href="#paid"
+                                    role="tab" aria-controls="paid" aria-selected="true">Sales</a>
                             </li>
                             <li class="nav-item" role="presentation">
-                            <a class="nav-link" id="refunded-tab" data-bs-toggle="tab" href="#refunded" role="tab" aria-controls="refunded" aria-selected="false">Refunds</a>
+                                <a class="nav-link" id="refunded-tab" data-bs-toggle="tab" href="#refunded"
+                                    role="tab" aria-controls="refunded" aria-selected="false">Refunds</a>
                             </li>
                         </ul>
                         <div class="tab-content" id="salesTabContent">
                             <!-- Paid Orders Tab -->
-                        <div class="tab-pane fade show active" id="paid" role="tabpanel" aria-labelledby="paid-tab">
-                            @if($orders->count() > 0)
+                            <div class="tab-pane fade show active" id="paid" role="tabpanel"
+                                aria-labelledby="paid-tab">
+                                @if ($orders->count() > 0)
                                     <table class="table table-bordered table-hover">
-                                        <thead class="table-light">
+                                        <thead class="table-light table-info">
                                             <tr>
                                                 <th>Sr</th>
                                                 <th>Invoice No</th>
@@ -44,33 +48,35 @@
                                         </thead>
                                         <tbody>
                                             @php
-                                            $j=1;
+                                                $j = 1;
                                             @endphp
-                                        @foreach($orders as $index => $order)
+                                            @foreach ($orders as $index => $order)
                                                 <tr>
                                                     <td>{{ $j++ }}</td>
                                                     <td>{{ $order->invoice_number }}</td>
-                                                <td>{{ $order->created_at->format('d/m/Y H:i' ) }}</td>
+                                                    <td>{{ $order->created_at->format('d/m/Y H:i') }}</td>
                                                     <td>
-                                                    @if(auth()->user()->hasRole('warehouse'))
+                                                        @if (auth()->user()->hasRole('warehouse'))
                                                             {{ optional($order->partyUser)->first_name }}
                                                         @else
                                                             {{ optional($order->commissionUser)->first_name }}
                                                         @endif
                                                     </td>
-                                                <td>{{($order->payment_mode=="online")?"UPI":$order->payment_mode}}</td>
+                                                    <td>{{ $order->payment_mode == 'online' ? 'UPI' : $order->payment_mode }}
+                                                    </td>
                                                     <td>{{ $order->total_item_qty }}</td>
-                                                    @if (($order->creditpay+@$order->party_amount+@$order->commission_amount) == $order->sub_total)
+                                                    @if ($order->creditpay + @$order->party_amount + @$order->commission_amount == $order->sub_total)
                                                         <td>{{ format_inr($order->creditpay) }}</td>
                                                     @else
                                                         <td>{{ format_inr($order->total) }}</td>
                                                     @endif
                                                     <td class="text-center">
-                                            <button class="btn btn-sm btn-secondary" wire:click="printInvoice('{{ $order->id }}')">
-                                                            <i class="fa fa-file-pdf"></i>
+                                                       
+                                                        <button class="btn btn-lg"
+                                                            wire:click="printInvoice('{{ $order->id }}')">
+                                                            <i class="bi bi-file-earmark-pdf-fill text-danger"></i>
+
                                                         </button>
-
-
                                                     </td>
                                                 </tr>
                                             @endforeach
@@ -80,10 +86,10 @@
                                     <p class="text-muted">No Paid Orders found.</p>
                                 @endif
                             </div>
-                            
+
                             <!-- Refunded Orders Tab -->
                             <div class="tab-pane fade" id="refunded" role="tabpanel" aria-labelledby="refunded-tab">
-                        @if($refunds->count() > 0)
+                                @if ($refunds->count() > 0)
                                     <table class="table table-bordered table-hover">
                                         <thead class="table-light">
                                             <tr>
@@ -98,14 +104,14 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                    @foreach($refunds as $index => $refund)
+                                            @foreach ($refunds as $index => $refund)
                                                 @php $order = $refund->invoice; @endphp
                                                 <tr class="table-warning">
                                                     <td>{{ $index + 1 }}</td>
                                                     <td>{{ $refund->refund_number ?? '-' }}</td>
                                                     <td>{{ $refund->created_at?->format('d/m/Y H:i') ?? '-' }}</td>
                                                     <td>
-                                                @if(auth()->user()->hasRole('warehouse'))
+                                                        @if (auth()->user()->hasRole('warehouse'))
                                                             {{ optional($order->partyUser)->first_name }}
                                                             {{ optional($order->commissionUser)->first_name }}
                                                         @endif
@@ -113,21 +119,20 @@
                                                     <td>{{ $order->payment_mode ?? '-' }}</td>
                                                     <td>{{ $refund->total_item_qty ?? 0 }}</td>
                                                     <td>{{ format_inr($refund->amount ?? 0) }}</td>
-                                                    @if($refund->type=="return")
+                                                    @if ($refund->type == 'return')
                                                         <td class="text-center">
                                                             <button class="btn btn-sm btn-secondary"
                                                                 wire:click="printRefundInvoice('{{ asset('storage/invoices/return_' . $refund->refund_number . '.pdf') }}')">
                                                                 <i class="fa fa-file-pdf"></i>
                                                             </button>
                                                         </td>
-                                                    @else 
-
-                                                    <td class="text-center">
-                                                        <button class="btn btn-sm btn-secondary"
-                                                            wire:click="printRefundInvoice('{{ asset('storage/invoices/refund_' . $refund->refund_number . '.pdf') }}')">
-                                                            <i class="fa fa-file-pdf"></i>
-                                                        </button>
-                                                    </td>
+                                                    @else
+                                                        <td class="text-center">
+                                                            <button class="btn btn-sm btn-secondary"
+                                                                wire:click="printRefundInvoice('{{ asset('storage/invoices/refund_' . $refund->refund_number . '.pdf') }}')">
+                                                                <i class="fa fa-file-pdf"></i>
+                                                            </button>
+                                                        </td>
                                                     @endif
                                                 </tr>
                                             @endforeach

@@ -5,12 +5,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LiquorHub</title>
+        <link rel="shortcut icon" href="../assets/images/favicon.ico" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="shortcut icon" href="{{ asset('public/external/favicon.ico') }}" />
     <link rel="stylesheet" href="https://unpkg.com/animate.css@4.1.1/animate.css" />
     <link rel="stylesheet" href="{{ asset('style.css') }}">
     <link rel="stylesheet" href="{{ asset('index.css') }}">
-    
+    <link rel="stylesheet" href="{{ asset('../assets/css/notification.css') }}">
+
+
     <!-- Fonts -->
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&amp;display=swap"
@@ -34,6 +37,8 @@
         href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&amp;display=swap"
         data-tag="font" />
     <link rel="stylesheet" href="https://unpkg.com/@teleporthq/teleport-custom-scripts/dist/style.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
     <style>
         body {
@@ -101,146 +106,150 @@
         .main-screen-main-screen {
             min-width: 1024px;
         }
-        .btn-light1{ 
-            background-color:rgba(46, 158, 209, 1);
+
+        .btn-light1 {
+            background-color: rgba(46, 158, 209, 1);
         }
-       .blue-bg{ 
-            background-color:rgba(200, 225, 245, 1);
+
+        .blue-bg {
+            background-color: rgba(200, 225, 245, 1);
         }
-       
+
         .btn-hold {
 
-        padding: 5px 24px;
-        border-radius: 6px;
-        justify-content: center;
-        background-color: rgba(224, 142, 20, 1);
-        color: rgba(255, 255, 255, 1);  
+            padding: 5px 24px;
+            border-radius: 6px;
+            justify-content: center;
+            background-color: rgba(224, 142, 20, 1);
+            color: rgba(255, 255, 255, 1);
         }
+
         .btn-void {
 
-        padding: 5px 24px;
-        border-radius: 6px;
-        justify-content: center;
-        background-color: rgba(204, 68, 68, 1);
-        color: rgba(255, 255, 255, 1);  
+            padding: 5px 24px;
+            border-radius: 6px;
+            justify-content: center;
+            background-color: rgba(204, 68, 68, 1);
+            color: rgba(255, 255, 255, 1);
         }
+
         .btn-cash {
 
-        padding: 5px 24px;
-        border-radius: 6px;
-        justify-content: center;
-        background-color: rgba(73, 89, 144, 1);
-        color: rgba(255, 255, 255, 1);  
+            padding: 5px 24px;
+            border-radius: 6px;
+            justify-content: center;
+            background-color: rgba(73, 89, 144, 1);
+            color: rgba(255, 255, 255, 1);
         }
+
         .btn-online {
 
-        padding: 5px 24px;
-        border-radius: 6px;
-        justify-content: center;
-        background-color:rgba(46, 158, 209, 1);
-        color: rgba(255, 255, 255, 1);  
+            padding: 5px 24px;
+            border-radius: 6px;
+            justify-content: center;
+            background-color: rgba(46, 158, 209, 1);
+            color: rgba(255, 255, 255, 1);
         }
-         .btn-cash-upi {
 
-        border-radius: 6px;
-        justify-content: center;
-        background-color: rgba(0, 179, 179, 1);
-        color: rgba(255, 255, 255, 1);  
+        .btn-cash-upi {
+
+            border-radius: 6px;
+            justify-content: center;
+            background-color: rgba(0, 179, 179, 1);
+            color: rgba(255, 255, 255, 1);
         }
-        /* .btn:hover {
-            color: inherit !important;
-            background-color: inherit !important;
-            border-color: inherit !important;
-        } */
+
+        .btn:hover {
+            color: unset ! important;
+            background-color: unset ! important;
+            border-color: unset ! important;
+        }
+
         .custom-border {
-        
-        border-color: rgba(0, 179, 179, 1);
-        border-style: solid;
-        border-width: 1px;
-        border-radius: 28px;
-        background-color: rgba(255, 255, 255, 1);
-    }
-    .sidebar {
-    background-color: #009fe3;
-    min-height: auto;
-    border-radius: 10px ! important;
-    /* margin-left: 0px ! important; */
-    /* width: 70px ! important; */
-}
-.sidebar-item img {
-    /* width: unset ! important;
+
+            border-color: rgba(0, 179, 179, 1);
+            border-style: solid;
+            border-width: 1px;
+            border-radius: 28px;
+            background-color: rgba(255, 255, 255, 1);
+        }
+
+        .sidebar {
+            background-color: #009fe3;
+            min-height: auto;
+            border-radius: 10px ! important;
+            /* margin-left: 0px ! important; */
+            /* width: 70px ! important; */
+        }
+
+        .sidebar-item img {
+            /* width: unset ! important;
     height: unset ! important; */
-    margin-bottom: unset ! important;
-    object-fit: contain;
-}
-.custom-modal-header{
-    background: #e9f2f9;
-}
-.cash-summary-group1922 {
-    background-color: rgba(223, 236, 219, 1) ! important;
-}
-.table-dark {
-    --bs-table-color:rgba(28, 86, 8, 1) ! important;
-    --bs-table-bg: rgba(223, 236, 219, 1) ! important;
-    --bs-table-striped-bg:rgba(223, 236, 219, 1) ! important;
-    --bs-table-border-color:rgba(28, 86, 8, 1) ! important;
-    --bs-table-active-bg:rgba(223, 236, 219, 1) ! important;
-    --bs-table-hover-bg:rgba(223, 236, 219, 1) ! important;
-    --bs-table-active-color:rgba(28, 86, 8, 1) ! important;
-    --bs-table-striped-color:rgba(28, 86, 8, 1) ! important;
-}
-.cash-summary-frame282 {
-        padding: 13px 15px;
+            margin-bottom: unset ! important;
+            object-fit: contain;
+        }
 
-   border-radius: 20px;
-    background-color: rgba(222, 237, 249, 1);
-}
-.custom-hr {
-    margin: 6px 0;
-    color: inherit;
-    border: 0;
-    border-top: unset;
-    
-}
-.submit-btn,.submit-btn tr th,.physical-table tr th{
-    color: rgba(255, 255, 255, 1) !important;
-    background-color: rgba(0, 179, 179, 1) !important;
-}
-.rounded-start {
-    border-bottom-left-radius: 40px !important;
-    border-top-left-radius: 40px !important;
-}
-.rounded-end {
-    border-top-right-radius: 40px !important;
-    border-bottom-right-radius: 40px !important;
-}
+        .custom-modal-header {
+            background: #e9f2f9;
+        }
 
-.btn-gray{
-    background-color: rgba(234, 236, 234, 1)!important;
-}
-.currency-center{
-    background-color: #cfebeb !important;
-}
-.cash-summary-text61 {
-    color: rgba(36, 81, 118, 1);
- 
-}
-.btn-primary,.btn-primary:hover {
-    background-color: #009fe3;
-}
-.btn-warning,.btn-warning:hover{
-    background-color: rgba(255, 126, 65, 1);
-    color: white !important;
-}
-.close-text{
-    color: black !important;
-}
-.text-success td,.table-success tr th ,.table-success-new  td{
-    color:1C5609 !important;
-}
-.sidebar-item button {
-    height: 36px;
-}
+        .cash-summary-group1922 {
+            background-color: rgba(223, 236, 219, 1) ! important;
+        }
+
+        .table-dark {
+            --bs-table-color: rgba(28, 86, 8, 1) ! important;
+            --bs-table-bg: rgba(223, 236, 219, 1) ! important;
+            --bs-table-striped-bg: rgba(223, 236, 219, 1) ! important;
+            --bs-table-border-color: rgba(28, 86, 8, 1) ! important;
+            --bs-table-active-bg: rgba(223, 236, 219, 1) ! important;
+            --bs-table-hover-bg: rgba(223, 236, 219, 1) ! important;
+            --bs-table-active-color: rgba(28, 86, 8, 1) ! important;
+            --bs-table-striped-color: rgba(28, 86, 8, 1) ! important;
+        }
+
+        .cash-summary-frame282 {
+            padding: 13px 15px;
+
+            border-radius: 20px;
+            background-color: rgba(222, 237, 249, 1);
+        }
+
+        .custom-hr {
+            margin: 6px 0;
+            color: inherit;
+            border: 0;
+            border-top: unset;
+
+        }
+
+        .submit-btn {
+            color: rgba(255, 255, 255, 1) !important;
+            background-color: rgba(0, 179, 179, 1) !important;
+        }
+
+        .rounded-start {
+            border-bottom-left-radius: 40px !important;
+            border-top-left-radius: 40px !important;
+        }
+
+        .rounded-end {
+            border-top-right-radius: 40px !important;
+            border-bottom-right-radius: 40px !important;
+        }
+
+        .btn-gray {
+            background-color: rgba(234, 236, 234, 1) !important;
+        }
+
+        .currency-center {
+            background-color: #cfebeb !important;
+        }
+
+        .cash-summary-text61 {
+            color: rgba(36, 81, 118, 1);
+
+        }
     </style>
 </head>
 
