@@ -66,7 +66,7 @@
                 <div class="card-header"><strong>Requested Items</strong></div>
                 <div class="card-body p-0">
                     <table class="table table-bordered mb-0">
-                        <thead>
+                        <thead class="table-info">
                             <tr>
                                 <th>#</th>
                                 <th>Product</th>

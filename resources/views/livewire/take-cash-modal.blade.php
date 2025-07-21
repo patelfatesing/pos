@@ -1,7 +1,5 @@
 <div>
     <!-- Trigger Button -->
-
-
     <button wire:click="openCollectModal" class="btn btn-default" data-placement="top"
         title="{{ __('messages.cash_out') }}">
         <img src="{{ asset('public/external/vector4471-k5i.svg') }}" alt="Cash Out Icon" />

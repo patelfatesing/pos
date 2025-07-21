@@ -14,7 +14,7 @@
                     <p>No expired products found.</p>
                 @else
                     <table class="table table-striped">
-                        <thead>
+                        <thead class=" table-info">
                             <tr>
                                 <th>Product Name</th>
                                 <th>Batch No</th>

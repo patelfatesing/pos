@@ -13,7 +13,7 @@
             <h5 class="mb-3">Store : {{ $branch_name }}</h5>
             <input type="hidden" name="store_id" value="2" />
             <table class="table table-bordered">
-                <thead>
+                <thead class="table-info">
                     <tr>
                         <th>Product</th>
                         <th>Low Level Stock</th>
