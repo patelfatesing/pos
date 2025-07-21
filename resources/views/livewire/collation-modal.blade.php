@@ -11,26 +11,23 @@
             <div class="modal-dialog modal-xl">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Collect Credit</h5>
+                        <h5 class="modal-title text-dark">Collect Credit</h5>
                         <button type="button" class="close" wire:click="$set('showModal', false)">
                             <span aria-hidden="true">×</span>
                         </button>
                     </div>
                     <div class="modal-body">
                         <!-- Search Box -->
-                        <div class="mb-3">
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-search"></i>
-                                </span>
-                                <input type="text" wire:model.live="search" class="form-control"
-                                    placeholder="Search by name, phone, or credit points...">
-                            </div>
+                        <div class="mb-3 width_300">
+                            <input type="text" wire:model.live="search"
+                                class="form-control frame-stock-request-searchbar6 Specificity: (0,1,0)"
+                                placeholder="Search by name, phone, or credit points...">
+
                         </div>
 
                         <div class="table-responsive">
                             <table class="table table-bordered table-hover">
-                                <thead class="table-light">
+                                <thead class="table-light table-info">
                                     <tr>
                                         <th>#</th>
                                         <th>Name</th>
@@ -60,7 +57,7 @@
                                             <td>
                                                 @if (number_format($user->use_credit, 2) != '0.00')
                                                     <button wire:click="openCollectModal({{ $user->id }})"
-                                                        class="btn btn-sm btn-success">
+                                                        class="btn btn-sm collect-credit-frame2742">
                                                         <i class="fa fa-money-bill"></i> Collect
                                                     </button>
                                                 @else
@@ -96,10 +93,10 @@
     <!-- Collect Credit Modal -->
     @if ($showCollectModal)
         <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-            <div class="modal-dialog modal-md">
+            <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Collect Credit for {{ $selectedUser?->first_name }}</h5>
+                        <h5 class="modal-title text-dark">Collect Credit for {{ $selectedUser?->first_name }}</h5>
                         <button type="button" class="close" wire:click="$set('showCollectModal', false)">
                             <span aria-hidden="true">×</span>
                         </button>
@@ -113,20 +110,20 @@
                                 <div>
                                     <input type="radio" wire:model="paymentType"
                                         wire:click="paymentTypeChanged('cash')" value="cash" id="pay_cash">
-                                    <label for="pay_cash">Cash</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <label for="pay_cash" class="text-dark">Cash</label>&nbsp;&nbsp;&nbsp;&nbsp;
 
                                 </div>
                                 <div>
 
                                     <input type="radio" wire:model="paymentType"
                                         wire:click="paymentTypeChanged('online')" value="online" id="pay_online">
-                                    <label for="pay_online">UPI</label>&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <label for="pay_online" class="text-dark">UPI</label>&nbsp;&nbsp;&nbsp;&nbsp;
                                 </div>
                                 <div>
 
                                     <input type="radio" wire:model="paymentType"
                                         wire:click="paymentTypeChanged('cash+upi')" value="cash+upi" id="pay_cash_upi">
-                                    <label for="pay_cash_upi">Cash + UPI</label>
+                                    <label for="pay_cash_upi" class="text-dark">Cash + UPI</label>
                                 </div>
                             </div>
 
@@ -166,37 +163,33 @@
                                         <tr>
                                             @if (empty($this->selectedSalesReturn))
                                                 <td class="text-center fw-bold">
-                                                    {{ format_inr($inValue * $denomination) }}</td>
+                                                    {{ format_inr($inValue * $denomination) }}
+                                                </td>
                                                 <td class="text-center">
-                                                    <div class="d-flex justify-content-center align-items-center gap-2">
-                                                        <button class="btn btn-sm btn-danger custom-btn"
-                                                            wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'in')">
-                                                            -
-                                                        </button>
-                                                        <input type="number" class="form-control text-center"
-                                                            value="{{ $inValue }}" readonly style="width: 60px;">
-                                                        <button class="btn btn-sm btn-success custom-btn"
-                                                            wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'in')">
-                                                            +
-                                                        </button>
+                                                    <div
+                                                        class="cash-adjust d-flex justify-content-center align-items-center gap-2">
+                                                        <button class="btn btn-sm btn-outline-secondary custom-btn"
+                                                            wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'in')">−</button>
+                                                        <input type="number" value="{{ $inValue }}" readonly
+                                                            class="form-control text-center cash-input" />
+                                                        <button class="btn btn-sm btn-outline-secondary custom-btn"
+                                                            wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'in')">+</button>
                                                     </div>
                                                 </td>
                                             @endif
 
-                                            <td class="text-center">{{ format_inr($denomination) }}</td>
+                                            <td class="text-center bg-light fw-bold">{{ format_inr($denomination) }}
+                                            </td>
 
                                             <td class="text-center">
-                                                <div class="d-flex justify-content-center align-items-center gap-2">
-                                                    <button class="btn btn-sm btn-danger custom-btn"
-                                                        wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'out')">
-                                                        -
-                                                    </button>
-                                                    <input type="number" class="form-control text-center"
-                                                        value="{{ $outValue }}" readonly style="width: 60px;">
-                                                    <button class="btn btn-sm btn-success custom-btn"
-                                                        wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'out')">
-                                                        +
-                                                    </button>
+                                                <div
+                                                    class="cash-adjust d-flex justify-content-center align-items-center gap-2">
+                                                    <button class="btn btn-sm btn-outline-secondary custom-btn"
+                                                        wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'out')">−</button>
+                                                    <input type="number" value="{{ $outValue }}" readonly
+                                                        class="form-control text-center cash-input" />
+                                                    <button class="btn btn-sm btn-outline-secondary custom-btn"
+                                                        wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'out')">+</button>
                                                 </div>
                                             </td>
 
@@ -206,7 +199,7 @@
                                         </tr>
                                     @endforeach
 
-                                    <tr class="table-secondary fw-bold">
+                                    <tr class="table-secondary tbl_footer_bgc fw-bold">
                                         @if (empty($this->selectedSalesReturn))
                                             <td class="text-center">{{ format_inr($totals['totalIn']) }}</td>
                                             <td class="text-center">{{ $totals['totalInCount'] }}</td>
@@ -258,7 +251,7 @@
 
                         <!-- Submit Button -->
                         <div class="text-end">
-                            <button wire:click="submitCredit" class="btn btn-primary mt-2">
+                            <button wire:click="submitCredit" class="btn btn frame-stock-request-group223 mt-2">
                                 Submit Collection
                             </button>
                         </div>

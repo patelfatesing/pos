@@ -13,18 +13,17 @@
             </div>
             <div class="main-screen-frame246 d-flex align-items-center">
                 <div class="main-screen-refresh1">
-                    <div class="main-screen-group1">
+                    <div class="main-screen-group1" onclick="location.reload()">
                         <img src="{{ asset('public/external/vector4471-dtw.svg') }}" alt="Vector4471"
                             class="main-screen-vector10" />
                         <img src="{{ asset('public/external/vector4471-wfwo.svg') }}" alt="Vector4471"
                             class="main-screen-vector11" />
                     </div>
                 </div>
-                <img src="{{ asset('public/external/expand14471-lu4b.svg') }}" alt="expand14471"
-                    class="main-screen-expand1" />
-                <img src="{{ asset('public/external/bell14471-yfps.svg') }}" alt="bell14471"
-                    class="main-screen-bell1" />
-                <div class="main-screen-frame245">
+                <livewire:fullscreen-toggle />
+                <livewire:notification />
+                <livewire:language-switcher />
+                {{-- <div class="main-screen-frame245">
                     <div class="main-screen-group188">
                         <span class="main-screen-text10">English</span>
                         <div class="main-screen-layer12">
@@ -34,7 +33,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> --}}
                 <button type="button" class="btn btn-deafult" data-toggle="tooltip" data-placement="top" title="Logout"
                     onclick="confirmLogout()">
                     {{-- <span class="font-weight-bold"> {{ Auth::user()->name }}</span> --}}
@@ -53,110 +52,30 @@
         </div>
     </div>
 
+    <!-- ✅ Toggle Button for Mobile -->
+    <button class="btn btn-primary d-md-none mb-2 ms-2" type="button" data-bs-toggle="offcanvas"
+        data-bs-target="#mobileSidebar">
+        ☰ Menu
+    </button>
+
     <div class="row flex-md-nowrap">
-        <!-- Sidebar -->
-        <div class="col-12 col-md-1 sidebar d-flex flex-column align-items-center py-2 ml-2">
-            <div class="sidebar-item">
-                {{-- Cashier Button --}}
-                @if (auth()->user()->hasRole('cashier'))
-                    <button type="button" class="btn btn-default" data-toggle="modal" data-target="#storeStockRequest"
-                        data-toggle="tooltip" data-placement="top" title="{{ __('messages.store_stock_request') }}">
-                        <img src="{{ asset('public/external/frame2834471-mtm.svg') }}" alt="Stock Request Icon" />
-                    </button>
-                @endif
+        <!-- Desktop Sidebar -->
+        <div class="d-none d-md-flex col-md-1 sidebar flex-column align-items-center py-2 ml-2">
+            @include('partials.sidebar-items')
+        </div>
 
-                {{-- Warehouse Button --}}
-                @if (auth()->user()->hasRole('warehouse'))
-                    <button type="button" class="btn btn-default" data-toggle="modal"
-                        data-target="#warehouseStockRequest" data-toggle="tooltip" data-placement="top"
-                        title="{{ __('messages.warehouse_stock_request') }}">
-                        <img src="{{ asset('public/external/frame2834471-mtm.svg') }}" alt="Stock Request Icon" />
-                    </button>
-                @endif
-
-                <span>Stock Request</span>
+        <!-- Mobile Offcanvas Sidebar -->
+        <div class="offcanvas offcanvas-start d-md-none" id="mobileSidebar">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title">Menu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
             </div>
-            <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-                class="main-screen-rectangle457" />
-
-            <div class="sidebar-item">
-                <livewire:take-cash-modal />
-                {{-- <button type="button" class="btn btn-default" data-toggle="modal" data-target="#cashout"
-                    data-toggle="tooltip" data-placement="top" title="{{ __('messages.cash_out') }}">
-                    <img src="{{ asset('public/external/vector4471-k5i.svg') }}" alt="Cash Out Icon" />
-                </button> --}}
-
-                <span>Add Cash</span>
-            </div>
-            <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-                class="main-screen-rectangle457" />
-            {{-- @if (count($itemCarts) == 0) --}}
-            <div class="sidebar-item">
-                <button type="button" class="btn btn-default" data-toggle="modal" data-target="#cashout"
-                    data-toggle="tooltip" data-placement="top" title="{{ __('messages.cash_out') }}">
-                    <img src="{{ asset('public/external/caseout.png') }}" alt="Cash Out Icon" width="32"
-                        height="32" />
-                </button>
-                <span>Cash Out</span>
-            </div>
-            <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-                class="main-screen-rectangle457" />
-            {{-- @endif --}}
-
-            @if (count($itemCarts) == 0)
-                <div class="sidebar-item">
-                    <button type="button" class="btn btn-default ml-2" data-toggle="modal"
-                        data-target="#holdTransactionsModal" data-toggle="tooltip" data-placement="top"
-                        title="{{ __('messages.view_hold') }}">
-                        <img src="{{ asset('public/external/vector4471-4bnt.svg') }}" alt="View Hold Icon" />
-                    </button>
-                    <span>View Hold</span>
-                </div>
-                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-                    class="main-screen-rectangle457" />
-            @endif
-
-            <div class="sidebar-item">
-                <livewire:order-modal />
-                <span>Sales History</span>
-            </div>
-            <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-                class="main-screen-rectangle457" />
-
-            <div class="sidebar-item">
-                @if (auth()->user()->hasRole('warehouse'))
-                    <button wire:click="printLastInvoice" class="btn btn-default ml-2" data-toggle="tooltip"
-                        data-placement="top" title="{{ __('messages.print_the_last_invoice') }}">
-                        <img src="{{ asset('public/external/pdf_icon_final.jpg') }}" alt="Print Invoice Icon" />
-                    </button>
-                @endif
-                <span>Print Invoice</span>
-            </div>
-            <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-                class="main-screen-rectangle457" />
-
-            <div class="sidebar-item">
-                <livewire:customer-credit-ledger-modal />
-                <span>Customer Credit Ledger</span>
-            </div>
-            <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-                class="main-screen-rectangle457" />
-
-            <div class="sidebar-item">
-                @if (count($itemCarts) == 0)
-                    <livewire:collation-modal />
-                @endif
-
-                <span>Collect Credit</span>
-            </div>
-            <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-                class="main-screen-rectangle457" />
-
-            <div class="sidebar-item">
-                @livewire('shift-close-modal')
-                <span>Close Shift</span>
+            <div class="offcanvas-body">
+                @include('partials.sidebar-items')
             </div>
         </div>
+
+
         <!-- Main Content -->
         <div class="col-12 col-md-11 m-2 ml-2">
             <div>
@@ -215,7 +134,7 @@
                     </div>
                     @if (auth()->user()->hasRole('warehouse'))
                         <div class="col-12 col-md-3">
-                            <div class="position-relative">
+                            <div class="position-relative1">
                                 <input type="text" wire:model.live="searchSalesReturn"
                                     wire:keydown.enter="addToSalesreturn"
                                     class="form-control rounded-pill ps-4 pe-5 custom-border"
@@ -232,7 +151,7 @@
                 <div class="row g-2 mt-2">
                     <div class="col-md-9">
                         <form wire:submit.prevent="searchTerm" class="mb-0">
-                            <div class="position-relative">
+                            <div class="position-relative1">
                                 <input type="text" wire:model.live.debounce.500ms="searchTerm"
                                     placeholder="{{ __('messages.enter_product_name') }}"
                                     class="form-control rounded-pill ps-4 pe-5 custom-border" id="searchInput"
@@ -270,12 +189,12 @@
                         @endif
                     </div>
 
-
                     <div class="col-md-3 mt-3 mt-md-0">
                         <div class="d-flex justify-content-between align-items-center gap-2">
 
                             <!-- Button 1 -->
-                            <button type="button" class="btn btn-deafult main-screen-container2">
+                            <button type="button" class="btn btn-deafult main-screen-container2"
+                                wire:click="incrementQty({{ $this->activeItemId }})">
                                 <img src="{{ asset('../public/external/systemicon16pxplus4471-kuog.svg') }}"
                                     alt="Left Icon">
                             </button>
@@ -287,7 +206,8 @@
                             </button> --}}
 
                             <!-- Button 3 -->
-                            <button type="button" class="btn btn-deafult main-screen-container2">
+                            <button type="button" class="btn btn-deafult main-screen-container2"
+                                wire:click="decrementQty({{ $this->activeItemId, $this->activeProductId }})">
                                 <img src="{{ asset('../public/external/systemicon16pxplus4471-jpl.svg') }}"
                                     alt="Right Icon">
                             </button>
@@ -317,8 +237,10 @@
                                             $party = $partyAmount ?? 0;
                                             $finalAmount = $total - $commission - $party;
                                         @endphp
-                                        <tr>
-                                            <td>{{ $item->product->name }}<br>
+                                        <tr class="{{ $this->activeItemId === $item->id ? 'active' : '' }}">
+                                            <td wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})"
+                                                style="cursor:pointer">
+                                                {{ $item->product->name }}<br>
                                                 {{ $item->product->description }}
                                             </td>
                                             <td>
@@ -417,44 +339,54 @@
                     <div class="col-12 col-md-3">
                         <!-- Calculator -->
                         <div class="p-3 blue-bg rounded shadow-sm">
-                            <!-- First Row -->
                             <div class="d-flex gap-2 mb-2">
-                                <button class="btn btn-deafult main-screen-frame-key11 w-100 ">1</button>
-                                <button class="btn btn-deafult main-screen-frame-key11 w-100">2</button>
-                                <button class="btn btn-deafult main-screen-frame-key11 w-100">3</button>
-                                <button class="btn btn-deafult main-screen-frame-key11 w-100">+10</button>
+                                <button wire:click="addQuantity('1')"
+                                    class="btn btn-default main-screen-frame-key11 w-100">1</button>
+                                <button wire:click="addQuantity('2')"
+                                    class="btn btn-default main-screen-frame-key11 w-100">2</button>
+                                <button wire:click="addQuantity('3')"
+                                    class="btn btn-default main-screen-frame-key11 w-100">3</button>
+                                <button wire:click="addQuantity('10')"
+                                    class="btn btn-default main-screen-frame-key11 w-100">+10</button>
                             </div>
-
-                            <!-- Second Row -->
                             <div class="d-flex gap-2 mb-2">
-                                <button class="btn btn-deafult main-screen-frame-key11 w-100">4</button>
-                                <button class="btn btn-deafult main-screen-frame-key11 w-100">5</button>
-                                <button class="btn btn-deafult main-screen-frame-key11 w-100">6</button>
-                                <button class="btn btn-deafult main-screen-frame-key11 w-100">+20</button>
+                                <button wire:click="addQuantity('4')"
+                                    class="btn btn-default main-screen-frame-key11 w-100">4</button>
+                                <button wire:click="addQuantity('5')"
+                                    class="btn btn-default main-screen-frame-key11 w-100">5</button>
+                                <button wire:click="addQuantity('6')"
+                                    class="btn btn-default main-screen-frame-key11 w-100">6</button>
+                                <button wire:click="addQuantity('20')"
+                                    class="btn btn-default main-screen-frame-key11 w-100">+20</button>
                             </div>
-
-                            <!-- Third Row -->
                             <div class="d-flex gap-2 mb-2">
-                                <button class="btn btn-deafult main-screen-frame-key11 w-100">7</button>
-                                <button class="btn btn-deafult main-screen-frame-key11 w-100">8</button>
-                                <button class="btn btn-deafult main-screen-frame-key11 w-100">9</button>
-                                <button class="btn btn-deafult main-screen-frame-key11 w-100">+50</button>
+                                <button wire:click="addQuantity('7')"
+                                    class="btn btn-default main-screen-frame-key11 w-100">7</button>
+                                <button wire:click="addQuantity('8')"
+                                    class="btn btn-default main-screen-frame-key11 w-100">8</button>
+                                <button wire:click="addQuantity('9')"
+                                    class="btn btn-default main-screen-frame-key11 w-100">9</button>
+                                <button wire:click="addQuantity('50')"
+                                    class="btn btn-default main-screen-frame-key11 w-100">+50</button>
                             </div>
-
-                            <!-- Fourth Row -->
                             <div class="d-flex gap-2">
-                                <button class="btn btn-deafult main-screen-frame-key11  w-100">C</button>
-                                <button class="btn btn-deafult main-screen-frame-key11 w-100">0</button>
-                                <button class="btn btn-deafult main-screen-frame-key11 w-100">
+                                <button wire:click="removeItemActivte({{ $this->activeItemId }})"
+                                    class="btn btn-default main-screen-frame-key11 w-100">C</button>
+                                <button wire:click="addQuantity('0')"
+                                    class="btn btn-default main-screen-frame-key11 w-100">0</button>
+                                <button wire:click="addQuantity('1')"
+                                    class="btn btn-default main-screen-frame-key11 w-100">
                                     <img src="{{ asset('public/external/vector4471-fdk.svg') }}" alt="Icon"
                                         style="height: 20px;">
                                 </button>
-                                <button class="btn btn-deafult main-screen-frame-key11  w-100">
+                                <button wire:click="addQuantity('1')"
+                                    class="btn btn-default main-screen-frame-key11 w-100">
                                     <img src="{{ asset('public/external/right4471-upx2.svg') }}" alt="Right"
                                         style="height: 20px;">
                                 </button>
                             </div>
                         </div>
+
 
                         <!-- Action Buttons (Bootstrap) -->
                         <div class="mt-3 d-flex flex-wrap gap-2">
@@ -496,7 +428,7 @@
                     <div class="col-md-4">
                         <input type="hidden" id="cartCount" value="{{ $this->cartCount }}">
                         <strong>
-                             <span class="main-screen-text70"> {{ $this->cartCount }}</span>
+                            <span class="main-screen-text70"> {{ $this->cartCount }}</span>
                         </strong>
                     </div>
                     <div class="col-md-4">
@@ -513,10 +445,10 @@
                         </strong>
                     </div>
                     <div class="col-md-4">
-                         <strong>
-                        <span class="main-screen-text70">{{ format_inr($this->cashAmount) }}</span>
-                        <input type="hidden" id="totalPayable" value="{{ $this->cashAmount }}">
-                         </strong>
+                        <strong>
+                            <span class="main-screen-text70">{{ format_inr($this->cashAmount) }}</span>
+                            <input type="hidden" id="totalPayable" value="{{ $this->cashAmount }}">
+                        </strong>
                     </div>
                 </div>
                 <!-- Bootstrap Modal -->
@@ -868,24 +800,6 @@
                                                 <form id="warehouseForm" method="POST"
                                                     action="{{ route('stock.warehouse') }}">
                                                     @csrf
-                                                    {{-- <div class="product_items mb-3">
-                                                                <select name="store_id" id="main_store_id"
-                                                                    class="form-control d-inline w-50" required>
-                                                                    <option value="">-- {{ __('messages.select_store') }} --
-                                                                    </option>
-                                                                    @foreach ($stores as $product)
-                                                                        @if ($product->id != 1)
-                                                                            <option value="{{ $product->id }}">{{ $product->name }}
-                                                                            </option>
-                                                                        @endif
-                                                                    @endforeach
-                                                                </select>
-                                                                @error('items')
-                                                                    <span class="text-danger">{{ $message }}</span>
-                                                                @enderror
-                    
-                                                            </div> --}}
-                                                    {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
                                                     <div id="product-items-wh">
 
                                                         <h5>Products</h5>
@@ -968,8 +882,8 @@
                                     <input type="hidden" name="amount" id="holdamountTotal"
                                         class="form-control mb-3" placeholder="Enter opening amount" readonly>
 
-                                    <table class="customtable table">
-                                        <thead>
+                                    <table class="table table-bordered text-center align-middle mb-0">
+                                        <thead class="table-success" style="background-color: #1aa59a; color: #fff;">
                                             <tr>
                                                 <th>{{ __('messages.currency') }}</th>
                                                 <th>{{ __('messages.notes') }}</th>
@@ -979,37 +893,45 @@
                                         <tbody>
                                             @foreach ($noteDenominations as $key => $denomination)
                                                 <tr>
-                                                    <td>{{ $denomination }}</td>
+                                                    <td class="fw-semibold">{{ $denomination }} <span
+                                                            class="mx-1">x</span></td>
                                                     <td>
-                                                        <div class="input-group" style="max-width: 150px;">
-                                                            <button
-                                                                class="btn btn-sm btn-danger custom-btn btn-decrease"
-                                                                type="button"
-                                                                data-denomination="{{ $denomination }}"><i
-                                                                    class="fa fa-minus"></i></button>
-                                                            <input type="text"
-                                                                name="cashNotes.{{ $key }}.{{ $denomination }}"
-                                                                class="form-control text-center note-input"
-                                                                id="cashhandsum_{{ $denomination }}"
-                                                                data-denomination="{{ $denomination }}"
-                                                                value="0" readonly>
-                                                            <button
-                                                                class="btn btn-sm btn-success custom-btn btn-increase"
-                                                                type="button"
-                                                                data-denomination="{{ $denomination }}">+</button>
+                                                        <div class="d-flex justify-content-center align-items-center">
+                                                            <div class="rounded-pill d-flex align-items-center px-1"
+                                                                style="background-color: #f1f2f3;">
+                                                                <button type="button"
+                                                                    class="btn btn-sm border-0 bg-transparent fw-bold btn-decrease"
+                                                                    data-denomination="{{ $denomination }}"
+                                                                    style="font-size: 1.2rem;">−</button>
+                                                                <input type="text"
+                                                                    name="cashNotes[{{ $key }}][{{ $denomination }}]"
+                                                                    id="cashhandsum_{{ $denomination }}"
+                                                                    class="form-control text-center border-0 bg-white px-1 note-input"
+                                                                    value="1" readonly
+                                                                    data-denomination="{{ $denomination }}"
+                                                                    style="width: 40px; font-weight: 600;">
+                                                                <button type="button"
+                                                                    class="btn btn-sm border-0 bg-transparent fw-bold btn-increase"
+                                                                    data-denomination="{{ $denomination }}"
+                                                                    style="font-size: 1.2rem;">+</button>
+                                                            </div>
                                                         </div>
                                                     </td>
-                                                    <td id="discashhandsum_{{ $denomination }}">0</td>
+                                                    <td class="text-end fw-semibold amount-cell"
+                                                        id="discashhandsum_{{ $denomination }}">
+                                                        ₹{{ number_format($denomination, 2) }}</td>
                                                 </tr>
                                             @endforeach
-                                            <tr>
-                                                <td colspan="2" class="text-end fw-bold">
-                                                    {{ __('messages.total_cash') }}
-                                                </td>
-                                                <td id="totalNoteCashHand">0</td>
-                                            </tr>
                                         </tbody>
+                                        <tfoot>
+                                            <tr style="background-color: #e9f7e9;">
+                                                <td class="fw-bold text-start" colspan="2">
+                                                    {{ __('messages.total_cash') }}</td>
+                                                <td class="fw-bold text-end" id="totalNoteCashHand">₹0.00</td>
+                                            </tr>
+                                        </tfoot>
                                     </table>
+
                                     @error('amount')
                                         <span class="text-red">{{ $message }}</span>
                                     @enderror
