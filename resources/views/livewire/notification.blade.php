@@ -198,7 +198,7 @@
                         </div>
                     </div>
                 </div>
-                <img src="public/external/polygon14765-qc8d.svg" alt="Polygon14765"
+                <img src="{{ asset('public/external/polygon14765-qc8d.svg')}}" alt="Polygon14765"
                     class="notification-screen-polygon1" />
             </div>
         </div>
