@@ -38,7 +38,7 @@
                     <div class="col-lg-12">
                         <div class="table-responsive rounded mb-3">
                             <table class="table data-tables table-striped" id="notification_table">
-                                <thead class="bg-white text-uppercase">
+                                <thead class="bg-white text-uppercase table-info">
                                     <tr class="ligth ligth-data">
                                         <th>
                                             Type

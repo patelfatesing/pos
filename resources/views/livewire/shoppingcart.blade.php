@@ -3,7 +3,56 @@
     @php
         $this->cashAmount = round_up_to_nearest_10($this->cashAmount) ?? 0;
     @endphp
-    <div class="topbar d-flex justify-content-between align-items-center flex-wrap main-screen-rectangle99">
+
+    <div class="topbar d-flex flex-wrap justify-content-between align-items-center px-3 py-2 bg-white shadow-sm">
+
+        <!-- Logo -->
+        <div class="d-flex align-items-center">
+            <img src="{{ asset('assets/images/logo.png') }}" alt="Logo" class="img-fluid" style="max-height: 40px;" />
+        </div>
+
+        <!-- Right Side -->
+        <div class="d-flex align-items-center ms-auto gap-2 flex-wrap flex-md-nowrap">
+
+            <!-- Store Location -->
+            <div class="main-screen-frame280">
+                <span class="main-screen-text72">Store Location: {{ $this->branch_name }}</span>
+            </div>
+
+            <!-- Refresh -->
+            <div onclick="location.reload()" class="cursor-pointer main-screen-group1">
+                <img src="{{ asset('public/external/vector4471-dtw.svg') }}" class="img-fluid main-screen-vector10"
+                    style="height: 20px;" />
+                <img src="{{ asset('public/external/vector4471-wfwo.svg') }}" class="img-fluid main-screen-vector11"
+                    style="height: 20px;" />
+            </div>
+
+            <!-- Livewire Components -->
+            <livewire:fullscreen-toggle />
+            <livewire:notification />
+            <livewire:language-switcher />
+
+            <!-- Logout -->
+            <button type="button" class="btn btn-light border ms-1" data-bs-toggle="tooltip" title="Logout"
+                onclick="confirmLogout()">
+                <img src="{{ asset('public/external/fi106093284471-0vjk.svg') }}" class="img-fluid"
+                    style="height: 25px;" />
+            </button>
+
+            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                @csrf
+            </form>
+        </div>
+    </div>
+
+    <!-- Mobile Toggle Button -->
+    <div class="d-md-none mb-2 ms-2">
+        <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
+            ☰ Menu
+        </button>
+    </div>
+
+    {{-- <div class="topbar d-flex justify-content-between align-items-center flex-wrap main-screen-rectangle99">
 
         <img src="{{ asset('assets/images/logo.png') }}" alt="Logo"
             class="main-screen-image73a1ed2f33b74c9599cb101a7e1b7e5f1" />
@@ -20,10 +69,23 @@
                             class="main-screen-vector11" />
                     </div>
                 </div>
+
                 <livewire:fullscreen-toggle />
                 <livewire:notification />
                 <livewire:language-switcher />
-                {{-- <div class="main-screen-frame245">
+
+                <button type="button" class="btn btn-deafult" data-toggle="tooltip" data-placement="top" title="Logout"
+                    onclick="confirmLogout()">
+                    <img src="{{ asset('public/external/fi106093284471-0vjk.svg') }}" alt="User Icon"
+                        class="main-screen-fi10609328" />
+                </button>
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                    @csrf
+                </form>
+            </div>
+        </div>
+    </div> --}}
+    {{-- <div class="main-screen-frame245">
                     <div class="main-screen-group188">
                         <span class="main-screen-text10">English</span>
                         <div class="main-screen-layer12">
@@ -34,29 +96,6 @@
                         </div>
                     </div>
                 </div> --}}
-                <button type="button" class="btn btn-deafult" data-toggle="tooltip" data-placement="top" title="Logout"
-                    onclick="confirmLogout()">
-                    {{-- <span class="font-weight-bold"> {{ Auth::user()->name }}</span> --}}
-
-                    <img src="{{ asset('public/external/fi106093284471-0vjk.svg') }}" alt="User Icon"
-                        class="main-screen-fi10609328" />
-                </button>
-
-
-                {{-- Logout Form --}}
-                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                    @csrf
-                </form>
-
-            </div>
-        </div>
-    </div>
-
-    <!-- ✅ Toggle Button for Mobile -->
-    <button class="btn btn-primary d-md-none mb-2 ms-2" type="button" data-bs-toggle="offcanvas"
-        data-bs-target="#mobileSidebar">
-        ☰ Menu
-    </button>
 
     <div class="row flex-md-nowrap">
         <!-- Desktop Sidebar -->
@@ -84,7 +123,8 @@
                     <div class="main-screen-text12">Welcome! <strong class="text-success">
                             {{ Auth::user()->name }}</strong></div>
                     <div>Shift Code: <strong>{{ $this->shift->shift_no ?? '' }}</strong> | Date: <span
-                            class="text-primary">14:06:2025, 4:15 PM</span></div>
+                            class="text-primary">{{ $this->shift && $this->shift->start_time ? \Carbon\Carbon::parse($this->shift->start_time)->format('d:m:Y, g:i A') : '' }}
+                        </span></div>
                 </div>
                 <!-- Filters -->
                 <div class="row g-2 mb-2">
@@ -134,7 +174,7 @@
                     </div>
                     @if (auth()->user()->hasRole('warehouse'))
                         <div class="col-12 col-md-3">
-                            <div class="position-relative1">
+                            <div class="position-relative">
                                 <input type="text" wire:model.live="searchSalesReturn"
                                     wire:keydown.enter="addToSalesreturn"
                                     class="form-control rounded-pill ps-4 pe-5 custom-border"
@@ -151,7 +191,7 @@
                 <div class="row g-2 mt-2">
                     <div class="col-md-9">
                         <form wire:submit.prevent="searchTerm" class="mb-0">
-                            <div class="position-relative1">
+                            <div class="position-relative">
                                 <input type="text" wire:model.live.debounce.500ms="searchTerm"
                                     placeholder="{{ __('messages.enter_product_name') }}"
                                     class="form-control rounded-pill ps-4 pe-5 custom-border" id="searchInput"
@@ -411,6 +451,16 @@
                                     <span><i class="bi bi-cash me-1"></i> Cash + UPI</span>&nbsp;&nbsp;&nbsp;&nbsp;
                                     <img src="{{ asset('public/external/right4471-5iuh.svg') }}" alt="Right"
                                         style="height: 18px;">
+                                </button>
+                            @endif
+                            @if (!empty($this->selectedSalesReturn))
+                                <button wire:click="refundoggleBox"
+                                    class="btn btn-sm btn-primary m-2 flex-fill text-nowrap ">
+                                    <i class="fa fa-hand-holding-usd me-2 "></i> Refund
+                                </button>
+                                <button wire:click="srtoggleBox"
+                                    class="btn btn-sm btn-primary m-2 flex-fill text-nowrap">
+                                    <i class="fa fa-hand-holding-usd me-2"></i> Sales Return
                                 </button>
                             @endif
                         </div>
@@ -702,7 +752,7 @@
 
                 <div class="modal fade" id="storeStockRequest" tabindex="-1" aria-labelledby="storeStockRequest"
                     aria-hidden="true" data-backdrop="static" data-keyboard="false">
-                    <div class="modal-dialog modal-dialog-scrollable modal-mg">
+                    <div class="modal-dialog modal-dialog-scrollable  modal-lg">
                         <div class="modal-content shadow-sm rounded-4 border-0">
                             <div class="modal-header frame-stock-request-frame303 text-white rounded-top-4">
                                 <h5 class="modal-title fw-semibold" id="cashout">
@@ -725,14 +775,12 @@
                                                         <input type="hidden" name="store_id"
                                                             value="{{ @$branch_id }}">
                                                     </div>
-
-
                                                     <div id="product-items">
                                                         <h5>Products</h5>
                                                         <div class="item-row mb-3">
 
                                                             <select name="items[0][product_id]"
-                                                                class="form-control d-inline w-50 product-select-sh"
+                                                                class="form-control d-inline w-50 product-select-sh frame-stock-request-searchbar6 Specificity: (0,1,0)"
                                                                 required>
                                                                 <option value="">--
                                                                     {{ __('messages.select_product') }} --
@@ -747,7 +795,7 @@
                                                                 <span class="text-danger">{{ $message }}</span>
                                                             @enderror
                                                             <input type="number" name="items[0][quantity]"
-                                                                class="form-control d-inline w-25 ms-2"
+                                                                class="form-control d-inline w-25 ms-2 frame-stock-request-searchbar6"
                                                                 placeholder="Qty" min="1" required>
 
                                                             <button type="button"
@@ -756,17 +804,17 @@
                                                     </div>
 
                                                     <button type="button" id="add-item"
-                                                        class="btn btn-secondary btn-sm mb-3">+
+                                                        class="btn btn-primary btn-sm mb-3">+
                                                         {{ __('messages.add_another_product') }}</button>
 
                                                     <div class="mb-3">
                                                         <label for="notes"
                                                             class="form-label">{{ __('messages.notes') }}</label>
-                                                        <textarea name="notes" id="notes" class="form-control"></textarea>
+                                                        <textarea name="notes" id="notes" class="form-control frame-stock-request-group260"></textarea>
                                                     </div>
 
                                                     <button type="submit"
-                                                        class="btn btn-primary">{{ __('messages.submit_request') }}</button>
+                                                        class="btn frame-stock-request-group223">{{ __('messages.submit_request') }}</button>
                                                 </form>
                                             </div>
                                         </div>

@@ -98,7 +98,7 @@
                 <div class="card-body p-0">
                     @if ($transfer_type == 'approved_stock')
                         <table class="table table-bordered mb-0">
-                            <thead>
+                            <thead class="table-info">
                                 <tr>
                                     <th>#</th>
                                     <th>Product</th>
@@ -140,7 +140,7 @@
                         </table>
                     @else
                         <table class="table table-bordered mb-0">
-                            <thead>
+                            <thead class="table-info">
                                 <tr>
                                     <th>#</th>
                                     <th>Product</th>

@@ -5,13 +5,167 @@
         <img src="{{ asset('public/external/camera114471-6eja.svg') }}" alt="Separator" class="cameraModalHht" />
     </button>
 
-    <!-- Modal -->
     <div class="modal fade" id="cameraModal" tabindex="-1" aria-hidden="true" wire:ignore.self>
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content rounded-4">
+                <div class="modal-header border-0 pb-1">
+                    <h5 class="modal-title">Capture Product and Customer Photos</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    @if (!empty($this->partyHoldPic['party_product']) && !empty($this->partyHoldPic['party_customer']))
+                        <div class="row alert alert-info mb-3 lastsavepic">
+                            <div class="col-md-12">
+                                <h6 class="mb-2">Last Hold Saved Photos:</h6>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Product Photo :</strong>
+                                <a href="javascript:void(0)" class="d-block">
+                                    <img src="{{ asset('storage/' . $this->partyHoldPic['party_product']) }}"
+                                        alt="Product" class="img-thumbnail mt-2">
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Customer Photo:</strong>
+                                <a href="javascript:void(0)" class="d-block">
+                                    <img src="{{ asset('storage/' . $this->partyHoldPic['party_customer']) }}"
+                                        alt="Customer" class="img-thumbnail mt-2">
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+
+                    <div id="cameraError" class="alert alert-danger d-none" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> Unable to access camera. Please ensure
+                        camera permissions are granted.
+                    </div>
+
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="camera-box me-3">
+                            {{-- <img src="https://via.placeholder.com/100x100?text=User" alt="Customer"
+                                class="img-fluid rounded-circle"> --}}
+                        </div>
+                        <div>
+                            <div>Party Customer</div>
+                            <div class="customer-name">Girish Panchal</div>
+                        </div>
+                    </div>
+
+                    <div class="status-success mb-4">
+                        ✅ Product & Person’s Preview uploaded successfully.
+                    </div>
+
+                    <div class="row text-center">
+                        <div class="col-md-4 mb-4">
+                            <div id="loadingIndicator">
+                                <i class="bi bi-camera" style="font-size: 24px;"></i> Live Camera
+                            </div>
+                            {{-- <div class="live-camera" id="loadingIndicator" class="position-absolute top-50 start-50 translate-middle">
+                        
+                            </div> --}}
+                            <video class="live-camera" id="video" autoplay playsinline
+                                class="border"></video>
+                            <canvas id="canvas" class="d-none"></canvas>
+                            <button id="captureProduct" class="btn btn-success mt-2 me-1">Capture Product</button>
+                            <button id="captureCustomer" class="btn btn-primary mt-2">Capture Customer</button>
+                        </div>
+
+                        <div class="col-md-4 mb-4">
+                            <div>Product Preview</div>
+                            {{-- <div wire:loading wire:target="productPhoto"
+                                class="position-absolute top-50 start-50 translate-middle">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div> --}}
+                            @error('productPhoto')
+                                <div class="alert alert-danger">{{ $message }}</div>
+                            @enderror
+                            <div id="productPreview" class="position-relative live-product">
+                                @if ($productPhoto)
+                                    <img src="{{ $productPhoto->temporaryUrl() }}" class="img-fluid"
+                                        style="max-height: 150px">
+                                    <button wire:click="resetPhoto('product')" class="btn btn-sm btn-danger">
+                                        Remvove Photo
+                                    </button>
+                                @else
+                                    {{-- <div class="border d-flex align-items-center justify-content-center" style="height: 240px">
+                                                <span class="text-muted">No product photo</span>
+                                            </div> --}}
+
+                                    <img src="{{ asset('assets/images/bottle.png') }}" alt="Sample Product"
+                                        class="img-fluid preview-img mt-2" style="max-height: 150px">
+                                @endif
+                            </div>
+
+                            {{-- <img src="https://via.placeholder.com/100x120?text=Product" alt="Product"
+                                class="preview-img mt-2"> --}}
+                        </div>
+
+                        <div class="col-md-4 mb-4">
+                            <div>Person Preview</div>
+                            @error('customerPhoto')
+                                <div class="alert alert-danger">{{ $message }}</div>
+                            @enderror
+                            <div id="customerPreview" class="position-relative live-customer">
+                                @if ($customerPhoto)
+                                    <img src="{{ $customerPhoto->temporaryUrl() }}" class="img-fluid"
+                                        style="max-height: 150px">
+                                    <button wire:click="resetPhoto('customer')" class="btn btn-sm btn-danger">
+                                        Remvove Photo
+                                    </button>
+                                @else
+                                    {{-- <div class="border d-flex align-items-center justify-content-center" style="height: 240px">
+                                                <span class="text-muted">No customer photo</span>
+                                            </div> --}}
+                                    <img src="{{ asset('assets/images/user/07.jpg') }}" alt="Sample Product"
+                                        class="img-fluid" style="max-height: 150px">
+                                @endif
+                            </div>
+                            {{-- <img src="https://via.placeholder.com/100x120?text=Person" alt="Person"
+                                class="preview-img mt-2"> --}}
+                        </div>
+                    </div>
+                    <input type="file" wire:model="productPhoto" id="productInput" class="d-none" accept="image/*" />
+                    <input type="file" wire:model="customerPhoto" id="customerInput" class="d-none"
+                        accept="image/*" />
+                    @if (empty($this->partyHoldPic['party_product']) &&
+                            empty($this->partyHoldPic['party_customer']) &&
+                            empty($this->partyHoldPic['commission_product']) &&
+                            empty($this->partyHoldPic['commission_customer']) &&
+                            $this->showHoldImg == false)
+                        <div class="modal-footer">
+                            <button wire:click="resetAll" class="btn btn-outline-secondary" type="button">
+                                Reset All
+                            </button>
+                            <button wire:click="save" class="btn btn-primary"
+                                @if (!$canSave) disabled @endif>
+                                {{-- <span wire:loading wire:target="save"
+                                class="spinner-border spinner-border-sm me-1"></span> --}}
+                                Save Both Photos
+                            </button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="modal-footer border-0 footer-btns">
+                    <button class="btn btn-warning pull-right">Reset All</button>
+                    <button class="btn btn-success">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="cameraModalback" tabindex="-1" aria-hidden="true" wire:ignore.self>
         <div class="modal-dialog modal-xl">
-            <div class="modal-content p-4">
+            <div class="modal-content">
                 <div class="modal-header border-0">
                     <h5 class="modal-title">Capture Product and Customer Photos</h5>
-                    <button type="button" class=" btn btn-default close" data-bs-dismiss="modal" aria-label="Close">×</button>
+                    <button type="button" class=" btn btn-default close" data-bs-dismiss="modal"
+                        aria-label="Close">×</button>
                 </div>
                 @php
                     $hideCameraClass = '';
