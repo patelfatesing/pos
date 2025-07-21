@@ -5,165 +5,12 @@
         <img src="{{ asset('public/external/camera114471-6eja.svg') }}" alt="Separator" class="cameraModalHht" />
     </button>
 
-    <div class="modal fade" id="cameraModal" tabindex="-1" aria-hidden="true" wire:ignore.self>
-        <div class="modal-dialog modal-xl modal-dialog-centered">
-            <div class="modal-content rounded-4">
-                <div class="modal-header border-0 pb-1">
-                    <h5 class="modal-title">Capture Product and Customer Photos</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-
-                <div class="modal-body">
-                    @if (!empty($this->partyHoldPic['party_product']) && !empty($this->partyHoldPic['party_customer']))
-                        <div class="row alert alert-info mb-3 lastsavepic">
-                            <div class="col-md-12">
-                                <h6 class="mb-2">Last Hold Saved Photos:</h6>
-                            </div>
-                            <div class="col-md-6">
-                                <strong>Product Photo :</strong>
-                                <a href="javascript:void(0)" class="d-block">
-                                    <img src="{{ asset('storage/' . $this->partyHoldPic['party_product']) }}"
-                                        alt="Product" class="img-thumbnail mt-2">
-                                </a>
-                            </div>
-                            <div class="col-md-6">
-                                <strong>Customer Photo:</strong>
-                                <a href="javascript:void(0)" class="d-block">
-                                    <img src="{{ asset('storage/' . $this->partyHoldPic['party_customer']) }}"
-                                        alt="Customer" class="img-thumbnail mt-2">
-                                </a>
-                            </div>
-                        </div>
-                    @endif
-
-                    <div id="cameraError" class="alert alert-danger d-none" role="alert">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i> Unable to access camera. Please ensure
-                        camera permissions are granted.
-                    </div>
-
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="camera-box me-3">
-                            {{-- <img src="https://via.placeholder.com/100x100?text=User" alt="Customer"
-                                class="img-fluid rounded-circle"> --}}
-                        </div>
-                        <div>
-                            <div>Party Customer</div>
-                            <div class="customer-name">Girish Panchal</div>
-                        </div>
-                    </div>
-
-                    <div class="status-success mb-4">
-                        ✅ Product & Person’s Preview uploaded successfully.
-                    </div>
-
-                    <div class="row text-center">
-                        <div class="col-md-4 mb-4">
-                            <div id="loadingIndicator">
-                                <i class="bi bi-camera" style="font-size: 24px;"></i> Live Camera
-                            </div>
-                            {{-- <div class="live-camera" id="loadingIndicator" class="position-absolute top-50 start-50 translate-middle">
-                        
-                            </div> --}}
-                            <video class="live-camera" id="video" autoplay playsinline
-                                class="border"></video>
-                            <canvas id="canvas" class="d-none"></canvas>
-                            <button id="captureProduct" class="btn btn-success mt-2 me-1">Capture Product</button>
-                            <button id="captureCustomer" class="btn btn-primary mt-2">Capture Customer</button>
-                        </div>
-
-                        <div class="col-md-4 mb-4">
-                            <div>Product Preview</div>
-                            {{-- <div wire:loading wire:target="productPhoto"
-                                class="position-absolute top-50 start-50 translate-middle">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                            </div> --}}
-                            @error('productPhoto')
-                                <div class="alert alert-danger">{{ $message }}</div>
-                            @enderror
-                            <div id="productPreview" class="position-relative live-product">
-                                @if ($productPhoto)
-                                    <img src="{{ $productPhoto->temporaryUrl() }}" class="img-fluid"
-                                        style="max-height: 150px">
-                                    <button wire:click="resetPhoto('product')" class="btn btn-sm btn-danger">
-                                        Remvove Photo
-                                    </button>
-                                @else
-                                    {{-- <div class="border d-flex align-items-center justify-content-center" style="height: 240px">
-                                                <span class="text-muted">No product photo</span>
-                                            </div> --}}
-
-                                    <img src="{{ asset('assets/images/bottle.png') }}" alt="Sample Product"
-                                        class="img-fluid preview-img mt-2" style="max-height: 150px">
-                                @endif
-                            </div>
-
-                            {{-- <img src="https://via.placeholder.com/100x120?text=Product" alt="Product"
-                                class="preview-img mt-2"> --}}
-                        </div>
-
-                        <div class="col-md-4 mb-4">
-                            <div>Person Preview</div>
-                            @error('customerPhoto')
-                                <div class="alert alert-danger">{{ $message }}</div>
-                            @enderror
-                            <div id="customerPreview" class="position-relative live-customer">
-                                @if ($customerPhoto)
-                                    <img src="{{ $customerPhoto->temporaryUrl() }}" class="img-fluid"
-                                        style="max-height: 150px">
-                                    <button wire:click="resetPhoto('customer')" class="btn btn-sm btn-danger">
-                                        Remvove Photo
-                                    </button>
-                                @else
-                                    {{-- <div class="border d-flex align-items-center justify-content-center" style="height: 240px">
-                                                <span class="text-muted">No customer photo</span>
-                                            </div> --}}
-                                    <img src="{{ asset('assets/images/user/07.jpg') }}" alt="Sample Product"
-                                        class="img-fluid" style="max-height: 150px">
-                                @endif
-                            </div>
-                            {{-- <img src="https://via.placeholder.com/100x120?text=Person" alt="Person"
-                                class="preview-img mt-2"> --}}
-                        </div>
-                    </div>
-                    <input type="file" wire:model="productPhoto" id="productInput" class="d-none" accept="image/*" />
-                    <input type="file" wire:model="customerPhoto" id="customerInput" class="d-none"
-                        accept="image/*" />
-                    @if (empty($this->partyHoldPic['party_product']) &&
-                            empty($this->partyHoldPic['party_customer']) &&
-                            empty($this->partyHoldPic['commission_product']) &&
-                            empty($this->partyHoldPic['commission_customer']) &&
-                            $this->showHoldImg == false)
-                        <div class="modal-footer">
-                            <button wire:click="resetAll" class="btn btn-outline-secondary" type="button">
-                                Reset All
-                            </button>
-                            <button wire:click="save" class="btn btn-primary"
-                                @if (!$canSave) disabled @endif>
-                                {{-- <span wire:loading wire:target="save"
-                                class="spinner-border spinner-border-sm me-1"></span> --}}
-                                Save Both Photos
-                            </button>
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        </div>
-                    @endif
-                </div>
-
-                <div class="modal-footer border-0 footer-btns">
-                    <button class="btn btn-warning pull-right">Reset All</button>
-                    <button class="btn btn-success">Submit</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Modal -->
-    <div class="modal fade" id="cameraModalback" tabindex="-1" aria-hidden="true" wire:ignore.self>
+    <div class="modal fade" id="cameraModal" tabindex="-1" aria-hidden="true" wire:ignore.self>
         <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title">Capture Product and Customer Photos</h5>
+            <div class="modal-content ">
+                <div class="modal-header custom-modal-header">
+                    <h5 class="cash-summary-text61">Capture Product and Customer Photos</h5>
                     <button type="button" class=" btn btn-default close" data-bs-dismiss="modal"
                         aria-label="Close">×</button>
                 </div>
@@ -174,6 +21,69 @@
                     }
                 @endphp
                 <div class="modal-body">
+                <div class="row align-items-center mb-4">
+                    {{-- Current Customer Info --}}
+                    <div class="col-md-3 text-center">
+                        @php
+                            $customerImage = $this->partyStatic['pic'] ?? $this->commiStatic['pic'] ?? null;
+                            $customerName = $this->partyStatic['first_name'] ?? $this->commiStatic['first_name'] ?? 'N/A';
+                            $customerType = !empty($this->partyStatic['first_name']) ? 'Party Customer' : ' Customer';
+                        @endphp
+
+                        @if ($customerImage)
+                            <img src="{{ asset('storage/' . $customerImage) }}" alt="{{ $customerType }}"
+                                class="img-thumbnail shadow" style="width: 100px; height: 100px; object-fit: cover;">
+                        @else
+                            <img src="{{ asset('assets/images/anonymous.png') }}" alt="Default Customer"
+                                class="img-thumbnail " style="width: 100px; height: 100px; object-fit: cover;">
+                        @endif
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="text-muted small">{{ $customerType }}</div>
+                        <h5 class="text-primary mb-0">{{ $customerName }}</h5>
+                    </div>
+
+                    {{-- Previous Hold Images + Saved Preview --}}
+                    <div class="col-md-6">
+                        <div class="row g-2">
+                            @foreach ($previousHoldImages ?? [] as $image)
+                                <div class="col-6 text-center">
+                                    <img src="{{ asset('storage/' . $image) }}" alt="Previous Hold"
+                                        class="img-thumbnail shadow-sm" style="width: 100px; height: 100px; object-fit: cover;">
+                                </div>
+                            @endforeach
+                        </div>
+
+                        @if ($storedPhotos)
+                            <div class="card mt-3">
+                                <div class="card-header py-2 px-3 bg-info text-white">
+                                    <h6 class="mb-0">Last Saved Photos</h6>
+                                </div>
+                                <div class="card-body py-2 px-3">
+                                    <div class="row">
+                                        <div class="col-md-6 text-center">
+                                            <strong>Product Photo:</strong><br>
+                                            @if ($productPhotoUrl)
+                                                <img src="{{ asset('storage/' . $productPhotoUrl) }}" alt="Product"
+                                                    class="img-thumbnail mt-2" style="max-height: 100px;">
+                                            @endif
+                                        </div>
+                                        <div class="col-md-6 text-center">
+                                            <strong>Customer Photo:</strong><br>
+                                            @if ($customerPhotoUrl)
+                                                <img src="{{ asset('storage/' . $customerPhotoUrl) }}" alt="Customer"
+                                                    class="img-thumbnail mt-2" style="max-height: 100px;">
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+
                     @if (!empty($this->partyHoldPic['party_product']) && !empty($this->partyHoldPic['party_customer']))
                         <div class="row alert alert-info mb-3 lastsavepic">
                             <div class="col-md-12">
@@ -243,36 +153,10 @@
                         Unable to access camera. Please ensure camera permissions are granted.
                     </div>
 
-
-                    @if ($storedPhotos)
-                        <div class="row alert alert-info mb-3 lastsavepic">
-                            <div class="col-md-12">
-                                <h6 class="mb-2">Last Saved Photos:</h6>
-                            </div>
-                            <div class="col-md-3">
-                                <strong>Product Photo:</strong>
-                                @if ($productPhotoUrl)
-                                    <a href="javascript:void(0)" class="d-block">
-                                        <img src="{{ asset('storage/' . $productPhotoUrl) }}" alt="Product"
-                                            class="img-thumbnail mt-2" style="max-height: 100px">
-                                    </a>
-                                @endif
-                            </div>
-                            <div class="col-md-3">
-                                <strong>Customer Photo:</strong>
-                                @if ($customerPhotoUrl)
-                                    <a href="javascript:void(0)" class="d-block">
-                                        <img src="{{ asset('storage/' . $customerPhotoUrl) }}" alt="Customer"
-                                            class="img-thumbnail mt-2" style="max-height: 100px">
-                                    </a>
-                                @endif
-                            </div>
-                        </div>
-
-                    @endif
+                    <hr style="width: 90%;margin-left: 5%;">
                     <div class="row mb-3 {{ $hideCameraClass }}">
                         <div class="col-md-6 text-center">
-                            <h6>Live Camera</h6>
+                            <h6 class="text-gray">Live Camera</h6>
                             <div class="position-relative">
                                 <div id="loadingIndicator" class="position-absolute top-50 start-50 translate-middle">
                                     {{-- <div class="spinner-border text-primary" role="status">
@@ -284,17 +168,17 @@
                                 <canvas id="canvas" width="320" height="240" class="d-none"></canvas>
                             </div>
                             <div class="mt-3">
-                                <button id="captureProduct" class="btn btn-outline-success">
-                                    📷 Capture Product
+                                <button id="captureProduct" class="btn btn-outline-success btn-sm rounded-pill">
+                                    Capture Product
                                 </button>
-                                <button id="captureCustomer" class="btn btn-outline-info">
-                                    📷 Capture Customer
+                                <button id="captureCustomer" class="btn btn-outline-info btn-sm rounded-pill">
+                                    Capture Customer
                                 </button>
                             </div>
                         </div>
 
-                        <div class="col-md-3 text-center">
-                            <h6>Product Preview</h6>
+                        <div class="col-md-3 text-center"> 
+                            <h6 class="text-gray">Product Preview</h6>
                             <div class="preview-container position-relative" style="min-height: 240px">
                                 <div wire:loading wire:target="productPhoto"
                                     class="position-absolute top-50 start-50 translate-middle">
@@ -309,7 +193,7 @@
                                     @if ($productPhoto)
                                         <img src="{{ $productPhoto->temporaryUrl() }}" class="img-fluid"
                                             style="max-height: 240px">
-                                        <button wire:click="resetPhoto('product')" class="btn btn-sm btn-danger">
+                                        <button wire:click="resetPhoto('product')" class="btn btn-sm btn-danger rounded-pill remove-pic">
                                             Remvove Photo
                                         </button>
                                     @else
@@ -325,7 +209,7 @@
                         </div>
 
                         <div class="col-md-3 text-center">
-                            <h6>Customer Preview</h6>
+                            <h6 class="text-gray">Customer Preview</h6>
                             <div class="preview-container position-relative" style="min-height: 240px">
                                 {{-- <div wire:loading wire:target="customerPhoto" class="position-absolute top-50 start-50 translate-middle">
                                         <div class="spinner-border text-primary" role="status">
@@ -339,7 +223,7 @@
                                     @if ($customerPhoto)
                                         <img src="{{ $customerPhoto->temporaryUrl() }}" class="img-fluid"
                                             style="max-height: 240px">
-                                        <button wire:click="resetPhoto('customer')" class="btn btn-sm btn-danger">
+                                        <button wire:click="resetPhoto('customer')" class="btn btn-sm btn-danger rounded-pill remove-pic">
                                             Remvove Photo
                                         </button>
                                     @else
@@ -355,23 +239,7 @@
                         <div class="col-md-4 text-center">
 
                         </div>
-                        @if (!empty($this->partyStatic['pic']))
-                            <div id="supPreview" class="col-md-4 text-center">
-                                <hr>
-                                <label for="">{{ $this->partyStatic['first_name'] }}</label>
-                                <img src="{{ asset('storage/' . $this->partyStatic['pic']) }}" alt="Customer"
-                                    class="img-thumbnail mt-2" style="">
-                            </div>
-                        @endif
-                        @if (!empty($this->commiStatic['pic']))
-                            <div id="commissionPreview" class="col-md-4 text-center">
-                                <hr>
-                                <label for="">{{ $this->commiStatic['first_name'] }}</label>
-                                <img src="{{ asset('storage/' . $this->commiStatic['pic']) }}" alt="Customer"
-                                    class="img-thumbnail mt-2" style="">
 
-                            </div>
-                        @endif
                     </div>
                     {{-- @endif --}}
                 </div>
@@ -386,16 +254,17 @@
                         empty($this->partyHoldPic['commission_customer']) &&
                         $this->showHoldImg == false)
                     <div class="modal-footer">
-                        <button wire:click="resetAll" class="btn btn-outline-secondary" type="button">
+                        <button wire:click="resetAll" class="btn btn-outline-secondary rounded-pill" type="button">
                             Reset All
                         </button>
-                        <button wire:click="save" class="btn btn-primary"
+                        <button wire:click="save" class="btn btn-primary rounded-pill"
                             @if (!$canSave) disabled @endif>
                             {{-- <span wire:loading wire:target="save"
                                 class="spinner-border spinner-border-sm me-1"></span> --}}
                             Save Both Photos
                         </button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        {{-- <button type="button" class="btn btn-secondary rounded-pill"
+                            data-bs-dismiss="modal">Close</button> --}}
                     </div>
                 @endif
             </div>
