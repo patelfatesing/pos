@@ -5,6 +5,7 @@
             data-toggle="tooltip" data-placement="top" title="{{ __('messages.store_stock_request') }}">
             <img src="{{ asset('public/external/frame2834471-mtm.svg') }}" alt="Stock Request Icon" />
         </button>
+        <span>Stock Request</span>
     @endif
 
     {{-- Warehouse Button --}}
@@ -13,8 +14,8 @@
             data-toggle="tooltip" data-placement="top" title="{{ __('messages.warehouse_stock_request') }}">
             <img src="{{ asset('public/external/frame2834471-mtm.svg') }}" alt="Stock Request Icon" />
         </button>
+        <span>Stock Request</span>
     @endif
-    <span>Stock Request</span>
 </div>
 <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
     class="main-screen-rectangle457" />
@@ -51,30 +52,33 @@
 <div class="sidebar-item">
     <livewire:order-modal />
     <span>Sales History</span>
+
 </div>
 <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
     class="main-screen-rectangle457" />
 
-<div class="sidebar-item">
-    @if (auth()->user()->hasRole('warehouse'))
+@if (auth()->user()->hasRole('warehouse'))
+    <div class="sidebar-item">
         <button wire:click="printLastInvoice" class="btn btn-default ml-2" data-toggle="tooltip" data-placement="top"
             title="{{ __('messages.print_the_last_invoice') }}">
             <img src="{{ asset('public/external/pdf_icon_final.jpg') }}" alt="Print Invoice Icon" />
         </button>
-    @endif
-    <span>Print Invoice</span>
-</div>
-<img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-    class="main-screen-rectangle457" />
+        <span>Print Invoice</span>
+    </div>
+    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+        class="main-screen-rectangle457" />
+@endif
 
-<div class="sidebar-item">
-    <livewire:customer-credit-ledger-modal />
-    <span>Customer Credit Ledger</span>
-</div>
-<img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-    class="main-screen-rectangle457" />
+@if (auth()->user()->hasRole('warehouse'))
+    <div class="sidebar-item">
+        <livewire:customer-credit-ledger-modal />
+        <span>Customer Credit Ledger</span>
+    </div>
+    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+        class="main-screen-rectangle457" />
+@endif
 
-@if (count($itemCarts) == 0)
+@if (count($itemCarts) == 0 && auth()->user()->hasRole('warehouse'))
     <div class="sidebar-item">
         <livewire:collation-modal />
         <span>Collect Credit</span>
