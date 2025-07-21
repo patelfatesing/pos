@@ -250,7 +250,34 @@
             color: rgba(36, 81, 118, 1);
 
         }
+        .btn-gray{
+            background-color: rgba(234, 236, 234, 1)!important;
+        }
+        .currency-center{
+            background-color: #cfebeb !important;
+        }
+        .cash-summary-text61 {
+            color: rgba(36, 81, 118, 1);
+        
+        }
+        .btn-primary,.btn-primary:hover {
+            background-color: #009fe3;
+        }
+        .btn-warning,.btn-warning:hover{
+            background-color: rgba(255, 126, 65, 1);
+            color: white !important;
+        }
+        .close-text{
+            color: black !important;
+        }
+        .text-success td,.table-success tr th ,.table-success-new  td{
+            color:1C5609 !important;
+        }
+        .sidebar-item button {
+            height: 36px;
+        }
     </style>
+     @livewireStyles
 </head>
 
 <body>
