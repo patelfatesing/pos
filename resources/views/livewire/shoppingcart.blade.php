@@ -2533,11 +2533,13 @@
             }
             
         }).then((result) => {
+             $('#cashModal').modal('hide');
             if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
                 location.reload(); // reload after OK click or auto close
             }
         });
     });
+
     window.addEventListener('close-shift-error', event => {
         const {
             type,
@@ -2562,6 +2564,7 @@
         });
 
     });
+
     window.addEventListener('close-shift-12am', event => {
         Swal.fire({
             title: 'Error!',
