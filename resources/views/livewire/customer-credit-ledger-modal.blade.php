@@ -1,8 +1,14 @@
 <div>
     <!-- Trigger Button -->
-    <button wire:click="openModal" class="btn btn-default ml-2" title="Customer Credit Ledger">
-        <img src="{{ asset('public/external/customer_credit_icon_final.jpg') }}" alt="Customer Credit Ledger Icon" />
+<div class=""
+     wire:click="openModal"
+     title="Customer Credit Ledger"
+     style="cursor: pointer;">
+    <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
+        <img src="{{ asset('public/external/customer_credit_icon_final.jpg') }}" alt="Customer Credit Ledger Icon" style="width: 24px; height: 24px;" />
     </button>
+    <span class="">Customer Credit Ledger</span>
+</div>
 
     <!-- Main Modal -->
     @if ($showModal)
@@ -12,9 +18,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title text-dark">Customer Credit Ledger</h5>
-                        <button type="button" class="close" wire:click="$set('showModal', false)">
-                            <span aria-hidden="true">×</span>
-                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" wire:click="$set('showModal', false)"></button>
                     </div>
                     <div class="modal-body">
                         <!-- Date Range Filter -->

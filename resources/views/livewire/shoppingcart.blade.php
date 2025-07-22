@@ -104,22 +104,28 @@
                 <div class="sidebar-item">
                     {{-- Cashier Button --}}
                     @if (auth()->user()->hasRole('cashier'))
-                        <button type="button" class="btn btn-default" data-toggle="modal"
-                            data-target="#storeStockRequest" data-toggle="tooltip" data-placement="top"
-                            title="{{ __('messages.store_stock_request') }}">
-                            <img src="{{ asset('public/external/frame2834471-mtm.svg') }}" alt="Stock Request Icon" />
-                        </button>
-                        <span>Stock Request</span>
+                        <div class="" data-toggle="modal" data-target="#storeStockRequest" data-toggle="tooltip"
+                            data-placement="top" title="{{ __('messages.store_stock_request') }}"
+                            style="cursor: pointer;">
+                            <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
+                                <img src="{{ asset('public/external/frame2834471-mtm.svg') }}"
+                                    alt="Stock Request Icon" />
+                            </button>
+                            <span class="">Stock Request</span>
+                        </div>
                     @endif
 
                     {{-- Warehouse Button --}}
                     @if (auth()->user()->hasRole('warehouse'))
-                        <button type="button" class="btn btn-default" data-toggle="modal"
-                            data-target="#warehouseStockRequest" data-toggle="tooltip" data-placement="top"
-                            title="{{ __('messages.warehouse_stock_request') }}">
-                            <img src="{{ asset('public/external/frame2834471-mtm.svg') }}" alt="Stock Request Icon" />
-                        </button>
-                        <span>Stock Request</span>
+                        <div class="" data-toggle="modal" data-target="#storeStockRequest" data-toggle="tooltip"
+                            data-placement="top" title="{{ __('messages.store_stock_request') }}"
+                            style="cursor: pointer;">
+                            <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
+                                <img src="{{ asset('public/external/frame2834471-mtm.svg') }}" alt="Stock Request Icon"
+                                    style="width: 20px; height: 20px;" />
+                            </button>
+                            <span class="">Stock Request</span>
+                        </div>
                     @endif
                 </div>
                 <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
@@ -127,30 +133,34 @@
 
                 <div class="sidebar-item">
                     <livewire:take-cash-modal />
-                    <span>Add Cash</span>
                 </div>
                 <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
                     class="main-screen-rectangle457" />
 
                 <div class="sidebar-item">
-                    <button type="button" class="btn btn-default" data-toggle="modal" data-target="#cashout"
-                        data-toggle="tooltip" data-placement="top" title="{{ __('messages.cash_out') }}">
-                        <img src="{{ asset('public/external/caseout.png') }}" alt="Cash Out Icon" width="32"
-                            height="32" />
-                    </button>
-                    <span>Cash Out</span>
+                    <div class="" data-toggle="modal" data-target="#cashout" data-toggle="tooltip"
+                        data-placement="top" title="{{ __('messages.cash_out') }}" style="cursor: pointer;">
+                        <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
+                            <img src="{{ asset('public/external/caseout.png') }}" alt="Cash Out Icon" width="32"
+                                height="32" />
+                        </button>
+                        <span class="">Cash Out</span>
+                    </div>
                 </div>
                 <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
                     class="main-screen-rectangle457" />
 
                 @if (count($itemCarts) == 0)
                     <div class="sidebar-item">
-                        <button type="button" class="btn btn-default ml-2" data-toggle="modal"
-                            data-target="#holdTransactionsModal" data-toggle="tooltip" data-placement="top"
-                            title="{{ __('messages.view_hold') }}">
-                            <img src="{{ asset('public/external/vector4471-4bnt.svg') }}" alt="View Hold Icon" />
-                        </button>
-                        <span>View Hold</span>
+                        <div class="" data-toggle="modal" data-target="#holdTransactionsModal"
+                            data-toggle="tooltip" data-placement="top" title="{{ __('messages.view_hold') }}"
+                            style="cursor: pointer;">
+                            <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
+                                <img src="{{ asset('public/external/vector4471-4bnt.svg') }}" alt="View Hold Icon"
+                                    style="width: 24px; height: 24px;" />
+                            </button>
+                            <span>View Hold</span>
+                        </div>
                     </div>
                     <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
                         class="main-screen-rectangle457" />
@@ -158,19 +168,20 @@
 
                 <div class="sidebar-item">
                     <livewire:order-modal />
-                    <span>Sales History</span>
-
                 </div>
                 <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
                     class="main-screen-rectangle457" />
 
                 @if (auth()->user()->hasRole('warehouse'))
                     <div class="sidebar-item">
-                        <button wire:click="printLastInvoice" class="btn btn-default ml-2" data-toggle="tooltip"
-                            data-placement="top" title="{{ __('messages.print_the_last_invoice') }}">
-                            <img src="{{ asset('public/external/pdf_icon_final.jpg') }}" alt="Print Invoice Icon" />
-                        </button>
-                        <span>Print Invoice</span>
+                        <div class="" wire:click="printLastInvoice" data-toggle="tooltip" data-placement="top"
+                            title="{{ __('messages.print_the_last_invoice') }}" style="cursor: pointer;">
+                            <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
+                                <img src="{{ asset('public/external/pdf_icon_final.jpg') }}" alt="Print Invoice Icon"
+                                    style="width: 24px; height: 24px;" />
+                            </button>
+                            <span class="">Print Invoice</span>
+                        </div>
                     </div>
                     <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
                         class="main-screen-rectangle457" />
@@ -179,7 +190,6 @@
                 @if (auth()->user()->hasRole('warehouse'))
                     <div class="sidebar-item">
                         <livewire:customer-credit-ledger-modal />
-                        <span>Customer Credit Ledger</span>
                     </div>
                     <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
                         class="main-screen-rectangle457" />
@@ -188,7 +198,6 @@
                 @if (count($itemCarts) == 0 && auth()->user()->hasRole('warehouse'))
                     <div class="sidebar-item">
                         <livewire:collation-modal />
-                        <span>Collect Credit</span>
                     </div>
                     <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
                         class="main-screen-rectangle457" />
@@ -196,9 +205,7 @@
 
                 <div class="sidebar-item">
                     @livewire('shift-close-modal')
-                    <span>Close Shift</span>
                 </div>
-
             </div>
         </div>
 
@@ -311,7 +318,6 @@
 
             </div>
         </div>
-
 
         <!-- Main Content -->
         <div class="col-12 col-md-11 m-2 ml-2">
@@ -683,38 +689,41 @@
 
                 </div>
                 <!-- Bottom Bar -->
-                <div class="row bottom-bar text-center mt-2">
-                    <div class="col-md-4">Qty </div>
-                    <div class="col-md-4">Round Off </div>
-                    <div class="col-md-4">Total Payable </div>
+                <div class="cart_footer mt-2">
+                    <div class="row bottom-bar text-center">
+                        <div class="col-md-4">Qty </div>
+                        <div class="col-md-4">Round Off </div>
+                        <div class="col-md-4">Total Payable </div>
+                    </div>
+                    <div class="row text-center mt-1 mb-1">
+                        <div class="col-md-4">
+                            <input type="hidden" id="cartCount" value="{{ $this->cartCount }}">
+                            <strong>
+                                <span class="main-screen-text70"> {{ $this->cartCount }}</span>
+                            </strong>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>
+                                @php
+                                    $this->roundedTotal =
+                                        (float) $this->cashAmount +
+                                        (float) $this->creditPay -
+                                        round($this->cartItemTotalSum);
+                                @endphp
+                                <span class="main-screen-text70"> {{ $this->roundedTotal }}</span>
+                                <input type="hidden" id="roundedTotal" value="{{ $this->roundedTotal }}"
+                                    wire:model="roundedTotal">
+                            </strong>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>
+                                <span class="main-screen-text70">{{ format_inr($this->cashAmount) }}</span>
+                                <input type="hidden" id="totalPayable" value="{{ $this->cashAmount }}">
+                            </strong>
+                        </div>
+                    </div>
                 </div>
-                <div class="row text-center mt-1">
-                    <div class="col-md-4">
-                        <input type="hidden" id="cartCount" value="{{ $this->cartCount }}">
-                        <strong>
-                            <span class="main-screen-text70"> {{ $this->cartCount }}</span>
-                        </strong>
-                    </div>
-                    <div class="col-md-4">
-                        <strong>
-                            @php
-                                $this->roundedTotal =
-                                    (float) $this->cashAmount +
-                                    (float) $this->creditPay -
-                                    round($this->cartItemTotalSum);
-                            @endphp
-                            <span class="main-screen-text70"> {{ $this->roundedTotal }}</span>
-                            <input type="hidden" id="roundedTotal" value="{{ $this->roundedTotal }}"
-                                wire:model="roundedTotal">
-                        </strong>
-                    </div>
-                    <div class="col-md-4">
-                        <strong>
-                            <span class="main-screen-text70">{{ format_inr($this->cashAmount) }}</span>
-                            <input type="hidden" id="totalPayable" value="{{ $this->cashAmount }}">
-                        </strong>
-                    </div>
-                </div>
+
                 <!-- Bootstrap Modal -->
                 <div class="modal fade" id="holdTransactionsModal" tabindex="-1" aria-labelledby="holdModalLabel"
                     aria-hidden="true" wire:ignore.self>
@@ -723,15 +732,11 @@
                             <div class="modal-header">
                                 <h5 class="modal-title" id="holdModalLabel">{{ __('messages.hold_transactions') }}
                                 </h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">×</span>
-                                </button>
+                                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
                                 @livewire('hold-transactions', ['holdTransactions' => $holdTransactions])
-
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -745,9 +750,7 @@
                                 <h5 class="modal-title fw-semibold" id="captureModalLabel">
                                     <i class="bi bi-camera-video me-2"></i>{{ __('messages.image_capture') }}
                                 </h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">×</span>
-                                </button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
 
                             <div class="modal-body px-4 py-4">
@@ -858,9 +861,7 @@
                                 <h5 class="modal-title fw-semibold" id="cashout">
                                     <i class="bi bi-camera-video me-2"></i>{{ __('messages.withdraw_cash_details') }}
                                 </h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">×</span>
-                                </button>
+                                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
                             </div>
 
                             <div class="modal-body p-6">
@@ -972,9 +973,11 @@
                                 <h5 class="modal-title fw-semibold" id="cashout">
                                     <i class="bi bi-camera-video me-2"></i>{{ __('messages.stock_request') }}
                                 </h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                {{-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <i class="bi bi-x-lg"></i>
-                                </button>
+                                </button> --}}
+                                <button type="button" class="btn-close" data-dismiss="modal"
+                                    aria-label="Close"></button>
                             </div>
 
                             <div class="modal-body p-6">
@@ -1049,9 +1052,11 @@
                                 <h5 class="modal-title fw-semibold" id="cashout">
                                     <i class="bi bi-camera-video me-2"></i>{{ __('messages.stock_request') }}
                                 </h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                {{-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <i class="bi bi-x-lg"></i>
-                                </button>
+                                </button> --}}
+                                <button type="button" class="btn-close" data-dismiss="modal"
+                                    aria-label="Close"></button>
                             </div>
 
                             <div class="modal-body p-6">
@@ -1141,10 +1146,11 @@
                                 </div>
                                 <div class="modal-body">
 
-                                    <input type="hidden" name="amount" id="holdamountTotal"
-                                        class="form-control" placeholder="Enter opening amount" readonly>
+                                    <input type="hidden" name="amount" id="holdamountTotal" class="form-control"
+                                        placeholder="Enter opening amount" readonly>
                                     <div class="tbody-border-wrapper mb-2">
-                                        <table id="case_in_hand" class="case_in_hand table text-center table-bordered border-bottom align-middle">
+                                        <table id="case_in_hand"
+                                            class="case_in_hand table text-center table-bordered border-bottom align-middle">
                                             <thead class="table-info" style="background-color: #1aa59a; color: #fff;">
                                                 <tr>
                                                     <th>{{ __('messages.currency') }}</th>
@@ -1190,7 +1196,8 @@
                                                 <tr class="">
                                                     <td class="fw-bold text-start total_bgc" colspan="2">
                                                         {{ __('messages.total_cash') }}</td>
-                                                    <td class="fw-bold text-end total_bgc" id="totalNoteCashHand">₹0.00</td>
+                                                    <td class="fw-bold text-end total_bgc" id="totalNoteCashHand">
+                                                        ₹0.00</td>
                                                 </tr>
                                             </tfoot>
                                         </table>
@@ -1218,9 +1225,7 @@
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h6 class="">{{ __('messages.product_opening_stock') }}</h6>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">×</span>
-                                </button>
+                                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
                                 <table class="customtable table">
@@ -2531,9 +2536,9 @@
             customClass: {
                 popup: 'small-alert'
             }
-            
+
         }).then((result) => {
-             $('#cashModal').modal('hide');
+            $('#cashModal').modal('hide');
             if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
                 location.reload(); // reload after OK click or auto close
             }

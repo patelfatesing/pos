@@ -1,9 +1,13 @@
 <div>
     <!-- Trigger Button -->
-    <button wire:click="openModal" class="btn btn-default ml-2" title="Sales History">
-        <img src="{{ asset('public/external/orderhistory14471-2h8.svg') }}" alt="Sales History Icon" />
-    </button>
+    <div class="" wire:click="openModal" title="Sales History" style="cursor: pointer;">
 
+        <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
+            <img src="{{ asset('public/external/orderhistory14471-2h8.svg') }}" alt="Sales History Icon"
+                style="width: 24px; height: 24px;" />
+        </button>
+        <span class="">Sales History</span>
+    </div>
     <!-- Modal -->
     @if ($showModal)
         <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);"
@@ -12,9 +16,8 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title text-dark">Sales History</h5>
-
-                        <button type="button" class="close" wire:click="$set('showModal', false)">
-                            <span aria-hidden="true">×</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                            wire:click="$set('showModal', false)"></button>
                         </button>
                     </div>
                     <div class="modal-body">
@@ -71,7 +74,7 @@
                                                         <td>{{ format_inr($order->total) }}</td>
                                                     @endif
                                                     <td class="text-center">
-                                                       
+
                                                         <button class="btn btn-lg"
                                                             wire:click="printInvoice('{{ $order->id }}')">
                                                             <i class="bi bi-file-earmark-pdf-fill text-danger"></i>

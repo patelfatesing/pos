@@ -1,8 +1,15 @@
 <div>
-    <button type="button" class="btn btn-default ml-2" wire:click.prevent="openModal" title="Close Shift">
-        <img src="{{ asset('public/external/vector4471-zd04.svg') }}" alt="Close Shift Icon" />
+<div class=""
+     wire:click.prevent="openModal"
+     title="Close Shift"
+     style="cursor: pointer;">
 
+    <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
+        <img src="{{ asset('public/external/vector4471-zd04.svg') }}" alt="Close Shift Icon" style="width: 24px; height: 24px;" />
     </button>
+    <span class="">Close Shift</span>
+</div>
+
     @if ($showModal)
         <div class="modal fade show d-block" tabindex="-1">
             <div @class([
@@ -21,9 +28,10 @@
                             </h5>
                         </div>
                         @if ($this->showYesterDayShiftTime == false && $this->shiftclosehidecross == false)
-                        <button type="button" class="close btn btn-default" wire:click="$set('showModal', false)">
+                        {{-- <button type="button" class="close btn btn-default" wire:click="$set('showModal', false)">
                             <span aria-hidden="true">×</span>
-                        </button>
+                        </button> --}}
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" wire:click="$set('showModal', false)"></button>
                         @endif
                     </div>
 
