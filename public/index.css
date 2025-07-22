@@ -3053,3 +3053,47 @@ tr.active1 td {
     }
 }
 
+.table-outer-border {
+    border: 2px solid #dee2e6; /* You can change the color and width */
+    border-collapse: collapse;
+     border-radius: 12px;
+     overflow: hidden;
+}
+
+
+.tbody-border-wrapper {
+      border: 1px solid #dee2e6;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .tbody-border-wrapper table {
+      margin: 0;
+      border-collapse: collapse;
+    }
+
+    .tbody-border-wrapper td,
+    .tbody-border-wrapper th {
+      border: none; /* no internal borders */
+    }
+
+    .blue_btn{
+      background-color: #2F9ED2;
+    }
+
+    .green_btn{
+      background-color: #00B3B3;
+    }
+
+    .pd_remove {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+}
+
+#case_in_hand tbody tr {
+    border-bottom: 1px solid #dee2e6;
+}
+
+.case_in_hand tbody, td, tfoot, th, thead, tr {
+    border-bottom: 1px outset #dee2e6 !important;
+}
