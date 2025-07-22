@@ -1288,6 +1288,7 @@
 .main-screen-frame-key11{
       height: 30px !important;
       width: 30px !important;
+      font-size: medium !important;
 }
 /* +10, +20, +50 text */
 .main-screen-text37,
@@ -3048,7 +3049,7 @@ tr.active1 td {
 @media (min-width: 768px) {
     .col-md-11 {
         flex: 0 0 auto;
-        width: 88.5% !important;
+        width: 91.3% !important;
     }
 }
 
