@@ -320,6 +320,11 @@ class Shoppingcart extends Component
 
     public function addQuantity($value)
     {
+        if (is_null($this->activeItemId)) {
+            $this->dispatch('notiffication-error', ['message' => 'Please selecte party customer.']);
+            return;
+        }
+        
         if (!$this->activeProductId) return;
 
         $id = $this->activeProductId;

@@ -184,8 +184,7 @@
             border-radius: 10px !important;
             margin-left: 10px !important;
             width: 70px !important;
-            height: calc(100vh - 61px);
-            /* margin-top: 61px; OR use top: 61px with position: fixed */
+            /* height: calc(100vh - 101px); */
             z-index: 999;
         }
 
