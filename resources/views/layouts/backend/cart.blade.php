@@ -267,7 +267,7 @@
             color: rgba(36, 81, 118, 1);
         
         }
-        .btn-primary,.btn-primary:hover {
+        .btn-primary,.btn-primary:hover,.btn-deafult:hover {
             background-color: #009fe3;
         }
         .btn-warning,.btn-warning:hover{

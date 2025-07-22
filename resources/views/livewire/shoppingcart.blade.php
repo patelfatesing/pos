@@ -672,7 +672,7 @@
                             @if (!empty($this->selectedSalesReturn))
                                 <div class="col-6">
                                     <button wire:click="refundoggleBox"
-                                        class="btn btn-sm btn-primary w-100 text-nowrap">
+                                        class="btn btn-sm btn-danger w-100 text-nowrap">
                                         <i class="fa fa-hand-holding-usd me-2"></i> Refund
                                     </button>
                                 </div>
@@ -1409,8 +1409,11 @@
 
                                                                     </td>
                                                                 @endif
-
+                                                                @if (!empty($this->selectedSalesReturn))
+                                                                <td class="text-center ">
+                                                                @else
                                                                 <td class="text-center currency-center">
+                                                                @endif    
                                                                     {{ format_inr($denomination) }}</td>
 
                                                                 <td class="text-center">
@@ -1561,7 +1564,7 @@
 
                                                 @if (!empty($this->selectedSalesReturn) && $this->cashAmount == $totals['totalOut'])
                                                     <button id="paymentSubmit"
-                                                        class="btn btn-primary btn-sm mr-2 btn-block "
+                                                        class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
                                                         wire:click="refund" wire:loading.attr="disabled">
                                                         Refund
                                                     </button>
@@ -1875,6 +1878,36 @@
     window.addEventListener('online-cash-modal', event => {
         const modal = new bootstrap.Modal(document.getElementById('onliineModal'));
         modal.show();
+    });
+    window.addEventListener('hide-open-cash-modal', event => {
+        const modalEl = document.getElementById('cashModal');
+        const modal = new bootstrap.Modal(modalEl);
+        modal.hide();
+        // Hide modal element
+        modalEl.style.display = 'none';
+        modalEl.classList.remove('show');
+        modalEl.setAttribute('aria-hidden', 'true');
+        // Remove backdrop manually
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => backdrop.remove());
+        // Remove 'modal-open' class from body to restore scroll
+        document.body.classList.remove('modal-open');
+        document.body.style.paddingRight = '';
+    });
+    window.addEventListener('hide-online-cash-modal', event => {
+        const modalEl = document.getElementById('onliineModal');
+        const modal = new bootstrap.Modal(modalEl);
+        modal.hide();
+        // Hide modal element
+        modalEl.style.display = 'none';
+        modalEl.classList.remove('show');
+        modalEl.setAttribute('aria-hidden', 'true');
+        // Remove backdrop manually
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => backdrop.remove());
+        // Remove 'modal-open' class from body to restore scroll
+        document.body.classList.remove('modal-open');
+        document.body.style.paddingRight = '';
     });
     window.addEventListener('triggerPrint', event => {
         const el = document.getElementsByClassName('lastsavepic')[0];
