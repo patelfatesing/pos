@@ -1,8 +1,13 @@
 <div>
     <!-- Trigger Button -->
-    <button wire:click="openModal" class="btn ml-2" title="Collect Credit">
-        <img src="{{ asset('public/external/investment114471-sc1b.svg') }}" alt="Collect Credit Icon" />
-    </button>
+    <div class="" wire:click="openModal" title="Collect Credit"
+        style="cursor: pointer;">
+        <button type="button" class="btn p-1 m-0 border-0 bg-transparent">
+            <img src="{{ asset('public/external/investment114471-sc1b.svg') }}" alt="Collect Credit Icon"
+                style="width: 24px; height: 24px;" />
+        </button>
+        <span class="">Collect Credit</span>
+    </div>
 
     <!-- Main Modal -->
     @if ($showModal)
@@ -12,9 +17,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title text-dark">Collect Credit</h5>
-                        <button type="button" class="close" wire:click="$set('showModal', false)">
-                            <span aria-hidden="true">×</span>
-                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" wire:click="$set('showModal', false)"></button>
                     </div>
                     <div class="modal-body">
                         <!-- Search Box -->
@@ -97,9 +100,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title text-dark">Collect Credit for {{ $selectedUser?->first_name }}</h5>
-                        <button type="button" class="close" wire:click="$set('showCollectModal', false)">
-                            <span aria-hidden="true">×</span>
-                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" wire:click="$set('showCollectModal', false)"></button>
                     </div>
                     <div class="modal-body">
 

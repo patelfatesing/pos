@@ -76,6 +76,7 @@
             background-color: #e9f2f9;
             padding: 10px 0;
             font-size: 18px;
+            margin-left: 0px;
         }
 
         @media (max-width: 768px) {
@@ -180,10 +181,12 @@
 
         .sidebar {
             background-color: #009fe3;
-            min-height: auto;
-            border-radius: 10px ! important;
-            margin-left: 10px ! important; 
-            width: 70px ! important;
+            border-radius: 10px !important;
+            margin-left: 10px !important;
+            width: 70px !important;
+            height: calc(100vh - 61px);
+            /* margin-top: 61px; OR use top: 61px with position: fixed */
+            z-index: 999;
         }
 
         .sidebar-item img {
