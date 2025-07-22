@@ -159,11 +159,11 @@
             color: rgba(255, 255, 255, 1);
         }
 
-        .btn:hover {
+        /* .btn:hover {
             color: unset ! important;
             background-color: unset ! important;
             border-color: unset ! important;
-        }
+        } */
 
         .custom-border {
 
@@ -271,10 +271,16 @@
             color: black !important;
         }
         .text-success td,.table-success tr th ,.table-success-new  td{
-            color:1C5609 !important;
+            color:#1C5609 !important;
         }
         .sidebar-item button {
             height: 36px;
+        }
+        .remove-pic{
+            margin-top: 1%;
+        }
+        .text-gray{
+            color:#49454F !important;
         }
     </style>
      @livewireStyles
