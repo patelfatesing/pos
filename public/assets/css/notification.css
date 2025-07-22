@@ -144,7 +144,7 @@
  
 .notification-screen-notification1 {
   width: 412px;
-  height: 58px;
+  height: 70px;
   display: flex;
   overflow: hidden;
   position: relative;
@@ -305,7 +305,7 @@
  
 .notification-screen-notification2 {
   width: 412px;
-  height: 58px;
+  height: 70px;
   display: flex;
   overflow: hidden;
   position: relative;
@@ -546,7 +546,7 @@
  
 .notification-screen-notification3 {
   width: 412px;
-  height: 58px;
+  height: 70px;
   display: flex;
   overflow: hidden;
   position: relative;
@@ -683,7 +683,7 @@
  
 .notification-screen-notification4 {
   width: 412px;
-  height: 58px;
+  height: 70px;
   display: flex;
   overflow: hidden;
   position: relative;
@@ -820,7 +820,7 @@
  
 .notification-screen-notification5 {
   width: 412px;
-  height: 58px;
+  height: 70px;
   display: flex;
   overflow: hidden;
   position: relative;
@@ -926,7 +926,7 @@
  
 .notification-screen-polygon1 {
   top: 0px;
-  left: 234px;
+  left: 280px;
   width: 27px;
   height: 28px;
   position: absolute;

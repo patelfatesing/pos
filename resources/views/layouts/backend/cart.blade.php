@@ -125,12 +125,16 @@
         }
 
         .btn-void {
-
-            padding: 5px 24px;
+            padding: 5px 0px;
+            width: 100px;
             border-radius: 6px;
             justify-content: center;
             background-color: rgba(204, 68, 68, 1);
             color: rgba(255, 255, 255, 1);
+        }
+
+        .btn-void span{
+
         }
 
         .btn-cash {
@@ -159,11 +163,11 @@
             color: rgba(255, 255, 255, 1);
         }
 
-        .btn:hover {
+        /* .btn:hover {
             color: unset ! important;
             background-color: unset ! important;
             border-color: unset ! important;
-        }
+        } */
 
         .custom-border {
 
@@ -178,8 +182,8 @@
             background-color: #009fe3;
             min-height: auto;
             border-radius: 10px ! important;
-            /* margin-left: 0px ! important; */
-            /* width: 70px ! important; */
+            margin-left: 10px ! important; 
+            width: 70px ! important;
         }
 
         .sidebar-item img {
@@ -250,7 +254,43 @@
             color: rgba(36, 81, 118, 1);
 
         }
+        .btn-gray{
+            background-color: rgba(234, 236, 234, 1)!important;
+        }
+        .currency-center{
+            background-color: #cfebeb !important;
+        }
+        .cash-summary-text61 {
+            color: rgba(36, 81, 118, 1);
+        
+        }
+        .btn-primary,.btn-primary:hover {
+            background-color: #009fe3;
+        }
+        .btn-warning,.btn-warning:hover{
+            background-color: rgba(255, 126, 65, 1);
+            color: white !important;
+        }
+        .close-text{
+            color: black !important;
+        }
+        .text-success td,.table-success tr th ,.table-success-new  td{
+            color:#1C5609 !important;
+        }
+        .sidebar-item button {
+            height: 36px;
+        }
+        .d-flex .btn {
+            --bs-btn-padding-x:0px!important; 
+            --bs-btn-padding-y:0px !important; 
+            height:35px !important; 
+                font-size: 15px  !important; 
+        }
+        .position-relative input{
+            line-height: 1  !important; 
+        }
     </style>
+     @livewireStyles
 </head>
 
 <body>

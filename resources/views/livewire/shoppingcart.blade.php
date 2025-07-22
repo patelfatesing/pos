@@ -4,7 +4,7 @@
         $this->cashAmount = round_up_to_nearest_10($this->cashAmount) ?? 0;
     @endphp
 
-    <div class="topbar d-flex flex-wrap justify-content-between align-items-center px-3 py-2 bg-white shadow-sm">
+    <div class="topbar d-flex flex-wrap justify-content-between align-items-center  bg-white shadow-sm">
 
         <!-- Logo -->
         <div class="d-flex align-items-center">
@@ -46,7 +46,7 @@
     </div>
 
     <!-- Mobile Toggle Button -->
-    <div class="d-md-none mb-2 ms-2">
+    <div class="d-md-none  ms-2">
         <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
             ☰ Menu
         </button>
@@ -99,8 +99,107 @@
 
     <div class="row flex-md-nowrap">
         <!-- Desktop Sidebar -->
-        <div class="d-none d-md-flex col-md-1 sidebar flex-column align-items-center py-2 ml-2">
-            @include('partials.sidebar-items')
+        <div id="sidebar" class="sidebar d-none d-md-flex flex-column py-2">
+            <div class="scrollable-sidebar-inner">
+                <div class="sidebar-item">
+                    {{-- Cashier Button --}}
+                    @if (auth()->user()->hasRole('cashier'))
+                        <button type="button" class="btn btn-default" data-toggle="modal"
+                            data-target="#storeStockRequest" data-toggle="tooltip" data-placement="top"
+                            title="{{ __('messages.store_stock_request') }}">
+                            <img src="{{ asset('public/external/frame2834471-mtm.svg') }}" alt="Stock Request Icon" />
+                        </button>
+                        <span>Stock Request</span>
+                    @endif
+
+                    {{-- Warehouse Button --}}
+                    @if (auth()->user()->hasRole('warehouse'))
+                        <button type="button" class="btn btn-default" data-toggle="modal"
+                            data-target="#warehouseStockRequest" data-toggle="tooltip" data-placement="top"
+                            title="{{ __('messages.warehouse_stock_request') }}">
+                            <img src="{{ asset('public/external/frame2834471-mtm.svg') }}" alt="Stock Request Icon" />
+                        </button>
+                        <span>Stock Request</span>
+                    @endif
+                </div>
+                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+                    class="main-screen-rectangle457" />
+
+                <div class="sidebar-item">
+                    <livewire:take-cash-modal />
+                    <span>Add Cash</span>
+                </div>
+                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+                    class="main-screen-rectangle457" />
+
+                <div class="sidebar-item">
+                    <button type="button" class="btn btn-default" data-toggle="modal" data-target="#cashout"
+                        data-toggle="tooltip" data-placement="top" title="{{ __('messages.cash_out') }}">
+                        <img src="{{ asset('public/external/caseout.png') }}" alt="Cash Out Icon" width="32"
+                            height="32" />
+                    </button>
+                    <span>Cash Out</span>
+                </div>
+                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+                    class="main-screen-rectangle457" />
+
+                @if (count($itemCarts) == 0)
+                    <div class="sidebar-item">
+                        <button type="button" class="btn btn-default ml-2" data-toggle="modal"
+                            data-target="#holdTransactionsModal" data-toggle="tooltip" data-placement="top"
+                            title="{{ __('messages.view_hold') }}">
+                            <img src="{{ asset('public/external/vector4471-4bnt.svg') }}" alt="View Hold Icon" />
+                        </button>
+                        <span>View Hold</span>
+                    </div>
+                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+                        class="main-screen-rectangle457" />
+                @endif
+
+                <div class="sidebar-item">
+                    <livewire:order-modal />
+                    <span>Sales History</span>
+
+                </div>
+                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+                    class="main-screen-rectangle457" />
+
+                @if (auth()->user()->hasRole('warehouse'))
+                    <div class="sidebar-item">
+                        <button wire:click="printLastInvoice" class="btn btn-default ml-2" data-toggle="tooltip"
+                            data-placement="top" title="{{ __('messages.print_the_last_invoice') }}">
+                            <img src="{{ asset('public/external/pdf_icon_final.jpg') }}" alt="Print Invoice Icon" />
+                        </button>
+                        <span>Print Invoice</span>
+                    </div>
+                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+                        class="main-screen-rectangle457" />
+                @endif
+
+                @if (auth()->user()->hasRole('warehouse'))
+                    <div class="sidebar-item">
+                        <livewire:customer-credit-ledger-modal />
+                        <span>Customer Credit Ledger</span>
+                    </div>
+                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+                        class="main-screen-rectangle457" />
+                @endif
+
+                @if (count($itemCarts) == 0 && auth()->user()->hasRole('warehouse'))
+                    <div class="sidebar-item">
+                        <livewire:collation-modal />
+                        <span>Collect Credit</span>
+                    </div>
+                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+                        class="main-screen-rectangle457" />
+                @endif
+
+                <div class="sidebar-item">
+                    @livewire('shift-close-modal')
+                    <span>Close Shift</span>
+                </div>
+
+            </div>
         </div>
 
         <!-- Mobile Offcanvas Sidebar -->
@@ -110,7 +209,106 @@
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
             </div>
             <div class="offcanvas-body">
-                @include('partials.sidebar-items')
+                <div class="sidebar-item">
+                    {{-- Cashier Button --}}
+                    @if (auth()->user()->hasRole('cashier'))
+                        <button type="button" class="btn btn-default" data-toggle="modal"
+                            data-target="#storeStockRequest" data-toggle="tooltip" data-placement="top"
+                            title="{{ __('messages.store_stock_request') }}">
+                            <img src="{{ asset('public/external/frame2834471-mtm.svg') }}"
+                                alt="Stock Request Icon" />
+                        </button>
+                        <span>Stock Request</span>
+                    @endif
+
+                    {{-- Warehouse Button --}}
+                    @if (auth()->user()->hasRole('warehouse'))
+                        <button type="button" class="btn btn-default" data-toggle="modal"
+                            data-target="#warehouseStockRequest" data-toggle="tooltip" data-placement="top"
+                            title="{{ __('messages.warehouse_stock_request') }}">
+                            <img src="{{ asset('public/external/frame2834471-mtm.svg') }}"
+                                alt="Stock Request Icon" />
+                        </button>
+                        <span>Stock Request</span>
+                    @endif
+                </div>
+                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+                    class="main-screen-rectangle457" />
+
+                <div class="sidebar-item">
+                    <livewire:take-cash-modal />
+                    <span>Add Cash</span>
+                </div>
+                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+                    class="main-screen-rectangle457" />
+
+                <div class="sidebar-item">
+                    <button type="button" class="btn btn-default" data-toggle="modal" data-target="#cashout"
+                        data-toggle="tooltip" data-placement="top" title="{{ __('messages.cash_out') }}">
+                        <img src="{{ asset('public/external/caseout.png') }}" alt="Cash Out Icon" width="32"
+                            height="32" />
+                    </button>
+                    <span>Cash Out</span>
+                </div>
+                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+                    class="main-screen-rectangle457" />
+
+                @if (count($itemCarts) == 0)
+                    <div class="sidebar-item">
+                        <button type="button" class="btn btn-default ml-2" data-toggle="modal"
+                            data-target="#holdTransactionsModal" data-toggle="tooltip" data-placement="top"
+                            title="{{ __('messages.view_hold') }}">
+                            <img src="{{ asset('public/external/vector4471-4bnt.svg') }}" alt="View Hold Icon" />
+                        </button>
+                        <span>View Hold</span>
+                    </div>
+                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+                        class="main-screen-rectangle457" />
+                @endif
+
+                <div class="sidebar-item">
+                    <livewire:order-modal />
+                    <span>Sales History</span>
+
+                </div>
+                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+                    class="main-screen-rectangle457" />
+
+                @if (auth()->user()->hasRole('warehouse'))
+                    <div class="sidebar-item">
+                        <button wire:click="printLastInvoice" class="btn btn-default ml-2" data-toggle="tooltip"
+                            data-placement="top" title="{{ __('messages.print_the_last_invoice') }}">
+                            <img src="{{ asset('public/external/pdf_icon_final.jpg') }}" alt="Print Invoice Icon" />
+                        </button>
+                        <span>Print Invoice</span>
+                    </div>
+                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+                        class="main-screen-rectangle457" />
+                @endif
+
+                @if (auth()->user()->hasRole('warehouse'))
+                    <div class="sidebar-item">
+                        <livewire:customer-credit-ledger-modal />
+                        <span>Customer Credit Ledger</span>
+                    </div>
+                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+                        class="main-screen-rectangle457" />
+                @endif
+
+                @if (count($itemCarts) == 0 && auth()->user()->hasRole('warehouse'))
+                    <div class="sidebar-item">
+                        <livewire:collation-modal />
+                        <span>Collect Credit</span>
+                    </div>
+                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+                        class="main-screen-rectangle457" />
+                @endif
+
+                <div class="sidebar-item">
+                    @livewire('shift-close-modal')
+                    <span>Close Shift</span>
+                </div>
+
             </div>
         </div>
 
@@ -119,7 +317,7 @@
         <div class="col-12 col-md-11 m-2 ml-2">
             <div>
                 <!-- Welcome & Shift Info -->
-                <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
+                <div class="d-flex justify-content-between align-items-center flex-wrap ">
                     <div class="main-screen-text12">Welcome! <strong class="text-success">
                             {{ Auth::user()->name }}</strong></div>
                     <div>Shift Code: <strong>{{ $this->shift->shift_no ?? '' }}</strong> | Date: <span
@@ -127,7 +325,7 @@
                         </span></div>
                 </div>
                 <!-- Filters -->
-                <div class="row g-2 mb-2">
+                <div class="row  ">
                     <div class="col-12 col-md-3">
                         <div class="position-relative">
                             <input type="number" class="form-control rounded-pill pe-5 custom-border"
@@ -140,7 +338,7 @@
                     </div>
 
                     <div class="col-12 col-md-3">
-                        <div class="position-relative mb-2">
+                        <div class="position-relative ">
                             <img src="{{ asset('public/external/vector4471-t8to.svg') }}" alt="Icon"
                                 style="position: absolute; right: 15px; top: 12px; width: 18px; height: 18px; pointer-events: none; z-index: 2;">
 
@@ -168,7 +366,7 @@
                         </div>
                     </div>
                     <div class="col-12 col-md-3">
-                        <div class="position-relative mb-2">
+                        <div class="position-relative ">
                             <livewire:take-two-pictures />
                         </div>
                     </div>
@@ -188,7 +386,7 @@
                     @endif
                 </div>
                 <!-- Search + Buttons -->
-                <div class="row g-2 mt-2">
+                <div class="row  ">
                     <div class="col-md-9">
                         <form wire:submit.prevent="searchTerm" class="mb-0">
                             <div class="position-relative">
@@ -255,7 +453,7 @@
                     </div>
                 </div>
                 <!-- Product Table & Calculator -->
-                <div class="row g-2 mt-3">
+                <div class="row mt-1">
                     <div class="col-md-9">
                         <div class="table-responsive">
 
@@ -378,92 +576,108 @@
                     <!-- Calculator & Payment -->
                     <div class="col-12 col-md-3">
                         <!-- Calculator -->
-                        <div class="p-3 blue-bg rounded shadow-sm">
-                            <div class="d-flex gap-2 mb-2">
-                                <button wire:click="addQuantity('1')"
-                                    class="btn btn-default main-screen-frame-key11 w-100">1</button>
-                                <button wire:click="addQuantity('2')"
-                                    class="btn btn-default main-screen-frame-key11 w-100">2</button>
-                                <button wire:click="addQuantity('3')"
-                                    class="btn btn-default main-screen-frame-key11 w-100">3</button>
-                                <button wire:click="addQuantity('10')"
-                                    class="btn btn-default main-screen-frame-key11 w-100">+10</button>
-                            </div>
-                            <div class="d-flex gap-2 mb-2">
-                                <button wire:click="addQuantity('4')"
-                                    class="btn btn-default main-screen-frame-key11 w-100">4</button>
-                                <button wire:click="addQuantity('5')"
-                                    class="btn btn-default main-screen-frame-key11 w-100">5</button>
-                                <button wire:click="addQuantity('6')"
-                                    class="btn btn-default main-screen-frame-key11 w-100">6</button>
-                                <button wire:click="addQuantity('20')"
-                                    class="btn btn-default main-screen-frame-key11 w-100">+20</button>
-                            </div>
-                            <div class="d-flex gap-2 mb-2">
-                                <button wire:click="addQuantity('7')"
-                                    class="btn btn-default main-screen-frame-key11 w-100">7</button>
-                                <button wire:click="addQuantity('8')"
-                                    class="btn btn-default main-screen-frame-key11 w-100">8</button>
-                                <button wire:click="addQuantity('9')"
-                                    class="btn btn-default main-screen-frame-key11 w-100">9</button>
-                                <button wire:click="addQuantity('50')"
-                                    class="btn btn-default main-screen-frame-key11 w-100">+50</button>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <button wire:click="removeItemActivte({{ $this->activeItemId }})"
-                                    class="btn btn-default main-screen-frame-key11 w-100">C</button>
-                                <button wire:click="addQuantity('0')"
-                                    class="btn btn-default main-screen-frame-key11 w-100">0</button>
-                                <button wire:click="addQuantity('1')"
-                                    class="btn btn-default main-screen-frame-key11 w-100">
-                                    <img src="{{ asset('public/external/vector4471-fdk.svg') }}" alt="Icon"
-                                        style="height: 20px;">
-                                </button>
-                                <button wire:click="addQuantity('1')"
-                                    class="btn btn-default main-screen-frame-key11 w-100">
-                                    <img src="{{ asset('public/external/right4471-upx2.svg') }}" alt="Right"
-                                        style="height: 20px;">
-                                </button>
+                        <div class="px-3 pt-3 pb-2 blue-bg rounded shadow-sm">
+                            <div class="d-grid gap-2">
+                                <div class="d-flex gap-2">
+                                    <button wire:click="addQuantity('1')"
+                                        class="btn btn-default main-screen-frame-key11 flex-fill">1</button>
+                                    <button wire:click="addQuantity('2')"
+                                        class="btn btn-default main-screen-frame-key11 flex-fill">2</button>
+                                    <button wire:click="addQuantity('3')"
+                                        class="btn btn-default main-screen-frame-key11 flex-fill">3</button>
+                                    <button wire:click="addQuantity('10')"
+                                        class="btn btn-default main-screen-frame-key11 flex-fill">+10</button>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button wire:click="addQuantity('4')"
+                                        class="btn btn-default main-screen-frame-key11 flex-fill">4</button>
+                                    <button wire:click="addQuantity('5')"
+                                        class="btn btn-default main-screen-frame-key11 flex-fill">5</button>
+                                    <button wire:click="addQuantity('6')"
+                                        class="btn btn-default main-screen-frame-key11 flex-fill">6</button>
+                                    <button wire:click="addQuantity('20')"
+                                        class="btn btn-default main-screen-frame-key11 flex-fill">+20</button>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button wire:click="addQuantity('7')"
+                                        class="btn btn-default main-screen-frame-key11 flex-fill">7</button>
+                                    <button wire:click="addQuantity('8')"
+                                        class="btn btn-default main-screen-frame-key11 flex-fill">8</button>
+                                    <button wire:click="addQuantity('9')"
+                                        class="btn btn-default main-screen-frame-key11 flex-fill">9</button>
+                                    <button wire:click="addQuantity('50')"
+                                        class="btn btn-default main-screen-frame-key11 flex-fill">+50</button>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button wire:click="removeItemActivte({{ $this->activeItemId }})"
+                                        class="btn btn-default main-screen-frame-key11 flex-fill">C</button>
+                                    <button wire:click="addQuantity('0')"
+                                        class="btn btn-default main-screen-frame-key11 flex-fill">0</button>
+                                    <button wire:click="addQuantity('1')"
+                                        class="btn btn-default main-screen-frame-key11 flex-fill">
+                                        <img src="{{ asset('public/external/vector4471-fdk.svg') }}" alt="Icon"
+                                            style="height: 20px;">
+                                    </button>
+                                    <button wire:click="addQuantity('1')"
+                                        class="btn btn-default main-screen-frame-key11 flex-fill">
+                                        <img src="{{ asset('public/external/right4471-upx2.svg') }}" alt="Right"
+                                            style="height: 20px;">
+                                    </button>
+                                </div>
                             </div>
                         </div>
+
 
 
                         <!-- Action Buttons (Bootstrap) -->
-                        <div class="mt-3 d-flex flex-wrap gap-2">
+                        <div class="mt-3 row g-2">
                             @if (empty($this->selectedSalesReturn))
-                                <button wire:click="holdSale" class="btn btn-deafult btn-hold flex-fill">
-                                    <i class="fa fa-pause-circle me-2"></i> {{ __('messages.hold') }}
-                                </button>
-                                <button wire:click="voidSale" class="btn btn-danger btn-void flex-fill">
-                                    <i class="fa fa-ban me-2"></i> {{ __('messages.void_sales') }}
-                                </button>
-
-                                <button wire:click="toggleBox" type="button"
-                                    class="btn btn-primary btn-cash flex-fill">
-                                    <i class="bi bi-cash-stack me-1"></i> Cash
-                                </button>
-                                <button wire:click="onlinePayment" class="btn btn-success btn-online flex-fill">
-                                    <i class="fa fa-credit-card me-2"></i>
-                                    {{ __('messages.upi') }}
-                                </button>
-                                <button type="button"
-                                    class="btn btn-deafult btn-cash-upi justify-content-between flex-fill px-3">
-                                    <span><i class="bi bi-cash me-1"></i> Cash + UPI</span>&nbsp;&nbsp;&nbsp;&nbsp;
-                                    <img src="{{ asset('public/external/right4471-5iuh.svg') }}" alt="Right"
-                                        style="height: 18px;">
-                                </button>
+                                <div class="col-6">
+                                    <button wire:click="holdSale" class="btn btn-deafult btn-hold w-100">
+                                        </i> {{ __('messages.hold') }}
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <button wire:click="voidSale" class="btn btn-danger btn-void w-72 h-24">
+                                        <span> {{ __('messages.void_sales') }}</span>
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <button wire:click="toggleBox" type="button"
+                                        class="btn btn-primary btn-cash w-100">
+                                        Cash
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <button wire:click="onlinePayment" class="btn btn-success btn-online w-100">
+                                        {{ __('messages.upi') }}
+                                    </button>
+                                </div>
+                                <div class="col-12">
+                                    <button type="button" class="btn btn-deafult btn-cash-upi w-100 px-3"
+                                        wire:click="cashupitoggleBox">
+                                        <span> Cash + UPI</span>
+                                        <img src="{{ asset('public/external/right4471-5iuh.svg') }}" alt="Right"
+                                            style="height: 18px;" class="float-end">
+                                    </button>
+                                </div>
                             @endif
+
                             @if (!empty($this->selectedSalesReturn))
-                                <button wire:click="refundoggleBox"
-                                    class="btn btn-sm btn-primary m-2 flex-fill text-nowrap ">
-                                    <i class="fa fa-hand-holding-usd me-2 "></i> Refund
-                                </button>
-                                <button wire:click="srtoggleBox"
-                                    class="btn btn-sm btn-primary m-2 flex-fill text-nowrap">
-                                    <i class="fa fa-hand-holding-usd me-2"></i> Sales Return
-                                </button>
+                                <div class="col-6">
+                                    <button wire:click="refundoggleBox"
+                                        class="btn btn-sm btn-primary w-100 text-nowrap">
+                                        <i class="fa fa-hand-holding-usd me-2"></i> Refund
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <button wire:click="srtoggleBox" class="btn btn-sm btn-primary w-100 text-nowrap">
+                                        <i class="fa fa-hand-holding-usd me-2"></i> Sales Return
+                                    </button>
+                                </div>
                             @endif
                         </div>
+
                     </div>
 
 
@@ -597,7 +811,7 @@
                                     <div class="row mb-3">
 
                                         <div class="col-6 text-center mb-3">
-                                            <p class="text-sm font-medium text-gray-600 mb-2">Product Image</p>
+                                            <p class="text-sm font-medium text-gray-600 ">Product Image</p>
                                             <img id="imgproduct"
                                                 src="{{ $this->productImage ? asset('storage/' . $this->productImage) : asset('assets/images/bottle.png') }}"
                                                 class="rounded shadow-sm border" width="160" height="150"
@@ -605,7 +819,7 @@
 
                                         </div>
                                         <div class="col-6 text-center mb-3">
-                                            <p class="text-sm font-medium text-gray-600 mb-2">User Image</p>
+                                            <p class="text-sm font-medium text-gray-600 ">User Image</p>
                                             <img id="imguser"
                                                 src="{{ $this->userImage ? asset('storage/' . $this->userImage) : asset('assets/images/user/07.jpg') }}"
                                                 class="rounded shadow-sm border" width="150" height="150"
@@ -727,7 +941,7 @@
                                                     </select>
                                                 </div>
                                                 {{-- Add this new textarea field below --}}
-                                                <div class="mb-2">
+                                                <div class="">
                                                     <label for="withdraw_notes"
                                                         class="form-label">{{ __('messages.notes') }}</label>
                                                     <textarea name="withdraw_notes" id="withdraw_notes" class="form-control frame-stock-request-group260"
@@ -759,7 +973,7 @@
                                     <i class="bi bi-camera-video me-2"></i>{{ __('messages.stock_request') }}
                                 </h5>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">×</span>
+                                    <i class="bi bi-x-lg"></i>
                                 </button>
                             </div>
 
@@ -836,7 +1050,7 @@
                                     <i class="bi bi-camera-video me-2"></i>{{ __('messages.stock_request') }}
                                 </h5>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">×</span>
+                                    <i class="bi bi-x-lg"></i>
                                 </button>
                             </div>
 
@@ -955,7 +1169,7 @@
                                                                     name="cashNotes[{{ $key }}][{{ $denomination }}]"
                                                                     id="cashhandsum_{{ $denomination }}"
                                                                     class="form-control text-center border-0 bg-white px-1 note-input"
-                                                                    value="1" readonly
+                                                                    value="0" readonly
                                                                     data-denomination="{{ $denomination }}"
                                                                     style="width: 40px; font-weight: 600;">
                                                                 <button type="button"
@@ -1081,7 +1295,7 @@
                             <div class="modal-body p-4">
                                 <div class="display-4 text-center fw-bold mb-4">{{ $numpadValue }}</div>
 
-                                <div class="row g-2">
+                                <div class="row ">
                                     @foreach (array_chunk([1, 2, 3, 4, 5, 6, 7, 8, 9], 3) as $row)
                                         <div class="col-12 d-flex justify-content-center">
                                             @foreach ($row as $num)
@@ -1281,13 +1495,13 @@
                                         @endif
                                         <hr class="custom-hr">
                                         <div class="cash-summary-frame282">
-                                            <div class="d-flex justify-content-between mb-2">
+                                            <div class="d-flex justify-content-between ">
                                                 {{ __('messages.subtotal') }}
                                                 <span>{{ format_inr($sub_total) }}</span>
                                             </div>
                                             @if (auth()->user()->hasRole('cashier'))
                                                 @if ($commissionAmount > 0)
-                                                    <div class="d-flex justify-content-between mb-2">
+                                                    <div class="d-flex justify-content-between ">
                                                         {{ __('messages.commission_deduction') }}
                                                         <span>- {{ format_inr($commissionAmount) }}</span>
                                                     </div>
@@ -1295,13 +1509,13 @@
                                             @endif
                                             @if (auth()->user()->hasRole('warehouse'))
                                                 {{-- @if ($partyAmount > 0) --}}
-                                                <div class="d-flex justify-content-between mb-2">
+                                                <div class="d-flex justify-content-between ">
                                                     {{ __('messages.commission_deduction') }}
                                                     <span>- {{ format_inr($partyAmount) }}</span>
                                                 </div>
                                                 {{-- @endif --}}
                                                 {{-- @if ($partyAmount > 0) --}}
-                                                <div class=" mb-2">
+                                                <div class=" ">
                                                     <label class="-label" for="useCreditCheck">
                                                         <input type="checkbox" wire:model="showCheckbox"
                                                             wire:click="toggleCheck" />
@@ -1310,8 +1524,7 @@
                                                 </div>
 
                                                 @if ($this->useCredit && $this->showCheckbox)
-                                                    <div
-                                                        class="d-flex justify-content-between align-items-center mb-2">
+                                                    <div class="d-flex justify-content-between align-items-center ">
                                                         <label class="mb-0">
                                                             {{ __('messages.credit') }}
                                                         </label>
@@ -1535,25 +1748,25 @@
 
 
                                         <div class="cash-summary-frame282">
-                                            <div class="d-flex justify-content-between mb-2">
+                                            <div class="d-flex justify-content-between ">
                                                 {{ __('messages.subtotal') }}
                                                 <span>{{ format_inr($sub_total) }}</span>
                                             </div>
 
                                             @if ($commissionAmount > 0)
-                                                <div class="d-flex justify-content-between mb-2">
+                                                <div class="d-flex justify-content-between ">
                                                     {{ __('messages.commission_deduction') }}
                                                     <span>- {{ format_inr($commissionAmount) }}</span>
                                                 </div>
                                             @endif
                                             @if ($partyAmount > 0)
-                                                <div class="d-flex justify-content-between mb-2">
+                                                <div class="d-flex justify-content-between ">
                                                     {{ __('messages.commission_deduction') }}
                                                     <span>- {{ format_inr($partyAmount) }}</span>
                                                 </div>
                                             @endif
                                             {{-- @if ($partyAmount > 0) --}}
-                                            {{-- <div class="d-flex justify-content-between mb-2">
+                                            {{-- <div class="d-flex justify-content-between ">
                                         <strong>Credit</strong>
                                         <input type="number" width="10%"
                                             wire:model.live="creditPay" wire:input="creditPayChanged"
@@ -1561,7 +1774,7 @@
 
                                     </div> --}}
                                             @if (auth()->user()->hasRole('warehouse'))
-                                                <div class="mb-2">
+                                                <div class="">
                                                     <label for="useCreditCheck">
                                                         <input type="checkbox" wire:model="showCheckbox"
                                                             wire:click="toggleCheck" />
@@ -1571,8 +1784,7 @@
                                                 </div>
 
                                                 @if ($this->useCredit && $this->showCheckbox)
-                                                    <div
-                                                        class="d-flex justify-content-between align-items-center mb-2">
+                                                    <div class="d-flex justify-content-between align-items-center ">
                                                         <label class="mb-0">
                                                             {{ __('messages.credit') }}
                                                         </label>
@@ -3252,4 +3464,9 @@
             });
         });
     });
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('collapsed');
+    }
 </script>
