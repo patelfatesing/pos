@@ -125,12 +125,16 @@
         }
 
         .btn-void {
-
-            padding: 5px 24px;
+            padding: 5px 0px;
+            width: 100px;
             border-radius: 6px;
             justify-content: center;
             background-color: rgba(204, 68, 68, 1);
             color: rgba(255, 255, 255, 1);
+        }
+
+        .btn-void span{
+
         }
 
         .btn-cash {
@@ -178,8 +182,8 @@
             background-color: #009fe3;
             min-height: auto;
             border-radius: 10px ! important;
-            /* margin-left: 0px ! important; */
-            /* width: 70px ! important; */
+            margin-left: 10px ! important; 
+            width: 70px ! important;
         }
 
         .sidebar-item img {
@@ -276,11 +280,14 @@
         .sidebar-item button {
             height: 36px;
         }
-        .remove-pic{
-            margin-top: 1%;
+        .d-flex .btn {
+            --bs-btn-padding-x:0px!important; 
+            --bs-btn-padding-y:0px !important; 
+            height:35px !important; 
+                font-size: 15px  !important; 
         }
-        .text-gray{
-            color:#49454F !important;
+        .position-relative input{
+            line-height: 1  !important; 
         }
     </style>
      @livewireStyles
