@@ -3097,3 +3097,16 @@ tr.active1 td {
 .case_in_hand tbody, td, tfoot, th, thead, tr {
     border-bottom: 1px outset #dee2e6 !important;
 }
+
+.cart_footer {
+    position: fixed;
+    bottom: 0;
+    left: 82;
+    right: 0;
+    /* z-index: 9999; */
+    background-color: #fff; /* Or your theme background */
+    /* padding: 10px 15px; */
+    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+}
+

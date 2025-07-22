@@ -1,9 +1,15 @@
 <div>
     <!-- Trigger Button -->
-    <button wire:click="openCollectModal" class="btn btn-default" data-placement="top"
-        title="{{ __('messages.cash_out') }}">
-        <img src="{{ asset('public/external/vector4471-k5i.svg') }}" alt="Cash Out Icon" />
-    </button>
+    <div class="" wire:click="openCollectModal" title="{{ __('messages.cash_out') }}" style="cursor: pointer;"
+        data-placement="top">
+
+        <button class="btn btn-default p-1 m-0 border-0 bg-transparent">
+            <img src="{{ asset('public/external/vector4471-k5i.svg') }}" alt="Cash Out Icon"
+                style="width: 20px; height: 20px;" />
+        </button>
+
+        <span class="">Add Cash</span>
+    </div>
 
     <!-- Modal -->
     @if ($showCollectModal)
@@ -12,9 +18,9 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title text-dark">Add Case</h5>
-                        <button type="button" class="close" wire:click="$set('showCollectModal', false)">
-                            <span aria-hidden="true">×</span>
-                        </button>
+                        
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                            wire:click="$set('showCollectModal', false)"></button>
                     </div>
 
                     <div class="modal-body">
@@ -100,7 +106,6 @@
                                 <i class="fas fa-paper-plane me-1"></i>
                                 SUBMIT
                             </button>
-                            
                         @endif
                     </div>
                 </div>
