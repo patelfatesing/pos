@@ -184,8 +184,9 @@
             border-radius: 10px !important;
             margin-left: 10px !important;
             width: 70px !important;
-            /* height: calc(100vh - 101px); */
+            /* height: calc(100vh - 80.8px); */
             z-index: 999;
+            /* overflow-y: auto; Add this line to handle overflow gracefully */
         }
 
         .sidebar-item img {
