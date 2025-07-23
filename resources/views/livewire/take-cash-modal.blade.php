@@ -16,22 +16,22 @@
         <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 9999;">
             <div class="modal-dialog modal-lg modal-dialog-centered">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title text-dark">Add Case</h5>
+                    <div class="modal-header custom-modal-header">
+                        <h6 class="modal-title cash-summary-text61">Add Cash</h6>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
                             wire:click="$set('showCollectModal', false)"></button>
                     </div>
 
                     <div class="modal-body">
                         <!-- Table -->
-                        <table class="customtable table table-bordered">
-                            <thead>
-                                <tr class="green_btn">
-                                    <th>Amount</th>
-                                    <th>In</th>
-                                    <th>Currency</th>
-                                    <th>Out</th>
-                                    <th>Amount</th>
+                        <table class=" table table-bordered ">
+                            <thead class="table-dark">
+                                <tr >
+                                    <th class="text-center" style="width: 20%;" >Amount</th>
+                                    <th class="text-center" style="width: 20%;" >In</th>
+                                    <th class="text-center" style="width: 20%;" >Currency</th>
+                                    <th class="text-center" style="width: 20%;" >Out</th>
+                                    <th class="text-center" style="width: 20%;" >Amount</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -41,27 +41,27 @@
                                         $outValue = $cashNotes[$key][$denomination]['out'] ?? 0;
                                     @endphp
                                     <tr>
-                                        <td>{{ format_inr($inValue * $denomination) }}</td>
-                                        <td>
-                                            <div class="cash-adjust mx-auto">
-                                                <button
+                                        <td class="text-center">{{ format_inr($inValue * $denomination) }}</td>
+                                        <td class="text-center">
+                                            <div class="d-flex align-items-center" style="width: 100%">
+                                                <button style="width: 40px;" class="btn btn-gray rounded-start"
                                                     wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'in')">−</button>
-                                                <input type="number" value="{{ $inValue }}" readonly>
-                                                <button
+                                                <input class="form-control text-center rounded-0" type="number" value="{{ $inValue }}" style="width: 60px;" readonly>
+                                                <button style="width: 40px;"  class="btn btn-gray rounded-end"
                                                     wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'in')">+</button>
                                             </div>
                                         </td>
-                                        <td class="bg-light">{{ format_inr($denomination) }}</td>
-                                        <td>
-                                            <div class="cash-adjust mx-auto">
-                                                <button
+                                        <td class="text-center currency-center">{{ format_inr($denomination) }}</td>
+                                        <td class="text-center">
+                                            <div class="d-flex align-items-center" style="width: 100%" >
+                                                <button style="width: 40px;"  class="btn btn-gray rounded-start"
                                                     wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'out')">−</button>
-                                                <input type="number" value="{{ $outValue }}" readonly>
-                                                <button
+                                                <input style="width: 60px;"  class="form-control text-center rounded-0"  type="number" value="{{ $outValue }}" readonly>
+                                                <button style="width: 40px;"  class="btn btn-gray rounded-end"
                                                     wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'out')">+</button>
                                             </div>
                                         </td>
-                                        <td>{{ format_inr($outValue * $denomination) }}</td>
+                                        <td class="text-center">{{ format_inr($outValue * $denomination) }}</td>
                                     </tr>
                                 @endforeach
                                 <tr class="table-secondary fw-bold ">
@@ -75,33 +75,37 @@
                         </table>
 
                         <!-- Transaction Type & Total Amount -->
-                        <div class="row align-items-center mt-3 px-2">
-                            <div class="col-md-6 d-flex align-items-center">
-                                <label class="fw-semibold me-2 mb-0 text-dark">Transaction Type:</label>
+                        <div class="row align-items-center mt-4 px-2 py-3 rounded bg-light shadow-sm">
+                            <div class="col-md-7 d-flex align-items-center gap-3">
+                                <label class="fw-bold mb-0 text-secondary">Transaction Type:</label>
                                 <div class="form-check form-check-inline mb-0">
                                     <input class="form-check-input custom-radio" type="radio"
                                         wire:model="transactionType" wire:click="setTransactionType('change')"
                                         name="transactionType" id="change" value="change">
-                                    <label class="form-check-label  text-dark" for="change">Change</label>
+                                    <label class="form-check-label text-secondary" for="change">
+                                        <i class="bi bi-arrow-left-right me-1"></i> Change
+                                    </label>
                                 </div>
                                 <div class="form-check form-check-inline mb-0">
                                     <input class="form-check-input custom-radio" type="radio"
                                         wire:model="transactionType" wire:click="setTransactionType('add')"
                                         name="transactionType" id="addMoney" value="add">
-                                    <label class="form-check-label  text-dark" for="addMoney">Add Money</label>
+                                    <label class="form-check-label text-secondary" for="addMoney">
+                                        <i class="bi bi-plus-circle me-1"></i> Add Money
+                                    </label>
                                 </div>
                             </div>
-
-                            <div class="col-md-6 text-end">
-                                <span class="fw-semibold text-dark">Total Amount:</span>
-                                <span class="fw-semibold text-dark">{{ $this->totalCollected }}</span>
+                            <div class="col-md-5 text-end">
+                                <span class="fw-bold text-secondary">Total Amount:</span>
+                                <span class="fw-bold text-success fs-5 ms-2">{{ $this->totalCollected }}</span>
                             </div>
                         </div>
 
                         <!-- Submit -->
                         @if ($this->totalCollected >= 0)
-                            <button wire:click="submitCredit" class="btn pull-right submit-btn">
-                                SUBMIT
+                            <br>
+                            <button wire:click="submitCredit" class="btn pull-right rounded-pill submit-btn">
+                                Submit
                             </button>
                         @endif
                     </div>

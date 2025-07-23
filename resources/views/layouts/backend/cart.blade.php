@@ -184,9 +184,15 @@
             border-radius: 10px !important;
             margin-left: 10px !important;
             width: 70px !important;
-            /* height: calc(100vh - 80.8px); */
+            height: calc(100vh - 80.8px);
             z-index: 999;
             /* overflow-y: auto; Add this line to handle overflow gracefully */
+        }
+        .fixed-bottom{
+             z-index: 0 !important;
+        }
+        .bg-light{
+            text-align: center;
         }
 
         .sidebar-item img {
@@ -291,6 +297,16 @@
         }
         .position-relative input{
             line-height: 1  !important; 
+        }
+        .text-custom-blue {
+            color: #17375E; /* Matches the dark blue in your screenshot */
+        }
+        /* Optional: header background color similar to screenshot's very light blue row */
+        .header-row {
+            background-color: #e6f0ff;
+        }
+        .text-teal {
+            color: #0D7680 !important;
         }
     </style>
      @livewireStyles
