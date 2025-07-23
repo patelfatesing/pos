@@ -987,7 +987,7 @@
                             {{-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <i class="bi bi-x-lg"></i>
                                 </button> --}}
-                           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
                                 wire:click="$set('showModal', false)"></button>
                         </div>
 
@@ -1103,7 +1103,7 @@
                                                                     data-denomination="{{ $denomination }}"
                                                                     style="font-size: 1.2rem;">−</button>
                                                                 <input type="text"
-                                                                    name="cashNotes[{{ $key }}][{{ $denomination }}]"
+                                                                    name="cashNotes.{{ $key }}.{{ $denomination }}"
                                                                     id="cashhandsum_{{ $denomination }}"
                                                                     class="form-control text-center border-0 bg-white px-1 note-input"
                                                                     value="0" readonly
@@ -1115,6 +1115,7 @@
                                                                     style="font-size: 1.2rem;">+</button>
                                                             </div>
                                                         </div>
+
                                                     </td>
                                                     <td class="text-end fw-semibold amount-cell"
                                                         id="discashhandsum_{{ $denomination }}">
