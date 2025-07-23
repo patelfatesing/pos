@@ -320,6 +320,11 @@ class Shoppingcart extends Component
 
     public function addQuantity($value)
     {
+        if (is_null($this->activeItemId)) {
+            $this->dispatch('notiffication-error', ['message' => 'Please selecte product in items.']);
+            return;
+        }
+
         if (!$this->activeProductId) return;
 
         $id = $this->activeProductId;
@@ -928,7 +933,7 @@ class Shoppingcart extends Component
         }
 
         $this->total = $this->cashAmount;
-         $this->dispatch('open-cash-modal');
+        $this->dispatch('open-cash-modal');
     }
 
     public function srtoggleBox()
@@ -1976,6 +1981,10 @@ class Shoppingcart extends Component
     //sanjay
     public function incrementQty($id, $amount = 0)
     {
+        if (empty($id)) {
+            $this->dispatch('notiffication-error', ['message' => 'Please select a product in items.']);
+            return;
+        }
 
         $item = Cart::with(['product'])->where('id', $id)
             ->where('user_id', auth()->id())
@@ -2106,6 +2115,11 @@ class Shoppingcart extends Component
 
     public function decrementQty($id)
     {
+        if (is_null($this->activeItemId)) {
+            $this->dispatch('notiffication-error', ['message' => 'No product is currently selected.']);
+            return;
+        }
+
         $item = Cart::with(['product'])->where('id', $id)
             ->where('user_id', auth()->id())
             ->where('status', Cart::STATUS_PENDING)
@@ -2174,6 +2188,12 @@ class Shoppingcart extends Component
         $this->showBox = false;
         $this->dispatch('updateNewProductDetails');
         $this->dispatch('resetHoldPic');
+
+        if ($this->activeItemId == $id) {
+            $this->activeItemId = null;
+            $this->activeProductId = null;
+        }
+
         if ($this->selectedCommissionUser) {
             $this->commissionAmount = $this->finalDiscountPartyAmount;
         } else {
@@ -2904,7 +2924,7 @@ class Shoppingcart extends Component
             //dd($invoice);
             $first_name = (!empty($partyUser->first_name)) ? $partyUser->first_name : @$commissionUser->first_name;
             $this->dispatch('resetHoldPic');
-             $this->dispatch('hide-open-cash-modal');
+            $this->dispatch('hide-open-cash-modal');
             $this->dispatch('hide-online-cash-modal');
             $pdf = App::make('dompdf.wrapper');
             $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => @$first_name, "ref_no" => $invoice->ref_no, "hold_date" => $invoice->hold_date]);

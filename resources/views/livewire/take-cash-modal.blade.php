@@ -18,17 +18,15 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title text-dark">Add Case</h5>
-                        
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
                             wire:click="$set('showCollectModal', false)"></button>
                     </div>
 
                     <div class="modal-body">
-
                         <!-- Table -->
                         <table class="customtable table table-bordered">
                             <thead>
-                                <tr>
+                                <tr class="green_btn">
                                     <th>Amount</th>
                                     <th>In</th>
                                     <th>Currency</th>
@@ -66,12 +64,12 @@
                                         <td>{{ format_inr($outValue * $denomination) }}</td>
                                     </tr>
                                 @endforeach
-                                <tr class="table-secondary fw-bold">
-                                    <td>{{ format_inr($totals['totalIn']) }}</td>
-                                    <td>{{ $totals['totalInCount'] }}</td>
-                                    <td class="text-success">TOTAL</td>
-                                    <td>{{ $totals['totalOutCount'] }}</td>
-                                    <td>{{ format_inr($totals['totalOut']) }}</td>
+                                <tr class="table-secondary fw-bold ">
+                                    <td class="total_bgc">{{ format_inr($totals['totalIn']) }}</td>
+                                    <td class="total_bgc">{{ $totals['totalInCount'] }}</td>
+                                    <td class="text-success total_bgc">TOTAL</td>
+                                    <td class="total_bgc">{{ $totals['totalOutCount'] }}</td>
+                                    <td class="total_bgc">{{ format_inr($totals['totalOut']) }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -96,14 +94,13 @@
 
                             <div class="col-md-6 text-end">
                                 <span class="fw-semibold text-dark">Total Amount:</span>
-                                <span class="badge bg-orange fs-6">{{ $this->totalCollected }}</span>
+                                <span class="fw-semibold text-dark">{{ $this->totalCollected }}</span>
                             </div>
                         </div>
 
                         <!-- Submit -->
                         @if ($this->totalCollected >= 0)
-                            <button wire:click="submitCredit" class="btn pull-left frame-stock-request-group223">
-                                <i class="fas fa-paper-plane me-1"></i>
+                            <button wire:click="submitCredit" class="btn pull-right submit-btn">
                                 SUBMIT
                             </button>
                         @endif

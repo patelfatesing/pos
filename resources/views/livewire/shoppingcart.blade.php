@@ -438,7 +438,7 @@
 
                             <!-- Button 1 -->
                             <button type="button" class="btn btn-deafult main-screen-container2"
-                                wire:click="incrementQty({{ $this->activeItemId }})">
+                                wire:click="incrementQty({{ $this->activeItemId ?? 0 }})">
                                 <img src="{{ asset('../public/external/systemicon16pxplus4471-kuog.svg') }}"
                                     alt="Left Icon">
                             </button>
@@ -451,7 +451,7 @@
 
                             <!-- Button 3 -->
                             <button type="button" class="btn btn-deafult main-screen-container2"
-                                wire:click="decrementQty({{ $this->activeItemId, $this->activeProductId }})">
+                                wire:click="decrementQty({{ $this->activeItemId ?? 0 }}, {{ $this->activeProductId ?? 0 }})">
                                 <img src="{{ asset('../public/external/systemicon16pxplus4471-jpl.svg') }}"
                                     alt="Right Icon">
                             </button>
@@ -461,10 +461,9 @@
                 <!-- Product Table & Calculator -->
                 <div class="row mt-1">
                     <div class="col-md-9">
-                        <div class="table-responsive">
-
+                        <div class="table-container">
                             <table class="table table-bordered product-table" id="cartTable">
-                                <thead class="table-info">
+                                <thead class="sticky-top table-info">
                                     <tr>
                                         <th class="main-screen-text25">{{ __('messages.product') }}</th>
                                         <th class="main-screen-text25">{{ __('messages.qty') }}</th>
@@ -475,24 +474,14 @@
                                 </thead>
                                 <tbody>
                                     @forelse($itemCarts as $item)
-                                        @php
-                                            $total = @$item->product->sell_price * $item->quantity;
-                                            $commission = $commissionAmount ?? 0;
-                                            $party = $partyAmount ?? 0;
-                                            $finalAmount = $total - $commission - $party;
-                                        @endphp
                                         <tr class="{{ $this->activeItemId === $item->id ? 'active' : '' }}">
                                             <td wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})"
-                                                style="cursor:pointer">
+                                                style="cursor:pointer;">
                                                 {{ $item->product->name }}<br>
                                                 {{ $item->product->description }}
                                             </td>
+                                            <td>{{ $this->quantities[$item->id] }}</td>
                                             <td>
-
-                                                {{ $this->quantities[$item->id] }}
-                                            </td>
-                                            <td>
-
                                                 @if (@$this->partyUserDiscountAmt && $this->commissionAmount > 0)
                                                     <span class="text-danger">
                                                         @php
@@ -503,72 +492,48 @@
                                                             );
                                                         @endphp
                                                         {{ format_inr(@$data['partyUserDiscountAmt']) }}
-                                                    </span>
-                                                    <br>
-                                                    <small class="text-muted">
-                                                        <s>{{ format_inr(@$item->product->sell_price) }}</s>
-                                                    </small>
+                                                    </span><br>
+                                                    <small
+                                                        class="text-muted"><s>{{ format_inr(@$item->product->sell_price) }}</s></small>
                                                 @else
                                                     <span class="text-danger">
-                                                        @if ($this->selectedPartyUser)
-                                                            {{ format_inr(@$item->net_amount / $this->quantities[$item->id]) }}
-                                                        @else
-                                                            {{ format_inr(@$item->net_amount / $this->quantities[$item->id]) }}
-                                                        @endif
+                                                        {{ format_inr(@$item->net_amount / $this->quantities[$item->id]) }}
                                                     </span>
-                                                    @if ($this->selectedPartyUser && $item->net_amount / $this->quantities[$item->id] != $item->product->sell_price)
-                                                        <br>
-                                                        <small class="text-muted">
-                                                            <s>{{ format_inr(@$item->product->sell_price) }}</s>
-                                                        </small>
-                                                    @endif
-                                                    @if ($this->selectedCommissionUser)
-                                                        <br>
-                                                        <small class="text-muted">
-                                                            <s>{{ format_inr(@$item->product->sell_price) }}</s>
-                                                        </small>
+                                                    @if (
+                                                        ($this->selectedPartyUser || $this->selectedCommissionUser) &&
+                                                            $item->net_amount / $this->quantities[$item->id] != $item->product->sell_price)
+                                                        <br><small
+                                                            class="text-muted"><s>{{ format_inr(@$item->product->sell_price) }}</s></small>
                                                     @endif
                                                 @endif
                                             </td>
                                             <td class="text-success fw-bold">
-
                                                 {{ format_inr($item->net_amount) }}
-
                                             </td>
-                                            @if ($this->removeCrossHold == true)
-                                                <td>
-                                                    <button class="btn btn-danger"
+                                            <td>
+                                                @if ($this->removeCrossHold)
+                                                    <button class="btn btn-danger btn-sm"
                                                         onclick="Swal.fire({
-                                                                title: 'Do you want to remove this product ?',
-                                                                text: 'This action cannot be reverted!',
-                                                                icon: 'warning',
-                                                                showCancelButton: true,
-                                                                confirmButtonText: 'Yes, remove it',
-                                                                cancelButtonText: 'Cancel',
-                                                                reverseButtons: true
-                                                            }).then((result) => {
-                                                                if (result.isConfirmed) {
-                                                                    @this.removeItem({{ $item->id }},'resume','{{ $this->invoice_no }}');
-                                                                }
-                                                            });"
-                                                        title="Remove item">
+                                        title: 'Remove this product?',
+                                        icon: 'warning',
+                                        showCancelButton: true,
+                                        confirmButtonText: 'Yes, remove it',
+                                    }).then(result => {
+                                        if (result.isConfirmed) {
+                                            @this.removeItem({{ $item->id }},'resume','{{ $this->invoice_no }}');
+                                        }
+                                    });">
                                                         <i class="fas fa-times"></i>
                                                     </button>
-                                                </td>
-                                            @else
-                                                <td>
-                                                    <button class="btn btn-sm btn-default"
-                                                        wire:click="removeItem({{ $item->id }})"
-                                                        title="Remove item">
+                                                @else
+                                                    <button class="btn btn-default btn-sm"
+                                                        wire:click="removeItem({{ $item->id }})">
                                                         <img src="{{ asset('public/external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}"
-                                                            alt="Delete"
-                                                            class="main-screen-delete24dp1f1f1ffill0wght400grad0opsz24110">
+                                                            alt="Delete">
                                                     </button>
-
-                                                </td>
-                                            @endif
+                                                @endif
+                                            </td>
                                         </tr>
-
                                     @empty
                                         <tr>
                                             <td colspan="5" class="text-center text-muted">No products found in the
@@ -579,6 +544,7 @@
                             </table>
                         </div>
                     </div>
+
                     <!-- Calculator & Payment -->
                     <div class="col-12 col-md-3">
                         <!-- Calculator -->
@@ -633,10 +599,8 @@
                             </div>
                         </div>
 
-
-
                         <!-- Action Buttons (Bootstrap) -->
-                        <div class="mt-3 row g-2">
+                        <div class="row mt-1 g-2">
                             @if (empty($this->selectedSalesReturn))
                                 <div class="col-6">
                                     <button wire:click="holdSale" class="btn btn-deafult btn-hold w-100">
@@ -685,8 +649,6 @@
                         </div>
 
                     </div>
-
-
                 </div>
                 <!-- Bottom Bar -->
                 <div class="cart_footer mt-2">
@@ -732,7 +694,8 @@
                             <div class="modal-header">
                                 <h5 class="modal-title" id="holdModalLabel">{{ __('messages.hold_transactions') }}
                                 </h5>
-                                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                                <button type="button" class="btn-close" data-dismiss="modal"
+                                    aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
                                 @livewire('hold-transactions', ['holdTransactions' => $holdTransactions])
@@ -750,7 +713,8 @@
                                 <h5 class="modal-title fw-semibold" id="captureModalLabel">
                                     <i class="bi bi-camera-video me-2"></i>{{ __('messages.image_capture') }}
                                 </h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
                             </div>
 
                             <div class="modal-body px-4 py-4">
@@ -861,271 +825,270 @@
                                 <h5 class="modal-title fw-semibold" id="cashout">
                                     <i class="bi bi-camera-video me-2"></i>{{ __('messages.withdraw_cash_details') }}
                                 </h5>
-                                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                                <button type="button" class="btn-close" data-dismiss="modal"
+                                    aria-label="Close"></button>
                             </div>
 
-                            <div class="modal-body p-6">
+                            <div class="modal-body">
                                 <div class="row">
                                     <div class="col-md-12">
                                         <form method="POST" action="{{ route('shift-close.withdraw') }}">
                                             @csrf
+                                            <div class="tbody-border-wrapper mb-2">
+                                                <table id="cash-table"
+                                                    class="cash-table table text-center table-bordered">
+                                                    <thead class="table-info"
+                                                        style="background-color: #1aa59a; color: #fff;">
+                                                        <tr class="">
 
-                                            <div class="card shadow-sm rounded-2xl p-2">
+                                                            <th>
+                                                                {{ __('messages.currency') }}</th>
+                                                            <th>
+                                                                {{ __('messages.notes') }}</th>
+                                                            <th>
+                                                                {{ __('messages.amount') }}</th>
 
-                                                <div class="table-responsive">
-                                                    <table
-                                                        class="cash-table table table-bordered align-middle text-center">
-                                                        <thead class="table-light ">
-                                                            <tr>
-                                                                <th class="cash-withdrawal-details-group317">
-                                                                    {{ __('messages.currency') }}</th>
-                                                                <th class="cash-withdrawal-details-group317">
-                                                                    {{ __('messages.notes') }}</th>
-                                                                <th class="cash-withdrawal-details-group317">
-                                                                    {{ __('messages.amount') }}</th>
-
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @foreach ($noteDenominations as $key => $denomination)
-                                                                <tr class="custom-row">
-                                                                    <td class="cell-tight">{{ $denomination }} x</td>
-                                                                    <td class="cell-tight">
-                                                                        <div class="note-adjuster mx-auto">
-                                                                            <button type="button"
-                                                                                onclick="updateNote('{{ $key }}_{{ $denomination }}', -1, {{ $denomination }})">−</button>
-                                                                            <span
-                                                                                id="display_{{ $key }}_{{ $denomination }}">0</span>
-                                                                            <button type="button"
-                                                                                onclick="updateNote('{{ $key }}_{{ $denomination }}', 1, {{ $denomination }})">+</button>
-                                                                            <input type="hidden"
-                                                                                name="withcashNotes.{{ $key }}.{{ $denomination }}"
-                                                                                id="withcashnotes_{{ $key }}_{{ $denomination }}"
-                                                                                value="0">
-                                                                        </div>
-                                                                    </td>
-                                                                    <td class="cell-tight"
-                                                                        id="withcashsum_{{ $key }}_{{ $denomination }}">
-                                                                        ₹0.00</td>
-                                                                </tr>
-                                                            @endforeach
-                                                            <tr class="total-row-custom">
-                                                                <td colspan="3"
-                                                                    class="total-row-custom d-flex justify-content-between align-items-center px-3 py-2">
-                                                                    <span class="fw-bold text-success fs-6">Total
-                                                                        Amount</span>
-                                                                    <span class="fw-bold text-success fs-6"
-                                                                        id="totalNoteCashwith">₹0.00</span>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach ($noteDenominations as $key => $denomination)
+                                                            <tr class="custom-row">
+                                                                <td class="cell-tight ml-4">{{ $denomination }} x
                                                                 </td>
+                                                                <td class="cell-tight">
+                                                                    <div class="note-adjuster mx-auto">
+                                                                        <button type="button"
+                                                                            onclick="updateNote('{{ $key }}_{{ $denomination }}', -1, {{ $denomination }})">−</button>
+                                                                        <span
+                                                                            id="display_{{ $key }}_{{ $denomination }}">0</span>
+                                                                        <button type="button"
+                                                                            onclick="updateNote('{{ $key }}_{{ $denomination }}', 1, {{ $denomination }})">+</button>
+                                                                        <input type="hidden"
+                                                                            name="withcashNotes.{{ $key }}.{{ $denomination }}"
+                                                                            id="withcashnotes_{{ $key }}_{{ $denomination }}"
+                                                                            value="0">
+                                                                    </div>
+                                                                </td>
+                                                                <td class="cell-tight"
+                                                                    id="withcashsum_{{ $key }}_{{ $denomination }}">
+                                                                    ₹0.00</td>
                                                             </tr>
-
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-
-                                                <input type="hidden" name="amount" id="withamountTotal"
-                                                    class="form-control mb-3" readonly required>
-
-                                                <div class="mb-1">
-                                                    <label for="narration"
-                                                        class="form-label">{{ __('messages.select_reason_for_withdrawal') }}</label>
-                                                    <select name="narration" id="narration"
-                                                        class="form-control frame-stock-request-searchbar6 Specificity: (0,1,0)"
-                                                        required>
-                                                        <option value="">-- {{ __('messages.select_reason') }}
-                                                            --
-                                                        </option>
-                                                        @foreach ($narrations as $id => $name)
-                                                            <option value="{{ $id }}">{{ $name }}
-                                                            </option>
                                                         @endforeach
-                                                    </select>
+                                                        <tr class="total-row-custom">
+                                                            <td colspan="2" class="total-row-custom total_bgc">
+                                                                <span class="fw-bold text-success fs-6">Total
+                                                                    Amount:</span>
+
+                                                            </td>
+                                                            <td class="total_bgc"> <span
+                                                                    class="fw-bold text-success fs-6"
+                                                                    id="totalNoteCashwith">₹0.00</span></td>
+                                                            <td class="total_bgc"></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <input type="hidden" name="amount" id="withamountTotal"
+                                                class="form-control mb-3" readonly required>
+
+                                            <div class="mb-1">
+                                                <label for="narration"
+                                                    class="form-label">{{ __('messages.select_reason_for_withdrawal') }}</label>
+                                                <select name="narration" id="narration"
+                                                    class="form-control frame-stock-request-searchbar6 Specificity: (0,1,0)"
+                                                    required>
+                                                    <option value="">-- {{ __('messages.select_reason') }}
+                                                        --
+                                                    </option>
+                                                    @foreach ($narrations as $id => $name)
+                                                        <option value="{{ $id }}">{{ $name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            {{-- Add this new textarea field below --}}
+                                            <div class="">
+                                                <label for="withdraw_notes"
+                                                    class="form-label">{{ __('messages.notes') }}</label>
+                                                <textarea name="withdraw_notes" id="withdraw_notes" class="form-control frame-stock-request-group260"
+                                                    style="height: 40px !important;" rows="4" placeholder="{{ __('messages.notes') }}"></textarea>
+                                            </div>
+
+                                            <div class="text-right">
+                                                <button type="submit" class="btn submit-btn mt-2">
+                                                    {{ __('messages.click_to_transfer') }}
+                                                </button>
+                                            </div>
+                                    </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="storeStockRequest" tabindex="-1" aria-labelledby="storeStockRequest"
+                aria-hidden="true" data-backdrop="static" data-keyboard="false">
+                <div class="modal-dialog modal-dialog-scrollable  modal-lg">
+                    <div class="modal-content shadow-sm rounded-4 border-0">
+                        <div class="modal-header frame-stock-request-frame303 text-white rounded-top-4">
+                            <h5 class="modal-title fw-semibold" id="cashout">
+                                <i class="bi bi-camera-video me-2"></i>{{ __('messages.stock_request') }}
+                            </h5>
+                            {{-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <i class="bi bi-x-lg"></i>
+                                </button> --}}
+                            <button type="button" class="btn-close" data-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+
+                        <div class="modal-body p-6">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <form method="POST" action="{{ route('stock.store') }}">
+                                                @csrf
+                                                {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
+                                                <div class="mb-3">
+                                                    <input type="hidden" name="store_id"
+                                                        value="{{ @$branch_id }}">
                                                 </div>
-                                                {{-- Add this new textarea field below --}}
-                                                <div class="">
-                                                    <label for="withdraw_notes"
-                                                        class="form-label">{{ __('messages.notes') }}</label>
-                                                    <textarea name="withdraw_notes" id="withdraw_notes" class="form-control frame-stock-request-group260"
-                                                        style="height: 40px !important;" rows="4" placeholder="{{ __('messages.notes') }}"></textarea>
+                                                <div id="product-items">
+                                                    <h5>Products</h5>
+                                                    <div class="item-row mb-3">
+
+                                                        <select name="items[0][product_id]"
+                                                            class="form-control d-inline w-50 product-select-sh frame-stock-request-searchbar6 Specificity: (0,1,0)"
+                                                            required>
+                                                            <option value="">--
+                                                                {{ __('messages.select_product') }} --
+                                                            </option>
+                                                            @foreach ($product_in_stocks as $pro)
+                                                                <option value="{{ $pro->id }}">
+                                                                    {{ $pro->name }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('items')
+                                                            <span class="text-danger">{{ $message }}</span>
+                                                        @enderror
+                                                        <input type="number" name="items[0][quantity]"
+                                                            class="form-control d-inline w-25 ms-2 frame-stock-request-searchbar6"
+                                                            placeholder="Qty" min="1" required>
+
+                                                        <button type="button"
+                                                            class="btn btn-danger btn-sm ms-2 remove-item">X</button>
+                                                    </div>
                                                 </div>
 
-                                                <div class="text-right">
-                                                    <button type="submit" class="btn frame-stock-request-group223">
-                                                        <i class="fas fa-paper-plane me-1"></i>
-                                                        {{ __('messages.click_to_transfer') }}
-                                                    </button>
+                                                <button type="button" id="add-item"
+                                                    class="btn btn-primary btn-sm mb-3">+
+                                                    {{ __('messages.add_another_product') }}</button>
+
+                                                <div class="mb-3">
+                                                    <label for="notes"
+                                                        class="form-label">{{ __('messages.notes') }}</label>
+                                                    <textarea name="notes" id="notes" class="form-control frame-stock-request-group260"></textarea>
                                                 </div>
-                                            </div>
-                                        </form>
+
+                                                <button type="submit"
+                                                    class="btn frame-stock-request-group223">{{ __('messages.submit_request') }}</button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-
                         </div>
+
                     </div>
                 </div>
+            </div>
 
-                <div class="modal fade" id="storeStockRequest" tabindex="-1" aria-labelledby="storeStockRequest"
-                    aria-hidden="true" data-backdrop="static" data-keyboard="false">
-                    <div class="modal-dialog modal-dialog-scrollable  modal-lg">
-                        <div class="modal-content shadow-sm rounded-4 border-0">
-                            <div class="modal-header frame-stock-request-frame303 text-white rounded-top-4">
-                                <h5 class="modal-title fw-semibold" id="cashout">
-                                    <i class="bi bi-camera-video me-2"></i>{{ __('messages.stock_request') }}
-                                </h5>
-                                {{-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <div class="modal fade" id="warehouseStockRequest" tabindex="-1"
+                aria-labelledby="warehouseStockRequest" aria-hidden="true" data-backdrop="static"
+                data-keyboard="false">
+                <div class="modal-dialog modal-dialog-scrollable modal-lg">
+                    <div class="modal-content shadow-sm rounded-4 border-0">
+                        <div class="modal-header frame-stock-request-frame303 text-white rounded-top-4">
+                            <h5 class="modal-title fw-semibold" id="cashout">
+                                <i class="bi bi-camera-video me-2"></i>{{ __('messages.stock_request') }}
+                            </h5>
+                            {{-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <i class="bi bi-x-lg"></i>
                                 </button> --}}
-                                <button type="button" class="btn-close" data-dismiss="modal"
-                                    aria-label="Close"></button>
-                            </div>
+                            <button type="button" class="btn-close" data-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
 
-                            <div class="modal-body p-6">
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="card">
-                                            <div class="card-body">
-                                                <form method="POST" action="{{ route('stock.store') }}">
-                                                    @csrf
-                                                    {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
-                                                    <div class="mb-3">
-                                                        <input type="hidden" name="store_id"
-                                                            value="{{ @$branch_id }}">
-                                                    </div>
-                                                    <div id="product-items">
-                                                        <h5>Products</h5>
-                                                        <div class="item-row mb-3">
+                        <div class="modal-body p-6">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <form id="warehouseForm" method="POST"
+                                                action="{{ route('stock.warehouse') }}">
+                                                @csrf
+                                                <div id="product-items-wh">
 
+                                                    <h5>Products</h5>
+                                                    <div class="row item-row-wh product_items mb-3">
+                                                        <div class="col-md-4">
                                                             <select name="items[0][product_id]"
-                                                                class="form-control d-inline w-50 product-select-sh frame-stock-request-searchbar6 Specificity: (0,1,0)"
+                                                                class="form-control product-select frame-stock-request-searchbar6 Specificity: (0,1,0)"
                                                                 required>
                                                                 <option value="">--
-                                                                    {{ __('messages.select_product') }} --
-                                                                </option>
-                                                                @foreach ($product_in_stocks as $pro)
-                                                                    <option value="{{ $pro->id }}">
-                                                                        {{ $pro->name }}
+                                                                    {{ __('messages.select_product') }}
+                                                                    --</option>
+                                                                @foreach ($allProducts as $product)
+                                                                    <option value="{{ $product->id }}">
+                                                                        {{ $product->name }}
                                                                     </option>
                                                                 @endforeach
                                                             </select>
-                                                            @error('items')
-                                                                <span class="text-danger">{{ $message }}</span>
-                                                            @enderror
-                                                            <input type="number" name="items[0][quantity]"
-                                                                class="form-control d-inline w-25 ms-2 frame-stock-request-searchbar6"
-                                                                placeholder="Qty" min="1" required>
-
-                                                            <button type="button"
-                                                                class="btn btn-danger btn-sm ms-2 remove-item">X</button>
-                                                        </div>
-                                                    </div>
-
-                                                    <button type="button" id="add-item"
-                                                        class="btn btn-primary btn-sm mb-3">+
-                                                        {{ __('messages.add_another_product') }}</button>
-
-                                                    <div class="mb-3">
-                                                        <label for="notes"
-                                                            class="form-label">{{ __('messages.notes') }}</label>
-                                                        <textarea name="notes" id="notes" class="form-control frame-stock-request-group260"></textarea>
-                                                    </div>
-
-                                                    <button type="submit"
-                                                        class="btn frame-stock-request-group223">{{ __('messages.submit_request') }}</button>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal fade" id="warehouseStockRequest" tabindex="-1"
-                    aria-labelledby="warehouseStockRequest" aria-hidden="true" data-backdrop="static"
-                    data-keyboard="false">
-                    <div class="modal-dialog modal-dialog-scrollable modal-lg">
-                        <div class="modal-content shadow-sm rounded-4 border-0">
-                            <div class="modal-header frame-stock-request-frame303 text-white rounded-top-4">
-                                <h5 class="modal-title fw-semibold" id="cashout">
-                                    <i class="bi bi-camera-video me-2"></i>{{ __('messages.stock_request') }}
-                                </h5>
-                                {{-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <i class="bi bi-x-lg"></i>
-                                </button> --}}
-                                <button type="button" class="btn-close" data-dismiss="modal"
-                                    aria-label="Close"></button>
-                            </div>
-
-                            <div class="modal-body p-6">
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="card">
-                                            <div class="card-body">
-                                                <form id="warehouseForm" method="POST"
-                                                    action="{{ route('stock.warehouse') }}">
-                                                    @csrf
-                                                    <div id="product-items-wh">
-
-                                                        <h5>Products</h5>
-                                                        <div class="row item-row-wh product_items mb-3">
-                                                            <div class="col-md-4">
-                                                                <select name="items[0][product_id]"
-                                                                    class="form-control product-select frame-stock-request-searchbar6 Specificity: (0,1,0)"
-                                                                    required>
-                                                                    <option value="">--
-                                                                        {{ __('messages.select_product') }}
-                                                                        --</option>
-                                                                    @foreach ($allProducts as $product)
-                                                                        <option value="{{ $product->id }}">
-                                                                            {{ $product->name }}
-                                                                        </option>
-                                                                    @endforeach
-                                                                </select>
-                                                                {{-- @error('items.0.product_id')
+                                                            {{-- @error('items.0.product_id')
                                                                             <div class="invalid-feedback">{{ $message }}</div>
                                                                         @enderror --}}
-                                                            </div>
-                                                            <div class="col-md-4">
-                                                                <input type="number" name="items[0][quantity]"
-                                                                    class="form-control frame-stock-request-searchbar6  ms-2"
-                                                                    placeholder="Qty" min="1" required>
-                                                            </div>
-                                                            <div class="col-md-4">
-                                                                <button type="button"
-                                                                    class="btn btn-danger btn-sm ms-2 remove-item-wh">X</button>
-                                                                {{-- <img src="{{ asset('public/external/delete24dp1f1f1ffill0wght400grad0opsz2414472-853a.svg') }}" alt="Remove Stock Request Product" class="frame-stock-request-delete24dp1f1f1ffill0wght400grad0opsz2417"></button> --}}
-                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <input type="number" name="items[0][quantity]"
+                                                                class="form-control frame-stock-request-searchbar6  ms-2"
+                                                                placeholder="Qty" min="1" required>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <button type="button"
+                                                                class="btn btn-danger btn-sm ms-2 remove-item-wh">X</button>
+                                                            {{-- <img src="{{ asset('public/external/delete24dp1f1f1ffill0wght400grad0opsz2414472-853a.svg') }}" alt="Remove Stock Request Product" class="frame-stock-request-delete24dp1f1f1ffill0wght400grad0opsz2417"></button> --}}
+                                                        </div>
 
-                                                            <div
-                                                                class="availability-container-wh mt-2 small text-muted">
-                                                                <!-- Filled dynamically with AJAX -->
-                                                            </div>
+                                                        <div class="availability-container-wh mt-2 small text-muted">
+                                                            <!-- Filled dynamically with AJAX -->
                                                         </div>
                                                     </div>
+                                                </div>
 
-                                                    <div class="mb-3">
-                                                        {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
-                                                        <div id="product-availability" class="mt-3">
-                                                            <!-- Availability information will be displayed here -->
-                                                        </div>
+                                                <div class="mb-3">
+                                                    {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
+                                                    <div id="product-availability" class="mt-3">
+                                                        <!-- Availability information will be displayed here -->
                                                     </div>
-                                                    <button type="button" id="add-item-wh"
-                                                        class="btn btn-primary btn-sm mb-3">+
-                                                        {{ __('messages.add_another_product') }}</button>
+                                                </div>
+                                                <button type="button" id="add-item-wh"
+                                                    class="btn btn-primary btn-sm mb-3">+
+                                                    {{ __('messages.add_another_product') }}</button>
 
-                                                    <div class="mb-3">
-                                                        <label for="notes"
-                                                            class="form-label">{{ __('messages.notes') }}</label>
-                                                        <textarea name="notes" id="notes" class="form-control frame-stock-request-group260"></textarea>
-                                                    </div>
+                                                <div class="mb-3">
+                                                    <label for="notes"
+                                                        class="form-label">{{ __('messages.notes') }}</label>
+                                                    <textarea name="notes" id="notes" class="form-control frame-stock-request-group260"></textarea>
+                                                </div>
 
-                                                    <button type="submit"
-                                                        class="btn frame-stock-request-group223">{{ __('messages.submit_request') }}</button>
-                                                </form>
-                                            </div>
+                                                <button type="submit"
+                                                    class="btn frame-stock-request-group223">{{ __('messages.submit_request') }}</button>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
@@ -1133,231 +1096,490 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Modal HTML -->
-                <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel"
-                    aria-hidden="true" data-backdrop="static" data-keyboard="false" wire:ignore.self>
-                    <div class="modal-dialog">
-                        <form method="POST" action="{{ route('cash-in-hand') }}">
-                            @csrf
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">{{ __('messages.cash_in_hand_details') }}</h5>
-                                </div>
-                                <div class="modal-body">
-
-                                    <input type="hidden" name="amount" id="holdamountTotal" class="form-control"
-                                        placeholder="Enter opening amount" readonly>
-                                    <div class="tbody-border-wrapper mb-2">
-                                        <table id="case_in_hand"
-                                            class="case_in_hand table text-center table-bordered border-bottom align-middle">
-                                            <thead class="table-info" style="background-color: #1aa59a; color: #fff;">
-                                                <tr>
-                                                    <th>{{ __('messages.currency') }}</th>
-                                                    <th>{{ __('messages.notes') }}</th>
-                                                    <th>{{ __('messages.amount') }}</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="tbody-border">
-                                                @foreach ($noteDenominations as $key => $denomination)
-                                                    <tr>
-                                                        <td class="fw-semibold">{{ $denomination }} <span
-                                                                class="mx-3">x</span></td>
-                                                        <td>
-                                                            <div
-                                                                class="d-flex justify-content-center align-items-center">
-                                                                <div class="rounded-pill d-flex align-items-center px-1"
-                                                                    style="background-color: #f1f2f3;">
-                                                                    <button type="button"
-                                                                        class="btn btn-sm border-0 bg-transparent fw-bold btn-decrease pd_remove"
-                                                                        data-denomination="{{ $denomination }}"
-                                                                        style="font-size: 1.2rem;">−</button>
-                                                                    <input type="text"
-                                                                        name="cashNotes[{{ $key }}][{{ $denomination }}]"
-                                                                        id="cashhandsum_{{ $denomination }}"
-                                                                        class="form-control text-center border-0 bg-white px-1 note-input"
-                                                                        value="0" readonly
-                                                                        data-denomination="{{ $denomination }}"
-                                                                        style="width: 40px; font-weight: 600;">
-                                                                    <button type="button"
-                                                                        class="btn btn-sm border-0 bg-transparent fw-bold btn-increase pd_remove"
-                                                                        data-denomination="{{ $denomination }}"
-                                                                        style="font-size: 1.2rem;">+</button>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td class="text-end fw-semibold amount-cell"
-                                                            id="discashhandsum_{{ $denomination }}">
-                                                            ₹{{ number_format($denomination, 2) }}</td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                            <tfoot>
-                                                <tr class="">
-                                                    <td class="fw-bold text-start total_bgc" colspan="2">
-                                                        {{ __('messages.total_cash') }}</td>
-                                                    <td class="fw-bold text-end total_bgc" id="totalNoteCashHand">
-                                                        ₹0.00</td>
-                                                </tr>
-                                            </tfoot>
-                                        </table>
-                                    </div>
-                                    @error('amount')
-                                        <span class="text-red">{{ $message }}</span>
-                                    @enderror
-
-                                    <button type="button" class="btn blue_btn btn-sm" id="openStockStatusBtn">
-                                        {{ __('messages.view_stock_status') }}
-                                    </button>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="submit"
-                                        class="btn green_btn btn-sm mr-2">{{ __('messages.submit') }}</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <div class="modal fade" id="stockStatusModal" tabindex="-1" aria-labelledby="stockStatusModalLabel"
-                    aria-hidden="true" data-backdrop="static" data-keyboard="false" wire:ignore.self>
-                    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <!-- Modal HTML -->
+            <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+                aria-hidden="true" data-backdrop="static" data-keyboard="false" wire:ignore.self>
+                <div class="modal-dialog">
+                    <form method="POST" action="{{ route('cash-in-hand') }}">
+                        @csrf
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h6 class="">{{ __('messages.product_opening_stock') }}</h6>
-                                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                                <h5 class="modal-title">{{ __('messages.cash_in_hand_details') }}</h5>
                             </div>
                             <div class="modal-body">
-                                <table class="customtable table">
-                                    <thead>
-                                        <tr>
-                                            <th>{{ __('messages.product') }}</th>
-                                            <th>{{ __('messages.opening_stock') }}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @php
-                                            $sum = 0;
-                                        @endphp
-                                        @foreach ($productStock as $product)
-                                            <tr>
-                                                <td>{{ $product->product->name }}</td>
-                                                <td>
-                                                    @php
-                                                        $stock = '';
-                                                        $lastShift = App\Models\UserShift::getYesterdayShift(
-                                                            auth()->user()->id,
-                                                            $branch_id,
-                                                        );
-                                                        if (empty($lastShift)) {
-                                                            $stock = $product->opening_stock;
-                                                        } else {
-                                                            $stock = $product->closing_stock;
-                                                        }
-                                                        $sum += $stock;
 
-                                                    @endphp
-                                                    <input type="number" name="productStocks[{{ $product->id }}]"
-                                                        class="form-control text-center" value="{{ $stock }}"
-                                                        readonly>
-                                                </td>
+                                <input type="hidden" name="amount" id="holdamountTotal" class="form-control"
+                                    placeholder="Enter opening amount" readonly>
+                                <div class="tbody-border-wrapper mb-2">
+                                    <table id="case_in_hand"
+                                        class="case_in_hand table text-center table-bordered border-bottom align-middle">
+                                        <thead class="table-info" style="background-color: #1aa59a; color: #fff;">
+                                            <tr>
+                                                <th>{{ __('messages.currency') }}</th>
+                                                <th>{{ __('messages.notes') }}</th>
+                                                <th>{{ __('messages.amount') }}</th>
                                             </tr>
-                                        @endforeach
-                                    </tbody>
-                                    <!-- Add total in footer -->
-                                    <tfoot>
-                                        <tr>
-                                            <th class="text-end w-semibold text-end text-center"
-                                                style="font-size: 1.4rem;">
-                                                {{ __('messages.total') }}</th>
-                                            <th class="text-end w-semibold text-center" style="font-size: 1.4rem;">
-                                                <span>
-                                                    {{ $sum }}</span>
-                                            </th>
-                                        </tr>
-                                    </tfoot>
-                                </table>
+                                        </thead>
+                                        <tbody class="tbody-border">
+                                            @foreach ($noteDenominations as $key => $denomination)
+                                                <tr>
+                                                    <td class="fw-semibold">{{ $denomination }} <span
+                                                            class="mx-3">x</span></td>
+                                                    <td>
+                                                        <div class="d-flex justify-content-center align-items-center">
+                                                            <div class="rounded-pill d-flex align-items-center px-1"
+                                                                style="background-color: #f1f2f3;">
+                                                                <button type="button"
+                                                                    class="btn btn-sm border-0 bg-transparent fw-bold btn-decrease pd_remove"
+                                                                    data-denomination="{{ $denomination }}"
+                                                                    style="font-size: 1.2rem;">−</button>
+                                                                <input type="text"
+                                                                    name="cashNotes[{{ $key }}][{{ $denomination }}]"
+                                                                    id="cashhandsum_{{ $denomination }}"
+                                                                    class="form-control text-center border-0 bg-white px-1 note-input"
+                                                                    value="0" readonly
+                                                                    data-denomination="{{ $denomination }}"
+                                                                    style="width: 40px; font-weight: 600;">
+                                                                <button type="button"
+                                                                    class="btn btn-sm border-0 bg-transparent fw-bold btn-increase pd_remove"
+                                                                    data-denomination="{{ $denomination }}"
+                                                                    style="font-size: 1.2rem;">+</button>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-end fw-semibold amount-cell"
+                                                        id="discashhandsum_{{ $denomination }}">
+                                                        ₹{{ number_format($denomination, 2) }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                        <tfoot>
+                                            <tr class="">
+                                                <td class="fw-bold text-start total_bgc" colspan="2">
+                                                    {{ __('messages.total_cash') }}</td>
+                                                <td class="fw-bold text-end total_bgc" id="totalNoteCashHand">
+                                                    ₹0.00</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                                @error('amount')
+                                    <span class="text-red">{{ $message }}</span>
+                                @enderror
+
+                                <button type="button" class="btn blue_btn btn-sm" id="openStockStatusBtn">
+                                    {{ __('messages.view_stock_status') }}
+                                </button>
                             </div>
                             <div class="modal-footer">
-
-                                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
-                                    aria-label="Close" wire:click="#">Close</button>
+                                <button type="submit"
+                                    class="btn submit-btn btn-sm mr-2">{{ __('messages.submit') }}</button>
                             </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="modal fade" id="stockStatusModal" tabindex="-1" aria-labelledby="stockStatusModalLabel"
+                aria-hidden="true" data-backdrop="static" data-keyboard="false" wire:ignore.self>
+                <div class="modal-dialog modal-dialog-scrollable modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h6 class="">{{ __('messages.product_opening_stock') }}</h6>
+                            <button type="button" class="btn-close" data-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <table class="customtable table">
+                                <thead>
+                                    <tr>
+                                        <th>{{ __('messages.product') }}</th>
+                                        <th>{{ __('messages.opening_stock') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @php
+                                        $sum = 0;
+                                    @endphp
+                                    @foreach ($productStock as $product)
+                                        <tr>
+                                            <td>{{ $product->product->name }}</td>
+                                            <td>
+                                                @php
+                                                    $stock = '';
+                                                    $lastShift = App\Models\UserShift::getYesterdayShift(
+                                                        auth()->user()->id,
+                                                        $branch_id,
+                                                    );
+                                                    if (empty($lastShift)) {
+                                                        $stock = $product->opening_stock;
+                                                    } else {
+                                                        $stock = $product->closing_stock;
+                                                    }
+                                                    $sum += $stock;
+
+                                                @endphp
+                                                <input type="number" name="productStocks[{{ $product->id }}]"
+                                                    class="form-control text-center" value="{{ $stock }}"
+                                                    readonly>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                                <!-- Add total in footer -->
+                                <tfoot>
+                                    <tr>
+                                        <td class="text-end w-semibold text-end text-center total_bgc"
+                                            style="font-size: 1.4rem;">
+                                            {{ __('messages.total') }}</td>
+                                        <td class="text-end w-semibold text-center total_bgc"
+                                            style="font-size: 1.4rem;">
+                                            <span>
+                                                {{ $sum }}</span>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <div class="modal-footer">
+
+                            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
+                                aria-label="Close" wire:click="#">Close</button>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Numpad Modal -->
-                <div wire:ignore.self class="modal fade" id="numpadModal" tabindex="-1"
-                    aria-labelledby="numpadLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-sm modal-dialog-centered">
-                        <div class="modal-content rounded-3 shadow">
-                            <div class="modal-header bg-primary text-white rounded-top">
-                                <h5 class="modal-title fw-bold" id="numpadLabel">Enter Amount</h5>
-                                <button type="button" class="btn-close btn-close-white" data-dismiss="modal"
-                                    aria-label="Close" wire:click="clearNumpad"></button>
-                            </div>
+            <!-- Numpad Modal -->
+            <div wire:ignore.self class="modal fade" id="numpadModal" tabindex="-1" aria-labelledby="numpadLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-sm modal-dialog-centered">
+                    <div class="modal-content rounded-3 shadow">
+                        <div class="modal-header bg-primary text-white rounded-top">
+                            <h5 class="modal-title fw-bold" id="numpadLabel">Enter Amount</h5>
+                            <button type="button" class="btn-close btn-close-white" data-dismiss="modal"
+                                aria-label="Close" wire:click="clearNumpad"></button>
+                        </div>
 
-                            <div class="modal-body p-4">
-                                <div class="display-4 text-center fw-bold mb-4">{{ $numpadValue }}</div>
+                        <div class="modal-body p-4">
+                            <div class="display-4 text-center fw-bold mb-4">{{ $numpadValue }}</div>
 
-                                <div class="row ">
-                                    @foreach (array_chunk([1, 2, 3, 4, 5, 6, 7, 8, 9], 3) as $row)
-                                        <div class="col-12 d-flex justify-content-center">
-                                            @foreach ($row as $num)
-                                                <button wire:click="appendNumpadValue('{{ $num }}')"
-                                                    class="btn btn-light border fw-bold fs-4 mx-2"
-                                                    style="width: 70px; height: 70px;">
-                                                    {{ $num }}
-                                                </button>
-                                            @endforeach
-                                        </div>
-                                    @endforeach
-
-                                    <div class="col-12 d-flex justify-content-center mt-2">
-                                        <button wire:click="appendNumpadValue('0')"
-                                            class="btn btn-light border fw-bold fs-4 mx-2"
-                                            style="width: 70px; height: 70px;">0</button>
-                                        <button wire:click="backspaceNumpad" class="btn btn-danger fw-bold fs-4 mx-2"
-                                            style="width: 70px; height: 70px;">⌫</button>
-                                        <button wire:click="clearNumpad" class="btn btn-warning fw-bold fs-4 mx-2"
-                                            style="width: 70px; height: 70px;">C</button>
+                            <div class="row ">
+                                @foreach (array_chunk([1, 2, 3, 4, 5, 6, 7, 8, 9], 3) as $row)
+                                    <div class="col-12 d-flex justify-content-center">
+                                        @foreach ($row as $num)
+                                            <button wire:click="appendNumpadValue('{{ $num }}')"
+                                                class="btn btn-light border fw-bold fs-4 mx-2"
+                                                style="width: 70px; height: 70px;">
+                                                {{ $num }}
+                                            </button>
+                                        @endforeach
                                     </div>
+                                @endforeach
+
+                                <div class="col-12 d-flex justify-content-center mt-2">
+                                    <button wire:click="appendNumpadValue('0')"
+                                        class="btn btn-light border fw-bold fs-4 mx-2"
+                                        style="width: 70px; height: 70px;">0</button>
+                                    <button wire:click="backspaceNumpad" class="btn btn-danger fw-bold fs-4 mx-2"
+                                        style="width: 70px; height: 70px;">⌫</button>
+                                    <button wire:click="clearNumpad" class="btn btn-warning fw-bold fs-4 mx-2"
+                                        style="width: 70px; height: 70px;">C</button>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="modal-footer justify-content-center bg-light rounded-bottom">
-                                <button wire:click="applyNumpadValue"
-                                    class="btn btn-success btn-lg w-75 fw-bold fs-5">OK</button>
-                            </div>
+                        <div class="modal-footer justify-content-center bg-light rounded-bottom">
+                            <button wire:click="applyNumpadValue"
+                                class="btn btn-success btn-lg w-75 fw-bold fs-5">OK</button>
                         </div>
                     </div>
                 </div>
-                <div wire:ignore.self class="modal fade" id="cashModal" tabindex="-1"
-                    aria-labelledby="CashModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
+            </div>
+            <div wire:ignore.self class="modal fade" id="cashModal" tabindex="-1" aria-labelledby="CashModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
 
-                            <div class="modal-header custom-modal-header">
-                                <span class="cash-summary-text61">{{ $this->headertitle }}
-                                    {{ __('messages.summary') }}</span>
-                                <button type="button" class="btn-close" data-dismiss="modal"
-                                    aria-label="Close"></button>
+                        <div class="modal-header custom-modal-header">
+                            <span class="cash-summary-text61">{{ $this->headertitle }}
+                                {{ __('messages.summary') }}</span>
+                            <button type="button" class="btn-close" data-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <div id="cash-payment">
+
+                                <form onsubmit="event.preventDefault();" class="needs-validation" novalidate>
+
+                                    {{-- <h6 class="mb-3">💵 {{ __('messages.enter_cash_denominations') }}</h6> --}}
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <table class=" table table-bordered ">
+                                                <thead class="table-dark">
+                                                    <tr>
+                                                        @if (empty($this->selectedSalesReturn))
+                                                            <th>{{ __('messages.amount') }}</th>
+                                                            <th class="text-center" style="width:20%">
+                                                                {{ __('messages.in') }}</th>
+                                                        @endif
+                                                        <th>{{ __('messages.currency') }}</th>
+                                                        <th class="text-center" style="width:20%">
+                                                            {{ __('messages.out') }}</th>
+                                                        <th class="text-center">
+                                                            {{ __('messages.amount') }}
+                                                            <button wire:click="clearCashNotes"
+                                                                class="btn btn-danger btn-sm">
+                                                                <i class="fa fa-eraser"></i>
+                                                            </button>
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($noteDenominations as $key => $denomination)
+                                                        @php
+                                                            $inValue = $cashNotes[$key][$denomination]['in'] ?? 0;
+                                                            $outValue = $cashNotes[$key][$denomination]['out'] ?? 0;
+                                                            // $rowAmount = ($inValue - $outValue) * $denomination;
+                                                        @endphp
+                                                        <tr>
+
+                                                            @if (empty($this->selectedSalesReturn))
+                                                                <td class="text-center fw-bold">
+                                                                    {{ format_inr($inValue * $denomination) }}
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <div class="d-flex align-items-center"
+                                                                        style="width: 100%">
+                                                                        <button class="btn btn-gray rounded-start"
+                                                                            style="width: 40px;"
+                                                                            wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'in')">
+                                                                            −
+                                                                        </button>
+
+                                                                        <input type="number"
+                                                                            class="form-control text-center rounded-0"
+                                                                            value="{{ $inValue }}" readonly
+                                                                            style="width: 60px;" />
+
+                                                                        <button class="btn btn-gray rounded-end"
+                                                                            style="width: 40px;"
+                                                                            wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'in')">
+                                                                            +
+                                                                        </button>
+                                                                    </div>
+
+                                                                </td>
+                                                            @endif
+
+                                                            <td class="text-center currency-center">
+                                                                {{ format_inr($denomination) }}</td>
+
+                                                            <td class="text-center">
+                                                                <div class="d-flex align-items-center"
+                                                                    style="width: 100%">
+                                                                    <button class="btn btn-gray rounded-start"
+                                                                        style="width: 40px;"
+                                                                        wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'out')">
+                                                                        −
+                                                                    </button>
+
+                                                                    <input type="number"
+                                                                        class="form-control text-center rounded-0"
+                                                                        value="{{ $outValue }}" readonly
+                                                                        style="width: 60px;" />
+
+                                                                    <button class="btn btn-gray rounded-end"
+                                                                        style="width: 40px;"
+                                                                        wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'out')">
+                                                                        +
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+
+                                                            <td class="text-center fw-bold">
+                                                                {{ format_inr($outValue * $denomination) }}</td>
+                                                        </tr>
+                                                    @endforeach
+
+                                                    <tr class="table-dark">
+                                                        @if (empty($this->selectedSalesReturn))
+                                                            <td class="text-center">
+                                                                {{ format_inr($totals['totalIn']) }}</td>
+                                                            <td class="text-center">{{ $totals['totalInCount'] }}
+                                                            </td>
+                                                        @endif
+                                                        <td class="text-center">TOTAL</td>
+                                                        <td class="text-center">{{ $totals['totalOutCount'] }}
+                                                        </td>
+                                                        <td class="text-center">
+                                                            {{ format_inr($totals['totalOut']) }}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+
+
+                                        </div>
+
+                                    </div>
+                                    @if (empty($this->selectedSalesReturn))
+                                        <div class="row g-3">
+                                            <div class="col-md-4">
+                                                <input type="hidden" wire-model="paymentType">
+
+                                                <label for="cash"
+                                                    class="form-label">{{ __('messages.cash_amount') }}</label>
+
+                                                <input type="number" class="form-control rounded-pill"
+                                                    id="cash" value="{{ $this->cashAmount }}" placeholder=""
+                                                    oninput="calculateChange()" readonly>
+
+                                            </div>
+
+                                            <div class="col-md-4">
+                                                <label for="tender"
+                                                    class="form-label">{{ __('messages.tendered_amount') }}</label>
+                                                <input type="number" wire:model="cashPaTenderyAmt"
+                                                    class="form-control rounded-pill" id="tender"
+                                                    placeholder=""readonly>
+                                            </div>
+
+                                            <div class="col-md-4">
+                                                <label for="change"
+                                                    class="form-label">{{ __('messages.change_amount') }}</label>
+                                                <input type="number" wire:model="cashPayChangeAmt"
+                                                    class="form-control rounded-pill" id="change" readonly>
+                                            </div>
+                                        </div>
+                                    @endif
+                                    @if (!empty($this->selectedSalesReturn))
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <label>{{ __('messages.refund_description') }}</label>
+                                                <textarea id="refundDesc" class="form-control" wire:model="refundDesc"
+                                                    placeholder="{{ __('messages.enter_refund_description') }}"></textarea>
+                                            </div>
+                                        </div>
+                                    @endif
+                                    <hr class="custom-hr">
+                                    <div class="cash-summary-frame282">
+                                        <div class="d-flex justify-content-between ">
+                                            {{ __('messages.subtotal') }}
+                                            <span>{{ format_inr($sub_total) }}</span>
+                                        </div>
+                                        @if (auth()->user()->hasRole('cashier'))
+                                            @if ($commissionAmount > 0)
+                                                <div class="d-flex justify-content-between ">
+                                                    {{ __('messages.commission_deduction') }}
+                                                    <span>- {{ format_inr($commissionAmount) }}</span>
+                                                </div>
+                                            @endif
+                                        @endif
+                                        @if (auth()->user()->hasRole('warehouse'))
+                                            {{-- @if ($partyAmount > 0) --}}
+                                            <div class="d-flex justify-content-between ">
+                                                {{ __('messages.commission_deduction') }}
+                                                <span>- {{ format_inr($partyAmount) }}</span>
+                                            </div>
+                                            {{-- @endif --}}
+                                            {{-- @if ($partyAmount > 0) --}}
+                                            <div class=" ">
+                                                <label class="-label" for="useCreditCheck">
+                                                    <input type="checkbox" wire:model="showCheckbox"
+                                                        wire:click="toggleCheck" />
+                                                    {{ __('messages.use_credit_to_pay') }}
+                                                </label>
+                                            </div>
+
+                                            @if ($this->useCredit && $this->showCheckbox)
+                                                <div class="d-flex justify-content-between align-items-center ">
+                                                    <label class="mb-0">
+                                                        {{ __('messages.credit') }}
+                                                    </label>
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="badge bg-primary fs-6 me-2">
+                                                            {{ __('messages.available_credit') }}:
+                                                            {{ number_format(($this->partyUserDetails->credit_points ?? 0) - ($this->partyUserDetails->use_credit ?? 0), 2) }}
+                                                        </span>
+                                                        <input type="number" wire:model="creditPay"
+                                                            wire:input="creditPayChanged" class="form-control"
+                                                            style="width: 100px;" />
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        @endif
+
+                                        {{-- @endif --}}
+                                        <div class="d-flex justify-content-between">
+                                            {{ __('messages.tendered_amount') }}
+                                            <span>{{ format_inr($this->cashAmount) }}</span>
+                                            <input type="text" id="total" value="{{ $this->cashAmount }}"
+                                                class="d-none" />
+                                        </div>
+                                    </div>
+                                    <p id="result" class="mt-3 fw-bold text-success"></p>
+                                    @if (count($itemCarts) > 0)
+                                        <div class="">
+
+                                            @if (!empty($this->selectedSalesReturn) && $this->cashAmount == $totals['totalOut'])
+                                                <button id="paymentSubmit"
+                                                    class="btn btn-primary btn-sm mr-2 btn-block " wire:click="refund"
+                                                    wire:loading.attr="disabled">
+                                                    Refund
+                                                </button>
+                                            @else
+                                                @if ($this->cashAmount == $totals['totalIn'] - $totals['totalOut'] && $errorInCredit == false)
+                                                    <button id="paymentSubmit"
+                                                        class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
+                                                        wire:click="checkout" wire:loading.attr="disabled">
+                                                        {{ __('messages.submit') }}
+                                                    </button>
+                                                @endif
+                                            @endif
+                                            {{-- <div wire:loading class=" text-muted">{{ __('messages.processing_payment') }}...
+                                    </div> --}}
+                                        </div>
+                                    @endif
+                                </form>
                             </div>
+                        </div>
 
-                            <div class="modal-body">
-                                <div id="cash-payment">
 
-                                    <form onsubmit="event.preventDefault();" class="needs-validation" novalidate>
+                    </div>
+                </div>
+            </div>
+            <div wire:ignore.self class="modal fade" id="onliineModal" tabindex="-1"
+                aria-labelledby="onlineModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
 
+                        <div class="modal-header custom-modal-header">
+                            <span class="cash-summary-text61">{{ $this->headertitle }}
+                                {{ __('messages.summary') }}</span>
+                            <button type="button" class="btn-close" data-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <div id="cashupi-payment">
+                                <form onsubmit="event.preventDefault(); " class="needs-validation" novalidate>
+                                    @php
+                                        $totalIn = 0;
+                                        $totalOut = 0;
+                                        $totalAmount = 0;
+                                    @endphp
+                                    @if ($this->showOnline == false)
                                         {{-- <h6 class="mb-3">💵 {{ __('messages.enter_cash_denominations') }}</h6> --}}
                                         <div class="row g-3">
                                             <div class="col-md-12">
-                                                <table class=" table table-bordered ">
+                                                <table class="customtable table table-bordered">
                                                     <thead class="table-dark">
                                                         <tr>
+                                                            <th>{{ __('messages.amount') }}</th>
                                                             @if (empty($this->selectedSalesReturn))
-                                                                <th>{{ __('messages.amount') }}</th>
                                                                 <th class="text-center" style="width:20%">
                                                                     {{ __('messages.in') }}</th>
                                                             @endif
@@ -1366,7 +1588,7 @@
                                                                 {{ __('messages.out') }}</th>
                                                             <th class="text-center">
                                                                 {{ __('messages.amount') }}
-                                                                <button wire:click="clearCashNotes"
+                                                                <button wire:click="clearCashUpiNotes"
                                                                     class="btn btn-danger btn-sm">
                                                                     <i class="fa fa-eraser"></i>
                                                                 </button>
@@ -1374,489 +1596,228 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody>
+
+
                                                         @foreach ($noteDenominations as $key => $denomination)
                                                             @php
-                                                                $inValue = $cashNotes[$key][$denomination]['in'] ?? 0;
-                                                                $outValue = $cashNotes[$key][$denomination]['out'] ?? 0;
-                                                                // $rowAmount = ($inValue - $outValue) * $denomination;
+                                                                $inValue =
+                                                                    $cashupiNotes[$key][$denomination]['in'] ?? 0;
+                                                                $outValue =
+                                                                    $cashupiNotes[$key][$denomination]['out'] ?? 0;
+                                                                $rowAmount = ($inValue - $outValue) * $denomination;
+
+                                                                $totalIn += $inValue * $denomination;
+                                                                $totalOut += $outValue * $denomination;
+                                                                $totalAmount += $rowAmount;
                                                             @endphp
+
                                                             <tr>
+                                                                <td class="text-center fw-bold">
+                                                                    {{ format_inr($inValue * $denomination) }}
+                                                                </td>
 
                                                                 @if (empty($this->selectedSalesReturn))
-                                                                    <td class="text-center fw-bold">
-                                                                        {{ format_inr($inValue * $denomination) }}
-                                                                    </td>
                                                                     <td class="text-center">
                                                                         <div class="d-flex align-items-center"
                                                                             style="width: 100%">
                                                                             <button class="btn btn-gray rounded-start"
                                                                                 style="width: 40px;"
-                                                                                wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'in')">
-                                                                                −
+                                                                                wire:click="decrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'in')">
+                                                                                -
                                                                             </button>
-
                                                                             <input type="number"
                                                                                 class="form-control text-center rounded-0"
                                                                                 value="{{ $inValue }}" readonly
-                                                                                style="width: 60px;" />
-
+                                                                                style="width: 60px;">
                                                                             <button class="btn btn-gray rounded-end"
                                                                                 style="width: 40px;"
-                                                                                wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'in')">
+                                                                                wire:click="incrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'in')">
                                                                                 +
                                                                             </button>
                                                                         </div>
-
                                                                     </td>
                                                                 @endif
                                                                 @if (!empty($this->selectedSalesReturn))
-                                                                <td class="text-center ">
-                                                                @else
-                                                                <td class="text-center currency-center">
-                                                                @endif    
-                                                                    {{ format_inr($denomination) }}</td>
+                                                                    <td class="text-center ">
+                                                                    @else
+                                                                    <td class="text-center currency-center">
+                                                                @endif
+                                                                {{ format_inr($denomination) }}</td>
 
                                                                 <td class="text-center">
                                                                     <div class="d-flex align-items-center"
                                                                         style="width: 100%">
                                                                         <button class="btn btn-gray rounded-start"
                                                                             style="width: 40px;"
-                                                                            wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'out')">
-                                                                            −
+                                                                            wire:click="decrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'out')">
+                                                                            -
                                                                         </button>
-
                                                                         <input type="number"
-                                                                            class="form-control text-center rounded-0"
+                                                                            class="form-control text-center"
                                                                             value="{{ $outValue }}" readonly
-                                                                            style="width: 60px;" />
-
+                                                                            style="width: 60px;">
                                                                         <button class="btn btn-gray rounded-end"
                                                                             style="width: 40px;"
-                                                                            wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'out')">
+                                                                            wire:click="incrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'out')">
                                                                             +
                                                                         </button>
                                                                     </div>
                                                                 </td>
 
                                                                 <td class="text-center fw-bold">
-                                                                    {{ format_inr($outValue * $denomination) }}</td>
+                                                                    {{ format_inr($rowAmount) }}
+                                                                </td>
                                                             </tr>
                                                         @endforeach
 
                                                         <tr class="table-dark">
+                                                            <td class="text-center">{{ format_inr($totalIn) }}
+                                                            </td>
                                                             @if (empty($this->selectedSalesReturn))
-                                                                <td class="text-center">
-                                                                    {{ format_inr($totals['totalIn']) }}</td>
-                                                                <td class="text-center">{{ $totals['totalInCount'] }}
-                                                                </td>
+                                                                <td class="text-center">{{ $totalIn }}</td>
                                                             @endif
                                                             <td class="text-center">TOTAL</td>
-                                                            <td class="text-center">{{ $totals['totalOutCount'] }}
-                                                            </td>
+                                                            <td class="text-center">{{ $totalOut }}</td>
                                                             <td class="text-center">
-                                                                {{ format_inr($totals['totalOut']) }}</td>
+                                                                {{ format_inr($totalAmount) }}</td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
-
-
                                             </div>
-
                                         </div>
-                                        @if (empty($this->selectedSalesReturn))
-                                            <div class="row g-3">
-                                                <div class="col-md-4">
-                                                    <input type="hidden" wire-model="paymentType">
+                                        <div class="row">
 
-                                                    <label for="cash"
-                                                        class="form-label">{{ __('messages.cash_amount') }}</label>
+                                            <div class="col-md-6">
+                                                <input type="hidden" wire-model="paymentType">
+                                                <input type="hidden" id="actualCash"
+                                                    class="border rounded w-full p-2 bg-gray-100"
+                                                    value="{{ $this->cashAmount }}" readonly>
+                                                @php
+                                                    $this->cash = $totalAmount;
+                                                    $this->upi = $this->cashAmount - $totalAmount;
 
-                                                    <input type="number" class="form-control rounded-pill"
-                                                        id="cash" value="{{ $this->cashAmount }}"
-                                                        placeholder="" oninput="calculateChange()" readonly>
-
-                                                </div>
-
-                                                <div class="col-md-4">
-                                                    <label for="tender"
-                                                        class="form-label">{{ __('messages.tendered_amount') }}</label>
-                                                    <input type="number" wire:model="cashPaTenderyAmt"
-                                                        class="form-control rounded-pill" id="tender"
-                                                        placeholder=""readonly>
-                                                </div>
-
-                                                <div class="col-md-4">
-                                                    <label for="change"
-                                                        class="form-label">{{ __('messages.change_amount') }}</label>
-                                                    <input type="number" wire:model="cashPayChangeAmt"
-                                                        class="form-control rounded-pill" id="change" readonly>
-                                                </div>
+                                                @endphp
+                                                <label for="cash" class="form-label">Cash Amount</label>
+                                                <input type="number" id="cashAmount" step="0.01"
+                                                    wire:model.live.debounce.500ms="cash"
+                                                    class="form-control rounded-pill" min="0"
+                                                    max="{{ $this->cashAmount }}" readonly>
                                             </div>
-                                        @endif
-                                        @if (!empty($this->selectedSalesReturn))
-                                            <div class="row">
-                                                <div class="col-md-12">
-                                                    <label>{{ __('messages.refund_description') }}</label>
-                                                    <textarea id="refundDesc" class="form-control" wire:model="refundDesc"
-                                                        placeholder="{{ __('messages.enter_refund_description') }}"></textarea>
-                                                </div>
+
+                                            <div class="col-md-6">
+                                                <label for="cash"
+                                                    class="form-label">{{ __('messages.upi_amount') }}</label>
+
+                                                <input type="number" id="onlineAmount" step="0.01"
+                                                    wire:model.live.debounce.500ms="upi"
+                                                    class="form-control rounded-pill" min="0"
+                                                    max="{{ $this->cashAmount }}">
                                             </div>
-                                        @endif
+                                        </div>
                                         <hr class="custom-hr">
-                                        <div class="cash-summary-frame282">
-                                            <div class="d-flex justify-content-between ">
-                                                {{ __('messages.subtotal') }}
-                                                <span>{{ format_inr($sub_total) }}</span>
-                                            </div>
-                                            @if (auth()->user()->hasRole('cashier'))
-                                                @if ($commissionAmount > 0)
-                                                    <div class="d-flex justify-content-between ">
-                                                        {{ __('messages.commission_deduction') }}
-                                                        <span>- {{ format_inr($commissionAmount) }}</span>
-                                                    </div>
-                                                @endif
-                                            @endif
-                                            @if (auth()->user()->hasRole('warehouse'))
-                                                {{-- @if ($partyAmount > 0) --}}
-                                                <div class="d-flex justify-content-between ">
-                                                    {{ __('messages.commission_deduction') }}
-                                                    <span>- {{ format_inr($partyAmount) }}</span>
-                                                </div>
-                                                {{-- @endif --}}
-                                                {{-- @if ($partyAmount > 0) --}}
-                                                <div class=" ">
-                                                    <label class="-label" for="useCreditCheck">
-                                                        <input type="checkbox" wire:model="showCheckbox"
-                                                            wire:click="toggleCheck" />
-                                                        {{ __('messages.use_credit_to_pay') }}
-                                                    </label>
-                                                </div>
+                                    @endif
 
-                                                @if ($this->useCredit && $this->showCheckbox)
-                                                    <div class="d-flex justify-content-between align-items-center ">
-                                                        <label class="mb-0">
-                                                            {{ __('messages.credit') }}
-                                                        </label>
-                                                        <div class="d-flex align-items-center">
-                                                            <span class="badge bg-primary fs-6 me-2">
-                                                                {{ __('messages.available_credit') }}:
-                                                                {{ number_format(($this->partyUserDetails->credit_points ?? 0) - ($this->partyUserDetails->use_credit ?? 0), 2) }}
-                                                            </span>
-                                                            <input type="number" wire:model="creditPay"
-                                                                wire:input="creditPayChanged" class="form-control"
-                                                                style="width: 100px;" />
-                                                        </div>
-                                                    </div>
-                                                @endif
-                                            @endif
-
-                                            {{-- @endif --}}
-                                            <div class="d-flex justify-content-between">
-                                                {{ __('messages.tendered_amount') }}
-                                                <span>{{ format_inr($this->cashAmount) }}</span>
-                                                <input type="text" id="total"
-                                                    value="{{ $this->cashAmount }}" class="d-none" />
-                                            </div>
+                                    <div class="cash-summary-frame282">
+                                        <div class="d-flex justify-content-between ">
+                                            {{ __('messages.subtotal') }}
+                                            <span>{{ format_inr($sub_total) }}</span>
                                         </div>
-                                        <p id="result" class="mt-3 fw-bold text-success"></p>
-                                        @if (count($itemCarts) > 0)
-                                            <div class="">
 
-                                                @if (!empty($this->selectedSalesReturn) && $this->cashAmount == $totals['totalOut'])
-                                                    <button id="paymentSubmit"
-                                                        class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
-                                                        wire:click="refund" wire:loading.attr="disabled">
-                                                        Refund
-                                                    </button>
-                                                @else
-                                                    @if ($this->cashAmount == $totals['totalIn'] - $totals['totalOut'] && $errorInCredit == false)
-                                                        <button id="paymentSubmit"
-                                                            class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
-                                                            wire:click="checkout" wire:loading.attr="disabled">
-                                                            {{ __('messages.submit') }}
-                                                        </button>
-                                                    @endif
-                                                @endif
-                                                {{-- <div wire:loading class=" text-muted">{{ __('messages.processing_payment') }}...
-                                    </div> --}}
-                                            </div>
-                                        @endif
-                                    </form>
-                                </div>
-                            </div>
-
-
-                        </div>
-                    </div>
-                </div>
-                <div wire:ignore.self class="modal fade" id="onliineModal" tabindex="-1"
-                    aria-labelledby="onlineModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-
-                            <div class="modal-header custom-modal-header">
-                                <span class="cash-summary-text61">{{ $this->headertitle }}
-                                    {{ __('messages.summary') }}</span>
-                                <button type="button" class="btn-close" data-dismiss="modal"
-                                    aria-label="Close"></button>
-                            </div>
-
-                            <div class="modal-body">
-                                <div id="cashupi-payment">
-                                    <form onsubmit="event.preventDefault(); " class="needs-validation" novalidate>
-                                        @php
-                                            $totalIn = 0;
-                                            $totalOut = 0;
-                                            $totalAmount = 0;
-                                        @endphp
-                                        @if ($this->showOnline == false)
-                                            {{-- <h6 class="mb-3">💵 {{ __('messages.enter_cash_denominations') }}</h6> --}}
-                                            <div class="row g-3">
-                                                <div class="col-md-12">
-                                                    <table class="customtable table table-bordered">
-                                                        <thead class="table-dark">
-                                                            <tr>
-                                                                <th>{{ __('messages.amount') }}</th>
-                                                                @if (empty($this->selectedSalesReturn))
-                                                                    <th class="text-center" style="width:20%">
-                                                                        {{ __('messages.in') }}</th>
-                                                                @endif
-                                                                <th>{{ __('messages.currency') }}</th>
-                                                                <th class="text-center" style="width:20%">
-                                                                    {{ __('messages.out') }}</th>
-                                                                <th class="text-center">
-                                                                    {{ __('messages.amount') }}
-                                                                    <button wire:click="clearCashUpiNotes"
-                                                                        class="btn btn-danger btn-sm">
-                                                                        <i class="fa fa-eraser"></i>
-                                                                    </button>
-                                                                </th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-
-
-                                                            @foreach ($noteDenominations as $key => $denomination)
-                                                                @php
-                                                                    $inValue =
-                                                                        $cashupiNotes[$key][$denomination]['in'] ?? 0;
-                                                                    $outValue =
-                                                                        $cashupiNotes[$key][$denomination]['out'] ?? 0;
-                                                                    $rowAmount = ($inValue - $outValue) * $denomination;
-
-                                                                    $totalIn += $inValue * $denomination;
-                                                                    $totalOut += $outValue * $denomination;
-                                                                    $totalAmount += $rowAmount;
-                                                                @endphp
-
-                                                                <tr>
-                                                                    <td class="text-center fw-bold">
-                                                                        {{ format_inr($inValue * $denomination) }}
-                                                                    </td>
-
-                                                                    @if (empty($this->selectedSalesReturn))
-                                                                        <td class="text-center">
-                                                                            <div class="d-flex align-items-center"
-                                                                                style="width: 100%">
-                                                                                <button
-                                                                                    class="btn btn-gray rounded-start"
-                                                                                    style="width: 40px;"
-                                                                                    wire:click="decrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'in')">
-                                                                                    -
-                                                                                </button>
-                                                                                <input type="number"
-                                                                                    class="form-control text-center rounded-0"
-                                                                                    value="{{ $inValue }}"
-                                                                                    readonly style="width: 60px;">
-                                                                                <button
-                                                                                    class="btn btn-gray rounded-end"
-                                                                                    style="width: 40px;"
-                                                                                    wire:click="incrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'in')">
-                                                                                    +
-                                                                                </button>
-                                                                            </div>
-                                                                        </td>
-                                                                    @endif
-
-                                                                    <td class="text-center currency-center">
-                                                                        {{ format_inr($denomination) }}</td>
-
-                                                                    <td class="text-center">
-                                                                        <div class="d-flex align-items-center"
-                                                                            style="width: 100%">
-                                                                            <button class="btn btn-gray rounded-start"
-                                                                                style="width: 40px;"
-                                                                                wire:click="decrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'out')">
-                                                                                -
-                                                                            </button>
-                                                                            <input type="number"
-                                                                                class="form-control text-center"
-                                                                                value="{{ $outValue }}" readonly
-                                                                                style="width: 60px;">
-                                                                            <button class="btn btn-gray rounded-end"
-                                                                                style="width: 40px;"
-                                                                                wire:click="incrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'out')">
-                                                                                +
-                                                                            </button>
-                                                                        </div>
-                                                                    </td>
-
-                                                                    <td class="text-center fw-bold">
-                                                                        {{ format_inr($rowAmount) }}
-                                                                    </td>
-                                                                </tr>
-                                                            @endforeach
-
-                                                            <tr class="table-dark">
-                                                                <td class="text-center">{{ format_inr($totalIn) }}
-                                                                </td>
-                                                                @if (empty($this->selectedSalesReturn))
-                                                                    <td class="text-center">{{ $totalIn }}</td>
-                                                                @endif
-                                                                <td class="text-center">TOTAL</td>
-                                                                <td class="text-center">{{ $totalOut }}</td>
-                                                                <td class="text-center">
-                                                                    {{ format_inr($totalAmount) }}</td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-
-                                                <div class="col-md-6">
-                                                    <input type="hidden" wire-model="paymentType">
-                                                    <input type="hidden" id="actualCash"
-                                                        class="border rounded w-full p-2 bg-gray-100"
-                                                        value="{{ $this->cashAmount }}" readonly>
-                                                    @php
-                                                        $this->cash = $totalAmount;
-                                                        $this->upi = $this->cashAmount - $totalAmount;
-
-                                                    @endphp
-                                                    <label for="cash" class="form-label">Cash Amount</label>
-                                                    <input type="number" id="cashAmount" step="0.01"
-                                                        wire:model.live.debounce.500ms="cash"
-                                                        class="form-control rounded-pill" min="0"
-                                                        max="{{ $this->cashAmount }}" readonly>
-                                                </div>
-
-                                                <div class="col-md-6">
-                                                    <label for="cash"
-                                                        class="form-label">{{ __('messages.upi_amount') }}</label>
-
-                                                    <input type="number" id="onlineAmount" step="0.01"
-                                                        wire:model.live.debounce.500ms="upi"
-                                                        class="form-control rounded-pill" min="0"
-                                                        max="{{ $this->cashAmount }}">
-                                                </div>
-                                            </div>
-                                            <hr class="custom-hr">
-                                        @endif
-
-
-
-                                        <div class="cash-summary-frame282">
+                                        @if ($commissionAmount > 0)
                                             <div class="d-flex justify-content-between ">
-                                                {{ __('messages.subtotal') }}
-                                                <span>{{ format_inr($sub_total) }}</span>
+                                                {{ __('messages.commission_deduction') }}
+                                                <span>- {{ format_inr($commissionAmount) }}</span>
                                             </div>
-
-                                            @if ($commissionAmount > 0)
-                                                <div class="d-flex justify-content-between ">
-                                                    {{ __('messages.commission_deduction') }}
-                                                    <span>- {{ format_inr($commissionAmount) }}</span>
-                                                </div>
-                                            @endif
-                                            @if ($partyAmount > 0)
-                                                <div class="d-flex justify-content-between ">
-                                                    {{ __('messages.commission_deduction') }}
-                                                    <span>- {{ format_inr($partyAmount) }}</span>
-                                                </div>
-                                            @endif
-                                            {{-- @if ($partyAmount > 0) --}}
-                                            {{-- <div class="d-flex justify-content-between ">
+                                        @endif
+                                        @if ($partyAmount > 0)
+                                            <div class="d-flex justify-content-between ">
+                                                {{ __('messages.commission_deduction') }}
+                                                <span>- {{ format_inr($partyAmount) }}</span>
+                                            </div>
+                                        @endif
+                                        {{-- @if ($partyAmount > 0) --}}
+                                        {{-- <div class="d-flex justify-content-between ">
                                         <strong>Credit</strong>
                                         <input type="number" width="10%"
                                             wire:model.live="creditPay" wire:input="creditPayChanged"
                                             class="form-control" style="width: 80px;" />
 
                                     </div> --}}
-                                            @if (auth()->user()->hasRole('warehouse'))
-                                                <div class="">
-                                                    <label for="useCreditCheck">
-                                                        <input type="checkbox" wire:model="showCheckbox"
-                                                            wire:click="toggleCheck" />
+                                        @if (auth()->user()->hasRole('warehouse'))
+                                            <div class="">
+                                                <label for="useCreditCheck">
+                                                    <input type="checkbox" wire:model="showCheckbox"
+                                                        wire:click="toggleCheck" />
 
-                                                        {{ __('messages.use_credit_to_pay') }}
-                                                    </label>
-                                                </div>
-
-                                                @if ($this->useCredit && $this->showCheckbox)
-                                                    <div class="d-flex justify-content-between align-items-center ">
-                                                        <label class="mb-0">
-                                                            {{ __('messages.credit') }}
-                                                        </label>
-                                                        <div class="d-flex align-items-center">
-                                                            <span class="badge bg-primary fs-6 me-2">
-                                                                {{ __('messages.available_credit') }}:
-                                                                {{ number_format(($this->partyUserDetails->credit_points ?? 0) - ($this->partyUserDetails->use_credit ?? 0), 2) }}
-                                                            </span>
-                                                            <input type="number" wire:model="creditPay"
-                                                                wire:input="creditPayChanged" class="form-control"
-                                                                style="width: 100px;" />
-                                                        </div>
-                                                    </div>
-                                                @endif
-                                            @endif
-
-
-                                            {{-- @endif --}}
-                                            <div class="d-flex justify-content-between">
-                                                <strong>{{ __('messages.total_payable') }}</strong>
-                                                <span>{{ format_inr($this->cashAmount) }}</span>
-                                                <input type="text" id="total"
-                                                    value="{{ $this->cashAmount }}" class="d-none" />
+                                                    {{ __('messages.use_credit_to_pay') }}
+                                                </label>
                                             </div>
+
+                                            @if ($this->useCredit && $this->showCheckbox)
+                                                <div class="d-flex justify-content-between align-items-center ">
+                                                    <label class="mb-0">
+                                                        {{ __('messages.credit') }}
+                                                    </label>
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="badge bg-primary fs-6 me-2">
+                                                            {{ __('messages.available_credit') }}:
+                                                            {{ number_format(($this->partyUserDetails->credit_points ?? 0) - ($this->partyUserDetails->use_credit ?? 0), 2) }}
+                                                        </span>
+                                                        <input type="number" wire:model="creditPay"
+                                                            wire:input="creditPayChanged" class="form-control"
+                                                            style="width: 100px;" />
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        @endif
+
+
+                                        {{-- @endif --}}
+                                        <div class="d-flex justify-content-between">
+                                            <strong>{{ __('messages.total_payable') }}</strong>
+                                            <span>{{ format_inr($this->cashAmount) }}</span>
+                                            <input type="text" id="total" value="{{ $this->cashAmount }}"
+                                                class="d-none" />
                                         </div>
-                                        <p id="result" class="mt-3 fw-bold text-success"></p>
-                                        <div class="mt-4">
-                                            @if ($this->showOnline == true && $this->cashAmount > 0)
+                                    </div>
+                                    <p id="result" class="mt-3 fw-bold text-success"></p>
+                                    <div class="mt-4">
+                                        @if ($this->showOnline == true && $this->cashAmount > 0)
+                                            <button id="paymentSubmit"
+                                                class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
+                                                wire:click="onlinePaymentCheckout" wire:loading.attr="disabled">
+                                                {{ __('messages.submit') }}
+                                            </button>
+                                        @else
+                                            @if ($this->cashAmount == $this->cash + $this->upi && $this->upi >= 0)
                                                 <button id="paymentSubmit"
                                                     class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
-                                                    wire:click="onlinePaymentCheckout" wire:loading.attr="disabled">
+                                                    wire:click="checkout" wire:loading.attr="disabled">
                                                     {{ __('messages.submit') }}
                                                 </button>
-                                            @else
-                                                @if ($this->cashAmount == $this->cash + $this->upi && $this->upi >= 0)
-                                                    <button id="paymentSubmit"
-                                                        class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
-                                                        wire:click="checkout" wire:loading.attr="disabled">
-                                                        {{ __('messages.submit') }}
-                                                    </button>
-                                                @endif
                                             @endif
+                                        @endif
 
-                                            {{-- <div wire:loading class=" text-muted">{{ __('messages.processing_payment') }}...
+                                        {{-- <div wire:loading class=" text-muted">{{ __('messages.processing_payment') }}...
                                 </div> --}}
-                                        </div>
+                                    </div>
 
-                                    </form>
-                                </div>
+                                </form>
                             </div>
-
-
                         </div>
+
+
                     </div>
                 </div>
-
             </div>
 
+        </div>
 
-            <!-- Script to show modal -->
 
-            <!-- Script to show modal -->
-            {{-- @if ($showModal)
+        <!-- Script to show modal -->
+
+        <!-- Script to show modal -->
+        {{-- @if ($showModal)
                      
                         <script>
                             document.addEventListener('DOMContentLoaded', function() {
@@ -1867,8 +1828,8 @@
                             });
                         </script>
                     @endif --}}
-        </div>
     </div>
+</div>
 </div>
 <script>
     window.addEventListener('open-cash-modal', event => {

@@ -1373,6 +1373,11 @@
   border-radius: 5px;
   background-color: var(--dl-color-light-primarykeybackground);
 }
+
+ .main-screen-frame-key11:hover {
+        background-color: #009fe3;
+        color: white;
+    }
  
 .main-screen-frame-key12 {
   width: 45px;
