@@ -25,10 +25,12 @@
                     <table class="table data-tables table-striped" id="exp_tbl">
                         <thead class="bg-white text-uppercase">
                             <tr class="ligth ligth-data">
-                                <th>Name</th>
-                                <th>Category</th>
+                                <th>Expense Type</th>
                                 <th>Amount</th>
-                                <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
+                                <th>Store</th>
+                                <th>User</th>
+                                <th>description</th>
+                                <th data-type="date" data-format="YYYY/DD/MM">Date/Time</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -66,13 +68,7 @@
                     "type": "post",
                     "data": function(d) {},
                 },
-                aoColumns: [
-
-                    {
-                        data: 'title',
-                        name: 'title'
-                    },
-                    {
+                aoColumns: [{
                         data: 'category_name',
                         name: 'category_name'
                     },
@@ -81,8 +77,20 @@
                         name: 'amount'
                     },
                     {
-                        data: 'expense_date',
-                        name: 'expense_date'
+                        data: 'branch_name',
+                        name: 'branch_name'
+                    },
+                    {
+                        data: 'user_name',
+                        name: 'user_name'
+                    },
+                    {
+                        data: 'description',
+                        name: 'description'
+                    },
+                    {
+                        data: 'created_at',
+                        name: 'created_at'
                     },
                     {
                         data: 'action',
@@ -97,7 +105,7 @@
                     aTargets: [3] // make "action" column unsortable
                 }],
                 order: [
-                    [2, 'desc']
+                    [5, 'desc']
                 ], // 🟢 Sort by created_at DESC by default
                 dom: "Bfrtip",
                 lengthMenu: [
@@ -108,6 +116,17 @@
 
             });
 
+        });
+
+        $(document).on('click', '.view-desc', function(e) {
+            e.preventDefault();
+            const fullDescription = $(this).data('desc');
+
+            Swal.fire({
+                title: 'Full Description',
+                html: `<div style="text-align:left;max-height:300px;overflow-y:auto">${fullDescription}</div>`,
+                confirmButtonText: 'Close'
+            });
         });
 
         function delete_exp(id) {

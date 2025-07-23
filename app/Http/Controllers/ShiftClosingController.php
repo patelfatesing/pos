@@ -11,6 +11,9 @@ use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\ShiftClosing;
 use App\Models\Invoice;
+use App\Models\Expense;
+use App\Models\ExpenseCategory;
+use Carbon\Carbon;
 
 class ShiftClosingController extends Controller
 {
@@ -88,6 +91,7 @@ class ShiftClosingController extends Controller
             'narration' => 'required',
             'amount' => 'required',
         ]);
+
         $withdrawAmount = $request->amount;
         $branch_id = auth()->user()->userinfo->branch->id ?? null;
         $user_id = auth()->id();
@@ -136,8 +140,6 @@ class ShiftClosingController extends Controller
             }
         }
 
-
-
         // Save cash breakdown
         $CashBreakdown = CashBreakdown::create([
             'user_id' => $user_id,
@@ -155,6 +157,20 @@ class ShiftClosingController extends Controller
         $with->note = $request->narration;
         $with->cash_break_id = $CashBreakdown->id;
         $with->save();
+
+        $exp_cate = ExpenseCategory::find($request->narration);
+
+        
+        $expense = new Expense();
+        $expense->user_id = $user_id;
+        $expense->branch_id = $branch_id;
+        $expense->amount = $request->amount;
+        $expense->description = $request->withdraw_notes;
+        $expense->expense_category_id  = $request->narration;
+        $expense->title = $exp_cate->name ?? 'Withdrawal';
+        $expense->expense_date = Carbon::parse($expense->expense_date);
+        $expense->save();
+
         return redirect()->back()->with('notification-sucess', 'Amount withdrawn successfully.');
     }
 

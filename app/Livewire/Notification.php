@@ -224,6 +224,7 @@ class Notification extends Component
                 'notify_to' => $noti->notify_to,
                 'type' => $noti->type,
                 'status' => $noti->status,
+                'date' => \Carbon\Carbon::parse($noti->created_at)->format('j F Y, h:i:s A'),
                 'time' => $noti->created_at->diffForHumans(),
                 'id' => $noti->id
             ];

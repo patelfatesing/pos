@@ -69,13 +69,13 @@
             @endforeach
 
             <tr class="table-secondary fw-bold">
-                <td class="text-center">{{ format_inr($totals['totalIn']) }}</td>
-                <td class="text-center">{{ format_inr($totals['totalIn']) }}</td>
+                <td class="text-center total_bgc">{{ format_inr($totals['totalIn']) }}</td>
+                <td class="text-center total_bgc">{{ format_inr($totals['totalIn']) }}</td>
                 @if(empty($this->selectedSalesReturn))
-                    <td class="text-center">-</td>
+                    <td class="text-center total_bgc">-</td>
                 @endif
-                <td class="text-center">{{ format_inr($totals['totalOut']) }}</td>
-                <td class="text-center">{{ format_inr($totals['totalAmount']) }}</td>
+                <td class="text-center total_bgc">{{ format_inr($totals['totalOut']) }}</td>
+                <td class="text-center total_bgc">{{ format_inr($totals['totalAmount']) }}</td>
             </tr>
         </tbody>
     </table>

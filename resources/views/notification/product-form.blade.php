@@ -2,18 +2,17 @@
     @csrf
     <div class="modal-header">
         <h5 class="modal-title">⚡ Low Stock Products</h5>
-        <button type="button" class="close" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
 
     <div class="modal-body">
         <div class="container">
-            <h5 class="mb-3">Store : {{ $branch_name }}</h5>
+            <span class="main-screen-frame280">
+                <h5 class="mb-3 main-screen-text72">Store : {{ $branch_name }}</h5>
+            </span>
             <input type="hidden" name="store_id" value="2" />
             <table class="table table-bordered">
-                <thead>
+                <thead class="table-info">
                     <tr>
                         <th>Product</th>
                         <th>Low Level Stock</th>
@@ -42,8 +41,8 @@
 
                     @if ($lowStockProducts->count())
                         <tr>
-                            <td colspan="2" class="text-right font-weight-bold">Total Current Stock:</td>
-                            <td class="font-weight-bold">{{ $totalCurrentStock }}</td>
+                            <td colspan="2" class="text-start font-weight-bold total_bgc">Total Current Stock:</td>
+                            <td class="font-weight-bold total_bgc">{{ $totalCurrentStock }}</td>
                         </tr>
                     @endif
 

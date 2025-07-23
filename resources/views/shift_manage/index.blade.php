@@ -216,7 +216,7 @@
                         data: 'opening_cash',
                         name: 'opening_cash',
                         render: function(data, type, row) {
-                            return '₹' + parseFloat(data).toFixed(2);
+                            return '₹' + data;
                         }
                     },
                     {

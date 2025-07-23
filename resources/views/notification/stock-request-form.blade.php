@@ -7,28 +7,23 @@
     @csrf
     <div class="modal-header">
         <h5 class="modal-title" id="approveModalLabel">Stock Request Detail</h5>
-        <button type="button" class="close" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
+       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> 
     </div>
 
     <div class="modal-body">
         <div class="container mt-1">
             <div class="card mb-4">
                 <div class="card-body">
-
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Store: </label> <span class="ml-2">{{ $branch_name }}</span>
-
+                            <div class="form-group main-screen-frame280">
+                                <span class="main-screen-text72"><label>Store: </label> <span class="ml-2">{{ $branch_name }}</span></span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Requested By: </label>
                                 <span class="ml-2"> {{ $stockRequest->user->name ?? 'N/A' }}</span>
-
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -63,10 +58,10 @@
             </div>
 
             <div class="card">
-                <div class="card-header"><strong>Requested Items</strong></div>
+                <div class="card-header header_bgc"><strong>Requested Items</strong></div>
                 <div class="card-body p-0">
                     <table class="table table-bordered mb-0">
-                        <thead>
+                        <thead class="table-info">
                             <tr>
                                 <th>#</th>
                                 <th>Product</th>

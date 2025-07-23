@@ -16,6 +16,7 @@ use Carbon\Carbon;
 use App\Models\Branch;
 use App\Models\Inventory;
 use App\Models\DailyProductStock;
+use App\Models\ShiftClosing;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -394,15 +395,81 @@ class ProductImportController extends Controller
 
             $date = Carbon::today();
 
-            DailyProductStock::updateOrCreate(
-                [
+            $quantity = !empty($product['quantity']) ? $product['quantity'] : 0;
+
+            $running_shift = ShiftClosing::where('branch_id', $from_store_id)
+                ->orderBy('id', 'desc')
+                ->first();
+
+                
+
+            if (!empty($running_shift)) {
+                $shift_id = $running_shift->id ?? null;
+                $shift_status = $running_shift->status;
+
+                // Check if stock exists for current shift
+                $stock = DailyProductStock::where([
                     'product_id' => $product_id,
                     'branch_id' => $from_store_id,
-                    'date' => $date,
-                    'opening_stock' => !empty($product['quantity']) ? $product['quantity'] : 0,
-                    'closing_stock' => !empty($product['quantity']) ? $product['quantity'] : 0,
-                ]
-            );
+                    'shift_id' => $shift_id,
+                ])->first();
+                
+                if ($stock) {
+                    $stock->added_stock += $quantity;
+                    $stock->closing_stock += $quantity;
+
+                    if ($shift_status === 'completed') {
+                        $stock->physical_stock += $quantity;
+                    }
+
+                    $stock->save();
+                } else {
+                    // Create new shift-based record
+                    DailyProductStock::create([
+                        'product_id' => $product_id,
+                        'branch_id' => $from_store_id,
+                        'shift_id' => $shift_id,
+                        'date' => $date,
+                        'opening_stock' => 0,
+                        'added_stock' => $quantity,
+                        'transferred_stock' => 0,
+                        'sold_stock' => 0,
+                        'closing_stock' => $quantity,
+                        'physical_stock' => $quantity,
+                        'difference_in_stock' => 0,
+                    ]);
+                }
+
+            } else {
+                // No shift → check if product+branch record exists (ignore date)
+                $stock = DailyProductStock::where([
+                    'product_id' => $product_id,
+                    'branch_id' => $from_store_id,
+                    'shift_id' => null,
+                ])->first();
+
+                if ($stock) {
+                    // Update existing no-shift stock
+                    $stock->opening_stock += $quantity;
+                    $stock->closing_stock += $quantity;
+                    $stock->save();
+                } else {
+                    // Create new no-shift stock
+                    DailyProductStock::create([
+                        'product_id' => $product_id,
+                        'branch_id' => $from_store_id,
+                        'shift_id' => null,
+                        'date' => $date,
+                        'opening_stock' => $quantity,
+                        'added_stock' => 0,
+                        'transferred_stock' => 0,
+                        'sold_stock' => 0,
+                        'closing_stock' => $quantity,
+                        'physical_stock' => 0,
+                        'difference_in_stock' => 0,
+                    ]);
+                }
+            }
 
             $inventoryService->transferProduct($product_id, $inventory->id, $from_store_id, '', !empty($product['quantity']) ? $product['quantity'] : 0, 'add_stock');
         }

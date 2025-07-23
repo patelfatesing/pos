@@ -29,7 +29,7 @@ class OrderModal extends Component
         $end_date = date('Y-m-d') . ' 23:59:59'; // today's date till end of day
         $this->orders = Invoice::where('user_id', auth()->user()->id)
             ->where('branch_id', $branch_id)
-            ->whereIn('status', ['Refunded', 'Paid']) // <-- added condition
+            ->whereIn('status', ['Refunded', 'Paid','Returned']) // <-- added condition
             ->whereBetween('created_at', [$start_date, $end_date])
             ->orderBy('created_at', 'desc')
             ->take(10)

@@ -90,7 +90,7 @@
 <div class="line"></div>
 
 <div>
-    <strong>{{ @$type == 'refund' ? 'Refund' : 'Invoice' }}:</strong> {{ $invoice->invoice_number }}<br>
+    <strong>{{ @$type == 'refund' ? 'Refund' : 'Invoice' }}:</strong> {{ $refund->refund_number }}<br>
     <strong>Name:</strong> {{ $customer_name ?? '' }}<br>
     <strong>Date:</strong> {{ now()->format('d/m/Y H:i') }}
 </div>
@@ -108,7 +108,16 @@
         </tr>
     </thead>
     <tbody>
+        @php
+            $total=0;
+            $qty=0;
+        @endphp
         @foreach($items as $index => $item)
+        @php
+            $total+=$item['mrp']*$item['quantity'];
+            $qty+=$item['quantity'];
+
+        @endphp
         <tr>
             <td>{{ $index + 1 }}</td>
             <td class="left">
@@ -133,17 +142,17 @@
 <table class="table">
     <tr class="total">
         <td class="left">TOTAL:</td>
-        <td class="right">{{ number_format((float)$refund->total_item_price,2 ) }}</td>
+        <td class="right">{{ number_format((float)$total,2 ) }}</td>
     </tr>
 </table>
 
 <div class="line"></div>
 
 <table class="table">
-    <tr>
+    {{-- <tr>
         <td class="left">Refunded:</td>
         <td class="right">{{ $refund->total_mrp }}</td>
-    </tr>
+    </tr> --}}
     <tr>
         <td class="left">Refunded Items:</td>
         <td class="right">{{ $refund->total_item_qty }}</td>

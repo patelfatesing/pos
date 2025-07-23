@@ -2,9 +2,7 @@
     @csrf
     <div class="modal-header">
         <h5 class="modal-title" id="approveModalLabel">Stock Transfer Detail</h5>
-        <button type="button" class="close" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
 
     <div class="modal-body">
@@ -12,8 +10,8 @@
             <div class="card mb-4">
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-lg-6">
-                            <p><strong>From:</strong> {{ $from_store }}</p>
+                        <div class="col-lg-6 main-screen-frame280">
+                            <span class="main-screen-text72"><strong>From:</strong> {{ $from_store }}</span>
                         </div>
                         <div class="col-lg-6">
                             <p><strong>To:</strong> {{ $to_store }}</p>
@@ -23,11 +21,11 @@
             </div>
 
             <div class="card">
-                <div class="card-header"><strong>Transfer Items</strong></div>
-                <div class="card-body p-0">
+                <div class="card-header header_bgc"><strong>Transfer Items</strong></div>
+                <div class="card-body p-1">
                     @if ($transfer_type == 'approved_stock')
-                        <table class="table table-bordered mb-0">
-                            <thead>
+                        <table class="table table-bordered">
+                            <thead class="table-info">
                                 <tr>
                                     <th>#</th>
                                     <th>Product</th>
@@ -36,6 +34,9 @@
                                     <th>Status</th>
                                 </tr>
                             </thead>
+                            @php
+                                $totalQty = $stockTransfer->sum('approved_quantity');
+                            @endphp
                             <tbody>
                                 @foreach ($stockTransfer as $index => $item)
                                     <tr>
@@ -52,10 +53,19 @@
                                     </tr>
                                 @endif
                             </tbody>
+                            @if ($stockTransfer->isNotEmpty())
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="3" class="text-start total_bgc">Total:</th>
+                                        <th class="total_bgc">{{ $totalQty }}</th>
+                                        <th colspan="2" class="total_bgc"></th>
+                                    </tr>
+                                </tfoot>
+                            @endif
                         </table>
                     @else
                         <table class="table table-bordered mb-0">
-                            <thead>
+                            <thead class="table-info">
                                 <tr>
                                     <th>#</th>
                                     <th>Product</th>
@@ -66,6 +76,9 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                @php
+                                    $totalQty = $stockTransfer->sum('approved_quantity');
+                                @endphp
                                 @foreach ($stockTransfer as $index => $item)
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
@@ -78,10 +91,19 @@
                                 @endforeach
                                 @if ($stockTransfer->isEmpty())
                                     <tr>
-                                        <td colspan="6" class="text-center">No items found.</td>
+                                        <td colspan="5" class="text-center">No items found.</td>
                                     </tr>
                                 @endif
                             </tbody>
+                            @if ($stockTransfer->isNotEmpty())
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="3" class="text-start total_bgc">Total:</th>
+                                        <th class="total_bgc">{{ $totalQty }}</th>
+                                        <th colspan="2" class="total_bgc"></th>
+                                    </tr>
+                                </tfoot>
+                            @endif
                         </table>
                     @endif
                 </div>

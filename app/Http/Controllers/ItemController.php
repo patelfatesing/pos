@@ -24,6 +24,13 @@ class ItemController extends Controller
         $items = Item::all();
         return view('items.cart', compact('items'));
     }
+
+    public function cartNew()
+    {
+        $items = Item::all();
+        return view('items.cartNew', compact('items'));
+    }
+
     public function resume($id)
     {
         $transaction = Cart::where('user_id', auth()->user()->id)->where('status', Cart::STATUS_HOLD)->first();

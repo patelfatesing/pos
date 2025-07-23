@@ -1,8 +1,14 @@
 <div>
     <!-- Trigger Button -->
-    <button wire:click="openModal" class="btn btn-primary ml-2" title="Customer Credit Ledger">
-        <i class="fas fa-file-invoice"></i>
+<div class=""
+     wire:click="openModal"
+     title="Customer Credit Ledger"
+     style="cursor: pointer;">
+    <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
+        <img src="{{ asset('public/external/customer_credit_icon_final.jpg') }}" alt="Customer Credit Ledger Icon" style="width: 24px; height: 24px;" />
     </button>
+    <span class="">Customer Credit Ledger</span>
+</div>
 
     <!-- Main Modal -->
     @if ($showModal)
@@ -11,10 +17,8 @@
             <div class="modal-dialog modal-xl">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Customer Credit Ledger</h5>
-                        <button type="button" class="close" wire:click="$set('showModal', false)">
-                            <span aria-hidden="true">×</span>
-                        </button>
+                        <h5 class="modal-title text-dark">Customer Credit Ledger</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" wire:click="$set('showModal', false)"></button>
                     </div>
                     <div class="modal-body">
                         <!-- Date Range Filter -->
@@ -42,28 +46,28 @@
 
                         <table style="width:100%; margin-bottom: 10px;">
                             <tr>
-                                <td><strong>Credit</strong> {{ number_format($totalCredit, 2) }} Cr</td>
+                                <td style="text-align: left;">
+                                    <strong>Credit:</strong> {{ number_format($totalCredit, 2) }} Cr
+                                </td>
+                                <td style="text-align: right;">
+                                    <strong>Net Outstanding:</strong> {{ number_format($netOutstanding, 2) }} Dr
+                                </td>
                             </tr>
                             <tr>
-                                <td><strong>Debit</strong> {{ number_format($totalDebit, 2) }} Dr</td>
-                            </tr>
-                            <tr>
-                                <td></td>
-                                <td><strong>Net Outstanding</strong> {{ number_format($netOutstanding, 2) }} Dr</td>
+                                <td style="text-align: left;">
+                                    <strong>Debit:</strong> {{ number_format($totalDebit, 2) }} Dr
+                                </td>
+                                <td style="text-align: right;">
+                                    <button wire:click="downloadPDF" class="btn btn-danger">
+                                        <i class="fas fa-file-pdf"></i> Download PDF
+                                    </button>
+                                </td>
                             </tr>
                         </table>
 
-
-                        <!-- Download PDF Button -->
-                        <div class="mb-3 text-end">
-                            <button wire:click="downloadPDF" class="btn btn-danger">
-                                <i class="fas fa-file-pdf"></i> Download PDF
-                            </button>
-                        </div>
-
                         <div class="table-responsive">
-                            <table class="table table-striped nowrap">
-                                <thead class="table-light">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light table-info">
                                     <tr>
                                         <th class="text-nowrap">Sr. No.</th>
                                         <th class="text-nowrap">Invoice No</th>
@@ -82,7 +86,7 @@
                                             <td>{{ $creditLedgers->firstItem() + $index }}</td>
                                             <td>
                                                 <a href="{{ url('/view-invoice/' . $ledger->invoice_id) }}"
-                                                    class="badge badge-info">
+                                                    class="badge badge-info text-info">
                                                     {{ $ledger->invoice_number }}
                                                 </a>
                                             </td>
@@ -115,7 +119,6 @@
                         <div class="d-flex justify-content-center mt-3">
                             {{ $creditLedgers->links() }}
                         </div>
-
                     </div>
                 </div>
             </div>

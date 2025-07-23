@@ -170,6 +170,10 @@ class CollationModal extends Component
 
             $collectedAmount = $totalIn - $totalOut;
 
+            if (!empty($this->upiAmount)) {
+                $collectedAmount = $collectedAmount + $this->upiAmount;
+            }
+
             if ($collectedAmount <= 0) {
                 $this->dispatch('notiffication-error', ['message' => 'Collection amount must be greater than zero.']);
 
@@ -313,6 +317,7 @@ class CollationModal extends Component
                 //'total_purchase_items' => $collectedAmount,
                 'store_id' => $branch_id,
                 'type' => 'debit',
+                'transaction_kind' => 'collact_credit',
                 'status' => 'paid',
                 'created_by' => auth()->id(),
             ]
@@ -346,7 +351,7 @@ class CollationModal extends Component
             });
         }
 
-        $partyUsers = $query->paginate(10);
+        $partyUsers = $query->orderBy('use_credit', 'desc')->paginate(10);
 
         return view('livewire.collation-modal', [
             'partyUsers' => $partyUsers
