@@ -114,7 +114,16 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
+                                                    @php
+                                                        $total = 0;
+                                                        $qty = 0;
+                                                    @endphp
                                                     @foreach ($invoice->items as $i => $item)
+                                                        @php
+                                                            $item['price'] = $item['mrp'] * $item['quantity'];
+                                                            $total += (float) $item['price'];
+                                                            
+                                                        @endphp
                                                         <tr>
                                                             <th class="text-center" scope="row">{{ $i + 1 }}
                                                             </th>
@@ -155,7 +164,7 @@
 
                                                 <div class="mb-2 d-flex justify-content-between">
                                                     <h6 class="mb-0">Sub Total:</h6>
-                                                    <p class="mb-0">₹{{ number_format($invoice->sub_total, 2) }}</p>
+                                                    <p class="mb-0">₹{{ number_format($total, 2) }}</p>
 
                                                 </div>
                                                 @if ($invoice->commission_amount > 0)
@@ -184,7 +193,7 @@
                                                     @if ($invoice->roundof > 0)
                                                         @php
                                                             $cleanTotal = floatval(
-                                                                str_replace(',', '', $invoice->sub_total ?? 0),
+                                                                str_replace(',', '', $total ?? 0),
                                                             );
                                                             $cleanRoundof = floatval(
                                                                 str_replace(',', '', $invoice->roundof ?? 0),
@@ -213,7 +222,7 @@
                                                     @else
                                                         @php
                                                             $cleanTotal = floatval(
-                                                                str_replace(',', '', $invoice->sub_total ?? 0),
+                                                                str_replace(',', '', $total ?? 0),
                                                             );
 
                                                             $commission_amount = floatval(

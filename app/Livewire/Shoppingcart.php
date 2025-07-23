@@ -1685,6 +1685,7 @@ class Shoppingcart extends Component
                     'invoice_number' => $resumedInvoice->ref_no ?? $invoice_number_to_use,
                     'hold_date' => now(),
                     'ref_no' => $resumedInvoice->invoice_number ?? null,
+                    'roundof' => $this->roundedTotal,
                     'commission_user_id' => $commissionUser->id ?? null,
                     'party_user_id' => $partyUser->id ?? null,
                     'items' => $cartItems->map(fn($item) => [
