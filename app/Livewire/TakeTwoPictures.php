@@ -359,6 +359,7 @@ class TakeTwoPictures extends Component
                 $this->commiStatic['first_name'] = $user->first_name;
             } else {
                 $this->commiStatic = [];
+                $this->commiStatic['first_name'] = $user->first_name;
             }
         }
         // Now you can use $userId as needed
