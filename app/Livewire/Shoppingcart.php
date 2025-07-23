@@ -320,6 +320,11 @@ class Shoppingcart extends Component
 
     public function addQuantity($value)
     {
+        if (is_null($this->activeItemId)) {
+            $this->dispatch('notiffication-error', ['message' => 'Please selecte product in items.']);
+            return;
+        }
+
         if (!$this->activeProductId) return;
 
         $id = $this->activeProductId;
@@ -928,6 +933,7 @@ class Shoppingcart extends Component
         }
 
         $this->total = $this->cashAmount;
+        $this->dispatch('open-cash-modal');
     }
 
     public function srtoggleBox()
@@ -1055,6 +1061,8 @@ class Shoppingcart extends Component
 
         $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'cartitems', 'searchSalesReturn', 'removeCrossHold');
         $this->dispatch('removeRefundSelected');
+        $this->dispatch('hide-open-cash-modal');
+        $this->dispatch('hide-online-cash-modal');
         if (auth()->user()->hasRole('warehouse')) {
 
             $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/return_' . $refundNumber . '.pdf')]);
@@ -1973,6 +1981,10 @@ class Shoppingcart extends Component
     //sanjay
     public function incrementQty($id, $amount = 0)
     {
+        if (empty($id)) {
+            $this->dispatch('notiffication-error', ['message' => 'Please select a product in items.']);
+            return;
+        }
 
         $item = Cart::with(['product'])->where('id', $id)
             ->where('user_id', auth()->id())
@@ -2103,6 +2115,11 @@ class Shoppingcart extends Component
 
     public function decrementQty($id)
     {
+        if (is_null($this->activeItemId)) {
+            $this->dispatch('notiffication-error', ['message' => 'No product is currently selected.']);
+            return;
+        }
+
         $item = Cart::with(['product'])->where('id', $id)
             ->where('user_id', auth()->id())
             ->where('status', Cart::STATUS_PENDING)
@@ -2171,6 +2188,12 @@ class Shoppingcart extends Component
         $this->showBox = false;
         $this->dispatch('updateNewProductDetails');
         $this->dispatch('resetHoldPic');
+
+        if ($this->activeItemId == $id) {
+            $this->activeItemId = null;
+            $this->activeProductId = null;
+        }
+
         if ($this->selectedCommissionUser) {
             $this->commissionAmount = $this->finalDiscountPartyAmount;
         } else {
@@ -2901,6 +2924,8 @@ class Shoppingcart extends Component
             //dd($invoice);
             $first_name = (!empty($partyUser->first_name)) ? $partyUser->first_name : @$commissionUser->first_name;
             $this->dispatch('resetHoldPic');
+            $this->dispatch('hide-open-cash-modal');
+            $this->dispatch('hide-online-cash-modal');
             $pdf = App::make('dompdf.wrapper');
             $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => @$first_name, "ref_no" => $invoice->ref_no, "hold_date" => $invoice->hold_date]);
             $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
@@ -3298,6 +3323,8 @@ class Shoppingcart extends Component
         //    ]);
         $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/refund_' . $refundNumber . '.pdf')]);
         $this->dispatch('removeRefundSelected');
+        $this->dispatch('hide-open-cash-modal');
+        $this->dispatch('hide-online-cash-modal');
         // } catch (\Throwable $th) {
         //     $this->dispatch('notiffication-error', ['message' => 'Something went wrong']);
 
@@ -3584,6 +3611,8 @@ class Shoppingcart extends Component
                 ->where('status', '!=', Cart::STATUS_HOLD)
                 ->delete();
             $this->dispatch('resetHoldPic');
+            $this->dispatch('hide-open-cash-modal');
+            $this->dispatch('hide-online-cash-modal');
             $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'useCredit', 'showCheckbox', 'roundedTotal', 'removeCrossHold', 'cashNotes');
             session()->forget(['current_party_id', 'current_commission_id']);
         } catch (\Illuminate\Validation\ValidationException $e) {

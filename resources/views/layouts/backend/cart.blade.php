@@ -184,8 +184,7 @@
             border-radius: 10px !important;
             margin-left: 10px !important;
             width: 70px !important;
-            height: calc(100vh - 61px);
-            /* margin-top: 61px; OR use top: 61px with position: fixed */
+            /* height: calc(100vh - 101px); */
             z-index: 999;
         }
 
@@ -267,7 +266,7 @@
             color: rgba(36, 81, 118, 1);
         
         }
-        .btn-primary,.btn-primary:hover {
+        .btn-primary,.btn-primary:hover,.btn-deafult:hover {
             background-color: #009fe3;
         }
         .btn-warning,.btn-warning:hover{
