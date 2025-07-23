@@ -1,93 +1,75 @@
-<div class="sidebar-item">
-    {{-- Cashier Button --}}
-    @if (auth()->user()->hasRole('cashier'))
-        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#storeStockRequest"
-            data-toggle="tooltip" data-placement="top" title="{{ __('messages.store_stock_request') }}">
+{{-- Cashier Button --}}
+@if (auth()->user()->hasRole('cashier'))
+    <div class="sidebar-item" data-toggle="modal" data-target="#storeStockRequest" data-placement="top" title="{{ __('messages.store_stock_request') }}" style="cursor: pointer;">
+        <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
             <img src="{{ asset('public/external/frame2834471-mtm.svg') }}" alt="Stock Request Icon" />
         </button>
         <span>Stock Request</span>
-    @endif
+    </div>
+    <x-sidebar-separator />
+@endif
 
-    {{-- Warehouse Button --}}
-    @if (auth()->user()->hasRole('warehouse'))
-        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#warehouseStockRequest"
-            data-toggle="tooltip" data-placement="top" title="{{ __('messages.warehouse_stock_request') }}">
-            <img src="{{ asset('public/external/frame2834471-mtm.svg') }}" alt="Stock Request Icon" />
+{{-- Warehouse Button --}}
+@if (auth()->user()->hasRole('warehouse'))
+    <div class="sidebar-item" data-toggle="modal" data-target="#storeStockRequest" data-placement="top" title="{{ __('messages.store_stock_request') }}" style="cursor: pointer;">
+        <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
+            <img src="{{ asset('public/external/frame2834471-mtm.svg') }}" alt="Stock Request Icon" style="width: 20px; height: 20px;" />
         </button>
         <span>Stock Request</span>
-    @endif
-</div>
-<img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-    class="main-screen-rectangle457" />
+    </div>
+    <x-sidebar-separator />
+@endif
 
 <div class="sidebar-item">
-    <livewire:take-cash-modal />
-    <span>Add Cash</span>
+    <livewire:take-cash-modal wire:key="{{ ($isMobile ?? false) ? 'mobile-' : '' }}take-cash-modal-{{ auth()->id() }}" />
 </div>
-<img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-    class="main-screen-rectangle457" />
+<x-sidebar-separator />
 
-<div class="sidebar-item">
-    <button type="button" class="btn btn-default" data-toggle="modal" data-target="#cashout" data-toggle="tooltip"
-        data-placement="top" title="{{ __('messages.cash_out') }}">
+<div class="sidebar-item" data-toggle="modal" data-target="#cashout" data-placement="top" title="{{ __('messages.cash_out') }}" style="cursor: pointer;">
+    <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
         <img src="{{ asset('public/external/caseout.png') }}" alt="Cash Out Icon" width="32" height="32" />
     </button>
     <span>Cash Out</span>
 </div>
-<img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-    class="main-screen-rectangle457" />
+<x-sidebar-separator />
 
 @if (count($itemCarts) == 0)
-    <div class="sidebar-item">
-        <button type="button" class="btn btn-default ml-2" data-toggle="modal" data-target="#holdTransactionsModal"
-            data-toggle="tooltip" data-placement="top" title="{{ __('messages.view_hold') }}">
-            <img src="{{ asset('public/external/vector4471-4bnt.svg') }}" alt="View Hold Icon" />
+    <div class="sidebar-item" data-toggle="modal" data-target="#holdTransactionsModal" data-placement="top" title="{{ __('messages.view_hold') }}" style="cursor: pointer;">
+        <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
+            <img src="{{ asset('public/external/vector4471-4bnt.svg') }}" alt="View Hold Icon" style="width: 24px; height: 24px;" />
         </button>
         <span>View Hold</span>
     </div>
-    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-        class="main-screen-rectangle457" />
+    <x-sidebar-separator />
 @endif
 
 <div class="sidebar-item">
-    <livewire:order-modal />
-    <span>Sales History</span>
-
+    <livewire:order-modal wire:key="{{ ($isMobile ?? false) ? 'mobile-' : '' }}order-modal-{{ auth()->id() }}" />
 </div>
-<img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-    class="main-screen-rectangle457" />
+<x-sidebar-separator />
 
 @if (auth()->user()->hasRole('warehouse'))
-    <div class="sidebar-item">
-        <button wire:click="printLastInvoice" class="btn btn-default ml-2" data-toggle="tooltip" data-placement="top"
-            title="{{ __('messages.print_the_last_invoice') }}">
-            <img src="{{ asset('public/external/pdf_icon_final.jpg') }}" alt="Print Invoice Icon" />
+    <div class="sidebar-item" wire:click="printLastInvoice" data-placement="top" title="{{ __('messages.print_the_last_invoice') }}" style="cursor: pointer;">
+        <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
+            <img src="{{ asset('public/external/pdf_icon_final.jpg') }}" alt="Print Invoice Icon" style="width: 24px; height: 24px;" />
         </button>
         <span>Print Invoice</span>
     </div>
-    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-        class="main-screen-rectangle457" />
-@endif
+    <x-sidebar-separator />
 
-@if (auth()->user()->hasRole('warehouse'))
     <div class="sidebar-item">
-        <livewire:customer-credit-ledger-modal />
-        <span>Customer Credit Ledger</span>
+        <livewire:customer-credit-ledger-modal wire:key="{{ ($isMobile ?? false) ? 'mobile-' : '' }}credit-ledger-modal-{{ auth()->id() }}" />
     </div>
-    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-        class="main-screen-rectangle457" />
+    <x-sidebar-separator />
 @endif
 
 @if (count($itemCarts) == 0 && auth()->user()->hasRole('warehouse'))
     <div class="sidebar-item">
-        <livewire:collation-modal />
-        <span>Collect Credit</span>
+        <livewire:collation-modal wire:key="{{ ($isMobile ?? false) ? 'mobile-' : '' }}collation-modal-{{ auth()->id() }}" />
     </div>
-    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-        class="main-screen-rectangle457" />
+    <x-sidebar-separator />
 @endif
 
 <div class="sidebar-item">
-    @livewire('shift-close-modal')
-    <span>Close Shift</span>
+    @livewire('shift-close-modal', [], key('{{ ($isMobile ?? false) ? 'mobile-' : '' }}shift-close-modal-' . auth()->id()))
 </div>

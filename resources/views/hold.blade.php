@@ -108,7 +108,7 @@
         @endphp
         @foreach($items as $index => $item)
         @php
-            $item['price']=$item['price']*$item['quantity'];
+            $item['price']=$item['mrp']*$item['quantity'];
             $total+=(float)$item['price'];
             $qty+=$item['quantity'];
 
