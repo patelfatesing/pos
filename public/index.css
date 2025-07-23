@@ -3128,3 +3128,39 @@ tr.active1 td {
         transform: scale(1.03); /* slight zoom */
     }
 
+.table-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* border: 1px solid #dee2e6; */
+}
+
+/* For larger desktops (1200px+) */
+@media (min-width: 1200px) {
+    .table-container {
+        height: 670px; /* Original requested height */
+    }
+}
+
+/* Medium-sized devices (tablets, smaller desktops, 992px - 1199px) */
+@media (min-width: 992px) and (max-width: 1199px) {
+    .table-container {
+        height: 490px;
+    }
+}
+
+/* Small-sized devices (portrait tablets, large phones, 768px - 991px) */
+@media (min-width: 768px) and (max-width: 991px) {
+    .table-container {
+        height: 500px;
+    }
+}
+
+/* Extra small devices (mobile phones, less than 768px) */
+@media (max-width: 767px) {
+    .table-container {
+        height: 300px;
+    }
+}
+
+
+

@@ -438,7 +438,7 @@
 
                             <!-- Button 1 -->
                             <button type="button" class="btn btn-deafult main-screen-container2"
-                                wire:click="incrementQty({{ $this->activeItemId }})">
+                                wire:click="incrementQty({{ $this->activeItemId ?? 0 }})">
                                 <img src="{{ asset('../public/external/systemicon16pxplus4471-kuog.svg') }}"
                                     alt="Left Icon">
                             </button>
@@ -451,7 +451,7 @@
 
                             <!-- Button 3 -->
                             <button type="button" class="btn btn-deafult main-screen-container2"
-                                wire:click="decrementQty({{ $this->activeItemId, $this->activeProductId }})">
+                                wire:click="decrementQty({{ $this->activeItemId ?? 0 }}, {{ $this->activeProductId ?? 0 }})">
                                 <img src="{{ asset('../public/external/systemicon16pxplus4471-jpl.svg') }}"
                                     alt="Right Icon">
                             </button>
@@ -461,10 +461,9 @@
                 <!-- Product Table & Calculator -->
                 <div class="row mt-1">
                     <div class="col-md-9">
-                        <div class="table-responsive">
-
+                        <div class="table-container">
                             <table class="table table-bordered product-table" id="cartTable">
-                                <thead class="table-info">
+                                <thead class="sticky-top table-info">
                                     <tr>
                                         <th class="main-screen-text25">{{ __('messages.product') }}</th>
                                         <th class="main-screen-text25">{{ __('messages.qty') }}</th>
@@ -475,24 +474,14 @@
                                 </thead>
                                 <tbody>
                                     @forelse($itemCarts as $item)
-                                        @php
-                                            $total = @$item->product->sell_price * $item->quantity;
-                                            $commission = $commissionAmount ?? 0;
-                                            $party = $partyAmount ?? 0;
-                                            $finalAmount = $total - $commission - $party;
-                                        @endphp
                                         <tr class="{{ $this->activeItemId === $item->id ? 'active' : '' }}">
                                             <td wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})"
-                                                style="cursor:pointer">
+                                                style="cursor:pointer;">
                                                 {{ $item->product->name }}<br>
                                                 {{ $item->product->description }}
                                             </td>
+                                            <td>{{ $this->quantities[$item->id] }}</td>
                                             <td>
-
-                                                {{ $this->quantities[$item->id] }}
-                                            </td>
-                                            <td>
-
                                                 @if (@$this->partyUserDiscountAmt && $this->commissionAmount > 0)
                                                     <span class="text-danger">
                                                         @php
@@ -503,72 +492,48 @@
                                                             );
                                                         @endphp
                                                         {{ format_inr(@$data['partyUserDiscountAmt']) }}
-                                                    </span>
-                                                    <br>
-                                                    <small class="text-muted">
-                                                        <s>{{ format_inr(@$item->product->sell_price) }}</s>
-                                                    </small>
+                                                    </span><br>
+                                                    <small
+                                                        class="text-muted"><s>{{ format_inr(@$item->product->sell_price) }}</s></small>
                                                 @else
                                                     <span class="text-danger">
-                                                        @if ($this->selectedPartyUser)
-                                                            {{ format_inr(@$item->net_amount / $this->quantities[$item->id]) }}
-                                                        @else
-                                                            {{ format_inr(@$item->net_amount / $this->quantities[$item->id]) }}
-                                                        @endif
+                                                        {{ format_inr(@$item->net_amount / $this->quantities[$item->id]) }}
                                                     </span>
-                                                    @if ($this->selectedPartyUser && $item->net_amount / $this->quantities[$item->id] != $item->product->sell_price)
-                                                        <br>
-                                                        <small class="text-muted">
-                                                            <s>{{ format_inr(@$item->product->sell_price) }}</s>
-                                                        </small>
-                                                    @endif
-                                                    @if ($this->selectedCommissionUser)
-                                                        <br>
-                                                        <small class="text-muted">
-                                                            <s>{{ format_inr(@$item->product->sell_price) }}</s>
-                                                        </small>
+                                                    @if (
+                                                        ($this->selectedPartyUser || $this->selectedCommissionUser) &&
+                                                            $item->net_amount / $this->quantities[$item->id] != $item->product->sell_price)
+                                                        <br><small
+                                                            class="text-muted"><s>{{ format_inr(@$item->product->sell_price) }}</s></small>
                                                     @endif
                                                 @endif
                                             </td>
                                             <td class="text-success fw-bold">
-
                                                 {{ format_inr($item->net_amount) }}
-
                                             </td>
-                                            @if ($this->removeCrossHold == true)
-                                                <td>
-                                                    <button class="btn btn-danger"
+                                            <td>
+                                                @if ($this->removeCrossHold)
+                                                    <button class="btn btn-danger btn-sm"
                                                         onclick="Swal.fire({
-                                                                title: 'Do you want to remove this product ?',
-                                                                text: 'This action cannot be reverted!',
-                                                                icon: 'warning',
-                                                                showCancelButton: true,
-                                                                confirmButtonText: 'Yes, remove it',
-                                                                cancelButtonText: 'Cancel',
-                                                                reverseButtons: true
-                                                            }).then((result) => {
-                                                                if (result.isConfirmed) {
-                                                                    @this.removeItem({{ $item->id }},'resume','{{ $this->invoice_no }}');
-                                                                }
-                                                            });"
-                                                        title="Remove item">
+                                        title: 'Remove this product?',
+                                        icon: 'warning',
+                                        showCancelButton: true,
+                                        confirmButtonText: 'Yes, remove it',
+                                    }).then(result => {
+                                        if (result.isConfirmed) {
+                                            @this.removeItem({{ $item->id }},'resume','{{ $this->invoice_no }}');
+                                        }
+                                    });">
                                                         <i class="fas fa-times"></i>
                                                     </button>
-                                                </td>
-                                            @else
-                                                <td>
-                                                    <button class="btn btn-sm btn-default"
-                                                        wire:click="removeItem({{ $item->id }})"
-                                                        title="Remove item">
+                                                @else
+                                                    <button class="btn btn-default btn-sm"
+                                                        wire:click="removeItem({{ $item->id }})">
                                                         <img src="{{ asset('public/external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}"
-                                                            alt="Delete"
-                                                            class="main-screen-delete24dp1f1f1ffill0wght400grad0opsz24110">
+                                                            alt="Delete">
                                                     </button>
-
-                                                </td>
-                                            @endif
+                                                @endif
+                                            </td>
                                         </tr>
-
                                     @empty
                                         <tr>
                                             <td colspan="5" class="text-center text-muted">No products found in the
@@ -579,6 +544,7 @@
                             </table>
                         </div>
                     </div>
+
                     <!-- Calculator & Payment -->
                     <div class="col-12 col-md-3">
                         <!-- Calculator -->
@@ -874,7 +840,7 @@
                                                     <thead class="table-info"
                                                         style="background-color: #1aa59a; color: #fff;">
                                                         <tr class="">
-                                                        
+
                                                             <th>
                                                                 {{ __('messages.currency') }}</th>
                                                             <th>
@@ -909,8 +875,7 @@
                                                             </tr>
                                                         @endforeach
                                                         <tr class="total-row-custom">
-                                                            <td colspan="2"
-                                                                class="total-row-custom total_bgc">
+                                                            <td colspan="2" class="total-row-custom total_bgc">
                                                                 <span class="fw-bold text-success fs-6">Total
                                                                     Amount:</span>
 
@@ -1269,7 +1234,8 @@
                                         <td class="text-end w-semibold text-end text-center total_bgc"
                                             style="font-size: 1.4rem;">
                                             {{ __('messages.total') }}</td>
-                                        <td class="text-end w-semibold text-center total_bgc" style="font-size: 1.4rem;">
+                                        <td class="text-end w-semibold text-center total_bgc"
+                                            style="font-size: 1.4rem;">
                                             <span>
                                                 {{ $sum }}</span>
                                         </td>
@@ -1672,11 +1638,11 @@
                                                                     </td>
                                                                 @endif
                                                                 @if (!empty($this->selectedSalesReturn))
-                                                                <td class="text-center ">
-                                                                @else
-                                                                <td class="text-center currency-center">
-                                                                @endif    
-                                                                    {{ format_inr($denomination) }}</td>
+                                                                    <td class="text-center ">
+                                                                    @else
+                                                                    <td class="text-center currency-center">
+                                                                @endif
+                                                                {{ format_inr($denomination) }}</td>
 
                                                                 <td class="text-center">
                                                                     <div class="d-flex align-items-center"
