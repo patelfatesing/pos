@@ -2203,9 +2203,13 @@ class Shoppingcart extends Component
         //    $this->loadCartData();
     }
 
-    public function removeItemActivte($id, $type = "", $invoiceNo = "")
+    public function removeItemActivte($id = null, $type = "", $invoiceNo = "")
     {
-        // dd($this);
+        if (empty($id)) {
+            $this->dispatch('notiffication-error', ['message' => 'No product is currently selected.']);
+            return;
+        }
+
         $userId = auth()->id(); // Get the currently authenticated user's ID
 
         // Count only this user's cart items
