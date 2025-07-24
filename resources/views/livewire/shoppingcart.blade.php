@@ -99,113 +99,95 @@
 
     <div class="row flex-md-nowrap">
         <!-- Desktop Sidebar -->
-        <div id="sidebar" class="sidebar d-none d-md-flex flex-column py-2">
-            <div class="scrollable-sidebar-inner">
-                <div class="sidebar-item">
-                    {{-- Cashier Button --}}
-                    @if (auth()->user()->hasRole('cashier'))
-                        <div class="" data-toggle="modal" data-target="#storeStockRequest" data-toggle="tooltip"
-                            data-placement="top" title="{{ __('messages.store_stock_request') }}"
-                            style="cursor: pointer;">
-                            <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
-                                <img src="{{ asset('public/external/frame2834471-mtm.svg') }}"
-                                    alt="Stock Request Icon" />
-                            </button>
-                            <span class="">Stock Request</span>
-                        </div>
-                    @endif
+        <div id="sidebar" class="sidebar d-none d-md-flex flex-column py-2" style="max-height: 100vh; overflow-y: auto;">
 
-                    {{-- Warehouse Button --}}
-                    @if (auth()->user()->hasRole('warehouse'))
-                        <div class="" data-toggle="modal" data-target="#storeStockRequest" data-toggle="tooltip"
-                            data-placement="top" title="{{ __('messages.store_stock_request') }}"
-                            style="cursor: pointer;">
-                            <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
-                                <img src="{{ asset('public/external/frame2834471-mtm.svg') }}" alt="Stock Request Icon"
-                                    style="width: 20px; height: 20px;" />
-                            </button>
-                            <span class="">Stock Request</span>
-                        </div>
-                    @endif
-                </div>
-                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-                    class="main-screen-rectangle457" />
 
-                <div class="sidebar-item">
-                    <livewire:take-cash-modal />
-                </div>
-                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-                    class="main-screen-rectangle457" />
 
-                <div class="sidebar-item">
-                    <div class="" data-toggle="modal" data-target="#cashout" data-toggle="tooltip"
-                        data-placement="top" title="{{ __('messages.cash_out') }}" style="cursor: pointer;">
+            {{-- Stock Request (Cashier or Warehouse) --}}
+            @auth
+                @if (auth()->user()->hasRole('cashier') || auth()->user()->hasRole('warehouse'))
+                    <div class="sidebar-item" data-bs-toggle="modal" data-bs-target="#storeStockRequest"
+                        title="Stock Request">
                         <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
-                            <img src="{{ asset('public/external/caseout.png') }}" alt="Cash Out Icon" width="32"
-                                height="32" />
+                            <img src="{{ asset('public/external/frame2834471-mtm.svg') }}" alt="Stock Request Icon"
+                                width="20" height="20">
                         </button>
-                        <span class="">Cash Out</span>
+                        <span>Stock Request</span>
                     </div>
+                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
+                        class="main-screen-rectangle457" />
+                @endif
+            @endauth
+
+            {{-- Add Cash --}}
+            <div class="sidebar-item">
+                <livewire:take-cash-modal wire:key="take-cash-modal-static" />
+            </div>
+            <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" class="main-screen-rectangle457" />
+
+            {{-- Cash Out --}}
+            <div class="sidebar-item" data-bs-toggle="modal" data-bs-target="#cashout" title="Cash Out">
+                <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
+                    <img src="{{ asset('public/external/caseout.png') }}" alt="Cash Out" width="32" height="32">
+                </button>
+                <span>Cash Out</span>
+            </div>
+            <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
+                class="main-screen-rectangle457" />
+
+            {{-- View Hold --}}
+            @if (count($itemCarts) == 0)
+                <div class="sidebar-item" data-bs-toggle="modal" data-bs-target="#holdTransactionsModal"
+                    title="View Hold">
+                    <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
+                        <img src="{{ asset('public/external/vector4471-4bnt.svg') }}" alt="View Hold" width="24"
+                            height="24">
+                    </button>
+                    <span>View Hold</span>
                 </div>
-                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
                     class="main-screen-rectangle457" />
+            @endif
 
-                @if (count($itemCarts) == 0)
-                    <div class="sidebar-item">
-                        <div class="" data-toggle="modal" data-target="#holdTransactionsModal"
-                            data-toggle="tooltip" data-placement="top" title="{{ __('messages.view_hold') }}"
-                            style="cursor: pointer;">
-                            <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
-                                <img src="{{ asset('public/external/vector4471-4bnt.svg') }}" alt="View Hold Icon"
-                                    style="width: 24px; height: 24px;" />
-                            </button>
-                            <span>View Hold</span>
-                        </div>
-                    </div>
-                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-                        class="main-screen-rectangle457" />
-                @endif
+            {{-- Sales History --}}
+            <div class="sidebar-item">
+                <livewire:order-modal wire:key="order-modal-static" />
+            </div>
+            <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
+                class="main-screen-rectangle457" />
 
-                <div class="sidebar-item">
-                    <livewire:order-modal />
-                </div>
-                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-                    class="main-screen-rectangle457" />
-
+            {{-- Warehouse Tools --}}
+            @auth
                 @if (auth()->user()->hasRole('warehouse'))
+                    <div class="sidebar-item" wire:click="printLastInvoice" title="Print Invoice">
+                        <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
+                            <img src="{{ asset('public/external/pdf_icon_final.jpg') }}" alt="Print Invoice Icon"
+                                width="24" height="24">
+                        </button>
+                        <span>Print Invoice</span>
+                    </div>
+                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
+                        class="main-screen-rectangle457" />
+
                     <div class="sidebar-item">
-                        <div class="" wire:click="printLastInvoice" data-toggle="tooltip" data-placement="top"
-                            title="{{ __('messages.print_the_last_invoice') }}" style="cursor: pointer;">
-                            <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
-                                <img src="{{ asset('public/external/pdf_icon_final.jpg') }}" alt="Print Invoice Icon"
-                                    style="width: 24px; height: 24px;" />
-                            </button>
-                            <span class="">Print Invoice</span>
+                        <livewire:customer-credit-ledger-modal wire:key="credit-ledger-modal-static" />
+                    </div>
+                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
+                        class="main-screen-rectangle457" />
+
+                    @if (count($itemCarts) == 0)
+                        <div class="sidebar-item">
+                            <livewire:collation-modal wire:key="collation-modal-static" />
                         </div>
-                    </div>
-                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-                        class="main-screen-rectangle457" />
+                        <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
+                            class="main-screen-rectangle457" />
+                    @endif
                 @endif
+            @endauth
 
-                @if (auth()->user()->hasRole('warehouse'))
-                    <div class="sidebar-item">
-                        <livewire:customer-credit-ledger-modal />
-                    </div>
-                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-                        class="main-screen-rectangle457" />
-                @endif
-
-                @if (count($itemCarts) == 0 && auth()->user()->hasRole('warehouse'))
-                    <div class="sidebar-item">
-                        <livewire:collation-modal />
-                    </div>
-                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-                        class="main-screen-rectangle457" />
-                @endif
-
-                <div class="sidebar-item">
-                    @livewire('shift-close-modal')
-                </div>
+            {{-- Close Shift --}}
+            <div class="sidebar-item">
+                <livewire:shift-close-modal wire:key="shift-close-modal-static" />
             </div>
         </div>
 
@@ -216,106 +198,91 @@
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
             </div>
             <div class="offcanvas-body">
-                <div class="sidebar-item">
-                    {{-- Cashier Button --}}
-                    @if (auth()->user()->hasRole('cashier'))
-                        <button type="button" class="btn btn-default" data-toggle="modal"
-                            data-target="#storeStockRequest" data-toggle="tooltip" data-placement="top"
-                            title="{{ __('messages.store_stock_request') }}">
-                            <img src="{{ asset('public/external/frame2834471-mtm.svg') }}"
-                                alt="Stock Request Icon" />
-                        </button>
-                        <span>Stock Request</span>
+                @auth
+                    @if (auth()->user()->hasRole('cashier') || auth()->user()->hasRole('warehouse'))
+                        <div class="sidebar-item">
+                            <button class="btn btn-default" data-bs-toggle="modal" data-bs-target="#storeStockRequest"
+                                title="Stock Request">
+                                <img src="{{ asset('public/external/frame2834471-mtm.svg') }}"
+                                    alt="Stock Request Icon" />
+                            </button>
+                            <span>Stock Request</span>
+                        </div>
+                        <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
+                            class="main-screen-rectangle457" />
                     @endif
-
-                    {{-- Warehouse Button --}}
-                    @if (auth()->user()->hasRole('warehouse'))
-                        <button type="button" class="btn btn-default" data-toggle="modal"
-                            data-target="#warehouseStockRequest" data-toggle="tooltip" data-placement="top"
-                            title="{{ __('messages.warehouse_stock_request') }}">
-                            <img src="{{ asset('public/external/frame2834471-mtm.svg') }}"
-                                alt="Stock Request Icon" />
-                        </button>
-                        <span>Stock Request</span>
-                    @endif
-                </div>
-                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-                    class="main-screen-rectangle457" />
+                @endauth
 
                 <div class="sidebar-item">
-                    <livewire:take-cash-modal />
+                    <livewire:take-cash-modal wire:key="mobile-take-cash-modal-static" />
                     <span>Add Cash</span>
                 </div>
-                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
                     class="main-screen-rectangle457" />
 
                 <div class="sidebar-item">
-                    <button type="button" class="btn btn-default" data-toggle="modal" data-target="#cashout"
-                        data-toggle="tooltip" data-placement="top" title="{{ __('messages.cash_out') }}">
-                        <img src="{{ asset('public/external/caseout.png') }}" alt="Cash Out Icon" width="32"
+                    <button class="btn btn-default" data-bs-toggle="modal" data-bs-target="#cashout"
+                        title="Cash Out">
+                        <img src="{{ asset('public/external/caseout.png') }}" alt="Cash Out" width="32"
                             height="32" />
                     </button>
                     <span>Cash Out</span>
                 </div>
-                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
                     class="main-screen-rectangle457" />
 
                 @if (count($itemCarts) == 0)
                     <div class="sidebar-item">
-                        <button type="button" class="btn btn-default ml-2" data-toggle="modal"
-                            data-target="#holdTransactionsModal" data-toggle="tooltip" data-placement="top"
-                            title="{{ __('messages.view_hold') }}">
+                        <button class="btn btn-default" data-bs-toggle="modal"
+                            data-bs-target="#holdTransactionsModal" title="View Hold">
                             <img src="{{ asset('public/external/vector4471-4bnt.svg') }}" alt="View Hold Icon" />
                         </button>
                         <span>View Hold</span>
                     </div>
-                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
                         class="main-screen-rectangle457" />
                 @endif
 
                 <div class="sidebar-item">
-                    <livewire:order-modal />
+                    <livewire:order-modal wire:key="mobile-order-modal-static" />
                     <span>Sales History</span>
-
                 </div>
-                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
+                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
                     class="main-screen-rectangle457" />
 
-                @if (auth()->user()->hasRole('warehouse'))
-                    <div class="sidebar-item">
-                        <button wire:click="printLastInvoice" class="btn btn-default ml-2" data-toggle="tooltip"
-                            data-placement="top" title="{{ __('messages.print_the_last_invoice') }}">
-                            <img src="{{ asset('public/external/pdf_icon_final.jpg') }}" alt="Print Invoice Icon" />
-                        </button>
-                        <span>Print Invoice</span>
-                    </div>
-                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-                        class="main-screen-rectangle457" />
-                @endif
+                @auth
+                    @if (auth()->user()->hasRole('warehouse'))
+                        <div class="sidebar-item">
+                            <button wire:click="printLastInvoice" class="btn btn-default" title="Print Invoice">
+                                <img src="{{ asset('public/external/pdf_icon_final.jpg') }}" alt="Print Invoice Icon" />
+                            </button>
+                            <span>Print Invoice</span>
+                        </div>
+                        <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
+                            class="main-screen-rectangle457" />
 
-                @if (auth()->user()->hasRole('warehouse'))
-                    <div class="sidebar-item">
-                        <livewire:customer-credit-ledger-modal />
-                        <span>Customer Credit Ledger</span>
-                    </div>
-                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-                        class="main-screen-rectangle457" />
-                @endif
+                        <div class="sidebar-item">
+                            <livewire:customer-credit-ledger-modal wire:key="mobile-credit-ledger-modal-static" />
+                            <span>Customer Credit Ledger</span>
+                        </div>
+                        <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
+                            class="main-screen-rectangle457" />
 
-                @if (count($itemCarts) == 0 && auth()->user()->hasRole('warehouse'))
-                    <div class="sidebar-item">
-                        <livewire:collation-modal />
-                        <span>Collect Credit</span>
-                    </div>
-                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" alt="Separator"
-                        class="main-screen-rectangle457" />
-                @endif
+                        @if (count($itemCarts) == 0)
+                            <div class="sidebar-item">
+                                <livewire:collation-modal wire:key="mobile-collation-modal-static" />
+                                <span>Collect Credit</span>
+                            </div>
+                            <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
+                                class="main-screen-rectangle457" />
+                        @endif
+                    @endif
+                @endauth
 
                 <div class="sidebar-item">
-                    @livewire('shift-close-modal')
+                    <livewire:shift-close-modal wire:key="mobile-shift-close-modal-static" />
                     <span>Close Shift</span>
                 </div>
-
             </div>
         </div>
 
@@ -338,15 +305,34 @@
                 <!-- Filters -->
                 <div class="row  mt-2">
                     <div class="col-12 col-md-3">
-                        <div class="position-relative">
-                            <input type="number" class="form-control rounded-pill pe-5 custom-border"
-                                placeholder="{{ __('messages.scan_barcode') }}" wire:model.live="search"
-                                wire:keydown.enter="addToCartBarCode" autofocus>
+                    <div class="position-relative">
+                        <input type="number" class="form-control rounded-pill pe-5 custom-border"
+                            placeholder="{{ __('messages.scan_barcode') }}" wire:model.live="search"
+                            wire:keydown.enter="addToCartBarCode" autofocus>
 
-                            <img src="{{ asset('public/external/barcoderead14471-053n.svg') }}" alt="Barcode"
-                                style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px;">
-                        </div>
+                        <!-- Barcode icon -->
+                        <img src="{{ asset('public/external/barcoderead14471-053n.svg') }}" alt="Barcode"
+                            style="position: absolute; right: 40px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px;">
+
+                        <!-- Clear button -->
+                        @if($search)
+                            <button type="button" 
+                                wire:click="clearSearch" 
+                                style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+                                    border: none; background: transparent; font-size: 18px; cursor: pointer; color: #888;"
+                                aria-label="Clear input">&times;</button>
+                        @endif
                     </div>
+
+                    @if(strlen($notFoundMessage) > 0)
+                        <div class="mt-2 text-danger" style="font-size: 0.9rem;">
+                            {{ $notFoundMessage }}
+                        </div>
+                    @endif
+                </div>
+
+
+
 
                     <div class="col-12 col-md-3">
                         <div class="position-relative ">
@@ -398,45 +384,42 @@
                 </div>
                 <!-- Search + Buttons -->
                 <div class="row  mt-2">
-                    <div class="col-md-9">
+                   <div class="col-md-9 position-relative">
                         <form wire:submit.prevent="searchTerm" class="mb-0">
-                            <div class="position-relative">
+                            <div class="input-group rounded-pill overflow-hidden custom-border">
                                 <input type="text" wire:model.live.debounce.500ms="searchTerm"
                                     placeholder="{{ __('messages.enter_product_name') }}"
-                                    class="form-control rounded-pill ps-4 pe-5 custom-border" id="searchInput"
+                                    class="form-control border-0 ps-4" id="searchInput"
                                     autocomplete="off" />
-
-                                <img src="{{ asset('public/external/vector4471-m3pl.svg') }}" alt="Search"
-                                    class="position-absolute top-50 end-0 translate-middle-y me-3"
-                                    style="width: 20px; height: 20px;">
+                                <span class="input-group-text bg-transparent border-0 pe-3">
+                                    <img src="{{ asset('public/external/vector4471-m3pl.svg') }}" alt="Search"
+                                        style="width: 20px; height: 20px;">
+                                </span>
                             </div>
                         </form>
-                        <!-- Suggestions Dropdown -->
+
                         @if ($this->showSuggestions && count($searchResults) > 0)
-                            <div class="position-absolute w-100 bg-white border rounded mt-1 z-3 shadow"
-                                style="max-height: 260px; overflow-y: auto;">
-                                <ul class="list-unstyled mb-0">
+                            <div class="dropdown-menu show w-100 mt-1 shadow-sm overflow-auto" 
+                                style="max-height: 260px; border-radius: 0.5rem;">
+                                <ul class="list-group list-group-flush">
                                     @foreach ($searchResults as $product)
-                                        <li>
-                                            <a href="#"
-                                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 px-3"
-                                                wire:click.prevent="addToCart({{ $product->id }})"
-                                                style="border-bottom: 1px solid #f1f1f1;">
-                                                <div class="d-flex flex-column">
-                                                    <span class="fw-semibold">{{ $product->name }}</span>
-                                                    @if ($product->description)
-                                                        <small class="text-muted">{{ $product->description }}</small>
-                                                    @endif
-                                                </div>
-                                                <span
-                                                    class="text-primary fw-bold ms-3">{{ format_inr(@$product->sell_price) }}</span>
-                                            </a>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center px-3 py-2"
+                                            wire:click.prevent="addToCart({{ $product->id }})"
+                                            style="cursor: pointer;">
+                                            <div class="d-flex flex-column">
+                                                <span class="fw-semibold">{{ $product->name }}</span>
+                                                @if ($product->description)
+                                                    <small class="text-muted">{{ $product->description }}</small>
+                                                @endif
+                                            </div>
+                                            <span class="text-primary fw-bold ms-3">{{ format_inr(@$product->sell_price) }}</span>
                                         </li>
                                     @endforeach
                                 </ul>
                             </div>
                         @endif
                     </div>
+
 
                     <div class="col-md-3 mt-3 mt-md-0">
                         <div class="d-flex justify-content-between align-items-center gap-2">
@@ -641,7 +624,7 @@
 
 
                         <!-- Action Buttons (Bootstrap) -->
-                        <div class="mt-3 row g-2">
+                        <div class="mt-1 row g-2">
                             @if (empty($this->selectedSalesReturn))
                                 <div class="col-6">
                                     <button wire:click="holdSale" class="btn btn-deafult btn-hold w-100">
@@ -701,7 +684,7 @@
                     <div class="col-4 fw-semibold">Round Off</div>
                     <div class="col-4 fw-semibold">Total Payable</div>
                 </div>
-                <div class="row text-center align-items-center" style="min-height:90px;">
+                <div class="row text-center align-items-center" style="min-height:60px;">
                     <div class="col-4 border-end fs-4 fw-bold text-custom-blue">{{ $this->cartCount }}</div>
                     <div class="col-4 border-end fs-4 fw-bold text-custom-blue">@php
                         $this->roundedTotal =
@@ -890,7 +873,7 @@
                                                                             <button style="width: 40%;" type="button" class="btn btn-gray btn-decrease rounded-start"
                                                                                 onclick="updateNote('{{ $key }}_{{ $denomination }}', -1, {{ $denomination }})">−</button>
                                                                             <span
-                                                                                id="display_{{ $key }}_{{ $denomination }}" class="form-control text-center  bg-white px-1 note-input" style="width: 60px;">0</span>
+                                                                                id="display_{{ $key }}_{{ $denomination }}" class="form-control text-center  bg-white px-1 " style="width: 60px;">0</span>
                                                                                 
                                                                             <button  style="width: 40%;" class="btn btn-gray rounded-end btn-increase" type="button"
                                                                                 onclick="updateNote('{{ $key }}_{{ $denomination }}', 1, {{ $denomination }})">+</button>
@@ -1172,8 +1155,7 @@
                                                                     name="cashNotes[{{ $key }}][{{ $denomination }}]"
                                                                     id="cashhandsum_{{ $denomination }}"
                                                                     class="form-control text-center  bg-white px-1 note-input"
-                                                                    value="0" readonly
-                                                                    data-denomination="{{ $denomination }}" style="width: 60px;">
+                                                                    value="0" readonly data-denomination="{{ $denomination }}" style="width: 60px;">
                                                                 <button style="width: 40%;" type="button"
                                                                     class="btn btn-gray rounded-end btn-increase"
                                                                     data-denomination="{{ $denomination }}"
@@ -1564,10 +1546,14 @@
                                                 @else
                                                     @if ($this->cashAmount == $totals['totalIn'] - $totals['totalOut'] && $errorInCredit == false)
                                                         <button id="paymentSubmit"
-                                                            class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
-                                                            wire:click="checkout" wire:loading.attr="disabled">
-                                                            {{ __('messages.submit') }}
+                                                                class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
+                                                                wire:click="checkout" 
+                                                                wire:loading.attr="disabled" 
+                                                                wire:target="checkout">
+                                                            <span wire:loading.remove wire:target="checkout">{{ __('messages.submit') }}</span>
+                                                            <span wire:loading wire:target="checkout">Loading...</span>
                                                         </button>
+
                                                     @endif
                                                 @endif
                                                 {{-- <div wire:loading class=" text-muted">{{ __('messages.processing_payment') }}...
@@ -1815,18 +1801,26 @@
                                         <p id="result" class="mt-3 fw-bold text-success"></p>
                                         <div class="mt-4">
                                             @if ($this->showOnline == true && $this->cashAmount > 0)
-                                                <button id="paymentSubmit"
-                                                    class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
-                                                    wire:click="onlinePaymentCheckout" wire:loading.attr="disabled">
-                                                    {{ __('messages.submit') }}
+                                               <button id="paymentSubmit"
+                                                        class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
+                                                        wire:click="onlinePaymentCheckout" 
+                                                        wire:loading.attr="disabled" 
+                                                        wire:target="onlinePaymentCheckout">
+                                                    <span wire:loading.remove wire:target="onlinePaymentCheckout">{{ __('messages.submit') }}</span>
+                                                    <span wire:loading wire:target="onlinePaymentCheckout">Loading...</span>
                                                 </button>
+
                                             @else
                                                 @if ($this->cashAmount == $this->cash + $this->upi && $this->upi >= 0)
                                                     <button id="paymentSubmit"
-                                                        class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
-                                                        wire:click="checkout" wire:loading.attr="disabled">
-                                                        {{ __('messages.submit') }}
+                                                            class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
+                                                            wire:click="checkout" 
+                                                            wire:loading.attr="disabled" 
+                                                            wire:target="checkout">
+                                                        <span wire:loading.remove wire:target="checkout">{{ __('messages.submit') }}</span>
+                                                        <span wire:loading wire:target="checkout">Loading...</span>
                                                     </button>
+
                                                 @endif
                                             @endif
 
@@ -2707,11 +2701,11 @@
             const denomination = parseInt(input.dataset.denomination);
             const quantity = parseInt(input.value) || 0;
             const amount = denomination * quantity;
-
             document.getElementById('discashhandsum_' + denomination).innerText = '' + amount;
 
             document.getElementById('cashhandsum_' + denomination).innerText = '' + amount;
             total += amount;
+            
             amountInput.value = total;
         });
         document.getElementById('totalNoteCashHand').innerText = '' + total;
