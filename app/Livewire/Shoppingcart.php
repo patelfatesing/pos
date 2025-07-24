@@ -248,27 +248,6 @@ class Shoppingcart extends Component
             return;
         }
 
-        // $item = Cart::where('product_id', $id)
-        // ->where('user_id', auth()->id())
-        // ->where('status', Cart::STATUS_PENDING)
-        // ->first();
-        //  if (!empty($item)) {
-        //     $item->quantity = $item->quantity + 1;
-        //     $item->save();
-        // }else{
-        //     $item=new Cart();
-        //     $item->user_id = auth()->user()->id;
-        //     $item->product_id = $id;
-        //     $item->save();
-
-        // }
-        // $user = Partyuser::where('status', 'Active')->find($this->selectedPartyUser);
-        // if (!empty($user)) {
-        //     $this->getDiscountPrice($this->selectedProduct->id, $user->id);
-        //     $myCart = $this->partyUserDiscountAmt;
-        // } else {
-        //     $myCart = 0;
-        // }
         if ($this->selectedCommissionUser) {
             $commissionUser = CommissionUser::where('status', 'Active')->where('is_deleted', '!=', 'Yes')->find($this->selectedCommissionUser);
             if (!empty($commissionUser)) {
@@ -290,12 +269,11 @@ class Shoppingcart extends Component
                 //$this->cashAmount = $this->cartitems->sum('net_amount')-$user->credit_points;
                 $myCart = $this->partyUserDiscountAmt;
             } else {
-
                 $myCart = 0;
                 //$this->partyAmount=$myCart;
-
             }
         }
+
         $item = Cart::where('product_id', $this->selectedProduct->id)
             ->where('user_id', auth()->id())
             ->where('status', Cart::STATUS_PENDING)
@@ -319,6 +297,9 @@ class Shoppingcart extends Component
         } else {
             $this->partyAmount = $this->finalDiscountPartyAmount;
         }
+
+        $this->activeItemId = $item->id;
+        $this->activeProductId = $this->selectedProduct->id;
 
         // $this->updateQty($item->id);
         $this->dispatch('updateNewProductDetails');
@@ -2539,10 +2520,12 @@ class Shoppingcart extends Component
 
                 }
             }
+
             $item = Cart::where('product_id', $id)
                 ->where('user_id', auth()->id())
                 ->where('status', Cart::STATUS_PENDING)
                 ->first();
+
             if (!empty($item)) {
                 $this->incrementQty($item->id);
             } else {
@@ -2555,6 +2538,7 @@ class Shoppingcart extends Component
                 $item->net_amount = $product->sell_price - $myCart;
                 $item->save();
             }
+
             $this->finalDiscountParty();
             if ($this->selectedCommissionUser) {
                 $this->commissionAmount = $this->finalDiscountPartyAmount;
@@ -2562,11 +2546,13 @@ class Shoppingcart extends Component
                 $this->partyAmount = $this->finalDiscountPartyAmount;
             }
 
+            $this->activeItemId = $item->id;
+            $this->activeProductId = $id;
+
             // $this->updateQty($item->id);
             $this->dispatch('updateNewProductDetails');
             $this->reset('searchTerm', 'searchResults', 'showSuggestions');
             //$this->dispatch('notiffication-sucess', ['message' => 'Product added to the cart successfull.']);
-
 
         } else {
             // redirect to login page
