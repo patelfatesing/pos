@@ -85,6 +85,43 @@
 
                             </div>
                         </div>
+                        <div class="col-lg-6 col-md-6">
+                            <div class="card card-block card-stretch card-height">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                        <div class="icon iq-icon-box-2 orange-bg-light">
+                                            <i class="fas fa-clone text-warning fa-2x"></i>
+                                        </div>
+                                        <div>
+                                            <p class="mb-2">Total Stock Available</p>
+                                            <h4>{{ $data['total_quantity'] ?? 0 }}</h4>
+                                        </div>
+                                    </div>
+                                    <div class="iq-progress-bar mt-2">
+                                        <span class="orange-bg iq-progress progress-1" data-percent="75"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6">
+                            <div class="card card-block card-stretch card-height">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                        <div class="icon iq-icon-box-2 sky-blue-gb">
+                                            <i class="fab fa-accusoft text-success fa-2x" title="Available Stock"></i>
+                                        </div>
+                                        
+                                        <div>
+                                            <p class="mb-2">Total Transaction</p>
+                                            <h4>{{ $data['invoice_count'] ?? 0 }}</h4>
+                                        </div>
+                                    </div>
+                                    <div class="iq-progress-bar mt-2">
+                                        <span class="sky-blue-gb iq-progress progress-1" data-percent="75"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="col-lg-6">
                             <div class="card card-block card-stretch card-height">
                                 <div class="card-header d-flex justify-content-between">

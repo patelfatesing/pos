@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Branch;
 use App\Models\Invoice;
+use App\Models\Inventory;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 
@@ -20,17 +21,31 @@ class DashboardController extends Controller
         // Get role name from session
         $roleName = strtolower(session('role_name'));
         // Redirect non-admin users to items.cart
-        if($roleName=="warehouse" || $roleName== "cashier"){
+        if ($roleName == "warehouse" || $roleName == "cashier") {
             return redirect()->route('items.cart');
-        }else if ($roleName !== 'admin') {
-         return redirect(route('dashboard'));
+        } else if ($roleName !== 'admin') {
+            return redirect(route('dashboard'));
         }
 
         // Only admin users will reach this point
         $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
 
-        $totals = Invoice::selectRaw('SUM(total) as total_sales, SUM(creditpay) as total_creditpay, SUM(total_item_qty) as total_products')->whereNotIn('status',[ 'Hold','resumed','archived'])->first();
+        $totals = Invoice::selectRaw('
+                SUM(total) as total_sales,
+                SUM(creditpay) as total_creditpay,
+                SUM(total_item_qty) as total_products,
+                COUNT(*) as invoice_count
+            ')
+            ->whereNotIn('status', ['Hold', 'resumed', 'archived'])
+            ->first();
 
+        $totals_qty = Inventory::selectRaw('SUM(inventories.quantity) as total_quantity')
+            ->join('products', 'products.id', '=', 'inventories.product_id')
+            ->where('products.is_deleted', 'no')
+            ->first();
+
+        $invoice_count = $totals->invoice_count;
+        $totalQuantity = $totals_qty->total_quantity;
         $totalSales = $totals->total_sales;
         $total_creditpay = $totals->total_creditpay;
         $totalProducts = $totals->total_products;
@@ -40,30 +55,43 @@ class DashboardController extends Controller
             ->selectRaw('SUM(products.cost_price * inventories.quantity) as total_cost_price')
             ->first();
 
-        $data= [
+        $data = [
             'store'         => "Selete Store",
-            'sales'         => $totalSales+$total_creditpay,
+            'sales'         => $totalSales + $total_creditpay,
             'products'        => $totalProducts,
             'total_cost_price'     => $inventorySummary->total_cost_price,
             'top_products'  => $totalSales,
+            'total_quantity' => $totalQuantity,
+            'invoice_count' => $invoice_count
         ];
-        return view('dashboard', compact('branch','data')); // This refers to resources/views/dashboard.blade.php
+        return view('dashboard', compact('branch', 'data')); // This refers to resources/views/dashboard.blade.php
     }
+
     public function showStore($storeId)
     {
         $store = Branch::findOrFail($storeId); // or Branch if you're using Branch model
         $data = $this->getDashboardDataForStore($storeId); // Your logic here
         return view('dashboard', compact('store', 'data'));
     }
+
     protected function getDashboardDataForStore($storeId)
     {
         // Example: Fetch store
         $store = Branch::findOrFail($storeId);
-        $totals = Invoice::selectRaw('SUM(total) as total_sales, SUM(creditpay) as total_creditpay, SUM(total_item_qty) as total_products')->where('branch_id', $storeId)->whereNotIn('status',[ 'Hold','resumed','archived'])->first();
+        $totals = Invoice::selectRaw('
+                SUM(total) as total_sales,
+                SUM(creditpay) as total_creditpay,
+                SUM(total_item_qty) as total_products,
+                COUNT(*) as invoice_count
+            ')
+            ->where('branch_id', $storeId)
+            ->whereNotIn('status', ['Hold', 'resumed', 'archived'])
+            ->first();
 
         $totalSales = $totals->total_sales;
         $total_creditpay = $totals->total_creditpay;
         $totalProducts = $totals->total_products;
+        $invoice_count = $totals->invoice_count;
 
         $inventorySummary = \DB::table('inventories')
             ->join('products', 'inventories.product_id', '=', 'products.id')
@@ -71,12 +99,22 @@ class DashboardController extends Controller
             ->where('inventories.store_id', $storeId)
             ->first();
 
+        $totals_qty = Inventory::selectRaw('SUM(inventories.quantity) as total_quantity')
+            ->join('products', 'products.id', '=', 'inventories.product_id')
+            ->where('inventories.store_id', $storeId)
+            ->where('products.is_deleted', 'no')
+            ->first();
+
+        $totalQuantity = $totals_qty->total_quantity;
+
         return [
             'store'         => $store->name,
-            'sales'         => $totalSales+$total_creditpay,
+            'sales'         => $totalSales + $total_creditpay,
             'products'        => $totalProducts,
             'total_cost_price'     => $inventorySummary->total_cost_price,
             'top_products'  => $totalSales,
+            'total_quantity' => $totalQuantity,
+            'invoice_count' => $invoice_count
         ];
 
 
@@ -118,5 +156,4 @@ class DashboardController extends Controller
         //     'top_products'  => $totalSales,
         // ];
     }
-
-}   
+}

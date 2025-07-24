@@ -42,3 +42,13 @@
     scrollbar-color: #040404 #f1f1f1;
 
 }
+
+.sky-blue-gb{
+    color: #87CEEB;
+    background-color: #87CEFA;
+}
+
+.orange-bg{
+    color: #FFA500;
+    background-color: #FFA500 !important;
+}
