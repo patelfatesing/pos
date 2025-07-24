@@ -289,6 +289,16 @@
         .sidebar-item button {
             height: 36px;
         }
+        #sidebar {
+        max-height: 100vh;    /* Limit height to viewport height */
+        overflow-y: auto;     /* Enable vertical scrollbar when content overflows */
+        /* Optional: fix the sidebar position if needed */
+        /* position: fixed; */
+        /* top: 0; */
+        /* left: 0; */
+        /* height: 100vh; */
+        }
+        
         .d-flex .btn {
             --bs-btn-padding-x:0px!important; 
             --bs-btn-padding-y:0px !important; 
@@ -308,6 +318,20 @@
         .text-teal {
             color: #0D7680 !important;
         }
+        
+        #cartTable tbody {
+            display: block;
+            max-height: 300px; /* max height to limit the tbody */
+            overflow-y: auto;  /* show scrollbar only if tbody content is taller */
+        }
+
+        #cartTable thead,
+        #cartTable tbody tr {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+
     </style>
      @livewireStyles
 </head>

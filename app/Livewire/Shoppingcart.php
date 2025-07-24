@@ -129,6 +129,7 @@ class Shoppingcart extends Component
     public bool $hasAppliedCreditPay = false;
     public $activeItemId = null;
     public $activeProductId = null;
+    public $notFoundMessage = ''; // Add this property to your component
 
     // This method is triggered whenever the checkbox is checked or unchecked
     public function updatedUseCredit($value)
@@ -199,10 +200,24 @@ class Shoppingcart extends Component
             ->where('branch_id', auth()->user()->userinfo->branch->id ?? null)
             ->first();
     }
+    public function clearSearch()
+    {
+        $this->search = '';
+        $this->notFoundMessage = '';
+        $this->selectedProduct = null; // optionally reset selected product if you track it
+    }
 
     public function addToCartBarCode()
     {
-        if (!$this->selectedProduct) return;
+        // Clear previous message on each call
+        $this->notFoundMessage = '';
+
+        if (!$this->selectedProduct) {
+            // Show not found message if no product selected (barcode not matched)
+            $this->notFoundMessage = __('Barcode  not found');
+            return;
+        }
+        //if (!$this->selectedProduct) return;
         $currentProduct = collect($this->cartitems)->firstWhere('product_id', $this->selectedProduct->id);
         $currentQty = $currentProduct ? $currentProduct->quantity : 0;
         $currentQty = $currentQty + 1;
