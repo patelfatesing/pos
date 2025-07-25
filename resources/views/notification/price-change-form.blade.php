@@ -2,7 +2,13 @@
     @csrf
     <div class="modal-header bg-primary text-white">
         <h5 class="modal-title" id="approveModalLabel">Product Price Change</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> 
+        @if (auth()->user()->hasRole('admin'))
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">×</span>
+            </button>
+        @else
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        @endif
     </div>
 
     <div class="modal-body">
@@ -47,7 +53,7 @@
     </div>
 
     <div class="modal-footer">
-        
+
         <button type="button" class="btn btn-secondary" data-dismiss="modal" data-bs-dismiss="modal">Close</button>
         {{-- <button type="submit" class="btn btn-primary">Save changes</button> --}}
     </div>

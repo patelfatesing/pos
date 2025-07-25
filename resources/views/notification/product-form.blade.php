@@ -2,7 +2,13 @@
     @csrf
     <div class="modal-header">
         <h5 class="modal-title">⚡ Low Stock Products</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        @if (auth()->user()->hasRole('admin'))
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">×</span>
+            </button>
+        @else
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        @endif
     </div>
 
     <div class="modal-body">
