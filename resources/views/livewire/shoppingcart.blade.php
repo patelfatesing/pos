@@ -99,10 +99,8 @@
 
     <div class="row flex-md-nowrap">
         <!-- Desktop Sidebar -->
-        <div id="sidebar" class="sidebar d-none d-md-flex flex-column py-2" style="max-height: 100vh; overflow-y: auto;">
-
-
-
+        <div id="sidebar" class="sidebar d-none d-md-flex flex-column py-2"
+            style="max-height: 100vh; overflow-y: auto;">
             {{-- Stock Request (Cashier or Warehouse) --}}
             @auth
                 @if (auth()->user()->hasRole('cashier') || auth()->user()->hasRole('warehouse'))
@@ -175,13 +173,11 @@
                     <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
                         class="main-screen-rectangle457" />
 
-                    @if (count($itemCarts) == 0)
-                        <div class="sidebar-item">
-                            <livewire:collation-modal wire:key="collation-modal-static" />
-                        </div>
-                        <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
-                            class="main-screen-rectangle457" />
-                    @endif
+                    <div class="sidebar-item">
+                        <livewire:collation-modal wire:key="collation-modal-static" />
+                    </div>
+                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
+                        class="main-screen-rectangle457" />
                 @endif
             @endauth
 
@@ -268,14 +264,12 @@
                         <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
                             class="main-screen-rectangle457" />
 
-                        @if (count($itemCarts) == 0)
-                            <div class="sidebar-item">
-                                <livewire:collation-modal wire:key="mobile-collation-modal-static" />
-                                <span>Collect Credit</span>
-                            </div>
-                            <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
-                                class="main-screen-rectangle457" />
-                        @endif
+                        <div class="sidebar-item">
+                            <livewire:collation-modal wire:key="mobile-collation-modal-static" />
+                            <span>Collect Credit</span>
+                        </div>
+                        <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
+                            class="main-screen-rectangle457" />
                     @endif
                 @endauth
 
@@ -289,15 +283,15 @@
         <!-- Main Content -->
         <div class="col-12 col-md-11 m-2 ml-2">
             <div>
-                                
+
                 <div class="d-flex justify-content-between align-items-center flex-wrap mt-2 py-2 ">
                     <div class="text-muted main-screen-text12">
                         Welcome! <strong class="text-teal">{{ Auth::user()->name }}</strong>
                     </div>
                     <div class="text-muted main-screen-text12">
-                        Shift Code: <strong>{{ $this->shift->shift_no ?? '' }}</strong> | Date: 
+                        Shift Code: <strong>{{ $this->shift->shift_no ?? '' }}</strong> | Date:
                         <span class="text-teal">
-                        {{ $this->shift && $this->shift->start_time ? \Carbon\Carbon::parse($this->shift->start_time)->format('d:m:Y, g:i:s A') : '' }}
+                            {{ $this->shift && $this->shift->start_time ? \Carbon\Carbon::parse($this->shift->start_time)->format('d:m:Y, g:i:s A') : '' }}
                         </span>
                     </div>
                 </div>
@@ -305,34 +299,30 @@
                 <!-- Filters -->
                 <div class="row  mt-2">
                     <div class="col-12 col-md-3">
-                    <div class="position-relative">
-                        <input type="number" class="form-control rounded-pill pe-5 custom-border"
-                            placeholder="{{ __('messages.scan_barcode') }}" wire:model.live="search"
-                            wire:keydown.enter="addToCartBarCode" autofocus>
+                        <div class="position-relative">
+                            <input type="number" class="form-control rounded-pill pe-5 custom-border"
+                                placeholder="{{ __('messages.scan_barcode') }}" wire:model.live="search"
+                                wire:keydown.enter="addToCartBarCode" autofocus>
 
-                        <!-- Barcode icon -->
-                        <img src="{{ asset('public/external/barcoderead14471-053n.svg') }}" alt="Barcode"
-                            style="position: absolute; right: 40px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px;">
+                            <!-- Barcode icon -->
+                            <img src="{{ asset('public/external/barcoderead14471-053n.svg') }}" alt="Barcode"
+                                style="position: absolute; right: 40px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px;">
 
-                        <!-- Clear button -->
-                        @if($search)
-                            <button type="button" 
-                                wire:click="clearSearch" 
-                                style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+                            <!-- Clear button -->
+                            @if ($search)
+                                <button type="button" wire:click="clearSearch"
+                                    style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
                                     border: none; background: transparent; font-size: 18px; cursor: pointer; color: #888;"
-                                aria-label="Clear input">&times;</button>
+                                    aria-label="Clear input">&times;</button>
+                            @endif
+                        </div>
+
+                        @if (strlen($notFoundMessage) > 0)
+                            <div class="mt-2 text-danger" style="font-size: 0.9rem;">
+                                {{ $notFoundMessage }}
+                            </div>
                         @endif
                     </div>
-
-                    @if(strlen($notFoundMessage) > 0)
-                        <div class="mt-2 text-danger" style="font-size: 0.9rem;">
-                            {{ $notFoundMessage }}
-                        </div>
-                    @endif
-                </div>
-
-
-
 
                     <div class="col-12 col-md-3">
                         <div class="position-relative ">
@@ -384,13 +374,12 @@
                 </div>
                 <!-- Search + Buttons -->
                 <div class="row  mt-2">
-                   <div class="col-md-9 position-relative">
+                    <div class="col-md-9 position-relative">
                         <form wire:submit.prevent="searchTerm" class="mb-0">
                             <div class="input-group rounded-pill overflow-hidden custom-border">
                                 <input type="text" wire:model.live.debounce.500ms="searchTerm"
                                     placeholder="{{ __('messages.enter_product_name') }}"
-                                    class="form-control border-0 ps-4" id="searchInput"
-                                    autocomplete="off" />
+                                    class="form-control border-0 ps-4" id="searchInput" autocomplete="off" />
                                 <span class="input-group-text bg-transparent border-0 pe-3">
                                     <img src="{{ asset('public/external/vector4471-m3pl.svg') }}" alt="Search"
                                         style="width: 20px; height: 20px;">
@@ -399,7 +388,7 @@
                         </form>
 
                         @if ($this->showSuggestions && count($searchResults) > 0)
-                            <div class="dropdown-menu show w-100 mt-1 shadow-sm overflow-auto" 
+                            <div class="dropdown-menu show w-100 mt-1 shadow-sm overflow-auto"
                                 style="max-height: 260px; border-radius: 0.5rem;">
                                 <ul class="list-group list-group-flush">
                                     @foreach ($searchResults as $product)
@@ -412,7 +401,8 @@
                                                     <small class="text-muted">{{ $product->description }}</small>
                                                 @endif
                                             </div>
-                                            <span class="text-primary fw-bold ms-3">{{ format_inr(@$product->sell_price) }}</span>
+                                            <span
+                                                class="text-primary fw-bold ms-3">{{ format_inr(@$product->sell_price) }}</span>
                                         </li>
                                     @endforeach
                                 </ul>
@@ -475,11 +465,13 @@
                                                 {{ $item->product->name }}<br>
                                                 {{ $item->product->description }}
                                             </td>
-                                            <td>
+                                            <td
+                                                wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})">
 
                                                 {{ $this->quantities[$item->id] }}
                                             </td>
-                                            <td>
+                                            <td
+                                                wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})">
 
                                                 @if (@$this->partyUserDiscountAmt && $this->commissionAmount > 0)
                                                     <span class="text-danger">
@@ -518,7 +510,9 @@
                                                     @endif
                                                 @endif
                                             </td>
-                                            <td class="text-success fw-bold">
+
+                                            <td wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})"
+                                                class="text-success fw-bold">
 
                                                 {{ format_inr($item->net_amount) }}
 
@@ -556,7 +550,6 @@
                                                 </td>
                                             @endif
                                         </tr>
-
                                     @empty
                                         <tr>
                                             <td colspan="5" class="text-center text-muted">No products found in the
@@ -603,17 +596,15 @@
                                         class="btn btn-default main-screen-frame-key11 flex-fill">+50</button>
                                 </div>
                                 <div class="d-flex gap-2">
-                                    <button wire:click="removeItemActivte({{ $this->activeItemId }})"
+                                    <button wire:click="$set('search', '')"
                                         class="btn btn-default main-screen-frame-key11 flex-fill">C</button>
-                                    <button wire:click="addQuantity('0')"
+                                    <button wire:click="removeItemActivte({{ $this->activeProductId }})"
                                         class="btn btn-default main-screen-frame-key11 flex-fill">0</button>
-                                    <button wire:click="addQuantity('1')"
-                                        class="btn btn-default main-screen-frame-key11 flex-fill">
+                                    <button class="btn btn-default main-screen-frame-key11 flex-fill">
                                         <img src="{{ asset('public/external/vector4471-fdk.svg') }}" alt="Icon"
                                             style="height: 20px;">
                                     </button>
-                                    <button wire:click="addQuantity('1')"
-                                        class="btn btn-default main-screen-frame-key11 flex-fill">
+                                    <button class="btn btn-default main-screen-frame-key11 flex-fill">
                                         <img src="{{ asset('public/external/right4471-upx2.svg') }}" alt="Right"
                                             style="height: 20px;">
                                     </button>
@@ -677,28 +668,27 @@
 
                 </div>
                 <!-- Bottom Bar -->
-             
+
                 <div class="container-fluid py-2  fixed-bottom">
-                <div class="row text-center align-items-center header-row" style="min-height:50px;">
-                    <div class="col-4 fw-semibold">Qty</div>
-                    <div class="col-4 fw-semibold">Round Off</div>
-                    <div class="col-4 fw-semibold">Total Payable</div>
-                </div>
-                <div class="row text-center align-items-center" style="min-height:60px;">
-                    <div class="col-4 border-end fs-4 fw-bold text-custom-blue">{{ $this->cartCount }}</div>
-                    <div class="col-4 border-end fs-4 fw-bold text-custom-blue">@php
-                        $this->roundedTotal =
-                        (float) $this->cashAmount +
-                        (float) $this->creditPay -
-                        round($this->cartItemTotalSum);
-                        @endphp 
-                        {{ $this->roundedTotal }}
-                        <input type="hidden" id="roundedTotal" value="{{ $this->roundedTotal }}"
-                            wire:model="roundedTotal"> 
+                    <div class="row text-center align-items-center header-row" style="min-height:50px;">
+                        <div class="col-4 fw-semibold">Qty</div>
+                        <div class="col-4 fw-semibold">Round Off</div>
+                        <div class="col-4 fw-semibold">Total Payable</div>
+                    </div>
+                    <div class="row text-center align-items-center" style="min-height:90px;">
+                        <div class="col-4 border-end fs-4 fw-bold text-custom-blue">{{ $this->cartCount }}</div>
+                        <div class="col-4 border-end fs-4 fw-bold text-custom-blue">@php
+                            $this->roundedTotal =
+                                (float) $this->cashAmount + (float) $this->creditPay - round($this->cartItemTotalSum);
+                        @endphp
+                            {{ $this->roundedTotal }}
+                            <input type="hidden" id="roundedTotal" value="{{ $this->roundedTotal }}"
+                                wire:model="roundedTotal">
                         </div>
-                    <div class="col-4 fs-4 fw-bold text-custom-blue">{{ format_inr($this->cashAmount) }}</span>
-                        <input type="hidden" id="totalPayable" value="{{ $this->cashAmount }}"></div>
-                </div>
+                        <div class="col-4 fs-4 fw-bold text-custom-blue">{{ format_inr($this->cashAmount) }}</span>
+                            <input type="hidden" id="totalPayable" value="{{ $this->cashAmount }}">
+                        </div>
+                    </div>
                 </div>
 
 
@@ -710,7 +700,8 @@
                             <div class="modal-header">
                                 <h5 class="modal-title" id="holdModalLabel">{{ __('messages.hold_transactions') }}
                                 </h5>
-                                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                                <button type="button" class="btn-close" data-dismiss="modal"
+                                    aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
                                 @livewire('hold-transactions', ['holdTransactions' => $holdTransactions])
@@ -728,7 +719,8 @@
                                 <h5 class="modal-title fw-semibold" id="captureModalLabel">
                                     <i class="bi bi-camera-video me-2"></i>{{ __('messages.image_capture') }}
                                 </h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
                             </div>
 
                             <div class="modal-body px-4 py-4">
@@ -839,7 +831,8 @@
                                 <h5 class="modal-title cash-summary-text61" id="cashout">
                                     <i class="bi bi-camera-video me-2"></i>{{ __('messages.withdraw_cash_details') }}
                                 </h5>
-                                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
                             </div>
 
                             <div class="modal-body p-6">
@@ -851,8 +844,7 @@
                                             <div class="card shadow-sm rounded-2xl p-2">
 
                                                 <div class="table-responsive">
-                                                    <table
-                                                        class=" table table-bordered product-table">
+                                                    <table class=" table table-bordered product-table">
                                                         <thead class="table-info ">
                                                             <tr>
                                                                 <th class="main-screen-text25 text-center">
@@ -867,15 +859,21 @@
                                                         <tbody>
                                                             @foreach ($noteDenominations as $key => $denomination)
                                                                 <tr class="text-center">
-                                                                    <td class="" style="width: 28%;">{{ $denomination }} x</td>
+                                                                    <td class="" style="width: 28%;">
+                                                                        {{ $denomination }} x</td>
                                                                     <td class="" style="width: 40%;">
                                                                         <div class="d-flex align-items-center">
-                                                                            <button style="width: 40%;" type="button" class="btn btn-gray btn-decrease rounded-start"
+                                                                            <button style="width: 40%;" type="button"
+                                                                                class="btn btn-gray btn-decrease rounded-start"
                                                                                 onclick="updateNote('{{ $key }}_{{ $denomination }}', -1, {{ $denomination }})">−</button>
                                                                             <span
-                                                                                id="display_{{ $key }}_{{ $denomination }}" class="form-control text-center  bg-white px-1 " style="width: 60px;">0</span>
-                                                                                
-                                                                            <button  style="width: 40%;" class="btn btn-gray rounded-end btn-increase" type="button"
+                                                                                id="display_{{ $key }}_{{ $denomination }}"
+                                                                                class="form-control text-center  bg-white px-1 "
+                                                                                style="width: 60px;">0</span>
+
+                                                                            <button style="width: 40%;"
+                                                                                class="btn btn-gray rounded-end btn-increase"
+                                                                                type="button"
                                                                                 onclick="updateNote('{{ $key }}_{{ $denomination }}', 1, {{ $denomination }})">+</button>
                                                                             <input type="hidden"
                                                                                 name="withcashNotes.{{ $key }}.{{ $denomination }}"
@@ -888,16 +886,17 @@
                                                                         ₹0.00</td>
                                                                 </tr>
                                                             @endforeach
-                                                            
+
                                                             <tr class="border table-success fw-bold">
-                                                                <td colspan="2"
-                                                                    class="">
-                                                                    <span style="color:#1C5609 " class="fw-bold  fs-6">Total
+                                                                <td colspan="2" class="">
+                                                                    <span style="color:#1C5609 "
+                                                                        class="fw-bold  fs-6">Total
                                                                         Amount</span>
-                                                                   
+
                                                                 </td>
                                                                 <td class="text-center"> <span class="fw-bold  fs-6"
-                                                                        id="totalNoteCashwith" style="color:#1C5609 ">₹0.00</span></td>
+                                                                        id="totalNoteCashwith"
+                                                                        style="color:#1C5609 ">₹0.00</span></td>
                                                             </tr>
 
                                                         </tbody>
@@ -926,13 +925,14 @@
                                                 <div class="">
                                                     <label for="withdraw_notes"
                                                         class="form-label">{{ __('messages.notes') }}</label>
-                                                    <textarea name="withdraw_notes" id="withdraw_notes" class="form-control "
-                                                        style="height: 40px !important;" rows="4" placeholder="{{ __('messages.notes') }}"></textarea>
+                                                    <textarea name="withdraw_notes" id="withdraw_notes" class="form-control " style="height: 40px !important;"
+                                                        rows="4" placeholder="{{ __('messages.notes') }}"></textarea>
                                                 </div>
 
                                                 <div class="text-right">
                                                     <br>
-                                                    <button type="submit" class="btn pull-right rounded-pill submit-btn">
+                                                    <button type="submit"
+                                                        class="btn pull-right rounded-pill submit-btn">
                                                         <i class="fas fa-paper-plane me-1"></i>
                                                         {{ __('messages.click_to_transfer') }}
                                                     </button>
@@ -958,8 +958,10 @@
                                 {{-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <i class="bi bi-x-lg"></i>
                                 </button> --}}
-                                <button type="button" class="btn-close" data-dismiss="modal"
+
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
                                     aria-label="Close"></button>
+                              
                             </div>
 
                             <div class="modal-body p-6">
@@ -1005,6 +1007,10 @@
                                                     <button type="button" id="add-item"
                                                         class="btn btn-primary btn-sm mb-3">+
                                                         {{ __('messages.add_another_product') }}</button>
+                                                    <button type="button" id="clear-items"
+                                                        class="btn btn-warning btn-sm mb-3 ms-2">
+                                                        Clear
+                                                    </button>
 
                                                     <div class="mb-3">
                                                         <label for="notes"
@@ -1037,7 +1043,8 @@
                                 {{-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <i class="bi bi-x-lg"></i>
                                 </button> --}}
-                                <button type="button" class="btn-close" data-dismiss="modal"
+
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
                                     aria-label="Close"></button>
                             </div>
 
@@ -1124,7 +1131,8 @@
                             @csrf
                             <div class="modal-content">
                                 <div class="modal-header custom-modal-header">
-                                    <h5 class="modal-title cash-summary-text61">{{ __('messages.cash_in_hand_details') }}</h5>
+                                    <h5 class="modal-title cash-summary-text61">
+                                        {{ __('messages.cash_in_hand_details') }}</h5>
                                 </div>
                                 <div class="modal-body">
 
@@ -1135,9 +1143,12 @@
                                             class="case_in_hand table table-bordered product-table">
                                             <thead class="table-info">
                                                 <tr>
-                                                    <th class="main-screen-text25 text-center">{{ __('messages.currency') }}</th>
-                                                    <th class="main-screen-text25 text-center">{{ __('messages.notes') }}</th>
-                                                    <th class="main-screen-text25 text-center">{{ __('messages.amount') }}</th>
+                                                    <th class="main-screen-text25 text-center">
+                                                        {{ __('messages.currency') }}</th>
+                                                    <th class="main-screen-text25 text-center">
+                                                        {{ __('messages.notes') }}</th>
+                                                    <th class="main-screen-text25 text-center">
+                                                        {{ __('messages.amount') }}</th>
                                                 </tr>
                                             </thead>
                                             <tbody class="tbody-border">
@@ -1146,7 +1157,8 @@
                                                         <td class="fw-semibold text-center">{{ $denomination }} <span
                                                                 class="mx-3">x</span></td>
                                                         <td class="text-center">
-                                                            <div class="d-flex align-items-center"  style="width: 100%;" >
+                                                            <div class="d-flex align-items-center"
+                                                                style="width: 100%;">
                                                                 <button style="width: 40%;" type="button"
                                                                     class="btn btn-gray btn-decrease rounded-start"
                                                                     data-denomination="{{ $denomination }}"
@@ -1155,7 +1167,9 @@
                                                                     name="cashNotes[{{ $key }}][{{ $denomination }}]"
                                                                     id="cashhandsum_{{ $denomination }}"
                                                                     class="form-control text-center  bg-white px-1 note-input"
-                                                                    value="0" readonly data-denomination="{{ $denomination }}" style="width: 60px;">
+                                                                    value="0" readonly
+                                                                    data-denomination="{{ $denomination }}"
+                                                                    style="width: 60px;">
                                                                 <button style="width: 40%;" type="button"
                                                                     class="btn btn-gray rounded-end btn-increase"
                                                                     data-denomination="{{ $denomination }}"
@@ -1184,11 +1198,12 @@
 
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-primary  rounded-pill" id="openStockStatusBtn">
+                                    <button type="button" class="btn btn-primary  rounded-pill"
+                                        id="openStockStatusBtn">
                                         {{ __('messages.view_stock_status') }}
                                     </button>
                                     <button type="submit"
-                                        class="btn btn-default submit-btn  rounded-pill">{{ __('messages.submit') }}</button>
+                                        class="btn btn-default submit-btn rounded-pill">{{ __('messages.submit') }}</button>
                                 </div>
                             </div>
                         </form>
@@ -1200,15 +1215,19 @@
                     <div class="modal-dialog modal-dialog-scrollable modal-lg">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h6 class="modal-title cash-summary-text61">{{ __('messages.product_opening_stock') }}</h6>
-                                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                                <h6 class="modal-title cash-summary-text61">
+                                    {{ __('messages.product_opening_stock') }}</h6>
+                                <button type="button" class="btn-close" data-dismiss="modal"
+                                    aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
                                 <table class="table table-bordered product-table">
                                     <thead class="table-info">
                                         <tr>
-                                            <th class="main-screen-text25 text-center">{{ __('messages.product') }}</th>
-                                            <th class="main-screen-text25 text-center">{{ __('messages.opening_stock') }}</th>
+                                            <th class="main-screen-text25 text-center">{{ __('messages.product') }}
+                                            </th>
+                                            <th class="main-screen-text25 text-center">
+                                                {{ __('messages.opening_stock') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -1241,11 +1260,10 @@
                                         @endforeach
                                     </tbody>
                                     <!-- Add total in footer -->
-                                    <tfoot >
+                                    <tfoot>
                                         <tr class="table-success-new">
-                                            <td class="fw-bold text-start total_bgc"
-                                                >Total Stock Quantity</td>
-                                            <td class="fw-bold text-start total_bgc" >
+                                            <td class="fw-bold text-start total_bgc">Total Stock Quantity</td>
+                                            <td class="fw-bold text-start total_bgc">
                                                 <span>
                                                     {{ $sum }}</span>
                                             </td>
@@ -1308,6 +1326,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div wire:ignore.self class="modal fade" id="cashModal" tabindex="-1"
                     aria-labelledby="CashModalLabel" aria-hidden="true">
                     <div class="modal-dialog modal-lg">
@@ -1332,11 +1351,13 @@
                                                     <thead class="table-dark">
                                                         <tr>
                                                             @if (empty($this->selectedSalesReturn))
-                                                                <th class="text-center" style="width:20%">{{ __('messages.amount') }}</th>
+                                                                <th class="text-center" style="width:20%">
+                                                                    {{ __('messages.amount') }}</th>
                                                                 <th class="text-center" style="width:20%">
                                                                     {{ __('messages.in') }}</th>
                                                             @endif
-                                                            <th style="width: 24%;" class="text-center">{{ __('messages.currency') }}</th>
+                                                            <th style="width: 24%;" class="text-center">
+                                                                {{ __('messages.currency') }}</th>
                                                             <th class="text-center" style="width:20%">
                                                                 {{ __('messages.out') }}</th>
                                                             <th style="width:20%" class="text-center">
@@ -1385,11 +1406,11 @@
                                                                     </td>
                                                                 @endif
                                                                 @if (!empty($this->selectedSalesReturn))
-                                                                <td class="text-center ">
-                                                                @else
-                                                                <td class="text-center currency-center">
-                                                                @endif    
-                                                                    {{ format_inr($denomination) }}</td>
+                                                                    <td class="text-center ">
+                                                                    @else
+                                                                    <td class="text-center currency-center">
+                                                                @endif
+                                                                {{ format_inr($denomination) }}</td>
 
                                                                 <td class="text-center">
                                                                     <div class="d-flex align-items-center"
@@ -1546,14 +1567,13 @@
                                                 @else
                                                     @if ($this->cashAmount == $totals['totalIn'] - $totals['totalOut'] && $errorInCredit == false)
                                                         <button id="paymentSubmit"
-                                                                class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
-                                                                wire:click="checkout" 
-                                                                wire:loading.attr="disabled" 
-                                                                wire:target="checkout">
-                                                            <span wire:loading.remove wire:target="checkout">{{ __('messages.submit') }}</span>
+                                                            class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
+                                                            wire:click="checkout" wire:loading.attr="disabled"
+                                                            wire:target="checkout">
+                                                            <span wire:loading.remove
+                                                                wire:target="checkout">{{ __('messages.submit') }}</span>
                                                             <span wire:loading wire:target="checkout">Loading...</span>
                                                         </button>
-
                                                     @endif
                                                 @endif
                                                 {{-- <div wire:loading class=" text-muted">{{ __('messages.processing_payment') }}...
@@ -1568,6 +1588,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div wire:ignore.self class="modal fade" id="onliineModal" tabindex="-1"
                     aria-labelledby="onlineModalLabel" aria-hidden="true">
                     <div class="modal-dialog modal-lg">
@@ -1801,26 +1822,25 @@
                                         <p id="result" class="mt-3 fw-bold text-success"></p>
                                         <div class="mt-4">
                                             @if ($this->showOnline == true && $this->cashAmount > 0)
-                                               <button id="paymentSubmit"
-                                                        class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
-                                                        wire:click="onlinePaymentCheckout" 
-                                                        wire:loading.attr="disabled" 
-                                                        wire:target="onlinePaymentCheckout">
-                                                    <span wire:loading.remove wire:target="onlinePaymentCheckout">{{ __('messages.submit') }}</span>
-                                                    <span wire:loading wire:target="onlinePaymentCheckout">Loading...</span>
+                                                <button id="paymentSubmit"
+                                                    class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
+                                                    wire:click="onlinePaymentCheckout" wire:loading.attr="disabled"
+                                                    wire:target="onlinePaymentCheckout">
+                                                    <span wire:loading.remove
+                                                        wire:target="onlinePaymentCheckout">{{ __('messages.submit') }}</span>
+                                                    <span wire:loading
+                                                        wire:target="onlinePaymentCheckout">Loading...</span>
                                                 </button>
-
                                             @else
                                                 @if ($this->cashAmount == $this->cash + $this->upi && $this->upi >= 0)
                                                     <button id="paymentSubmit"
-                                                            class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
-                                                            wire:click="checkout" 
-                                                            wire:loading.attr="disabled" 
-                                                            wire:target="checkout">
-                                                        <span wire:loading.remove wire:target="checkout">{{ __('messages.submit') }}</span>
+                                                        class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
+                                                        wire:click="checkout" wire:loading.attr="disabled"
+                                                        wire:target="checkout">
+                                                        <span wire:loading.remove
+                                                            wire:target="checkout">{{ __('messages.submit') }}</span>
                                                         <span wire:loading wire:target="checkout">Loading...</span>
                                                     </button>
-
                                                 @endif
                                             @endif
 
@@ -1836,7 +1856,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
 
 
@@ -1862,10 +1881,12 @@
         const modal = new bootstrap.Modal(document.getElementById('cashModal'));
         modal.show();
     });
+
     window.addEventListener('online-cash-modal', event => {
         const modal = new bootstrap.Modal(document.getElementById('onliineModal'));
         modal.show();
     });
+
     window.addEventListener('hide-open-cash-modal', event => {
         const modalEl = document.getElementById('cashModal');
         const modal = new bootstrap.Modal(modalEl);
@@ -1881,6 +1902,7 @@
         document.body.classList.remove('modal-open');
         document.body.style.paddingRight = '';
     });
+
     window.addEventListener('hide-online-cash-modal', event => {
         const modalEl = document.getElementById('onliineModal');
         const modal = new bootstrap.Modal(modalEl);
@@ -1896,6 +1918,7 @@
         document.body.classList.remove('modal-open');
         document.body.style.paddingRight = '';
     });
+
     window.addEventListener('triggerPrint', event => {
         const el = document.getElementsByClassName('lastsavepic')[0];
         if (el) {
@@ -2298,6 +2321,7 @@
             Livewire.dispatch('loadHoldTransactions');
         });
     });
+
     $(document).ready(function() {
         $('#captureModal').on('shown.bs.modal', function() {
             // Access camera stream
@@ -2488,6 +2512,7 @@
         document.getElementById('totalNoteCashwith').innerText = '' + total;
         document.getElementById('withamountTotal').value = total;
     }
+
     // window.addEventListener('cart-voided', (event) => {
     //         Swal.fire({
     //             title: 'LiquorHub!',
@@ -2497,6 +2522,7 @@
     //         });
     //     // Reset inputs if needed or perform any additional actions here
     // });
+
     // Function to display dynamic SweetAlert
     function showAlert(type, title, message) {
         Swal.fire({
@@ -2518,6 +2544,7 @@
             }
         });
     }
+
     // Event listeners for success and error
     window.addEventListener('notiffication-sucess', (event) => {
         // Success Example
@@ -2529,6 +2556,7 @@
         // Error Example
         showAlert('error', 'LiquorHub!', event.detail[0].message || 'Failed to void the cart.');
     });
+
     window.addEventListener('notiffication-error-close-shift', (event) => {
         // Error Example
         showAlert('error', 'LiquorHub!', event.detail[0].message || 'Failed to void the cart.');
@@ -2705,7 +2733,7 @@
 
             document.getElementById('cashhandsum_' + denomination).innerText = '' + amount;
             total += amount;
-            
+
             amountInput.value = total;
         });
         document.getElementById('totalNoteCashHand').innerText = '' + total;
@@ -2737,9 +2765,7 @@
             updateAmounts();
         });
     });
-</script>
 
-<script>
     let itemIndex = 1;
     document.getElementById('add-item').addEventListener('click', function() {
         const row = document.querySelector('.item-row').cloneNode(true);
@@ -2759,13 +2785,45 @@
                 e.target.closest('.item-row').remove();
             }
         }
+
+        if (e.target && e.target.id === 'clear-items') {
+            const container = document.getElementById('product-items');
+            const firstRow = container.querySelector('.item-row');
+            // Remove all item rows
+            container.querySelectorAll('.item-row').forEach((row, index) => {
+                if (index > 0) row.remove();
+            });
+
+            // Reset first row's inputs
+            firstRow.querySelectorAll('input').forEach(input => input.value = '');
+            firstRow.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+
+            // Reset index
+            itemIndex = 1;
+        }
+
+        // Clear All Rows (except first)
+        if (e.target && e.target.id === 'clear-item-wh') {
+            const container = document.getElementById('product-items-wh');
+            const firstRow = container.querySelector('.item-row-wh');
+
+            container.querySelectorAll('.item-row-wh').forEach((row, index) => {
+                if (index > 0) row.remove();
+            });
+
+            // Reset inputs in first row
+            firstRow.querySelectorAll('input').forEach(input => input.value = '');
+            firstRow.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+
+            itemIndexWh = 1;
+        }
+
         if (e.target && e.target.classList.contains('remove-item-wh')) {
             if (document.querySelectorAll('.item-row-wh').length > 1) {
                 e.target.closest('.item-row-wh').remove();
             }
         }
     });
-
 
     let itemIndex1 = 1;
 
@@ -2990,10 +3048,12 @@
             //document.getElementById('reviewUserImage').src = userImage;
         }
     }
+
     var pusher = new Pusher("{{ config('broadcasting.connections.pusher.key') }}", {
         cluster: "{{ config('broadcasting.connections.pusher.options.cluster') }}",
         encrypted: true,
     });
+
     var branch_id = '{{ @$branch_id }}';
     var channel = pusher.subscribe('drawer-channel');
 
