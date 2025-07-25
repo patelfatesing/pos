@@ -7,7 +7,13 @@
     @csrf
     <div class="modal-header">
         <h5 class="modal-title" id="approveModalLabel">Stock Request Detail</h5>
-       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> 
+        @if (auth()->user()->hasRole('admin'))
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">×</span>
+            </button>
+        @else
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        @endif
     </div>
 
     <div class="modal-body">
@@ -17,7 +23,8 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group main-screen-frame280">
-                                <span class="main-screen-text72"><label>Store: </label> <span class="ml-2">{{ $branch_name }}</span></span>
+                                <span class="main-screen-text72"><label>Store: </label> <span
+                                        class="ml-2">{{ $branch_name }}</span></span>
                             </div>
                         </div>
                         <div class="col-md-6">

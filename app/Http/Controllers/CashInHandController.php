@@ -20,6 +20,7 @@ class CashInHandController extends Controller
             // 'cashNotes' => 'required|array',
         ]);
 
+    
 
         $data = $request->all();
 

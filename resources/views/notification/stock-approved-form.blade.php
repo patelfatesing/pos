@@ -2,7 +2,13 @@
     @csrf
     <div class="modal-header">
         <h5 class="modal-title" id="approveModalLabel">Stock Request Approved Detail</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> 
+        @if (auth()->user()->hasRole('admin'))
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">×</span>
+            </button>
+        @else
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        @endif
     </div>
 
     <div class="modal-body">
@@ -13,7 +19,8 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group main-screen-frame280">
-                                    <span class="main-screen-text72"><strong>Store:</strong> {{ $stockRequest->store->name ?? 'warehouse' }}</span>
+                                    <span class="main-screen-text72"><strong>Store:</strong>
+                                        {{ $stockRequest->store->name ?? 'warehouse' }}</span>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -51,7 +58,8 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group main-screen-frame280">
-                                    <span class="main-screen-text72"><strong>Store:</strong> {{ $stockRequest->store->name ?? 'warehouse' }}</span>
+                                    <span class="main-screen-text72"><strong>Store:</strong>
+                                        {{ $stockRequest->store->name ?? 'warehouse' }}</span>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -166,7 +174,8 @@
                                     </tr>
                                 @else
                                     <tr class="">
-                                        <td colspan="4" class="text-right font-weight-bold total_bgc">Total Quantity:</td>
+                                        <td colspan="4" class="text-right font-weight-bold total_bgc">Total Quantity:
+                                        </td>
                                         <td class="font-weight-bold total_bgc">{{ $totalQty }}</td>
                                     </tr>
                                 @endif
