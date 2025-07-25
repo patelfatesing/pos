@@ -437,11 +437,13 @@ class ShiftCloseModal extends Component
             $this->dispatch('notiffication-error', ['message' => 'Please add qty of product ']);
             return;
         }
+
         if (empty($this->capturedImage)) {
             $this->dispatch('notiffication-error', ['message' => 'Please add 
             physical stock image']);
             return;
         }
+
         if ($this->capturedImage) {
             // Decode and store image
             $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $this->capturedImage));
@@ -451,6 +453,7 @@ class ShiftCloseModal extends Component
             // Store path in DB (if needed)
             // Example: PhysicalStock::create([... , 'image_path' => $filename]);
         }
+        
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
         foreach ($this->products as $product_id => $product) {
