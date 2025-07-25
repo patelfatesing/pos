@@ -444,7 +444,7 @@
                             <table class="table table-bordered product-table" id="cartTable">
                                 <thead class="table-info">
                                     <tr>
-                                        <th class="main-screen-text25">{{ __('messages.product') }}</th>
+                                        <th class="col-7 main-screen-text25">{{ __('messages.product') }}</th>
                                         <th class="main-screen-text25">{{ __('messages.qty') }}</th>
                                         <th class="main-screen-text25">{{ __('messages.price') }}</th>
                                         <th class="main-screen-text25">{{ __('messages.total') }}</th>
@@ -460,7 +460,7 @@
                                             $finalAmount = $total - $commission - $party;
                                         @endphp
                                         <tr class="{{ $this->activeItemId === $item->id ? 'active' : '' }}">
-                                            <td wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})"
+                                            <td class="col-7" wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})"
                                                 style="cursor:pointer">
                                                 {{ $item->product->name }}<br>
                                                 {{ $item->product->description }}
@@ -1178,7 +1178,7 @@
                                                         </td>
                                                         <td class="text-center fw-semibold amount-cell"
                                                             id="discashhandsum_{{ $denomination }}">
-                                                            ₹{{ number_format($denomination, 2) }}</td>
+                                                            ₹{{ number_format($denomination, 0) }}</td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>
@@ -1187,7 +1187,7 @@
                                                     <td class="fw-bold text-start total_bgc" colspan="2">
                                                         {{ __('messages.total_cash') }}</td>
                                                     <td class="fw-bold text-center total_bgc" id="totalNoteCashHand">
-                                                        ₹0.00</td>
+                                                        ₹0</td>
                                                 </tr>
                                             </tfoot>
                                         </table>

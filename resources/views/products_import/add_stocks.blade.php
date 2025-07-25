@@ -17,6 +17,28 @@
                             </div>
 
                             <div class="card-body">
+                                <!-- Page Header -->
+                                <form method="GET" action="{{ route('products.add-stocks') }}">
+                                    <div class="row ml-2 mt-2">
+                                        <div class="col-md-3 mb-2">
+                                            <select name="subcategory_id" id="subcategory_id" class="form-control"
+                                                onchange="this.form.submit()">
+                                                <option value="">All Subcategories</option>
+                                                @foreach ($subcategories as $subcategory)
+                                                    <option value="{{ $subcategory->id }}"
+                                                        {{ request('subcategory_id') == $subcategory->id ? 'selected' : '' }}>
+                                                        {{ $subcategory->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                      
+                                        <div class="col-md-1 mb-2">
+                                            <a href="{{ route('products.add-stocks') }}"
+                                                class="btn btn-secondary">Reset</a>
+                                        </div>
+                                    </div>
+                                </form>
                                 <form action="{{ route('products.import.stocks') }}" method="POST">
                                     @csrf
                                     <div class="row">
@@ -79,7 +101,8 @@
                                                                             min="1" placeholder="Enter quantity">
 
                                                                         @error($quantityName)
-                                                                            <span class="text-danger">{{ $message }}</span>
+                                                                            <span
+                                                                                class="text-danger">{{ $message }}</span>
                                                                         @enderror
                                                                         <input type="hidden"
                                                                             name="items[{{ $product->id }}][product_id]"
