@@ -669,7 +669,7 @@
                 </div>
                 <!-- Bottom Bar -->
 
-                <div class="container-fluid py-2  fixed-bottom">
+                <div class="container-fluid py-2">
                     <div class="row text-center align-items-center header-row" style="min-height:50px;">
                         <div class="col-4 fw-semibold">Qty</div>
                         <div class="col-4 fw-semibold">Round Off</div>
