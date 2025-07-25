@@ -320,14 +320,23 @@ class ProductImportController extends Controller
         return redirect()->route('products.import')->with('success', 'Products imported successfully.');
     }
 
-    public function addStocks()
+    public function addStocks(Request $request)
     {
-        $products = Product::with('inventories')
-            ->orderBy('id', 'asc')->where('is_deleted', 'no')
-            ->get();
-        $stores = Branch::where('is_active', 'yes')->where('is_deleted', 'no')->latest()->get();
+        $subcategoryId = request()->subcategory_id ?? null;
 
-        return view('products_import.add_stocks', compact('products', 'stores'));
+        $products = Product::with('inventories', 'subcategory')
+            ->where('is_deleted', 'no')
+            ->when($subcategoryId, function ($query, $subcategoryId) {
+                $query->where('subcategory_id', $subcategoryId);
+            })
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $stores = Branch::where('is_active', 'yes')->where('is_deleted', 'no')->latest()->get();
+        $subcategories = DB::table('sub_categories')->where('is_deleted', 'no')->get();
+        $subcategoryId = $request->input('subcategory_id');
+
+        return view('products_import.add_stocks', compact('products', 'stores', 'subcategories'));
     }
 
     public function importStocks(Request $request)
@@ -401,7 +410,7 @@ class ProductImportController extends Controller
                 ->orderBy('id', 'desc')
                 ->first();
 
-                
+
 
             if (!empty($running_shift)) {
                 $shift_id = $running_shift->id ?? null;
@@ -413,7 +422,7 @@ class ProductImportController extends Controller
                     'branch_id' => $from_store_id,
                     'shift_id' => $shift_id,
                 ])->first();
-                
+
                 if ($stock) {
                     $stock->added_stock += $quantity;
                     $stock->closing_stock += $quantity;
@@ -439,7 +448,6 @@ class ProductImportController extends Controller
                         'difference_in_stock' => 0,
                     ]);
                 }
-
             } else {
                 // No shift → check if product+branch record exists (ignore date)
                 $stock = DailyProductStock::where([
