@@ -1978,6 +1978,7 @@ class Shoppingcart extends Component
     //sanjay
     public function incrementQty($id, $amount = 0)
     {
+        $this->dispatch('loader-start'); // ✅ Livewire v3
         if (empty($id)) {
             $this->dispatch('notiffication-error', ['message' => 'Please select a product in items.']);
             return;
@@ -2041,6 +2042,8 @@ class Shoppingcart extends Component
 
             // $this->dispatch('updateProductList');
         }
+
+        $this->dispatch('loader-stop'); // ✅ Livewire v3
     }
 
     public function incrementNote($key, $denomination, $type)
@@ -2437,6 +2440,8 @@ class Shoppingcart extends Component
     {
 
         if (auth()->user()) {
+            $this->dispatch('loader-start');
+
             $currentProduct = collect($this->cartitems)->firstWhere('product_id', $id);
             $currentQty = $currentProduct ? $currentProduct->quantity : 0;
             $currentQty = $currentQty + 1;
@@ -2463,24 +2468,9 @@ class Shoppingcart extends Component
 
             if ($currentQty > $product['total_quantity']) {
                 $this->dispatch('notiffication-error', ['message' => 'Product is out of stock and cannot be added to cart.']);
+                $this->dispatch('loader-stop');
                 return;
             }
-
-            // $item = Cart::where('product_id', $id)
-            // ->where('user_id', auth()->id())
-            // ->where('status', Cart::STATUS_PENDING)
-            // ->first();
-            //  if (!empty($item)) {
-            //     $item->quantity = $item->quantity + 1;
-            //     $item->save();
-            // }else{
-            //     $item=new Cart();
-            //     $item->user_id = auth()->user()->id;
-            //     $item->product_id = $id;
-            //     $item->save();
-
-            // }
-            //
 
             if ($this->selectedCommissionUser) {
                 $commissionUser = CommissionUser::where('status', 'Active')->where('is_deleted', 'No')->find($this->selectedCommissionUser);
@@ -2496,28 +2486,13 @@ class Shoppingcart extends Component
 
                 $user = Partyuser::where('status', 'Active')->where('is_delete', 'No')->find($this->selectedPartyUser);
                 if (!empty($user)) {
-                    // $myCart=$user->credit_points;
-                    //$myCart=$product->discount_amt;
-                    //
+
                     $this->getDiscountPrice($id, $user->id);
                     //$this->cashAmount = $this->cartitems->sum('net_amount')-$user->credit_points;
                     $myCart = $this->partyUserDiscountAmt;
-                    // $this->partyAmount=$myCart;   
-                    // $partyCustomerProductsPrice = PartyCustomerProductsPrice::where('product_id', $id)
-                    // ->where('party_user_id', $user->id)
-                    // ->first();
-                    // if ($partyCustomerProductsPrice) {
-                    //     $myCart = $partyCustomerProductsPrice->cust_discount_amt;
-                    //     // return $product->discount_amt;
-                    // }else{
-                    //      $myCart=0;
-                    // }
-
                 } else {
-
                     $myCart = 0;
                     //$this->partyAmount=$myCart;
-
                 }
             }
 
@@ -2552,6 +2527,8 @@ class Shoppingcart extends Component
             // $this->updateQty($item->id);
             $this->dispatch('updateNewProductDetails');
             $this->reset('searchTerm', 'searchResults', 'showSuggestions');
+            $this->dispatch('loader-stop');
+
             //$this->dispatch('notiffication-sucess', ['message' => 'Product added to the cart successfull.']);
 
         } else {
@@ -2570,6 +2547,7 @@ class Shoppingcart extends Component
     public function checkout()
     {
         try {
+            $this->dispatch('loader-start'); // ✅ Livewire v3
             DB::beginTransaction();
 
             // if ($this->paymentType == "cash") {
@@ -2601,17 +2579,6 @@ class Shoppingcart extends Component
                 }
             }
 
-
-            // if (!empty($this->commissionAmount)) {
-            //     $this->total -= $this->commissionAmount;
-
-
-            // }
-            // if (!empty($this->partyAmount)) {
-            //     $this->total -= $this->partyAmount;
-
-
-            // }
             $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
             $commissionUser = CommissionUser::where('status', 'Active')->where('is_deleted', 'No')->find($this->selectedCommissionUser);
@@ -2623,23 +2590,6 @@ class Shoppingcart extends Component
             }
 
             $cartitems = $this->cartitems;
-
-            // $productQtyp = 0;
-            // foreach ($cartitems as $key => $cartitem) {
-            //     $inventories = $cartitem->product->inventories;
-
-            //     foreach ($inventories as $inventory) {
-            //         if ($cartitem->quantity > 0 && $inventory->quantity > 0) {
-            //             $deductQty = min($cartitem->quantity, $inventory->quantity);
-            //             $inventory->quantity -= $deductQty;
-            //             $inventory->save();
-            //         }
-
-            //         if ($cartitem->quantity <= 0) {
-            //             break;
-            //         }
-            //     }
-            // }
 
             // Group by product ID and sum total quantity
             $groupedProducts = [];
@@ -2691,6 +2641,7 @@ class Shoppingcart extends Component
                     }
                 }
             }
+
             if (!empty($arr_low_stock)) {
 
                 $arr['product_id'] =  implode(',', array_values($arr_low_stock));
@@ -2701,12 +2652,14 @@ class Shoppingcart extends Component
                 sendNotification('low_stock', 'Some products are running low', $branch_id, auth()->id(), json_encode($arr));
                 sendNotification('low_stock', 'Some products are running low in ' . $branch_name . ' Store', null, auth()->id(), json_encode($arr));
             }
+
             if ($this->paymentType == "cash") {
 
                 $cashNotes = json_encode($this->cashNotes) ?? [];
             } else {
                 $cashNotes = json_encode($this->cashupiNotes) ?? [];
             }
+
             if ($this->paymentType == "cash") {
                 $this->cash = $this->cashAmount;
                 $this->upi = 0;
@@ -2720,6 +2673,7 @@ class Shoppingcart extends Component
                 'denominations' => $cashNotes,
                 'total' => $cashBreakdownCash,
             ]);
+
             \Log::info('Cash Breakdown Created: ' . json_encode($cashBreakdown, true));
             $totalQuantity = $cartitems->sum(fn($item) => $item->quantity);
             $total_item_total = $cartitems->sum(fn($item) => $item->net_amount);
@@ -2775,42 +2729,7 @@ class Shoppingcart extends Component
                 ]
             );
             \Log::info('Invoice Created: ' . json_encode($invoice, true));
-            // $invoice = Invoice::create([
-            //     'user_id' => auth()->id(),
-            //     'branch_id' => $branch_id,
-            //     'invoice_number' => $invoice_number,
-            //     'commission_user_id' => $commissionUser->id ?? null,
-            //     'party_user_id' => $partyUser->id ?? null,
-            //     'payment_mode' => $this->paymentType,
-            //     'items' => $cartitems->map(fn($item) => [
-            //         'product_id' => $item->product->id,
-            //         'name' => $item->product->name,
-            //         'quantity' => $item->quantity,
-            //         'category' => $item->product->category->name,
-            //         'subcategory' => $item->product->subcategory->name,
-            //         'price' => $item->net_amount,
-            //         'mrp' => $item->mrp,
-
-            //     ]),
-            //     'total_item_qty' => $totalQuantity,
-            //     'total_item_total' => $total_item_total,
-            //     'upi_amount' => $this->upi,
-            //     'change_amount' => $this->cashPayChangeAmt,
-            //     'creditpay' => $this->creditPay,
-            //     'cash_amount' => $this->cash,
-            //     // 'sub_total' => $this->cashAmount,
-            //     'sub_total' => $this->sub_total,
-
-            //     'tax' => $this->tax,
-            //     'status' => "Paid",
-            //     'commission_amount' => $this->commissionAmount,
-            //     'party_amount' => $this->partyAmount,
-            //     'total' => $this->cashAmount,
-            //     'cash_break_id' => $cashBreakdown->id,
-            //     //'billing_address'=> $address,
-            // ]);
             InvoiceHistory::logFromInvoice($invoice, 'created', auth()->id());
-
 
             if ($this->selectedPartyUser) {
                 $partyUserImage = PartyUserImage::where('party_user_id', $this->selectedPartyUser)->where('transaction_id', $invoice->id)->where('type', 'hold')->first(["image_path", "product_image_path"]);
@@ -2927,7 +2846,7 @@ class Shoppingcart extends Component
                 ]);
                 \Log::info('CreditHistory Created: ' . json_encode($creditHistory, true));
             }
-            //dd($invoice);
+
             $first_name = (!empty($partyUser->first_name)) ? $partyUser->first_name : @$commissionUser->first_name;
             $this->dispatch('resetHoldPic');
             $this->dispatch('hide-open-cash-modal');
@@ -2936,6 +2855,7 @@ class Shoppingcart extends Component
             $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => @$first_name, "ref_no" => $invoice->ref_no, "hold_date" => $invoice->hold_date]);
             $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
             $pdf->save($pdfPath);
+
             if (auth()->user()->hasRole('warehouse')) {
                 $this->invoiceData = $invoice;
                 // $this->dispatch('triggerPrint');
@@ -2956,6 +2876,8 @@ class Shoppingcart extends Component
             Cart::where('user_id', auth()->user()->id)
                 ->where('status', '!=', Cart::STATUS_HOLD)
                 ->delete();
+            $this->dispatch('loader-stop');
+
             session()->forget(['current_party_id', 'current_commission_id']);
             $this->dispatch('resetHoldPic');
             $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'useCredit', 'showCheckbox', 'roundedTotal', 'removeCrossHold', 'cashNotes');
@@ -2968,7 +2890,7 @@ class Shoppingcart extends Component
                 'trace' => $e->getTraceAsString(),
 
             ]);
-
+            $this->dispatch('loader-stop');
             // 🔔 Flash message for Laravel Blade
             $this->dispatch('notiffication-error', ['message' => 'Something went wrong']);
 
@@ -3351,6 +3273,9 @@ class Shoppingcart extends Component
     public function onlinePaymentCheckout()
     {
         try {
+
+            $this->dispatch('loader-start'); // ✅ Livewire v3
+
             $commissionUser = CommissionUser::where('status', 'Active')->where('is_deleted', 'No')->find($this->selectedCommissionUser);
             $partyUser = PartyUser::where('status', 'Active')->where('is_delete', 'No')->find($this->selectedPartyUser);
             if (!empty($partyUser)) {
@@ -3391,7 +3316,6 @@ class Shoppingcart extends Component
 
                 stockStatusChange($inventory->product->id, $branch_id, $totalQuantity, 'sold_stock', $this->shift->id);
 
-
                 if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
                     // Deduct only from the first inventory if it has enough quantity
                     $inventories[0]->quantity -= $totalQuantity;
@@ -3412,6 +3336,7 @@ class Shoppingcart extends Component
                     }
                 }
             }
+
             if (!empty($arr_low_stock)) {
 
                 $arr['product_id'] =  implode(',', array_values($arr_low_stock));
@@ -3422,6 +3347,7 @@ class Shoppingcart extends Component
                 sendNotification('low_stock', 'Some products are running low', $branch_id, auth()->id(), json_encode($arr));
                 sendNotification('low_stock', 'Some products are running low in ' . $branch_name . ' Store', null, auth()->id(), json_encode($arr));
             }
+
             // 💾 Save cash breakdown
             $totalQuantity = $cartitems->sum(fn($item) => $item->quantity);
             $total_item_total = $cartitems->sum(fn($item) => $item->net_amount);
@@ -3471,7 +3397,9 @@ class Shoppingcart extends Component
                     'cash_break_id' => null,
                 ]
             );
+
             InvoiceHistory::logFromInvoice($invoice, 'created', auth()->id());
+
             if ($this->selectedPartyUser) {
                 $partyUserImage = PartyUserImage::where('party_user_id', $this->selectedPartyUser)->where('transaction_id', $invoice->id)->where('type', 'hold')->first(["image_path", "product_image_path"]);
                 if (!empty($partyUserImage->image_path) && !empty($partyUserImage->product_image_path)) {
@@ -3572,8 +3500,6 @@ class Shoppingcart extends Component
                 ]);
             }
 
-
-
             if (!empty($partyUser->id) && $this->creditPay > 0) {
 
                 CreditHistory::create([
@@ -3620,11 +3546,12 @@ class Shoppingcart extends Component
             $this->dispatch('hide-open-cash-modal');
             $this->dispatch('hide-online-cash-modal');
             $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'useCredit', 'showCheckbox', 'roundedTotal', 'removeCrossHold', 'cashNotes');
+            $this->dispatch('loader-stop'); // ✅ Livewire v3
             session()->forget(['current_party_id', 'current_commission_id']);
         } catch (\Illuminate\Validation\ValidationException $e) {
             // 🔔 Flash message for Laravel Blade
             $this->dispatch('notiffication-error', ['message' => 'Something went wrong']);
-
+            $this->dispatch('loader-stop'); // ✅ Livewire v3
             //  return redirect()->back()->with('success', 'Withdraw amount successful.');
 
         }

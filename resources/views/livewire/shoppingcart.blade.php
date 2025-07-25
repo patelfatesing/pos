@@ -669,7 +669,7 @@
                 </div>
                 <!-- Bottom Bar -->
 
-                <div class="container-fluid py-2  fixed-bottom">
+                <div class="container-fluid py-2">
                     <div class="row text-center align-items-center header-row" style="min-height:50px;">
                         <div class="col-4 fw-semibold">Qty</div>
                         <div class="col-4 fw-semibold">Round Off</div>
@@ -961,7 +961,7 @@
 
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                     aria-label="Close"></button>
-                              
+
                             </div>
 
                             <div class="modal-body p-6">
@@ -1570,9 +1570,13 @@
                                                             class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
                                                             wire:click="checkout" wire:loading.attr="disabled"
                                                             wire:target="checkout">
-                                                            <span wire:loading.remove
-                                                                wire:target="checkout">{{ __('messages.submit') }}</span>
-                                                            <span wire:loading wire:target="checkout">Loading...</span>
+
+                                                            <span wire:loading.remove wire:target="checkout">
+                                                                {{ __('messages.submit') }}
+                                                            </span>
+                                                            <span wire:loading wire:target="checkout">
+                                                                Loading...
+                                                            </span>
                                                         </button>
                                                     @endif
                                                 @endif
@@ -1583,8 +1587,6 @@
                                     </form>
                                 </div>
                             </div>
-
-
                         </div>
                     </div>
                 </div>
@@ -1857,26 +1859,41 @@
                     </div>
                 </div>
             </div>
-
-
             <!-- Script to show modal -->
-
-            <!-- Script to show modal -->
-            {{-- @if ($showModal)
-                     
-                        <script>
-                            document.addEventListener('DOMContentLoaded', function() {
-                                setTimeout(function() {
-                                    var myModal = new bootstrap.Modal(document.getElementById('cashInHand'));
-                                    myModal.show();
-                                }, 3000); // delay by 300 milliseconds
-                            });
-                        </script>
-                    @endif --}}
         </div>
     </div>
+    <!-- Loader Overlay -->
+
 </div>
+
 <script>
+    // Before reload, set a flag to restore fullscreen
+    function reloadWithFullscreen() {
+        alert("test");
+        localStorage.setItem('restoreFullscreen', 'true');
+        location.reload();
+    }
+
+    // After reload, check flag and request fullscreen
+    document.addEventListener("DOMContentLoaded", function() {
+        alert("test22");
+
+        console.log(localStorage.getItem('restoreFullscreen'), "===dfgdfg==");
+        if (localStorage.getItem('restoreFullscreen') === 'true') {
+            localStorage.removeItem('restoreFullscreen');
+
+            let elem = document.documentElement;
+
+            if (!document.fullscreenElement) {
+                elem.requestFullscreen?.() || elem.webkitRequestFullscreen?.() || elem
+                    .msRequestFullscreen?.();
+            } else {
+                document.exitFullscreen?.() || document.webkitExitFullscreen?.() || document
+                    .msExitFullscreen?.();
+            }
+        }
+    });
+
     window.addEventListener('open-cash-modal', event => {
         const modal = new bootstrap.Modal(document.getElementById('cashModal'));
         modal.show();
@@ -1924,48 +1941,48 @@
         if (el) {
             el.classList.add('d-none');
         }
-        // Clear previous iframe if it exists
+
         const iframeContainer = document.getElementById('iframe-container');
         iframeContainer.innerHTML = '';
 
-        // Create a new iframe element
         const iframe = document.createElement('iframe');
         iframe.src = event.detail[0].pdfPath;
         iframe.width = '100%';
         iframe.height = '100%';
         iframe.style.border = 'none';
-        iframe.style.display = 'none'; // Hide the iframe
+        iframe.style.display = 'none';
 
-        // Append the iframe to the container
         iframeContainer.appendChild(iframe);
 
-        // When iframe is loaded, trigger print
+        // Backup: attach fallback print listener globally
+        window.onafterprint = () => {
+            restoreFullscreen();
+        };
+
         iframe.onload = function() {
-            iframe.contentWindow.focus(); // Ensure iframe is focused
+            iframe.contentWindow.focus();
             iframe.contentWindow.print();
+
+            // Some browsers fire this only inside the iframe
             iframe.contentWindow.onafterprint = function() {
-                location.reload(); // Reload the page after printing
+                restoreFullscreen();
             };
         };
 
+        // Fullscreen restore function
+        function restoreFullscreen() {
+            const docEl = document.documentElement;
+            if (!document.fullscreenElement) {
+                if (docEl.requestFullscreen) {
+                    docEl.requestFullscreen();
+                } else if (docEl.webkitRequestFullscreen) {
+                    docEl.webkitRequestFullscreen();
+                } else if (docEl.msRequestFullscreen) {
+                    docEl.msRequestFullscreen();
+                }
+            }
+        }
     });
-
-
-    // window.addEventListener('triggerPrint', event => {
-    //     const iframe = document.createElement('iframe');
-    //     iframe.style.display = 'none';
-    //     iframe.src = event.detail[0].pdfPath;
-    //     document.body.appendChild(iframe);
-    //     iframe.onload = () => {
-    //         iframe.contentWindow.print();
-    //         document.body.removeChild(iframe);
-    //     };
-    // });
-    //window.addEventListener('triggerPrint', event => {
-    //const pdfPath = event.detail[0].pdfPath;
-    //window.location.href = pdfPath; // opens in same window
-
-
 
     window.addEventListener('DOMContentLoaded', function() {
         $('#storeStockRequest').modal('hide');
@@ -2024,23 +2041,10 @@
 </script>
 
 <script>
-    // window.addEventListener('show-cash-modal', () => {
-    //     let modal = new bootstrap.Modal(document.getElementById('cashModal'));
-    //     modal.show();
-    // });
-</script>
-
-<script>
     window.addEventListener('user-selection-updated', event => {
         const userId = event.detail.userId;
         yourJsFunction(userId);
     });
-
-    function yourJsFunction(userId) {
-
-        //console.log("JS function called with user ID:", userId);
-        // Your custom logic here
-    }
 
     function calculateChange() {
         let cash = parseFloat(document.getElementById("cash").value);
@@ -2076,76 +2080,6 @@
 
         //  document.getElementById("notes-breakdown").innerHTML = breakdown;
     }
-
-    // function calculateCash() {
-    //     const notes2000 = parseInt(document.getElementById('notes_2000').value) || 0;
-    //     const notes500 = parseInt(document.getElementById('notes_500').value) || 0;
-
-    //     const total = (notes2000 * 2000) + (notes500 * 500);
-
-    //     if (total === 4000) {
-    //         document.getElementById('result').innerText = `✅ Total is ${total}`;
-    //     } else {
-    //         document.getElementById('result').innerText = `❌ Total is ${total}, which is not 4000`;
-    //     }
-    // }
-
-    // function calculateCashBreakdown() {
-    //     const denominations = [{
-    //             id: 'notes_10',
-    //             value: 10,
-    //             sumId: 'sum_10'
-    //         },
-    //         {
-    //             id: 'notes_20',
-    //             value: 20,
-    //             sumId: 'sum_20'
-    //         },
-    //         {
-    //             id: 'notes_50',
-    //             value: 50,
-    //             sumId: 'sum_50'
-    //         },
-    //         {
-    //             id: 'notes_100',
-    //             value: 100,
-    //             sumId: 'sum_100'
-    //         },
-    //         {
-    //             id: 'notes_500',
-    //             value: 500,
-    //             sumId: 'sum_500'
-    //         }
-    //     ];
-
-
-    //     let total = 0;
-    //     let notesum = 0;
-    //     const cash = document.getElementById('cash').value;
-    //     const change = document.getElementById('change').value;
-    //     denominations.forEach(note => {
-    //         //console.log(document.getElementById(note.id).value);
-    //         const count = parseInt(document.getElementById(note.id).value) || 0;
-    //         // console.log(count);
-
-    //         const subtotal = count * note.value;
-    //         total += subtotal;
-    //         //console.log(subtotal);
-
-    //         document.getElementById(note.sumId).textContent = `${subtotal.toLocaleString()}`;
-    //     });
-
-    //     document.getElementById('totalNoteCash').textContent = ` ${total.toLocaleString()}`;
-
-    //     total -= change;
-
-
-    //     if (cash == total) {
-    //         document.getElementById('paymentSubmit').style.display = 'block';
-
-    //         // document.getElementById('result').textContent = `Total Cash: ${total.toLocaleString()}`;
-    //     }
-    // }
 
     function calculateCashUpiBreakdown() {
         const denominations = [{
@@ -2203,32 +2137,8 @@
             // document.getElementById('result').textContent = `Total Cash: ${total.toLocaleString()}`;
         }
     }
-
-    // Run on load
-    // document.addEventListener("DOMContentLoaded", calculateCashBreakdown);
-    // var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-toggle="tooltip"]'))
-    // tooltipTriggerList.map(function(tooltipTriggerEl) {
-    //     return new bootstrap.Tooltip(tooltipTriggerEl)
-    // });
 </script>
 <script>
-    // async function startCamera(type) {
-    //     const video = document.getElementById(type === 'product' ? 'video1' : 'video2');
-    //     try {
-    //         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    //         video.srcObject = stream;
-    //     } catch (error) {
-    //         console.error('Camera permission denied or not available.', error);
-    //         alert('Please allow camera access to capture an image.');
-    //     }
-    // }
-
-    // // Start the camera when the captureModal is opened
-    // document.addEventListener('DOMContentLoaded', function () {
-    //     $('#captureModal').on('shown.bs.modal', function () {
-    //         startCamera('product'); // Start camera for 'product' type
-    //     });
-    // });
     let stream;
 
     navigator.mediaDevices.getUserMedia({
@@ -2285,16 +2195,12 @@
                             icon: 'success',
                             confirmButtonText: 'OK'
                         });
-
-
                     } else {
                         alert('Upload failed!');
                     }
                 })
                 .catch(err => console.log(err));
         }, 'image/png');
-
-
     }
 
     function updateCashOnlineFields(source) {
@@ -2387,32 +2293,6 @@
         // });
     });
 
-    // document.addEventListener('DOMContentLoaded', function() {
-    //     const inputs = document.querySelectorAll('.note-input');
-    //     const totalCashDisplay = document.getElementById('totalNoteCash');
-    //     const amountInput = document.getElementById('amountTotal');
-
-    //     function updateTotals() {
-    //         let total = 0;
-    //         inputs.forEach(input => {
-    //             const denom = parseInt(input.dataset.denomination);
-    //             const qty = parseInt(input.value) || 0;
-    //             const sum = denom * qty;
-    //             document.getElementById(`cashsum_${denom}`).innerText = `${sum}`;
-    //             total += sum;
-    //         });
-
-    //         totalCashDisplay.innerText = `${total}`;
-    //         amountInput.value = total;
-    //     }
-
-    //     inputs.forEach(input => {
-    //         input.addEventListener('input', updateTotals);
-    //     });
-
-    //     // Initial calculation
-    //     updateTotals();
-    // });
     const input = document.getElementById('numberInput');
     const numpad = document.getElementById('numpad');
 
@@ -2437,22 +2317,8 @@
             input.value += value;
         }
     };
-
-    // input.addEventListener('click', (e) => {
-    //     const rect = input.getBoundingClientRect();
-    //     createNumpad();
-    //     numpad.style.top = `${rect.bottom + window.scrollY + 5}px`;
-    //     numpad.style.left = `${rect.left + window.scrollX}px`;
-    //     numpad.style.display = 'grid';
-    // });
-
-    // Optional: Close numpad if clicked outside
-    // document.addEventListener('click', (e) => {
-    //     if (!numpad.contains(e.target) && e.target !== input) {
-    //         numpad.style.display = 'none';
-    //     }
-    // });
 </script>
+
 <script>
     function updateNote(id, delta, denomination) {
         fetch('/get-available-notes', {
@@ -2512,16 +2378,6 @@
         document.getElementById('totalNoteCashwith').innerText = '' + total;
         document.getElementById('withamountTotal').value = total;
     }
-
-    // window.addEventListener('cart-voided', (event) => {
-    //         Swal.fire({
-    //             title: 'LiquorHub!',
-    //             text: event.detail[0].message,  // Use the message passed from Livewire through the event
-    //             icon: 'success',
-    //             confirmButtonText: 'OK'
-    //         });
-    //     // Reset inputs if needed or perform any additional actions here
-    // });
 
     // Function to display dynamic SweetAlert
     function showAlert(type, title, message) {
@@ -2588,7 +2444,8 @@
         }).then((result) => {
             $('#cashModal').modal('hide');
             if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
-                location.reload(); // reload after OK click or auto close
+                reloadWithFullscreen(); // Sets flag and reloads the page
+                // location.reload(); // reload after OK click or auto close
             }
         });
     });
@@ -2642,15 +2499,6 @@
     });
 </script>
 <script>
-    // window.addEventListener('show-numpad-modal', () => {
-    //     $('#numpadModal').modal('show');
-
-    // });
-
-    // window.addEventListener('hide-numpad-modal', () => {
-    //     $('#numpadModal').modal('hide');
-
-    // });
     window.addEventListener('close-hold-modal', function() {
         // Hide modal
         const modal = document.getElementById('holdTransactionsModal');
@@ -2666,62 +2514,9 @@
         document.body.classList.remove('modal-open');
         document.body.style.paddingRight = '';
     });
-
-    window.addEventListener('product-added', () => {
-        // optional: play sound or flash success
-        //console.log('Product added to cart!');
-    });
 </script>
+
 <script>
-    //     function calculateDifference(expectedAmount) {
-    //     const closingCashInput = document.getElementById('closingCash');
-    //     const diffCashInput = document.getElementById('diffCash');
-    //     const closingCashValue = closingCashInput.value.trim();
-
-    //     // Validate input
-    //     if (closingCashValue === '') {
-    //         Swal.fire({
-    //             icon: 'warning',
-    //             title: 'Missing Input',
-    //             text: 'Please enter the closing cash amount.',
-    //         });
-    //         closingCashInput.focus();
-    //         diffCashInput.value = '';
-    //         return;
-    //     }
-
-    //     const closingCash = parseFloat(closingCashValue);
-
-    //     if (isNaN(closingCash)) {
-    //         Swal.fire({
-    //             icon: 'error',
-    //             title: 'Invalid Input',
-    //             text: 'Closing cash must be a valid number.',
-    //         });
-    //         closingCashInput.focus();
-    //         diffCashInput.value = '';
-    //         return;
-    //     }
-
-    //     if (closingCash < 0) {
-    //         Swal.fire({
-    //             icon: 'error',
-    //             title: 'Invalid Amount',
-    //             text: 'Closing cash cannot be negative.',
-    //         });
-    //         closingCashInput.focus();
-    //         diffCashInput.value = '';
-    //         return;
-    //     }
-
-    //     // Calculate the difference
-    //     const diffCash = closingCash - expectedAmount;
-
-    //     // Update the diffCash input with the calculated value
-    //     diffCashInput.value = diffCash.toFixed(2);
-    // }
-
-
     function updateAmounts() {
         let total = 0;
         const amountInput = document.getElementById('holdamountTotal');
@@ -2839,143 +2634,6 @@
         document.getElementById('product-items-wh').appendChild(row);
         itemIndex++;
     });
-
-    // document.addEventListener('DOMContentLoaded', function() {
-    //     const inputs = document.querySelectorAll('.note-input');
-    //     const totalCashDisplay = document.getElementById('totalNoteCashNew');
-    //     const amountInput = document.getElementById('amountTotal');
-
-    //     function updateTotals() {
-    //         let total = 0;
-    //         inputs.forEach(input => {
-    //             const denom = parseInt(input.dataset.denomination);
-    //             const qty = parseInt(input.value) || 0;
-    //             const sum = denom * qty;
-    //             document.getElementById(`cashsum_${denom}`).innerText = `${sum}`;
-    //             total += sum;
-    //         });
-    //         totalCashDisplay.innerText = `${total}`;
-    //         amountInput.value = total;
-    //     }
-
-    //     inputs.forEach(input => {
-    //         input.addEventListener('input', updateTotals);
-    //     });
-
-    //     // Initial calculation
-    //     updateTotals();
-    // });
-</script>
-<script>
-    // document.addEventListener('DOMContentLoaded', () => {
-    //     const inputs = document.querySelectorAll('.number-input');
-
-    //     inputs.forEach(input => {
-    //         input.addEventListener('focus', () => {
-    //             const itemId = input.dataset.itemId;
-    //             const numpad = document.getElementById('numpad-' + itemId);
-    //             closeAllNumpads();
-    //             positionNumpadBelow(input, numpad);
-    //             numpad.classList.remove('d-none');
-    //         });
-    //     });
-
-    //     document.addEventListener('click', (e) => {
-    //         if (!e.target.closest('.numpad-container') && !e.target.classList.contains('number-input')) {
-    //             closeAllNumpads();
-    //         }
-    //     });
-    // });
-
-    // function positionNumpadBelow(input, numpad) {
-    //     const rect = input.getBoundingClientRect();
-    //     numpad.style.top = (window.scrollY + rect.bottom + 4) + 'px';
-    //     numpad.style.left = (window.scrollX + rect.left) + 'px';
-    // }
-
-    // function closeAllNumpads() {
-    //     document.querySelectorAll('.numpad-container').forEach(n => n.classList.add('d-none'));
-    // }
-
-    // function numpadInsert(itemId, num) {
-    //     const input = document.getElementById('numberInput-' + itemId);
-    //     input.value += num;
-    //     dispatchLivewireEvents(input);
-    // }
-
-    // function numpadBackspace(itemId) {
-    //     const input = document.getElementById('numberInput-' + itemId);
-    //     input.value = input.value.slice(0, -1);
-    //     dispatchLivewireEvents(input);
-    // }
-
-    // function numpadClear(itemId) {
-    //     const input = document.getElementById('numberInput-' + itemId);
-    //     input.value = '1'; // Set to 1 instead of empty
-    //     dispatchLivewireEvents(input);
-    // }
-
-
-    // function dispatchLivewireEvents(input) {
-    //     input.dispatchEvent(new Event('input'));
-    //     input.dispatchEvent(new Event('change'));
-    // }
-</script>
-{{-- <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const input = document.getElementById('searchInput');
-        const keypad = document.getElementById('text-keypad');
-
-        // Show keypad on focus
-        input.addEventListener('focus', () => {
-            positionKeypadBelow(input, keypad);
-            keypad.classList.remove('d-none');
-        });
-
-        // Hide keypad when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.keypad-container') && e.target !== input) {
-                keypad.classList.add('d-none');
-            }
-        });
-    });
-
-    function positionKeypadBelow(input, keypad) {
-        const rect = input.getBoundingClientRect();
-        keypad.style.top = (window.scrollY + rect.bottom + 4) + 'px';
-        keypad.style.left = (window.scrollX + rect.left) + 'px';
-    }
-
-    function textKeyInsert(char) {
-        const input = document.getElementById('searchInput');
-        input.value += char;
-        dispatchLivewireEvents(input);
-    }
-
-    function textKeyBackspace() {
-        const input = document.getElementById('searchInput');
-        input.value = input.value.slice(0, -1);
-        dispatchLivewireEvents(input);
-    }
-
-    function textKeyClear() {
-        const input = document.getElementById('searchInput');
-        input.value = '';
-        dispatchLivewireEvents(input);
-    }
-
-    function dispatchLivewireEvents(input) {
-        input.dispatchEvent(new Event('input'));
-        input.dispatchEvent(new Event('change'));
-    } --}}
-</script>
-<script>
-    // window.addEventListener('show-order-modal', event => {
-    //     var myModal = new bootstrap.Modal(document.getElementById('orderModal'), {
-    //         keyboard: false
-    //     });
-    //     myModal.show();
-    // });
 </script>
 <script>
     document.addEventListener('click', function(event) {
@@ -3242,7 +2900,9 @@
 
                     form.trigger("reset");
                     // Reload the current page
-                    location.reload();
+                    // location.reload();
+                    alert("chc");
+                    reloadWithFullscreen(); // Sets flag and reloads the page 
                 },
 
                 error: function(xhr) {
@@ -3518,7 +3178,7 @@
     });
 
     window.addEventListener('hold-saved', event => {
-        location.reload();
+        // location.reload();.
     });
 </script>
 <script>
