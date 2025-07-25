@@ -50,6 +50,7 @@ class Product extends Model
 
         return $this->hasMany(Inventory::class)->where('store_id', $branch_id);
     }
+    
     public function inventorie()
     {
         $branch_id = auth()->user()->userinfo->branch->id ?? null;
