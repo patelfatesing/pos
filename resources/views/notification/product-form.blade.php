@@ -13,9 +13,11 @@
 
     <div class="modal-body">
         <div class="container">
-            <span class="main-screen-frame280">
-                <h5 class="mb-3 main-screen-text72">Store : {{ $branch_name }}</h5>
-            </span>
+            @if (auth()->user()->hasRole('admin'))
+                <span class="main-screen-frame280">
+                    <h5 class="mb-3 main-screen-text72">Store : {{ $branch_name }}</h5>
+                </span>
+            @endif
             <input type="hidden" name="store_id" value="2" />
             <table class="table table-bordered">
                 <thead class="table-info">
