@@ -71,7 +71,7 @@ class PartyUserController extends Controller
 
             $action = '<div class="d-flex align-items-center list-action">
             <a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                    href="' . url('/cust-product-price-change/form/' . $partyUser->id) . '"><i class="ri-currency-fill"></i></a>     
+                    href="' . url('/cust-product-price-change/form?id=' . $partyUser->id) . '"><i class="ri-currency-fill"></i></a>     
             <a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
                                         href="' . url('/party-users/view/' . $partyUser->id) . '"><i class="ri-eye-line mr-0"></i></a>
             <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
@@ -207,9 +207,14 @@ class PartyUserController extends Controller
         return response()->json(['success' => true, 'message' => 'Party User has been deleted successfully.']);
     }
 
-    public function custProductPriceChangeForm($id)
+    public function custProductPriceChangeForm(Request $request)
     {
+        $id = request()->id ?? null;
         $partyUser = Partyuser::select('first_name', 'id')->where('id', $id)->first();
+        $subcategories = DB::table('sub_categories')->where('is_deleted', 'no')->get();
+
+        
+        $subcategoryId = request()->subcategory_id ?? null;
 
         $products = DB::table('products')
             ->select(
@@ -223,6 +228,9 @@ class PartyUserController extends Controller
                 $join->on('products.id', '=', 'party_customer_products_price.product_id')
                     ->where('party_customer_products_price.party_user_id', $id);
             })
+            ->when($subcategoryId, function ($query, $subcategoryId) {
+                $query->where('subcategory_id', $subcategoryId);
+            })
             ->where('products.is_deleted', 'no')
             ->where('products.is_active', 'yes')
             ->groupBy(
@@ -234,7 +242,7 @@ class PartyUserController extends Controller
             )
             ->get();
 
-        return view('party_users.product-form', compact('products', 'partyUser'));
+        return view('party_users.product-form', compact('products', 'partyUser','subcategories'));
 
         return response()->json(['error' => 'Form not found'], 404);
     }
