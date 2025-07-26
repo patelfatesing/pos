@@ -6,3 +6,43 @@
 [03-May-2025 06:20:49 UTC] PHP Fatal error:  Allowed memory size of 1610612736 bytes exhausted (tried to allocate 167772160 bytes) in phar:///usr/local/bin/composer1.phar/src/Composer/DependencyResolver/RuleSet.php on line 90
 [10-May-2025 09:34:42 UTC] PHP Fatal error:  Allowed memory size of 1610612736 bytes exhausted (tried to allocate 167772160 bytes) in phar:///usr/local/bin/composer1.phar/src/Composer/DependencyResolver/RuleSet.php on line 90
 [10-May-2025 09:40:41 UTC] PHP Fatal error:  Allowed memory size of 1610612736 bytes exhausted (tried to allocate 167772160 bytes) in phar:///usr/local/bin/composer1.phar/src/Composer/DependencyResolver/RuleSet.php on line 90
+[29-May-2025 18:29:03 UTC] PHP Warning:  require(/home/u338763285/domains/liquorhub.in/public_html/staging/vendor/autoload.php): Failed to open stream: No such file or directory in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan on line 10
+[29-May-2025 18:29:03 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/u338763285/domains/liquorhub.in/public_html/staging/vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan:10
+Stack trace:
+#0 {main}
+  thrown in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan on line 10
+[29-May-2025 18:29:03 UTC] PHP Warning:  require(/home/u338763285/domains/liquorhub.in/public_html/staging/vendor/autoload.php): Failed to open stream: No such file or directory in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan on line 10
+[29-May-2025 18:29:03 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/u338763285/domains/liquorhub.in/public_html/staging/vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan:10
+Stack trace:
+#0 {main}
+  thrown in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan on line 10
+[29-May-2025 18:29:03 UTC] PHP Warning:  require(/home/u338763285/domains/liquorhub.in/public_html/staging/vendor/autoload.php): Failed to open stream: No such file or directory in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan on line 10
+[29-May-2025 18:29:03 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/u338763285/domains/liquorhub.in/public_html/staging/vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan:10
+Stack trace:
+#0 {main}
+  thrown in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan on line 10
+[29-May-2025 18:29:03 UTC] PHP Warning:  require(/home/u338763285/domains/liquorhub.in/public_html/staging/vendor/autoload.php): Failed to open stream: No such file or directory in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan on line 10
+[29-May-2025 18:29:03 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/u338763285/domains/liquorhub.in/public_html/staging/vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan:10
+Stack trace:
+#0 {main}
+  thrown in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan on line 10
+[29-May-2025 18:42:51 UTC] PHP Warning:  require(/home/u338763285/domains/liquorhub.in/public_html/staging/vendor/autoload.php): Failed to open stream: No such file or directory in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan on line 10
+[29-May-2025 18:42:51 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/u338763285/domains/liquorhub.in/public_html/staging/vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan:10
+Stack trace:
+#0 {main}
+  thrown in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan on line 10
+[29-May-2025 18:42:51 UTC] PHP Warning:  require(/home/u338763285/domains/liquorhub.in/public_html/staging/vendor/autoload.php): Failed to open stream: No such file or directory in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan on line 10
+[29-May-2025 18:42:51 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/u338763285/domains/liquorhub.in/public_html/staging/vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan:10
+Stack trace:
+#0 {main}
+  thrown in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan on line 10
+[29-May-2025 18:42:51 UTC] PHP Warning:  require(/home/u338763285/domains/liquorhub.in/public_html/staging/vendor/autoload.php): Failed to open stream: No such file or directory in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan on line 10
+[29-May-2025 18:42:51 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/u338763285/domains/liquorhub.in/public_html/staging/vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan:10
+Stack trace:
+#0 {main}
+  thrown in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan on line 10
+[29-May-2025 18:42:52 UTC] PHP Warning:  require(/home/u338763285/domains/liquorhub.in/public_html/staging/vendor/autoload.php): Failed to open stream: No such file or directory in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan on line 10
+[29-May-2025 18:42:52 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/u338763285/domains/liquorhub.in/public_html/staging/vendor/autoload.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan:10
+Stack trace:
+#0 {main}
+  thrown in /home/u338763285/domains/liquorhub.in/public_html/staging/artisan on line 10
