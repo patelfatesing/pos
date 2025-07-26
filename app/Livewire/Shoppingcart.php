@@ -200,6 +200,7 @@ class Shoppingcart extends Component
             ->where('branch_id', auth()->user()->userinfo->branch->id ?? null)
             ->first();
     }
+
     public function clearSearch()
     {
         $this->search = '';
@@ -2385,11 +2386,13 @@ class Shoppingcart extends Component
         }
 
         if (strlen($this->searchTerm) > 0) {
+            $this->dispatch('loader-start');
             $this->searchResults = Product::with('inventorie')
                 ->when($this->searchTerm, function ($query) {
                     $query->where('name', 'like', '%' . $this->searchTerm . '%')->where('is_deleted', 'no');
                 })
                 ->get();
+            $this->dispatch('loader-stop');
             $this->showSuggestions = true;
         } else {
             $this->searchResults = [];

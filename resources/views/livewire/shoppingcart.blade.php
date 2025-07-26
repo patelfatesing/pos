@@ -460,7 +460,8 @@
                                             $finalAmount = $total - $commission - $party;
                                         @endphp
                                         <tr class="{{ $this->activeItemId === $item->id ? 'active' : '' }}">
-                                            <td class="col-7" wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})"
+                                            <td class="col-7"
+                                                wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})"
                                                 style="cursor:pointer">
                                                 {{ $item->product->name }}<br>
                                                 {{ $item->product->description }}
@@ -1272,7 +1273,6 @@
                                 </table>
                             </div>
                             {{-- <div class="modal-footer">
-
                                 <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"
                                     aria-label="Close" wire:click="#">Close</button>
                             </div> --}}
@@ -1454,10 +1454,7 @@
                                                         </tr>
                                                     </tbody>
                                                 </table>
-
-
                                             </div>
-
                                         </div>
                                         @if (empty($this->selectedSalesReturn))
                                             <div class="row g-3">
@@ -1863,34 +1860,41 @@
         </div>
     </div>
     <!-- Loader Overlay -->
-
 </div>
 
 <script>
     // Before reload, set a flag to restore fullscreen
     function reloadWithFullscreen() {
-        alert("test");
-        localStorage.setItem('restoreFullscreen', 'true');
-        location.reload();
+        // localStorage.setItem('restoreFullscreen', 'true');
+        // location.reload();
     }
 
     // After reload, check flag and request fullscreen
     document.addEventListener("DOMContentLoaded", function() {
-        alert("test22");
 
-        console.log(localStorage.getItem('restoreFullscreen'), "===dfgdfg==");
         if (localStorage.getItem('restoreFullscreen') === 'true') {
-            localStorage.removeItem('restoreFullscreen');
+            // localStorage.removeItem('restoreFullscreen');
 
-            let elem = document.documentElement;
+            // // Show a temporary button to allow fullscreen restore
+            // const btn = document.createElement('button');
+            // btn.textContent = 'Click to restore fullscreen';
+            // btn.style.position = 'fixed';
+            // btn.style.top = '50%';
+            // btn.style.left = '50%';
+            // btn.style.transform = 'translate(-50%, -50%)';
+            // btn.style.padding = '1rem 2rem';
+            // btn.style.zIndex = 9999;
 
-            if (!document.fullscreenElement) {
-                elem.requestFullscreen?.() || elem.webkitRequestFullscreen?.() || elem
-                    .msRequestFullscreen?.();
-            } else {
-                document.exitFullscreen?.() || document.webkitExitFullscreen?.() || document
-                    .msExitFullscreen?.();
-            }
+            // document.body.appendChild(btn);
+
+            // btn.addEventListener('click', function() {
+            //     const docEl = document.documentElement;
+            //     if (!document.fullscreenElement) {
+            //         docEl.requestFullscreen?.()
+            //             .catch(err => alert("Failed to enter fullscreen: " + err));
+            //     }
+            //     btn.remove(); // remove button after entering fullscreen
+            // });
         }
     });
 
@@ -1937,49 +1941,95 @@
     });
 
     window.addEventListener('triggerPrint', event => {
+        // Hide preview or image if any
         const el = document.getElementsByClassName('lastsavepic')[0];
         if (el) {
             el.classList.add('d-none');
         }
 
+        // Clear previous iframe
         const iframeContainer = document.getElementById('iframe-container');
         iframeContainer.innerHTML = '';
 
+        // Create and style iframe
         const iframe = document.createElement('iframe');
         iframe.src = event.detail[0].pdfPath;
-        iframe.width = '100%';
-        iframe.height = '100%';
+        iframe.style.position = 'absolute';
+        iframe.style.top = '-9999px';
+        iframe.style.left = '-9999px';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
         iframe.style.border = 'none';
-        iframe.style.display = 'none';
 
         iframeContainer.appendChild(iframe);
 
-        // Backup: attach fallback print listener globally
-        window.onafterprint = () => {
-            restoreFullscreen();
-        };
+        // Flag to trigger fullscreen prompt
+        let needsFullscreen = false;
 
         iframe.onload = function() {
             iframe.contentWindow.focus();
             iframe.contentWindow.print();
 
-            // Some browsers fire this only inside the iframe
-            iframe.contentWindow.onafterprint = function() {
-                restoreFullscreen();
+            iframe.contentWindow.onafterprint = () => {
+                // Clean up iframe
+                iframe.remove();
+
+                // Ensure page is responsive again
+                setTimeout(() => {
+                    window.focus();
+                    document.body.focus();
+                }, 100);
+
+                // Show fullscreen button
+                needsFullscreen = true;
+                // showFullscreenPrompt();
+
+                document.addEventListener('fullscreenchange', () => {
+                    if (!document.fullscreenElement) {
+                        // Try to re-enter fullscreen after print, using a small timeout
+                        setTimeout(() => {
+                            document.documentElement.requestFullscreen().catch(err => {
+                                console.log('Fullscreen request failed:', err);
+                            });
+                        }, 500); // Delay to allow print dialog to close
+                    }
+                });
             };
         };
 
-        // Fullscreen restore function
+        // Function to show fullscreen prompt button
+        function showFullscreenPrompt() {
+            const btn = document.createElement('button');
+            btn.innerText = 'Click to Restore Fullscreen';
+            btn.style.position = 'fixed';
+            btn.style.top = '50%';
+            btn.style.left = '50%';
+            btn.style.transform = 'translate(-50%, -50%)';
+            btn.style.padding = '1rem 2rem';
+            btn.style.fontSize = '1.2rem';
+            btn.style.zIndex = '99999';
+            btn.style.backgroundColor = '#007BFF';
+            btn.style.color = '#fff';
+            btn.style.border = 'none';
+            btn.style.borderRadius = '10px';
+            btn.style.boxShadow = '0 5px 10px rgba(0, 0, 0, 0.2)';
+            btn.style.cursor = 'pointer';
+
+            btn.addEventListener('click', function() {
+                restoreFullscreen();
+                btn.remove();
+            });
+
+            document.body.appendChild(btn);
+        }
+
+        // Fullscreen restore function — must be called on user interaction
         function restoreFullscreen() {
             const docEl = document.documentElement;
             if (!document.fullscreenElement) {
-                if (docEl.requestFullscreen) {
-                    docEl.requestFullscreen();
-                } else if (docEl.webkitRequestFullscreen) {
-                    docEl.webkitRequestFullscreen();
-                } else if (docEl.msRequestFullscreen) {
-                    docEl.msRequestFullscreen();
-                }
+                docEl.requestFullscreen?.().catch(err => {
+                    console.warn("Fullscreen restore failed:", err);
+                });
             }
         }
     });
@@ -2260,7 +2310,7 @@
                 tracks.forEach(track => track.stop());
                 video.srcObject = null;
             }
-            location.reload();
+            // location.reload();
 
         });
         //  // Set your shift end time here
@@ -2444,7 +2494,7 @@
         }).then((result) => {
             $('#cashModal').modal('hide');
             if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
-                reloadWithFullscreen(); // Sets flag and reloads the page
+                // reloadWithFullscreen(); // Sets flag and reloads the page
                 // location.reload(); // reload after OK click or auto close
             }
         });
