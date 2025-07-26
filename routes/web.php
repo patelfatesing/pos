@@ -272,9 +272,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/party-users/view/{id}', [PartyUserController::class, 'view'])->name('party-users.view');
     Route::put('/party-users/{Partyuser}', [PartyUserController::class, 'update'])->name('party-users.update');
     Route::delete('/party-users/{Partyuser}', [PartyUserController::class, 'destroy'])->name('party-users.destroy');
-    Route::get('/cust-product-price-change/form/{id}', [PartyUserController::class, 'custProductPriceChangeForm']);
-    Route::get('/cust-product-price-change/form/{id}', [PartyUserController::class, 'custProductPriceChangeForm']);
-
+    Route::get('/cust-product-price-change/form', [PartyUserController::class, 'custProductPriceChangeForm'])->name('party-users.cust-product-price-change-form');
+   
     Route::post('/cust-product-price-change/price_change-store', [PartyUserController::class, 'custPriceChange'])->name('cust-product-price-change-store');
     Route::post('/party-users/get-commission-data', [PartyUserController::class, 'getDataCommission'])->name('party-users.get.commission.data');
     Route::get('/cust-trasaction-photo/view/{id}', [PartyUserController::class, 'custTrasactionPhoto'])->name('cust-trasaction-photo-view');
