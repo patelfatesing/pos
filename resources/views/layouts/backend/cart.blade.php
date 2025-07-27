@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LiquorHub</title>
-        <link rel="shortcut icon" href="../assets/images/favicon.ico" />
+    <link rel="shortcut icon" href="../assets/images/favicon.ico" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="shortcut icon" href="{{ asset('public/external/favicon.ico') }}" />
     <link rel="stylesheet" href="https://unpkg.com/animate.css@4.1.1/animate.css" />
@@ -134,9 +134,7 @@
             color: rgba(255, 255, 255, 1);
         }
 
-        .btn-void span{
-
-        }
+        .btn-void span {}
 
         .btn-cash {
 
@@ -188,10 +186,12 @@
             z-index: 999;
             /* overflow-y: auto; Add this line to handle overflow gracefully */
         }
-        .fixed-bottom{
-             z-index: 0 !important;
+
+        .fixed-bottom {
+            z-index: 0 !important;
         }
-        .bg-light{
+
+        .bg-light {
             text-align: center;
         }
 
@@ -263,66 +263,89 @@
             color: rgba(36, 81, 118, 1);
 
         }
-        .btn-gray{
-            background-color: rgba(234, 236, 234, 1)!important;
+
+        .btn-gray {
+            background-color: rgba(234, 236, 234, 1) !important;
         }
-        .currency-center{
+
+        .currency-center {
             background-color: #cfebeb !important;
         }
+
         .cash-summary-text61 {
             color: rgba(36, 81, 118, 1);
-        
+
         }
-        .btn-primary,.btn-primary:hover,.btn-deafult:hover {
+
+        .btn-primary,
+        .btn-primary:hover,
+        .btn-deafult:hover {
             background-color: #009fe3;
         }
-        .btn-warning,.btn-warning:hover{
+
+        .btn-warning,
+        .btn-warning:hover {
             background-color: rgba(255, 126, 65, 1);
             color: white !important;
         }
-        .close-text{
+
+        .close-text {
             color: black !important;
         }
-        .text-success td,.table-success tr th ,.table-success-new  td{
-            color:#1C5609 !important;
+
+        .text-success td,
+        .table-success tr th,
+        .table-success-new td {
+            color: #1C5609 !important;
         }
+
         .sidebar-item button {
             height: 36px;
         }
+
         #sidebar {
-        max-height: 100vh;    /* Limit height to viewport height */
-        overflow-y: auto;     /* Enable vertical scrollbar when content overflows */
-        /* Optional: fix the sidebar position if needed */
-        /* position: fixed; */
-        /* top: 0; */
-        /* left: 0; */
-        /* height: 100vh; */
+            max-height: 100vh;
+            /* Limit height to viewport height */
+            overflow-y: auto;
+            /* Enable vertical scrollbar when content overflows */
+            /* Optional: fix the sidebar position if needed */
+            /* position: fixed; */
+            /* top: 0; */
+            /* left: 0; */
+            /* height: 100vh; */
         }
-        
+
         .d-flex .btn {
-            --bs-btn-padding-x:0px!important; 
-            --bs-btn-padding-y:0px !important; 
-            height:35px !important; 
-                font-size: 15px  !important; 
+            --bs-btn-padding-x: 0px !important;
+            --bs-btn-padding-y: 0px !important;
+            height: 35px !important;
+            font-size: 15px !important;
         }
-        .position-relative input{
-            line-height: 1  !important; 
+
+        .position-relative input {
+            line-height: 1 !important;
         }
+
         .text-custom-blue {
-            color: #17375E; /* Matches the dark blue in your screenshot */
+            color: #17375E;
+            /* Matches the dark blue in your screenshot */
         }
+
         /* Optional: header background color similar to screenshot's very light blue row */
         .header-row {
             background-color: #e6f0ff;
         }
+
         .text-teal {
             color: #0D7680 !important;
         }
-        
+
         #cartTable tbody {
             display: block;
-            max-height: 300px; /* max height to limit the tbody */
-            overflow-y: auto;  /* show scrollbar only if tbody content is taller */
+            max-height: 300px;
+            /* max height to limit the tbody */
+            overflow-y: auto;
+            /* show scrollbar only if tbody content is taller */
         }
 
         #cartTable thead,
@@ -331,9 +354,8 @@
             width: 100%;
             table-layout: fixed;
         }
-
     </style>
-     @livewireStyles
+    @livewireStyles
 </head>
 
 <body>
@@ -415,8 +437,7 @@
         function nfModelCls() {
             $('#approveModal').modal('hide');
         }
-    </script>
-    <script>
+
         document.addEventListener('DOMContentLoaded', function() {
             // Observe all future buttons as well
             const attachClickAlert = (btn) => {
@@ -446,9 +467,49 @@
                 });
             });
         });
+
+        window.addEventListener('loader-start', () => {
+            const loader = document.getElementById('custom-loader');
+            if (loader) {
+                loader.classList.remove('d-none'); // remove Bootstrap's hidden class
+                loader.style.display = 'flex'; // force visible
+                console.log('Loader shown');
+            }
+        });
+
+        window.addEventListener('loader-stop', () => {
+            setTimeout(function() {
+                // $('.toast').fadeOut('slow');
+                console.log("dfgdfg");
+            }, 5000); // 5 seconds before fade-out
+            const loader = document.getElementById('custom-loader');
+            if (loader) {
+                loader.classList.add('d-none'); // optional, add back class
+                loader.style.display = 'none'; // hide completely
+                console.log('Loader hidden');
+            }
+        });
+
+        // Optional: hide loader when Livewire is ready
+        document.addEventListener('livewire:load', function() {
+            const loader = document.getElementById('custom-loader');
+            if (loader) {
+                loader.classList.add('d-none');
+                loader.style.display = 'none';
+                console.log('Livewire loaded, loader removed');
+            }
+        });
     </script>
 
     @livewireScripts
+    <!-- Global Loader -->
+    <div id="custom-loader"
+        class="d-none position-fixed top-0 start-0 w-100 h-100 bg-white bg-opacity-75 d-flex justify-content-center align-items-center"
+        style="z-index: 9999;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
 
 </body>
 

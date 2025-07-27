@@ -13,6 +13,7 @@ use App\Models\CashBreakdown;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use App\Models\CreditHistory;
+use App\Models\Branch;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Models\Refund;
@@ -129,7 +130,7 @@ class ShiftCloseModal extends Component
     public $image;
     public $showYesterDayShiftTime = false;
     public $currentShiftDate = "";
-
+    public $inOutStatus = '';
 
 
     public function setCapturedImage($image = "")
@@ -165,6 +166,9 @@ class ShiftCloseModal extends Component
     {
         $this->getCurrentShift();
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
+        $store = Branch::select('in_out_enable')->findOrFail($branch_id);
+        $this->inOutStatus = $store->in_out_enable;
         //  if(!empty($this->currentShift)){
         //     $today = \Carbon\Carbon::parse($this->currentShift->start_time)->toDateString();
         //     $this->showYesterDayShiftTime=true;
@@ -199,7 +203,7 @@ class ShiftCloseModal extends Component
         $end_date = @$this->currentShift->end_time; // today's date till end of day
         $totals = CreditHistory::whereBetween('created_at', [$start_date, $end_date])
             ->where('store_id', $branch_id)
-            ->where('transaction_kind','!=' ,'collact_credit')
+            ->where('transaction_kind', '!=', 'collact_credit')
             ->selectRaw('SUM(credit_amount) as credit_total, SUM(debit_amount) as debit_total')
             ->first();
         $this->creditCollacted = \DB::table('credit_collections')
@@ -212,7 +216,7 @@ class ShiftCloseModal extends Component
             ->first();
 
         // $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->where('status', '!=', 'Hold')->where('invoice_number', 'not like', '%Hold%')->latest()->get();
-        $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->whereNotIn('status', ['Hold', 'resumed', 'archived','Returned'])->latest()->get();
+        $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->whereNotIn('status', ['Hold', 'resumed', 'archived', 'Returned'])->latest()->get();
         $totalSalesNew = 0;
         foreach ($invoices as $invoice) {
             $items = $invoice->items; // decode items from longtext JSON
@@ -270,21 +274,21 @@ class ShiftCloseModal extends Component
             //     }
             // }
             $refunds = Refund::where('invoice_id', $invoice->id)
-            ->where('user_id', auth()->id())
-            ->get();
+                ->where('user_id', auth()->id())
+                ->get();
             foreach ($refunds as $key => $refund) {
-            if ($refund) {
-            $totalRefund     += (!empty($refund->amount)&& is_numeric($refund->amount)) ? (int)$refund->amount : 0;
-            }
+                if ($refund) {
+                    $totalRefund     += (!empty($refund->amount) && is_numeric($refund->amount)) ? (int)$refund->amount : 0;
+                }
             }
         }
         $this->todayCash = $totalPaid;
         $this->categoryTotals['sales']["TOTAL"] = $totalSalesNew;
         $cashAdded = CashBreakdown::where('user_id', auth()->id())
-        ->where('branch_id', $branch_id)
-        ->where('type',  'add cash')
-        ->whereBetween('created_at', [$start_date, $end_date])
-        ->sum('total');
+            ->where('branch_id', $branch_id)
+            ->where('type',  'add cash')
+            ->whereBetween('created_at', [$start_date, $end_date])
+            ->sum('total');
         $totalWith = \App\Models\WithdrawCash::where('user_id',  auth()->user()->id)
             ->where('branch_id', $branch_id)->whereBetween('created_at', [$start_date, $end_date])->sum('amount');
         $this->categoryTotals['payment']['CASH'] = $totalCashPaid;
@@ -306,17 +310,17 @@ class ShiftCloseModal extends Component
             $this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] = @$this->creditCollacted->collacted_cash_amount;
         // $this->categoryTotals['summary']['REFUND'] += $totalRefundReturn *(-1);
         $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['CASH ADDED'] + $this->categoryTotals['summary']['OPENING CASH'] + $this->categoryTotals['summary']['TOTAL SALES'] + $this->categoryTotals['summary']['DISCOUNT'] + $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $this->categoryTotals['summary']['UPI PAYMENT'] + @$this->categoryTotals['summary']['REFUND'] +
-            @$this->categoryTotals['summary']['ONLINE PAYMENT'] + @$this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] + $totalRoundOf + $this->categoryTotals['summary']['CREDIT']+$totalRefundReturn+$this->creditCollacted->collacted_cash_amount;
+            @$this->categoryTotals['summary']['ONLINE PAYMENT'] + @$this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] + $totalRoundOf + $this->categoryTotals['summary']['CREDIT'] + $totalRefundReturn + $this->creditCollacted->collacted_cash_amount;
         $this->categoryTotals['summary']['REFUND'] = $totalRefund * (-1) + $totalRefundReturn * (-1);
         //$this->categoryTotals['summary']['REFUND RETURN'] = $totalRefundReturn*(-1);
-        
+
         // if (!empty($this->categoryTotals['summary']['REFUND_CREDIT'])) {
         //     $this->categoryTotals['summary']['REFUND_CREDIT'] = (int)$this->categoryTotals['summary']['REFUND_CREDIT'] * (-1);
         // }
 
         $cashBreakdowns = CashBreakdown::where('user_id', auth()->id())
             ->where('branch_id', $branch_id)
-             ->where('type', '!=', 'Returned')
+            ->where('type', '!=', 'Returned')
             ->whereBetween('created_at', [$start_date, $end_date])
             ->get();
 
@@ -324,8 +328,7 @@ class ShiftCloseModal extends Component
 
         foreach ($cashBreakdowns as $breakdown) {
             $denominations1 = json_decode($breakdown->denominations, true);
-            // echo "<pre>";
-            // print_r($denominations1);
+
             if (is_array($denominations1)) {
                 // Handle array of objects: [{"10":{"in":"0"}},{"20":{"in":"0"}},...]
                 if (array_keys($denominations1) === range(0, count($denominations1) - 1)) {
@@ -370,7 +373,7 @@ class ShiftCloseModal extends Component
                 }
             }
         }
-        //print_r($noteCount);exit;
+
         // Decode cash JSON to array
         $this->shiftcash = $noteCount;
         $this->availableNotes = json_encode($this->shiftcash);
@@ -453,7 +456,7 @@ class ShiftCloseModal extends Component
             // Store path in DB (if needed)
             // Example: PhysicalStock::create([... , 'image_path' => $filename]);
         }
-        
+
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
         foreach ($this->products as $product_id => $product) {

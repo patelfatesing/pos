@@ -135,7 +135,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/store/update', [BranchController::class, 'update'])->name('branch.update');
     Route::post('/store/delete', [BranchController::class, 'destroy'])->name('branch.destroy');
     Route::post('/store/status-change', [BranchController::class, 'statusChange'])->name('store.status-change');
-
+    Route::post('/store/update-status', [BranchController::class, 'updateStatus'])->name('branch.update.status');
     Route::get('/get-available-notes', [BranchController::class, 'getAvailableNotes']);
 
     Route::get('/products/list', [ProductController::class, 'index'])->name('products.list');
