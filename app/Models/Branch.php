@@ -11,7 +11,7 @@ class Branch extends Model
     // Explicitly specify the table name
     protected $table = 'branches';
 
-    protected $fillable = ['name', 'address', 'description', 'is_active', 'is_deleted', 'is_warehouser'];
+    protected $fillable = ['name', 'address', 'description', 'is_active', 'is_deleted', 'is_warehouser','in_out_enable'];
 
     public function users()
     {

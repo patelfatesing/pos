@@ -130,6 +130,7 @@ class Shoppingcart extends Component
     public $activeItemId = null;
     public $activeProductId = null;
     public $notFoundMessage = ''; // Add this property to your component
+    public $inOutStatus = ''; // Add this property to your component
 
     // This method is triggered whenever the checkbox is checked or unchecked
     public function updatedUseCredit($value)
@@ -569,6 +570,7 @@ class Shoppingcart extends Component
             if (!empty($partyUserImage)) {
                 $this->issavehold = true;
             }
+
             $warehouse_product_photo_path = session(auth()->id() . '_warehouse_product_photo_path', []);
             $warehouse_customer_photo_path = session(auth()->id() . '_warehouse_customer_photo_path', []);
             if (empty($this->selectedPartyUser) && (empty($partyUserImage))) {
@@ -580,7 +582,7 @@ class Shoppingcart extends Component
             } else {
                 //
 
-                if (!empty($this->products->toArray())) {
+                if (!empty($this->cartitems->toArray())) {
                     if ($this->removeCrossHold == false)
                         $this->headertitle = "Cash";
                     else
@@ -608,6 +610,7 @@ class Shoppingcart extends Component
                 if (!empty($CommissionUserImage)) {
                     $this->issavehold = true;
                 }
+
                 if (empty($this->selectedCommissionUser) && (empty($CommissionUserImage))) {
                     $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
                 } else if (empty($CommissionUserImage->image_path) && empty($CommissionUserImage->product_image_path) && $this->removeCrossHold == true) {
@@ -615,7 +618,7 @@ class Shoppingcart extends Component
                 } else if ((empty($cashier_product_photo_path) || empty($cashier_customer_photo_path)) && $this->removeCrossHold == false) {
                     $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
                 } else {
-                    if (!empty($this->products->toArray())) {
+                    if (!empty($this->cartitems->toArray())) {
                         $this->headertitle = "Cash";
                         $this->shoeCashUpi = false;
                         $this->showBox = true;
@@ -635,7 +638,7 @@ class Shoppingcart extends Component
 
                 // }else{
 
-                if (!empty($this->products->toArray())) {
+                if (!empty($this->cartitems->toArray())) {
                     $this->headertitle = "Cash";
                     $this->shoeCashUpi = false;
                     $this->showBox = true;
@@ -660,6 +663,7 @@ class Shoppingcart extends Component
             if (!empty($partyUserImage)) {
                 $this->issavehold = true;
             }
+
             $warehouse_product_photo_path = session(auth()->id() . '_warehouse_product_photo_path', []);
             $warehouse_customer_photo_path = session(auth()->id() . '_warehouse_customer_photo_path', []);
             if (empty($this->selectedPartyUser) && (empty($partyUserImage))) {
@@ -670,7 +674,7 @@ class Shoppingcart extends Component
                 $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
             } else {
 
-                if (!empty($this->products->toArray())) {
+                if (!empty($this->cartitems->toArray())) {
                     $this->showBox = false;
                     $this->showOnline = false;
                     $this->shoeCashUpi = true;
@@ -710,7 +714,7 @@ class Shoppingcart extends Component
                     // }else{
 
                     // }
-                    if (!empty($this->products->toArray())) {
+                    if (!empty($this->cartitems->toArray())) {
                         $this->showBox = false;
                         $this->showOnline = false;
                         $this->shoeCashUpi = true;
@@ -735,7 +739,8 @@ class Shoppingcart extends Component
                 // }else{
 
                 // }
-                if (!empty($this->products->toArray())) {
+
+                if (!empty($this->cartitems->toArray())) {
                     $this->showBox = false;
                     $this->showOnline = false;
                     $this->shoeCashUpi = true;
@@ -769,7 +774,7 @@ class Shoppingcart extends Component
                 $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
             } else {
 
-                if (!empty($this->products->toArray())) {
+                if (!empty($this->cartitems->toArray())) {
                     $this->showBox = false;
                     $this->shoeCashUpi = true;
                     $this->paymentType = "online";
@@ -814,7 +819,7 @@ class Shoppingcart extends Component
                     // }else{
 
                     // }
-                    if (!empty($this->products->toArray())) {
+                    if (!empty($this->cartitems->toArray())) {
                         $this->showBox = false;
                         $this->shoeCashUpi = true;
                         $this->paymentType = "online";
@@ -842,7 +847,7 @@ class Shoppingcart extends Component
                 // }else{
 
                 // }
-                if (!empty($this->products->toArray())) {
+                if (!empty($this->cartitems->toArray())) {
                     $this->showBox = false;
                     $this->shoeCashUpi = true;
                     $this->paymentType = "online";
@@ -959,7 +964,6 @@ class Shoppingcart extends Component
         }
         if (!empty($partyUser->id) && $this->creditPay > 0) {
             CreditHistory::create(
-
                 [
                     'invoice_id' => $invoice->id,
                     'party_user_id' => $partyUser->id ?? null,
@@ -1149,8 +1153,6 @@ class Shoppingcart extends Component
                 $total += $note['count'] * $this->noteDenominations[$key];
             }
         }
-
-
         return $total;
     }
 
@@ -1265,7 +1267,6 @@ class Shoppingcart extends Component
         //$this->getImages();
         $this->updateNewProductDetails();
         if (auth()->user()->hasRole('warehouse')) {
-
             $partyImages = session('checkout_images.party', []);
             $this->productImage = $partyImages[0]['product_image_path'] ?? '';
             $this->userImage = $partyImages[0]['user_image_path'] ?? '';
@@ -1274,12 +1275,17 @@ class Shoppingcart extends Component
             $this->productImage = $cashierImages[0]['product_image_path'] ?? '';
             $this->userImage = $cashierImages[0]['user_image_path'] ?? '';
         }
+
         $this->language = Session::get('locale') ?? config('app.locale');
 
         $this->branch_name = (!empty(auth()->user()->userinfo->branch->name)) ? auth()->user()->userinfo->branch->name : "";
 
         $today = Carbon::today();
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
+
+        $store = Branch::select('in_out_enable')->findOrFail($branch_id);
+        $this->inOutStatus = $store->in_out_enable;
         $current_party_id = session('current_party_id');
 
         if (!empty($current_party_id)) {
@@ -1310,6 +1316,7 @@ class Shoppingcart extends Component
 
             $this->partyAmount = $partyCredit;
         }
+
         $current_commission_id = session('current_commission_id');
         if (!empty($current_commission_id)) {
 
@@ -1328,6 +1335,7 @@ class Shoppingcart extends Component
                 $sum = $sum + $mycart->net_amount;
                 $commissionTotal = $commissionTotal + $mycart->discount;
             }
+
             $this->commissionAmount = @$commissionTotal;
             $this->dispatch('updateNewProductDetails');
             if (!empty($commissionUserImage)) {
@@ -1338,7 +1346,6 @@ class Shoppingcart extends Component
                 ]);
             }
         }
-
 
         $this->shift = $currentShift = UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "pending"])->first();
         //
@@ -1429,6 +1436,7 @@ class Shoppingcart extends Component
                 }
             }
         }
+
         $this->shiftcash = $noteCount;
         $this->availableNotes = json_encode($this->shiftcash);
         //$this->checkTime();
@@ -1578,6 +1586,11 @@ class Shoppingcart extends Component
 
     public function voidSale()
     {
+        if (empty($this->cartitems->toArray())) {
+            $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
+            return;
+        }
+
         $cartItems = Cart::where('user_id', auth()->user()->id)
             ->where('status', '!=', Cart::STATUS_HOLD);
 
@@ -1615,6 +1628,11 @@ class Shoppingcart extends Component
 
     public function holdSale()
     {
+        if (empty($this->cartitems->toArray())) {
+            $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
+            return;
+        }
+
         session()->forget(['current_party_id', 'current_commission_id']);
         $cartItems = Cart::where('user_id', auth()->user()->id)
             ->where('status', Cart::STATUS_PENDING)
@@ -1977,10 +1995,11 @@ class Shoppingcart extends Component
     }
 
     //sanjay
-    public function incrementQty($id, $amount = 0)
+    public function incrementQty($id = null, $amount = 0)
     {
         $this->dispatch('loader-start'); // ✅ Livewire v3
-        if (empty($id)) {
+        if (is_null($id)) {
+            $this->dispatch('loader-stop'); 
             $this->dispatch('notiffication-error', ['message' => 'Please select a product in items.']);
             return;
         }
@@ -2095,7 +2114,7 @@ class Shoppingcart extends Component
             $totalOutCount += $out;
         }
 
-        $this->cashPaTenderyAmt = $totalIn;
+        $this->cashPaTenderyAmt = ($this->inOutStatus) ? $totalIn : $this->cashAmount;
         $this->cashPayChangeAmt = $this->cashAmount - $totalIn;
 
         return compact('totalIn', 'totalOut', 'totalAmount', 'totalInCount', 'totalOutCount');
@@ -2114,7 +2133,7 @@ class Shoppingcart extends Component
         }
     }
 
-    public function decrementQty($id)
+    public function decrementQty($id = null)
     {
         if (is_null($this->activeItemId)) {
             $this->dispatch('notiffication-error', ['message' => 'No product is currently selected.']);
@@ -2731,6 +2750,7 @@ class Shoppingcart extends Component
                     'cash_break_id' => $cashBreakdown->id,
                 ]
             );
+
             \Log::info('Invoice Created: ' . json_encode($invoice, true));
             InvoiceHistory::logFromInvoice($invoice, 'created', auth()->id());
 
@@ -3610,6 +3630,15 @@ class Shoppingcart extends Component
         ]);
     }
 
+    public function validateMaxAmount($value)
+    {
+        // Ensure the cash value does not exceed the max value
+        if ($value > $this->cashAmount) {
+            return false;
+        } else {
+            return true;
+        }
+    }
     // public function checkout()
     // {
     //     if (!empty($this->commissionAmount)) {

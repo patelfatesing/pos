@@ -160,6 +160,58 @@
     </style>
 
     <script>
+        // Dynamically bind event for the custom switch
+        $(document).on('change', '.custom-control-input', function() {
+            var storeId = $(this).data('store-id'); // Get store ID from data attribute
+            var isEnabled = $(this).prop('checked') ? 1 :
+                0; // Check if the switch is on (enabled) or off (disabled)
+
+            // Show SweetAlert2 confirmation dialog
+            Swal.fire({
+                title: "Are you sure?",
+                text: "Do you want to change the store in out status?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, change it!",
+                cancelButtonText: "No, cancel"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Send AJAX request to update the in_out_enable field
+                    $.ajax({
+                        url: '/store/update-status', // The URL that handles the store update
+                        method: 'POST',
+                        data: {
+                            store_id: storeId,
+                            in_out_enable: isEnabled, // Send the updated status
+                            _token: $('meta[name="csrf-token"]').attr(
+                                'content') // CSRF token for security
+                        },
+                        success: function(response) {
+                            console.log("Response:",
+                                response); // Log the server response
+
+                            // Show success message
+                            Swal.fire("Success!", "Store status has been changed.",
+                                "success").then(() => {
+                                // Optionally update the UI to reflect changes, e.g., reload the DataTable
+                                $('#branch_table').DataTable().ajax.reload(
+                                    null, false
+                                ); // Reload the table without resetting pagination
+                            });
+                        },
+                        error: function(error) {
+                            console.log("Error:", error); // Log any errors
+                            Swal.fire("Error!", "Something went wrong.",
+                                "error"); // Show error message if AJAX fails
+                        }
+                    });
+                } else {
+                    // If user cancels, we just log it
+                    console.log("Status change was cancelled.");
+                }
+            });
+        });
+
         $(document).ready(function() {
 
             $.ajaxSetup({
