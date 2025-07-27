@@ -130,7 +130,7 @@ class Shoppingcart extends Component
     public $activeItemId = null;
     public $activeProductId = null;
     public $notFoundMessage = ''; // Add this property to your component
-    public $inOutStatus = ''; // Add this property to your component
+    public $inOutStatus = false; // Add this property to your component
 
     // This method is triggered whenever the checkbox is checked or unchecked
     public function updatedUseCredit($value)
@@ -658,6 +658,7 @@ class Shoppingcart extends Component
     public function cashupitoggleBox()
     {
         $this->dispatch('setNotes');
+
         if (auth()->user()->hasRole('warehouse')) {
             $partyUserImage = PartyUserImage::where('party_user_id', $this->selectedPartyUser)->where('type', 'hold')->first(["image_path", "product_image_path"]);
             if (!empty($partyUserImage)) {
@@ -683,7 +684,7 @@ class Shoppingcart extends Component
                     $this->total = $this->cashAmount;
                     $this->useCredit = false;
                     $this->showCheckbox = false;
-                    $this->dispatch('online-cash-modal');
+                    $this->dispatch('online-cash-upi-modal');
                 } else {
                     $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                 }
@@ -723,7 +724,7 @@ class Shoppingcart extends Component
                         $this->total = $this->cashAmount;
                         $this->useCredit = false;
                         $this->showCheckbox = false;
-                        $this->dispatch('online-cash-modal');
+                        $this->dispatch('online-cash-upi-modal');
                     } else {
                         $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                     }
@@ -749,7 +750,7 @@ class Shoppingcart extends Component
                     $this->useCredit = false;
                     $this->showCheckbox = false;
                     $this->total = $this->cashAmount;
-                    $this->dispatch('online-cash-modal');
+                    $this->dispatch('online-cash-upi-modal');
                 } else {
                     $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                 }
@@ -759,6 +760,7 @@ class Shoppingcart extends Component
 
     public function onlinePayment()
     {
+         $this->resetModalData();
         if (auth()->user()->hasRole('warehouse')) {
             $partyUserImage = PartyUserImage::where('party_user_id', $this->selectedPartyUser)->where('type', 'hold')->first(["image_path", "product_image_path"]);
             if (!empty($partyUserImage)) {
@@ -1999,7 +2001,7 @@ class Shoppingcart extends Component
     {
         $this->dispatch('loader-start'); // ✅ Livewire v3
         if (is_null($id)) {
-            $this->dispatch('loader-stop'); 
+            $this->dispatch('loader-stop');
             $this->dispatch('notiffication-error', ['message' => 'Please select a product in items.']);
             return;
         }
@@ -2856,6 +2858,7 @@ class Shoppingcart extends Component
                 ]);
                 \Log::info('DiscountHistory Created: ' . json_encode($discountHistory, true));
             }
+
             if (!empty($partyUser->id) && $this->creditPay > 0) {
 
                 $creditHistory = CreditHistory::create([
@@ -2870,10 +2873,13 @@ class Shoppingcart extends Component
                 \Log::info('CreditHistory Created: ' . json_encode($creditHistory, true));
             }
 
+            $this->resetModalData();
+
             $first_name = (!empty($partyUser->first_name)) ? $partyUser->first_name : @$commissionUser->first_name;
             $this->dispatch('resetHoldPic');
             $this->dispatch('hide-open-cash-modal');
             $this->dispatch('hide-online-cash-modal');
+            $this->dispatch('hide-cash-upi-modal');
             $pdf = App::make('dompdf.wrapper');
             $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => @$first_name, "ref_no" => $invoice->ref_no, "hold_date" => $invoice->hold_date]);
             $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
@@ -3276,6 +3282,7 @@ class Shoppingcart extends Component
         $this->dispatch('removeRefundSelected');
         $this->dispatch('hide-open-cash-modal');
         $this->dispatch('hide-online-cash-modal');
+        $this->dispatch('show-online-cash-modal');
         // } catch (\Throwable $th) {
         //     $this->dispatch('notiffication-error', ['message' => 'Something went wrong']);
 
@@ -3568,6 +3575,8 @@ class Shoppingcart extends Component
             $this->dispatch('resetHoldPic');
             $this->dispatch('hide-open-cash-modal');
             $this->dispatch('hide-online-cash-modal');
+            $this->dispatch('show-online-cash-modal');
+            
             $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'useCredit', 'showCheckbox', 'roundedTotal', 'removeCrossHold', 'cashNotes');
             $this->dispatch('loader-stop'); // ✅ Livewire v3
             session()->forget(['current_party_id', 'current_commission_id']);
@@ -3638,6 +3647,18 @@ class Shoppingcart extends Component
         } else {
             return true;
         }
+    }
+
+    // Reset the form when modal is closed
+    public function resetModalData()
+    {
+        // Reset relevant fields
+        $this->showOnline = false;  // Reset modal visibility
+        $this->showBox = true;      // Reset other state variables
+        $this->cash = 0;            // Reset cash value
+        $this->upi = 0;             // Reset upi value
+        $this->paymentType = null;  // Reset payment type
+        $this->total = 0;
     }
     // public function checkout()
     // {
