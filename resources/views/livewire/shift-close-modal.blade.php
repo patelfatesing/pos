@@ -134,68 +134,74 @@
 
                                 {{-- Shift Timing and Cash Details --}}
                                 <div class="col-md-6">
-                                    <div class="card ">
-                                        <div class="card-header custom-modal-header">
-                                            <h5 class="mb-0 cash-summary-text61">Cash Details
-                                            </h5>
-                                        </div>
-                                        <div class="card-body p-0">
-
-                                            <div class="table-responsive">
-                                                <table
-                                                    class="table table-bordered table-sm text-center align-middle mb-0">
-                                                    <thead class="submit-btn">
-                                                        <tr>
-                                                            <th>Denomination</th>
-                                                            <th>Notes</th>
-                                                            <th>x</th>
-                                                            <th>Amount</th>
-                                                            <th>=</th>
-                                                            <th>Total</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @if (!empty($shiftcash))
-                                                            @php
-                                                                $totalNotes = 0;
-                                                            @endphp
-                                                            @foreach ($shiftcash as $denomination => $quantity)
+                                    @if ($inOutStatus)
+                                        <div class="card ">
+                                            <div class="card-header custom-modal-header">
+                                                <h5 class="mb-0 cash-summary-text61">Cash Details
+                                                </h5>
+                                            </div>
+                                            <div class="card-body p-0">
+                                                <div class="table-responsive">
+                                                    <table
+                                                        class="table table-bordered table-sm text-center align-middle mb-0">
+                                                        <thead class="submit-btn">
+                                                            <tr>
+                                                                <th>Denomination</th>
+                                                                <th>Notes</th>
+                                                                <th>x</th>
+                                                                <th>Amount</th>
+                                                                <th>=</th>
+                                                                <th>Total</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @if (!empty($shiftcash))
                                                                 @php
-                                                                    $rowTotal = $denomination * $quantity;
-                                                                    $totalNotes += $rowTotal;
+                                                                    $totalNotes = 0;
                                                                 @endphp
-                                                                <tr>
-                                                                    <td class="">{{ format_inr($denomination) }}
-                                                                    </td>
-                                                                    <td>{{ abs($quantity) }}</td>
-                                                                    <td>X</td>
-                                                                    <td>{{ format_inr($denomination) }}</td>
-                                                                    <td>=</td>
-                                                                    <td class="fw-bold">{{ format_inr($rowTotal) }}
-                                                                    </td>
-                                                                </tr>
-                                                            @endforeach
-                                                        @endif
-                                                    </tbody>
-                                                    <tfoot class="border table-success fw-bold">
-                                                        <tr>
-                                                            <th colspan="5" class="text-end">Total</th>
-                                                            <th class="fw-bold">
-                                                                {{ format_inr(@$totalNotes) }}
-                                                            </th>
-                                                        </tr>
-                                                    </tfoot>
-                                                </table>
+                                                                @foreach ($shiftcash as $denomination => $quantity)
+                                                                    @php
+                                                                        $rowTotal = $denomination * $quantity;
+                                                                        $totalNotes += $rowTotal;
+                                                                    @endphp
+                                                                    <tr>
+                                                                        <td class="">
+                                                                            {{ format_inr($denomination) }}
+                                                                        </td>
+                                                                        <td>{{ abs($quantity) }}</td>
+                                                                        <td>X</td>
+                                                                        <td>{{ format_inr($denomination) }}</td>
+                                                                        <td>=</td>
+                                                                        <td class="fw-bold">{{ format_inr($rowTotal) }}
+                                                                        </td>
+                                                                    </tr>
+                                                                @endforeach
+                                                            @endif
+                                                        </tbody>
+                                                        <tfoot class="border table-success fw-bold">
+                                                            <tr>
+                                                                <th colspan="5" class="text-end">Total</th>
+                                                                <th class="fw-bold">
+                                                                    {{ format_inr(@$totalNotes) }}
+                                                                </th>
+                                                            </tr>
+                                                        </tfoot>
+                                                    </table>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    @endif
                                     {{-- Summary Cash Totals --}}
                                     <div class="table-responsive mt-4">
                                         <table class="table table-bordered">
                                             <tbody>
                                                 <tr class="border">
                                                     <td class="text-start ">System Cash Sales</td>
-                                                    <td class="text-end">{{ format_inr($totalNotes ?? 0) }}
+                                                    @if ($inOutStatus)
+                                                        <td class="text-end">{{ format_inr($totalNotes ?? 0) }}
+                                                    @else
+                                                        <td class="text-end">{{ format_inr(@$this->categoryTotals['summary']['TOTAL']) }}
+                                                    @endif
                                                     </td>
                                                 </tr>
                                                 <tr class="border">
@@ -471,6 +477,7 @@
         <div class="modal-backdrop fade show"></div>
     @endif
 </div>
+
 <script>
     window.addEventListener('test', (event) => {
         setTimeout(() => {
