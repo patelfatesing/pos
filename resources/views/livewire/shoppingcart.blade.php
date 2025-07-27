@@ -460,8 +460,7 @@
                                             $finalAmount = $total - $commission - $party;
                                         @endphp
                                         <tr class="{{ $this->activeItemId === $item->id ? 'active' : '' }}">
-                                            <td class="col-7"
-                                                wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})"
+                                            <td class="col-7" wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})"
                                                 style="cursor:pointer">
                                                 {{ $item->product->name }}<br>
                                                 {{ $item->product->description }}
