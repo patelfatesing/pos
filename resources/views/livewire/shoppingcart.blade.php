@@ -1857,7 +1857,6 @@
         // Remove 'modal-open' class from body to restore scroll
         document.body.classList.remove('modal-open');
         document.body.style.paddingRight = '';
-        resetModalFields();
     });
 
     window.addEventListener('hide-cash-upi-modal', event => {
@@ -1874,7 +1873,6 @@
         // Remove 'modal-open' class from body to restore scroll
         document.body.classList.remove('modal-open');
         document.body.style.paddingRight = '';
-        resetModalFields();
     });
 
     window.addEventListener('triggerPrint', event => {
