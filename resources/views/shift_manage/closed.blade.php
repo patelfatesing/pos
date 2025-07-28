@@ -5,16 +5,12 @@
              {{-- Modal Header --}}
              <div class="modal-header bg-primary text-white rounded-top-4">
                  <div class="d-flex flex-column">
-                    
-                      <h5 class="modal-title fw-semibold">
-                            <i class="bi bi-cash-coin me-2"></i> {{ $shift->shift_no ?? '' }} - Shift Close Summary - {{ $branch_name ?? 'Shop' }}
-                        </h5>
+                     <h5 class="modal-title fw-semibold">
+                         <i class="bi bi-cash-coin me-2"></i> {{ $shift->shift_no ?? '' }} - Shift Close Summary -
+                         {{ $branch_name ?? 'Shop' }}
+                     </h5>
                  </div>
 
-
-                 {{-- <button type="button" class="close" wire:click="$set('showModal', false)">
-                     <span aria-hidden="true">×</span>
-                 </button> --}}
                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                      <span aria-hidden="true">&times;</span>
                  </button>
@@ -121,52 +117,53 @@
                                      <hr>
                                      {{-- Cash Breakdown --}}
                                      <h5 class="card-title text-warning text-left mb-3">💵 Cash Details</h5>
-
-                                     <div class="table-responsive">
-                                         <table class="table table-bordered table-sm text-center align-middle mb-0">
-                                             <thead class="table-light">
-                                                 <tr>
-                                                     <th>Denomination</th>
-                                                     <th>Notes</th>
-                                                     <th>x</th>
-                                                     <th>Amount</th>
-                                                     <th>=</th>
-                                                     <th>Total</th>
-                                                 </tr>
-                                             </thead>
-                                             <tbody>
-                                                 @if (!empty($shiftcash))
-                                                     @php
-                                                         $totalNotes = 0;
-                                                     @endphp
-                                                     @foreach ($shiftcash as $denomination => $quantity)
+                                     @if ($in_out_enable == true)
+                                         <div class="table-responsive">
+                                             <table class="table table-bordered table-sm text-center align-middle mb-0">
+                                                 <thead class="table-light">
+                                                     <tr>
+                                                         <th>Denomination</th>
+                                                         <th>Notes</th>
+                                                         <th>x</th>
+                                                         <th>Amount</th>
+                                                         <th>=</th>
+                                                         <th>Total</th>
+                                                     </tr>
+                                                 </thead>
+                                                 <tbody>
+                                                     @if (!empty($shiftcash))
                                                          @php
-                                                             $rowTotal = $denomination * $quantity;
-                                                             $totalNotes += $rowTotal;
+                                                             $totalNotes = 0;
                                                          @endphp
-                                                         <tr>
-                                                             <td class="fw-bold">{{ format_inr($denomination) }}
-                                                             </td>
-                                                             <td>{{ abs($quantity) }}</td>
-                                                             <td>X</td>
-                                                             <td>{{ format_inr($denomination) }}</td>
-                                                             <td>=</td>
-                                                             <td class="fw-bold">{{ format_inr($rowTotal) }}
-                                                             </td>
-                                                         </tr>
-                                                     @endforeach
-                                                 @endif
-                                             </tbody>
-                                             <tfoot class="table-light">
-                                                 <tr>
-                                                     <th colspan="5" class="text-end">Total</th>
-                                                     <th class="fw-bold">
-                                                         {{ format_inr(@$totalNotes) }}
-                                                     </th>
-                                                 </tr>
-                                             </tfoot>
-                                         </table>
-                                     </div>
+                                                         @foreach ($shiftcash as $denomination => $quantity)
+                                                             @php
+                                                                 $rowTotal = $denomination * $quantity;
+                                                                 $totalNotes += $rowTotal;
+                                                             @endphp
+                                                             <tr>
+                                                                 <td class="fw-bold">{{ format_inr($denomination) }}
+                                                                 </td>
+                                                                 <td>{{ abs($quantity) }}</td>
+                                                                 <td>X</td>
+                                                                 <td>{{ format_inr($denomination) }}</td>
+                                                                 <td>=</td>
+                                                                 <td class="fw-bold">{{ format_inr($rowTotal) }}
+                                                                 </td>
+                                                             </tr>
+                                                         @endforeach
+                                                     @endif
+                                                 </tbody>
+                                                 <tfoot class="table-light">
+                                                     <tr>
+                                                         <th colspan="5" class="text-end">Total</th>
+                                                         <th class="fw-bold">
+                                                             {{ format_inr(@$totalNotes) }}
+                                                         </th>
+                                                     </tr>
+                                                 </tfoot>
+                                             </table>
+                                         </div>
+                                     @endif
 
                                      {{-- Summary Cash Totals --}}
                                      <div class="table-responsive mt-4">
@@ -174,14 +171,19 @@
                                              <tbody>
                                                  <tr>
                                                      <td class="text-start fw-bold">System Cash Sales</td>
-                                                     <td class="text-end">{{ format_inr($totalNotes ?? 0) }}
+                                                     @if ($in_out_enable == true)
+                                                         <td class="text-end">{{ format_inr($totalNotes ?? 0) }}
+                                                         @else
+                                                         <td class="text-end">
+                                                             {{ format_inr(@$categoryTotals['summary']['TOTAL']) }}
+                                                         </td>
+                                                     @endif
                                                      </td>
                                                  </tr>
                                                  <tr>
                                                      <td class="text-start fw-bold">Total Cash Amount</td>
                                                      <td class="text-end">
                                                          {{ format_inr(@$categoryTotals['summary']['TOTAL']) }}
-
                                                      </td>
                                                  </tr>
                                                  <tr>
@@ -220,21 +222,3 @@
          </div>
      </div>
  </div>
-
- <script>
-     function viewStock(id) {
-         window.location.href = '{{ url('shift-manage/stock-details') }}/' + id;
-
-         //  $.ajax({
-         //      url: '{{ url('shift-manage/stock-details') }}/' + id,
-         //      type: 'POST',
-         //      success: function(response) {
-         //          $('#dailyStockDetailsModalContent').html(response);
-         //          $('#dailyStockDetailsModal').modal('show');
-         //      },
-         //      error: function() {
-         //          alert('Photos not found.');
-         //      }
-         //  });
-     }
- </script>

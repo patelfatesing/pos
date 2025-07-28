@@ -285,17 +285,15 @@ class ShiftManageController extends Controller
     public function closeShift($id, $return = "htmlfile")
     {
         $shift = ShiftClosing::findOrFail($id);
-        // dd($shift->user_id);
 
         $user_data = User::select('name')->where('id', $shift->user_id)->firstOrFail();
-        $branch_data = Branch::select('name')->where('id', $shift->branch_id)->firstOrFail();
+        $branch_data = Branch::select('name','in_out_enable')->where('id', $shift->branch_id)->firstOrFail();
         $branch_name = $branch_data->name;
         $user_name = $user_data->name;
+        $in_out_enable = $branch_data->in_out_enable;
 
         if (!$shift->closing_shift_time) {
-            // $shift->closing_shift_time = now();
-            // $shift->status = 'completed';
-            // $shift->save();
+           
             $categoryTotals = [];
             $totals = CreditHistory::whereBetween('created_at', [$shift->start_time, $shift->end_time])
                 ->where('store_id', $shift->branch_id)
@@ -334,6 +332,7 @@ class ShiftManageController extends Controller
                         $totalSalesQty += $item['quantity'] ?? 0;
                     }
                 }
+
                 $closing_sales = @$categoryTotals['sales'];
                 // $discountTotal += ($invoice->commission_amount ?? 0) + ($invoice->party_amount ?? 0);
                 $discountTotal += (!empty($invoice->commission_amount) && is_numeric($invoice->commission_amount)) ? (int)$invoice->commission_amount : 0;
@@ -349,8 +348,6 @@ class ShiftManageController extends Controller
                 if ($invoice->status == "Returned") {
                     $totalRefundReturn += floatval(str_replace(',', '', $invoice->total));
                 }
-
-
 
                 $totalCreditPay  += (!empty($invoice->creditpay)  && is_numeric($invoice->creditpay)) ? (int)$invoice->creditpay  : 0;
 
@@ -374,6 +371,7 @@ class ShiftManageController extends Controller
             ')
                 ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
                 ->first();
+          
             $todayCash = $totalPaid;
             $categoryTotals['sales']["TOTAL"] = $totalSalesNew;
 
@@ -477,16 +475,15 @@ class ShiftManageController extends Controller
 
             $totalOpeningStock = DailyProductStock::where('shift_id', $id)
                 ->sum('opening_stock');
-            // dd($totalOpeningStock);
 
             $shiftcash = $noteCount;
             $closing_cash = $shift->closing_cash;
             $cash_discrepancy = $shift->cash_discrepancy;
-            //dd($shiftcash);
+ 
             // Render a Blade view and pass any needed data
-            $html = view('shift_manage.closed', ['opening_stock' => $totalOpeningStock, 'user_name' => $user_name, 'shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy, 'branch_name' => $branch_name])->render();
+            $html = view('shift_manage.closed', ['opening_stock' => $totalOpeningStock, 'user_name' => $user_name, 'shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy, 'branch_name' => $branch_name,'in_out_enable'=>$in_out_enable])->render();
             if ($return == "html") {
-                return  ['user_name' => $user_name, 'shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy, 'branch_name' => $branch_name];
+                return  ['user_name' => $user_name, 'shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy, 'branch_name' => $branch_name,'in_out_enable'=>$in_out_enable];
             } else {
 
                 return response()->json([
