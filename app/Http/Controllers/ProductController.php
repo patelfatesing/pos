@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 
+
 class ProductController extends Controller
 {
     public function index()
@@ -30,7 +31,9 @@ class ProductController extends Controller
         // }
 
         $data = Product::where('is_deleted', 'no')->get();
-        return view('products.index', compact('data'));
+        $subcategories = SubCategory::where('is_deleted', 'no')->get();
+
+        return view('products.index', compact('data', 'subcategories'));
     }
 
     public function getData(Request $request)
@@ -61,14 +64,22 @@ class ProductController extends Controller
 
         $query->where('is_deleted', 'no');
 
+        if ($request->has('sub_category_id') && $request->sub_category_id != '') {
+            $query->where('subcategory_id', $request->sub_category_id);
+        }
+
         $recordsTotal = Product::where('is_deleted', 'no')->count();
         $recordsFiltered = $query->count();
 
-        $data = $query->orderBy($orderColumn, $orderDirection)
-            ->offset($start)
-            ->limit($length)
-            ->get();
+        if ($length > 0) {
+            $query->skip($start)->take($length);
+        }
 
+        $data = $query->orderBy($orderColumn, $orderDirection)->get();
+        // $data = $query->orderBy($orderColumn, $orderDirection)
+        //     ->offset($start)
+        //     ->limit($length)
+        //     ->get();
 
         $records = [];
         $url = url('/');
