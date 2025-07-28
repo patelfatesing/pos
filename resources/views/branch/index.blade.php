@@ -194,6 +194,7 @@
                             Swal.fire("Success!", "Store status has been changed.",
                                 "success").then(() => {
                                 // Optionally update the UI to reflect changes, e.g., reload the DataTable
+                                location.reload();
                                 $('#branch_table').DataTable().ajax.reload(
                                     null, false
                                 ); // Reload the table without resetting pagination
