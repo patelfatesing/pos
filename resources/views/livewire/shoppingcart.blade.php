@@ -5,6 +5,7 @@
     @endphp
 
     <div class="topbar d-flex flex-wrap justify-content-between align-items-center  bg-white shadow-sm">
+
         <!-- Logo -->
         <div class="d-flex align-items-center">
             <img src="{{ asset('assets/images/logo.png') }}" alt="Logo" class="img-fluid" style="max-height: 40px;" />
@@ -282,6 +283,7 @@
         <!-- Main Content -->
         <div class="col-12 col-md-11 m-2 ml-2">
             <div>
+
                 <div class="d-flex justify-content-between align-items-center flex-wrap mt-2 py-2 ">
                     <div class="text-muted main-screen-text12">
                         Welcome! <strong class="text-teal">{{ Auth::user()->name }}</strong>
@@ -703,7 +705,7 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="holdModalLabel">{{ __('messages.hold_transactions') }}
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     @livewire('hold-transactions', ['holdTransactions' => $holdTransactions])
@@ -712,8 +714,111 @@
         </div>
     </div>
 
-    {{-- <form action="{{ route('shift-close.withdraw') }}" method="POST">
-                            @csrf --}}
+    <!-- Single Modal -->
+    <div class="modal fade " id="captureModal" tabindex="-1" aria-labelledby="captureModalLabel"
+        aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered modal-mg">
+            <div class="modal-content shadow-sm rounded-4 border-0">
+                <div class="modal-header bg-primary text-white rounded-top-4">
+                    <h5 class="modal-title fw-semibold" id="captureModalLabel">
+                        <i class="bi bi-camera-video me-2"></i>{{ __('messages.image_capture') }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body px-4 py-4">
+                    <!-- Step 1: Product -->
+
+                    <div id="step1"
+                        class="{{ !empty($this->productImage) && !empty($this->userImage) ? 'd-none' : '' }}">
+                        <h6 class="text-muted mb-3">Step 1: Capture Product Image</h6>
+                        <div class="border rounded-3 overflow-hidden mb-3 text-center p-2 bg-light">
+                            <img src="{{ asset('assets/images/bottle.png') }}" alt="Sample Product"
+                                class="rounded-3 shadow-sm" width="200" height="150" id="productImagePreview">
+                            <canvas id="canvas1" class="d-none"></canvas>
+                        </div>
+                        <div class="border rounded-3 overflow-hidden mb-3">
+                            <video id="video1" class="w-100" autoplay></video>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary w-100"
+                            onclick="captureImage('product')">
+                            <i class="bi bi-camera me-1"></i>Capture Product Image
+                        </button>
+                        <button type="button" class="btn btn-primary w-100 mt-2" onclick="goToStep(2)">
+                            Next: Customer Image
+                        </button>
+                    </div>
+
+                    <!-- Step 2: User -->
+                    <div id="step2" class="d-none mt-4">
+                        <h6 class="text-muted mb-3">Step 2: Capture Customer Image</h6>
+                        <div class="border rounded-3 overflow-hidden mb-3 text-center p-2 bg-light">
+                            <img src="{{ asset('assets/images/user/07.jpg') }}" alt="Sample Customer"
+                                class="rounded-circle shadow-sm" width="150" height="150"
+                                id="userImagePreview">
+                            <canvas id="canvas2" class="d-none"></canvas>
+                        </div>
+                        <div class="border rounded-3 overflow-hidden mb-3">
+                            <video id="video2" class="w-100" autoplay></video>
+                        </div>
+                        <div class="d-flex justify-content-between gap-2">
+                            <button type="button" class="btn btn-outline-primary w-100"
+                                onclick="captureImage('user')">
+                                <i class="bi bi-camera me-1"></i>Capture Customer Image
+                            </button>
+                            <button type="button" class="btn btn-primary w-100" onclick="goToStep(3)">
+                                Next: Review
+                            </button>
+
+                        </div>
+                    </div>
+
+                    <div id="step3"
+                        class="{{ !empty($this->productImage) && !empty($this->userImage) ? '' : 'd-none mt-4' }}">
+                        @php
+                            $stepTitle =
+                                !empty($this->productImage) && !empty($this->userImage)
+                                    ? 'Uploaded Images'
+                                    : 'Step 3: Review & Confirm';
+                        @endphp
+                        <h6 class="text-muted mb-3">{{ $stepTitle }}</h6>
+
+                        <div class="row mb-3">
+
+                            <div class="col-6 text-center mb-3">
+                                <p class="text-sm font-medium text-gray-600 ">Product Image</p>
+                                <img id="imgproduct"
+                                    src="{{ $this->productImage ? asset('storage/' . $this->productImage) : asset('assets/images/bottle.png') }}"
+                                    class="rounded shadow-sm border" width="160" height="150"
+                                    alt="Captured Product">
+
+                            </div>
+                            <div class="col-6 text-center mb-3">
+                                <p class="text-sm font-medium text-gray-600 ">User Image</p>
+                                <img id="imguser"
+                                    src="{{ $this->userImage ? asset('storage/' . $this->userImage) : asset('assets/images/user/07.jpg') }}"
+                                    class="rounded shadow-sm border" width="150" height="150"
+                                    alt="Captured Customer">
+
+                            </div>
+
+                        </div>
+                        <div class="d-flex justify-content-between gap-2">
+                            <button type="button" class="btn btn-outline-warning w-100" onclick="goToStep(1)">
+                                <i class="bi bi-arrow-left-circle me-1"></i>Retake Product Image
+                            </button>
+                            <button type="button" class="btn btn-outline-warning w-100" onclick="goToStep(2)">
+                                <i class="bi bi-arrow-left-circle me-1"></i>Retake User Image
+                            </button>
+                            <button type="button" class="btn btn-success w-100" data-dismiss="modal">
+                                <i class="bi bi-check-circle me-1"></i>Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="modal fade" id="cashout" tabindex="-1" aria-labelledby="cashout" aria-hidden="true"
         data-backdrop="static" data-keyboard="false">
@@ -1015,9 +1120,17 @@
                     <div class="modal-header custom-modal-header">
                         <h5 class="modal-title cash-summary-text61">
                             {{ __('messages.cash_in_hand_details') }}</h5>
+                        <button type="button" class="btn btn-light border ms-1" data-bs-toggle="tooltip"
+                            title="Logout" onclick="confirmLogout()">
+                            <img src="{{ asset('public/external/fi106093284471-0vjk.svg') }}" class="img-fluid"
+                                style="height: 25px;" />
+                        </button>
+
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                            @csrf
+                        </form>
                     </div>
                     <div class="modal-body">
-
                         <input type="hidden" name="amount" id="holdamountTotal" class="form-control"
                             placeholder="Enter opening amount" readonly>
                         <div class="mb-2">
@@ -1249,7 +1362,6 @@
                                                         // $rowAmount = ($inValue - $outValue) * $denomination;
                                                     @endphp
                                                     <tr>
-
                                                         @if (empty($this->selectedSalesReturn))
                                                             <td class="text-center fw-bold">
                                                                 {{ format_inr($inValue * $denomination) }}
@@ -1355,8 +1467,13 @@
                                     <div class="col-md-4">
                                         <label for="change"
                                             class="form-label">{{ __('messages.change_amount') }}</label>
-                                        <input type="number" wire:model="cashPayChangeAmt"
-                                            class="form-control rounded-pill" id="change" readonly>
+                                        @if (!$inOutStatus)
+                                            <input type="number" class="form-control rounded-pill" value="0"
+                                                readonly>
+                                        @else
+                                            <input type="number" wire:model="cashPayChangeAmt"
+                                                class="form-control rounded-pill" id="change" readonly>
+                                        @endif
                                     </div>
                                 </div>
                             @endif
@@ -1574,8 +1691,8 @@
         </div>
     </div>
 
-    <div wire:ignore.self class="modal fade" id="caseUpiModal" tabindex="-1" aria-labelledby="caseUpiModalLabel"
-        aria-hidden="true">
+    <div wire:ignore.self class="modal fade" id="caseUpiModal" tabindex="-1"
+        aria-labelledby="caseUpiModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
 
@@ -1667,7 +1784,8 @@
                                                                     wire:click="decrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'out')">
                                                                     -
                                                                 </button>
-                                                                <input type="number" class="form-control text-center"
+                                                                <input type="number"
+                                                                    class="form-control text-center"
                                                                     value="{{ $outValue }}" readonly
                                                                     style="width: 60px;">
                                                                 <button class="btn btn-gray rounded-end"
@@ -1786,31 +1904,31 @@
 
 <script>
     // Before reload, set a flag to restore fullscreen
-    function reloadWithFullscreen() {
-        localStorage.setItem('restoreFullscreen', 'true');
-        location.reload();
-    }
+    // function reloadWithFullscreen() {
+    //     localStorage.setItem('restoreFullscreen', 'true');
+    //     location.reload();
+    // }
 
     // After reload, check flag and request fullscreen
-    document.addEventListener("DOMContentLoaded", function() {
-        console.log(localStorage.getItem('restoreFullscreen'),
-            "==localStorage.getItem('restoreFullscreen')===");
-        if (localStorage.getItem('restoreFullscreen') === true) {
-            localStorage.removeItem('restoreFullscreen');
+    // document.addEventListener("DOMContentLoaded", function() {
+    //     console.log(localStorage.getItem('restoreFullscreen'),
+    //         "==localStorage.getItem('restoreFullscreen')===");
+    //     if (localStorage.getItem('restoreFullscreen') === true) {
+    //         localStorage.removeItem('restoreFullscreen');
 
-            document.addEventListener('fullscreenchange', () => {
-                alert("dfg");
-                if (!document.fullscreenElement) {
-                    // Try to re-enter fullscreen after print, using a small timeout
-                    setTimeout(() => {
-                        document.documentElement.requestFullscreen().catch(err => {
-                            console.log('Fullscreen request failed:', err);
-                        });
-                    }, 500); // Delay to allow print dialog to close
-                }
-            });
-        }
-    });
+    //         document.addEventListener('fullscreenchange', () => {
+    //             alert("dfg");
+    //             if (!document.fullscreenElement) {
+    //                 // Try to re-enter fullscreen after print, using a small timeout
+    //                 setTimeout(() => {
+    //                     document.documentElement.requestFullscreen().catch(err => {
+    //                         console.log('Fullscreen request failed:', err);
+    //                     });
+    //                 }, 500); // Delay to allow print dialog to close
+    //             }
+    //         });
+    //     }
+    // });
 
     window.addEventListener('open-cash-modal', event => {
         const modal = new bootstrap.Modal(document.getElementById('cashModal'));
@@ -1857,6 +1975,7 @@
         // Remove 'modal-open' class from body to restore scroll
         document.body.classList.remove('modal-open');
         document.body.style.paddingRight = '';
+
     });
 
     window.addEventListener('hide-cash-upi-modal', event => {
@@ -2142,6 +2261,60 @@
         document.getElementById('video2').srcObject = mediaStream;
     });
 
+    function captureImage(type) {
+        const video = document.getElementById(type === 'product' ? 'video1' : 'video2');
+        const canvas = document.getElementById(type === 'product' ? 'canvas1' : 'canvas2');
+        const input = document.getElementById(type === 'product' ? 'productImageInput' : 'userImageInput');
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        canvas.toBlob(blob => {
+            const formData = new FormData();
+            formData.append('photo', blob, 'captured_image.png');
+            formData.append('type', type);
+            const commissionUserInput = document.getElementById('commissionUser');
+            if (commissionUserInput) {
+                formData.append('selectedCommissionUser', commissionUserInput.value);
+            }
+            const partyUserInput = document.getElementById('partyUser');
+            if (partyUserInput) {
+                formData.append('selectedPartyUser', partyUserInput.value);
+            }
+            fetch('{{ route('products.uploadpic') }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.path) {
+                        var alertmsg = (type === 'product') ? 'Product' : 'Customer';
+                        if (type === 'product') {
+                            document.getElementById('imgproduct').src = data.orignal_path + '?t=' +
+                                new Date().getTime();
+                            goToStep(2);
+                        } else if (type === 'user') {
+                            document.getElementById('imguser').src = data.orignal_path + '?t=' + new Date()
+                                .getTime();
+                            goToStep(3);
+                        }
+                        Swal.fire({
+                            title: 'Photo Uploaded!',
+                            text: 'Your ' + alertmsg + ' photo has been uploaded successfully.',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        });
+                    } else {
+                        alert('Upload failed!');
+                    }
+                })
+                .catch(err => console.log(err));
+        }, 'image/png');
+    }
+
     function updateCashOnlineFields(source) {
         const totalAmount = parseFloat($("#total").val()) || 0;
         const cash = parseFloat($("#cashAmount").val()) || 0;
@@ -2181,41 +2354,96 @@
         });
     });
 
-    // $(document).ready(function() {
+    $(document).ready(function() {
+        $('#captureModal').on('shown.bs.modal', function() {
+            // Access camera stream
+            navigator.mediaDevices.getUserMedia({
+                    video: true
+                })
+                .then(function(stream) {
+                    // Attach the stream to the video element
+                    document.getElementById('video1').srcObject = stream;
+                })
+                .catch(function(err) {
+                    //console.error("Camera access denied:", err);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Camera Access Denied',
+                        text: 'Please grant camera permission to capture a picture.',
+                        confirmButtonText: 'OK'
+                    });
+                });
+        });
 
-    //  // Set your shift end time here
+        // Optional: Stop the camera when the modal is closed
+        $('#captureModal').on('hidden.bs.modal', function() {
+            document.getElementById('step1').classList.remove('d-none');
+            document.getElementById('step2').classList.add('d-none');
+            const video = document.getElementById('video1');
+            const stream = video.srcObject;
+            if (stream) {
+                const tracks = stream.getTracks();
+                tracks.forEach(track => track.stop());
+                video.srcObject = null;
+            }
+            location.reload();
 
-    //  let shiftEnd = new Date("{{ $this->shiftEndTime }}"); // Example: 2025-04-23 18:00:00
+        });
+        //  // Set your shift end time here
 
-    // function checkShiftTime() {
-    //     let now = new Date();
-    //     let diffMinutes = (shiftEnd - now) / 1000 / 60;
-    //     if (diffMinutes <= 10 && diffMinutes > 0) {
-    //         $('#closeShiftBtn').removeClass('d-none');
-    //     } else {
-    //         $('#closeShiftBtn').addClass('d-none');
-    //     }
-    // }
+        //  let shiftEnd = new Date("{{ $this->shiftEndTime }}"); // Example: 2025-04-23 18:00:00
 
-    // // Check immediately
-    // checkShiftTime();
+        // function checkShiftTime() {
+        //     let now = new Date();
+        //     let diffMinutes = (shiftEnd - now) / 1000 / 60;
+        //     if (diffMinutes <= 10 && diffMinutes > 0) {
+        //         $('#closeShiftBtn').removeClass('d-none');
+        //     } else {
+        //         $('#closeShiftBtn').addClass('d-none');
+        //     }
+        // }
 
-    // Check every 30 seconds
-    //setInterval(checkShiftTime, 30000);
-    // $('#captureModal').on('hidden.bs.modal', function() {
-    //     // Reset to Step 1 when modal is closed
-    //     document.getElementById('step1').classList.remove('d-none');
-    //     document.getElementById('step2').classList.add('d-none');
-    // });
-    // Livewire.on('alert_remove', () => {
-    //     setTimeout(() => {
-    //         $(".toast").fadeOut("fast");
-    //     }, 2000);
-    // });
-    // });
+        // // Check immediately
+        // checkShiftTime();
+
+        // Check every 30 seconds
+        //setInterval(checkShiftTime, 30000);
+        // $('#captureModal').on('hidden.bs.modal', function() {
+        //     // Reset to Step 1 when modal is closed
+        //     document.getElementById('step1').classList.remove('d-none');
+        //     document.getElementById('step2').classList.add('d-none');
+        // });
+        // Livewire.on('alert_remove', () => {
+        //     setTimeout(() => {
+        //         $(".toast").fadeOut("fast");
+        //     }, 2000);
+        // });
+    });
 
     const input = document.getElementById('numberInput');
     const numpad = document.getElementById('numpad');
+
+    const createNumpad = () => {
+        const buttons = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'Clear', 'OK'];
+        numpad.innerHTML = '';
+
+        buttons.forEach(btn => {
+            const button = document.createElement('button');
+            button.textContent = btn;
+            button.addEventListener('click', () => handleNumpadClick(btn));
+            numpad.appendChild(button);
+        });
+    };
+
+    const handleNumpadClick = (value) => {
+        if (value === 'Clear') {
+            input.value = '';
+        } else if (value === 'OK') {
+            numpad.style.display = 'none';
+        } else {
+            input.value += value;
+        }
+    };
 </script>
 
 <script>
@@ -2801,7 +3029,7 @@
                     // Reload the current page
                     // location.reload();
 
-                    reloadWithFullscreen(); // Sets flag and reloads the page 
+                    // reloadWithFullscreen(); // Sets flag and reloads the page 
                 },
 
                 error: function(xhr) {
@@ -3077,8 +3305,8 @@
     });
 
     window.addEventListener('hold-saved', event => {
-        // location.reload();
-        reloadWithFullscreen();
+        location.reload();
+        // reloadWithFullscreen();
     });
 </script>
 <script>

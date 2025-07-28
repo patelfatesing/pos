@@ -1,59 +1,77 @@
-@extends('layouts.backend.layouts')
+@extends('layouts.backend.datatable_layouts')
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Wrapper Start -->
+
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-                <div class="col-lg-12">
-                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                        <div>
-                            <h4 class="mb-3">Product List</h4>
-                        </div>
-                        <div class="d-flex gap-2 ms-auto">
-                            <a href="{{ route('products.import') }}" class="btn btn-primary add-list">
-                                <i class="las la-file-import me-1"></i>Import Product
-                            </a>
-                            <a href="{{ route('products.create') }}" class="btn btn-primary add-list ml-2">
-                                <i class="las la-plus me-1"></i>Create New Product
-                            </a>
+                <!-- Page Header -->
+                <div class="row align-items-center mb-3">
+                    <div class="col-lg-12">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between">
+                            <div>
+                                <h4 class="mb-3">Product List</h4>
+                            </div>
+                            <div class="ml-auto">
+                                <a href="{{ route('products.import') }}" class="btn btn-primary pull-right add-list">
+                                    <i class="las la-file-import me-1"></i>Import Product
+                                </a>
+                                <a href="{{ route('products.create') }}" class="btn btn-primary pull-right add-list ml-2">
+                                    <i class="las la-plus me-1"></i>Create New Product
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-lg-12">
-                    <div class="table-responsive rounded mb-3">
-                        <table class="table data-tables table-striped" id="products_table">
-                            <thead class="bg-white">
-                                <tr class="ligth ligth-data">
-                                    <th>
-                                        <b>N</b>ame
-                                    </th>
-                                    <th>Cotegory</th>
-                                    <th>Sub Cotegory</th>
-                                    <th>Pack Size</th>
-                                    <th>Brand</th>
-                                    <th>MRP</th>
-                                    <th>Sale Price</th>
-                                    <th>Status</th>
-                                    <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
-                                    <th data-type="date" data-format="YYYY/DD/MM">Updated Date</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody class="ligth-body">
-                            </tbody>
-                        </table>
+                <!-- Table -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="col-md-3" style="float: right; margin-bottom: 10px;">
+                            <div class="form-group">
+                                <select name="subCategorySearch" id="subCategorySearch" class="form-control">
+                                    <option value="">All</option>
+                                    @foreach ($subcategories as $id => $name)
+                                        <option value="{{ $name->id }}">{{ $name->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-responsive rounded">
+                            <table class="table table-striped table-bordered nowrap" id="products_table"
+                                style="width:100%;">
+                                <thead class="bg-white">
+                                    <tr class="ligth ligth-data">
+                                        <th>Sr No</th> <!-- Added this line -->
+                                        <th>
+                                            <b>N</b>ame
+                                        </th>
+                                        <th>Cotegory</th>
+                                        <th>Sub Cotegory</th>
+                                        <th>Pack Size</th>
+                                        <th>Brand</th>
+                                        <th>MRP</th>
+                                        <th>Sale Price</th>
+                                        <th>Status</th>
+                                        <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
+                                        <th data-type="date" data-format="YYYY/DD/MM">Updated Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-                <!-- Page end  -->
+
             </div>
         </div>
     </div>
+
 
     @php
         // Calculate tomorrow's date
@@ -130,27 +148,34 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                 }
             });
 
-            $('#products_table').DataTable().clear().destroy();
-
-            $('#products_table').DataTable({
-                pagelength: 10,
+            // Initialize DataTable
+            var table = $('#products_table').DataTable({
+                pageLength: 10,
                 responsive: true,
                 processing: true,
                 ordering: true,
                 bLengthChange: true,
                 serverSide: true,
-
                 "ajax": {
                     "url": '{{ url('products/get-data') }}',
-                    "type": "post",
-                    "data": function(d) {},
+                    "type": "POST",
+                    data: function(d) {
+                        // Send subcategory id with the request
+                        d.sub_category_id = $('#subCategorySearch').val();
+                    }
                 },
-                aoColumns: [
-
+                aoColumns: [{
+                        data: null,
+                        name: 'sr_no',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
                     {
                         data: 'name'
                     },
-
                     {
                         data: 'category',
                         orderable: false
@@ -188,37 +213,36 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                         data: 'action',
                         orderable: false
                     }
-                    // Define more columns as per your table structure
-
                 ],
-                aoColumnDefs: [{
-                    bSortable: false,
-                    aTargets: []
-                }],
                 columnDefs: [{
                         width: "20%",
                         targets: 0
-                    }, // set width of column 0
+                    },
                     {
                         width: "7%",
                         targets: 1
-                    }, // set width of column 1
+                    },
                     {
                         width: "5%",
                         targets: 2
-                    }, {
+                    },
+                    {
                         width: "5%",
                         targets: 3
-                    }, {
+                    },
+                    {
                         width: "5%",
                         targets: 4
-                    }, {
+                    },
+                    {
                         width: "7%",
                         targets: 5
-                    }, {
+                    },
+                    {
                         width: "7%",
                         targets: 6
-                    }, {
+                    },
+                    {
                         width: "10%",
                         targets: 7
                     },
@@ -229,16 +253,45 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                 ],
                 autoWidth: false,
                 order: [
-                    [7, 'desc']
-                ], // 🟢 Sort by created_at DESC by default
+                    [8, 'desc']
+                ],
                 dom: "Bfrtip",
                 lengthMenu: [
-                    [10, 25, 50],
-                    ['10 rows', '25 rows', '50 rows', 'All']
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
                 ],
-                buttons: ['pageLength']
-
+                pageLength: 10,
+                dom: "<'custom-toolbar-row'lfB>t<'row mt-2'<'col-md-6'i><'col-md-6'p>>",
+                buttons: [{
+                        extend: 'excelHtml5',
+                        className: 'btn btn-outline-success btn-sm me-2',
+                        title: 'Commission Customer',
+                        filename: 'commission_customer_excel',
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        className: 'btn btn-outline-danger btn-sm',
+                        title: 'Commission Customer',
+                        filename: 'commission_customer_pdf',
+                        orientation: 'landscape',
+                        pageSize: 'A4',
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    }
+                ]
             });
+
+            // Listen for changes in subCategorySearch dropdown
+            $('#subCategorySearch').on('change', function() {
+                // Reload DataTable with the new filter value
+                table.ajax.reload(null, false);
+            });
+
+
 
             $('#priceUpdateForm').on('submit', function(e) {
                 e.preventDefault();
@@ -328,7 +381,7 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
         }
 
         function product_price_change(id, sell_price) {
-            
+
             $('#old_price_hidden').val(sell_price);
             $('#old_price').val(sell_price);
             $('#product_id').val(id);
