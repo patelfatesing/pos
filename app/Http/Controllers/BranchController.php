@@ -135,6 +135,13 @@ class BranchController extends Controller
                     href="#" onclick="low_level_stock(' . $store->id . ')"><i class="ri-battery-low-line"></i></a>';
             $action .= '<a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit"
                     href="' . url('/store/edit/' . $store->id) . '"><i class="ri-pencil-line mr-0"></i></a>';
+            $action .= '<div class="custom-control custom-switch custom-control-inline">
+                        <input type="checkbox" class="custom-control-input" id="customSwitch' . $store->id . '" ' . ($store->in_out_enable ? 'checked' : '') . ' data-store-id="' . $store->id . '">
+                        <label class="custom-control-label" for="customSwitch' . $store->id . '">
+                            <span class="switch-label">' . ($store->in_out_enable ? 'Enabled' : 'Disabled') . '</span>
+                        </label>
+                    </div>';
+
             $action .= '</div>';
 
             $records[] = [
@@ -192,12 +199,26 @@ class BranchController extends Controller
         return redirect()->route('branch.list')->with('success', 'Record created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Branch $branch)
+    public function updateStatus(Request $request)
     {
-        //
+        // Validate the request
+        $request->validate([
+            'store_id' => 'required|exists:branches,id', // Ensure the store exists
+            'in_out_enable' => 'required|boolean', // Validate is_active as boolean
+        ]);
+
+        // Find the store by ID
+        $store = Branch::findOrFail($request->store_id);
+
+        // Update the store's active status
+        $store->in_out_enable = $request->in_out_enable;
+        $store->save(); // Save the updated store
+
+        // Return a response indicating success
+        return response()->json([
+            'message' => 'Store status updated successfully.',
+            'status' => $store->in_out_enable ? 'enable' : 'disable'
+        ]);
     }
 
     // Show edit form
