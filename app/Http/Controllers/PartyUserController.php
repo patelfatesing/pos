@@ -212,8 +212,8 @@ class PartyUserController extends Controller
         $id = request()->id ?? null;
         $partyUser = Partyuser::select('first_name', 'id')->where('id', $id)->first();
         $subcategories = DB::table('sub_categories')->where('is_deleted', 'no')->get();
+        $partyUserAll = Partyuser::select('first_name', 'id')->get();
 
-        
         $subcategoryId = request()->subcategory_id ?? null;
 
         $products = DB::table('products')
@@ -242,7 +242,47 @@ class PartyUserController extends Controller
             )
             ->get();
 
-        return view('party_users.product-form', compact('products', 'partyUser','subcategories'));
+        // $products = DB::table('products')
+        //     ->select(
+        //         'products.id',
+        //         'products.name',
+        //         'products.mrp',
+        //         'products.sell_price',
+        //         DB::raw('IFNULL(party_customer_products_price.cust_discount_price, 0) as cust_discount_price'), // Default to 0 if no discount
+        //         'inventories.quantity',
+        //         'inventories.store_id',
+        //         'inventories.location_id',
+        //         'inventories.batch_no',
+        //         'inventories.expiry_date'
+        //     )
+        //     ->leftJoin('party_customer_products_price', function ($join) use ($id) {
+        //         $join->on('products.id', '=', 'party_customer_products_price.product_id')
+        //             ->where('party_customer_products_price.party_user_id', $id);
+        //     })
+        //     ->leftJoin('inventories', 'products.id', '=', 'inventories.product_id') // Join with inventories table
+        //     ->when($subcategoryId, function ($query, $subcategoryId) {
+        //         $query->where('subcategory_id', $subcategoryId);
+        //     })
+        //     ->where('products.is_deleted', 'no')
+        //     ->where('products.is_active', 'yes')
+        //     ->where('inventories.quantity', '>', 0) // Filter inventories where quantity > 0
+        //     ->groupBy(
+        //         'products.id',
+        //         'products.name',
+        //         'products.sell_price',
+        //         'products.mrp',
+        //         'party_customer_products_price.cust_discount_price',
+        //         'inventories.quantity',
+        //         'inventories.store_id',
+        //         'inventories.location_id',
+        //         'inventories.batch_no',
+        //         'inventories.expiry_date'
+        //     )
+        //     ->get();
+
+
+
+        return view('party_users.product-form', compact('products', 'partyUser', 'subcategories', 'partyUserAll'));
 
         return response()->json(['error' => 'Form not found'], 404);
     }
