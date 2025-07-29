@@ -222,3 +222,21 @@
          </div>
      </div>
  </div>
+
+ <script>
+     function viewStock(id) {
+         window.location.href = '{{ url('shift-manage/stock-details') }}/' + id;
+
+         //  $.ajax({
+         //      url: '{{ url('shift-manage/stock-details') }}/' + id,
+         //      type: 'POST',
+         //      success: function(response) {
+         //          $('#dailyStockDetailsModalContent').html(response);
+         //          $('#dailyStockDetailsModal').modal('show');
+         //      },
+         //      error: function() {
+         //          alert('Photos not found.');
+         //      }
+         //  });
+     }
+ </script>

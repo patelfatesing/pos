@@ -184,6 +184,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/products/subcategory/{category_id}', [ProductController::class, 'getSubcategories'])->name('get.subcategories');
     Route::get('/products/getpacksize/{category_id}', [ProductController::class, 'getPackSize'])->name('get.getpacksize');
+    Route::get('/products/get-products/{category_id}', [ProductController::class, 'getProducts'])->name('get.products');
+
     Route::get('/barcode/{productCode}', [ProductController::class, 'generateBarcode'])->name('barcode.generate');
     Route::post('/products/barcode/check', [ProductController::class, 'barcodeCheck'])->name('products.check');
     Route::get('/products/barcode-print/{id}', [ProductController::class, 'barcodePrint'])->name('products.barcode-print');
@@ -207,7 +209,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/items/list', [ItemController::class, 'index'])->name('items.list');
     Route::get('/items/cart', [ItemController::class, 'cart'])->name('items.cart');
-    
+
     Route::get('/items/cart-new', [ItemController::class, 'cartNew'])->name('items.cart.new');
     Route::get('/items/{id}', [ItemController::class, 'show'])->name('items.show');
     Route::post('/items/{id}/resume', [ItemController::class, 'resume'])->name('items.resume');
@@ -273,7 +275,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/party-users/{Partyuser}', [PartyUserController::class, 'update'])->name('party-users.update');
     Route::delete('/party-users/{Partyuser}', [PartyUserController::class, 'destroy'])->name('party-users.destroy');
     Route::get('/cust-product-price-change/form', [PartyUserController::class, 'custProductPriceChangeForm'])->name('party-users.cust-product-price-change-form');
-   
+
     Route::post('/cust-product-price-change/price_change-store', [PartyUserController::class, 'custPriceChange'])->name('cust-product-price-change-store');
     Route::post('/party-users/get-commission-data', [PartyUserController::class, 'getDataCommission'])->name('party-users.get.commission.data');
     Route::get('/cust-trasaction-photo/view/{id}', [PartyUserController::class, 'custTrasactionPhoto'])->name('cust-trasaction-photo-view');

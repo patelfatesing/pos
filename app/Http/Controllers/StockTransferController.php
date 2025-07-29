@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Models\StockTransfer;
 use Illuminate\Support\Str;
 use App\Models\ShiftClosing;
+use App\Models\Category;
 
 class StockTransferController extends Controller
 {
@@ -24,6 +25,8 @@ class StockTransferController extends Controller
 
     public function craeteTransfer()
     {
+        $categories = Category::all();
+
         $stores = Branch::where('is_deleted', 'no')->get();
         $products = Product::all();
         $data = User::with('userInfo')
@@ -31,7 +34,7 @@ class StockTransferController extends Controller
             ->where('is_deleted', 'no')
             ->firstOrFail();
 
-        return view('stocks_transfer.create', compact('stores', 'products', 'data'));
+        return view('stocks_transfer.create', compact('stores', 'products', 'data', 'categories'));
     }
 
     public function getData(Request $request)

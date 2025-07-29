@@ -1,7 +1,4 @@
 @extends('layouts.backend.datatable_layouts')
-
-
-
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Wrapper Start -->
@@ -72,11 +69,9 @@
         </div>
     </div>
 
-
     @php
-        // Calculate tomorrow's date
-$minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
-
+    // Calculate tomorrow's date
+        $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
     @endphp
 
     <div class="modal fade bd-example-modal-lg" id="priceChangeModal" tabindex="-1" role="dialog"
@@ -290,59 +285,56 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                 // Reload DataTable with the new filter value
                 table.ajax.reload(null, false);
             });
+        });
 
+        $('#priceUpdateForm').on('submit', function(e) {
+            e.preventDefault();
 
+            // Clear previous validation errors
+            $('#old_price_error').text('');
+            $('#new_price_error').text('');
+            $('#changed_at_error').text('');
 
-            $('#priceUpdateForm').on('submit', function(e) {
-                e.preventDefault();
+            let formData = {
+                _token: $('input[name="_token"]').val(),
+                product_id: $('#product_id').val(),
+                old_price: $('#old_price').val(),
+                new_price: $('#new_price').val(),
+                changed_at: $('#changed_at').val()
+            };
 
-                // Clear previous validation errors
-                $('#old_price_error').text('');
-                $('#new_price_error').text('');
-                $('#changed_at_error').text('');
+            $.ajax({
+                type: "POST",
+                url: "{{ route('products.updatePrice') }}", // Adjust to match your route name
+                data: formData,
+                success: function(response) {
+                    // Show success message
+                    alert(response.message); // or use toastr.success()
 
-                let formData = {
-                    _token: $('input[name="_token"]').val(),
-                    product_id: $('#product_id').val(),
-                    old_price: $('#old_price').val(),
-                    new_price: $('#new_price').val(),
-                    changed_at: $('#changed_at').val()
-                };
+                    // Close and reset modal
+                    $('#priceChangeModal').modal('hide');
+                    $('#priceUpdateForm')[0].reset();
 
-                $.ajax({
-                    type: "POST",
-                    url: "{{ route('products.updatePrice') }}", // Adjust to match your route name
-                    data: formData,
-                    success: function(response) {
-                        // Show success message
-                        alert(response.message); // or use toastr.success()
-
-                        // Close and reset modal
-                        $('#priceChangeModal').modal('hide');
-                        $('#priceUpdateForm')[0].reset();
-
-                        // Reload DataTable
-                        $('#products_table').DataTable().ajax.reload(null, false);
-                    },
-                    error: function(xhr) {
-                        if (xhr.status === 422) {
-                            let errors = xhr.responseJSON.errors;
-                            if (errors.old_price) {
-                                $('#old_price_error').text(errors.old_price[0]);
-                            }
-                            if (errors.new_price) {
-                                $('#new_price_error').text(errors.new_price[0]);
-                            }
-                            if (errors.changed_at) {
-                                $('#changed_at_error').text(errors.changed_at[0]);
-                            }
-                        } else {
-                            alert("An unexpected error occurred.");
+                    // Reload DataTable
+                    $('#products_table').DataTable().ajax.reload(null, false);
+                },
+                error: function(xhr) {
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        if (errors.old_price) {
+                            $('#old_price_error').text(errors.old_price[0]);
                         }
+                        if (errors.new_price) {
+                            $('#new_price_error').text(errors.new_price[0]);
+                        }
+                        if (errors.changed_at) {
+                            $('#changed_at_error').text(errors.changed_at[0]);
+                        }
+                    } else {
+                        alert("An unexpected error occurred.");
                     }
-                });
+                }
             });
-
         });
 
         function delete_product(id) {

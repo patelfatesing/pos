@@ -325,6 +325,12 @@ class ProductController extends Controller
         return response()->json($packSize);
     }
 
+    public function getProducts($sub_category_id)
+    {
+        $getProductData = Product::where('subcategory_id', $sub_category_id)->where('is_deleted', 'no')->get();
+        return response()->json($getProductData);
+    }
+
     public function barcodePrint($id)
     {
         $product_details = Product::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
