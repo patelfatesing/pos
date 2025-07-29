@@ -242,43 +242,43 @@ class PartyUserController extends Controller
             )
             ->get();
 
-        $products = DB::table('products')
-            ->select(
-                'products.id',
-                'products.name',
-                'products.mrp',
-                'products.sell_price',
-                DB::raw('IFNULL(party_customer_products_price.cust_discount_price, 0) as cust_discount_price'), // Default to 0 if no discount
-                'inventories.quantity',
-                'inventories.store_id',
-                'inventories.location_id',
-                'inventories.batch_no',
-                'inventories.expiry_date'
-            )
-            ->leftJoin('party_customer_products_price', function ($join) use ($id) {
-                $join->on('products.id', '=', 'party_customer_products_price.product_id')
-                    ->where('party_customer_products_price.party_user_id', $id);
-            })
-            ->leftJoin('inventories', 'products.id', '=', 'inventories.product_id') // Join with inventories table
-            ->when($subcategoryId, function ($query, $subcategoryId) {
-                $query->where('subcategory_id', $subcategoryId);
-            })
-            ->where('products.is_deleted', 'no')
-            ->where('products.is_active', 'yes')
-            ->where('inventories.quantity', '>', 0) // Filter inventories where quantity > 0
-            ->groupBy(
-                'products.id',
-                'products.name',
-                'products.sell_price',
-                'products.mrp',
-                'party_customer_products_price.cust_discount_price',
-                'inventories.quantity',
-                'inventories.store_id',
-                'inventories.location_id',
-                'inventories.batch_no',
-                'inventories.expiry_date'
-            )
-            ->get();
+        // $products = DB::table('products')
+        //     ->select(
+        //         'products.id',
+        //         'products.name',
+        //         'products.mrp',
+        //         'products.sell_price',
+        //         DB::raw('IFNULL(party_customer_products_price.cust_discount_price, 0) as cust_discount_price'), // Default to 0 if no discount
+        //         'inventories.quantity',
+        //         'inventories.store_id',
+        //         'inventories.location_id',
+        //         'inventories.batch_no',
+        //         'inventories.expiry_date'
+        //     )
+        //     ->leftJoin('party_customer_products_price', function ($join) use ($id) {
+        //         $join->on('products.id', '=', 'party_customer_products_price.product_id')
+        //             ->where('party_customer_products_price.party_user_id', $id);
+        //     })
+        //     ->leftJoin('inventories', 'products.id', '=', 'inventories.product_id') // Join with inventories table
+        //     ->when($subcategoryId, function ($query, $subcategoryId) {
+        //         $query->where('subcategory_id', $subcategoryId);
+        //     })
+        //     ->where('products.is_deleted', 'no')
+        //     ->where('products.is_active', 'yes')
+        //     ->where('inventories.quantity', '>', 0) // Filter inventories where quantity > 0
+        //     ->groupBy(
+        //         'products.id',
+        //         'products.name',
+        //         'products.sell_price',
+        //         'products.mrp',
+        //         'party_customer_products_price.cust_discount_price',
+        //         'inventories.quantity',
+        //         'inventories.store_id',
+        //         'inventories.location_id',
+        //         'inventories.batch_no',
+        //         'inventories.expiry_date'
+        //     )
+        //     ->get();
 
 
 
