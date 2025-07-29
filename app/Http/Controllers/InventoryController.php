@@ -11,6 +11,7 @@ use App\Services\InventoryService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Models\Branch;
+use App\Models\SubCategory;
 
 class InventoryController extends Controller
 {
@@ -26,7 +27,9 @@ class InventoryController extends Controller
     {
         $data = Inventory::with('product')->get();
         $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
-        return view('inventories.index', compact('data', 'branch'));
+        $subcategories = SubCategory::where('is_deleted', 'no')->get();
+
+        return view('inventories.index', compact('data', 'branch', 'subcategories'));
     }
 
     public function getData(Request $request)
@@ -75,6 +78,10 @@ class InventoryController extends Controller
             });
         }
 
+
+        if ($request->has('sub_category_id') && $request->sub_category_id != '') {
+            $query->where('products.subcategory_id', $request->sub_category_id);
+        }
 
         if ($request->has('store_id') && $request->store_id != '') {
             $query->where('branches.id', $request->store_id);
@@ -442,7 +449,7 @@ class InventoryController extends Controller
             // $productId = $product['product_id'];
             // $lowLevelQty = $product['low_level_qty'];
 
-            
+
             $productId = $key;
             $lowLevelQty = $product;
 

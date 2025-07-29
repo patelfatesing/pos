@@ -1120,17 +1120,9 @@
                     <div class="modal-header custom-modal-header">
                         <h5 class="modal-title cash-summary-text61">
                             {{ __('messages.cash_in_hand_details') }}</h5>
-                        <button type="button" class="btn btn-light border ms-1" data-bs-toggle="tooltip"
-                            title="Logout" onclick="confirmLogout()">
-                            <img src="{{ asset('public/external/fi106093284471-0vjk.svg') }}" class="img-fluid"
-                                style="height: 25px;" />
-                        </button>
-
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                            @csrf
-                        </form>
                     </div>
                     <div class="modal-body">
+
                         <input type="hidden" name="amount" id="holdamountTotal" class="form-control"
                             placeholder="Enter opening amount" readonly>
                         <div class="mb-2">
@@ -1468,11 +1460,11 @@
                                         <label for="change"
                                             class="form-label">{{ __('messages.change_amount') }}</label>
                                         @if (!$inOutStatus)
-                                            <input type="number" class="form-control rounded-pill" value="0"
-                                                readonly>
+                                         <input type="number" 
+                                            class="form-control rounded-pill" value="0" readonly>
                                         @else
-                                            <input type="number" wire:model="cashPayChangeAmt"
-                                                class="form-control rounded-pill" id="change" readonly>
+                                         <input type="number" wire:model="cashPayChangeAmt"
+                                            class="form-control rounded-pill" id="change" readonly>
                                         @endif
                                     </div>
                                 </div>

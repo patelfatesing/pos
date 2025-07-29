@@ -169,10 +169,14 @@
                                                 <div class="row">
                                                     <div class="col-md-6">
                                                         <div class="form-group">
-
                                                             <select name="items[0][product_id]"
                                                                 class="form-control product-select @error('items.0.product_id') is-invalid @enderror">
                                                                 <option value="">Select Product</option>
+                                                                @foreach ($products as $product)
+                                                                    <option value="{{ $product->id }}">
+                                                                        {{ $product->name }}
+                                                                    </option>
+                                                                @endforeach
                                                             </select>
                                                             @error('items.0.product_id')
                                                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -466,32 +470,32 @@
                 }
             });
 
-            // When subcategory is selected, update the product dropdown for the last added row
-            $('#sub_category_ids').on('change', function() {
-                const subCategoryId = $(this).val();
-
-                // Only update the product dropdown in the last added product row
-                const lastProductRow = $('#product-items .item-row:last');
-                lastProductRow.find('.product-select').empty().append(
-                    '<option value="">Select Product</option>');
-
-                // Populate the product dropdown for the selected subcategory
-                if (subCategoryId) {
+            $('#sub_category_id').on('change', function() {
+                var categoryId = $(this).val();
+                if (categoryId) {
                     $.ajax({
-                        url: "{{ url('/products/get-products') }}/" + subCategoryId,
+                        url: "{{ url('/products/get-products') }}/" + categoryId,
                         type: "GET",
                         dataType: "json",
                         success: function(data) {
-                            data.forEach(function(product) {
-                                lastProductRow.find('.product-select').append(
-                                    '<option value="' + product.id + '">' + product
-                                    .name + '</option>');
+                            $('#pack_size').empty();
+                            $('#pack_size').append(
+                                '<option value="" disabled selected>Select pack size</option>'
+                            );
+                            $.each(data, function(key, value) {
+                                $("#fate").text(value.name);
+                                $('#pack_size').append('<option value="' + value
+                                    .size + '">' + value.size + '</option>');
                             });
                         },
                         error: function() {
-                            alert('Failed to fetch products. Please try again.');
+                            alert('Failed to fetch subcategories. Please try again.');
                         }
                     });
+                } else {
+                    $('#pack_size').empty();
+                    $('#pack_size').append(
+                        '<option value="" disabled selected>Select pack size</option>');
                 }
             });
 

@@ -366,7 +366,7 @@
             <div class="modal-dialog modal-dialog-scrollable modal-lg">
                 <div class="modal-content shadow rounded-3">
                     <div class="modal-header custom-modal-header text-white">
-                        <h5 class="modal-title cash-summary-text61">Add Physical Stock</h5>
+                        <h5 class="modal-title cash-summary-text61">Add Physical Stock fdf</h5>
                         <button type="button" class="close btn btn-default"
                             wire:click="$set('showPhysicalModal', false)">
                             <span aria-hidden="true">×</span>
