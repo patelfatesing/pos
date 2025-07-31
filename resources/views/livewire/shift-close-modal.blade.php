@@ -1,13 +1,12 @@
 <div>
     <div class="" wire:click.prevent="openModal" title="Close Shift" style="cursor: pointer;">
         <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
-            <img src="{{ asset('public/external/vector4471-zd04.svg') }}" alt="Close Shift Icon"
-                style="width: 24px; height: 24px;" />
+            <img src="{{ asset('assets/images/sidebar-imgs/closeshit-img.svg') }}" alt="Close Shift Icon" />
         </button>
-        <span class="">Close Shift</span>
+        <span class="ic-txt">Close Shift</span>
     </div>
     @if ($showModal)
-        <div class="modal fade show d-block" tabindex="-1">
+        <div class="modal fade show d-block roboto-fonts" tabindex="-1">
             <div @class([
                 'modal-dialog modal-dialog-scrollable modal-xl ',
                 'modal-dialog modal-dialog-scrollable  close-modal-xl' =>
@@ -47,7 +46,7 @@
                                     <div class="card">
                                         <div class="card-body">
                                             <div class="row">
-                                                <div class="col-md-6">
+                                                <div class="col-md-6 stock-status-btns">
                                                     <button type="button" wire:click="openClosingStocksModal"
                                                         class="btn btn-primary rounded-pill" title="View Stock Status">
                                                         View Stock Status
@@ -58,20 +57,24 @@
                                                     </button>
                                                     @if ($this->showYesterDayShiftTime)
                                                         <button type="button" wire:click="removeHold"
-                                                            class="btn btn-secondary btn-sm" title="View Stock Status">
+                                                            class="btn btn-secondary rounded-pill" title="View Stock Status">
                                                             Remove Hold
                                                         </button>
                                                     @endif
                                                 </div>
-                                                <div class="col-md-3">
-                                                    <h6 class="text-start close-text">Start Time</h6>
-                                                    <h6 class="text-start close-text">
-                                                        {{ $this->currentShift->start_time ?? '-' }}</h6>
-                                                </div>
-                                                <div class="col-md-3">
-                                                    <h6 class="text-start close-text">End Time</h6>
-                                                    <h6 class="text-start close-text">
-                                                        {{ $this->currentShift->start_time ?? '-' }}</h6>
+                                                <div class="col-md-6">
+                                                    <div class="row status-time-area">
+                                                        <div class="col-md-5 offset-md-1">
+                                                            <h6 class="text-start close-text">Start Time</h6>
+                                                            <h6 class="text-start close-text">
+                                                                {{ $this->currentShift->start_time ?? '-' }}</h6>
+                                                        </div>
+                                                        <div class="col-md-5 offset-md-1">
+                                                            <h6 class="text-start close-text">End Time</h6>
+                                                            <h6 class="text-start close-text">
+                                                                {{ $this->currentShift->start_time ?? '-' }}</h6>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -91,7 +94,7 @@
                                             @endphp
 
                                             <div class="{{ $colClass }}">
-                                                <div class="card h-100 border-0 shadow-sm">
+                                                <div class="card shadow-sm">
                                                     <div class="card-header custom-modal-header">
                                                         <h5 class="mb-0 cash-summary-text61">{{ ucfirst($category) }}
                                                         </h5>
@@ -112,7 +115,7 @@
                                                                             ? 'table-success text-success fw-bold'
                                                                             : '';
                                                                     @endphp
-                                                                    <tr class="border {{ $rowClass }}">
+                                                                    <tr class="{{ $rowClass }}">
                                                                         <td class="text-muted text-capitalize">
                                                                             {{ str_replace('_', ' ', $key) }}
                                                                             <small>{{ @$creditDetails }}</small>
@@ -134,83 +137,77 @@
 
                                 {{-- Shift Timing and Cash Details --}}
                                 <div class="col-md-6">
-                                    @if ($inOutStatus)
-                                        <div class="card ">
-                                            <div class="card-header custom-modal-header">
-                                                <h5 class="mb-0 cash-summary-text61">Cash Details
-                                                </h5>
-                                            </div>
-                                            <div class="card-body p-0">
-                                                <div class="table-responsive">
-                                                    <table
-                                                        class="table table-bordered table-sm text-center align-middle mb-0">
-                                                        <thead class="submit-btn">
-                                                            <tr>
-                                                                <th>Denomination</th>
-                                                                <th>Notes</th>
-                                                                <th>x</th>
-                                                                <th>Amount</th>
-                                                                <th>=</th>
-                                                                <th>Total</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @if (!empty($shiftcash))
+                                    <div class="card cash-details_table">
+                                        <div class="card-header custom-modal-header">
+                                            <h5 class="mb-0 cash-summary-text61">Cash Details
+                                            </h5>
+                                        </div>
+                                        <div class="card-body p-0">
+
+                                            <div class="table-responsive">
+                                                <table
+                                                    class="table table-bordered table-sm text-center align-middle mb-0">
+                                                    <thead class="submit-btn">
+                                                        <tr>
+                                                            <th>Denomination</th>
+                                                            <th>Notes</th>
+                                                            <th>x</th>
+                                                            <th>Amount</th>
+                                                            <th>=</th>
+                                                            <th>Total</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @if (!empty($shiftcash))
+                                                            @php
+                                                                $totalNotes = 0;
+                                                            @endphp
+                                                            @foreach ($shiftcash as $denomination => $quantity)
                                                                 @php
-                                                                    $totalNotes = 0;
+                                                                    $rowTotal = $denomination * $quantity;
+                                                                    $totalNotes += $rowTotal;
                                                                 @endphp
-                                                                @foreach ($shiftcash as $denomination => $quantity)
-                                                                    @php
-                                                                        $rowTotal = $denomination * $quantity;
-                                                                        $totalNotes += $rowTotal;
-                                                                    @endphp
-                                                                    <tr>
-                                                                        <td class="">
-                                                                            {{ format_inr($denomination) }}
-                                                                        </td>
-                                                                        <td>{{ abs($quantity) }}</td>
-                                                                        <td>X</td>
-                                                                        <td>{{ format_inr($denomination) }}</td>
-                                                                        <td>=</td>
-                                                                        <td class="fw-bold">{{ format_inr($rowTotal) }}
-                                                                        </td>
-                                                                    </tr>
-                                                                @endforeach
-                                                            @endif
-                                                        </tbody>
-                                                        <tfoot class="border table-success fw-bold">
-                                                            <tr>
-                                                                <th colspan="5" class="text-end">Total</th>
-                                                                <th class="fw-bold">
-                                                                    {{ format_inr(@$totalNotes) }}
-                                                                </th>
-                                                            </tr>
-                                                        </tfoot>
-                                                    </table>
-                                                </div>
+                                                                <tr>
+                                                                    <td class="">{{ format_inr($denomination) }}
+                                                                    </td>
+                                                                    <td>{{ abs($quantity) }}</td>
+                                                                    <td>X</td>
+                                                                    <td>{{ format_inr($denomination) }}</td>
+                                                                    <td>=</td>
+                                                                    <td class="fw-bold">{{ format_inr($rowTotal) }}
+                                                                    </td>
+                                                                </tr>
+                                                            @endforeach
+                                                        @endif
+                                                    </tbody>
+                                                    <tfoot class="border table-success fw-bold">
+                                                        <tr>
+                                                            <th colspan="5" class="text-end">Total</th>
+                                                            <th class="fw-bold">
+                                                                {{ format_inr(@$totalNotes) }}
+                                                            </th>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
                                             </div>
                                         </div>
-                                    @endif
+                                    </div>
                                     {{-- Summary Cash Totals --}}
-                                    <div class="table-responsive mt-4">
+                                    <div class="table-responsive mt-4 finalcash-details_table">
                                         <table class="table table-bordered">
                                             <tbody>
-                                                <tr class="border">
+                                                <tr>
                                                     <td class="text-start ">System Cash Sales</td>
-                                                    @if ($inOutStatus)
-                                                        <td class="text-end">{{ format_inr($totalNotes ?? 0) }}
-                                                    @else
-                                                        <td class="text-end">{{ format_inr(@$this->categoryTotals['summary']['TOTAL']) }}
-                                                    @endif
+                                                    <td class="text-end">{{ format_inr($totalNotes ?? 0) }}
                                                     </td>
                                                 </tr>
-                                                <tr class="border">
+                                                <tr>
                                                     <td class="text-start ">Total Cash Amount</td>
                                                     <td class="text-end">
                                                         {{ format_inr(@$this->categoryTotals['summary']['TOTAL']) }}
                                                     </td>
                                                 </tr>
-                                                <tr class="border">
+                                                <tr>
                                                     <td class="text-start ">Closing Cash</td>
                                                     <td class="text-end">
                                                         <input type="number"
@@ -226,14 +223,14 @@
                                                         @enderror
                                                     </td>
                                                 </tr>
-                                                <tr class="border">
+                                                <tr>
                                                     <td class="text-start ">Discrepancy Cash</td>
                                                     <td class="text-end">
                                                         <input type="text" wire:model="diffCash"
                                                             class="form-control rounded-pill" readonly>
                                                     </td>
                                                 </tr>
-                                                <tr class="border">
+                                                <tr>
                                                     <td class="text-start ">
                                                         @if ($this->showYesterDayShiftTime)
                                                             <button type="button" class="btn btn-outline-danger  "
@@ -477,7 +474,6 @@
         <div class="modal-backdrop fade show"></div>
     @endif
 </div>
-
 <script>
     window.addEventListener('test', (event) => {
         setTimeout(() => {

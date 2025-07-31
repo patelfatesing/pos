@@ -6,7 +6,7 @@
             <img src="{{ asset('public/external/investment114471-sc1b.svg') }}" alt="Collect Credit Icon"
                 style="width: 24px; height: 24px;" />
         </button>
-        <span class="">Collect Credit</span>
+        <span class="ic-txt">Collect Credit</span>
     </div>
 
     <!-- Main Modal -->

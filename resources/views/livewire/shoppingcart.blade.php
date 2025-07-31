@@ -4,44 +4,46 @@
         $this->cashAmount = round_up_to_nearest_10($this->cashAmount) ?? 0;
     @endphp
 
-    <div class="topbar d-flex flex-wrap justify-content-between align-items-center  bg-white shadow-sm">
+    <div class="row top_header_panel">
+        <div class="topbar d-flex flex-wrap justify-content-between align-items-center  bg-white shadow-sm">
 
-        <!-- Logo -->
-        <div class="d-flex align-items-center">
-            <img src="{{ asset('assets/images/logo.png') }}" alt="Logo" class="img-fluid" style="max-height: 40px;" />
-        </div>
-
-        <!-- Right Side -->
-        <div class="d-flex align-items-center ms-auto gap-2 flex-wrap flex-md-nowrap">
-
-            <!-- Store Location -->
-            <div class="main-screen-frame280">
-                <span class="main-screen-text72">Store Location: {{ $this->branch_name }}</span>
+            <!-- Logo -->
+            <div class="d-flex align-items-center">
+                <img src="{{ asset('assets/images/logo.png') }}" alt="Logo" class="img-fluid" style="max-height: 40px;" />
             </div>
 
-            <!-- Refresh -->
-            <div onclick="location.reload()" class="cursor-pointer main-screen-group1">
-                <img src="{{ asset('public/external/vector4471-dtw.svg') }}" class="img-fluid main-screen-vector10"
-                    style="height: 20px;" />
-                <img src="{{ asset('public/external/vector4471-wfwo.svg') }}" class="img-fluid main-screen-vector11"
-                    style="height: 20px;" />
+            <!-- Right Side -->
+            <div class="d-flex align-items-center ms-auto gap-2 flex-wrap flex-md-nowrap">
+
+                <!-- Store Location -->
+                <div class="main-screen-frame280">
+                    <span class="main-screen-text72">Store Location: {{ $this->branch_name }}</span>
+                </div>
+
+                <!-- Refresh -->
+                <div onclick="location.reload()" class="cursor-pointer main-screen-group1">
+                    <img src="{{ asset('public/external/vector4471-dtw.svg') }}" class="img-fluid main-screen-vector10"
+                        style="height: 20px;" />
+                    <img src="{{ asset('public/external/vector4471-wfwo.svg') }}" class="img-fluid main-screen-vector11"
+                        style="height: 20px;" />
+                </div>
+
+                <!-- Livewire Components -->
+                <livewire:fullscreen-toggle />
+                <livewire:notification />
+                <livewire:language-switcher />
+
+                <!-- Logout -->
+                <button type="button" class="btn btn-light border ms-1" data-bs-toggle="tooltip" title="Logout"
+                    onclick="confirmLogout()">
+                    <img src="{{ asset('public/external/fi106093284471-0vjk.svg') }}" class="img-fluid"
+                        style="height: 25px;" />
+                </button>
+
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                    @csrf
+                </form>
             </div>
-
-            <!-- Livewire Components -->
-            <livewire:fullscreen-toggle />
-            <livewire:notification />
-            <livewire:language-switcher />
-
-            <!-- Logout -->
-            <button type="button" class="btn btn-light border ms-1" data-bs-toggle="tooltip" title="Logout"
-                onclick="confirmLogout()">
-                <img src="{{ asset('public/external/fi106093284471-0vjk.svg') }}" class="img-fluid"
-                    style="height: 25px;" />
-            </button>
-
-            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                @csrf
-            </form>
         </div>
     </div>
 
@@ -97,23 +99,20 @@
                     </div>
                 </div> --}}
 
-    <div class="row flex-md-nowrap">
+    <div class="row flex-md-nowrap dashboard-panel">
         <!-- Desktop Sidebar -->
-        <div id="sidebar" class="sidebar d-none d-md-flex flex-column py-2"
-            style="max-height: 100vh; overflow-y: auto;">
+        <div id="sidebar" class="sidebar d-none d-md-flex flex-column py-2">
             {{-- Stock Request (Cashier or Warehouse) --}}
             @auth
                 @if (auth()->user()->hasRole('cashier') || auth()->user()->hasRole('warehouse'))
                     <div class="sidebar-item" data-bs-toggle="modal" data-bs-target="#storeStockRequest"
                         title="Stock Request">
                         <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
-                            <img src="{{ asset('public/external/frame2834471-mtm.svg') }}" alt="Stock Request Icon"
-                                width="20" height="20">
+                            <img src="{{ asset('assets/images/sidebar-imgs/st-ex-img.svg') }}" alt="Stock Request Icon"
+                                >
                         </button>
-                        <span>Stock Request</span>
+                        <span class="ic-txt">Stock Request</span>
                     </div>
-                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
-                        class="main-screen-rectangle457" />
                 @endif
             @endauth
 
@@ -121,63 +120,43 @@
             <div class="sidebar-item">
                 <livewire:take-cash-modal wire:key="take-cash-modal-static" />
             </div>
-            <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}" class="main-screen-rectangle457" />
-
             {{-- Cash Out --}}
             <div class="sidebar-item" data-bs-toggle="modal" data-bs-target="#cashout" title="Cash Out">
                 <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
-                    <img src="{{ asset('public/external/caseout.png') }}" alt="Cash Out" width="32" height="32">
+                    <img src="{{ asset('assets/images/sidebar-imgs/cashout-img.svg') }}" alt="Cash Out">
                 </button>
-                <span>Cash Out</span>
+                <span class="ic-txt">Cash Out</span>
             </div>
-            <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
-                class="main-screen-rectangle457" />
-
             {{-- View Hold --}}
             @if (count($itemCarts) == 0)
                 <div class="sidebar-item" data-bs-toggle="modal" data-bs-target="#holdTransactionsModal"
                     title="View Hold">
                     <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
-                        <img src="{{ asset('public/external/vector4471-4bnt.svg') }}" alt="View Hold" width="24"
-                            height="24">
+                        <img src="{{ asset('assets/images/sidebar-imgs/viewhold-img.svg') }}" alt="View Hold">
                     </button>
-                    <span>View Hold</span>
+                    <span class="d-none">View Hold</span>
                 </div>
-                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
-                    class="main-screen-rectangle457" />
             @endif
 
             {{-- Sales History --}}
             <div class="sidebar-item">
                 <livewire:order-modal wire:key="order-modal-static" />
             </div>
-            <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
-                class="main-screen-rectangle457" />
-
             {{-- Warehouse Tools --}}
             @auth
                 @if (auth()->user()->hasRole('warehouse'))
                     <div class="sidebar-item" wire:click="printLastInvoice" title="Print Invoice">
                         <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
-                            <img src="{{ asset('public/external/pdf_icon_final.jpg') }}" alt="Print Invoice Icon"
-                                width="24" height="24">
+                            <img src="{{ asset('assets/images/sidebar-imgs/print-invoice-img.svg') }}" alt="Print Invoice Icon">
                         </button>
-                        <span>Print Invoice</span>
+                        <span class="ic-txt">Print Invoice</span>
                     </div>
-                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
-                        class="main-screen-rectangle457" />
-
                     <div class="sidebar-item">
                         <livewire:customer-credit-ledger-modal wire:key="credit-ledger-modal-static" />
                     </div>
-                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
-                        class="main-screen-rectangle457" />
-
                     <div class="sidebar-item">
                         <livewire:collation-modal wire:key="collation-modal-static" />
                     </div>
-                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
-                        class="main-screen-rectangle457" />
                 @endif
             @endauth
 
@@ -204,17 +183,13 @@
                             </button>
                             <span>Stock Request</span>
                         </div>
-                        <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
-                            class="main-screen-rectangle457" />
                     @endif
                 @endauth
 
                 <div class="sidebar-item">
                     <livewire:take-cash-modal wire:key="mobile-take-cash-modal-static" />
-                    <span>Add Cash</span>
+                    <span class="d-none">Add Cash</span>
                 </div>
-                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
-                    class="main-screen-rectangle457" />
 
                 <div class="sidebar-item">
                     <button class="btn btn-default" data-bs-toggle="modal" data-bs-target="#cashout"
@@ -224,8 +199,6 @@
                     </button>
                     <span>Cash Out</span>
                 </div>
-                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
-                    class="main-screen-rectangle457" />
 
                 @if (count($itemCarts) == 0)
                     <div class="sidebar-item">
@@ -235,16 +208,12 @@
                         </button>
                         <span>View Hold</span>
                     </div>
-                    <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
-                        class="main-screen-rectangle457" />
                 @endif
 
                 <div class="sidebar-item">
                     <livewire:order-modal wire:key="mobile-order-modal-static" />
-                    <span>Sales History</span>
+                    <span class="d-none">Sales History</span>
                 </div>
-                <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
-                    class="main-screen-rectangle457" />
 
                 @auth
                     @if (auth()->user()->hasRole('warehouse'))
@@ -254,19 +223,17 @@
                             </button>
                             <span>Print Invoice</span>
                         </div>
-                        <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
-                            class="main-screen-rectangle457" />
 
                         <div class="sidebar-item">
                             <livewire:customer-credit-ledger-modal wire:key="mobile-credit-ledger-modal-static" />
-                            <span>Customer Credit Ledger</span>
+                            <span class="d-none">Customer Credit Ledger</span>
                         </div>
                         <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
                             class="main-screen-rectangle457" />
 
                         <div class="sidebar-item">
                             <livewire:collation-modal wire:key="mobile-collation-modal-static" />
-                            <span>Collect Credit</span>
+                            <span class="d-none">Collect Credit</span>
                         </div>
                         <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
                             class="main-screen-rectangle457" />
@@ -275,15 +242,14 @@
 
                 <div class="sidebar-item">
                     <livewire:shift-close-modal wire:key="mobile-shift-close-modal-static" />
-                    <span>Close Shift</span>
+                    <span class="d-none">Close Shift</span>
                 </div>
             </div>
         </div>
 
         <!-- Main Content -->
         <div class="col-12 col-md-11 m-2 ml-2">
-            <div>
-
+            <div class="top-panel-dash">
                 <div class="d-flex justify-content-between align-items-center flex-wrap mt-2 py-2 ">
                     <div class="text-muted main-screen-text12">
                         Welcome! <strong class="text-teal">{{ Auth::user()->name }}</strong>
@@ -295,399 +261,379 @@
                         </span>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="col-md-12 search-bar-calc-area">
+                        <!-- Filters -->
+                        <div class="row">
+                            <div class="col-12 col-md-3">
+                                <div class="position-relative">
+                                    <input type="number" class="form-control rounded-pill pe-3 custom-border"
+                                        placeholder="{{ __('messages.scan_barcode') }}" wire:model.live="search"
+                                        wire:keydown.enter="addToCartBarCode" autofocus>
 
-                <!-- Filters -->
-                <div class="row  mt-2">
-                    <div class="col-12 col-md-3">
-                        <div class="position-relative">
-                            <input type="number" class="form-control rounded-pill pe-5 custom-border"
-                                placeholder="{{ __('messages.scan_barcode') }}" wire:model.live="search"
-                                wire:keydown.enter="addToCartBarCode" autofocus>
+                                    <!-- Barcode icon -->
+                                    <img class="barcode-search" src="{{ asset('public/external/barcoderead14471-053n.svg') }}" alt="Barcode">
 
-                            <!-- Barcode icon -->
-                            <img src="{{ asset('public/external/barcoderead14471-053n.svg') }}" alt="Barcode"
-                                style="position: absolute; right: 40px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px;">
+                                    <!-- Clear button -->
+                                    @if ($search)
+                                        <button type="button" wire:click="clearSearch"
+                                            style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+                                            border: none; background: transparent; font-size: 18px; cursor: pointer; color: #888;"
+                                            aria-label="Clear input">&times;</button>
+                                    @endif
+                                </div>
 
-                            <!-- Clear button -->
-                            @if ($search)
-                                <button type="button" wire:click="clearSearch"
-                                    style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-                                    border: none; background: transparent; font-size: 18px; cursor: pointer; color: #888;"
-                                    aria-label="Clear input">&times;</button>
-                            @endif
-                        </div>
-
-                        @if (strlen($notFoundMessage) > 0)
-                            <div class="mt-2 text-danger" style="font-size: 0.9rem;">
-                                {{ $notFoundMessage }}
+                                @if (strlen($notFoundMessage) > 0)
+                                    <div class="mt-2 text-danger" style="font-size: 0.9rem;">
+                                        {{ $notFoundMessage }}
+                                    </div>
+                                @endif
                             </div>
-                        @endif
-                    </div>
 
-                    <div class="col-12 col-md-3">
-                        <div class="position-relative ">
-                            <img src="{{ asset('public/external/vector4471-t8to.svg') }}" alt="Icon"
-                                style="position: absolute; right: 15px; top: 12px; width: 18px; height: 18px; pointer-events: none; z-index: 2;">
+                            <div class="col-12 col-md-3">
+                                <div class="position-relative ">
+                                    <img class="down-arrow" src="{{ asset('public/external/vector4471-t8to.svg') }}" alt="Icon">
 
-                            @if (auth()->user()->hasRole('cashier'))
-                                <select id="commissionUser" class="form-control rounded-pill pe-5 custom-border"
-                                    wire:model="selectedCommissionUser" wire:change="calculateCommission"
-                                    @if ($removeCrossHold || $this->selectedSalesReturn == true) disabled @endif>
-                                    <option value="">-- Select Commission Customer --</option>
-                                    @foreach ($commissionUsers as $user)
-                                        <option value="{{ $user->id }}">{{ $user->first_name }}</option>
-                                    @endforeach
-                                </select>
-                            @endif
+                                    @if (auth()->user()->hasRole('cashier'))
+                                        <select id="commissionUser" class="form-control rounded-pill pe-5 custom-border"
+                                            wire:model="selectedCommissionUser" wire:change="calculateCommission"
+                                            @if ($removeCrossHold || $this->selectedSalesReturn == true) disabled @endif>
+                                            <option value="">-- Select Commission Customer --</option>
+                                            @foreach ($commissionUsers as $user)
+                                                <option value="{{ $user->id }}">{{ $user->first_name }}</option>
+                                            @endforeach
+                                        </select>
+                                    @endif
 
+                                    @if (auth()->user()->hasRole('warehouse'))
+                                        <select id="partyUser" class="form-control rounded-pill pe-5 custom-border"
+                                            wire:model="selectedPartyUser" wire:change="calculateParty"
+                                            @if ($removeCrossHold || $this->selectedSalesReturn == true) disabled @endif>
+                                            <option value="">-- {{ __('messages.select_party_customer') }} --</option>
+                                            @foreach ($partyUsers as $user)
+                                                <option value="{{ $user->id }}">{{ $user->first_name }}</option>
+                                            @endforeach
+                                        </select>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <div class="position-relative capture-eve">
+                                    <livewire:take-two-pictures />
+                                </div>
+                            </div>
                             @if (auth()->user()->hasRole('warehouse'))
-                                <select id="partyUser" class="form-control rounded-pill pe-5 custom-border"
-                                    wire:model="selectedPartyUser" wire:change="calculateParty"
-                                    @if ($removeCrossHold || $this->selectedSalesReturn == true) disabled @endif>
-                                    <option value="">-- {{ __('messages.select_party_customer') }} --</option>
-                                    @foreach ($partyUsers as $user)
-                                        <option value="{{ $user->id }}">{{ $user->first_name }}</option>
-                                    @endforeach
-                                </select>
+                                <div class="col-12 col-md-3">
+                                    <div class="position-relative">
+                                        <input type="text" wire:model.live="searchSalesReturn"
+                                            wire:keydown.enter="addToSalesreturn"
+                                            class="form-control rounded-pill ps-4 pe-5 custom-border"
+                                            placeholder="{{ __('messages.scan_invoice_no') }}" autofocus>
+
+                                        <img src="{{ asset('public/external/qrscan14471-8i6r.svg') }}" alt="QR Scan"
+                                            class="position-absolute top-50 end-0 translate-middle-y me-3"
+                                            style="width: 20px; height: 20px;">
+                                    </div>
+                                </div>
                             @endif
                         </div>
-                    </div>
-                    <div class="col-12 col-md-3">
-                        <div class="position-relative ">
-                            <livewire:take-two-pictures />
-                        </div>
-                    </div>
-                    @if (auth()->user()->hasRole('warehouse'))
-                        <div class="col-12 col-md-3">
-                            <div class="position-relative">
-                                <input type="text" wire:model.live="searchSalesReturn"
-                                    wire:keydown.enter="addToSalesreturn"
-                                    class="form-control rounded-pill ps-4 pe-5 custom-border"
-                                    placeholder="{{ __('messages.scan_invoice_no') }}" autofocus>
-
-                                <img src="{{ asset('public/external/qrscan14471-8i6r.svg') }}" alt="QR Scan"
-                                    class="position-absolute top-50 end-0 translate-middle-y me-3"
-                                    style="width: 20px; height: 20px;">
-                            </div>
-                        </div>
-                    @endif
-                </div>
-                <!-- Search + Buttons -->
-                <div class="row  mt-2">
-                    <div class="col-md-9 position-relative">
-                        <form wire:submit.prevent="searchTerm" class="mb-0">
-                            <div class="input-group rounded-pill overflow-hidden custom-border">
-                                <input type="text" wire:model.live.debounce.500ms="searchTerm"
-                                    placeholder="{{ __('messages.enter_product_name') }}"
-                                    class="form-control border-0 ps-4" id="searchInput" autocomplete="off" />
-                                <span class="input-group-text bg-transparent border-0 pe-3">
-                                    <img src="{{ asset('public/external/vector4471-m3pl.svg') }}" alt="Search"
-                                        style="width: 20px; height: 20px;">
-                                </span>
-                            </div>
-                        </form>
-
-                        @if ($this->showSuggestions && count($searchResults) > 0)
-                            <div class="dropdown-menu show w-100 mt-1 shadow-sm overflow-auto"
-                                style="max-height: 260px; border-radius: 0.5rem;">
-                                <ul class="list-group list-group-flush">
-                                    @foreach ($searchResults as $product)
-                                        <li class="list-group-item d-flex justify-content-between align-items-center px-3 py-2"
-                                            wire:click.prevent="addToCart({{ $product->id }})"
-                                            style="cursor: pointer;">
-                                            <div class="d-flex flex-column">
-                                                <span class="fw-semibold">{{ $product->name }}</span>
-                                                @if ($product->description)
-                                                    <small class="text-muted">{{ $product->description }}</small>
-                                                @endif
+                        <div class="row mt-3">
+                            <div class="col-md-9 col-sm-8">
+                                <!-- Search + Buttons -->
+                                <div class="row">
+                                    <div class="col-md-12 position-relative">
+                                        <form wire:submit.prevent="searchTerm" class="mb-0">
+                                            <div class="input-group rounded-pill overflow-hidden custom-border customer-search-product">
+                                                <input type="text" wire:model.live.debounce.500ms="searchTerm"
+                                                    placeholder="{{ __('messages.enter_product_name') }}"
+                                                    class="form-control border-0 ps-4" id="searchInput" autocomplete="off" />
+                                                <span class="input-group-text bg-transparent border-0 pe-3">
+                                                    <img src="{{ asset('public/external/vector4471-m3pl.svg') }}" alt="Search">
+                                                </span>
                                             </div>
-                                            <span
-                                                class="text-primary fw-bold ms-3">{{ format_inr(@$product->sell_price) }}</span>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-                    </div>
+                                        </form>
 
+                                        @if ($this->showSuggestions && count($searchResults) > 0)
+                                            <div class="dropdown-menu show w-100 mt-1 shadow-sm overflow-auto"
+                                                style="max-height: 260px; border-radius: 0.5rem;">
+                                                <ul class="list-group list-group-flush">
+                                                    @foreach ($searchResults as $product)
+                                                        <li class="list-group-item d-flex justify-content-between align-items-center px-3 py-2"
+                                                            wire:click.prevent="addToCart({{ $product->id }})"
+                                                            style="cursor: pointer;">
+                                                            <div class="d-flex flex-column">
+                                                                <span class="fw-semibold">{{ $product->name }}</span>
+                                                                @if ($product->description)
+                                                                    <small class="text-muted">{{ $product->description }}</small>
+                                                                @endif
+                                                            </div>
+                                                            <span
+                                                                class="text-primary fw-bold ms-3">{{ format_inr(@$product->sell_price) }}</span>
+                                                        </li>
+                                                    @endforeach
+                                                </ul>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                                <!-- Product Table & Calculator -->
+                                <div class="row mt-2">
+                                    <div class="col-md-12">
+                                        <div class="table-responsive">
 
-                    <div class="col-md-3 mt-3 mt-md-0">
-                        <div class="d-flex justify-content-between align-items-center gap-2">
-
-                            <!-- Button 1 -->
-                            <button type="button" class="btn btn-deafult main-screen-container2"
-                                wire:click="incrementQty({{ $this->activeItemId }})">
-                                <img src="{{ asset('../public/external/systemicon16pxplus4471-kuog.svg') }}"
-                                    alt="Left Icon">
-                            </button>
-
-                            <!-- Button 2 -->
-                            {{-- <button type="button" class="btn btn-deafult main-screen-container2">
-                                <img src="{{ asset('../public/external/systemicon16pxplus4471-aqk.svg') }}"
-                                    alt="Center Icon">
-                            </button> --}}
-
-                            <!-- Button 3 -->
-                            <button type="button" class="btn btn-deafult main-screen-container2"
-                                wire:click="decrementQty({{ $this->activeItemId, $this->activeProductId }})">
-                                <img src="{{ asset('../public/external/systemicon16pxplus4471-jpl.svg') }}"
-                                    alt="Right Icon">
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <!-- Product Table & Calculator -->
-                <div class="row mt-1">
-                    <div class="col-md-9">
-                        <div class="table-responsive">
-
-                            <table class="table table-bordered product-table" id="cartTable">
-                                <thead class="table-info">
-                                    <tr>
-                                        <th class="col-7 main-screen-text25">{{ __('messages.product') }}</th>
-                                        <th class="main-screen-text25">{{ __('messages.qty') }}</th>
-                                        <th class="main-screen-text25">{{ __('messages.price') }}</th>
-                                        <th class="main-screen-text25">{{ __('messages.total') }}</th>
-                                        <th class="main-screen-text25">{{ __('messages.actions') }}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse($itemCarts as $item)
-                                        @php
-                                            $total = @$item->product->sell_price * $item->quantity;
-                                            $commission = $commissionAmount ?? 0;
-                                            $party = $partyAmount ?? 0;
-                                            $finalAmount = $total - $commission - $party;
-                                        @endphp
-                                        <tr class="{{ $this->activeItemId === $item->id ? 'active' : '' }}">
-                                            <td class="col-7"
-                                                wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})"
-                                                style="cursor:pointer">
-                                                {{ $item->product->name }}<br>
-                                                {{ $item->product->description }}
-                                            </td>
-                                            <td
-                                                wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})">
-
-                                                {{ $this->quantities[$item->id] }}
-                                            </td>
-                                            <td
-                                                wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})">
-
-                                                @if (@$this->partyUserDiscountAmt && $this->commissionAmount > 0)
-                                                    <span class="text-danger">
+                                            <table class="table table-bordered product-table" id="cartTable">
+                                                <thead class="table-info">
+                                                    <tr>
+                                                        <th class="col-7 col-sm-5 main-screen-text25">{{ __('messages.product') }}</th>
+                                                        <th class="main-screen-text25">{{ __('messages.qty') }}</th>
+                                                        <th class="main-screen-text25">{{ __('messages.price') }}</th>
+                                                        <th class="main-screen-text25">{{ __('messages.total') }}</th>
+                                                        <th class="main-screen-text25">{{ __('messages.actions') }}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @forelse($itemCarts as $item)
                                                         @php
-                                                            $data = getDiscountPrice(
-                                                                $item->product->id,
-                                                                $this->selectedPartyUser,
-                                                                $this->selectedCommissionUser,
-                                                            );
+                                                            $total = @$item->product->sell_price * $item->quantity;
+                                                            $commission = $commissionAmount ?? 0;
+                                                            $party = $partyAmount ?? 0;
+                                                            $finalAmount = $total - $commission - $party;
                                                         @endphp
-                                                        {{ format_inr(@$data['partyUserDiscountAmt']) }}
-                                                    </span>
-                                                    <br>
-                                                    <small class="text-muted">
-                                                        <s>{{ format_inr(@$item->product->sell_price) }}</s>
-                                                    </small>
-                                                @else
-                                                    <span class="text-danger">
-                                                        @if ($this->selectedPartyUser)
-                                                            {{ format_inr(@$item->net_amount / $this->quantities[$item->id]) }}
-                                                        @else
-                                                            {{ format_inr(@$item->net_amount / $this->quantities[$item->id]) }}
-                                                        @endif
-                                                    </span>
-                                                    @if ($this->selectedPartyUser && $item->net_amount / $this->quantities[$item->id] != $item->product->sell_price)
-                                                        <br>
-                                                        <small class="text-muted">
-                                                            <s>{{ format_inr(@$item->product->sell_price) }}</s>
-                                                        </small>
-                                                    @endif
-                                                    @if ($this->selectedCommissionUser)
-                                                        <br>
-                                                        <small class="text-muted">
-                                                            <s>{{ format_inr(@$item->product->sell_price) }}</s>
-                                                        </small>
-                                                    @endif
-                                                @endif
-                                            </td>
+                                                        <tr class="{{ $this->activeItemId === $item->id ? 'active' : '' }}">
+                                                            <td class="col-7 col-sm-5"
+                                                                wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})"
+                                                                style="cursor:pointer">
+                                                                {{ $item->product->name }}<br>
+                                                                {{ $item->product->description }}
+                                                            </td>
+                                                            <td
+                                                                wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})">
 
-                                            <td wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})"
-                                                class="text-success fw-bold">
+                                                                {{ $this->quantities[$item->id] }}
+                                                            </td>
+                                                            <td
+                                                                wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})">
 
-                                                {{ format_inr($item->net_amount) }}
+                                                                @if (@$this->partyUserDiscountAmt && $this->commissionAmount > 0)
+                                                                    <span class="text-danger">
+                                                                        @php
+                                                                            $data = getDiscountPrice(
+                                                                                $item->product->id,
+                                                                                $this->selectedPartyUser,
+                                                                                $this->selectedCommissionUser,
+                                                                            );
+                                                                        @endphp
+                                                                        {{ format_inr(@$data['partyUserDiscountAmt']) }}
+                                                                    </span>
+                                                                    <br>
+                                                                    <small class="text-muted">
+                                                                        <s>{{ format_inr(@$item->product->sell_price) }}</s>
+                                                                    </small>
+                                                                @else
+                                                                    <span class="text-danger">
+                                                                        @if ($this->selectedPartyUser)
+                                                                            {{ format_inr(@$item->net_amount / $this->quantities[$item->id]) }}
+                                                                        @else
+                                                                            {{ format_inr(@$item->net_amount / $this->quantities[$item->id]) }}
+                                                                        @endif
+                                                                    </span>
+                                                                    @if ($this->selectedPartyUser && $item->net_amount / $this->quantities[$item->id] != $item->product->sell_price)
+                                                                        <br>
+                                                                        <small class="text-muted">
+                                                                            <s>{{ format_inr(@$item->product->sell_price) }}</s>
+                                                                        </small>
+                                                                    @endif
+                                                                    @if ($this->selectedCommissionUser)
+                                                                        <br>
+                                                                        <small class="text-muted">
+                                                                            <s>{{ format_inr(@$item->product->sell_price) }}</s>
+                                                                        </small>
+                                                                    @endif
+                                                                @endif
+                                                            </td>
 
-                                            </td>
-                                            @if ($this->removeCrossHold == true)
-                                                <td>
-                                                    <button class="btn btn-danger"
-                                                        onclick="Swal.fire({
-                                                                title: 'Do you want to remove this product ?',
-                                                                text: 'This action cannot be reverted!',
-                                                                icon: 'warning',
-                                                                showCancelButton: true,
-                                                                confirmButtonText: 'Yes, remove it',
-                                                                cancelButtonText: 'Cancel',
-                                                                reverseButtons: true
-                                                            }).then((result) => {
-                                                                if (result.isConfirmed) {
-                                                                    @this.removeItem({{ $item->id }},'resume','{{ $this->invoice_no }}');
-                                                                }
-                                                            });"
-                                                        title="Remove item">
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
-                                                </td>
-                                            @else
-                                                <td>
-                                                    <button class="btn btn-sm btn-default"
-                                                        wire:click="removeItem({{ $item->id }})"
-                                                        title="Remove item">
-                                                        <img src="{{ asset('public/external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}"
-                                                            alt="Delete"
-                                                            class="main-screen-delete24dp1f1f1ffill0wght400grad0opsz24110">
-                                                    </button>
+                                                            <td wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})"
+                                                                class="text-success fw-bold">
 
-                                                </td>
-                                            @endif
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="5" class="text-center text-muted">No products found in the
-                                                cart.</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <!-- Calculator & Payment -->
-                    <div class="col-12 col-md-3">
-                        <!-- Calculator -->
-                        <div class="px-3 pt-3 pb-2 blue-bg rounded shadow-sm">
-                            <div class="d-grid gap-2">
-                                <div class="d-flex gap-2">
-                                    <button wire:click="addQuantity('1')"
-                                        class="btn btn-default main-screen-frame-key11 flex-fill">1</button>
-                                    <button wire:click="addQuantity('2')"
-                                        class="btn btn-default main-screen-frame-key11 flex-fill">2</button>
-                                    <button wire:click="addQuantity('3')"
-                                        class="btn btn-default main-screen-frame-key11 flex-fill">3</button>
-                                    <button wire:click="addQuantity('10')"
-                                        class="btn btn-default main-screen-frame-key11 flex-fill">+10</button>
+                                                                {{ format_inr($item->net_amount) }}
+
+                                                            </td>
+                                                            @if ($this->removeCrossHold == true)
+                                                                <td>
+                                                                    <button class="btn btn-danger"
+                                                                        onclick="Swal.fire({
+                                                                                title: 'Do you want to remove this product ?',
+                                                                                text: 'This action cannot be reverted!',
+                                                                                icon: 'warning',
+                                                                                showCancelButton: true,
+                                                                                confirmButtonText: 'Yes, remove it',
+                                                                                cancelButtonText: 'Cancel',
+                                                                                reverseButtons: true
+                                                                            }).then((result) => {
+                                                                                if (result.isConfirmed) {
+                                                                                    @this.removeItem({{ $item->id }},'resume','{{ $this->invoice_no }}');
+                                                                                }
+                                                                            });"
+                                                                        title="Remove item">
+                                                                        <i class="fas fa-times"></i>
+                                                                    </button>
+                                                                </td>
+                                                            @else
+                                                                <td>
+                                                                    <button class="btn btn-sm btn-default"
+                                                                        wire:click="removeItem({{ $item->id }})"
+                                                                        title="Remove item">
+                                                                        <img src="{{ asset('public/external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}"
+                                                                            alt="Delete"
+                                                                            class="main-screen-delete24dp1f1f1ffill0wght400grad0opsz24110">
+                                                                    </button>
+
+                                                                </td>
+                                                            @endif
+                                                        </tr>
+                                                    @empty
+                                                        <tr>
+                                                            <td colspan="5" class="text-center text-muted">No products found in the
+                                                                cart.</td>
+                                                        </tr>
+                                                    @endforelse
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="d-flex gap-2">
-                                    <button wire:click="addQuantity('4')"
-                                        class="btn btn-default main-screen-frame-key11 flex-fill">4</button>
-                                    <button wire:click="addQuantity('5')"
-                                        class="btn btn-default main-screen-frame-key11 flex-fill">5</button>
-                                    <button wire:click="addQuantity('6')"
-                                        class="btn btn-default main-screen-frame-key11 flex-fill">6</button>
-                                    <button wire:click="addQuantity('20')"
-                                        class="btn btn-default main-screen-frame-key11 flex-fill">+20</button>
+                                <!-- Bottom Bar -->
+                            </div>
+                            <!-- Calculator & Payment -->
+                            <div class="col-12 col-md-3 col-sm-4">
+                                <!-- Calculator -->
+                                <div class="blue-bg rounded shadow-sm calc-area">
+                                    <div class="d-grid gap-2">
+                                        <div class="d-flex gap-2">
+                                            <button wire:click="addQuantity('1')"
+                                                class="btn btn-default main-screen-frame-key11 flex-fill">1</button>
+                                            <button wire:click="addQuantity('2')"
+                                                class="btn btn-default main-screen-frame-key11 flex-fill">2</button>
+                                            <button wire:click="addQuantity('3')"
+                                                class="btn btn-default main-screen-frame-key11 flex-fill">3</button>
+                                            <button wire:click="addQuantity('10')"
+                                                class="btn btn-default main-screen-frame-key11 flex-fill">+10</button>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button wire:click="addQuantity('4')"
+                                                class="btn btn-default main-screen-frame-key11 flex-fill">4</button>
+                                            <button wire:click="addQuantity('5')"
+                                                class="btn btn-default main-screen-frame-key11 flex-fill">5</button>
+                                            <button wire:click="addQuantity('6')"
+                                                class="btn btn-default main-screen-frame-key11 flex-fill">6</button>
+                                            <button wire:click="addQuantity('20')"
+                                                class="btn btn-default main-screen-frame-key11 flex-fill">+20</button>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button wire:click="addQuantity('7')"
+                                                class="btn btn-default main-screen-frame-key11 flex-fill">7</button>
+                                            <button wire:click="addQuantity('8')"
+                                                class="btn btn-default main-screen-frame-key11 flex-fill">8</button>
+                                            <button wire:click="addQuantity('9')"
+                                                class="btn btn-default main-screen-frame-key11 flex-fill">9</button>
+                                            <button wire:click="addQuantity('50')"
+                                                class="btn btn-default main-screen-frame-key11 flex-fill">+50</button>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button wire:click="$set('search', '')"
+                                                class="btn btn-default main-screen-frame-key11 flex-fill">C</button>
+                                            <button wire:click="removeItemActivte({{ $this->activeProductId }})"
+                                                class="btn btn-default main-screen-frame-key11 flex-fill">0</button>
+                                            <button type="button" class="btn btn-deafult btn-primary main-screen-frame-key11 flex-fill"
+                                                wire:click="incrementQty({{ $this->activeItemId }})">
+                                                <img src="{{ asset('../public/external/systemicon16pxplus4471-kuog.svg') }}"
+                                                    alt="Left Icon">
+                                            </button>
+                                            <button type="button" class="btn btn-deafult btn-primary main-screen-frame-key11 flex-fill"
+                                                wire:click="decrementQty({{ $this->activeItemId, $this->activeProductId }})">
+                                                <img src="{{ asset('../public/external/systemicon16pxplus4471-jpl.svg') }}"
+                                                    alt="Right Icon">
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="d-flex gap-2">
-                                    <button wire:click="addQuantity('7')"
-                                        class="btn btn-default main-screen-frame-key11 flex-fill">7</button>
-                                    <button wire:click="addQuantity('8')"
-                                        class="btn btn-default main-screen-frame-key11 flex-fill">8</button>
-                                    <button wire:click="addQuantity('9')"
-                                        class="btn btn-default main-screen-frame-key11 flex-fill">9</button>
-                                    <button wire:click="addQuantity('50')"
-                                        class="btn btn-default main-screen-frame-key11 flex-fill">+50</button>
+                                <!-- Action Buttons (Bootstrap) -->
+                                <div class="mt-1 row g-2">
+                                    @if (empty($this->selectedSalesReturn))
+                                        <div class="col-md-6 col-sm-12">
+                                            <button wire:click="holdSale" class="btn btn-deafult btn-hold w-100">
+                                                </i> {{ __('messages.hold') }}
+                                            </button>
+                                        </div>
+                                        <div class="col-md-6 col-sm-12">
+                                            <button wire:click="voidSale" class="btn btn-danger btn-void w-100">
+                                                <span> {{ __('messages.void_sales') }}</span>
+                                            </button>
+                                        </div>
+                                        <div class="col-md-6 col-sm-12">
+                                            <button wire:click="toggleBox" type="button"
+                                                class="btn btn-primary btn-cash w-100">
+                                                Cash
+                                            </button>
+                                        </div>
+                                        <div class="col-md-6 col-sm-12">
+                                            <button wire:click="onlinePayment" class="btn btn-success btn-online w-100">
+                                                {{ __('messages.upi') }}
+                                            </button>
+                                        </div>
+                                        <div class="col-12">
+                                            <button type="button" class="btn btn-deafult btn-cash-upi w-100 px-3"
+                                                wire:click="cashupitoggleBox">
+                                                <span> Cash + UPI</span>
+                                                <img src="{{ asset('public/external/right4471-5iuh.svg') }}" alt="Right"
+                                                    style="height: 18px;" class="float-end">
+                                            </button>
+                                        </div>
+                                    @endif
+
+                                    @if (!empty($this->selectedSalesReturn))
+                                        <div class="col-6">
+                                            <button wire:click="refundoggleBox"
+                                                class="btn btn-sm btn-danger w-100 text-nowrap">
+                                                <i class="fa fa-hand-holding-usd me-2"></i> Refund
+                                            </button>
+                                        </div>
+                                        <div class="col-6">
+                                            <button wire:click="srtoggleBox" class="btn btn-sm btn-primary w-100 text-nowrap">
+                                                <i class="fa fa-hand-holding-usd me-2"></i> Sales Return
+                                            </button>
+                                        </div>
+                                    @endif
                                 </div>
-                                <div class="d-flex gap-2">
-                                    <button wire:click="$set('search', '')"
-                                        class="btn btn-default main-screen-frame-key11 flex-fill">C</button>
-                                    <button wire:click="removeItemActivte({{ $this->activeProductId }})"
-                                        class="btn btn-default main-screen-frame-key11 flex-fill">0</button>
-                                    <button class="btn btn-default main-screen-frame-key11 flex-fill">
-                                        <img src="{{ asset('public/external/vector4471-fdk.svg') }}" alt="Icon"
-                                            style="height: 20px;">
-                                    </button>
-                                    <button class="btn btn-default main-screen-frame-key11 flex-fill">
-                                        <img src="{{ asset('public/external/right4471-upx2.svg') }}" alt="Right"
-                                            style="height: 20px;">
-                                    </button>
-                                </div>
+
                             </div>
                         </div>
-
-
-
-                        <!-- Action Buttons (Bootstrap) -->
-                        <div class="mt-1 row g-2">
-                            @if (empty($this->selectedSalesReturn))
-                                <div class="col-6">
-                                    <button wire:click="holdSale" class="btn btn-deafult btn-hold w-100">
-                                        </i> {{ __('messages.hold') }}
-                                    </button>
-                                </div>
-                                <div class="col-6">
-                                    <button wire:click="voidSale" class="btn btn-danger btn-void w-72 h-24">
-                                        <span> {{ __('messages.void_sales') }}</span>
-                                    </button>
-                                </div>
-                                <div class="col-6">
-                                    <button wire:click="toggleBox" type="button"
-                                        class="btn btn-primary btn-cash w-100">
-                                        Cash
-                                    </button>
-                                </div>
-                                <div class="col-6">
-                                    <button wire:click="onlinePayment" class="btn btn-success btn-online w-100">
-                                        {{ __('messages.upi') }}
-                                    </button>
-                                </div>
-                                <div class="col-12">
-                                    <button type="button" class="btn btn-deafult btn-cash-upi w-100 px-3"
-                                        wire:click="cashupitoggleBox">
-                                        <span> Cash + UPI</span>
-                                        <img src="{{ asset('public/external/right4471-5iuh.svg') }}" alt="Right"
-                                            style="height: 18px;" class="float-end">
-                                    </button>
-                                </div>
-                            @endif
-
-                            @if (!empty($this->selectedSalesReturn))
-                                <div class="col-6">
-                                    <button wire:click="refundoggleBox"
-                                        class="btn btn-sm btn-danger w-100 text-nowrap">
-                                        <i class="fa fa-hand-holding-usd me-2"></i> Refund
-                                    </button>
-                                </div>
-                                <div class="col-6">
-                                    <button wire:click="srtoggleBox" class="btn btn-sm btn-primary w-100 text-nowrap">
-                                        <i class="fa fa-hand-holding-usd me-2"></i> Sales Return
-                                    </button>
-                                </div>
-                            @endif
-                        </div>
-
                     </div>
-
-
                 </div>
-                <!-- Bottom Bar -->
-
-                <div class="container-fluid py-2">
-                    <div class="row text-center align-items-center header-row" style="min-height:50px;">
-                        <div class="col-4 fw-semibold">Qty</div>
-                        <div class="col-4 fw-semibold">Round Off</div>
-                        <div class="col-4 fw-semibold">Total Payable</div>
-                    </div>
-                    <div class="row text-center align-items-center" style="min-height:90px;">
-                        <div class="col-4 border-end fs-4 fw-bold text-custom-blue">{{ $this->cartCount }}</div>
-                        <div class="col-4 border-end fs-4 fw-bold text-custom-blue">@php
-                            $this->roundedTotal =
-                                (float) $this->cashAmount + (float) $this->creditPay - round($this->cartItemTotalSum);
-                        @endphp
-                            {{ $this->roundedTotal }}
-                            <input type="hidden" id="roundedTotal" value="{{ $this->roundedTotal }}"
-                                wire:model="roundedTotal">
+            </div>
+            <div class="row">
+                <div class="col-md-12 qty-payble-table">
+                    <div class="header-row">
+                        <div class="row text-center align-items-center">
+                            <div class="col-4 border-end fw-semibold theader-txt">Qty</div>
+                            <div class="col-4 border-end fw-semibold theader-txt">Round Off</div>
+                            <div class="col-4 fw-semibold theader-txt">Total Payable</div>
                         </div>
-                        <div class="col-4 fs-4 fw-bold text-custom-blue">{{ format_inr($this->cashAmount) }}</span>
-                            <input type="hidden" id="totalPayable" value="{{ $this->cashAmount }}">
+                    </div>
+                    <div class="total-val">
+                        <div class="row text-center align-items-center">
+                            <div class="col-4 border-end fs-4 fw-bold tbody-txt text-custom-blue">{{ $this->cartCount }}</div>
+                            <div class="col-4 border-end fs-4 fw-bold tbody-txt text-custom-blue">@php
+                                $this->roundedTotal =
+                                    (float) $this->cashAmount + (float) $this->creditPay - round($this->cartItemTotalSum);
+                            @endphp
+                                {{ $this->roundedTotal }}
+                                <input type="hidden" id="roundedTotal" value="{{ $this->roundedTotal }}"
+                                    wire:model="roundedTotal">
+                            </div>
+                            <div class="col-4 fs-4 fw-bold tbody-txt text-custom-blue">{{ format_inr($this->cashAmount) }}</span>
+                                <input type="hidden" id="totalPayable" value="{{ $this->cashAmount }}">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -837,7 +783,7 @@
                             <form method="POST" action="{{ route('shift-close.withdraw') }}">
                                 @csrf
 
-                                <div class="card shadow-sm rounded-2xl p-2">
+                                <div class="card rounded-2xl cashwithdraw-table">
 
                                     <div class="table-responsive">
                                         <table class=" table table-bordered product-table">
@@ -858,13 +804,13 @@
                                                         <td class="" style="width: 28%;">
                                                             {{ $denomination }} x</td>
                                                         <td class="" style="width: 40%;">
-                                                            <div class="d-flex align-items-center">
+                                                            <div class="d-flex align-items-center counter-add-delete-area">
                                                                 <button style="width: 40%;" type="button"
                                                                     class="btn btn-gray btn-decrease rounded-start"
                                                                     onclick="updateNote('{{ $key }}_{{ $denomination }}', -1, {{ $denomination }})">−</button>
                                                                 <span
                                                                     id="display_{{ $key }}_{{ $denomination }}"
-                                                                    class="form-control text-center  bg-white px-1 "
+                                                                    class="form-control text-center bg-white "
                                                                     style="width: 60px;">0</span>
 
                                                                 <button style="width: 40%;"
@@ -1120,9 +1066,17 @@
                     <div class="modal-header custom-modal-header">
                         <h5 class="modal-title cash-summary-text61">
                             {{ __('messages.cash_in_hand_details') }}</h5>
+                        <button type="button" class="btn btn-light border ms-1" data-bs-toggle="tooltip"
+                            title="Logout" onclick="confirmLogout()">
+                            <img src="{{ asset('public/external/fi106093284471-0vjk.svg') }}" class="img-fluid"
+                                style="height: 25px;" />
+                        </button>
+
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                            @csrf
+                        </form>
                     </div>
                     <div class="modal-body">
-
                         <input type="hidden" name="amount" id="holdamountTotal" class="form-control"
                             placeholder="Enter opening amount" readonly>
                         <div class="mb-2">
@@ -1460,11 +1414,11 @@
                                         <label for="change"
                                             class="form-label">{{ __('messages.change_amount') }}</label>
                                         @if (!$inOutStatus)
-                                         <input type="number" 
-                                            class="form-control rounded-pill" value="0" readonly>
+                                            <input type="number" class="form-control rounded-pill" value="0"
+                                                readonly>
                                         @else
-                                         <input type="number" wire:model="cashPayChangeAmt"
-                                            class="form-control rounded-pill" id="change" readonly>
+                                            <input type="number" wire:model="cashPayChangeAmt"
+                                                class="form-control rounded-pill" id="change" readonly>
                                         @endif
                                     </div>
                                 </div>

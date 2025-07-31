@@ -7,8 +7,7 @@
             <img src="{{ asset('public/external/vector4471-k5i.svg') }}" alt="Cash Out Icon"
                 style="width: 20px; height: 20px;" />
         </button>
-
-        <span class="">Add Cash</span>
+        <span class="ic-txt">Add Cash</span>
     </div>
 
     <!-- Modal -->

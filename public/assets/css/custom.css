@@ -1,0 +1,204 @@
+/* Extra Fonts Use */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+
+body { font-family: 'Poppins', sans-serif; background-color: #f7f9fc; }
+.calculator button { width: 60px; height: 60px; margin: 5px; font-size: 20px; }
+.topbar { background-color: #fff; border-bottom: 1px solid #ccc; padding: 10px 20px; }
+.topbar .store-badge { background-color: #fd7e14; color: white; padding: 5px 10px; border-radius: 5px; font-weight: 600; }
+.product-table td, .product-table th { vertical-align: middle; }
+.bottom-bar { background-color: #e9f2f9; padding: 10px 0; font-size: 18px; margin-left: 0px; }
+
+@media (max-width: 768px) {
+    .sidebar { min-height: auto; margin-bottom: 10px; }
+    .main-screen-searchbar5 { width: 300px !important; }
+    .calculator button { width: 22%; }
+    .bottom-bar .col-md-4 { margin-bottom: 10px; } 
+}
+.horizontal-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.main-screen-main-screen { min-width: 1024px; }
+.btn-light1 { background-color: rgba(46, 158, 209, 1); }
+
+.blue-bg { background-color: rgba(200, 225, 245, 1); }
+.btn-hold { padding: 5px 24px; border-radius: 6px; justify-content: center; background-color: rgba(224, 142, 20, 1); color: rgba(255, 255, 255, 1); }
+.btn-void { padding: 5px 0px; width: 100px; border-radius: 6px; justify-content: center; background-color: rgba(204, 68, 68, 1); color: rgba(255, 255, 255, 1); }
+.btn-void span {}
+.btn-cash { padding: 5px 24px; border-radius: 6px; justify-content: center; background-color: rgba(73, 89, 144, 1); color: rgba(255, 255, 255, 1); }
+.btn-online { padding: 5px 24px; border-radius: 6px; justify-content: center; background-color: rgba(46, 158, 209, 1); color: rgba(255, 255, 255, 1); }
+.btn-cash-upi { border-radius: 6px; justify-content: center; background-color: rgba(0, 179, 179, 1); color: rgba(255, 255, 255, 1); }
+/* .btn:hover { color: unset ! important; background-color: unset ! important; border-color: unset ! important; } */
+
+.custom-border { border-color: rgba(0, 179, 179, 1); border-style: solid; border-width: 1px; border-radius: 28px; background-color: rgba(255, 255, 255, 1); cursor: pointer; }
+.sidebar { background-color: #009fe3; border-radius: 0px !important; height: calc(100vh - 80.8px); z-index: 999; }
+.fixed-bottom { z-index: 0 !important; }
+.bg-light { text-align: center; } 
+.sidebar-item img { /* width: unset ! important; height: unset ! important; */ margin-bottom: unset ! important; object-fit: contain; }
+.custom-modal-header { background: #e9f2f9; }
+.cash-summary-group1922 { background-color: rgba(223, 236, 219, 1) ! important; }
+.table-dark { --bs-table-color: rgba(28, 86, 8, 1) ! important; --bs-table-bg: rgba(223, 236, 219, 1) ! important; --bs-table-striped-bg: rgba(223, 236, 219, 1) ! important; --bs-table-border-color: rgba(28, 86, 8, 1) ! important; --bs-table-active-bg: rgba(223, 236, 219, 1) ! important; --bs-table-hover-bg: rgba(223, 236, 219, 1) ! important; --bs-table-active-color: rgba(28, 86, 8, 1) ! important; --bs-table-striped-color: rgba(28, 86, 8, 1) ! important; }
+.cash-summary-frame282 { padding: 13px 15px; border-radius: 20px; background-color: rgba(222, 237, 249, 1); }
+.custom-hr { margin: 6px 0; color: inherit; border: 0; border-top: unset; }
+.submit-btn { color: rgba(255, 255, 255, 1) !important; background-color: rgba(0, 179, 179, 1) !important; }
+.rounded-start { border-bottom-left-radius: 40px !important; border-top-left-radius: 40px !important; }
+.rounded-end { border-top-right-radius: 40px !important; border-bottom-right-radius: 40px !important; }
+.btn-gray { background-color: rgba(234, 236, 234, 1) !important; }
+.currency-center { background-color: #cfebeb !important; }
+.cash-summary-text61 { color: rgba(36, 81, 118, 1); }
+.btn-gray { background-color: rgba(234, 236, 234, 1) !important; }
+.currency-center { background-color: #cfebeb !important; }
+.cash-summary-text61 { color: rgba(36, 81, 118, 1); }
+.btn-primary, .btn-primary:hover, .btn-deafult:hover { background-color: #009fe3; }
+.btn-warning, .btn-warning:hover { background-color: rgba(255, 126, 65, 1); color: white !important; }
+.close-text { color: black !important; }
+.text-success td, .table-success tr th, .table-success-new td { color: #1C5609 !important; }
+.sidebar-item button { height: unset; }
+
+.d-flex .btn { --bs-btn-padding-x: 0px !important; --bs-btn-padding-y: 0px !important; height: 35px !important; font-size: 15px !important; }
+.text-custom-blue { color: #17375E; /* Matches the dark blue in your screenshot */ }
+/* Optional: header background color similar to screenshot's very light blue row */
+.header-row { background-color: #e6f0ff; } 
+.text-teal { color: #0D7680 !important; }
+#cartTable tbody { display: block; max-height: 300px; /* max height to limit the tbody */ overflow-y: auto; /* show scrollbar only if tbody content is taller */ }
+#cartTable thead,
+#cartTable tbody tr { display: table; width: 100%; table-layout: fixed; } 
+#cartTable tbody tr:last-child { border-bottom: 1px outset #fff !important; } 
+
+/* 28/7 */
+.calc-area { padding: 16px;}
+.calc-area .d-flex .btn {height: 45px !important; font-size: 23px !important; border: 1.5px solid #000000;}
+.btn.btn-cash-upi { display: flex; align-items: center; gap: 10px;}
+.btn-cash,.btn-online,.btn-void,.btn-hold { outline: none; box-shadow: none;}
+.btn-primary.btn-cash { background-color: #495990; border-color: #495990;}
+.btn-primary.btn-cash:hover { background-color: transparent; color: #495990;}
+.btn-success.btn-online { border-color: rgba(46, 158, 209, 1);}
+.btn-success.btn-online:hover { border-color: #157347}
+.btn-danger.btn-void { border-color: rgba(204, 68, 68, 1);}
+.btn-danger.btn-void:hover { background-color: transparent; color: rgba(204, 68, 68, 1); }
+.btn-deafult.btn-hold { border-color: rgba(224, 142, 20, 1);}
+.btn-deafult.btn-hold:hover { background-color: transparent; color: rgba(224, 142, 20, 1);}
+/* SideBar */
+.sidebar { padding: 0;}
+.sidebar-item { padding: 20px 10px; cursor: pointer;}
+.sidebar-item:not(:last-child) { border-bottom: 2px solid #ffffff; }
+.sidebar { position: sticky; max-height: calc(100vh - 62px); overflow-y: auto; height: 100%; top: 0; margin-left: 0; }
+.sidebar .sidebar-item img { width: 32px;}
+.sidebar-item button + span { display: block; }
+.sidebar::-webkit-scrollbar { width: 10px; } 
+.sidebar::-webkit-scrollbar-track { background-color: #009fe3; box-shadow: inset 0 0 5px grey; border-radius: 5px; }
+.sidebar::-webkit-scrollbar-thumb { background: white; border-radius: 5px; }
+
+/* Main Dashboard */
+.barcode-search { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px;}
+.down-arrow { position: absolute; right: 15px; top: 50%; width: 18px; height: 18px; pointer-events: none; z-index: 2; transform: translateY(-50%); }
+.search-bar-calc-area { margin: 20px 0; }
+.capture-eve { position: relative; }
+.capture-eve,
+.capture-eve .cameraBtnPdg { padding: 0; }
+.capture-eve .cameraBtnPdg { margin-right: 16px; }
+.capture-eve .cameraBtnPdg img { max-width: 30px;}
+.theader-txt,.tbody-txt { padding: 10px;}
+.product-table th:first-child,
+.product-table td:first-child { text-align: left; padding-left: 20px;}
+.product-table th,
+.cashwithdraw-table td:first-child,
+.product-table td { text-align: center;}
+.product-table { margin-bottom: 0px; }
+.cashwithdraw-table { padding: 0 15px;}
+textarea.form-control { resize: none;}
+.counter-add-delete-area span { height: 35px; align-items: center; justify-content: center; display: flex; border-radius: 0; }
+.counter-add-delete-area button { border: 1px solid #E1E1E1;border-width: 1px 1px 1px 0px; }
+.counter-add-delete-area button:first-child { border-width: 1px 0px 1px 1px; }
+.cashwithdraw-table .table-responsive { margin-bottom: 20px;}
+.qty-payble-table { margin: 20px 0 0 0px;}
+.qty-payble-table .total-val { background-color: #ffffff; }
+/* Table */
+.table-info th:first-child { border-top-left-radius: 5px}
+.table-info th:last-child { border-top-right-radius: 5px}
+.cashwithdraw-table { border: 0px;}
+.cashwithdraw-table .table-responsive { border: 1px solid #E1E1E1; border-radius: 5px;}
+/* 29/7 */
+.card { border-color: #EAECEA;}
+.stock-status-btns { display: flex; align-items: center; justify-content: center; gap: 10px; border-right: 1px solid #EAECEA;}
+.status-time-area .close-text,
+.stock-status-btns button { font-weight: 900;}
+.roboto-fonts { font-family: "Roboto", sans-serif; }
+.card-header .cash-summary-text61 { color: #2B8383; font-size: 16px; line-height: 20px; font-weight: bold; }
+.cash-details_table .submit-btn th:first-child { padding-left: 20px;}
+.cash-details_table .submit-btn th:first-child,
+.cash-details_table .card-header.custom-modal-header { text-align: left;}
+.status-time-area > div:first-child { border-right: 1px solid #EAECEA;}
+.cash-details_table .submit-btn th { background-color: #2AA5A5; color: #ffffff;}
+.card .table td,.card .table th { font-weight: 500; font-size: 14px; line-height: 24px; padding: 10px; }
+.card + .table-responsive .table td,.card + .table-responsive .table th { font-weight: 500; font-size: 14px; line-height: 24px; padding: 10px; }
+.finalcash-details_table input { background-color: #E6EAE5; text-align: right; border: 1px solid #E1E1E1; font-size: 14px; line-height: 24px;}
+.finalcash-details_table input::-webkit-outer-spin-button,
+.finalcash-details_table input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.finalcash-details_table { border: 1px solid #EAECEA; border-radius: 10px; }
+
+
+/* Media Start */
+/* Tablet View */
+@media (min-width: 1200px) and (max-width: 1499px) { 
+    .top-panel-dash > .d-flex.mt-2.py-2 { margin-top: 0px !important;} 
+    .search-bar-calc-area > .row.mt-3 { margin-top: 10px !important;}
+    .dashboard-panel .col-md-11.m-2 { margin-bottom: 0px !important; width: calc(100% - 110px) !important;}
+    #cartTable { min-height: 300px;}
+    #cartTable tbody { max-height: 270px;}
+    .search-bar-calc-area { margin: 0;}
+    .calc-area .d-flex .btn { font-size: 20px !important; height: 35px !important;}
+    .qty-payble-table { margin-top: 25px;}
+    
+}
+@media (min-width: 992px) and (max-width: 1199px) { 
+    .dashboard-panel .col-md-11 { width: calc(100% - 120px) !important;}
+    .calc-area .d-flex .btn { font-size: 16px !important; height: 30px !important;}
+    .calc-area .d-flex .btn img { max-width: 20px; }
+    .search-bar-calc-area { margin: 0;}
+    .top-panel-dash > .d-flex.mt-2.py-2 { margin-top: 0px !important;} 
+    #cartTable { min-height: 300px;}
+    #cartTable tbody { max-height: 270px;}
+    .search-bar-calc-area > .row.mt-3 { margin-top: 7px !important;}
+    .qty-payble-table { margin-top: 20px;}
+    #cartTable tbody { max-height: 270px;}
+    .calc-area { padding: 10px;}
+    .product-table th:first-child, .product-table td:first-child { padding-left: 15px;}
+    .sidebar-item { padding: 10px;}
+    .product-table td { padding: 5px 10px;}
+    .form-control { font-size: 14px; line-height: 20px;}
+
+}
+/* Mobile View */
+@media (min-width: 768px) and (max-width: 991px) { 
+    .col-md-11 { width: 88% !important;}
+    .main-screen-text12 { font-size: 14px; line-height: 20px;}
+    .capture-eve:before,.customer-search-product .form-control,
+    .custom-border { font-size: 12px;}
+    .capture-eve .cameraBtnPdg img { height: 28px;}
+    .capture-eve .cameraBtnPdg img,.customer-search-product span img,
+    .barcode-search { max-width: 12px;}
+    .down-arrow { height: 12px; width: 12px;}
+    .sidebar .sidebar-item img { width: 20px; height: auto; }
+    #sidebar { width: 9%;  }
+    .sidebar-item button + span { font-size: 12px; line-height: 15px;}
+    .calc-area .d-flex.gap-2 { gap: 5px !important;} 
+    .calc-area .d-flex .btn { height: 25px !important; width: 25px !important; font-size: 11px !important; }
+    .calc-area .d-flex .btn img { max-width: 20px; }
+    .search-bar-calc-area .btn { font-size: 12px; line-height: 18px;}
+    .search-bar-calc-area .calc-area + .row.g-2 .btn  { font-size: 11px; padding: 5px 2px; }
+    .search-bar-calc-area .calc-area + .row.g-2 .btn img { max-width: 14px;}
+    .product-table th:first-child, .product-table td:first-child { padding-left: 10px;}
+    .product-table th { font-size: 14px; line-height: 20px; }
+    .product-table td { font-size: 12px; line-height: 18px; }
+    .shadow-sm.calc-area { padding: 0.5rem !important}
+    
+    
+}
+@media (max-width: 767px)  { 
+    .sidebar-item .d-none { display: none;}
+}
+
+
+/* Height Issue */
+@media screen and (min-height: 701px) {
+    .sidebar { min-height: calc(100vh - 62px);}
+}
