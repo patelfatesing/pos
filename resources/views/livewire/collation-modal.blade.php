@@ -16,7 +16,7 @@
             <div class="modal-dialog modal-xl">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title text-dark">Collect Credit</h5>
+                        <h5 class="modal-title cash-summary-text61">Collect Credit</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" wire:click="$set('showModal', false)"></button>
                     </div>
                     <div class="modal-body">
@@ -32,16 +32,16 @@
                             <table class="table table-bordered table-hover">
                                 <thead class="table-light table-info">
                                     <tr>
-                                        <th>#</th>
-                                        <th>Name</th>
-                                        <th>Mobile</th>
-                                        {{-- <th>Email</th>
-                                        <th>Address</th> --}}
-                                        <th>Credit</th>
-                                        <th>Used Credit</th>
-                                        <th>Left Credit</th>
-                                        <th>Status</th>
-                                        <th>Action</th>
+                                        <th class="main-screen-text25">#</th>
+                                        <th class="main-screen-text25">Name</th>
+                                        <th class="main-screen-text25">Mobile</th>
+                                        {{-- <th class="main-screen-text25">Email</th>
+                                        <th class="main-screen-text25">Address</th> --}}
+                                        <th class="main-screen-text25">Credit</th>
+                                        <th class="main-screen-text25">Used Credit</th>
+                                        <th class="main-screen-text25">Left Credit</th>
+                                        <th class="main-screen-text25">Status</th>
+                                        <th class="main-screen-text25">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -60,7 +60,7 @@
                                             <td>
                                                 @if (number_format($user->use_credit, 2) != '0.00')
                                                     <button wire:click="openCollectModal({{ $user->id }})"
-                                                        class="btn btn-sm collect-credit-frame2742">
+                                                        class="btn btn-primary">
                                                         <i class="fa fa-money-bill"></i> Collect
                                                     </button>
                                                 @else
