@@ -142,6 +142,8 @@ class SalesReportController extends Controller
                 'created_at' => date('Y-m-d H:i:s', strtotime($invoice->created_at)),
                 'party_user' => $invoice->party_user ?? 'N/A',
                 'commission_user' => $invoice->commission_user ?? 'N/A',
+                'action' => '<a href="' . url('/sales/edit-sales/' . $invoice->id) . '" class="badge badge-success">' . $invoice->invoice_number . '</a>',
+          
             ];
         }
 
