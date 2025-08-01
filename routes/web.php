@@ -168,6 +168,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/stock/stock-request-view/{id}', [StockController::class, 'stockRequestView'])->name('stock.stock-request-view');
     Route::post('/stock-requests/{id}/approve', [StockController::class, 'approve'])
         ->name('stock-requests.approve');
+    Route::post('/stock-requests/{id}/reject', [StockController::class, 'reject'])
+        ->name('stock-requests.reject');
     Route::get('/stock-requests/popup-details/{id}', [StockController::class, 'stockShow'])->name('stock.popupDetails');
 
     Route::get('/stock/edit/{id}', [StockController::class, 'edit'])->name('stock.edit');
@@ -240,6 +242,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/invoice/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show');
     Route::get('/invoice/{invoice}/download', [InvoiceController::class, 'download'])->name('invoice.download');
     Route::get('/view-invoice/{invoice}/{shift_id?}', [InvoiceController::class, 'viewInvoice'])->name('invoice.view-invoice');
+    Route::get('/sales/edit-sales/{invoice_id}', [InvoiceController::class, 'editSales'])->name('sales.edit-sales');
     Route::get('/view-hold-invoice/{invoice}/{shift_id}', [InvoiceController::class, 'viewHoldInvoice'])->name('invoice.view-hold-invoice');
 
     Route::get('/pack-size/list', [PackSizeController::class, 'index'])->name('packsize.list');
@@ -311,6 +314,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/notifications/index', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/fetch-data', [NotificationController::class, 'getData'])->name('notifications.fetch-data');
     Route::get('/notifications/get-notification', [NotificationController::class, 'getNotication'])->name('notifications.get-notication');
+    Route::get('/notifications/expired-product/{id}', [NotificationController::class, 'viewExpiredProducts'])->name('notifications-expired-product');
 
 
     // routes/web.php
@@ -348,6 +352,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/demand-order/list', [DemandOrderController::class, 'index'])->name('demand-order.list');
     Route::post('/demand-order/get-data', [DemandOrderController::class, 'getData'])->name('demand-order.getData');
     Route::get('/demand-order/create', [DemandOrderController::class, 'create'])->name('demand-order.create');
+    Route::post('/demand-order/get-data', [DemandOrderController::class, 'getData'])->name('demand-order.getData');
+
 
     Route::get('/demand-order/step-1', [DemandOrderController::class, 'step1'])->name('demand-order.step1');
     Route::post('/demand-order/step-1', [DemandOrderController::class, 'postStep1'])->name('demand-order.step1');

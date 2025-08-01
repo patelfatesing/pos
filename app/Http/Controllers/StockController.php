@@ -448,15 +448,19 @@ class StockController extends Controller
             $action = '<div class="d-flex align-items-center list-action">
                     <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="' . url('/stock/view/' . $requestItem->id) . '"><i class="ri-eye-line mr-0"></i></a>';
-            
+
             if (in_array(session('role_name'), ['admin', 'warehouse'])) {
                 if ($requestItem->status === 'pending') {
                     // $action .= "<button class='btn btn-warning btn-sm ml-1 open-approve-modal' data-id='{$requestItem->id}'>Pending</button>";
                     $action .=   '<a class="btn btn-warning btn-sm ml-1 mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="' . url('/stock-requests/popup-details/' . $requestItem->id) . '">Pending</a>';
-                } else {
+                    $action .=   '<span class="badge bg-danger" onclick="stock_reject(' . $requestItem->id . ')">Reject</span>';
+                } elseif ($requestItem->status === 'approved') {
                     $action .=   '<a class="btn btn-warning btn-sm ml-1 mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="' . url('/stock/view-request/' . $requestItem->id) . '">Approved</a>';
+                } else {
+                    $action .=   '<a class="btn btn-danger btn-sm ml-1 mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
+                    href="' . url('/stock/view-request/' . $requestItem->id) . '">Reject</a>';
                 }
             }
             $action .= '</div>';
@@ -752,6 +756,50 @@ class StockController extends Controller
 
             DB::commit();
             return redirect()->route('stock.requestList')->with('success', 'Stock request has beeb Approved successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function reject(Request $request, $id)
+    {
+        $request->validate([
+            'reject_reason' => 'required',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $stockRequest = StockRequest::with('items')->findOrFail($id);
+            $from_store_id = $request->from_store_id;
+
+            // 🔔 Notify each destination store
+            // $notificationData = [
+            //     'id' => (string) $stockRequest->id,
+            //     'store_id' => (string) $from_store_id,
+            //     'type' => 'rejected_stock',
+            //     'req_id' => $id
+            // ];
+
+            // sendNotification(
+            //     'rejected_stock',
+            //     'Admin your stock request has been rejected',
+            //     $from_store_id,
+            //     Auth::id(),
+            //     json_encode($notificationData)
+            // );
+
+            // Mark request as approved
+            $stockRequest->status = 'rejected';
+            $stockRequest->approved_by = $stockRequest->requested_by;
+            $stockRequest->rejected_at = now();
+            $stockRequest->save();
+
+            // Optional: log or return the transfer data
+            // Log::info('Transferred Products By Source:', $transferredProductsBySource);
+
+            DB::commit();
+            return response()->json(['message' => 'Stock request has beeb Rejected successfully.']);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['status' => 'error', 'message' => $e->getMessage()]);

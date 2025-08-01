@@ -64,7 +64,7 @@
                                             <th>Product</th>
                                             <th>Requested Qty</th>
                                             <th>Available</th>
-                                            <th>Store Code</th>
+                                            
                                             <th>Store Name</th>
                                             <th>Approve Qty</th>
                                             <th>Action</th>
@@ -93,7 +93,7 @@
                                                     @endif
 
                                                     <td>{{ $row['store_ava_quantity'] }}</td>
-                                                    <td>{{ $row['store_id'] }}</td>
+                                                   
                                                     <td>{{ $row['store_name'] }}</td>
                                                     <td>
                                                         <input type="number"

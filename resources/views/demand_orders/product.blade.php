@@ -27,6 +27,7 @@
                                         <table class="table table-bordered">
                                             <thead class="table-light">
                                                 <tr>
+                                                    <th>Sr No</th>
                                                     <th>Product Name</th>
                                                     <th>Quantity</th>
                                                     <th>Barcode</th>
@@ -36,12 +37,13 @@
                                                     <th>Delivery Status</th>
                                                     <th>Delivery Quantity</th>
                                                     <th>Created At</th>
-                                                    <th>Updated At</th>
+                                                    
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @forelse ($demandOrderProducts as $product)
+                                                @forelse ($demandOrderProducts as $key => $product)
                                                     <tr>
+                                                        <td>{{ $key+1; }}</td>
                                                         <td>{{ $product->product_name }}</td>
                                                         <td>{{ $product->quantity }}</td>
                                                         <td>{{ $product->barcode }}</td>
@@ -51,7 +53,7 @@
                                                         <td>{{ ucfirst($product->delivery_status) }}</td>
                                                         <td>{{ $product->delivery_quantity }}</td>
                                                         <td>{{ $product->created_at }}</td>
-                                                        <td>{{ $product->updated_at }}</td>
+                                                       
                                                     </tr>
                                                 @empty
                                                     <tr>

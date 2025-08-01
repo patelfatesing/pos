@@ -1,7 +1,7 @@
 <div>
     <!-- Notification Icon -->
     <button wire:click="togglePopup" class="btn position-relative">
-        <img src="{{ asset('public/external/bell14471-yfps.svg') }}" alt="bell14471" class="main-screen-bell1" />
+        <img src="{{ asset('external/bell14471-yfps.svg') }}" alt="bell14471" class="main-screen-bell1" />
         @if ($readNotificationsCount > 0)
             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                 {{ $readNotificationsCount }}
@@ -25,7 +25,7 @@
                                         <span class="notification-screen-text84">
                                             Notifications (1)
                                         </span>
-                                        <img src="{{ asset('public/external/image45185-z6hn-200h.png') }}"
+                                        <img src="{{ asset('external/image45185-z6hn-200h.png') }}"
                                             alt="image45185" class="notification-screen-image4" />
                                     </div>
                                 </div>
@@ -41,9 +41,9 @@
                                                 <div class="notification-screen-frame3704">
                                                     <div class="notification-screen-layer15">
                                                         <div class="notification-screen-group25">
-                                                            <img src="{{ asset('public/external/vector5165-68pj.svg') }}"
+                                                            <img src="{{ asset('external/vector5165-68pj.svg') }}"
                                                                 alt="Vector5165" class="notification-screen-vector37" />
-                                                            <img src="{{ asset('public/external/vector5165-fhw.svg') }}"
+                                                            <img src="{{ asset('external/vector5165-fhw.svg') }}"
                                                                 alt="Vector5165" class="notification-screen-vector38" />
                                                         </div>
                                                     </div>
@@ -56,7 +56,7 @@
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <img src="{{ asset('public/external/rectangle4675146-vix6-200h.png') }}"
+                                                <img src="{{ asset('external/rectangle4675146-vix6-200h.png') }}"
                                                     alt="Rectangle4675146" class="notification-screen-rectangle4674" />
                                                 <span class="notification-screen-text99">
                                                     {{ $notification['date'] }}
@@ -79,15 +79,15 @@
                                                 <div class="notification-screen-frame3701">
                                                     <div class="notification-screen-frame3">
                                                         <div class="notification-screen-icon">
-                                                            <img src="{{ asset('public/external/vector5125-khs6.svg') }}"
+                                                            <img src="{{ asset('external/vector5125-khs6.svg') }}"
                                                                 alt="Vector5125" class="notification-screen-vector26" />
-                                                            <img src="{{ asset('public/external/vector5125-ghnd.svg') }}"
+                                                            <img src="{{ asset('external/vector5125-ghnd.svg') }}"
                                                                 alt="Vector5125" class="notification-screen-vector27" />
-                                                            <img src="{{ asset('public/external/vector5125-qywi.svg') }}"
+                                                            <img src="{{ asset('external/vector5125-qywi.svg') }}"
                                                                 alt="Vector5125" class="notification-screen-vector28" />
-                                                            <img src="{{ asset('public/external/vector5125-yrst.svg') }}"
+                                                            <img src="{{ asset('external/vector5125-yrst.svg') }}"
                                                                 alt="Vector5125" class="notification-screen-vector29" />
-                                                            <img src="{{ asset('public/external/vector5125-tre8.svg') }}"
+                                                            <img src="{{ asset('external/vector5125-tre8.svg') }}"
                                                                 alt="Vector5125" class="notification-screen-vector30" />
                                                         </div>
                                                     </div>
@@ -100,7 +100,7 @@
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <img src="{{ asset('public/external/rectangle4675146-844-200h.png') }}"
+                                                <img src="{{ asset('external/rectangle4675146-844-200h.png') }}"
                                                     alt="Rectangle4675146" class="notification-screen-rectangle4671" />
                                             </div>
                                         @elseif($notification['type'] == 'price_change')
@@ -114,14 +114,14 @@
                                                             <div class="notification-screen-group16">
                                                                 <div class="notification-screen-group17">
                                                                     <div class="notification-screen-group18">
-                                                                        <img src="{{ asset('public/external/vector5125-0v27.svg') }}"
+                                                                        <img src="{{ asset('external/vector5125-0v27.svg') }}"
                                                                             alt="Vector5125"
                                                                             class="notification-screen-vector31" />
                                                                     </div>
                                                                 </div>
                                                                 <div class="notification-screen-group19">
                                                                     <div class="notification-screen-group20">
-                                                                        <img src="{{ asset('public/external/vector5125-2nkr.svg') }}"
+                                                                        <img src="{{ asset('external/vector5125-2nkr.svg') }}"
                                                                             alt="Vector5125"
                                                                             class="notification-screen-vector32" />
                                                                     </div>
@@ -129,12 +129,12 @@
                                                             </div>
                                                             <div class="notification-screen-group21">
                                                                 <div class="notification-screen-group22">
-                                                                    <img src="{{ asset('public/external/vector5125-zrhu.svg') }}"
+                                                                    <img src="{{ asset('external/vector5125-zrhu.svg') }}"
                                                                         alt="Vector5125"
                                                                         class="notification-screen-vector33" />
                                                                 </div>
                                                                 <div class="notification-screen-group23">
-                                                                    <img src="{{ asset('public/external/vector5125-3vv7.svg') }}"
+                                                                    <img src="{{ asset('external/vector5125-3vv7.svg') }}"
                                                                         alt="Vector5125"
                                                                         class="notification-screen-vector34" />
                                                                 </div>
@@ -150,7 +150,7 @@
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <img src="{{ asset('public/external/rectangle4675146-j0gl-200h.png') }}"
+                                                <img src="{{ asset('external/rectangle4675146-j0gl-200h.png') }}"
                                                     alt="Rectangle4675146"
                                                     class="notification-screen-rectangle4672" />
                                                 <span class="notification-screen-text91">
@@ -169,10 +169,10 @@
                                                 <div class="notification-screen-frame3703">
                                                     <div class="notification-screen-layer14">
                                                         <div class="notification-screen-group24">
-                                                            <img src="{{ asset('public/external/vector5165-mkxn.svg') }}"
+                                                            <img src="{{ asset('external/vector5165-mkxn.svg') }}"
                                                                 alt="Vector5165"
                                                                 class="notification-screen-vector35" />
-                                                            <img src="{{ asset('public/external/vector5165-a0na.svg') }}"
+                                                            <img src="{{ asset('external/vector5165-a0na.svg') }}"
                                                                 alt="Vector5165"
                                                                 class="notification-screen-vector36" />
                                                         </div>
@@ -186,7 +186,7 @@
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <img src="{{ asset('public/external/rectangle4675146-6a3-200h.png') }}"
+                                                <img src="{{ asset('external/rectangle4675146-6a3-200h.png') }}"
                                                     alt="Rectangle4675146"
                                                     class="notification-screen-rectangle4673" />
                                                 <span class="notification-screen-text95">
@@ -203,7 +203,7 @@
                                                 data-id="{{ $notification['req_id'] }}"
                                                 data-nfid="{{ $notification['id'] }}">
                                                 <div class="notification-screen-frame3705">
-                                                    <img src="{{ asset('public/external/image15185-oc6f-200h.png') }}"
+                                                    <img src="{{ asset('external/image15185-oc6f-200h.png') }}"
                                                         alt="image15185" class="notification-screen-image1" />
                                                     <div class="notification-screen-frame3695">
                                                         <span class="notification-screen-text101">
@@ -214,7 +214,7 @@
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <img src="{{ asset('public/external/rectangle4675146-yc2-200h.png') }}"
+                                                <img src="{{ asset('external/rectangle4675146-yc2-200h.png') }}"
                                                     alt="Rectangle4675146"
                                                     class="notification-screen-rectangle4675" />
                                                 <span class="notification-screen-text103">
@@ -233,10 +233,10 @@
                                                 <div class="notification-screen-frame3704">
                                                     <div class="notification-screen-layer15">
                                                         <div class="notification-screen-group25">
-                                                            <img src="{{ asset('public/external/vector5165-68pj.svg') }}"
+                                                            <img src="{{ asset('external/vector5165-68pj.svg') }}"
                                                                 alt="Vector5165"
                                                                 class="notification-screen-vector37" />
-                                                            <img src="{{ asset('public/external/vector5165-fhw.svg') }}"
+                                                            <img src="{{ asset('external/vector5165-fhw.svg') }}"
                                                                 alt="Vector5165"
                                                                 class="notification-screen-vector38" />
                                                         </div>
@@ -250,7 +250,7 @@
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <img src="{{ asset('public/external/rectangle4675146-vix6-200h.png') }}"
+                                                <img src="{{ asset('external/rectangle4675146-vix6-200h.png') }}"
                                                     alt="Rectangle4675146"
                                                     class="notification-screen-rectangle4674" />
                                                 <span class="notification-screen-text99">
@@ -267,7 +267,7 @@
                         </div>
                     </div>
                 </div>
-                <img src="{{ asset('public/external/polygon14765-qc8d.svg') }}" alt="Polygon14765"
+                <img src="{{ asset('external/polygon14765-qc8d.svg') }}" alt="Polygon14765"
                     class="notification-screen-polygon1" />
             </div>
         </div>

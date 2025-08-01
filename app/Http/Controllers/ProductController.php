@@ -100,8 +100,6 @@ class ProductController extends Controller
                     
                     <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="' . url('/inventories/add-stock/' . $product->id) . '"><i class="ri-eye-line mr-0"></i></a>
-                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                                        href="' . url('/products/edit/' . $product->id) . '"><i class="ri-pencil-line mr-0"></i></a>
                                     <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
                                         href="#" onclick="delete_product(' . $product->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
             </div>';
@@ -499,31 +497,53 @@ class ProductController extends Controller
     public function destroy(Request $request)
     {
         $id = $request->id;
-        // Find the user and soft delete
-        $record = Product::findOrFail($id);
-        $record->update(['is_deleted' => 'yes']);
+
+        // Check if the product is still associated with any invoices (items field)
+        $invoices = DB::table('invoices')
+            ->whereRaw("JSON_CONTAINS(items, '[{\"product_id\": $id}]')")
+            ->first();
+
+        // Check if the product's quantity is greater than zero in the inventories
+        $inventory = DB::table('inventories')
+            ->where('product_id', $id)
+            ->where('quantity', '>', 0)
+            ->first();
+
+        // Check if the product's quantity is greater than zero in the demand_order_products
+        $demandOrderProducts = DB::table('demand_order_products')
+            ->where('product_id', $id)
+            ->where('quantity', '>', 0)
+            ->first();
+
+        // If there are invoices associated or if the product still has inventory or demand orders with quantity > 0
+        if (!empty($invoices)) {
+            return response()->json(['status' => 'error', 'message' => "This product cannot be deleted because it is associated with invoices."]);
+        }
+
+        if (!empty($inventory)) {
+            return response()->json(['status' => 'error', 'message' => "This product cannot be deleted because it has inventory with quantity greater than zero."]);
+        }
+
+        if (!empty($demandOrderProducts)) {
+            return response()->json(['status' => 'error', 'message' => "This product cannot be deleted because it is associated with demand orders with quantity greater than zero."]);
+        }
+
+        // Soft delete the product by updating the `is_deleted` field
+        $product = Product::findOrFail($id);
+        $product->update(['is_deleted' => 'yes']);
+
+        // Update the quantity in inventories and demand_order_products to zero (if the product is deleted)
+        DB::table('inventories')
+            ->where('product_id', $id)
+            ->update(['quantity' => 0]);
+
+        DB::table('demand_order_products')
+            ->where('product_id', $id)
+            ->update(['quantity' => 0]);
 
         return redirect()->route('users.list')->with('success', 'Product has been deleted successfully.');
     }
 
-    public function getAvailability($productId)
-    {
-
-        return Branch::with(['inventories' => function ($query) use ($productId) {
-            $query->where('product_id', $productId);
-        }])
-            ->where('is_deleted', 'no')
-            ->where('is_active', 'yes')
-            ->where('is_warehouser', 'no') // <- move this outside
-            ->get()
-            ->map(function ($branch) {
-                return [
-                    'id' => $branch->id,
-                    'name' => $branch->name,
-                    'available_quantity' => $branch->inventories->sum('quantity'),
-                ];
-            });
-    }
 
     public function getAvailabilityBranch($productId, Request $request)
     {
