@@ -6,7 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-class UpdateProductSellPrice extends Command
+class UpdateProductSellPriceCron extends Command
 {
     protected $signature = 'product:update-sell-price';
     protected $description = 'Update product sell_price if changed_at is today in price change history';

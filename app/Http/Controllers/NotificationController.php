@@ -364,9 +364,85 @@ class NotificationController extends Controller
                 ->count();
         }
 
+        $url = url('notifications/expired-product/');
+
         $data['data'] = $res_date;
         $data['res_all_unread'] = $res_all_unread;
         $data['res_all'] = $res_all;
+        $data['url'] = $url;
         return response()->json($data, 201);
+    }
+
+    public function viewExpiredProducts($id, Request $request)
+    {
+        $perPage = $request->input('per_page', 10);
+        $search = $request->input('search'); // <-- Search term
+
+        // $branch = Branch::findOrFail($id);
+        // $branch_name = $branch->name;
+
+        // Build the query for expired products
+        $query = DB::table('inventories as i')
+            ->join('products as p', 'i.product_id', '=', 'p.id')
+            ->whereBetween('i.expiry_date', [
+                Carbon::today(),
+                Carbon::today()->addDays(5)
+            ]);
+
+        // Apply branch restriction if the user is not an admin
+        if (Auth::user()->role['name'] !== "admin") {
+            $data = User::with('userInfo')
+                ->where('users.id', Auth::id())
+                ->where('is_deleted', 'no')
+                ->firstOrFail();
+            $branch_id = $data->userInfo->branch_id;
+            $query->where('i.store_id', $branch_id);
+        }
+
+        // Apply search filter for product name or SKU
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('p.name', 'like', '%' . $search . '%')
+                    ->orWhere('p.sku', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Get totals before pagination (sum of quantities)
+        $totals = (clone $query)
+            ->where('i.quantity', '>', 0)
+            ->selectRaw('SUM(i.quantity) as total_quantity')
+            ->first();
+
+        // Apply pagination
+        $expiredProducts = $query
+            ->where('i.quantity', '>', 0)
+            ->select(
+                'i.id as inventory_id',
+                'i.product_id',
+                'p.name as product_name',
+                'p.brand',
+                'i.batch_no',
+                'i.expiry_date',
+                'i.quantity',
+                'p.sku',
+                'p.barcode',
+                'i.store_id',
+                'i.location_id'
+            )
+            ->orderBy('i.expiry_date', 'asc')
+            ->orderBy('i.batch_no')
+            ->paginate($perPage)
+            ->appends(['per_page' => $perPage, 'search' => $search]); // Preserve search
+
+        // Return the view with data
+        return view('notification.view', compact(
+            'expiredProducts',
+            'id',
+            'perPage',
+            'totals'
+        ) + [
+            'totalQuantity' => $totals->total_quantity,
+            'search' => $search,
+        ]);
     }
 }

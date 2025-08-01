@@ -1,7 +1,7 @@
 <div>
     <div class="" wire:click.prevent="openModal" title="Close Shift" style="cursor: pointer;">
         <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
-            <img src="{{ asset('public/external/vector4471-zd04.svg') }}" alt="Close Shift Icon"
+            <img src="{{ asset('external/vector4471-zd04.svg') }}" alt="Close Shift Icon"
                 style="width: 24px; height: 24px;" />
         </button>
         <span class="">Close Shift</span>

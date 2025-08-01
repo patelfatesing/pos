@@ -5,9 +5,9 @@
      title="Customer Credit Ledger"
      style="cursor: pointer;">
     <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
-        <img src="{{ asset('public/external/customer_credit_icon_final.jpg') }}" alt="Customer Credit Ledger Icon" style="width: 24px; height: 24px;" />
+        <img src="{{ asset('external/customer_credit_icon_final.jpg') }}" alt="Customer Credit Ledger Icon" />
     </button>
-    <span class="">Customer Credit Ledger</span>
+    <span class="ic-txt">Credit Ledger</span>
 </div>
 
     <!-- Main Modal -->
@@ -37,7 +37,7 @@
                         <div class="mb-3">
                             <div class="input-group">
                                 <span class="input-group-text">
-                                    <i class="fas fa-search"></i>
+                                    <i class="fa fa-search" aria-hidden="true"></i>
                                 </span>
                                 <input type="text" wire:model.live="search" class="form-control"
                                     placeholder="Search by name, phone, or credit points...">

@@ -70,8 +70,8 @@
     </div>
 
     @php
-    // Calculate tomorrow's date
-        $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
+        // Calculate tomorrow's date
+$minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
     @endphp
 
     <div class="modal fade bd-example-modal-lg" id="priceChangeModal" tabindex="-1" role="dialog"
@@ -357,14 +357,22 @@
                             id: id
                         },
                         success: function(response) {
-                            Swal.fire("Deleted!", "The product has been deleted.", "success").then(
+                            if (response.status === 'error') {
+                                // If the response contains error status, show the message in Swal
+                                Swal.fire("Error!", response.message, "error");
+                            } else {
+                                // If deletion is successful, show success message
+                                Swal.fire("Deleted!", "The product has been deleted.", "success").then(
                                 () => {
                                     $('#products_table').DataTable().ajax.reload(null,
-                                        false); // ✅ Only reload DataTable
+                                    false); // ✅ Only reload DataTable
                                 });
+                            }
                         },
-                        error: function(xhr) {
-                            swal("Error!", "Something went wrong.", "error");
+                        error: function(xhr, status, error) {
+                            // Handle any other errors that happen during the AJAX request (network issues, etc.)
+                            Swal.fire("Error!", "Something went wrong. Please try again later.",
+                                "error");
                         }
                     });
                 }
@@ -377,7 +385,14 @@
             $('#old_price_hidden').val(sell_price);
             $('#old_price').val(sell_price);
             $('#product_id').val(id);
-            $('#priceChangeModal').modal('show');
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                var myModal = new bootstrap.Modal(document.getElementById('priceChangeModal'));
+                myModal.show();
+            } else {
+                // For Bootstrap 4 (with jQuery)
+                $('#priceChangeModal').modal('show');
+            }
+            // $('#priceChangeModal').modal('show');
         }
     </script>
 @endsection

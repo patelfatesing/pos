@@ -311,6 +311,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/notifications/index', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/fetch-data', [NotificationController::class, 'getData'])->name('notifications.fetch-data');
     Route::get('/notifications/get-notification', [NotificationController::class, 'getNotication'])->name('notifications.get-notication');
+    Route::get('/notifications/expired-product/{id}', [NotificationController::class, 'viewExpiredProducts'])->name('notifications-expired-product');
 
 
     // routes/web.php
@@ -348,6 +349,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/demand-order/list', [DemandOrderController::class, 'index'])->name('demand-order.list');
     Route::post('/demand-order/get-data', [DemandOrderController::class, 'getData'])->name('demand-order.getData');
     Route::get('/demand-order/create', [DemandOrderController::class, 'create'])->name('demand-order.create');
+    Route::post('/demand-order/get-data', [DemandOrderController::class, 'getData'])->name('demand-order.getData');
+
 
     Route::get('/demand-order/step-1', [DemandOrderController::class, 'step1'])->name('demand-order.step1');
     Route::post('/demand-order/step-1', [DemandOrderController::class, 'postStep1'])->name('demand-order.step1');

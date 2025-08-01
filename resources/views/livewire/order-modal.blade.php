@@ -3,7 +3,7 @@
     <div class="" wire:click="openModal" title="Sales History" style="cursor: pointer;">
 
         <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
-            <img src="{{ asset('public/external/orderhistory14471-2h8.svg') }}" alt="Sales History Icon"
+            <img src="{{ asset('external/orderhistory14471-2h8.svg') }}" alt="Sales History Icon"
                 style="width: 24px; height: 24px;" />
         </button>
         <span class="">Sales History</span>

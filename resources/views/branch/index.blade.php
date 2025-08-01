@@ -38,8 +38,8 @@
                                 <th>Address</th>
                                 <th>Status</th>
                                 <th>Main Branch</th>
-                                <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
-                                <th data-type="date" data-format="YYYY/DD/MM">Updated Date</th>
+                                <th>Created Date</th>
+                                <th>Updated Date</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -187,17 +187,19 @@
                                 'content') // CSRF token for security
                         },
                         success: function(response) {
-                            console.log("Response:",
-                                response); // Log the server response
-
+                           
                             // Show success message
-                            Swal.fire("Success!", "Store status has been changed.",
-                                "success").then(() => {
-                                // Optionally update the UI to reflect changes, e.g., reload the DataTable
+                            Swal.fire({
+                                title: "Success!",
+                                text: "Store status has been changed.",
+                                icon: "success",
+                                timer: 1000, // Auto close after 2 seconds (2000 ms)
+                                timerProgressBar: true,
+                                showConfirmButton: false // Hide "OK" button
+                            }).then(() => {
+                                // After alert closes, reload page or DataTable
                                 location.reload();
-                                $('#branch_table').DataTable().ajax.reload(
-                                    null, false
-                                ); // Reload the table without resetting pagination
+                                $('#branch_table').DataTable().ajax.reload(null, false);
                             });
                         },
                         error: function(error) {
