@@ -20,11 +20,8 @@ class StockRequest extends Model
         'approved_at',
         'created_by',
         'total_request_quantity',
-        '',
-        '',
-        '',
-        '',
-        '',
+        'rejected_at',
+        'reject_reason'
     ];
 
     protected $casts = [

@@ -60,7 +60,7 @@ class InvoiceController extends Controller
         return $pdf->download($invoice->invoice_number . '.pdf');
     }
 
-    public function viewInvoice(Invoice $invoice,$shift_id = '')
+    public function viewInvoice(Invoice $invoice, $shift_id = '')
     {
         $commissionUser = Commissionuser::where('status', 'Active')->find($invoice->commission_user_id);
 
@@ -70,13 +70,26 @@ class InvoiceController extends Controller
         return view('invoice.viewInvoice', compact('invoice', 'commissionUser', 'partyUser', 'shift_id'));
     }
 
-    public function viewHoldInvoice(Invoice $invoice,$shift_id)
+    public function editSales($id)
+    {        
+
+        $invoice = Invoice::find($id);
+
+        $commissionUser = Commissionuser::where('status', 'Active')->find($invoice->commission_user_id);
+
+        $partyUser = Partyuser::where('id', $invoice->party_user_id)
+            ->where('status', 'Active')
+            ->first();
+        return view('invoice.editSales', compact('invoice', 'commissionUser', 'partyUser'));
+    }
+
+    public function viewHoldInvoice(Invoice $invoice, $shift_id)
     {
         $commissionUser = Commissionuser::where('status', 'Active')->find($invoice->commission_user_id);
 
         $partyUser = Partyuser::where('id', $invoice->party_user_id)
             ->where('status', 'Active')
             ->first();
-        return view('invoice.viewHoldInvoice', compact('invoice', 'commissionUser', 'partyUser','shift_id'));
+        return view('invoice.viewHoldInvoice', compact('invoice', 'commissionUser', 'partyUser', 'shift_id'));
     }
 }

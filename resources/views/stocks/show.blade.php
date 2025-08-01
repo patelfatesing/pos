@@ -73,6 +73,43 @@
         </div>
     </div>
 
+    <div class="modal fade bd-example-modal-lg" id="stockRejectModal" tabindex="-1" role="dialog"
+        aria-labelledby="stockRejectModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <form id="stockRejectForm">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="stockRejectModalLabel">Stock Reject</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="row">
+                             <input type="hidden" name="store_id" id="store_id">
+                            <input type="hidden" name="stock_req_id" id="stock_req_id">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Reason</label>
+                                    <input type="text" name="reject_reason" class="form-control" id="reject_reason"
+                                        placeholder="Enter Reject Reason">
+                                    <span class="text-danger" id="reject_reason_error"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
         function getTotalRequestedQty(data, productId) {
             return data
@@ -202,6 +239,39 @@
                 const finalVal = parseFloat($input.val()) || 0;
                 $row.find('.row-checkbox').prop('checked', finalVal > 0);
             });
+        }
+
+        $('#stockRejectForm').on('submit', function(e) {
+            e.preventDefault();
+            const id = $('#stock_req_id').val();
+            const baseUrl = "{{ url('/stock-requests') }}";
+
+            $.ajax({
+                url: `${baseUrl}/${id}/reject`,
+                method: 'POST',
+                data: $(this).serialize(),
+                success: function(res) {
+                    alert(res.message);
+                    $('#stockRejectModal').modal('hide');
+                    $('#stock-requests-table').DataTable().ajax.reload(null, false);
+                },
+                error: function() {
+                    alert('Approval failed');
+                }
+            });
+        });
+
+        function stock_reject(p_id) {
+            $('#stock_req_id').val(p_id);
+
+            // Check if Bootstrap 5 (without jQuery) is being used
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                var myModal = new bootstrap.Modal(document.getElementById('stockRejectModal'));
+                myModal.show();
+            } else {
+                // For Bootstrap 4 (with jQuery)
+                $('#stockRejectModal').modal('show');
+            }
         }
     </script>
 

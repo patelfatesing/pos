@@ -220,7 +220,10 @@
                     },
                     {
                         data: 'created_at'
-                    } // Sort by default
+                    }, // Sort by default
+                    {
+                        data: 'action'
+                    }
                 ],
                 footerCallback: function(row, data) {
                     const api = this.api();
