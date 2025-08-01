@@ -471,7 +471,7 @@
                                                             </td>
                                                             @if ($this->removeCrossHold == true)
                                                                 <td>
-                                                                    <button class="btn btn-danger"
+                                                                    <button class="btn btn-sm btn-default"
                                                                         onclick="Swal.fire({
                                                                                 title: 'Do you want to remove this product ?',
                                                                                 text: 'This action cannot be reverted!',
@@ -486,7 +486,9 @@
                                                                                 }
                                                                             });"
                                                                         title="Remove item">
-                                                                        <i class="fas fa-times"></i>
+                                                                       <img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}"
+                                                                            alt="Delete"
+                                                                            class="main-screen-delete24dp1f1f1ffill0wght400grad0opsz24110">
                                                                     </button>
                                                                 </td>
                                                             @else
@@ -1513,14 +1515,14 @@
                             @if (count($itemCarts) > 0)
                                 <div class="">
 
-                                    @if (!empty($this->selectedSalesReturn) && $this->cashAmount == $totals['totalOut'])
+                                    @if (!empty($this->selectedSalesReturn))
                                         <button id="paymentSubmit"
                                             class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
                                             wire:click="refund" wire:loading.attr="disabled">
                                             Refund
                                         </button>
                                     @else
-                                        @if ($this->cashAmount == $totals['totalIn'] - $totals['totalOut'] && $errorInCredit == false)
+                                        {{-- @if ($this->cashAmount == $totals['totalIn'] - $totals['totalOut'] && $errorInCredit == false)
                                             <button id="paymentSubmit"
                                                 class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
                                                 wire:click="checkout" wire:loading.attr="disabled"
@@ -1533,7 +1535,7 @@
                                                     Loading...
                                                 </span>
                                             </button>
-                                        @endif
+                                        @endif --}}
 
                                         @if (!$inOutStatus)
                                             <button id="paymentSubmit"
