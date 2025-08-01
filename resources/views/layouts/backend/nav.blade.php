@@ -416,8 +416,12 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                 $("#all_unread_notificationCount").text(data.res_all_unread);
                 document.getElementById("all_notificationCount").innerText = data.res_all_unread;
                 document.getElementById("all_notificationCount").innerText = data.res_all;
+
                 const container = document.getElementById("notificationList");
                 container.innerHTML = ''; // Clear existing content
+
+                // Get the base URL for assets (notification image)
+                const notificationImageUrl = "{{ asset('assets/images/user/notification.png') }}";
 
                 get_data.forEach(item => {
                     let id = '';
@@ -444,26 +448,51 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                         hour12: true
                     });
 
-                    const html = `
-                    <a href="#" id="${id}" class="iq-sub-card open-form mb-1 ${isRead}"
-                        data-type="${item.type}" data-id="${item.id}" data-nfid="${item.id}">
-                        <div class="media align-items-center cust-card py-3 border-bottom">
-                            <div>
-                                <img class="avatar-50 rounded-small"  src="{{ asset('assets/images/user/notification.png') }}" alt="Notification">
-                               </div>
-                            <div class="media-body ml-3">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <h6 class="mb-0">${type}</h6>
+                    let html = ''; // Declare HTML variable here
+
+                    if (item.type == 'expire_product') {
+                        html = `
+                        <a href="${data.url}/${item.id}" class="iq-sub-card open-form mb-1 ${isRead}"
+                           data-type="${item.type}" data-id="${item.id}" data-nfid="${item.id}">
+                            <div class="media align-items-center cust-card py-3 border-bottom">
+                                <div>
+                                    <img class="avatar-50 rounded-small" src="${notificationImageUrl}" alt="Notification">
                                 </div>
-                                <input type="hidden" value="${id}" name="id" />
-                                <small class="mb-0 mt-1 mb-1">${item.content}</small>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <small class="text-dark"><b>${formattedDate}</b></small>
+                                <div class="media-body ml-3">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <h6 class="mb-0">${type}</h6>
+                                    </div>
+                                    <input type="hidden" value="${id}" name="id" />
+                                    <small class="mb-0 mt-1 mb-1">${item.content}</small>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <small class="text-dark"><b>${formattedDate}</b></small>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </a>
-                `;
+                        </a>
+                    `;
+                    } else {
+                        html = `
+                        <a href="#" id="${id}" class="iq-sub-card open-form mb-1 ${isRead}"
+                           data-type="${item.type}" data-id="${item.id}" data-nfid="${item.id}">
+                            <div class="media align-items-center cust-card py-3 border-bottom">
+                                <div>
+                                    <img class="avatar-50 rounded-small" src="${notificationImageUrl}" alt="Notification">
+                                </div>
+                                <div class="media-body ml-3">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <h6 class="mb-0">${type}</h6>
+                                    </div>
+                                    <input type="hidden" value="${id}" name="id" />
+                                    <small class="mb-0 mt-1 mb-1">${item.content}</small>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <small class="text-dark"><b>${formattedDate}</b></small>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                    }
 
                     container.insertAdjacentHTML('beforeend', html);
                 });

@@ -4,7 +4,7 @@
         data-placement="top">
 
         <button class="btn btn-default p-1 m-0 border-0 bg-transparent">
-            <img src="{{ asset('public/external/vector4471-k5i.svg') }}" alt="Cash Out Icon"
+            <img src="{{ asset('external/vector4471-k5i.svg') }}" alt="Cash Out Icon"
                 style="width: 20px; height: 20px;" />
         </button>
 

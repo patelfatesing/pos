@@ -760,7 +760,7 @@ class Shoppingcart extends Component
 
     public function onlinePayment()
     {
-         $this->resetModalData();
+        $this->resetModalData();
         if (auth()->user()->hasRole('warehouse')) {
             $partyUserImage = PartyUserImage::where('party_user_id', $this->selectedPartyUser)->where('type', 'hold')->first(["image_path", "product_image_path"]);
             if (!empty($partyUserImage)) {
@@ -964,6 +964,7 @@ class Shoppingcart extends Component
             $partyUser->use_credit -= $this->creditPay;
             $partyUser->save();
         }
+
         if (!empty($partyUser->id) && $this->creditPay > 0) {
             CreditHistory::create(
                 [
@@ -978,6 +979,7 @@ class Shoppingcart extends Component
                 ]
             );
         }
+
         $groupedProducts = [];
 
         foreach ($this->cartitems as $cartitem) {
@@ -991,19 +993,21 @@ class Shoppingcart extends Component
                 ->sum('quantity');
             $groupedProducts[$productId] = $totalQuantity;
         }
+
         //Loop through each product group and deduct from inventories
         foreach ($groupedProducts as $productId => $totalQuantity) {
 
             $product = $this->cartitems->firstWhere('product_id', $productId)->product;
             $inventory = $product->inventorie;
+
             stockStatusChange($inventory->product->id, $branch_id, $totalQuantity, 'add_stock', $this->shift->id, "refunded_order");
             $inventories = $product->inventories;
-
-            if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
-                // Deduct only from the first inventory if it has enough quantity
-                $inventories[0]->quantity += $totalQuantity;
-                $inventories[0]->save();
-            }
+            
+            // if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
+            // Deduct only from the first inventory if it has enough quantity
+            $inventories[0]->quantity += $totalQuantity;
+            $inventories[0]->save();
+            // }
         }
 
         // Delete associated cash breakdown entry
@@ -1620,7 +1624,8 @@ class Shoppingcart extends Component
 
         // Reset search-related properties
         // $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'cashNotes', 'quantities', 'cartCount', 'selectedPartyUser', 'selectedCommissionUser', 'removeCrossHold');
-
+        $this->activeItemId = null;
+        $this->activeProductId = null;
         // Dispatch browser event or Livewire event
         $this->dispatch('notiffication-sucess', ['message' => 'Your transaction has been cleared.']);
 
@@ -2265,6 +2270,8 @@ class Shoppingcart extends Component
         $this->showBox = false;
         $this->dispatch('updateNewProductDetails');
         $this->dispatch('resetHoldPic');
+        $this->activeItemId = null;
+        $this->activeProductId = null;
         if ($this->selectedCommissionUser) {
             $this->commissionAmount = $this->finalDiscountPartyAmount;
         } else {
@@ -2906,7 +2913,8 @@ class Shoppingcart extends Component
                 ->where('status', '!=', Cart::STATUS_HOLD)
                 ->delete();
             $this->dispatch('loader-stop');
-
+            $this->activeItemId = null;
+            $this->activeProductId = null;
             session()->forget(['current_party_id', 'current_commission_id']);
             $this->dispatch('resetHoldPic');
             $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'useCredit', 'showCheckbox', 'roundedTotal', 'removeCrossHold', 'cashNotes');
@@ -3576,7 +3584,7 @@ class Shoppingcart extends Component
             $this->dispatch('hide-open-cash-modal');
             $this->dispatch('hide-online-cash-modal');
             $this->dispatch('show-online-cash-modal');
-            
+
             $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'useCredit', 'showCheckbox', 'roundedTotal', 'removeCrossHold', 'cashNotes');
             $this->dispatch('loader-stop'); // ✅ Livewire v3
             session()->forget(['current_party_id', 'current_commission_id']);

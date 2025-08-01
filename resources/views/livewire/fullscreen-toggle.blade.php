@@ -1,10 +1,10 @@
 <div>
     <button wire:click="toggleFullscreen" id="fullscreen-btn" class="btn">
         @if ($isFullscreen)
-            <img src="{{ asset('public/external/expand14471-lu4b.svg') }}" wire:click="toggleFullscreen" alt="expand14471"
+            <img src="{{ asset('external/expand14471-lu4b.svg') }}" wire:click="toggleFullscreen" alt="expand14471"
                 class="main-screen-expand1" />
         @else
-            <img src="{{ asset('public/external/expand14471-lu4b.svg') }}" wire:click="toggleFullscreen" alt="expand14471"
+            <img src="{{ asset('external/expand14471-lu4b.svg') }}" wire:click="toggleFullscreen" alt="expand14471"
                 class="main-screen-expand1" />
         @endif
     </button>

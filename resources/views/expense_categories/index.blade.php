@@ -5,45 +5,87 @@
 
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 @section('page-content')
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <!-- Wrapper Start -->
     <div class="wrapper">
-
         <div class="content-page">
             <div class="container-fluid">
-                <div class="col-lg-12">
-                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                        <div>
-                            <h4 class="mb-3">Expense Category List</h4>
+                <!-- Page Header -->
+                <div class="row align-items-center mb-3">
+                    <div class="col-lg-12">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+                            <div>
+                                <h4 class="mb-3">Expense Category List</h4>
+                            </div>
+                            <a href="#" onclick="add_exp_category()" class="btn btn-primary add-list">
+                                <i class="las la-plus mr-3"></i>Create New Expense Category
+                            </a>
                         </div>
-                        <a href="{{ route('exp_category.create') }}" class="btn btn-primary add-list">
-                            <i class="las la-plus mr-3"></i>Create New Expense Category
-                        </a>
                     </div>
                 </div>
-                <div class="table-responsive rounded mb-3">
-                    <table class="table data-tables table-striped" id="exp_category_tbl">
-                        <thead class="bg-white text-uppercase">
-                            <tr class="ligth ligth-data">
 
-                                <th>
-                                    <b>N</b>ame
-                                </th>
-                                <th>Status</th>
-                                <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
-                                <th data-type="date" data-format="YYYY/DD/MM">Updated Date</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
+                <!-- Table -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="table-responsive rounded">
+                            <table class="table table-striped table-bordered nowrap" id="exp_category_tbl"
+                                style="width:100%;">
+                                <thead class="bg-white">
+                                    <tr class="ligth ligth-data">
+                                        <th>Sr No</th> <!-- Added this line -->
+                                        <th>
+                                            <b>N</b>ame
+                                        </th>
+                                        <th>Status</th>
+                                        <th>Created Date</th>
+                                        <th>Updated Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-                <!-- Page end  -->
+
             </div>
         </div>
     </div>
     <!-- Wrapper End-->
+
+    <div class="modal fade bd-example-modal-lg" id="addExpModal" tabindex="-1" role="dialog"
+        aria-labelledby="addExpModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <form id="addExpenseForm">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addExpModalLabel">Add Expense Category</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="row">
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Name</label>
+                                    <input type="text" name="name" class="form-control" id="name"
+                                        placeholder="Enter Low Level Quantity">
+                                    <span class="text-danger" id="name_error"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <script>
         $(document).ready(function() {
@@ -69,9 +111,16 @@
                     "type": "post",
                     "data": function(d) {},
                 },
-                aoColumns: [
-
-                    {
+                aoColumns: [{
+                        data: null,
+                        name: 'sr_no',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                     {
                         data: 'name'
                     },
                     {
@@ -90,11 +139,12 @@
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [4] // make "action" column unsortable
+                    aTargets: [5] // make "action" column unsortable
                 }],
                 order: [
-                    [2, 'desc']
+                    [3, 'desc']
                 ], // 🟢 Sort by created_at DESC by default
+                
                 dom: "Bfrtip",
                 lengthMenu: [
                     [10, 25, 50],
@@ -136,6 +186,49 @@
                 }
             });
 
+        }
+
+        $('#addExpenseForm').on('submit', function(e) {
+            e.preventDefault();
+            $('#name_error').text('');
+
+            let formData = {
+                _token: $('input[name="_token"]').val(),
+                name: $('#name').val(),
+            };
+
+            $.ajax({
+                type: "POST",
+                url: "{{ route('exp_category.store') }}",
+                data: formData,
+                success: function(response) {
+                    alert(response.message);
+                    $('#addExpModal').modal('hide');
+                    $('#addExpenseForm')[0].reset();
+                    location.reload();
+                },
+                error: function(xhr) {
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        if (errors.name) {
+                            $('#name_error').text(errors.name[0]);
+                        }
+                    } else {
+                        alert("An unexpected error occurred.");
+                    }
+                }
+            });
+        });
+
+        function add_exp_category() {
+
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                var myModal = new bootstrap.Modal(document.getElementById('addExpModal'));
+                myModal.show();
+            } else {
+                // For Bootstrap 4 (with jQuery)
+                $('#addExpModal').modal('show');
+            }
         }
     </script>
 @endsection

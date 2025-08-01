@@ -46,6 +46,7 @@ class ShiftManageController extends Controller
             ->select(
                 'shift_closings.id',
                 'shift_closings.shift_no',
+                'physical_photo',
                 'shift_closings.branch_id',
                 'shift_closings.user_id',
                 'branches.name as branch_name',
@@ -150,10 +151,17 @@ class ShiftManageController extends Controller
                 <i class="ri-eye-line"></i>
                 </a>';
 
+            // $action .= '<a class="badge bg-primary ml-2 view-invoices" 
+            //     href="' . url('/shift-manage/' . $row->id) . '" title="View Physical Stock Photo">
+            //     <i class="ri-image-line"></i>
+            //     </a>';
+
             $action .= '<a class="badge bg-primary ml-2 view-invoices" 
-                href="' . url('/shift-manage/' . $row->id) . '" title="View Physical Stock Photo">
+                href="javascript:void(0);" onclick="showImage(getImagePath(\'' . $row->physical_photo . '\'))" title="View Physical Stock Photo">
                 <i class="ri-image-line"></i>
-                </a>';
+            </a>';
+
+
             $action .= '<a class="badge bg-primary ml-2 view-invoices" 
                     href="' . url('/shift-manage/print-shift/' . $row->id) . '" title="Print Shift PDF" target="_blank">
                     <i class="ri-file-pdf-line"></i>
@@ -287,22 +295,22 @@ class ShiftManageController extends Controller
         $shift = ShiftClosing::findOrFail($id);
 
         $user_data = User::select('name')->where('id', $shift->user_id)->firstOrFail();
-        $branch_data = Branch::select('name','in_out_enable')->where('id', $shift->branch_id)->firstOrFail();
+        $branch_data = Branch::select('name', 'in_out_enable')->where('id', $shift->branch_id)->firstOrFail();
         $branch_name = $branch_data->name;
         $user_name = $user_data->name;
         $in_out_enable = $branch_data->in_out_enable;
 
         if (!$shift->closing_shift_time) {
-           
+
             $categoryTotals = [];
             $totals = CreditHistory::whereBetween('created_at', [$shift->start_time, $shift->end_time])
                 ->where('store_id', $shift->branch_id)
-                 ->where('transaction_kind','!=' ,'collact_credit')
+                ->where('transaction_kind', '!=', 'collact_credit')
                 ->selectRaw('SUM(credit_amount) as credit_total, SUM(debit_amount) as debit_total')
                 ->first();
 
 
-            $invoices = Invoice::where(['user_id' => $shift->user_id])->where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->whereNotIn('status', ['Hold', 'resumed', 'archived','Returned'])->latest()->get();
+            $invoices = Invoice::where(['user_id' => $shift->user_id])->where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->whereNotIn('status', ['Hold', 'resumed', 'archived', 'Returned'])->latest()->get();
             $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalRoundOf = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = $totalSalesQty = $totalPaidCredit = 0;
 
             $transaction_total = 0;
@@ -371,7 +379,7 @@ class ShiftManageController extends Controller
             ')
                 ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
                 ->first();
-          
+
             $todayCash = $totalPaid;
             $categoryTotals['sales']["TOTAL"] = $totalSalesNew;
 
@@ -406,12 +414,12 @@ class ShiftManageController extends Controller
             // $categoryTotals['summary']['REFUND'] += $totalRefundReturn *(-1);
 
             $categoryTotals['summary']['TOTAL'] = $categoryTotals['summary']['CASH ADDED'] + $categoryTotals['summary']['OPENING CASH'] + $categoryTotals['summary']['TOTAL SALES'] + $categoryTotals['summary']['DISCOUNT'] + $categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $categoryTotals['summary']['UPI PAYMENT'] + @$categoryTotals['summary']['REFUND'] +
-                @$categoryTotals['summary']['ONLINE PAYMENT'] + @$categoryTotals['summary']['CREDIT COLLACTED BY CASH'] + $totalRoundOf + $categoryTotals['summary']['CREDIT'] + $totalRefundReturn+@$creditCollacted->collacted_cash_amount;
+                @$categoryTotals['summary']['ONLINE PAYMENT'] + @$categoryTotals['summary']['CREDIT COLLACTED BY CASH'] + $totalRoundOf + $categoryTotals['summary']['CREDIT'] + $totalRefundReturn + @$creditCollacted->collacted_cash_amount;
 
             $categoryTotals['summary']['REFUND'] = $totalRefund * (-1) + $totalRefundReturn * (-1);
             //$categoryTotals['summary']['REFUND RETURN'] = $totalRefundReturn*(-1);
             //$categoryTotals['summary']['CREDIT'] = $totals->debit_total;
-            
+
             // if (!empty($categoryTotals['summary']['REFUND_CREDIT'])) {
             //     $categoryTotals['summary']['REFUND_CREDIT'] = (int)$categoryTotals['summary']['REFUND_CREDIT'] * (-1);
             // }
@@ -479,11 +487,11 @@ class ShiftManageController extends Controller
             $shiftcash = $noteCount;
             $closing_cash = $shift->closing_cash;
             $cash_discrepancy = $shift->cash_discrepancy;
- 
+
             // Render a Blade view and pass any needed data
-            $html = view('shift_manage.closed', ['opening_stock' => $totalOpeningStock, 'user_name' => $user_name, 'shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy, 'branch_name' => $branch_name,'in_out_enable'=>$in_out_enable])->render();
+            $html = view('shift_manage.closed', ['opening_stock' => $totalOpeningStock, 'user_name' => $user_name, 'shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy, 'branch_name' => $branch_name, 'in_out_enable' => $in_out_enable])->render();
             if ($return == "html") {
-                return  ['user_name' => $user_name, 'shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy, 'branch_name' => $branch_name,'in_out_enable'=>$in_out_enable];
+                return  ['user_name' => $user_name, 'shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy, 'branch_name' => $branch_name, 'in_out_enable' => $in_out_enable];
             } else {
 
                 return response()->json([
@@ -566,7 +574,12 @@ class ShiftManageController extends Controller
                 ')
                 ->first();
 
-            $pdf = Pdf::loadView('shift_manage.shift_print', ['stockTotals' => $stockTotals, 'user_name' => $closeShift['user_name'], 'shift' => $closeShift['shift'], "categoryTotals" => $closeShift['categoryTotals'], "shiftcash" => $closeShift['shiftcash'], "closing_cash" => $closeShift['closing_cash'], 'cash_discrepancy' => $closeShift['cash_discrepancy'], 'closeShift' => $closeShift, 'branch_name' => $closeShift['branch_name']]);
+            $totalTrasaction = \App\Models\Invoice::where('user_id', $shift->user_id)
+                ->where('branch_id', $shift->branch_id)->whereNotIn('status', ['Hold', 'resumed', 'archived'])
+                ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
+                ->count();
+
+            $pdf = Pdf::loadView('shift_manage.shift_print', ['totalTrasaction' => $totalTrasaction, 'stockTotals' => $stockTotals, 'user_name' => $closeShift['user_name'], 'shift' => $closeShift['shift'], "categoryTotals" => $closeShift['categoryTotals'], "shiftcash" => $closeShift['shiftcash'], "closing_cash" => $closeShift['closing_cash'], 'cash_discrepancy' => $closeShift['cash_discrepancy'], 'closeShift' => $closeShift, 'branch_name' => $closeShift['branch_name']]);
             return $pdf->download('shift_report_' . Str::slug($shift->shift_no) . '.pdf');
         }
 
