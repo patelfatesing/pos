@@ -47,14 +47,17 @@ class Invoice extends Model
     {
         return $this->belongsTo(User::class);
     }
+
     public function branch()
     {
         return $this->belongsTo(Branch::class);
     }
+
     public function commissionUser()
     {
         return $this->belongsTo(Commissionuser::class, 'commission_user_id');
     }
+
     public function partyUser()
     {
         return $this->belongsTo(Partyuser::class, 'party_user_id');
@@ -64,14 +67,17 @@ class Invoice extends Model
     {
         return $this->belongsTo(CashBreakdown::class, 'cash_break_id');
     }
+    
     public function getTotalAttribute($value)
     {
         return number_format($value, 2);
     }
+
     public function refunds()
     {
         return $this->hasMany(Refund::class);
     }
+
     public static function generateInvoiceNumber($type = ""): string
     {
         $today = Carbon::now()->format('ymd'); // e.g., 20250516
@@ -82,7 +88,7 @@ class Invoice extends Model
         $branchName = auth()->user()->userinfo->branch->name ?? '';
         $branchPrefix = strtoupper(substr(preg_replace('/\s+/', '', $branchName), 0, 2)); // First 2 letters, uppercase, no spaces
 
-        $datePrefix = $prefix . $branchPrefix.'-' . $today;
+        $datePrefix = $prefix . $branchPrefix . '-' . $today;
         // Find the latest invoice number for today
         $latestInvoice = Invoice::where('invoice_number', 'like', $datePrefix . '-%');
 
@@ -90,10 +96,10 @@ class Invoice extends Model
             $latestInvoice = $latestInvoice->where('status', '!=', 'hold');
         }
 
-        $latestInvoice=$latestInvoice->orderByRaw("CAST(SUBSTRING_INDEX(invoice_number, '-', -1) AS UNSIGNED) DESC")
+        $latestInvoice = $latestInvoice->orderByRaw("CAST(SUBSTRING_INDEX(invoice_number, '-', -1) AS UNSIGNED) DESC")
 
-        ->first();
-        
+            ->first();
+
 
         if ($latestInvoice) {
             // Extract the sequence number (e.g., from LH-20250516-0003 get 0003)
@@ -127,5 +133,10 @@ class Invoice extends Model
         //     $newNumber = $prefix . '0001';
         // }
         // return $newNumber; 
+    }
+
+    public function activityLogs()
+    {
+        return $this->hasMany(\App\Models\InvoiceActivityLog::class);
     }
 }

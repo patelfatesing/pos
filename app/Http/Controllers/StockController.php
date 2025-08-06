@@ -771,27 +771,28 @@ class StockController extends Controller
         DB::beginTransaction();
         try {
             $stockRequest = StockRequest::with('items')->findOrFail($id);
-            $from_store_id = $request->from_store_id;
+
+            $from_store_id = $stockRequest->store_id;
 
             // 🔔 Notify each destination store
-            // $notificationData = [
-            //     'id' => (string) $stockRequest->id,
-            //     'store_id' => (string) $from_store_id,
-            //     'type' => 'rejected_stock',
-            //     'req_id' => $id
-            // ];
+            $notificationData = [
+                'id' => (string) $stockRequest->id,
+                'store_id' => (string) $from_store_id,
+                'type' => 'rejected_stock',
+                'req_id' => $id
+            ];
 
-            // sendNotification(
-            //     'rejected_stock',
-            //     'Admin your stock request has been rejected',
-            //     $from_store_id,
-            //     Auth::id(),
-            //     json_encode($notificationData)
-            // );
+            sendNotification(
+                'rejected_stock',
+                'Admin your stock request has been rejected',
+                $from_store_id,
+                Auth::id(),
+                json_encode($notificationData)
+            );
 
             // Mark request as approved
             $stockRequest->status = 'rejected';
-            $stockRequest->approved_by = $stockRequest->requested_by;
+            $stockRequest->approved_by = Auth::id();
             $stockRequest->rejected_at = now();
             $stockRequest->save();
 

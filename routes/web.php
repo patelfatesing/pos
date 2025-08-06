@@ -204,6 +204,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/inventories/update-low-level-qty', [InventoryController::class, 'updateLowLevelQty'])->name('inventories.update-low-level-qty');
     Route::get('/inventories/get-low-level-products/{storeId}', [InventoryController::class, 'getLowLevelProducts'])->name('inventories.get-low-level-products');
     Route::post('/inventories/update-multiple-low-level-qty', [InventoryController::class, 'updateMultipleLowLevelQty'])->name('inventories.update-multiple-low-level-qty');
+    Route::post('/inventories/check-inventory', [InventoryController::class, 'checkStock'])->name('inventory.check');
 
     // Route::get('/stock/list', [InventoryController::class, 'index'])->name('inventories.list');
     // Route::post('/inventories/get-data', [InventoryController::class, 'getData'])->name('inventories.getData');
@@ -244,6 +245,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/view-invoice/{invoice}/{shift_id?}', [InvoiceController::class, 'viewInvoice'])->name('invoice.view-invoice');
     Route::get('/sales/edit-sales/{invoice_id}', [InvoiceController::class, 'editSales'])->name('sales.edit-sales');
     Route::get('/view-hold-invoice/{invoice}/{shift_id}', [InvoiceController::class, 'viewHoldInvoice'])->name('invoice.view-hold-invoice');
+    Route::post('/invoice/{id}/add-item', [InvoiceController::class, 'addItem']);
+    Route::post('/invoice/{id}/update-qty', [InvoiceController::class, 'updateQty']);
+    Route::post('/invoice/{id}/delete-item', [InvoiceController::class, 'deleteItem']);
+    Route::post('/sales/invoice/update-items/{id}', [InvoiceController::class, 'updateItems'])->name('sales.invoice.updateItems');
+    Route::get('/invoice/{id}/history', [InvoiceController::class, 'fetchHistory'])->name('invoice.fetchHistory');
+
 
     Route::get('/pack-size/list', [PackSizeController::class, 'index'])->name('packsize.list');
     Route::post('/pack-size/get-data', [PackSizeController::class, 'getData'])->name('packsize.getData');

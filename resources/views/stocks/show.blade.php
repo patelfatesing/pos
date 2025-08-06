@@ -335,7 +335,6 @@
                 buttons: ['pageLength']
 
             });
-
         });
     </script>
 @endsection
