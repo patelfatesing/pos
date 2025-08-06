@@ -119,6 +119,7 @@ class Shoppingcart extends Component
     public bool $useCredit = false;  // Tracks checkbox state
     public bool $removeCrossHold = false;
     public bool $issavehold = false;
+    public bool $showRefundBtn = false;
     public $partyUserDetails;
     public $partyUserDiscountAmt = 0;
     public $finalDiscountPartyAmount = 0;
@@ -432,7 +433,7 @@ class Shoppingcart extends Component
                 return;
             }
             $this->selectedPartyUser = $this->selectedSalesReturn->party_user_id ?? 0;
-
+            $this->showRefundBtn=true;
 
 
             //$this->partyAmount = $this->selectedSalesReturn->party_amount ?? 0;
