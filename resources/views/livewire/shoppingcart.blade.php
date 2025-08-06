@@ -607,7 +607,7 @@
                                         </div>
                                     @endif
 
-                                    @if (!empty($this->selectedSalesReturn))
+                                    @if ($this->showRefundBtn)
                                         <div class="col-6">
                                             <button wire:click="refundoggleBox"
                                                 class="btn btn-sm btn-danger w-100 text-nowrap">
