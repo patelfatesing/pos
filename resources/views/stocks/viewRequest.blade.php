@@ -37,6 +37,10 @@
                                             data-id="{{ $stockRequest->id }}">
                                             Pending
                                         </button>
+                                    @elseif ($stockRequest->status === 'rejected')
+                                        <button class="btn btn-danger btn-sm mt-1">
+                                            Rejected
+                                        </button>
                                     @else
                                         <span class="badge bg-success">Approved</span>
                                     @endif
@@ -48,6 +52,11 @@
                             <div class="col-sm-4">
                                 <p><strong>Notes:</strong> {{ $stockRequest->notes ?? '-' }}</p>
                             </div>
+                            @if ($stockRequest->status === 'rejected')
+                                <div class="col-sm-4">
+                                    <p><strong>Reject Reason:</strong> {{ $stockRequest->reject_reason ?? '-' }}</p>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -104,8 +113,7 @@
                     }
                 },
 
-                columns: [
-                    {
+                columns: [{
                         data: null,
                         name: 'serial_number',
                         orderable: false,
@@ -114,16 +122,23 @@
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
-                    { data: 'name' },
-                    { data: 'size' },
-                    { data: 'approved_quantity' },
+                    {
+                        data: 'name'
+                    },
+                    {
+                        data: 'size'
+                    },
+                    {
+                        data: 'approved_quantity'
+                    },
                     {
                         data: 'source_store_id',
                         name: 'source_store_id',
                         render: function(data, type, row) {
                             return row.source_store_id ? row.source_store_id : 'N/A';
                         }
-                    }                ],
+                    }
+                ],
                 footerCallback: function(row, data, start, end, display) {
                     var api = this.api();
 
@@ -134,7 +149,9 @@
                     };
 
                     var pageTotal = api
-                        .column(3, { page: 'current' })
+                        .column(3, {
+                            page: 'current'
+                        })
                         .data()
                         .reduce(function(a, b) {
                             return intVal(a) + intVal(b);
@@ -142,12 +159,10 @@
 
                     $(api.column(3).footer()).html(pageTotal);
                 },
-                aoColumnDefs: [
-                    {
-                        bSortable: false,
-                        aTargets: [2]
-                    }
-                ],
+                aoColumnDefs: [{
+                    bSortable: false,
+                    aTargets: [2]
+                }],
                 dom: "Bfrtip",
                 lengthMenu: [
                     [10, 25, 50],

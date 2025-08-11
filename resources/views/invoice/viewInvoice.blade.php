@@ -1,5 +1,10 @@
 @extends('layouts.backend.layouts')
+@php
+    use Carbon\Carbon;
 
+    // Determine if Edit button should be shown (last 7 days)
+    $showEditButton = Carbon::parse($invoice->created_at)->greaterThanOrEqualTo(Carbon::now()->subDays(7));
+@endphp
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
@@ -39,6 +44,13 @@
                                     <h4 class="card-title mb-0">Invoice #{{ $invoice->invoice_number }}</h4>
                                 </div>
                                 <div class="invoice-btn">
+
+                                    @if ($showEditButton)
+                                        <a href="{{ route('sales.edit-sales', $invoice->id) }}"
+                                            class="btn btn-primary-dark">
+                                            <i class="fa fa-edit"></i>
+                                        </a>
+                                    @endif
 
                                     @if ($invoice->party_user_id != '')
                                         <button onClick="showPhoto({{ $invoice->id }},'',{{ $invoice->party_user_id }})"

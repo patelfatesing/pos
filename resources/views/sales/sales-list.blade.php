@@ -1,4 +1,12 @@
 @extends('layouts.backend.datatable_layouts')
+<!-- jQuery (already included) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Popper (required for Bootstrap) -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 @section('styles')
     <style>
@@ -13,6 +21,11 @@
         .dataTables_wrapper .dataTables_filter input {
             width: auto;
             display: inline-block;
+        }
+
+        .timeline {
+            max-height: 400px;
+            overflow-y: auto;
         }
     </style>
 @endsection
@@ -65,6 +78,7 @@
                                 <th>Payment Status</th>
                                 <th>Payment Mode</th>
                                 <th>Date</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -90,6 +104,28 @@
     <div class="modal fade bd-example-modal-lg" id="salesCustPhotoShowModal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content" id="salesCustPhotoModalContent"></div>
+        </div>
+    </div>
+
+    <!-- Invoice History Modal -->
+    <div class="modal fade" id="invoiceHistoryModal" tabindex="-1" aria-labelledby="invoiceHistoryModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-secondary text-white">
+                    <h5 class="modal-title">Invoice Activity History</h5>
+                    
+                     <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="invoice-history-content">
+                    <div class="text-center p-4">
+                        <span class="spinner-border text-secondary"></span>
+                        <p>Loading...</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
@@ -277,5 +313,24 @@
                 }
             });
         }
+
+        // Attach event using delegation
+        $(document).on('click', '.view-history-btn', function() {
+            const invoiceId = $(this).data('invoice-id');
+            $('#invoiceHistoryModal').modal('show');
+
+            $('#invoice-history-content').html(`
+        <div class="text-center p-4">
+            <span class="spinner-border text-secondary"></span>
+            <p>Loading...</p>
+        </div>
+    `);
+
+            $.get('{{ url('invoice') }}/' + invoiceId + '/history', function(response) {
+                $('#invoice-history-content').html(response);
+            }).fail(function() {
+                $('#invoice-history-content').html(`<p class="text-danger">Failed to load history.</p>`);
+            });
+        });
     </script>
 @endsection

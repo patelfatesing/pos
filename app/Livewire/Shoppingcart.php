@@ -443,6 +443,7 @@ class Shoppingcart extends Component
             $this->paymentType = "cash";
             $sumQty = 0;
             // if (!$this->selectedProduct) return;
+           // dd($this->selectedSalesReturn);
             foreach ($this->selectedSalesReturn->items as $key => $value) {
 
                 $product = Product::where('id', $value['product_id'])->first();

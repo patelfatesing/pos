@@ -25,8 +25,8 @@
                                         <span class="notification-screen-text84">
                                             Notifications (1)
                                         </span>
-                                        <img src="{{ asset('external/image45185-z6hn-200h.png') }}"
-                                            alt="image45185" class="notification-screen-image4" />
+                                        <img src="{{ asset('external/image45185-z6hn-200h.png') }}" alt="image45185"
+                                            class="notification-screen-image4" />
                                     </div>
                                 </div>
 
@@ -52,7 +52,7 @@
                                                             {{ ucwords(str_replace('_', ' ', $notification['type'])) }}
                                                         </span>
                                                         <span class="notification-screen-text98">
-                                                          {{ $notification['message'] }}
+                                                            {{ $notification['message'] }}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -203,6 +203,34 @@
                                                 data-id="{{ $notification['req_id'] }}"
                                                 data-nfid="{{ $notification['id'] }}">
                                                 <div class="notification-screen-frame3705">
+                                                    <img src="{{ asset('external/1image15185-oc6f-200h.png') }}"
+                                                        alt="image15185" class="notification-screen-image1" />
+                                                    <div class="notification-screen-frame3695">
+                                                        <span class="notification-screen-text101">
+                                                            {{ ucwords(str_replace('_', ' ', $notification['type'])) }}
+                                                        </span>
+                                                        <span class="notification-screen-text102">
+                                                            {{ $notification['message'] }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <img src="{{ asset('external/rectangle4675146-yc2-200h.png') }}"
+                                                    alt="Rectangle4675146"
+                                                    class="notification-screen-rectangle4675" />
+                                                <span class="notification-screen-text103">
+                                                    {{ $notification['date'] }}
+                                                </span>
+                                                <span class="notification-screen-text104">
+                                                    {{ $notification['time'] }}
+                                                </span>
+                                            </div>
+                                        @elseif($notification['type'] == 'rejected_stock')
+                                            <div class="notification-screen-notification5 open-form"
+                                                id="{{ $notification['id'] }}"
+                                                data-type="{{ $notification['type'] }}"
+                                                data-id="{{ $notification['req_id'] }}"
+                                                data-nfid="{{ $notification['id'] }}">
+                                                <div class="notification-screen-frame3705">
                                                     <img src="{{ asset('external/image15185-oc6f-200h.png') }}"
                                                         alt="image15185" class="notification-screen-image1" />
                                                     <div class="notification-screen-frame3695">
@@ -243,7 +271,7 @@
                                                     </div>
                                                     <div class="notification-screen-frame3694">
                                                         <span class="notification-screen-text97">
-                                                           {{ ucwords(str_replace('_', ' ', $notification['type'])) }}
+                                                            {{ ucwords(str_replace('_', ' ', $notification['type'])) }}
                                                         </span>
                                                         <span class="notification-screen-text98">
                                                             {{ $notification['message'] }}
@@ -365,6 +393,10 @@
                             @include('livewire.notification.stock-approved-form', [
                                 'stockRequest' => $selectedNotificationData,
                             ])
+                        @elseif ($notificationType === 'rejected_stock')
+                            @include('livewire.notification.stock-reject-form', [
+                                'stockRequest' => $selectedNotificationData,
+                            ])
                         @elseif ($notificationType === 'transfer_stock')
                             @include('livewire.notification.stock-transfer-form', [
                                 'stockTransfer' => $selectedNotificationData,
@@ -382,7 +414,6 @@
                             ])
                         @endif
                     </div>
-
                 </div>
             </div>
         </div>
