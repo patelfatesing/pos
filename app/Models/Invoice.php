@@ -34,7 +34,8 @@ class Invoice extends Model
         'ref_no',
         'hold_date',
         'paid_credit',
-        'invoice_status'
+        'invoice_status',
+        'edit_in'
     ];
 
     protected $casts = [
@@ -67,7 +68,7 @@ class Invoice extends Model
     {
         return $this->belongsTo(CashBreakdown::class, 'cash_break_id');
     }
-    
+
     public function getTotalAttribute($value)
     {
         return number_format($value, 2);
@@ -133,6 +134,50 @@ class Invoice extends Model
         //     $newNumber = $prefix . '0001';
         // }
         // return $newNumber; 
+    }
+
+    public static function generateInvoiceNumberNew($branch_id,$start_time): string
+    {
+      
+        $branch_data = Branch::find($branch_id);
+        $today = Carbon::parse($start_time)->format('ymd'); // e.g., 20250516
+        $prefix = "";
+        if (!empty($type)) {
+            $prefix .= $type . "-";
+        }
+
+        $branchPrefix = strtoupper(substr(preg_replace('/\s+/', '', $branch_data->name), 0, 2)); // First 2 letters, uppercase, no spaces
+
+        $datePrefix = $prefix . $branchPrefix . '-' . $today;
+        // Find the latest invoice number for today
+        $latestInvoice = Invoice::where('invoice_number', 'like', $datePrefix . '-%');
+
+        if (empty($type)) {
+            $latestInvoice = $latestInvoice->where('status', '!=', 'hold');
+        }
+
+        $latestInvoice = $latestInvoice->orderByRaw("CAST(SUBSTRING_INDEX(invoice_number, '-', -1) AS UNSIGNED) DESC")
+
+            ->first();
+
+        if ($latestInvoice) {
+            // Extract the sequence number (e.g., from LH-20250516-0003 get 0003)
+            $parts = explode('-', $latestInvoice->invoice_number);
+            if (empty($type)) {
+                $lastNumber = isset($parts[2]) ? (int)$parts[2] : 0;
+            } else {
+                $lastNumber = isset($parts[3]) ? (int)$parts[3] : 0;
+            }
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        // Pad the number to 4 digits (e.g., 0001)
+        $invoiceNumber = $datePrefix . '-' . str_pad($nextNumber, 2, '0', STR_PAD_LEFT);
+
+        return $invoiceNumber;
+        
     }
 
     public function activityLogs()

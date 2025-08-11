@@ -9,8 +9,9 @@
 
             <!-- Logo -->
             <div class="d-flex align-items-center">
-                <img src="{{ asset('assets/images/logo.png') }}" alt="Logo" class="img-fluid"
+                <img src="{{ asset('assets/images/logo1.png') }}" alt="Logo" class="img-fluid"
                     style="max-height: 40px;" />
+                    <h4 class="logo-title m2-2 ml-2">LiquorHub</h4>
             </div>
 
             <!-- Right Side -->
@@ -672,7 +673,7 @@
                 <div class="modal-header custom-modal-header">
                     <h5 class="modal-title" id="holdModalLabel">{{ __('messages.hold_transactions') }}
                     </h5>
-                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     @livewire('hold-transactions', ['holdTransactions' => $holdTransactions])

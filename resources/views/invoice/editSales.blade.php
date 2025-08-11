@@ -32,7 +32,9 @@
             width: 90px !important;
         }
     </style>
-
+    <?php
+    // dd($invoice);
+    ?>
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
@@ -172,8 +174,11 @@
                                             <td class="item-total">
                                                 <b>₹{{ number_format($finalPrice * $item['quantity'], 2) }}</b>
                                             </td>
-                                            <td><button type="button" class="btn btn-danger btn-sm remove-item"><i
-                                                        class="fa fa-trash"></i></button></td>
+                                            <td>
+                                                <img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}"
+                                                    alt="Delete"
+                                                    class="main-screen-delete24dp1f1f1ffill0wght400grad0opsz24110 btn btn-sm remove-item">
+                                            </td>
                                         </tr>
                                     @endforeach
                                     <?php
@@ -184,7 +189,7 @@
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-end mt-3">
+                    {{-- <div class="d-flex justify-content-end mt-3">
                         <div>
                             <h5>Total: ₹<span id="total">{{ number_format($total, 2) }}</span></h5>
                             <h5>Discount: ₹<span id="discount-total">{{ number_format($total_dis, 2) }}</span></h5>
@@ -209,7 +214,104 @@
                             <button type="submit" class="btn btn-success">Save Invoice Items</button>
 
                         </div>
+                    </div> --}}
+
+                    <div class="card-body">
+                        <div class="row mt-4 mb-3">
+                            <div class="offset-lg-8 col-lg-4">
+                                <div class="or-detail rounded">
+                                    <div class="p-3">
+                                        <h5 class="mb-3">Order Details</h5>
+                                        <input type="hidden" id="total_discount" name="total_discount" value="0">
+                                        <input type="hidden" id="gr_total" name="total" value="0">
+                                        <input type="hidden" id="sub_total" name="sub_total" value="0">
+                                        <input type="hidden" id="left_credit_id" value="0">
+
+                                        <div class="mb-2 d-flex justify-content-between">
+                                            <h6>Sub Total</h6>
+                                            <p id="total">{{ number_format($total, 2) }}</p>
+                                        </div>
+                                        <div class="mb-2 d-flex justify-content-between">
+                                            @if ($invoice->branch_id == 1 && $invoice->partyUser)
+                                                <h6 class="credit-section">Party Deduction</h6>
+                                            @else
+                                                <h6 class="commission-section">Commission Deduction</h6>
+                                            @endif
+                                            <p id="discount-total">₹{{ number_format($total_dis, 2) }}</p>
+                                        </div>
+                                        @if ($invoice->branch_id == 1 && $invoice->partyUser)
+                                            <div class="credit-section">
+                                                <div class="mb-2 d-flex justify-content-between">
+                                                    <h6>Credit Limit</h6>
+                                                    <p id="credit-limit">
+                                                        ₹{{ number_format($invoice->partyUser->credit_points, 2) }}</p>
+                                                </div>
+                                                <div class="mb-2 d-flex justify-content-between">
+                                                    <h6>Left Limit</h6>
+                                                    <p id="left_credit">
+                                                        ₹{{ number_format($invoice->partyUser->left_credit, 2) }}</p>
+                                                </div>
+                                                <div class="mb-2 d-flex justify-content-between">
+                                                    <h6>Credit Used (Invoice)</h6>
+                                                    <p>₹<input type="number" name="creditpay" id="creditpay-input"
+                                                            min="0" step="1"
+                                                            class="form-control d-inline-block"
+                                                            style="width: 120px; display: inline;"
+                                                            value="{{ number_format($invoice->creditpay, 2, '.', '') }}">
+                                                        <small id="creditpay-error" class="text-danger d-block"
+                                                            style="display:none;"></small>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        @endif
+                                        <!-- Payment Method Radio Buttons -->
+                                        <div class="mb-2 d-flex justify-content-between">
+                                            <label><strong>Payment Method</strong></label>
+                                            <div>
+                                                <input type="radio" id="cash-option" name="payment_method"
+                                                    value="cash" @if ($invoice->payment_mode == 'cash') checked @endif>
+                                                <label for="cash-option">Cash</label>
+                                                <input type="radio" id="upi-option" name="payment_method"
+                                                    value="online" @if ($invoice->payment_mode == 'online') checked @endif>
+                                                <label for="upi-option">UPI</label>
+                                                <input type="radio" id="cash-upi-option" name="payment_method"
+                                                    value="cashupi" @if ($invoice->payment_mode == 'cashupi') checked @endif>
+                                                <label for="cash-upi-option">Cash + UPI</label>
+                                            </div>
+                                        </div>
+
+                                        <!-- Cash and UPI Inputs Section -->
+                                        <div id="payment-fields">
+                                            <div id="cash-field" class="payment-input">
+                                                <h6>Cash</h6>
+                                                <input type="number" id="cash-amount" class="form-control"
+                                                    min="0" step="1" readonly name="cash_amount">
+                                            </div>
+
+                                            <div id="upi-field" class="payment-input" style="display: none;">
+                                                <h6>UPI</h6>
+                                                <input type="number" id="upi-amount" class="form-control"
+                                                    name="upi_amount" min="0" step="1" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
+                                        <h6>Total</h6>
+                                        <h3 class="text-primary font-weight-700" id="grand-total">
+                                            {{ number_format($sub_total, 2) }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-3 total-summary mb-3">
+                            <div>
+
+                                <button type="submit" class="btn btn-success">Save Invoice Items</button>
+                            </div>
+                        </div>
                     </div>
+
                 </form>
             </div>
         </div>
@@ -229,13 +331,13 @@
                 const price = parseFloat($(this).find('.qty-input').data('price')) || 0;
                 const discount = parseFloat($(this).find('.qty-input').data('discount')) || 0;
                 const sell_price = parseFloat($(this).find('.qty-input').data('sell_price')) || 0;
-                
+
                 totalSellPrice += price * qty;
                 const rowTotal = qty * price;
                 let dis = qty * (price - discount);
 
                 $(this).find('.item-total').html('<b>₹' + rowTotal.toFixed(2) + '</b>');
-                grandTotal += rowTotal -dis;
+                grandTotal += rowTotal - dis;
                 discountTotal += dis;
             });
             $('#total').text(totalSellPrice.toFixed(2));
@@ -304,7 +406,7 @@
                         <td><input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" data-price="${sell_price}" data-discount="${discount}"></td>
                         <td>${priceDisplay}</td>
                         <td class="item-total"><b>₹${total.toFixed(2)}</b></td>
-                        <td><button type="button" class="btn btn-danger btn-sm remove-item"><i class="fa fa-trash"></i></button></td>
+                        <td><img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}" alt="Delete" class="main-screen-delete24dp1f1f1ffill0wght400grad0opsz24110 btn btn-sm remove-item"></td>
                     </tr>
                 `;
                         $('#invoice-items-body').append(row);
@@ -391,6 +493,66 @@
                 e.preventDefault();
                 Swal.fire("Credit Limit Exceeded", "Credit pay (₹" + creditPay + ") cannot exceed credit limit (₹" +
                     creditLimit + ").", "error");
+            }
+        });
+
+
+        // Handle radio button change event
+        $('input[name="payment_method"]').on('change', function() {
+            const selectedPaymentMethod = $(this).val();
+
+            // Reset cash and UPI input fields
+            $('#cash-amount').val('');
+            $('#upi-amount').val('');
+
+            let get_total = $('#gr_total').val();
+
+            if (selectedPaymentMethod === 'cash') {
+                // Show Cash field only and make it editable
+                $('#cash-amount').val(get_total);
+                $('#upi-amount').val('');
+                $('#cash-field').show();
+                $('#upi-field').hide();
+                $('#cash-amount').prop('readonly', true);
+                $('#upi-amount').prop('readonly', true);
+            } else if (selectedPaymentMethod === 'online') {
+                // Show UPI field only and make it editable
+                $('#cash-amount').val('');
+                $('#upi-amount').val(get_total);
+                $('#cash-field').hide();
+                $('#upi-field').show();
+                $('#cash-amount').prop('readonly', true);
+                $('#upi-amount').prop('readonly', true);
+            } else if (selectedPaymentMethod === 'cashupi') {
+                // Show both fields and allow dynamic adjustment between them
+                $('#cash-amount').val(get_total);
+                $('#upi-amount').val('');
+                $('#cash-field').show();
+                $('#upi-field').show();
+                $('#cash-amount').prop('readonly', false);
+                $('#upi-amount').prop('readonly', false);
+            }
+        });
+
+        // When Cash input changes
+        $('#cash-amount').on('input', function() {
+            cashAmount = parseFloat($(this).val()) || 0;
+
+            // If both Cash + UPI are selected, update the total
+            if ($('#cash-upi-option').is(':checked')) {
+                let remainingAmount = grandTotal - cashAmount;
+                $('#upi-amount').val(remainingAmount >= 0 ? remainingAmount : 0);
+            }
+        });
+
+        // When UPI input changes
+        $('#upi-amount').on('input', function() {
+            upiAmount = parseFloat($(this).val()) || 0;
+
+            // If both Cash + UPI are selected, update the total
+            if ($('#cash-upi-option').is(':checked')) {
+                let remainingAmount = grandTotal - upiAmount;
+                $('#cash-amount').val(remainingAmount >= 0 ? remainingAmount : 0);
             }
         });
     </script>

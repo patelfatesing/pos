@@ -651,3 +651,10 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+.logo-title {
+   margin-top: 1px;
+    margin-left: 5px;
+    color: #32BDEA;
+}
