@@ -204,6 +204,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/inventories/update-low-level-qty', [InventoryController::class, 'updateLowLevelQty'])->name('inventories.update-low-level-qty');
     Route::get('/inventories/get-low-level-products/{storeId}', [InventoryController::class, 'getLowLevelProducts'])->name('inventories.get-low-level-products');
     Route::post('/inventories/update-multiple-low-level-qty', [InventoryController::class, 'updateMultipleLowLevelQty'])->name('inventories.update-multiple-low-level-qty');
+    Route::post('/inventories/check-inventory', [InventoryController::class, 'checkStock'])->name('inventory.check');
 
     // Route::get('/stock/list', [InventoryController::class, 'index'])->name('inventories.list');
     // Route::post('/inventories/get-data', [InventoryController::class, 'getData'])->name('inventories.getData');
@@ -243,7 +244,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/invoice/{invoice}/download', [InvoiceController::class, 'download'])->name('invoice.download');
     Route::get('/view-invoice/{invoice}/{shift_id?}', [InvoiceController::class, 'viewInvoice'])->name('invoice.view-invoice');
     Route::get('/sales/edit-sales/{invoice_id}', [InvoiceController::class, 'editSales'])->name('sales.edit-sales');
+    Route::get('/sales/add-sales/{branch_id}/{shift_id}', [InvoiceController::class, 'addSales'])->name('sales.add-sales');
     Route::get('/view-hold-invoice/{invoice}/{shift_id}', [InvoiceController::class, 'viewHoldInvoice'])->name('invoice.view-hold-invoice');
+    Route::post('/invoice/{id}/add-item', [InvoiceController::class, 'addItem']);
+    Route::post('/invoice/{id}/update-qty', [InvoiceController::class, 'updateQty']);
+    Route::post('/invoice/{id}/delete-item', [InvoiceController::class, 'deleteItem']);
+    Route::post('/sales/invoice/update-items/{id}', [InvoiceController::class, 'updateItems'])->name('sales.invoice.updateItems');
+    Route::get('/invoice/{id}/history', [InvoiceController::class, 'fetchHistory'])->name('invoice.fetchHistory');
+    Route::get('/party-customer-discount/{partyUserId}', [InvoiceController::class, 'getPartyCustomerDiscount'])->name('partyCustomerDiscount');
+    Route::post('/sales/invoice/insert-sale', [InvoiceController::class, 'InsertSale'])->name('sales.invoice.insert-sale');
 
     Route::get('/pack-size/list', [PackSizeController::class, 'index'])->name('packsize.list');
     Route::post('/pack-size/get-data', [PackSizeController::class, 'getData'])->name('packsize.getData');
@@ -278,6 +287,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/party-users/{Partyuser}', [PartyUserController::class, 'update'])->name('party-users.update');
     Route::delete('/party-users/{Partyuser}', [PartyUserController::class, 'destroy'])->name('party-users.destroy');
     Route::get('/cust-product-price-change/form', [PartyUserController::class, 'custProductPriceChangeForm'])->name('party-users.cust-product-price-change-form');
+    Route::get('/party-user-credit/{partyUserId}', [PartyUserController::class, 'getCredit'])
+        ->name('partyUserCredit');
+    Route::get('/party-customer-discount/{partyUserId}/{productId}', [PartyUserController::class, 'getCustomerDiscount']);
 
     Route::post('/cust-product-price-change/price_change-store', [PartyUserController::class, 'custPriceChange'])->name('cust-product-price-change-store');
     Route::post('/party-users/get-commission-data', [PartyUserController::class, 'getDataCommission'])->name('party-users.get.commission.data');

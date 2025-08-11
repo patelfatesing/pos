@@ -18,8 +18,8 @@ class NotificationController extends Controller
     public function loadForm($type, Request $request)
     {
         $nf_id = $request->nfid;
-
-        $nf = Notification::find($nf_id);
+  
+        $nf = Notification::find($nf_id);     
         $nf->status = 'read';
         $nf->save();
 
@@ -118,6 +118,22 @@ class NotificationController extends Controller
             return view('notification.stock-request-form', compact('stockRequest', 'branch_name'));
         }
 
+        if ($type === 'rejected_stock') {
+
+            $data = json_decode($nf->details);
+            $id  = $data->id;
+
+            $branch_name = '';
+
+            if (!empty($data->store_id)) {
+                $branch = Branch::where('id', $data->store_id)->first();
+                $branch_name = $branch->name;
+            }
+            $stockRequest = StockRequest::with(['branch', 'user', 'items.product'])->findOrFail($id);
+            return view('notification.stock-reject-form', compact('stockRequest', 'branch_name'));
+        }
+
+
         if ($type === 'approved_stock') {
             $data = json_decode($nf->details);
             $id  = $data->id;
@@ -214,6 +230,8 @@ class NotificationController extends Controller
 
             return view('notification.stock-transfer-form', compact('stockTransfer', 'from_store', 'to_store', 'transfer_type'));
         }
+
+
 
         if ($type === 'price_change') {
             $data = json_decode($nf->details);

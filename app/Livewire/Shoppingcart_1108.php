@@ -119,6 +119,7 @@ class Shoppingcart extends Component
     public bool $useCredit = false;  // Tracks checkbox state
     public bool $removeCrossHold = false;
     public bool $issavehold = false;
+    public bool $showRefundBtn = false;
     public $partyUserDetails;
     public $partyUserDiscountAmt = 0;
     public $finalDiscountPartyAmount = 0;
@@ -432,7 +433,7 @@ class Shoppingcart extends Component
                 return;
             }
             $this->selectedPartyUser = $this->selectedSalesReturn->party_user_id ?? 0;
-
+            $this->showRefundBtn=true;
 
 
             //$this->partyAmount = $this->selectedSalesReturn->party_amount ?? 0;
@@ -442,6 +443,7 @@ class Shoppingcart extends Component
             $this->paymentType = "cash";
             $sumQty = 0;
             // if (!$this->selectedProduct) return;
+           // dd($this->selectedSalesReturn);
             foreach ($this->selectedSalesReturn->items as $key => $value) {
 
                 $product = Product::where('id', $value['product_id'])->first();
