@@ -250,6 +250,7 @@ class UserController extends Controller
     {
         $user = User::findOrFail($request->id);
         $user->is_active = $request->status;
+        $user->is_login = 'No';
         $user->save();
 
         return response()->json(['message' => 'Status updated successfully']);

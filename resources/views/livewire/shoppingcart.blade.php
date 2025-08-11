@@ -2573,13 +2573,14 @@
         showAlert('error', 'LiquorHub!', event.detail[0].message || 'Failed to void the cart.');
     });
 
-    window.addEventListener('order-saved', event => {
-        const {
-            type,
-            title,
-            message
-        } = event.detail;
-        Swal.fire({
+   window.addEventListener('order-saved', event => {
+    const {
+        type,
+        title,
+        message
+    } = event.detail;
+
+Swal.fire({
             title: 'Success!',
             text: 'Transaction completed successfully.',
             icon: type, // 'success' or 'error'
@@ -2594,6 +2595,29 @@
             showCloseButton: true,
             customClass: {
                 popup: 'small-alert'
+            }
+        }).then((result) => {
+            if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
+                // location.reload(); // reload after OK click or auto close
+            }
+        });
+
+    // Attach event to the custom button after SweetAlert is shown
+    $(document).on('click', '#fullscreen-reload-btn', function () {
+        const elem = document.documentElement;
+
+        // Attempt fullscreen
+        if (!document.fullscreenElement) {
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().then(() => location.reload());
+            } else if (elem.webkitRequestFullscreen) { // Safari
+                elem.webkitRequestFullscreen();
+                location.reload();
+            } else if (elem.msRequestFullscreen) { // IE/Edge
+                elem.msRequestFullscreen();
+                location.reload();
+            } else {
+                location.reload(); // fallback
             }
 
         }).then((result) => {
