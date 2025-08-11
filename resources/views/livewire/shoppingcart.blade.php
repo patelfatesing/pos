@@ -2521,26 +2521,27 @@
         message
     } = event.detail;
 
-    Swal.fire({
-        title: title || 'Success!',
-        text: message || 'Transaction completed successfully.',
-        icon: type, // 'success' or 'error'
-        showConfirmButton: false, // hide default OK
-        showCloseButton: true,
-        allowOutsideClick: false,
-        backdrop: true,
-        position: 'center',
-        toast: false,
-        timerProgressBar: false,
-        customClass: {
-            popup: 'small-alert'
-        },
-        html: `
-            <button id="fullscreen-reload-btn" class="btn btn-primary mt-3">
-                Reload & Fullscreen
-            </button>
-        `
-    });
+Swal.fire({
+            title: 'Success!',
+            text: 'Transaction completed successfully.',
+            icon: type, // 'success' or 'error'
+            confirmButtonText: 'OK',
+            timer: 3000,
+            showConfirmButton: true,
+            position: 'center',
+            toast: false,
+            timerProgressBar: true,
+            backdrop: true,
+            allowOutsideClick: false,
+            showCloseButton: true,
+            customClass: {
+                popup: 'small-alert'
+            }
+        }).then((result) => {
+            if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
+                // location.reload(); // reload after OK click or auto close
+            }
+        });
 
     // Attach event to the custom button after SweetAlert is shown
     $(document).on('click', '#fullscreen-reload-btn', function () {
