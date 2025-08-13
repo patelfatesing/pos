@@ -7,17 +7,17 @@
     <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
         <img src="{{ asset('public/external/customer_credit_icon_final.jpg') }}" alt="Customer Credit Ledger Icon" />
     </button>
-    <span class="ic-txt">Customer Credit Ledger</span>
+    <span class="ic-txt">Credit Ledger</span>
 </div>
 
     <!-- Main Modal -->
     @if ($showModal)
         <div class="modal d-block" tabindex="-1"
             style="background-color: rgba(0,0,0,0.5);"wire:keydown.escape="$set('showModal', false)">
-            <div class="modal-dialog modal-xl">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title text-dark">Customer Credit Ledger</h5>
+                    <div class="modal-header custom-modal-header">
+                        <h5 class="modal-title">Customer Credit Ledger</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" wire:click="$set('showModal', false)"></button>
                     </div>
                     <div class="modal-body">
@@ -37,14 +37,14 @@
                         <div class="mb-3">
                             <div class="input-group">
                                 <span class="input-group-text">
-                                    <i class="fas fa-search"></i>
+                                    <i class="fa fa-search" aria-hidden="true"></i>
                                 </span>
                                 <input type="text" wire:model.live="search" class="form-control"
                                     placeholder="Search by name, phone, or credit points...">
                             </div>
                         </div>
 
-                        <table style="width:100%; margin-bottom: 10px;">
+                        <table style="width:100%; margin-bottom: 10px;" class="credit-debit-table">
                             <tr>
                                 <td style="text-align: left;">
                                     <strong>Credit:</strong> {{ number_format($totalCredit, 2) }} Cr
@@ -65,7 +65,7 @@
                             </tr>
                         </table>
 
-                        <div class="table-responsive">
+                        <div class="table-responsive credit-ledger-table">
                             <table class="table table-bordered table-hover">
                                 <thead class="table-light table-info">
                                     <tr>

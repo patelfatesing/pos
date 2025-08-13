@@ -11,15 +11,15 @@
     @if ($showModal)
         <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);"
             wire:keydown.escape="$set('showModal', false)">
-            <div class="modal-dialog modal-xl">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title text-dark">Sales History</h5>
+                    <div class="modal-header custom-modal-header">
+                        <h6 class="modal-title cash-summary-text61">Sales History</h6>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
                             wire:click="$set('showModal', false)"></button>
                         </button>
                     </div>
-                    <div class="modal-body">
+                    <div class="modal-body sales-history-block">
                         <ul class="nav nav-tabs" id="salesTab" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <a class="nav-link active" id="paid-tab" data-bs-toggle="tab" href="#paid"
@@ -30,13 +30,13 @@
                                     role="tab" aria-controls="refunded" aria-selected="false">Refunds</a>
                             </li>
                         </ul>
-                        <div class="tab-content" id="salesTabContent">
+                        <div class="tab-content sales-history-block" id="salesTabContent">
                             <!-- Paid Orders Tab -->
                             <div class="tab-pane fade show active" id="paid" role="tabpanel"
                                 aria-labelledby="paid-tab">
                                 @if ($orders->count() > 0)
                                     <table class="table table-bordered table-hover">
-                                        <thead class="table-light table-info">
+                                        <thead class="table-info">
                                             <tr>
                                                 <th>Sr</th>
                                                 <th>Invoice No</th>
@@ -76,8 +76,8 @@
 
                                                         <button class="btn btn-lg"
                                                             wire:click="printInvoice('{{ $order->id }}')">
-                                                            <i class="bi bi-file-earmark-pdf-fill text-danger"></i>
-
+                                                            <img src="{{ asset('assets/images/sidebar-imgs/pdf-ic.svg') }}"
+                                                                alt="PDF">
                                                         </button>
                                                     </td>
                                                 </tr>

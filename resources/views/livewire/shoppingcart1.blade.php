@@ -1403,7 +1403,7 @@
     <!-- Modal HTML -->
     <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
         data-backdrop="static" data-keyboard="false" wire:ignore.self>
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-scrollable">
             <form method="POST" action="{{ route('cash-in-hand') }}">
                 @csrf
                 <div class="modal-content">

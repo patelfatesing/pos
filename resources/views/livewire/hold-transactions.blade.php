@@ -1,8 +1,8 @@
 <div>
-    <table class="table table-bordered">
-        <thead>
+    <table class="table table-bordered hold-transactions-table">
+        <thead class="table-info">
             <tr>
-                <th>Sales ID</th>
+                <th class="text-start">Sales ID</th>
                 <th>Customer Name</th>
                 <th>Date</th>
                 <th>Quantity</th>
@@ -38,19 +38,19 @@
                         <td>{{ $sumqty }}</td>
                         <td>₹{{ $transaction->total }}</td>
                         <td>
-                            <div class="d-flex flex-wrap gap-1">
+                            <div class="d-flex gap-1 action-buttons-block justify-content-center">
                                 <button
                                     wire:click="resumeTransaction('{{ $transaction->id }}', '{{ $transaction->commission_user_id }}', '{{ $transaction->party_user_id }}')"
                                     class="btn btn-success btn-sm px-3">
                                     Resume
                                 </button>
-                                <button class="btn btn-primary btn-sm px-3"
+                                <button class="pdf-view"
                                     wire:click="printInvoice('{{ $transaction->id }}')">
-                                    View
+                                    <img src="{{ asset('assets/images/sidebar-imgs/pdf-ic.svg') }}" alt="PDF">
                                 </button>
-                                <button class="btn btn-danger btn-sm px-3"
+                                <button class="btn btn-danger btn-sm ms-2 remove-item"
                                     onclick="confirmDelete({{ $transaction->id }})">
-                                    Delete
+                                    <i class="fa fa-trash-o" aria-hidden="true"></i>
                                 </button>
                             </div>
                         </td>

@@ -166,7 +166,7 @@
         window.addEventListener('loader-stop', () => {
             setTimeout(function() {
                 // $('.toast').fadeOut('slow');
-                console.log("dfgdfg");
+                
             }, 5000); // 5 seconds before fade-out
             const loader = document.getElementById('custom-loader');
             if (loader) {
