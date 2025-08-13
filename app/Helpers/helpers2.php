@@ -97,6 +97,7 @@ if (!function_exists('getUnreadNotificationsByNotifyTo')) {
         if ($branch_id != "") {
             return Notification::where('status', 'unread')
                 ->where('notify_to', $branch_id)
+                // ->where('created_at', '>=', Carbon::now()->subDay())  // Notifications within last 24 hours
                 ->count();
         } else {
             return Notification::where('notify_to', null)

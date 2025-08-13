@@ -11,7 +11,7 @@
             <div class="d-flex align-items-center">
                 <img src="{{ asset('assets/images/logo1.png') }}" alt="Logo" class="img-fluid"
                     style="max-height: 40px;" />
-                    <h4 class="logo-title m2-2 ml-2">LiquorHub</h4>
+                <h4 class="logo-title m2-2 ml-2">LiquorHub</h4>
             </div>
 
             <!-- Right Side -->
@@ -148,8 +148,7 @@
                 @if (auth()->user()->hasRole('warehouse'))
                     <div class="sidebar-item" wire:click="printLastInvoice" title="Print Invoice">
                         <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
-                            <img src="{{ asset('assets/images/sidebar-imgs/print_icon.png') }}"
-                                alt="Print Invoice Icon">
+                            <img src="{{ asset('assets/images/sidebar-imgs/print_icon.png') }}" alt="Print Invoice Icon">
                         </button>
                         <span class="ic-txt">Print Invoice</span>
                     </div>
@@ -274,8 +273,7 @@
 
                                     <!-- Barcode icon -->
                                     <img class="barcode-search"
-                                        src="{{ asset('external/barcoderead14471-053n.svg') }}"
-                                        alt="Barcode">
+                                        src="{{ asset('external/barcoderead14471-053n.svg') }}" alt="Barcode">
 
                                     <!-- Clear button -->
                                     @if ($search)
@@ -602,8 +600,8 @@
                                             <button type="button" class="btn btn-deafult btn-cash-upi w-100 px-3"
                                                 wire:click="cashupitoggleBox">
                                                 <span> Cash + UPI</span>
-                                                <img src="{{ asset('external/right4471-5iuh.svg') }}"
-                                                    alt="Right" style="height: 18px;" class="float-end">
+                                                <img src="{{ asset('external/right4471-5iuh.svg') }}" alt="Right"
+                                                    style="height: 18px;" class="float-end">
                                             </button>
                                         </div>
                                     @endif
@@ -1305,121 +1303,122 @@
                     <div id="cash-payment">
                         <form onsubmit="event.preventDefault();" class="needs-validation" novalidate>
                             {{-- <h6 class="mb-3">💵 {{ __('messages.enter_cash_denominations') }}</h6> --}}
-                            
-                                <div class="row g-3">
-                                    <div class="col-md-12">
-                                        <table class=" table table-bordered ">
-                                            <thead class="table-dark">
+
+                            @if ($inOutStatus)
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <table class=" table table-bordered ">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                @if (empty($this->selectedSalesReturn))
+                                                    <th class="text-center" style="width:15%">
+                                                        {{ __('messages.amount') }}</th>
+                                                    <th class="text-center" style="width:25%">
+                                                        {{ __('messages.in') }}</th>
+                                                @endif
+                                                <th style="width: 20%;" class="text-center">
+                                                    {{ __('messages.currency') }}</th>
+                                                <th class="text-center" style="width:25%">
+                                                    {{ __('messages.out') }}</th>
+                                                <th class="text-center" style="width:15%">
+                                                    {{ __('messages.amount') }}
+                                                    <button wire:click="clearCashNotes" class="btn btn-danger btn-sm">
+                                                        <i class="fa fa-eraser"></i>
+                                                    </button>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($noteDenominations as $key => $denomination)
+                                                @php
+                                                    $inValue = $cashNotes[$key][$denomination]['in'] ?? 0;
+                                                    $outValue = $cashNotes[$key][$denomination]['out'] ?? 0;
+                                                    // $rowAmount = ($inValue - $outValue) * $denomination;
+                                                @endphp
                                                 <tr>
                                                     @if (empty($this->selectedSalesReturn))
-                                                        <th class="text-center" style="width:15%">
-                                                            {{ __('messages.amount') }}</th>
-                                                        <th class="text-center" style="width:25%">
-                                                            {{ __('messages.in') }}</th>
-                                                    @endif
-                                                    <th style="width: 20%;" class="text-center">
-                                                        {{ __('messages.currency') }}</th>
-                                                    <th class="text-center" style="width:25%">
-                                                        {{ __('messages.out') }}</th>
-                                                    <th class="text-center" style="width:15%">
-                                                        {{ __('messages.amount') }}
-                                                        <button wire:click="clearCashNotes"
-                                                            class="btn btn-danger btn-sm">
-                                                            <i class="fa fa-eraser"></i>
-                                                        </button>
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($noteDenominations as $key => $denomination)
-                                                    @php
-                                                        $inValue = $cashNotes[$key][$denomination]['in'] ?? 0;
-                                                        $outValue = $cashNotes[$key][$denomination]['out'] ?? 0;
-                                                        // $rowAmount = ($inValue - $outValue) * $denomination;
-                                                    @endphp
-                                                    <tr>
-                                                        @if (empty($this->selectedSalesReturn))
-                                                            <td class="text-center fw-bold">
-                                                                {{ format_inr($inValue * $denomination) }}
-                                                            </td>
-                                                            <td class="text-center">
-                                                                <div class="d-flex align-items-center counter-add-delete-area"
-                                                                style="width: 100%">
-                                                                    <button class="btn btn-gray rounded-start"
-                                                                        style="width: 40px;"
-                                                                        wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'in')">
-                                                                        −
-                                                                    </button>
-
-
-                                                                    <input type="number"
-                                                                        class="form-control text-center rounded-0"
-                                                                        value="{{ $inValue }}" readonly
-                                                                        style="width: 60px;" />
-
-                                                                    <button class="btn btn-gray rounded-end"
-                                                                        style="width: 40px;"
-                                                                        wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'in')">
-                                                                        +
-                                                                    </button>
-                                                                </div>
-
-                                                            </td>
-                                                        @endif
-                                                        @if (!empty($this->selectedSalesReturn))
-                                                            <td class="text-center ">
-                                                            @else
-                                                            <td class="text-center currency-center">
-                                                        @endif
-                                                        {{ format_inr($denomination) }}</td>
-
+                                                        <td class="text-center fw-bold">
+                                                            {{ format_inr($inValue * $denomination) }}
+                                                        </td>
                                                         <td class="text-center">
                                                             <div class="d-flex align-items-center counter-add-delete-area"
                                                                 style="width: 100%">
                                                                 <button class="btn btn-gray rounded-start"
                                                                     style="width: 40px;"
-                                                                    wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'out')">
+                                                                    wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'in')">
                                                                     −
                                                                 </button>
 
-                                                                <input type="text"
+
+                                                                <input type="number"
                                                                     class="form-control text-center rounded-0"
-                                                                    value="{{ $outValue }}" readonly
+                                                                    value="{{ $inValue }}" readonly
                                                                     style="width: 60px;" />
 
                                                                 <button class="btn btn-gray rounded-end"
                                                                     style="width: 40px;"
-                                                                    wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'out')">
+                                                                    wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'in')">
                                                                     +
                                                                 </button>
                                                             </div>
-                                                        </td>
 
-                                                        <td class="text-center fw-bold">
-                                                            {{ format_inr($outValue * $denomination) }}
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                                <tr class="table-dark">
-                                                    @if (empty($this->selectedSalesReturn))
-                                                        <td class="text-center">
-                                                            {{ format_inr($totals['totalIn']) }}</td>
-                                                        <td class="text-center">
-                                                            {{ $totals['totalInCount'] }}
                                                         </td>
                                                     @endif
-                                                    <td class="text-center">TOTAL</td>
+                                                    @if (!empty($this->selectedSalesReturn))
+                                                        <td class="text-center ">
+                                                        @else
+                                                        <td class="text-center currency-center">
+                                                    @endif
+                                                    {{ format_inr($denomination) }}</td>
+
                                                     <td class="text-center">
-                                                        {{ $totals['totalOutCount'] }}
+                                                        <div class="d-flex align-items-center counter-add-delete-area"
+                                                            style="width: 100%">
+                                                            <button class="btn btn-gray rounded-start"
+                                                                style="width: 40px;"
+                                                                wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'out')">
+                                                                −
+                                                            </button>
+
+                                                            <input type="text"
+                                                                class="form-control text-center rounded-0"
+                                                                value="{{ $outValue }}" readonly
+                                                                style="width: 60px;" />
+
+                                                            <button class="btn btn-gray rounded-end"
+                                                                style="width: 40px;"
+                                                                wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'out')">
+                                                                +
+                                                            </button>
+                                                        </div>
                                                     </td>
-                                                    <td class="text-center">
-                                                        {{ format_inr($totals['totalOut']) }}</td>
+
+                                                    <td class="text-center fw-bold">
+                                                        {{ format_inr($outValue * $denomination) }}
+                                                    </td>
                                                 </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                            @endforeach
+                                            <tr class="table-dark">
+                                                @if (empty($this->selectedSalesReturn))
+                                                    <td class="text-center">
+                                                        {{ format_inr($totals['totalIn']) }}</td>
+                                                    <td class="text-center">
+                                                        {{ $totals['totalInCount'] }}
+                                                    </td>
+                                                @endif
+                                                <td class="text-center">TOTAL</td>
+                                                <td class="text-center">
+                                                    {{ $totals['totalOutCount'] }}
+                                                </td>
+                                                <td class="text-center">
+                                                    {{ format_inr($totals['totalOut']) }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
-                            
+                            </div>
+                            @endif
+
                             @if (!empty($this->selectedSalesReturn))
                                 <div class="row">
                                     <div class="col-md-12">
@@ -1517,7 +1516,7 @@
                                     <div class="col-md-3">
                                         @if (count($itemCarts) > 0)
                                             <div class="">
-            
+
                                                 @if (!empty($this->selectedSalesReturn) && $this->cashAmount == $totals['totalOut'])
                                                     <button id="paymentSubmit"
                                                         class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
@@ -1530,7 +1529,7 @@
                                                             class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
                                                             wire:click="checkout" wire:loading.attr="disabled"
                                                             wire:target="checkout">
-            
+
                                                             <span wire:loading.remove wire:target="checkout">
                                                                 {{ __('messages.submit') }}
                                                             </span>
@@ -1539,13 +1538,13 @@
                                                             </span>
                                                         </button>
                                                     @endif
-            
+
                                                     @if (!$inOutStatus)
                                                         <button id="paymentSubmit"
                                                             class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
                                                             wire:click="checkout" wire:loading.attr="disabled"
                                                             wire:target="checkout">
-            
+
                                                             <span wire:loading.remove wire:target="checkout">
                                                                 {{ __('messages.submit') }}
                                                             </span>
@@ -1554,7 +1553,7 @@
                                                             </span>
                                                         </button>
                                                     @endif
-            
+
                                                 @endif
                                                 {{-- <div wire:loading class=" text-muted">{{ __('messages.processing_payment') }}...
                                                 </div> --}}
@@ -1686,113 +1685,117 @@
                                 $totalAmount = 0;
                             @endphp
 
-                            <div class="row g-3">
-                                <div class="col-md-12">
-                                    <table class="table table-bordered">
-                                        <thead class="table-dark">
-                                            <tr>
-                                                <th class="text-center" style="width: 15%;">{{ __('messages.amount') }}</th>
-                                                @if (empty($this->selectedSalesReturn))
-                                                    <th class="text-center" style="width:25%">
-                                                        {{ __('messages.in') }}</th>
-                                                @endif
-                                                <th class="text-center" style="width: 20%;">{{ __('messages.currency') }}</th>
-                                                <th class="text-center" style="width:25%">
-                                                    {{ __('messages.out') }}</th>
-                                                <th class="text-center" style="width: 15%;">
-                                                    {{ __('messages.amount') }}
-                                                    <button wire:click="clearCashUpiNotes"
-                                                        class="btn btn-danger btn-sm">
-                                                        <i class="fa fa-eraser"></i>
-                                                    </button>
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach ($noteDenominations as $key => $denomination)
-                                                @php
-                                                    $inValue = $cashupiNotes[$key][$denomination]['in'] ?? 0;
-                                                    $outValue = $cashupiNotes[$key][$denomination]['out'] ?? 0;
-                                                    $rowAmount = ($inValue - $outValue) * $denomination;
-
-                                                    $totalIn += $inValue * $denomination;
-                                                    $totalOut += $outValue * $denomination;
-                                                    $totalAmount += $rowAmount;
-                                                @endphp
-
+                            @if ($inOutStatus)
+                                <div class="row g-3">
+                                    <div class="col-md-12">
+                                        <table class="table table-bordered">
+                                            <thead class="table-dark">
                                                 <tr>
-                                                    <td class="text-center">
-                                                        {{ format_inr($inValue * $denomination) }}
-                                                    </td>
-
+                                                    <th class="text-center" style="width: 15%;">
+                                                        {{ __('messages.amount') }}</th>
                                                     @if (empty($this->selectedSalesReturn))
+                                                        <th class="text-center" style="width:25%">
+                                                            {{ __('messages.in') }}</th>
+                                                    @endif
+                                                    <th class="text-center" style="width: 20%;">
+                                                        {{ __('messages.currency') }}</th>
+                                                    <th class="text-center" style="width:25%">
+                                                        {{ __('messages.out') }}</th>
+                                                    <th class="text-center" style="width: 15%;">
+                                                        {{ __('messages.amount') }}
+                                                        <button wire:click="clearCashUpiNotes"
+                                                            class="btn btn-danger btn-sm">
+                                                            <i class="fa fa-eraser"></i>
+                                                        </button>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($noteDenominations as $key => $denomination)
+                                                    @php
+                                                        $inValue = $cashupiNotes[$key][$denomination]['in'] ?? 0;
+                                                        $outValue = $cashupiNotes[$key][$denomination]['out'] ?? 0;
+                                                        $rowAmount = ($inValue - $outValue) * $denomination;
+
+                                                        $totalIn += $inValue * $denomination;
+                                                        $totalOut += $outValue * $denomination;
+                                                        $totalAmount += $rowAmount;
+                                                    @endphp
+
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            {{ format_inr($inValue * $denomination) }}
+                                                        </td>
+
+                                                        @if (empty($this->selectedSalesReturn))
+                                                            <td class="text-center">
+                                                                <div class="d-flex align-items-center counter-add-delete-area"
+                                                                    style="width: 100%">
+                                                                    <button class="btn btn-gray rounded-start"
+                                                                        style="width: 40px;"
+                                                                        wire:click="decrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'in')">
+                                                                        -
+                                                                    </button>
+                                                                    <input type="text"
+                                                                        class="form-control text-center rounded-0"
+                                                                        value="{{ $inValue }}" readonly
+                                                                        style="width: 60px;">
+                                                                    <button class="btn btn-gray rounded-end"
+                                                                        style="width: 40px;"
+                                                                        wire:click="incrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'in')">
+                                                                        +
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        @endif
+
+                                                        <td class="text-center currency-center">
+                                                            {{ format_inr($denomination) }}</td>
+
                                                         <td class="text-center">
                                                             <div class="d-flex align-items-center counter-add-delete-area"
                                                                 style="width: 100%">
                                                                 <button class="btn btn-gray rounded-start"
                                                                     style="width: 40px;"
-                                                                    wire:click="decrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'in')">
+                                                                    wire:click="decrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'out')">
                                                                     -
                                                                 </button>
                                                                 <input type="text"
-                                                                    class="form-control text-center rounded-0"
-                                                                    value="{{ $inValue }}" readonly
+                                                                    class="form-control text-center"
+                                                                    value="{{ $outValue }}" readonly
                                                                     style="width: 60px;">
                                                                 <button class="btn btn-gray rounded-end"
                                                                     style="width: 40px;"
-                                                                    wire:click="incrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'in')">
+                                                                    wire:click="incrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'out')">
                                                                     +
                                                                 </button>
                                                             </div>
                                                         </td>
+
+                                                        <td class="text-center">
+                                                            {{ format_inr($rowAmount) }}
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+
+                                                <tr class="table-dark">
+                                                    <td class="text-center">
+                                                        {{ format_inr($totalIn) }}
+                                                    </td>
+                                                    @if (empty($this->selectedSalesReturn))
+                                                        <td class="text-center">{{ $totalIn }}
+                                                        </td>
                                                     @endif
-
-                                                    <td class="text-center currency-center">
-                                                        {{ format_inr($denomination) }}</td>
-
+                                                    <td class="text-center">TOTAL</td>
+                                                    <td class="text-center">{{ $totalOut }}</td>
                                                     <td class="text-center">
-                                                        <div class="d-flex align-items-center counter-add-delete-area"
-                                                            style="width: 100%">
-                                                            <button class="btn btn-gray rounded-start"
-                                                                style="width: 40px;"
-                                                                wire:click="decrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'out')">
-                                                                -
-                                                            </button>
-                                                            <input type="text"
-                                                                class="form-control text-center"
-                                                                value="{{ $outValue }}" readonly
-                                                                style="width: 60px;">
-                                                            <button class="btn btn-gray rounded-end"
-                                                                style="width: 40px;"
-                                                                wire:click="incrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'out')">
-                                                                +
-                                                            </button>
-                                                        </div>
-                                                    </td>
-
-                                                    <td class="text-center">
-                                                        {{ format_inr($rowAmount) }}
-                                                    </td>
+                                                        {{ format_inr($totalAmount) }}</td>
                                                 </tr>
-                                            @endforeach
-
-                                            <tr class="table-dark">
-                                                <td class="text-center">
-                                                    {{ format_inr($totalIn) }}
-                                                </td>
-                                                @if (empty($this->selectedSalesReturn))
-                                                    <td class="text-center">{{ $totalIn }}
-                                                    </td>
-                                                @endif
-                                                <td class="text-center">TOTAL</td>
-                                                <td class="text-center">{{ $totalOut }}</td>
-                                                <td class="text-center">
-                                                    {{ format_inr($totalAmount) }}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
-                            </div>
+                            @endif
 
                             <div class="row">
                                 <div class="col-md-6">
@@ -2573,14 +2576,13 @@
         showAlert('error', 'LiquorHub!', event.detail[0].message || 'Failed to void the cart.');
     });
 
-   window.addEventListener('order-saved', event => {
-    const {
-        type,
-        title,
-        message
-    } = event.detail;
-
-Swal.fire({
+    window.addEventListener('order-saved', event => {
+        const {
+            type,
+            title,
+            message
+        } = event.detail;
+        Swal.fire({
             title: 'Success!',
             text: 'Transaction completed successfully.',
             icon: type, // 'success' or 'error'
@@ -2595,29 +2597,6 @@ Swal.fire({
             showCloseButton: true,
             customClass: {
                 popup: 'small-alert'
-            }
-        }).then((result) => {
-            if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
-                // location.reload(); // reload after OK click or auto close
-            }
-        });
-
-    // Attach event to the custom button after SweetAlert is shown
-    $(document).on('click', '#fullscreen-reload-btn', function () {
-        const elem = document.documentElement;
-
-        // Attempt fullscreen
-        if (!document.fullscreenElement) {
-            if (elem.requestFullscreen) {
-                elem.requestFullscreen().then(() => location.reload());
-            } else if (elem.webkitRequestFullscreen) { // Safari
-                elem.webkitRequestFullscreen();
-                location.reload();
-            } else if (elem.msRequestFullscreen) { // IE/Edge
-                elem.msRequestFullscreen();
-                location.reload();
-            } else {
-                location.reload(); // fallback
             }
 
         }).then((result) => {

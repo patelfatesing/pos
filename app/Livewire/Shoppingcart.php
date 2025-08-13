@@ -2044,6 +2044,7 @@ class Shoppingcart extends Component
             $item->quantity++;
 
             if ($item->quantity > $product['total_quantity']) {
+                $this->dispatch('loader-stop');
                 $this->dispatch('notiffication-error', ['message' => 'Product is out of stock and cannot be added to cart.']);
                 return;
             }
