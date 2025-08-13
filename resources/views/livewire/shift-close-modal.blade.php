@@ -68,6 +68,11 @@
                                                             Remove Hold
                                                         </button>
                                                     @endif
+                                                    <button type="button" wire:click="removeHold"
+                                                        class="btn btn-secondary rounded-pill remove_hold_btn"
+                                                        title="View Stock Status">
+                                                        Remove Hold
+                                                    </button>
                                                 </div>
                                                 <div class="col-md-6 col-lg-12 col-xl-6">
                                                     <div class="row status-time-area">

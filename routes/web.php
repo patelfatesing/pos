@@ -84,9 +84,11 @@ Route::middleware(['role:admin'])->get('/admin-dashboard', function () {
 Route::middleware(['permission:editor_permission'])->get('/editor-dashboard', function () {
     return 'Editor Dashboard';
 });
+
 Route::get('/', function () {
     return redirect('/login');
-})->name('login');
+})->name('root');
+
 Route::post('/shift-close/store', [ShiftClosingController::class, 'store'])->name('shift-close.store');
 Route::post('/shift-close/withdraw', [ShiftClosingController::class, 'withdraw'])->name('shift-close.withdraw');
 Route::get('/shift-summary/{shiftId}', [ShiftClosingController::class, 'getShiftSummary']);
@@ -361,28 +363,25 @@ Route::middleware('auth')->group(function () {
     Route::get('/exp/edit/{id}', [ExpenseController::class, 'edit'])->name('exp.edit');
     Route::post('/exp/update', [ExpenseController::class, 'update'])->name('exp.update');
 
-    Route::get('/demand-order/list', [DemandOrderController::class, 'index'])->name('demand-order.list');
-    Route::post('/demand-order/get-data', [DemandOrderController::class, 'getData'])->name('demand-order.getData');
-    Route::get('/demand-order/create', [DemandOrderController::class, 'create'])->name('demand-order.create');
-    Route::post('/demand-order/get-data', [DemandOrderController::class, 'getData'])->name('demand-order.getData');
+    Route::prefix('demand-order')->name('demand-order.')->group(function () {
+        Route::get('/list', [DemandOrderController::class, 'index'])->name('list');
+        Route::post('/get-data', [DemandOrderController::class, 'getData'])->name('getData');
+        Route::get('/create', [DemandOrderController::class, 'create'])->name('create');
 
+        Route::get('/step-1', [DemandOrderController::class, 'step1'])->name('step1');
+        Route::post('/step-1', [DemandOrderController::class, 'postStep1'])->name('post-step1');
+        Route::get('/step-2', [DemandOrderController::class, 'step2'])->name('step2');
+        Route::post('/step-2', [DemandOrderController::class, 'postStep2'])->name('post-step2');
+        Route::get('/step-3', [DemandOrderController::class, 'step3'])->name('step3');
+        Route::post('/step-3', [DemandOrderController::class, 'postStep3'])->name('post-step3');
+        Route::get('/step-4', [DemandOrderController::class, 'step4'])->name('step4');
+        Route::post('/step-4', [DemandOrderController::class, 'postStep4'])->name('post-step4');
 
-    Route::get('/demand-order/step-1', [DemandOrderController::class, 'step1'])->name('demand-order.step1');
-    Route::post('/demand-order/step-1', [DemandOrderController::class, 'postStep1'])->name('demand-order.step1');
-
-    Route::get('/demand-order/step-2', [DemandOrderController::class, 'step2'])->name('demand-order.step2');
-    Route::post('/demand-order/step-2', [DemandOrderController::class, 'postStep2'])->name('demand-order.step2');
-
-    Route::get('/demand-order/step-3', [DemandOrderController::class, 'step3'])->name('demand-order.step3');
-    Route::post('/demand-order/step-3', [DemandOrderController::class, 'postStep3'])->name('demand-order.step3');
-
-    Route::get('/demand-order/step-4', [DemandOrderController::class, 'step4'])->name('demand-order.step4');
-    Route::post('/demand-order/step-4', [DemandOrderController::class, 'postStep4'])->name('demand-order.step4');
-
-    Route::post('/demand-order/store', [DemandOrderController::class, 'store'])->name('demand-order.store');
-    Route::get('/demand-order/edit/{id}', [DemandOrderController::class, 'edit'])->name('demand-orders.edit');
-    Route::get('/demand-order/create-pre', [DemandOrderController::class, 'createPrediction'])->name('demand-order.create.pre');
-    Route::get('/demand-order/view/{id}', [DemandOrderController::class, 'view'])->name('demand-order.view');
+        Route::post('/store', [DemandOrderController::class, 'store'])->name('store');
+        Route::get('/edit/{id}', [DemandOrderController::class, 'edit'])->name('edit');   // note: you used 'demand-orders.edit' earlier; keep consistent
+        Route::get('/create-pre', [DemandOrderController::class, 'createPrediction'])->name('create.pre');
+        Route::get('/view/{id}', [DemandOrderController::class, 'view'])->name('view');
+    });
 
     // Product Import Routes
     Route::prefix('products')->name('products.')->group(function () {
