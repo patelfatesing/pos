@@ -468,4 +468,30 @@ class InventoryController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function checkStock(Request $request)
+    {
+        $productId = $request->product_id;
+        $storeId = $request->store_id;
+        $requestedQty = $request->quantity;
+
+        // Total available quantity from all batches for product + store
+        $availableQty = Inventory::where('product_id', $productId)
+            ->where('store_id', $storeId)
+            ->sum('quantity');
+
+        if ($requestedQty > $availableQty) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Insufficient stock available. Only ' . $availableQty . ' left in stock.',
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'available' => $availableQty,
+        ]);
+    }
+
+    
 }

@@ -14,11 +14,23 @@
                         <div class="col-sm-12">
                             <div class="card">
                                 <div class="card-header d-flex justify-content-between align-items-center">
+                                    <!-- Header Title Section -->
                                     <div class="header-title">
                                         <h4 class="card-title">View Transaction - {{ $branch_name }}</h4>
                                     </div>
-                                    <a href="{{ route('shift-manage.list') }}" class="btn btn-secondary">Back</a>
+
+                                    <!-- Buttons Section -->
+                                    <div class="d-flex">
+                                        <a href="{{ route('sales.add-sales', ['branch_id' => $id, 'shift_id' => $shift_id]) }}"
+                                            class="btn btn-primary-dark mr-2">
+                                            <i class="fa fa-edit"></i> Add Trasaction
+                                        </a>
+                                        <a href="{{ route('shift-manage.list') }}" class="btn btn-secondary">
+                                            Back
+                                        </a>
+                                    </div>
                                 </div>
+
                                 <div class="card-body">
 
                                     <!-- Show Entries Form -->

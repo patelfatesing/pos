@@ -2,7 +2,7 @@
 
     <button class="btn btn-default cameraBtnPdg" data-bs-toggle="modal" data-bs-target="#cameraModal"
         @if ($this->selectedSalesReturn == true) disabled @endif>
-        <img src="{{ asset('public/external/camera114471-6eja.svg') }}" alt="Separator" class="cameraModalHht" />
+        <img src="{{ asset('external/camera114471-6eja.svg') }}" alt="Separator" class="cameraModalHht" />
     </button>
 
     <!-- Modal -->
@@ -21,67 +21,73 @@
                     }
                 @endphp
                 <div class="modal-body">
-                <div class="row align-items-center mb-4">
-                    {{-- Current Customer Info --}}
-                    <div class="col-md-3 text-center">
-                        @php
-                            $customerImage = $this->partyStatic['pic'] ?? $this->commiStatic['pic'] ?? null;
-                            $customerName = $this->partyStatic['first_name'] ?? $this->commiStatic['first_name'] ?? 'N/A';
-                            $customerType = !empty($this->partyStatic['first_name']) ? 'Party Customer' : ' Customer';
-                        @endphp
+                    <div class="row align-items-center mb-4">
+                        {{-- Current Customer Info --}}
+                        <div class="col-md-3 text-center">
+                            @php
+                                $customerImage = $this->partyStatic['pic'] ?? ($this->commiStatic['pic'] ?? null);
+                                $customerName =
+                                    $this->partyStatic['first_name'] ?? ($this->commiStatic['first_name'] ?? 'N/A');
+                                $customerType = !empty($this->partyStatic['first_name'])
+                                    ? 'Party Customer'
+                                    : ' Customer';
+                            @endphp
 
-                        @if ($customerImage)
-                            <img src="{{ asset('storage/' . $customerImage) }}" alt="{{ $customerType }}"
-                                class="img-thumbnail shadow" style="width: 100px; height: 100px; object-fit: cover;">
-                        @else
-                            <img src="{{ asset('assets/images/anonymous.png') }}" alt="Default Customer"
-                                class="img-thumbnail " style="width: 100px; height: 100px; object-fit: cover;">
-                        @endif
-                    </div>
-
-                    <div class="col-md-3">
-                        <div class="text-muted small">{{ $customerType }}</div>
-                        <h5 class="text-primary mb-0">{{ $customerName }}</h5>
-                    </div>
-
-                    {{-- Previous Hold Images + Saved Preview --}}
-                    <div class="col-md-6">
-                        <div class="row g-2">
-                            @foreach ($previousHoldImages ?? [] as $image)
-                                <div class="col-6 text-center">
-                                    <img src="{{ asset('storage/' . $image) }}" alt="Previous Hold"
-                                        class="img-thumbnail shadow-sm" style="width: 100px; height: 100px; object-fit: cover;">
-                                </div>
-                            @endforeach
+                            @if ($customerImage)
+                                <img src="{{ asset('storage/' . $customerImage) }}" alt="{{ $customerType }}"
+                                    class="img-thumbnail shadow"
+                                    style="width: 100px; height: 100px; object-fit: cover;">
+                            @else
+                                <img src="{{ asset('assets/images/anonymous.png') }}" alt="Default Customer"
+                                    class="img-thumbnail " style="width: 100px; height: 100px; object-fit: cover;">
+                            @endif
                         </div>
 
-                        @if ($storedPhotos)
-                            <div class="card mt-3">
-                                <div class="card-header py-2 px-3 bg-info text-white">
-                                    <h6 class="mb-0">Last Saved Photos</h6>
-                                </div>
-                                <div class="card-body py-2 px-3">
-                                    <div class="row">
-                                        <div class="col-md-6 text-center">
-                                            <strong>Product Photo:</strong><br>
-                                            @if ($productPhotoUrl)
-                                                <img src="{{ asset('storage/' . $productPhotoUrl) }}" alt="Product"
-                                                    class="img-thumbnail mt-2" style="max-height: 100px;">
-                                            @endif
-                                        </div>
-                                        <div class="col-md-6 text-center">
-                                            <strong>Customer Photo:</strong><br>
-                                            @if ($customerPhotoUrl)
-                                                <img src="{{ asset('storage/' . $customerPhotoUrl) }}" alt="Customer"
-                                                    class="img-thumbnail mt-2" style="max-height: 100px;">
-                                            @endif
+                        <div class="col-md-3">
+                            <div class="text-muted small">{{ $customerType }}</div>
+                            <h5 class="text-primary mb-0">{{ $customerName }}</h5>
+                        </div>
+
+                        {{-- Previous Hold Images + Saved Preview --}}
+                        <div class="col-md-6">
+                            <div class="row g-2">
+                                @foreach ($previousHoldImages ?? [] as $image)
+                                    <div class="col-6 text-center">
+                                        <img src="{{ asset('storage/' . $image) }}" alt="Previous Hold"
+                                            class="img-thumbnail shadow-sm"
+                                            style="width: 100px; height: 100px; object-fit: cover;">
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            @if ($storedPhotos)
+                                <div class="card mt-3">
+                                    <div class="card-header py-2 px-3 bg-info text-white">
+                                        <h6 class="mb-0">Last Saved Photos</h6>
+                                    </div>
+                                    <div class="card-body py-2 px-3">
+                                        <div class="row">
+                                            <div class="col-md-6 text-center">
+                                                <strong>Product Photo:</strong><br>
+                                                @if ($productPhotoUrl)
+                                                    <img src="{{ asset('storage/' . $productPhotoUrl) }}" alt="Product"
+                                                        class="img-thumbnail mt-2" style="max-height: 100px;">
+                                                @endif
+                                            </div>
+                                            <div class="col-md-6 text-center">
+                                                <strong>Customer Photo:</strong><br>
+                                                @if ($customerPhotoUrl)
+                                                    <img src="{{ asset('storage/' . $customerPhotoUrl) }}"
+                                                        alt="Customer" class="img-thumbnail mt-2"
+                                                        style="max-height: 100px;">
+                                                @endif
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        @endif
+                            @endif
+                        </div>
                     </div>
-                </div>
 
 
                     @if (!empty($this->partyHoldPic['party_product']) && !empty($this->partyHoldPic['party_customer']))

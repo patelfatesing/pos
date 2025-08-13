@@ -138,7 +138,7 @@
             <tr>
                 <td>Total transaction</td>
                 <td class="text-right">
-                    {{ ($stockTotals->total_added_stock ?? 0) + ($stockTotals->total_transferred_stock ?? 0) }}</td>
+                    {{ ($totalTrasaction) }}</td>
             </tr>
             <tr>
                 <td>Total Products sold</td>
@@ -224,7 +224,7 @@
                         $denoTotal += $amount;
                     @endphp
                     <tr>
-                        <td>{{ $deno }} X {{ $qty }}</td>
+                        <td >{{ $deno }} X </td>
                         <td>{{ $qty }}</td>
                         <td class="text-right">{{ $amount }}</td>
                     </tr>

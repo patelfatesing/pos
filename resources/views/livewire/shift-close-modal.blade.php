@@ -20,7 +20,13 @@
                                 <i class="bi bi-cash-coin me-2"></i> {{ $this->currentShift->shift_no ?? '' }} - Shift
                                 Close Summary - {{ $branch_name ?? 'Shop' }}
                             </h5>
+                            
                         </div>
+                         <button type="button" class="btn btn-light border ms-1" data-bs-toggle="tooltip"
+                            title="Logout" onclick="confirmLogout()">
+                            <img src="{{ asset('external/fi106093284471-0vjk.svg') }}" class="img-fluid"
+                                style="height: 25px;" />
+                        </button>
                         @if ($this->showYesterDayShiftTime == false && $this->shiftclosehidecross == false)
                             {{-- <button type="button" class="close btn btn-default" wire:click="$set('showModal', false)">
                             <span aria-hidden="true">×</span>

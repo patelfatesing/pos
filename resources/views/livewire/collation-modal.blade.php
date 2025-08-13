@@ -3,7 +3,7 @@
     <div class="" wire:click="openModal" title="Collect Credit"
         style="cursor: pointer;">
         <button type="button" class="btn p-1 m-0 border-0 bg-transparent">
-            <img src="{{ asset('public/external/investment114471-sc1b.svg') }}" alt="Collect Credit Icon"
+            <img src="{{ asset('external/investment114471-sc1b.svg') }}" alt="Collect Credit Icon"
                 style="width: 24px; height: 24px;" />
         </button>
         <span class="ic-txt">Collect Credit</span>

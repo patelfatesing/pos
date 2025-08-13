@@ -28,7 +28,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'username' => ['required', 'string'],
             'password' => ['required', 'string'],
         ];
     }
@@ -42,32 +42,32 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        if (! Auth::attempt($this->only('username', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                'username' => trans('auth.failed'),
             ]);
         }
 
         if (Auth::check() && Auth::user()->is_deleted == 'yes') {
             Auth::logout(); // Force logout immediately
             throw ValidationException::withMessages([
-                'email' => 'You account is deleted, Please contact admin.',
+                'username' => 'You account is deleted, Please contact admin.',
             ]);
         }
 
         if (Auth::check() && Auth::user()->is_active != 'yes') {
             Auth::logout(); // Force logout immediately
             throw ValidationException::withMessages([
-                'email' => 'You account is inactive, Please contact admin.',
+                'username' => 'You account is inactive, Please contact admin.',
             ]);
         }
 
         if (Auth::check() && Auth::user()->is_login === 'Yes') {
             // Auth::logout(); // Force logout immediately
             // throw ValidationException::withMessages([
-            //     'email' => 'You are already logged in from another device.',
+            //     'username' => 'You are already logged in from another device.',
             // ]);
         } else {
 
@@ -85,7 +85,7 @@ class LoginRequest extends FormRequest
                 // Another user in the same branch is logged in
                 Auth::logout();
                 throw ValidationException::withMessages([
-                    'email' => 'This store is already logged.',
+                    'username' => 'This store is already logged.',
                 ]);
             }
 
@@ -113,7 +113,7 @@ class LoginRequest extends FormRequest
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
+            'username' => trans('auth.throttle', [
                 'seconds' => $seconds,
                 'minutes' => ceil($seconds / 60),
             ]),
@@ -125,6 +125,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')) . '|' . $this->ip());
+        return Str::transliterate(Str::lower($this->string('username')) . '|' . $this->ip());
     }
 }

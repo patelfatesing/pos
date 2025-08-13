@@ -84,9 +84,11 @@ Route::middleware(['role:admin'])->get('/admin-dashboard', function () {
 Route::middleware(['permission:editor_permission'])->get('/editor-dashboard', function () {
     return 'Editor Dashboard';
 });
+
 Route::get('/', function () {
     return redirect('/login');
-})->name('login');
+})->name('root');
+
 Route::post('/shift-close/store', [ShiftClosingController::class, 'store'])->name('shift-close.store');
 Route::post('/shift-close/withdraw', [ShiftClosingController::class, 'withdraw'])->name('shift-close.withdraw');
 Route::get('/shift-summary/{shiftId}', [ShiftClosingController::class, 'getShiftSummary']);
@@ -168,6 +170,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/stock/stock-request-view/{id}', [StockController::class, 'stockRequestView'])->name('stock.stock-request-view');
     Route::post('/stock-requests/{id}/approve', [StockController::class, 'approve'])
         ->name('stock-requests.approve');
+    Route::post('/stock-requests/{id}/reject', [StockController::class, 'reject'])
+        ->name('stock-requests.reject');
     Route::get('/stock-requests/popup-details/{id}', [StockController::class, 'stockShow'])->name('stock.popupDetails');
 
     Route::get('/stock/edit/{id}', [StockController::class, 'edit'])->name('stock.edit');
@@ -202,6 +206,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/inventories/update-low-level-qty', [InventoryController::class, 'updateLowLevelQty'])->name('inventories.update-low-level-qty');
     Route::get('/inventories/get-low-level-products/{storeId}', [InventoryController::class, 'getLowLevelProducts'])->name('inventories.get-low-level-products');
     Route::post('/inventories/update-multiple-low-level-qty', [InventoryController::class, 'updateMultipleLowLevelQty'])->name('inventories.update-multiple-low-level-qty');
+    Route::post('/inventories/check-inventory', [InventoryController::class, 'checkStock'])->name('inventory.check');
 
     // Route::get('/stock/list', [InventoryController::class, 'index'])->name('inventories.list');
     // Route::post('/inventories/get-data', [InventoryController::class, 'getData'])->name('inventories.getData');
@@ -240,7 +245,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/invoice/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show');
     Route::get('/invoice/{invoice}/download', [InvoiceController::class, 'download'])->name('invoice.download');
     Route::get('/view-invoice/{invoice}/{shift_id?}', [InvoiceController::class, 'viewInvoice'])->name('invoice.view-invoice');
+    Route::get('/sales/edit-sales/{invoice_id}', [InvoiceController::class, 'editSales'])->name('sales.edit-sales');
+    Route::get('/sales/add-sales/{branch_id}/{shift_id}', [InvoiceController::class, 'addSales'])->name('sales.add-sales');
     Route::get('/view-hold-invoice/{invoice}/{shift_id}', [InvoiceController::class, 'viewHoldInvoice'])->name('invoice.view-hold-invoice');
+    Route::post('/invoice/{id}/add-item', [InvoiceController::class, 'addItem']);
+    Route::post('/invoice/{id}/update-qty', [InvoiceController::class, 'updateQty']);
+    Route::post('/invoice/{id}/delete-item', [InvoiceController::class, 'deleteItem']);
+    Route::post('/sales/invoice/update-items/{id}', [InvoiceController::class, 'updateItems'])->name('sales.invoice.updateItems');
+    Route::get('/invoice/{id}/history', [InvoiceController::class, 'fetchHistory'])->name('invoice.fetchHistory');
+    Route::get('/party-customer-discount/{partyUserId}', [InvoiceController::class, 'getPartyCustomerDiscount'])->name('partyCustomerDiscount');
+    Route::post('/sales/invoice/insert-sale', [InvoiceController::class, 'InsertSale'])->name('sales.invoice.insert-sale');
 
     Route::get('/pack-size/list', [PackSizeController::class, 'index'])->name('packsize.list');
     Route::post('/pack-size/get-data', [PackSizeController::class, 'getData'])->name('packsize.getData');
@@ -275,6 +289,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/party-users/{Partyuser}', [PartyUserController::class, 'update'])->name('party-users.update');
     Route::delete('/party-users/{Partyuser}', [PartyUserController::class, 'destroy'])->name('party-users.destroy');
     Route::get('/cust-product-price-change/form', [PartyUserController::class, 'custProductPriceChangeForm'])->name('party-users.cust-product-price-change-form');
+    Route::get('/party-user-credit/{partyUserId}', [PartyUserController::class, 'getCredit'])
+        ->name('partyUserCredit');
+    Route::get('/party-customer-discount/{partyUserId}/{productId}', [PartyUserController::class, 'getCustomerDiscount']);
 
     Route::post('/cust-product-price-change/price_change-store', [PartyUserController::class, 'custPriceChange'])->name('cust-product-price-change-store');
     Route::post('/party-users/get-commission-data', [PartyUserController::class, 'getDataCommission'])->name('party-users.get.commission.data');
@@ -311,6 +328,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/notifications/index', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/fetch-data', [NotificationController::class, 'getData'])->name('notifications.fetch-data');
     Route::get('/notifications/get-notification', [NotificationController::class, 'getNotication'])->name('notifications.get-notication');
+    Route::get('/notifications/expired-product/{id}', [NotificationController::class, 'viewExpiredProducts'])->name('notifications-expired-product');
 
 
     // routes/web.php
@@ -345,26 +363,25 @@ Route::middleware('auth')->group(function () {
     Route::get('/exp/edit/{id}', [ExpenseController::class, 'edit'])->name('exp.edit');
     Route::post('/exp/update', [ExpenseController::class, 'update'])->name('exp.update');
 
-    Route::get('/demand-order/list', [DemandOrderController::class, 'index'])->name('demand-order.list');
-    Route::post('/demand-order/get-data', [DemandOrderController::class, 'getData'])->name('demand-order.getData');
-    Route::get('/demand-order/create', [DemandOrderController::class, 'create'])->name('demand-order.create');
+    Route::prefix('demand-order')->name('demand-order.')->group(function () {
+        Route::get('/list', [DemandOrderController::class, 'index'])->name('list');
+        Route::post('/get-data', [DemandOrderController::class, 'getData'])->name('getData');
+        Route::get('/create', [DemandOrderController::class, 'create'])->name('create');
 
-    Route::get('/demand-order/step-1', [DemandOrderController::class, 'step1'])->name('demand-order.step1');
-    Route::post('/demand-order/step-1', [DemandOrderController::class, 'postStep1'])->name('demand-order.step1');
+        Route::get('/step-1', [DemandOrderController::class, 'step1'])->name('step1');
+        Route::post('/step-1', [DemandOrderController::class, 'postStep1'])->name('post-step1');
+        Route::get('/step-2', [DemandOrderController::class, 'step2'])->name('step2');
+        Route::post('/step-2', [DemandOrderController::class, 'postStep2'])->name('post-step2');
+        Route::get('/step-3', [DemandOrderController::class, 'step3'])->name('step3');
+        Route::post('/step-3', [DemandOrderController::class, 'postStep3'])->name('post-step3');
+        Route::get('/step-4', [DemandOrderController::class, 'step4'])->name('step4');
+        Route::post('/step-4', [DemandOrderController::class, 'postStep4'])->name('post-step4');
 
-    Route::get('/demand-order/step-2', [DemandOrderController::class, 'step2'])->name('demand-order.step2');
-    Route::post('/demand-order/step-2', [DemandOrderController::class, 'postStep2'])->name('demand-order.step2');
-
-    Route::get('/demand-order/step-3', [DemandOrderController::class, 'step3'])->name('demand-order.step3');
-    Route::post('/demand-order/step-3', [DemandOrderController::class, 'postStep3'])->name('demand-order.step3');
-
-    Route::get('/demand-order/step-4', [DemandOrderController::class, 'step4'])->name('demand-order.step4');
-    Route::post('/demand-order/step-4', [DemandOrderController::class, 'postStep4'])->name('demand-order.step4');
-
-    Route::post('/demand-order/store', [DemandOrderController::class, 'store'])->name('demand-order.store');
-    Route::get('/demand-order/edit/{id}', [DemandOrderController::class, 'edit'])->name('demand-orders.edit');
-    Route::get('/demand-order/create-pre', [DemandOrderController::class, 'createPrediction'])->name('demand-order.create.pre');
-    Route::get('/demand-order/view/{id}', [DemandOrderController::class, 'view'])->name('demand-order.view');
+        Route::post('/store', [DemandOrderController::class, 'store'])->name('store');
+        Route::get('/edit/{id}', [DemandOrderController::class, 'edit'])->name('edit');   // note: you used 'demand-orders.edit' earlier; keep consistent
+        Route::get('/create-pre', [DemandOrderController::class, 'createPrediction'])->name('create.pre');
+        Route::get('/view/{id}', [DemandOrderController::class, 'view'])->name('view');
+    });
 
     // Product Import Routes
     Route::prefix('products')->name('products.')->group(function () {

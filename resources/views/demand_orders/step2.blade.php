@@ -61,6 +61,8 @@
                                                                 <input type="checkbox" id="select-all"
                                                                     class="form-checkbox mr-1"> Select
                                                             </th>
+                                                             <th class="text-left text-sm font-medium text-gray-700">Sr No
+                                                            </th>
                                                             <th class="text-left text-sm font-medium text-gray-700">Product
                                                             </th>
                                                             <th class="text-left text-sm font-medium text-gray-700">Category
@@ -88,7 +90,7 @@
                                                     $selectedProducts = session('demand_orders.step2', []); // assuming session holds array of product IDs
                                                     @endphp
 
-                                                        @foreach ($predictions as $p)
+                                                        @foreach ($predictions as $key => $p)
                                                                 @php
                                                             $selectCheck=(!empty($selectedProducts['selected']) && in_array($p['product_id'], $selectedProducts['selected']) )? 'checked' : '' ;
                                                             @endphp
@@ -99,6 +101,8 @@
                                                                         class="form-checkbox product-checkbox"   {{ $selectCheck }}>
                                                                         
                                                                 </td>
+                                                                <td class="px-4 py-2 text-sm text-gray-800">
+                                                                    {{ $key+1 }}</td>
                                                                 <td class="px-4 py-2 text-sm text-gray-800">
                                                                     {{ $p['name'] }}</td>
                                                                 <td class="px-4 py-2 text-sm text-gray-800">
