@@ -54,7 +54,8 @@ class SalesReportController extends Controller
                 'invoices.payment_mode',
                 'invoices.party_user_id',
                 'party_users.first_name as party_user',
-                'commission_users.first_name as commission_user'
+                'commission_users.first_name as commission_user',
+                'invoices.edit_in' // Include the 'edit_in' field
             );
 
         // Date filter
@@ -64,6 +65,9 @@ class SalesReportController extends Controller
                 Carbon::parse($request->end_date)->endOfDay(),
             ]);
         }
+
+        // Filter for last 7 days
+        $query->where('invoices.created_at', '>=', Carbon::now()->subDays(7));
 
         $query->where('invoices.status', '!=', 'Hold');
 
@@ -103,7 +107,8 @@ class SalesReportController extends Controller
             'branches.name',            // 10
             'invoices.status',          // 11
             'invoices.payment_mode',    // 12
-            'invoices.created_at'       // 13 ✅
+            'invoices.created_at',       // 13 ✅
+            'invoices.edit_in'          // 14 (for View History condition)
         ];
 
         if ($request->order) {
@@ -128,6 +133,12 @@ class SalesReportController extends Controller
             $items = json_decode($invoice->items, true);
             $itemCount = collect($items)->sum('quantity');
 
+            // Determine if Edit button should be shown (last 7 days)
+            $showEditButton = Carbon::parse($invoice->created_at)->greaterThanOrEqualTo(Carbon::now()->subDays(7));
+
+            // Determine if View History button should be shown (edit_in == 'yes')
+            $showViewHistoryButton = $invoice->edit_in === 'yes';
+
             $data[] = [
                 'invoice_number' => '<a href="' . url('/view-invoice/' . $invoice->id) . '" class="badge badge-success">' . $invoice->invoice_number . '</a>',
                 'status' => $invoice->status,
@@ -142,6 +153,22 @@ class SalesReportController extends Controller
                 'created_at' => date('Y-m-d H:i:s', strtotime($invoice->created_at)),
                 'party_user' => $invoice->party_user ?? 'N/A',
                 'commission_user' => $invoice->commission_user ?? 'N/A',
+                'action' => '
+                        ' . ($showEditButton ? '
+                            <a href="' . url('/sales/edit-sales/' . $invoice->id) . '" class="btn btn-sm btn-success mb-1" title="Edit Invoice">
+                                <i class="fa fa-edit"></i>
+                            </a>
+                        ' : '') . '
+                        ' . ($showViewHistoryButton ? '
+                            <br>
+                            <button type="button"
+                                    class="btn btn-outline-dark btn-sm view-history-btn"
+                                    data-invoice-id="' . $invoice->id . '"
+                                    title="View History">
+                                📝 View History
+                            </button>
+                        ' : '') . '
+                    ',
             ];
         }
 

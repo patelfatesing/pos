@@ -46,7 +46,7 @@
                     </div>
 
                 </div>
-                
+
                 <div class="table-responsive rounded mb-3" id="shiftTableContainer">
                     <table class="table data-tables table-striped" id="shift_tbl">
                         <thead class="bg-white text-uppercase">
@@ -141,6 +141,27 @@
         </div>
     </div>
 
+    <!-- Shift Summary Modal -->
+    <!-- Modal for image preview -->
+    <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageModalLabel">Physical Stock Photo</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <img id="modalImage" src="" alt="Image" class="img-fluid" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -487,5 +508,15 @@
         $('#closeButton').on('click', function() {
             $('#shiftSummaryModal').modal('hide');
         });
+
+        // Function to get the image path
+        function getImagePath(imageFile) {
+            return '{{ asset('storage/shift-images/') }}/' + imageFile;
+        }
+
+        function showImage(imageUrl) {
+            $('#modalImage').attr('src', imageUrl); // Set the image src
+            $('#imageModal').modal('show'); // Show the modal
+        }
     </script>
 @endsection

@@ -1,16 +1,64 @@
-@extends('layouts.backend.layouts')
+@extends('layouts.backend.datatable_layouts')
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+@section('styles')
+    <style>
+        .add-list {
+            white-space: nowrap;
+        }
+
+        .custom-toolbar-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .custom-toolbar-row .dataTables_length {
+            order: 1;
+        }
+
+        .custom-toolbar-row .dt-buttons {
+            order: 2;
+        }
+
+        .custom-toolbar-row .status-filter {
+            order: 3;
+        }
+
+        .custom-toolbar-row .dataTables_filter {
+            order: 4;
+            margin-left: auto;
+        }
+
+        .dataTables_wrapper .dataTables_filter label,
+        .dataTables_wrapper .dataTables_length label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 0;
+        }
+
+        .dt-buttons .btn {
+            margin-right: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .custom-toolbar-row>div {
+                flex: 1 1 100%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+@endsection
+
 @section('page-content')
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <!-- Wrapper Start -->
     <div class="wrapper">
-
         <div class="content-page">
             <div class="container-fluid">
-                <div class="row">
+
+                <!-- Page Header -->
+                <div class="row align-items-center mb-3">
                     <div class="col-lg-12">
                         <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                             <div>
@@ -21,13 +69,16 @@
                             </a>
                         </div>
                     </div>
+                </div>
 
-                    <div class="col-lg-12">
-                        <div class="table-responsive rounded mb-3">
-                            <table class="table data-tables table-striped" id="users_table">
-
+                <!-- Table -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="table-responsive rounded">
+                            <table class="table table-striped table-bordered nowrap" id="users_table" style="width:100%;">
                                 <thead class="bg-white">
                                     <tr class="ligth ligth-data">
+                                        <th>Sr No</th> <!-- Added this line -->
                                         <th>
                                             <b>N</b>ame
                                         </th>
@@ -36,24 +87,24 @@
                                         <th>Role</th>
                                         <th>Branch</th>
                                         <th>Status</th>
-                                        <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
-                                         <th data-type="date" data-format="YYYY/DD/MM">Updated Date</th>
-
+                                        <th>Created Date</th>
+                                        <th>Updated Date</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white">
-                                </tbody>
+                                <tbody></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-                <!-- Page end  -->
+
             </div>
         </div>
     </div>
+
     <!-- Change Password Modal -->
-    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog">
             <form id="changePasswordForm">
                 @csrf
@@ -70,20 +121,16 @@
                             <label for="new_password" class="form-label">New Password</label>
                             <input type="password" class="form-control" id="new_password" name="new_password" required>
                             <!-- Eye icon -->
-                            <span 
-                                class="position-absolute" 
-                                style="top: 65px; right: 25px; cursor: pointer;" 
-                                onclick="togglePasswordVisibility()"
-                            >
+                            <span class="position-absolute" style="top: 65px; right: 25px; cursor: pointer;"
+                                onclick="togglePasswordVisibility()">
                                 <i id="togglePasswordIcon" class="fa fa-eye"></i>
                             </span>
                         </div>
                         <div class="mb-3">
                             <label for="new_password_confirmation" class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control" id="new_password_confirmation" name="new_password_confirmation" required>
-                                <span 
-                                class="position-absolute" 
-                                style="top: 165px; right: 25px; cursor: pointer;" 
+                            <input type="password" class="form-control" id="new_password_confirmation"
+                                name="new_password_confirmation" required>
+                            <span class="position-absolute" style="top: 165px; right: 25px; cursor: pointer;"
                                 onclick="togglePasswordVisibilityNew()">
                                 <i id="togglePasswordIconnew" class="fa fa-eye"></i>
                             </span>
@@ -97,34 +144,37 @@
             </form>
         </div>
     </div>
+@endsection
 
-    <!-- Wrapper End-->
-
+@section('scripts')
     <script>
         $(document).ready(function() {
-
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
 
-            $('#users_table').DataTable().clear().destroy();
-
-            $('#users_table').DataTable({
-                pagelength: 10,
-                responsive: true,
+            const table = $('#users_table').DataTable({
                 processing: true,
-                ordering: true,
-                bLengthChange: true,
                 serverSide: true,
-
-                "ajax": {
-                    "url": '{{ url('users/get-data') }}',
-                    "type": "post",
-                    "data": function(d) {},
+                responsive: true,
+                ajax: {
+                    url: '{{ url('users/get-data') }}',
+                    type: 'POST',
+                    data: function(d) {
+                        d.status = $('#status').val();
+                    }
                 },
-                aoColumns: [
+                columns: [{
+                        data: null,
+                        name: 'sr_no',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
 
                     {
                         data: 'name'
@@ -148,35 +198,63 @@
                     {
                         data: 'created_at'
                     },
-                     {
+                    {
                         data: 'updated_at'
                     },
                     {
-                        data: 'action'
+                        data: 'action',
+                        orderable: false,
+                        searchable: false
                     }
-                    // Define more columns as per your table structure
-
                 ],
-                aoColumnDefs: [  {
-                    bSortable: false,
-                    aTargets: [0,1,2,3,4,5] // disables sorting on all columns
-                },
-                {
-                    bSortable: true,
-                    aTargets: [6] // only enable sorting on 'created_at'
-                }],
                 order: [
-                    [6, 'desc']
-                ], // 🟢 Sort by created_at DESC by default
-                dom: "Bfrtip",
-                lengthMenu: [
-                    [10, 25, 50],
-                    ['10 rows', '25 rows', '50 rows', 'All']
+                    [8, 'desc']
                 ],
-                buttons: ['pageLength']
 
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                pageLength: 10,
+
+                dom: "<'custom-toolbar-row'lfB>t<'row mt-2'<'col-md-6'i><'col-md-6'p>>",
+
+                buttons: [{
+                        extend: 'excelHtml5',
+                        className: 'btn btn-outline-success btn-sm me-2',
+                        title: 'Commission Customer',
+                        filename: 'commission_customer_excel',
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        className: 'btn btn-outline-danger btn-sm',
+                        title: 'Commission Customer',
+                        filename: 'commission_customer_pdf',
+                        orientation: 'landscape',
+                        pageSize: 'A4',
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    }
+                ],
+                initComplete: function() {
+                    // Inject status filter in correct order
+                    $('<div class="status-filter">' +
+                        '<select id="status" class="form-control">' +
+                        '<option value="">All Status</option>' +
+                        '<option value="yes">Active</option>' +
+                        '<option value="no">Inactive</option>' +
+                        '</select>' +
+                        '</div>').insertAfter('.dt-buttons');
+
+                    $('#status').on('change', function() {
+                        table.ajax.reload();
+                    });
+                }
             });
-
         });
 
         function delete_user(id) {
@@ -201,7 +279,7 @@
                         success: function(response) {
                             Swal.fire("Deleted!", "The user has been deleted.", "success").then(() => {
                                 $('#users_table').DataTable().ajax.reload(null,
-                                false); // ✅ Only reload DataTable
+                                    false); // ✅ Only reload DataTable
                             });
                         },
                         error: function(xhr) {
@@ -245,72 +323,82 @@
                 }
             });
         }
+
         function openChangePasswordModal(userId) {
-    $('#password_user_id').val(userId);
-    $('#changePasswordModal').modal('show');
-}
-
-$('#changePasswordForm').submit(function(e) {
-    e.preventDefault();
-
-    const formData = {
-        _token: $('meta[name="csrf-token"]').attr('content'),
-        user_id: $('#password_user_id').val(),
-        new_password: $('#new_password').val(),
-        new_password_confirmation: $('#new_password_confirmation').val(),
-    };
-
-    $.ajax({
-        url: "{{ url('users/change-password') }}",
-        type: "POST",
-        data: formData,
-        success: function(response) {
-            Swal.fire("Success!", "Password updated successfully.", "success");
-            $('#changePasswordModal').modal('hide');
-            $('#changePasswordForm')[0].reset();
-        },
-        error: function(xhr) {
-            let errorMsg = "Failed to update password.";
-
-            if (xhr.responseJSON && xhr.responseJSON.errors) {
-                const errors = xhr.responseJSON.errors;
-                errorMsg = Object.values(errors).flat().join('\n');
-            } else if (xhr.responseJSON && xhr.responseJSON.message) {
-                errorMsg = xhr.responseJSON.message;
+            $('#password_user_id').val(userId);
+            // $('#changePasswordModal').modal('show');
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                var myModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+                myModal.show();
+            } else {
+                // For Bootstrap 4 (with jQuery)
+                $('#changePasswordModal').modal('show');
             }
-
-            Swal.fire("Error!", errorMsg, "error");
         }
 
-    });
-});
-  function togglePasswordVisibility() {
-      const input = document.getElementById('new_password');
-      const icon = document.getElementById('togglePasswordIcon');
+        $('#changePasswordForm').submit(function(e) {
+            e.preventDefault();
 
-      if (input.type === 'password') {
-            input.type = 'text';
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
-      } else {
-            input.type = 'password';
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
-      }
-   }
-    function togglePasswordVisibilityNew() {
-      const input = document.getElementById('new_password_confirmation');
-      const icon = document.getElementById('togglePasswordIconnew');
+            const formData = {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                user_id: $('#password_user_id').val(),
+                new_password: $('#new_password').val(),
+                new_password_confirmation: $('#new_password_confirmation').val(),
+            };
 
-      if (input.type === 'password') {
-            input.type = 'text';
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
-      } else {
-            input.type = 'password';
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
-      }
-   }
+            $.ajax({
+                url: "{{ url('users/change-password') }}",
+                type: "POST",
+                data: formData,
+                success: function(response) {
+                    Swal.fire("Success!", "Password updated successfully.", "success");
+                    $('#changePasswordModal').modal('hide');
+                    $('#changePasswordForm')[0].reset();
+                },
+                error: function(xhr) {
+                    let errorMsg = "Failed to update password.";
+
+                    if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        const errors = xhr.responseJSON.errors;
+                        errorMsg = Object.values(errors).flat().join('\n');
+                    } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+
+                    Swal.fire("Error!", errorMsg, "error");
+                }
+
+            });
+        });
+
+        function togglePasswordVisibility() {
+            const input = document.getElementById('new_password');
+            const icon = document.getElementById('togglePasswordIcon');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        function togglePasswordVisibilityNew() {
+            const input = document.getElementById('new_password_confirmation');
+            const icon = document.getElementById('togglePasswordIconnew');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
     </script>
 @endsection

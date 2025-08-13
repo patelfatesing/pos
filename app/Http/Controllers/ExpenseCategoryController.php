@@ -48,14 +48,14 @@ class ExpenseCategoryController extends Controller
 
         foreach ($data as $role) {
 
-            $action ='<div class="d-flex align-items-center list-action">
+            $action = '<div class="d-flex align-items-center list-action">
                                     <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
                                         href="' . url('/exp-category/edit/' . $role->id) . '"><i class="ri-pencil-line mr-0"></i></a>
                                </div>';
-            
+
             $records[] = [
                 'name' => $role->name,
-                'is_active' =>($role->status == 1 ? '<div class="badge badge-success">Active</div>':'<div class="badge badge-success">Inactive</div>'),
+                'is_active' => ($role->status == 1 ? '<div class="badge badge-success">Active</div>' : '<div class="badge badge-success">Inactive</div>'),
                 'created_at' => \Carbon\Carbon::parse($role->created_at)->format('d-m-Y H:i'),
                 'updated_at' => \Carbon\Carbon::parse($role->updated_at)->format('d-m-Y H:i'),
                 'action' => $action
@@ -78,22 +78,38 @@ class ExpenseCategoryController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|unique:expense_categories,name',
-            'description' => 'nullable',
-            'status' => 'boolean',
+            'name' => 'required|unique:expense_categories,name'
         ]);
 
         ExpenseCategory::create([
             'name' => $request->name,
             'slug' => Str::slug($request->name),
-            'description' => $request->description,
             'status' => $request->status ?? true,
-            'created_by' => auth()->id(),
+            'created_by' => auth()->id()
         ]);
 
-        return redirect()->route('exp_category.list')
-            ->with('success', 'Expense ExpenseCategory created successfully.');
+        return response()->json(['message' => 'Expense Category created successfully.']);
     }
+
+    // public function store(Request $request)
+    // {
+    //     $request->validate([
+    //         'name' => 'required|unique:expense_categories,name',
+    //         'description' => 'nullable',
+    //         'status' => 'boolean',
+    //     ]);
+
+    //     ExpenseCategory::create([
+    //         'name' => $request->name,
+    //         'slug' => Str::slug($request->name),
+    //         'description' => $request->description,
+    //         'status' => $request->status ?? true,
+    //         'created_by' => auth()->id()
+    //     ]);
+
+    //     return redirect()->route('exp_category.list')
+    //         ->with('success', 'Expense ExpenseCategory created successfully.');
+    // }
 
     public function show(ExpenseCategory $expenseCategory)
     {
@@ -103,17 +119,17 @@ class ExpenseCategoryController extends Controller
     public function edit($id)
     {
         $record = ExpenseCategory::where('id', $id)->where('status', 1)->firstOrFail();
-        
+
         return view('expense_categories.edit', compact('record'));
     }
 
     public function update(Request $request)
     {
-        
+
         $id = $request->id;
-        
+
         $expenseCategory = ExpenseCategory::findOrFail($id);
-        
+
         $request->validate([
             'name' => 'required|unique:expense_categories,name,' . $id,
             'description' => 'nullable',

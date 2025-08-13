@@ -19,7 +19,9 @@ class DailyProductStock extends Model
         'sold_stock',
         'closing_stock',
         'shift_id',
-        'difference_in_stock'
+        'difference_in_stock',
+        'modify_sale_add_qty',
+        'modify_sale_remove_qty',
     ];
 
     protected $dates = ['date'];

@@ -21,6 +21,7 @@ class UserController extends Controller
         $data = User::where('is_deleted', 'no')->get();
         return view('user.index', compact('data'));
     }
+
     public function changePassword(Request $request)
     {
         $request->validate([
@@ -51,6 +52,10 @@ class UserController extends Controller
             ->leftJoin('branches', 'user_info.branch_id', '=', 'branches.id')
             ->leftJoin('roles', 'users.role_id', '=', 'roles.id')->where('users.is_deleted', '!=', 'yes');
 
+
+        if ($request->has('status') && $request->status != '') {
+            $query->where('users.is_active', $request->status);
+        }
 
         // **Search filter**
         if (!empty($searchValue)) {
@@ -245,6 +250,7 @@ class UserController extends Controller
     {
         $user = User::findOrFail($request->id);
         $user->is_active = $request->status;
+        $user->is_login = 'No';
         $user->save();
 
         return response()->json(['message' => 'Status updated successfully']);

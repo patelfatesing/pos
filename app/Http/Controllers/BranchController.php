@@ -151,8 +151,8 @@ class BranchController extends Controller
                 'is_active' => $store->is_active == 'yes'
                     ? '<span onclick=\'branchStatusChange("' . $store->id . '", "no")\'><div class="badge badge-success" style="cursor:pointer">Active</div></span>'
                     : '<span onclick=\'branchStatusChange("' . $store->id . '", "yes")\'><div class="badge badge-danger" style="cursor:pointer">Inactive</div></span>',
-                'created_at' => date('d-m-Y h:s', strtotime($store->created_at)),
-                'updated_at' => date('d-m-Y h:s', strtotime($store->updated_at)),
+                'created_at' => $store->created_at->format('d-m-Y h:i A'),
+                'updated_at' => $store->updated_at->format('d-m-Y h:i A'),
                 'action' => $action
             ];
         }

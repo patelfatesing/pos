@@ -53,8 +53,6 @@
 @endsection
 
 @section('page-content')
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">

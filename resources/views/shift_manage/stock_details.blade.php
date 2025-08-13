@@ -59,11 +59,13 @@
                                             <th>Closing Stock</th>
                                             <th>Physical Stock</th>
                                             <th>Difference Stock</th>
+                                            <th>Modify Sale Add Stock</th>
+                                            <th>Modify Sale Remove Stock</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @php
-                                            $totalOpening = $totalAdded = $totalTransferred = $totalSold = $totalClosing = $totalPhysical = $totalDifference = 0;
+                                            $totalOpening = $totalAdded = $totalTransferred = $totalSold = $totalClosing = $totalPhysical = $totalDifference = $totalModifyAdd = $totalModifyRemove = 0;
                                         @endphp
 
                                         @forelse ($rawStockData as $stock)
@@ -77,6 +79,8 @@
                                                     ? $stock->physical_stock
                                                     : 0;
                                                 $totalDifference += $stock->difference_in_stock;
+                                                $totalModifyAdd += $stock->modify_sale_add_qty;
+                                                $totalModifyRemove += $stock->modify_sale_remove_qty;
                                             @endphp
                                             <tr
                                                 style="background-color: {{ $stock->difference_in_stock != 0 ? '#ffcccc' : 'transparent' }}">
@@ -90,6 +94,12 @@
                                                 <td class="text-center">{{ $stock->physical_stock }}</td>
                                                 <td class="text-center">
                                                     {{ $stock->difference_in_stock }}
+                                                </td>
+                                                <td class="text-center">
+                                                    {{ $stock->modify_sale_add_qty }}
+                                                </td>
+                                                <td class="text-center">
+                                                    {{ $stock->modify_sale_remove_qty }}
                                                 </td>
                                             </tr>
                                         @empty
@@ -111,6 +121,8 @@
                                                 style="background-color: {{ $totalDifference != 0 ? '#ffcccc' : 'transparent' }}">
                                                 {{ $totalDifference }}
                                             </th>
+                                            <th>{{ $totalModifyAdd }}</th>
+                                            <th>{{ $totalModifyRemove }}</th>
                                         </tr>
                                     </tbody>
                                 </table>

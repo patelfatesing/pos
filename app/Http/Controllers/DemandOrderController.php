@@ -22,6 +22,79 @@ class DemandOrderController extends Controller
         return view('demand_orders.index', compact('demandOrders'));
     }
 
+
+    public function getData(Request $request)
+    {
+        $draw = $request->input('draw', 1);
+        $start = $request->input('start', 0);
+        $length = $request->input('length', 10);
+        $searchValue = $request->input('search.value', '');
+        $orderColumnIndex = $request->input('order.0.column', 0);
+        $orderColumn = $request->input('columns.' . $orderColumnIndex . '.data', 'id');
+        $orderDirection = $request->input('order.0.dir', 'asc');
+
+        // Base query with join for vendor name
+        $query = DemandOrder::with(['vendor', 'products'])
+            ->leftJoin('vendor_lists', 'vendor_lists.id', '=', 'demand_orders.vendor_id')
+            ->select('demand_orders.*');
+
+        // Apply search filter
+        if (!empty($searchValue)) {
+            $query->where(function ($q) use ($searchValue) {
+                $q->where('vendor_lists.name', 'like', '%' . $searchValue . '%');
+            });
+        }
+
+        // Total before filtering
+        $recordsTotal = DemandOrder::count();
+
+        // Total after filtering
+        $recordsFiltered = $query->count();
+
+        // Apply ordering and pagination
+        if (!empty($orderColumn)) {
+            $query->orderBy('demand_orders.' . $orderColumn, $orderDirection);
+        }
+        if ($length > 0) {
+            $query->skip($start)->take($length);
+        }
+
+        // Fetch results
+        $data = $query->get();
+
+        // Build response data
+        $records = [];
+        foreach ($data as $order) {
+            $vendorName = $order->vendor->name ?? 'N/A';
+            $dataTotal = $this->getTotal($order->id); // Assume it returns object with total_quantity, total_sell_price
+
+            $action = '<div class="d-flex align-items-center list-action">
+            <button class="btn btn-warning btn-sm" onclick="openPDF(\'' . asset('storage/demand/' . $order->file_name) . '\')" data-toggle="modal" data-target="#pdfModal">
+                <i class="las la-file-pdf"></i> View File
+            </button>
+            <a href="' . route('demand-order.view', $order->id) . '" class="btn btn-info btn-sm ml-2">View</a>
+        </div>';
+
+            $records[] = [
+                'status' => ucfirst($order->status),
+                'shipping_date' => $order->shipping_date,
+                'purchase_date' => $order->purchase_date,
+                'total_quantity' => $dataTotal->total_quantity ?? 0,
+                'total_sell_price' => $dataTotal->total_sell_price ?? 0,
+                'sub_category' => $this->getSubCategory($order->id),
+                'vendor' => $vendorName,
+                'action' => $action,
+            ];
+        }
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $records,
+        ]);
+    }
+
     public function create()
     {
         // $vendors = VendorList::all();
@@ -131,8 +204,9 @@ class DemandOrderController extends Controller
         $products = Product::all();
         $categories = Category::all();
 
-        return view('demand_orders.step1', compact('vendors', 'products','categories'));
+        return view('demand_orders.step1', compact('vendors', 'products', 'categories'));
     }
+
     public function view($id)
     {
         $demandOrderProducts = \DB::table('demand_order_products')
@@ -156,9 +230,10 @@ class DemandOrderController extends Controller
             )
             ->orderBy('demand_order_products.created_at', 'desc')
             ->paginate(15);
-                
+
         return view('demand_orders.product', compact('demandOrderProducts'));
     }
+
     public function postStep1(Request $request)
     {
         $validated = $request->validate([
@@ -175,26 +250,26 @@ class DemandOrderController extends Controller
         // 1. All vendors & products
         $vendors  = VendorList::all();
         $products = Product::query()
-        ->when(!empty($request->category_id), function ($query) use ($request) {
-            $query->where('category_id', $request->category_id);
-        })
-        ->when(!empty($request->subcategory_id), function ($query) use ($request) {
-            $query->where('subcategory_id', $request->subcategory_id);
-        })
-        ->get();
+            ->when(!empty($request->category_id), function ($query) use ($request) {
+                $query->where('category_id', $request->category_id);
+            })
+            ->when(!empty($request->subcategory_id), function ($query) use ($request) {
+                $query->where('subcategory_id', $request->subcategory_id);
+            })
+            ->get();
         // 2. Map product names + size → IDs
         $nameSizeToId = $products->mapWithKeys(function ($product) {
             return [$product->id => $product->name];
         })->toArray();
-      $lowStock = getProductStockQuery()
-        ->whereColumn('inventories.quantity', '<', 'products.reorder_level')
-        ->when($request->filled('category_id'), function ($query) use ($request) {
-            return $query->where('products.category_id', $request->category_id);
-        })
-        ->when($request->filled('subcategory_id'), function ($query) use ($request) {
-            return $query->where('products.subcategory_id', $request->subcategory_id);
-        })
-        ->get();
+        $lowStock = getProductStockQuery()
+            ->whereColumn('inventories.quantity', '<', 'products.reorder_level')
+            ->when($request->filled('category_id'), function ($query) use ($request) {
+                return $query->where('products.category_id', $request->category_id);
+            })
+            ->when($request->filled('subcategory_id'), function ($query) use ($request) {
+                return $query->where('products.subcategory_id', $request->subcategory_id);
+            })
+            ->get();
 
         $startDate = Carbon::parse(@$request->input('start_date')); // e.g. "2025-05-21"
         $endDate = Carbon::parse(@$request->input('end_date'));     // e.g. "2025-05-30"
@@ -269,10 +344,10 @@ class DemandOrderController extends Controller
             ->where('delivery_status', 'partially')
             ->join('products', 'demand_order_products.product_id', '=', 'products.id')
             ->when(!empty($request->category_id), function ($query) use ($request) {
-            $query->where('products.category_id', $request->category_id);
+                $query->where('products.category_id', $request->category_id);
             })
             ->when(!empty($request->subcategory_id), function ($query) use ($request) {
-            $query->where('products.subcategory_id', $request->subcategory_id);
+                $query->where('products.subcategory_id', $request->subcategory_id);
             })
             ->select('demand_order_products.product_id', DB::raw('SUM(quantity - delivery_quantity) as pending_qty'))
             ->groupBy('demand_order_products.product_id')
@@ -354,18 +429,18 @@ class DemandOrderController extends Controller
             $selectedProducts[] = [
                 'product_id' => $productId,
                 'order_qty' => $qty,
-                 'pack_size' => $pack_size,
+                'pack_size' => $pack_size,
                 'product_details' => $productDetailsAry, // optional
             ];
         }
-         $products = Product::query()
-        ->when(!empty($step2Data['category_id']), function ($query) use ($request,$step2Data) {
-            $query->where('category_id', $step2Data['category_id']);
-        })
-        ->when(!empty($request->subcategory_id), function ($query) use ($request,$step2Data) {
-            $query->where('subcategory_id', $step2Data['subcategory_id']);
-        })
-        ->get();
+        $products = Product::query()
+            ->when(!empty($step2Data['category_id']), function ($query) use ($request, $step2Data) {
+                $query->where('category_id', $step2Data['category_id']);
+            })
+            ->when(!empty($request->subcategory_id), function ($query) use ($request, $step2Data) {
+                $query->where('subcategory_id', $step2Data['subcategory_id']);
+            })
+            ->get();
         // Store data in session
         session(['demand_orders.step2' => $validated]);
 
@@ -425,6 +500,7 @@ class DemandOrderController extends Controller
         }
         return view('demand_orders.step4', ['pdfPath' =>  asset('storage/demand/' . $filename), 'user' => $user]);
     }
+
     public function step2()
     {
         $step2Data = session('demand_orders.step1');
@@ -434,29 +510,29 @@ class DemandOrderController extends Controller
         // 1. All vendors & products
         $vendors  = VendorList::all();
         $products = Product::query()
-        ->when(!empty($step2Data['category_id']), function ($query) use ($step2Data) {
-            $query->where('category_id', $step2Data['category_id']);
-        })
-        ->when(!empty($step2Data['subcategory_id']), function ($query) use ($step2Data) {
-            $query->where('subcategory_id', $step2Data['subcategory_id']);
-        })
-        ->get();
+            ->when(!empty($step2Data['category_id']), function ($query) use ($step2Data) {
+                $query->where('category_id', $step2Data['category_id']);
+            })
+            ->when(!empty($step2Data['subcategory_id']), function ($query) use ($step2Data) {
+                $query->where('subcategory_id', $step2Data['subcategory_id']);
+            })
+            ->get();
 
         // 2. Map product names + size → IDs
         $nameSizeToId = $products->mapWithKeys(function ($product) {
             return [$product->id => $product->name];
         })->toArray();
-        
+
         // 3. Find only truly low-stock items, and join categories + sub_categories
         $lowStock = getProductStockQuery()
-        ->whereColumn('inventories.quantity', '<', 'products.reorder_level')
-         ->when(!empty($step2Data['category_id']), function ($query) use ($step2Data) {
-            $query->where('products.category_id', $step2Data['category_id']);
-        })
-        ->when(!empty($step2Data['subcategory_id']), function ($query) use ($step2Data) {
-            $query->where('products.subcategory_id', $step2Data['subcategory_id']);
-        })
-        ->get();
+            ->whereColumn('inventories.quantity', '<', 'products.reorder_level')
+            ->when(!empty($step2Data['category_id']), function ($query) use ($step2Data) {
+                $query->where('products.category_id', $step2Data['category_id']);
+            })
+            ->when(!empty($step2Data['subcategory_id']), function ($query) use ($step2Data) {
+                $query->where('products.subcategory_id', $step2Data['subcategory_id']);
+            })
+            ->get();
 
         $startDate = Carbon::parse(@$step2Data['start_date']); // e.g. "2025-05-21"
         $endDate = Carbon::parse(@$step2Data['end_date']);     // e.g. "2025-05-30"
@@ -526,16 +602,16 @@ class DemandOrderController extends Controller
             ->where('delivery_status', 'partially')
             ->join('products', 'demand_order_products.product_id', '=', 'products.id')
             ->when(!empty($step2Data['category_id']), function ($query) use ($step2Data) {
-            $query->where('products.category_id', $step2Data['category_id']);
+                $query->where('products.category_id', $step2Data['category_id']);
             })
             ->when(!empty($step2Data['subcategory_id']), function ($query) use ($step2Data) {
-            $query->where('products.subcategory_id', $step2Data['subcategory_id']);
+                $query->where('products.subcategory_id', $step2Data['subcategory_id']);
             })
             ->select('demand_order_products.product_id', DB::raw('SUM(quantity - delivery_quantity) as pending_qty'))
             ->groupBy('demand_order_products.product_id')
             ->pluck('pending_qty', 'demand_order_products.product_id')
             ->toArray();
-        
+
         // 6. Build predictions including category data
         $predictions = $lowStock->map(function ($row) use ($weeklySales, $selectedAvg, $pending) {
 
@@ -704,5 +780,23 @@ class DemandOrderController extends Controller
     {
         $demandOrder->load('products');
         return view('demand_orders.show', compact('demandOrder'));
+    }
+
+    public function getTotal($demandOrderId)
+    {
+        $totals = DemandOrderProduct::where('demand_order_id', $demandOrderId)
+            ->selectRaw('SUM(quantity) as total_quantity, SUM(sell_price) as total_sell_price')
+            ->first();
+        // dd($totals);
+        return $totals;
+    }
+
+    public function getSubCategory($p_id)
+    {
+        $product_data = DemandOrderProduct::select('product_id')->where('demand_order_id',$p_id)->first();
+        $product = Product::with('subcategory')->find($product_data->product_id);
+
+        return $product && $product->subcategory ? $product->subcategory->name : 'N/A';
+
     }
 }

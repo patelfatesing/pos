@@ -574,4 +574,35 @@ class PartyUserController extends Controller
 
         return response()->json(['message' => 'Status updated successfully']);
     }
+
+    // In YourController.php
+    public function getCredit($partyUserId)
+    {
+        $partyUser = PartyUser::findOrFail($partyUserId);
+        return response()->json([
+            'credit' => $partyUser->credit_points,
+            'left_credit' => $partyUser->left_credit,
+            'use_credit' => $partyUser->use_credit  // Assuming 'credit_points' is the field in your PartyUser model
+        ]);
+    }
+
+    public function getCustomerDiscount($partyUserId, $productId)
+    {
+        // Fetch the discount from the party_customer_products_price table
+        $discount = PartyCustomerProductsPrice::where('party_user_id', $partyUserId)
+            ->where('product_id', $productId)
+            ->first();
+
+        // Check if discount is found and return the response
+        if ($discount) {
+            return response()->json([
+                'discount' => $discount->cust_discount_price // Adjust according to your column name
+            ]);
+        } else {
+            // Return a default discount price or an error message
+            return response()->json([
+                'discount' => 0 // Default discount if not found
+            ]);
+        }
+    }
 }
