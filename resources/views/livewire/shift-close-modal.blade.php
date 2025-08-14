@@ -20,10 +20,10 @@
                                 <i class="bi bi-cash-coin me-2"></i> {{ $this->currentShift->shift_no ?? '' }} - Shift
                                 Close Summary - {{ $branch_name ?? 'Shop' }}
                             </h5>
-                            
+
                         </div>
-                         <button type="button" class="btn btn-light border ms-1" data-bs-toggle="tooltip"
-                            title="Logout" onclick="confirmLogout()">
+                        <button type="button" class="btn btn-light border ms-1" data-bs-toggle="tooltip" title="Logout"
+                            onclick="confirmLogout()">
                             <img src="{{ asset('external/fi106093284471-0vjk.svg') }}" class="img-fluid"
                                 style="height: 25px;" />
                         </button>
@@ -68,11 +68,6 @@
                                                             Remove Hold
                                                         </button>
                                                     @endif
-                                                    <button type="button" wire:click="removeHold"
-                                                        class="btn btn-secondary rounded-pill remove_hold_btn"
-                                                        title="View Stock Status">
-                                                        Remove Hold
-                                                    </button>
                                                 </div>
                                                 <div class="col-md-6 col-lg-12 col-xl-6">
                                                     <div class="row status-time-area">
@@ -413,10 +408,10 @@
                                             placeholder="Search by product name..">
                                     </div>
                                 </div>
+                                <form wire:submit.prevent="save" id="stockPhysicalForm">
+                                    @if (!empty($this->addstockStatus))
+                                        <div class="table-responsive">
 
-                                @if (!empty($this->addstockStatus))
-                                    <div class="table-responsive">
-                                        <form wire:submit.prevent="save" id="stockPhysicalForm">
                                             <table class="table table-bordered physical-table mb-0">
                                                 <thead class="table-info">
                                                     <tr>
@@ -444,11 +439,24 @@
                                                     @endforeach
                                                 </tbody>
                                             </table>
-                                        </form>
-                                    </div>
-                                @else
-                                    <p class="text-muted">No stock data available.</p>
-                                @endif
+
+                                        </div>
+                                    @else
+                                        <div class="d-flex justify-content-center mt-1">
+                                            <div class="form-check d-flex align-items-center gap-2">
+                                                <input class="form-check-input start-zero-checkbox"
+                                                    wire:model="no_sale_product" type="checkbox" id="no_sale_product"
+                                                    name="no_sale_product" value="1">
+                                                <label class="form-check-label mb-0">
+                                                    Save with no sale product
+                                                </label>
+                                                @error("no_sale_product")
+                                                    <span class="text-danger small">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    @endif
+                                </form>
                             </div>
                         </div>
 
