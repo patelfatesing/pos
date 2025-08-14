@@ -97,7 +97,8 @@ class ProductController extends Controller
             $action = '<div class="d-flex align-items-center list-action">
             <a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="#" onclick="product_price_change(' . $product->id . ',' . $product->sell_price . ')"><i class="ri-currency-line"></i></a>
-                    
+                       <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
+                                        href="' . url('/products/edit/' . $product->id) . '"><i class="ri-pencil-line mr-0"></i></a>
                     <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="' . url('/inventories/add-stock/' . $product->id) . '"><i class="ri-eye-line mr-0"></i></a>
                                     <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
@@ -438,7 +439,6 @@ class ProductController extends Controller
         $request->validate([
 
             'name'             => 'required|string|max:255',
-            'brand'            => 'required|string|max:255',
             'category_id'      => 'required',
             'subcategory_id'   => 'required',
             'size'             => 'required|string|max:255',
@@ -447,7 +447,6 @@ class ProductController extends Controller
             'discount_price'   => 'nullable|numeric|min:0|lte:sell_price',
             'reorder_level'    => 'nullable|numeric|min:0',
             'description'      => 'nullable|string',
-            'image'            => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         $image = $product->image;
@@ -472,7 +471,7 @@ class ProductController extends Controller
 
         // Update product fields
         $product->name           = $request->name;
-        $product->brand          = $request->brand;
+        $product->brand          = $request->name;
         $product->category_id    = $request->category_id;
         $product->subcategory_id = $request->subcategory_id;
         $product->size           = $request->size;
@@ -483,7 +482,7 @@ class ProductController extends Controller
         $product->barcode    = $request->barcode;
         $product->mrp    = $request->mrp;
         $product->description    = $request->description;
-        $product->image    = $image;
+        // $product->image    = $image;
 
         $product->save();
 

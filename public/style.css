@@ -658,3 +658,21 @@
     margin-left: 5px;
     color: #32BDEA;
 }
+
+
+/* put this in your CSS file */
+.notif-overlay{
+  position: fixed;
+  inset: 0;
+  background: transparent; /* or rgba(0,0,0,0.001) for reliable click capture */
+  border: 0;
+  padding: 0;
+  margin: 0;
+  z-index: 1049; /* below the popup */
+}
+
+/* ensure the popup sits above the overlay */
+.notification-screen-group400{
+  position: absolute; /* or fixed, depending on your layout */
+  z-index: 1050;
+}

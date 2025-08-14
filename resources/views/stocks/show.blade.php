@@ -88,7 +88,7 @@
 
                     <div class="modal-body">
                         <div class="row">
-                             <input type="hidden" name="store_id" id="store_id">
+                            <input type="hidden" name="store_id" id="store_id">
                             <input type="hidden" name="stock_req_id" id="stock_req_id">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -252,7 +252,8 @@
                 data: $(this).serialize(),
                 success: function(res) {
                     alert(res.message);
-                    $('#stockRejectModal').modal('hide');
+                    location.reload();
+
                     $('#stock-requests-table').DataTable().ajax.reload(null, false);
                 },
                 error: function() {
@@ -261,8 +262,9 @@
             });
         });
 
-        function stock_reject(p_id) {
+        function stock_reject(p_id, store_id) {
             $('#stock_req_id').val(p_id);
+            $('#store_id').val(store_id);
 
             // Check if Bootstrap 5 (without jQuery) is being used
             if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {

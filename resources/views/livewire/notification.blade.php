@@ -1,6 +1,7 @@
-<div>
+<div wire:keydown.escape.window="closeNotificationPopup">
+    
     <!-- Notification Icon -->
-    <button wire:click="togglePopup" class="btn position-relative">
+    <button type="button" wire:click.stop="togglePopup" id="notifToggleBtn" class="btn position-relative">
         <img src="{{ asset('external/bell14471-yfps.svg') }}" alt="bell14471" class="main-screen-bell1" />
         @if ($readNotificationsCount > 0)
             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
@@ -23,7 +24,10 @@
                                 <div class="notification-screen-frame362">
                                     <div class="notification-screen-header">
                                         <span class="notification-screen-text84">
-                                            Notifications (1)
+                                            Notifications
+                                            @if ($readNotificationsCount > 0)
+                                                ({{ $readNotificationsCount }})
+                                            @endif
                                         </span>
                                         <img src="{{ asset('external/image45185-z6hn-200h.png') }}" alt="image45185"
                                             class="notification-screen-image4" />
@@ -231,8 +235,8 @@
                                                 data-id="{{ $notification['req_id'] }}"
                                                 data-nfid="{{ $notification['id'] }}">
                                                 <div class="notification-screen-frame3705">
-                                                    <img src="{{ asset('external/image15185-oc6f-200h.png') }}"
-                                                        alt="image15185" class="notification-screen-image1" />
+                                                    {{-- <img src="{{ asset('external/image15185-oc6f-200h.png') }}"
+                                                        alt="image15185" class="notification-screen-image1" /> --}}
                                                     <div class="notification-screen-frame3695">
                                                         <span class="notification-screen-text101">
                                                             {{ ucwords(str_replace('_', ' ', $notification['type'])) }}
