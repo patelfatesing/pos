@@ -81,6 +81,7 @@ if (!function_exists('getUnreadNotificationsByNotifyTo')) {
         if ($branch_id != "") {
             return Notification::where('status', 'unread')
                 ->where('notify_to', $branch_id)
+                ->where('created_at', '>=', Carbon::now()->subDay())  // Notifications within last 24 hours
                 ->count();
         } else {
             return Notification::where('notify_to', null)
@@ -170,7 +171,7 @@ if (!function_exists('getDiscountPrice')) {
 }
 
 if (!function_exists('stockStatusChange')) {
-    function stockStatusChange($product_id, $branch_id, $qty, $type, $shift_id = "",$orderType="")
+    function stockStatusChange($product_id, $branch_id, $qty, $type, $shift_id = "", $orderType = "")
     {
         $date = Carbon::today();
 
@@ -184,12 +185,12 @@ if (!function_exists('stockStatusChange')) {
 
             if (!empty($existing)) {
                 $existing->added_stock += $qty;
-                if($orderType=="refunded_order"){
+                if ($orderType == "refunded_order") {
                     $existing->sold_stock -= $qty;
-                    $existing->closing_stock+= $qty;
-                }else{
+                    $existing->closing_stock += $qty;
+                } else {
 
-                    $existing->closing_stock = closingStock($existing->opening_stock,$existing->added_stock,$existing->transferred_stock,$existing->sold_stock);
+                    $existing->closing_stock = closingStock($existing->opening_stock, $existing->added_stock, $existing->transferred_stock, $existing->sold_stock);
                 }
                 $existing->save();
             } else {
@@ -206,7 +207,7 @@ if (!function_exists('stockStatusChange')) {
                     if (!empty($existing_ck)) {
                         $existing_ck->added_stock += $qty;
                         $existing_ck->shift_id = $running_shift->id;
-                        $existing_ck->closing_stock = closingStock($existing_ck->opening_stock,$existing_ck->added_stock,$existing_ck->transferred_stock,$existing_ck->sold_stock);
+                        $existing_ck->closing_stock = closingStock($existing_ck->opening_stock, $existing_ck->added_stock, $existing_ck->transferred_stock, $existing_ck->sold_stock);
                         $existing_ck->save();
                     } else {
                         DailyProductStock::create([
@@ -241,7 +242,7 @@ if (!function_exists('stockStatusChange')) {
 
             if (! empty($existing)) {
                 $existing->transferred_stock += $qty;
-                $existing->closing_stock = closingStock($existing->opening_stock,$existing->added_stock,$existing->transferred_stock,$existing->sold_stock);
+                $existing->closing_stock = closingStock($existing->opening_stock, $existing->added_stock, $existing->transferred_stock, $existing->sold_stock);
                 $existing->save();
             } else {
 
@@ -260,7 +261,7 @@ if (!function_exists('stockStatusChange')) {
                     if (!empty($existing_ck)) {
                         $existing_ck->transferred_stock += $qty;
                         $existing_ck->shift_id = $running_shift->id;
-                        $existing_ck->closing_stock = closingStock($existing_ck->opening_stock,$existing_ck->added_stock,$existing_ck->transferred_stock,$existing_ck->sold_stock);
+                        $existing_ck->closing_stock = closingStock($existing_ck->opening_stock, $existing_ck->added_stock, $existing_ck->transferred_stock, $existing_ck->sold_stock);
                         $existing_ck->save();
                     } else {
                         DailyProductStock::create([
@@ -294,7 +295,7 @@ if (!function_exists('stockStatusChange')) {
 
             if (!empty($existing)) {
                 $existing->sold_stock += $qty;
-                $existing->closing_stock = closingStock($existing->opening_stock,$existing->added_stock,$existing->transferred_stock,$existing->sold_stock);
+                $existing->closing_stock = closingStock($existing->opening_stock, $existing->added_stock, $existing->transferred_stock, $existing->sold_stock);
                 $existing->save();
             } else {
                 if ($shift_id == "") {

@@ -34,18 +34,7 @@
                                             </div>
                                         </div>
 
-                                        {{-- Brand --}}
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Brand *</label>
-                                                <input type="text" name="brand" class="form-control"
-                                                    value="{{ old('brand', $record->brand) }}" placeholder="Enter Brand">
-                                                @error('brand')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-
+                                      
                                         {{-- Category --}}
                                         <div class="col-md-6">
                                             <div class="form-group">
@@ -103,18 +92,7 @@
                                             </div>
                                         </div>
 
-                                        {{-- SKU --}}
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>SKU *</label>
-                                                <input type="text" name="sku" class="form-control"
-                                                    value="{{ old('sku', $record->sku) }}" disabled>
-                                                @error('sku')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-
+                                      
                                         {{-- Barcode --}}
                                         <div class="col-md-6">
                                             <div class="form-group">
@@ -135,22 +113,6 @@
                                                     value="{{ old('reorder_level', $record->reorder_level) }}"
                                                     class="form-control" placeholder="Enter Low Level Stock">
                                                 @error('reorder_level')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-
-                                        {{-- Image Upload --}}
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Image</label>
-                                                <input type="file" name="image" class="form-control image-file"
-                                                    accept="image/*">
-                                                @if ($record->image)
-                                                    <img src="{{ asset('storage/' . $record->image) }}" alt="Product Image"
-                                                        class="img-thumbnail mt-2" style="height: 100px;">
-                                                @endif
-                                                @error('image')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>

@@ -275,7 +275,7 @@ table td { font-size: 14px; line-height: 20px; letter-spacing: 0.5px; font-weigh
     #cash-payment .table.table-bordered,
     #cashupi-payment .table.table-bordered { margin-bottom: 5px;}
     #cash-payment .table.table-bordered tr > td,
-    #cashupi-payment .table.table-bordered tr > td { padding: 5px;}
+    #cashupi-payment .table.table-bordered tr > td { padding: 10px; font-size: 16px; line-height: 20px; }
     #cash-payment .form-label,
     #cashupi-payment .form-label { margin-bottom: 3px; font-size: 12px; line-height: 18px; }
     #cash-payment .d-flex.align-items-center.counter-add-delete-area,
@@ -288,13 +288,21 @@ table td { font-size: 14px; line-height: 20px; letter-spacing: 0.5px; font-weigh
     #cashupi-payment .counter-add-delete-area .form-control { height: 20px;}
     #cash-payment .cash-summary-frame282,
     #cashupi-payment .cash-summary-frame282 { padding: 7px 15px; font-size: 14px; line-height: 20px; }
+    #cashupi-payment .cash-summary-frame282 { margin-top: 5px; }
     #cash-payment #result.mt-3,
     #cashupi-payment #result.mt-3 { margin: 7px 0 0 0 !important; }
     #cash-payment #result + .mt-4,
     #cashupi-payment #result + .mt-4 { margin-top: 0px !important; }
     #cash-payment #paymentSubmit,
     #cashupi-payment #paymentSubmit { padding: 7px 15px; font-size: 17px; line-height: 20px; }
-    
+    .amount-row.row > .col-md-3 { margin-top: 7px !important; }
+    .credit-note span.badge.bg-primary.fs-6.me-2 { font-size: 13px !important; line-height: 15px; }
+    .credit-note span.badge.bg-primary.fs-6.me-2 + input.form-control { height: unset; font-size: 14px; line-height: 15px; }
+    #cashupi-payment .table.table-bordered thead th, #cashupi-payment .table.table-bordered tr:last-child > td,
+    #cash-payment .table.table-bordered thead th, #cash-payment .table.table-bordered tr:last-child > td { padding: 5px;}
+    #cashupi-payment .table.table-bordered thead th .btn.btn-sm,
+    #cash-payment .table.table-bordered thead th .btn.btn-sm { margin-left: 5px; }
+
 }
 /* Mobile View */
 @media (min-width: 768px) and (max-width: 991px) { 
@@ -364,4 +372,12 @@ table td { font-size: 14px; line-height: 20px; letter-spacing: 0.5px; font-weigh
 /* Height Issue */
 @media screen and (min-height: 701px) {
     .sidebar { min-height: calc(100vh - 62px);}
+}
+
+.capture-img2 img {
+    max-width: 100% !important;
+}
+
+.form-check-label{
+    color: #000;
 }

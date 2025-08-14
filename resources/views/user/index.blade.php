@@ -82,6 +82,7 @@
                                         <th>
                                             <b>N</b>ame
                                         </th>
+                                        <th>Username</th>
                                         <th>Email</th>
                                         <th>Phone Number</th>
                                         <th>Role</th>
@@ -175,9 +176,11 @@
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
-
                     {
                         data: 'name'
+                    },
+                    {
+                        data: 'username'
                     },
                     {
                         data: 'email'
@@ -208,7 +211,7 @@
                     }
                 ],
                 order: [
-                    [8, 'desc']
+                    [9, 'desc']
                 ],
 
                 lengthMenu: [

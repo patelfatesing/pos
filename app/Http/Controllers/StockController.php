@@ -399,6 +399,7 @@ class StockController extends Controller
             'stock_requests.id',
             'stock_requests.notes',
             'stock_requests.requested_at',
+            'stock_requests.requested_by',
             'total_product',
             'total_quantity',
             'users.name as created_by_name',
@@ -454,13 +455,13 @@ class StockController extends Controller
                     // $action .= "<button class='btn btn-warning btn-sm ml-1 open-approve-modal' data-id='{$requestItem->id}'>Pending</button>";
                     $action .=   '<a class="btn btn-warning btn-sm ml-1 mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="' . url('/stock-requests/popup-details/' . $requestItem->id) . '">Pending</a>';
-                    $action .=   '<span class="badge bg-danger" onclick="stock_reject(' . $requestItem->id . ')">Reject</span>';
+                    $action .=   '<span class="badge bg-danger" onclick="stock_reject(' . $requestItem->id . ','. $requestItem->requested_by.')">Reject</span>';
                 } elseif ($requestItem->status === 'approved') {
                     $action .=   '<a class="btn btn-warning btn-sm ml-1 mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="' . url('/stock/view-request/' . $requestItem->id) . '">Approved</a>';
                 } else {
                     $action .=   '<a class="btn btn-danger btn-sm ml-1 mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                    href="' . url('/stock/view-request/' . $requestItem->id) . '">Reject</a>';
+                    href="' . url('/stock/view/' . $requestItem->id) . '">Reject</a>';
                 }
             }
             $action .= '</div>';
@@ -792,6 +793,7 @@ class StockController extends Controller
 
             // Mark request as approved
             $stockRequest->status = 'rejected';
+            $stockRequest->reject_reason = $request->reject_reason;
             $stockRequest->approved_by = Auth::id();
             $stockRequest->rejected_at = now();
             $stockRequest->save();

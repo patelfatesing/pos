@@ -45,15 +45,16 @@
                                         </div>
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
-                                                <label>{{ __('messages.phone_number') }}</label>
+                                                <label>Username</label>
                                                 <input class="floating-input form-control"
-                                                    value="{{ old('phone_number') }}" name="phone_number" type="tel"
-                                                    placeholder=" " autocomplete="tel">
-                                                @error('phone_number')
+                                                    value="{{ old('username') }}" name="username" type="text"
+                                                    placeholder=" ">
+                                                @error('username')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
                                         </div>
+                                        
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>{{ __('messages.email') }}</label>
@@ -96,6 +97,17 @@
                                                     <i id="togglePasswordIcon" class="fa fa-eye"></i>
                                                 </span>
                                                 @error('confirm_password')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="floating-label form-group">
+                                                <label>{{ __('messages.phone_number') }}</label>
+                                                <input class="floating-input form-control"
+                                                    value="{{ old('phone_number') }}" name="phone_number" type="tel"
+                                                    placeholder=" " autocomplete="tel">
+                                                @error('phone_number')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>

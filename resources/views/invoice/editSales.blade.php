@@ -49,37 +49,7 @@
                     <div class="card mb-3">
                         <div class="card-body">
                             <div class="row g-2 align-items-center">
-                                <div class="col-md-5">
-                                    <select id="new-product-id" class="form-control">
-                                        <option value="">Select Product</option>
-                                        @foreach ($allProducts as $product)
-                                            @php
-                                                $partyDiscount = null;
-                                                if ($invoice->branch_id == 1 && $invoice->party_user_id) {
-                                                    $partyDiscount = optional(
-                                                        $partyPrices->where('product_id', $product->id)->first(),
-                                                    )->cust_discount_price;
-                                                }
-                                                $finalPrice =
-                                                    $partyDiscount ??
-                                                    ($product->discount_price ?? $product->sell_price);
-                                            @endphp
-                                            <option value="{{ $product->id }}" data-name="{{ $product->name }}"
-                                                data-mrp="{{ $product->mrp }}" data-sell_price="{{ $product->sell_price }}"
-                                                data-discount="{{ $partyDiscount }}">
-                                                {{ $product->name }} - ₹{{ number_format($finalPrice, 2) }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <input type="number" min="1" id="new-product-qty" class="form-control"
-                                        placeholder="Qty">
-                                </div>
-                                <div class="col-md-2">
-                                    <button type="button" class="btn btn-primary" id="add-product-btn">Add Item</button>
-                                </div>
-                                <div class="col-md-2">
+                                <div class="col d-flex justify-content-end">
                                     @if ($invoice->branch_id == 1 && $invoice->partyUser)
                                         <span class="badge bg-info text-dark">Party:
                                             {{ $invoice->partyUser->first_name }}</span>
@@ -91,7 +61,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="card">
                         <div class="card-body table-responsive">
                             <table class="table table-bordered" id="items-table">
@@ -121,15 +90,24 @@
                                             $discount = $product->discount_price;
 
                                             $partyDiscount = null;
-                                            if ($invoice->branch_id == 1 && $invoice->party_user_id) {
-                                                $partyDiscount = optional(
-                                                    $partyPrices->where('product_id', $product->id)->first(),
-                                                )->cust_discount_price;
+                                            if ($invoice->branch_id == 1) {
+                                                if ($invoice->party_user_id) {
+                                                    $partyDiscount = optional(
+                                                        $partyPrices->where('product_id', $product->id)->first(),
+                                                    )->cust_discount_price;
+                                                } else {
+                                                    $partyDiscount = $product->discount_price;
+                                                }
 
                                                 $dis = $product->sell_price - $partyDiscount;
 
                                                 $total_dis += $item['quantity'] * $dis;
                                             } else {
+                                                if ($invoice->commission_user_id) {
+                                                    $partyDiscount = $product->discount_price;
+                                                } else {
+                                                    $partyDiscount = $product->sell_price;
+                                                }
                                                 $dis = $product->sell_price - $discount;
                                                 $total_dis += $item['quantity'] * $dis;
                                             }
@@ -159,7 +137,7 @@
                                                 <input type="number" name="items[{{ $i }}][quantity]"
                                                     class="form-control qty-input" value="{{ $item['quantity'] }}"
                                                     data-price="{{ $basePrice }}" data-sell_price="{{ $finalPrice }}"
-                                                    data-discount="{{ $partyDiscount }}">
+                                                    data-discount="{{ $partyDiscount }}" max="{{ $item['quantity'] }}">
                                             </td>
                                             <td>
                                                 @if ($finalPrice < $basePrice)
@@ -268,8 +246,8 @@
                                         <div class="mb-2 d-flex justify-content-between">
                                             <label><strong>Payment Method</strong></label>
                                             <div>
-                                                <input type="radio" id="cash-option" name="payment_method"
-                                                    value="cash" @if ($invoice->payment_mode == 'cash') checked @endif>
+                                                <input type="radio" id="cash-option" name="payment_method" value="cash"
+                                                    @if ($invoice->payment_mode == 'cash') checked @endif>
                                                 <label for="cash-option">Cash</label>
                                                 <input type="radio" id="upi-option" name="payment_method"
                                                     value="online" @if ($invoice->payment_mode == 'online') checked @endif>
@@ -297,6 +275,11 @@
                                     </div>
                                     <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
                                         <h6>Total</h6>
+                                        <h3 class="text-primary font-weight-700" id="grand-total">
+                                            {{ number_format($sub_total, 2) }}</h3>
+                                    </div>
+                                    <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
+                                        <h6>Return Amount</h6>
                                         <h3 class="text-primary font-weight-700" id="grand-total">
                                             {{ number_format($sub_total, 2) }}</h3>
                                     </div>
@@ -430,24 +413,27 @@
             const $row = $input.closest('tr');
             const productId = $row.find('input[name*="[product_id]"]').val();
 
-            if (!productId || qty <= 0) {
+            if (qty < 1) {
                 $input.val(1);
+                updateTotals();
+                return;
+            } else {
                 updateTotals();
                 return;
             }
 
-            $.post('{{ route('inventory.check') }}', {
-                _token: $('meta[name="csrf-token"]').attr('content'),
-                product_id: productId,
-                store_id: storeId,
-                quantity: qty
-            }, function(response) {
-                if (response.status === 'error') {
-                    Swal.fire("Stock Error", response.message, "error");
-                    $input.val(1);
-                }
-                updateTotals();
-            });
+            // $.post('{{ route('inventory.check') }}', {
+            //     _token: $('meta[name="csrf-token"]').attr('content'),
+            //     product_id: productId,
+            //     store_id: storeId,
+            //     quantity: qty
+            // }, function(response) {
+            //     if (response.status === 'error') {
+            //         Swal.fire("Stock Error", response.message, "error");
+            //         $input.val(1);
+            //     }
+            //     updateTotals();
+            // });
         });
 
         // REMOVE PRODUCT

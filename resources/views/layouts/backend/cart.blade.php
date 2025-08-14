@@ -7,13 +7,11 @@
     <title>LiquorHub</title>
     <link rel="shortcut icon" href="../assets/images/favicon.ico" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="shortcut icon" href="{{ asset('public/external/favicon.ico') }}" />
     <link rel="stylesheet" href="https://unpkg.com/animate.css@4.1.1/animate.css" />
     <link rel="stylesheet" href="{{ asset('style.css') }}">
     <link rel="stylesheet" href="{{ asset('index.css') }}">
     <link rel="stylesheet" href="{{ asset('../assets/css/custom.css') }}">
     <link rel="stylesheet" href="{{ asset('../assets/css/notification.css') }}">
-
 
     <!-- Fonts -->
     <link rel="stylesheet"

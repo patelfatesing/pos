@@ -45,6 +45,17 @@
                                         </div>
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
+                                                <label>Username </label>
+                                                <input class="floating-input form-control"
+                                                    value="{{ $record->username }}" name="username"
+                                                    type="text" placeholder=" ">
+                                                @error('username')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="floating-label form-group">
                                                 <label>Email</label>
                                                 <input class="floating-input form-control" value="{{ $record->email }}"
                                                     disabled name="email" type="email" placeholder=" ">

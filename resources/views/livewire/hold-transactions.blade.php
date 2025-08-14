@@ -44,7 +44,8 @@
                                     class="btn btn-success btn-sm px-3">
                                     Resume
                                 </button>
-                                <button class="pdf-view" wire:click="printInvoice('{{ $transaction->id }}')">
+                                <button class="pdf-view"
+                                    wire:click="printInvoice('{{ $transaction->id }}')">
                                     <img src="{{ asset('assets/images/sidebar-imgs/pdf-ic.svg') }}" alt="PDF">
                                 </button>
                                 <button class="btn btn-danger btn-sm ms-2 remove-item"

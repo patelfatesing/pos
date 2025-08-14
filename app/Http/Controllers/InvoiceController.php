@@ -104,6 +104,29 @@ class InvoiceController extends Controller
         return view('invoice.editSales', compact('invoice', 'commissionUser', 'partyUser', 'allProducts', 'partyPrices'));
     }
 
+    public function editSales_old($id)
+    {
+        $invoice = Invoice::with(['partyUser', 'commissionUser'])->find($id);
+
+        $allProducts = Product::select('id', 'name', 'mrp', 'discount_price', 'sell_price')->where('is_deleted', 'no')->get();
+
+        $commissionUser = Commissionuser::where('status', 'Active')->find($invoice->commission_user_id);
+
+        $partyUser = Partyuser::where('id', $invoice->party_user_id)
+            ->where('status', 'Active')
+            ->first();
+
+        // Load party-specific prices only if needed
+        $partyPrices = collect();
+        if ($invoice->branch_id == 1 && $invoice->party_user_id) {
+            $partyPrices = PartyCustomerProductsPrice::where('party_user_id', $invoice->party_user_id)
+                ->whereIn('product_id', $allProducts->pluck('id'))
+                ->get();
+        }
+
+        return view('invoice.editSales', compact('invoice', 'commissionUser', 'partyUser', 'allProducts', 'partyPrices'));
+    }
+
     public function addSales($branchId, $shift_id)
     {
 
@@ -534,17 +557,17 @@ class InvoiceController extends Controller
                 $totalQuantityNew = $inventories->sum('quantity') - $item['quantity'];
                 // $inventory = $product->inventorie;
 
-                DailyProductStock::where([
-                    'product_id' => $item['product_id'],
-                    'branch_id' => $branch_id,
-                    'shift_id' => $shift_id,
-                    'date' => $Shift_data->statrt_time,
-                ])->increment('modify_sale_remove_qty', $item['quantity']);
+                // DailyProductStock::where([
+                //     'product_id' => $item['product_id'],
+                //     'branch_id' => $branch_id,
+                //     'shift_id' => $shift_id,
+                //     'date' => $Shift_data->statrt_time,
+                // ])->increment('modify_sale_remove_qty', $item['quantity']);
 
-                $currentShift = ShiftClosing::where('branch_id', $branch_id)
-                    ->where('start_time', '<=', now())
-                    ->where('end_time', '>=', now())
-                    ->first();
+                // $currentShift = ShiftClosing::where('branch_id', $branch_id)
+                //     ->where('start_time', '<=', now())
+                //     ->where('end_time', '>=', now())
+                //     ->first();
 
                 if (!empty($currentShift)) {
                     stockStatusChange($item['product_id'], $branch_id, $item['quantity'], 'sold_stock', $currentShift->id);

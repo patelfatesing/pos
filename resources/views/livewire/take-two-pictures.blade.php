@@ -11,7 +11,8 @@
             <div class="modal-content ">
                 <div class="modal-header custom-modal-header">
                     <h5 class="cash-summary-text61">Capture Product and Customer Photos</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
                 @php
                     $hideCameraClass = '';
@@ -162,8 +163,7 @@
                             <div class="col-lg-4 col-md-6 text-center capture-moment">
                                 <h6 class="text-gray">Live Camera</h6>
                                 <div class="position-relative">
-                                    <div id="loadingIndicator"
-                                        class="position-absolute top-50 start-50 translate-middle">
+                                    <div id="loadingIndicator" class="position-absolute top-50 start-50 translate-middle">
                                         {{-- <div class="spinner-border text-primary" role="status">
                                             <span class="visually-hidden">Loading...</span>
                                         </div> --}}
@@ -181,7 +181,7 @@
                                 </div>
                             </div>
 
-                            <div class="offset-lg-1 col-md-3 text-center">
+                            <div class="offset-lg-1 col-md-3 text-center"> 
                                 <h6 class="text-gray">Product Preview</h6>
                                 <div class="preview-container position-relative">
                                     <div wire:loading wire:target="productPhoto"
@@ -198,8 +198,7 @@
                                             <figure class="sample-img">
                                                 <img src="{{ $productPhoto->temporaryUrl() }}" class="img-fluid">
                                             </figure>
-                                            <button wire:click="resetPhoto('product')"
-                                                class="btn btn-sm btn-danger rounded-pill remove-pic">
+                                            <button wire:click="resetPhoto('product')" class="btn btn-sm btn-danger rounded-pill remove-pic">
                                                 Remvove Photo
                                             </button>
                                         @else
@@ -207,8 +206,8 @@
                                                     <span class="text-muted">No product photo</span>
                                                 </div> --}}
                                             <figure class="sample-img">
-                                                <img src="{{ asset('assets/images/bottle.png') }}"
-                                                    alt="Sample Product" class="img-fluid">
+                                                <img src="{{ asset('assets/images/bottle.png') }}" alt="Sample Product"
+                                                class="img-fluid">
                                             </figure>
                                         @endif
                                     </div>
@@ -231,8 +230,7 @@
                                             <figure class="sample-img">
                                                 <img src="{{ $customerPhoto->temporaryUrl() }}" class="img-fluid">
                                             </figure>
-                                            <button wire:click="resetPhoto('customer')"
-                                                class="btn btn-sm btn-danger rounded-pill remove-pic">
+                                            <button wire:click="resetPhoto('customer')" class="btn btn-sm btn-danger rounded-pill remove-pic">
                                                 Remvove Photo
                                             </button>
                                         @else
@@ -240,8 +238,8 @@
                                                     <span class="text-muted">No customer photo</span>
                                             </div> --}}
                                             <figure class="sample-img">
-                                                <img src="{{ asset('assets/images/user/07.jpg') }}"
-                                                    alt="Sample Product" class="img-fluid">
+                                                <img src="{{ asset('assets/images/user/07.jpg') }}" alt="Sample Product"
+                                                class="img-fluid">
                                             </figure>
                                         @endif
                                     </div>

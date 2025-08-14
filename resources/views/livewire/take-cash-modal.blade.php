@@ -25,12 +25,12 @@
                         <!-- Table -->
                         <table class=" table table-bordered ">
                             <thead class="table-dark">
-                                <tr>
-                                    <th class="text-center" style="width: 15%;">Amount</th>
-                                    <th class="text-center" style="width: 25%;">In</th>
-                                    <th class="text-center" style="width: 20%;">Currency</th>
-                                    <th class="text-center" style="width: 25%;">Out</th>
-                                    <th class="text-center" style="width: 15%;">Amount</th>
+                                <tr >
+                                    <th class="text-center" style="width: 15%;" >Amount</th>
+                                    <th class="text-center" style="width: 25%;" >In</th>
+                                    <th class="text-center" style="width: 20%;" >Currency</th>
+                                    <th class="text-center" style="width: 25%;" >Out</th>
+                                    <th class="text-center" style="width: 15%;" >Amount</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -42,25 +42,21 @@
                                     <tr>
                                         <td class="text-center">{{ format_inr($inValue * $denomination) }}</td>
                                         <td class="text-center">
-                                            <div class="d-flex align-items-center counter-add-delete-area"
-                                                style="width: 100%">
+                                            <div class="d-flex align-items-center counter-add-delete-area" style="width: 100%">
                                                 <button style="width: 40%;" class="btn btn-gray rounded-start"
                                                     wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'in')">−</button>
-                                                <input class="form-control text-center rounded-0" type="text"
-                                                    value="{{ $inValue }}" style="width: 60px;" readonly>
-                                                <button style="width: 40%;" class="btn btn-gray rounded-end"
+                                                <input class="form-control text-center rounded-0" type="text" value="{{ $inValue }}" style="width: 60px;" readonly>
+                                                <button style="width: 40%;"  class="btn btn-gray rounded-end"
                                                     wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'in')">+</button>
                                             </div>
                                         </td>
                                         <td class="text-center currency-center">{{ format_inr($denomination) }}</td>
                                         <td class="text-center">
-                                            <div class="d-flex align-items-center counter-add-delete-area"
-                                                style="width: 100%">
-                                                <button style="width: 40%;" class="btn btn-gray rounded-start"
+                                            <div class="d-flex align-items-center counter-add-delete-area" style="width: 100%" >
+                                                <button style="width: 40%;"  class="btn btn-gray rounded-start"
                                                     wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'out')">−</button>
-                                                <input style="width: 60px;" class="form-control text-center rounded-0"
-                                                    type="text" value="{{ $outValue }}" readonly>
-                                                <button style="width: 40%;" class="btn btn-gray rounded-end"
+                                                <input style="width: 60px;"  class="form-control text-center rounded-0"  type="text" value="{{ $outValue }}" readonly>
+                                                <button style="width: 40%;"  class="btn btn-gray rounded-end"
                                                     wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'out')">+</button>
                                             </div>
                                         </td>
@@ -110,9 +106,9 @@
                         <div class="addcashsubmit-btn">
                             <!-- Submit -->
                             @if ($this->totalCollected >= 0)
-                                <button wire:click="submitCredit" class="btn pull-right rounded-pill submit-btn">
-                                    Submit
-                                </button>
+                            <button wire:click="submitCredit" class="btn pull-right rounded-pill submit-btn">
+                                Submit
+                            </button>
                             @endif
                         </div>
                     </div>
