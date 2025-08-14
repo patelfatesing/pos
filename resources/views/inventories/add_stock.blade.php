@@ -14,19 +14,14 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between">
                                 <div class="header-title">
-                                    <h4 class="card-title">Add Stock - {{ $product_details->name }} </h4>
+                                    <h4 class="card-title">View Product - {{ $product_details->name }} </h4>
                                 </div>
                                 <div>
                                     <a href="{{ route('products.list') }}" class="btn btn-secondary">Back</a>
                                 </div>
                             </div>
                             <div class="card-body">
-                                <form action="{{ route('inventories.stockStore') }}" enctype="multipart/form-data"
-                                    method="POST">
-                                    @csrf
-                                    <input type="hidden" name="product_id" value="{{ $product_details->id }}">
-                                    <input type="hidden" name="sku" value="{{ $product_details->sku }}">
-
+                        
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
@@ -174,9 +169,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <button type="submit" class="btn btn-primary mr-2">Add Stock</button>
-                                    <button type="reset" class="btn btn-danger">Reset</button>
-                                </form>
+                                
                             </div>
                         </div>
                     </div>

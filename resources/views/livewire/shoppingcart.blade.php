@@ -148,8 +148,7 @@
                 @if (auth()->user()->hasRole('warehouse'))
                     <div class="sidebar-item" wire:click="printLastInvoice" title="Print Invoice">
                         <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
-                            <img src="{{ asset('assets/images/sidebar-imgs/print_icon.png') }}"
-                                alt="Print Invoice Icon">
+                            <img src="{{ asset('assets/images/sidebar-imgs/print_icon.png') }}" alt="Print Invoice Icon">
                         </button>
                         <span class="ic-txt">Print Invoice</span>
                     </div>
@@ -274,8 +273,7 @@
 
                                     <!-- Barcode icon -->
                                     <img class="barcode-search"
-                                        src="{{ asset('external/barcoderead14471-053n.svg') }}"
-                                        alt="Barcode">
+                                        src="{{ asset('external/barcoderead14471-053n.svg') }}" alt="Barcode">
 
                                     <!-- Clear button -->
                                     @if ($search)
@@ -602,8 +600,8 @@
                                             <button type="button" class="btn btn-deafult btn-cash-upi w-100 px-3"
                                                 wire:click="cashupitoggleBox">
                                                 <span> Cash + UPI</span>
-                                                <img src="{{ asset('external/right4471-5iuh.svg') }}"
-                                                    alt="Right" style="height: 18px;" class="float-end">
+                                                <img src="{{ asset('external/right4471-5iuh.svg') }}" alt="Right"
+                                                    style="height: 18px;" class="float-end">
                                             </button>
                                         </div>
                                     @endif
@@ -1150,6 +1148,7 @@
                                                 ₹{{ number_format($denomination, 0) }}</td>
                                         </tr>
                                     @endforeach
+
                                 </tbody>
                                 <tfoot>
                                     <tr class="table-success-new">
@@ -1160,6 +1159,14 @@
                                     </tr>
                                 </tfoot>
                             </table>
+                            <!-- ✅ Start with 0 checkbox -->
+                            <div class="form-check mt-1">
+                                <input class="form-check-input start-zero-checkbox" type="checkbox" id="startZero"
+                                    name="startZero" value="1">
+                                <label class="form-check-label" for="startZero">
+                                    Start with 0
+                                </label>
+                            </div>
                         </div>
                         @error('amount')
                             <span class="text-red">{{ $message }}</span>
@@ -1290,231 +1297,270 @@
         </div>
     </div>
 
-   <div wire:ignore.self class="modal fade" id="cashModal" tabindex="-1" aria-labelledby="CashModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
+    <div wire:ignore.self class="modal fade" id="cashModal" tabindex="-1" aria-labelledby="CashModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
 
-            <div class="modal-header custom-modal-header">
-                <span class="cash-summary-text61 modal-title">
-                    {{ $this->headertitle }} {{ __('messages.summary') }}
-                </span>
-              <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
-            </div>
+                <div class="modal-header custom-modal-header">
+                    <span class="cash-summary-text61 modal-title">
+                        {{ $this->headertitle }} {{ __('messages.summary') }}
+                    </span>
+                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                </div>
 
-            <div class="modal-body">
-                <div id="cash-payment">
-                    <form onsubmit="event.preventDefault();" class="needs-validation" novalidate>
-                        {{-- <h6 class="mb-3">💵 {{ __('messages.enter_cash_denominations') }}</h6> --}}
+                <div class="modal-body">
+                    <div id="cash-payment">
+                        <form onsubmit="event.preventDefault();" class="needs-validation" novalidate>
+                            {{-- <h6 class="mb-3">💵 {{ __('messages.enter_cash_denominations') }}</h6> --}}
 
-                        @if ($inOutStatus)
-                            <div class="row g-3">
-                                <div class="col-md-12">
-                                    <table class="table table-bordered">
-                                        <thead class="table-dark">
-                                            <tr>
-                                                @if (empty($this->selectedSalesReturn))
-                                                    <th class="text-center" style="width:15%">{{ __('messages.amount') }}</th>
-                                                    <th class="text-center" style="width:25%">{{ __('messages.in') }}</th>
-                                                @endif
-                                                <th class="text-center" style="width:20%">{{ __('messages.currency') }}</th>
-                                                <th class="text-center" style="width:25%">{{ __('messages.out') }}</th>
-                                                <th class="text-center" style="width:15%">
-                                                    {{ __('messages.amount') }}
-                                                    <button type="button" wire:click.prevent="clearCashNotes" class="btn btn-danger btn-sm">
-                                                        <i class="fa fa-eraser"></i>
-                                                    </button>
-                                                </th>
-                                            </tr>
-                                        </thead>
-
-                                        <tbody>
-                                            @foreach ($noteDenominations as $key => $denomination)
-                                                @php
-                                                    $inValue  = $cashNotes[$key][$denomination]['in']  ?? 0;
-                                                    $outValue = $cashNotes[$key][$denomination]['out'] ?? 0;
-                                                @endphp
+                            @if ($inOutStatus)
+                                <div class="row g-3">
+                                    <div class="col-md-12">
+                                        <table class="table table-bordered">
+                                            <thead class="table-dark">
                                                 <tr>
-                                                    {{-- Amount from IN (only when not a sales return) --}}
                                                     @if (empty($this->selectedSalesReturn))
-                                                        <td class="text-center fw-bold">
-                                                            {{ format_inr($inValue * $denomination) }}
+                                                        <th class="text-center" style="width:15%">
+                                                            {{ __('messages.amount') }}</th>
+                                                        <th class="text-center" style="width:25%">
+                                                            {{ __('messages.in') }}</th>
+                                                    @endif
+                                                    <th class="text-center" style="width:20%">
+                                                        {{ __('messages.currency') }}</th>
+                                                    <th class="text-center" style="width:25%">
+                                                        {{ __('messages.out') }}</th>
+                                                    <th class="text-center" style="width:15%">
+                                                        {{ __('messages.amount') }}
+                                                        <button type="button" wire:click.prevent="clearCashNotes"
+                                                            class="btn btn-danger btn-sm">
+                                                            <i class="fa fa-eraser"></i>
+                                                        </button>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+
+                                            <tbody>
+                                                @foreach ($noteDenominations as $key => $denomination)
+                                                    @php
+                                                        $inValue = $cashNotes[$key][$denomination]['in'] ?? 0;
+                                                        $outValue = $cashNotes[$key][$denomination]['out'] ?? 0;
+                                                    @endphp
+                                                    <tr>
+                                                        {{-- Amount from IN (only when not a sales return) --}}
+                                                        @if (empty($this->selectedSalesReturn))
+                                                            <td class="text-center fw-bold">
+                                                                {{ format_inr($inValue * $denomination) }}
+                                                            </td>
+
+                                                            {{-- IN controls --}}
+                                                            <td class="text-center">
+                                                                <div class="d-flex align-items-center counter-add-delete-area"
+                                                                    style="width:100%">
+                                                                    <button type="button"
+                                                                        class="btn btn-gray rounded-start"
+                                                                        style="width:40px;"
+                                                                        wire:click.prevent="decrementNote('{{ $key }}', '{{ $denomination }}', 'in')">−</button>
+
+                                                                    <input type="text"
+                                                                        class="form-control text-center rounded-0"
+                                                                        value="{{ $inValue }}" readonly
+                                                                        style="width:60px;" />
+
+                                                                    <button type="button"
+                                                                        class="btn btn-gray rounded-end"
+                                                                        style="width:40px;"
+                                                                        wire:click.prevent="incrementNote('{{ $key }}', '{{ $denomination }}', 'in')">+</button>
+                                                                </div>
+                                                            </td>
+                                                        @endif
+
+                                                        {{-- Single currency column (only once per row) --}}
+                                                        <td
+                                                            class="text-center {{ empty($this->selectedSalesReturn) ? 'currency-center' : '' }}">
+                                                            {{ format_inr($denomination) }}
                                                         </td>
 
-                                                        {{-- IN controls --}}
+                                                        {{-- OUT controls --}}
                                                         <td class="text-center">
-                                                            <div class="d-flex align-items-center counter-add-delete-area" style="width:100%">
-                                                                <button type="button" class="btn btn-gray rounded-start" style="width:40px;"
-                                                                    wire:click.prevent="decrementNote('{{ $key }}', '{{ $denomination }}', 'in')">−</button>
+                                                            <div class="d-flex align-items-center counter-add-delete-area"
+                                                                style="width:100%">
+                                                                <button type="button"
+                                                                    class="btn btn-gray rounded-start"
+                                                                    style="width:40px;"
+                                                                    wire:click.prevent="decrementNote('{{ $key }}', '{{ $denomination }}', 'out')">−</button>
 
-                                                                <input type="text" class="form-control text-center rounded-0" value="{{ $inValue }}" readonly style="width:60px;" />
+                                                                <input type="text"
+                                                                    class="form-control text-center rounded-0"
+                                                                    value="{{ $outValue }}" readonly
+                                                                    style="width:60px;" />
 
-                                                                <button type="button" class="btn btn-gray rounded-end" style="width:40px;"
-                                                                    wire:click.prevent="incrementNote('{{ $key }}', '{{ $denomination }}', 'in')">+</button>
+                                                                <button type="button"
+                                                                    class="btn btn-gray rounded-end"
+                                                                    style="width:40px;"
+                                                                    wire:click.prevent="incrementNote('{{ $key }}', '{{ $denomination }}', 'out')">+</button>
                                                             </div>
                                                         </td>
+
+                                                        {{-- Amount from OUT --}}
+                                                        <td class="text-center fw-bold">
+                                                            {{ format_inr($outValue * $denomination) }}
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+
+                                                {{-- Totals row --}}
+                                                <tr class="table-dark">
+                                                    @if (empty($this->selectedSalesReturn))
+                                                        <td class="text-center">{{ format_inr($totals['totalIn']) }}
+                                                        </td>
+                                                        <td class="text-center">{{ $totals['totalInCount'] }}</td>
                                                     @endif
-
-                                                    {{-- Single currency column (only once per row) --}}
-                                                    <td class="text-center {{ empty($this->selectedSalesReturn) ? 'currency-center' : '' }}">
-                                                        {{ format_inr($denomination) }}
-                                                    </td>
-
-                                                    {{-- OUT controls --}}
-                                                    <td class="text-center">
-                                                        <div class="d-flex align-items-center counter-add-delete-area" style="width:100%">
-                                                            <button type="button" class="btn btn-gray rounded-start" style="width:40px;"
-                                                                wire:click.prevent="decrementNote('{{ $key }}', '{{ $denomination }}', 'out')">−</button>
-
-                                                            <input type="text" class="form-control text-center rounded-0" value="{{ $outValue }}" readonly style="width:60px;" />
-
-                                                            <button type="button" class="btn btn-gray rounded-end" style="width:40px;"
-                                                                wire:click.prevent="incrementNote('{{ $key }}', '{{ $denomination }}', 'out')">+</button>
-                                                        </div>
-                                                    </td>
-
-                                                    {{-- Amount from OUT --}}
-                                                    <td class="text-center fw-bold">
-                                                        {{ format_inr($outValue * $denomination) }}
+                                                    <td class="text-center">TOTAL</td>
+                                                    <td class="text-center">{{ $totals['totalOutCount'] }}</td>
+                                                    <td class="text-center">{{ format_inr($totals['totalOut']) }}
                                                     </td>
                                                 </tr>
-                                            @endforeach
-
-                                            {{-- Totals row --}}
-                                            <tr class="table-dark">
-                                                @if (empty($this->selectedSalesReturn))
-                                                    <td class="text-center">{{ format_inr($totals['totalIn']) }}</td>
-                                                    <td class="text-center">{{ $totals['totalInCount'] }}</td>
-                                                @endif
-                                                <td class="text-center">TOTAL</td>
-                                                <td class="text-center">{{ $totals['totalOutCount'] }}</td>
-                                                <td class="text-center">{{ format_inr($totals['totalOut']) }}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        @endif
-
-                        @if (!empty($this->selectedSalesReturn))
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <label>{{ __('messages.refund_description') }}</label>
-                                    <textarea id="refundDesc" class="form-control" wire:model="refundDesc"
-                                              placeholder="{{ __('messages.enter_refund_description') }}"></textarea>
-                                </div>
-                            </div>
-                        @endif
-
-                        <div class="cash-summary-frame282">
-                            <div class="d-flex justify-content-between">
-                                {{ __('messages.subtotal') }}
-                                <span>{{ format_inr($sub_total) }}</span>
-                            </div>
-
-                            @if (auth()->user()->hasRole('cashier') && $commissionAmount > 0)
-                                <div class="d-flex justify-content-between">
-                                    {{ __('messages.commission_deduction') }}
-                                    <span>- {{ format_inr($commissionAmount) }}</span>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             @endif
 
-                            @if (auth()->user()->hasRole('warehouse'))
+                            @if (!empty($this->selectedSalesReturn))
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <label>{{ __('messages.refund_description') }}</label>
+                                        <textarea id="refundDesc" class="form-control" wire:model="refundDesc"
+                                            placeholder="{{ __('messages.enter_refund_description') }}"></textarea>
+                                    </div>
+                                </div>
+                            @endif
+
+                            <div class="cash-summary-frame282">
                                 <div class="d-flex justify-content-between">
-                                    {{ __('messages.commission_deduction') }}
-                                    <span>- {{ format_inr($partyAmount) }}</span>
+                                    {{ __('messages.subtotal') }}
+                                    <span>{{ format_inr($sub_total) }}</span>
                                 </div>
 
-                                <div class="">
-                                    <label class="-label" for="useCreditCheck">
-                                        <input type="checkbox" wire:model="showCheckbox" wire:click="toggleCheck" />
-                                        {{ __('messages.use_credit_to_pay') }}
-                                    </label>
-                                </div>
-
-                                @if ($this->useCredit && $this->showCheckbox)
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <label class="mb-0">{{ __('messages.credit') }}</label>
-                                        <div class="d-flex align-items-center">
-                                            <span class="badge bg-primary fs-6 me-2">
-                                                {{ __('messages.available_credit') }}:
-                                                {{ number_format(($this->partyUserDetails->credit_points ?? 0) - ($this->partyUserDetails->use_credit ?? 0), 2) }}
-                                            </span>
-                                            <input type="number" wire:model="creditPay" wire:input="creditPayChanged" class="form-control" style="width:100px;" />
-                                        </div>
+                                @if (auth()->user()->hasRole('cashier') && $commissionAmount > 0)
+                                    <div class="d-flex justify-content-between">
+                                        {{ __('messages.commission_deduction') }}
+                                        <span>- {{ format_inr($commissionAmount) }}</span>
                                     </div>
                                 @endif
-                            @endif
 
-                            <div class="d-flex justify-content-between">
-                                {{ __('messages.tendered_amount') }}
-                                <span>{{ format_inr($this->cashAmount) }}</span>
-                                <input type="text" id="total" value="{{ $this->cashAmount }}" class="d-none" />
-                            </div>
-                        </div>
+                                @if (auth()->user()->hasRole('warehouse'))
+                                    <div class="d-flex justify-content-between">
+                                        {{ __('messages.commission_deduction') }}
+                                        <span>- {{ format_inr($partyAmount) }}</span>
+                                    </div>
 
-                        @if (empty($this->selectedSalesReturn))
-                            <div class="row g-3 mt-1 align-items-end amount-row">
-                                <div class="col-md-3">
-                                    <input type="hidden" wire-model="paymentType">
-                                    <label for="cash" class="form-label">{{ __('messages.cash_amount') }}</label>
-                                    <input type="number" class="form-control rounded-pill" id="cash" value="{{ $this->cashAmount }}" readonly>
-                                </div>
+                                    <div class="">
+                                        <label class="-label" for="useCreditCheck">
+                                            <input type="checkbox" wire:model="showCheckbox"
+                                                wire:click="toggleCheck" />
+                                            {{ __('messages.use_credit_to_pay') }}
+                                        </label>
+                                    </div>
 
-                                <div class="col-md-3">
-                                    <label for="tender" class="form-label">{{ __('messages.tendered_amount') }}</label>
-                                    <input type="number" wire:model="cashPaTenderyAmt" class="form-control rounded-pill" id="tender" readonly>
-                                </div>
-
-                                <div class="col-md-3">
-                                    <label for="change" class="form-label">{{ __('messages.change_amount') }}</label>
-                                    @if (!$inOutStatus)
-                                        <input type="number" class="form-control rounded-pill" value="0" readonly>
-                                    @else
-                                        <input type="number" wire:model="cashPayChangeAmt" class="form-control rounded-pill" id="change" readonly>
-                                    @endif
-                                </div>
-
-                                <div class="col-md-3">
-                                    @if (count($itemCarts) > 0)
-                                        <div>
-                                            @if (!empty($this->selectedSalesReturn) && $this->cashAmount == $totals['totalOut'])
-                                                <button type="button" id="paymentSubmit"
-                                                    class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
-                                                    wire:click="refund" wire:loading.attr="disabled">
-                                                    Refund
-                                                </button>
-                                            @else
-                                                @if ($this->cashAmount == $totals['totalIn'] - $totals['totalOut'] && $errorInCredit == false)
-                                                    <button type="button" id="paymentSubmit"
-                                                        class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
-                                                        wire:click="checkout" wire:loading.attr="disabled" wire:target="checkout">
-                                                        <span wire:loading.remove wire:target="checkout">{{ __('messages.submit') }}</span>
-                                                        <span wire:loading wire:target="checkout">Loading...</span>
-                                                    </button>
-                                                @endif
-
-                                                @if (!$inOutStatus)
-                                                    <button type="button" id="paymentSubmit"
-                                                        class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
-                                                        wire:click="checkout" wire:loading.attr="disabled" wire:target="checkout">
-                                                        <span wire:loading.remove wire:target="checkout">{{ __('messages.submit') }}</span>
-                                                        <span wire:loading wire:target="checkout">Loading...</span>
-                                                    </button>
-                                                @endif
-                                            @endif
+                                    @if ($this->useCredit && $this->showCheckbox)
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <label class="mb-0">{{ __('messages.credit') }}</label>
+                                            <div class="d-flex align-items-center">
+                                                <span class="badge bg-primary fs-6 me-2">
+                                                    {{ __('messages.available_credit') }}:
+                                                    {{ number_format(($this->partyUserDetails->credit_points ?? 0) - ($this->partyUserDetails->use_credit ?? 0), 2) }}
+                                                </span>
+                                                <input type="number" wire:model="creditPay"
+                                                    wire:input="creditPayChanged" class="form-control"
+                                                    style="width:100px;" />
+                                            </div>
                                         </div>
                                     @endif
+                                @endif
+
+                                <div class="d-flex justify-content-between">
+                                    {{ __('messages.tendered_amount') }}
+                                    <span>{{ format_inr($this->cashAmount) }}</span>
+                                    <input type="text" id="total" value="{{ $this->cashAmount }}"
+                                        class="d-none" />
                                 </div>
                             </div>
-                        @endif
-                    </form>
-                </div>
-            </div>
 
+                            @if (empty($this->selectedSalesReturn))
+                                <div class="row g-3 mt-1 align-items-end amount-row">
+                                    <div class="col-md-3">
+                                        <input type="hidden" wire-model="paymentType">
+                                        <label for="cash"
+                                            class="form-label">{{ __('messages.cash_amount') }}</label>
+                                        <input type="number" class="form-control rounded-pill" id="cash"
+                                            value="{{ $this->cashAmount }}" readonly>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label for="tender"
+                                            class="form-label">{{ __('messages.tendered_amount') }}</label>
+                                        <input type="number" wire:model="cashPaTenderyAmt"
+                                            class="form-control rounded-pill" id="tender" readonly>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label for="change"
+                                            class="form-label">{{ __('messages.change_amount') }}</label>
+                                        @if (!$inOutStatus)
+                                            <input type="number" class="form-control rounded-pill" value="0"
+                                                readonly>
+                                        @else
+                                            <input type="number" wire:model="cashPayChangeAmt"
+                                                class="form-control rounded-pill" id="change" readonly>
+                                        @endif
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        @if (count($itemCarts) > 0)
+                                            <div>
+                                                @if (!empty($this->selectedSalesReturn) && $this->cashAmount == $totals['totalOut'])
+                                                    <button type="button" id="paymentSubmit"
+                                                        class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
+                                                        wire:click="refund" wire:loading.attr="disabled">
+                                                        Refund
+                                                    </button>
+                                                @else
+                                                    @if ($this->cashAmount == $totals['totalIn'] - $totals['totalOut'] && $errorInCredit == false)
+                                                        <button type="button" id="paymentSubmit"
+                                                            class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
+                                                            wire:click="checkout" wire:loading.attr="disabled"
+                                                            wire:target="checkout">
+                                                            <span wire:loading.remove
+                                                                wire:target="checkout">{{ __('messages.submit') }}</span>
+                                                            <span wire:loading wire:target="checkout">Loading...</span>
+                                                        </button>
+                                                    @endif
+
+                                                    @if (!$inOutStatus)
+                                                        <button type="button" id="paymentSubmit"
+                                                            class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
+                                                            wire:click="checkout" wire:loading.attr="disabled"
+                                                            wire:target="checkout">
+                                                            <span wire:loading.remove
+                                                                wire:target="checkout">{{ __('messages.submit') }}</span>
+                                                            <span wire:loading wire:target="checkout">Loading...</span>
+                                                        </button>
+                                                    @endif
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
+                        </form>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
-</div>
-
 
     <div wire:ignore.self class="modal fade" id="onliineModal" tabindex="-1" aria-labelledby="onlineModalLabel"
         aria-hidden="true">
@@ -1882,6 +1928,95 @@
 </div>
 
 <script>
+    (function() {
+        // Use capture phase so we receive the click even if inner handlers call stopPropagation
+        document.addEventListener('click', function(e) {
+            var popup = document.getElementById('notifPopup');
+            var toggle = document.getElementById('notifToggleBtn');
+
+            // If popup isn't open, nothing to do
+            if (!popup) return;
+
+            // Click is on the popup or the toggle button? Don't close.
+            if (popup.contains(e.target) || (toggle && toggle.contains(e.target))) return;
+
+            // Otherwise: clicked outside -> close via Livewire
+            try {
+                if (window.Livewire) {
+                    // v3
+                    if (typeof Livewire.dispatch === 'function') {
+                        Livewire.dispatch('closeNotificationPopup');
+                    } else {
+                        // v2
+                        Livewire.emit('closeNotificationPopup');
+                    }
+                }
+            } catch (err) {
+                console.error('Close notif (outside) failed:', err);
+            }
+        }, true); // <-- capture
+    })();
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const startZero = document.getElementById('startZero');
+        const amountInput = document.getElementById('holdamountTotal');
+
+        function updateAmountByStartZero() {
+            if (startZero.checked) {
+                // Force amount to 0 when "Start with 0" is checked
+                amountInput.value = 0;
+
+                // (Optional) reset all note inputs to 0 visually
+                document.querySelectorAll('.note-input').forEach(el => el.value = 0);
+
+                // (Optional) update total display in UI
+                const totalCell = document.getElementById('totalNoteCashHand');
+                if (totalCell) totalCell.textContent = '₹0';
+            }
+            // If unchecked, let your existing logic recalc amount from notes
+            // (no action needed here if you already compute it elsewhere)
+        }
+
+        if (startZero) {
+            startZero.addEventListener('change', updateAmountByStartZero);
+            // Run once on load in case it’s pre-checked
+            updateAmountByStartZero();
+        }
+
+        function uncheckStartZeroIfNeeded() {
+            if (!startZero) return;
+
+            // Uncheck if ANY note count > 0
+            const anyPositive = Array.from(document.querySelectorAll('.note-input'))
+                .some(el => (parseInt(el.value || '0', 10) > 0));
+
+            if (anyPositive && startZero.checked) {
+                startZero.checked = false;
+                // If you have a totals function, call it
+                if (typeof updateTotals === 'function') updateTotals();
+            }
+        }
+
+        // Delegate clicks on + / - buttons inside the table
+        const table = document.getElementById('case_in_hand');
+        if (table) {
+            table.addEventListener('click', function(e) {
+                if (e.target.closest('.btn-increase') || e.target.closest('.btn-decrease')) {
+                    // Wait for your +/- handlers to update the input values, then check
+                    setTimeout(uncheckStartZeroIfNeeded, 0);
+                }
+            });
+        }
+
+        // In case inputs become editable or are updated programmatically
+        document.querySelectorAll('.note-input').forEach(el => {
+            el.addEventListener('input', uncheckStartZeroIfNeeded);
+            el.addEventListener('change', uncheckStartZeroIfNeeded);
+        });
+    });
+
+
     // Before reload, set a flag to restore fullscreen
     // function reloadWithFullscreen() {
     //     localStorage.setItem('restoreFullscreen', 'true');

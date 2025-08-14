@@ -16,11 +16,9 @@ class CashInHandController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'amount' => 'required|numeric',
-            // 'cashNotes' => 'required|array',
+            'startZero' => 'nullable|boolean',                  // checkbox (1 when checked)
+            'amount'    => 'exclude_if:startZero,1|required|numeric|min:1',
         ]);
-
-    
 
         $data = $request->all();
 
@@ -44,7 +42,7 @@ class CashInHandController extends Controller
 
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
         $start = date('Y-m-d H:i:s'); // current time
-        $end = date('Y-m-d')." 23:59:15";
+        $end = date('Y-m-d') . " 23:59:15";
         $cashNotes = json_encode($cashNotes) ?? [];
         // 💾 Save cash breakdown
         $cashBreakdown = \App\Models\CashBreakdown::create([
@@ -60,18 +58,18 @@ class CashInHandController extends Controller
             'user_id' => auth()->id(),
             'branch_id' => $branch_id,
             //'status' => 'pending',
-           // 'created_at' => Carbon::now(),
-            ])
+            // 'created_at' => Carbon::now(),
+        ])
             ->whereDate('created_at', now())
             ->count() + 1;
 
         $branchName = auth()->user()->userinfo->branch->name ?? '';
         $branchPrefix = strtoupper(substr(preg_replace('/\s+/', '', $branchName), 0, 2)); // First 2 letters, uppercase, no spaces
 
-        $shiftNo = $branchPrefix ."-". $datePart . '-' . str_pad($lastShift, 2, '0', STR_PAD_LEFT);
+        $shiftNo = $branchPrefix . "-" . $datePart . '-' . str_pad($lastShift, 2, '0', STR_PAD_LEFT);
 
 
-        $userShift=UserShift::updateOrCreate(
+        $userShift = UserShift::updateOrCreate(
             [
                 'user_id' => auth()->id(),
                 'branch_id' => $branch_id,
@@ -81,7 +79,7 @@ class CashInHandController extends Controller
             [
                 'start_time' => $start,
                 'end_time' => $end,
-                'shift_no'=>$shiftNo,
+                'shift_no' => $shiftNo,
                 'opening_cash' => $request->amount,
                 'cash_break_id' => $cashBreakdown->id,
             ]
@@ -99,21 +97,21 @@ class CashInHandController extends Controller
             // Match where shift_id is null
             $stocksQuery->whereNull('shift_id');
         }
-        
+
         $stocks = $stocksQuery->get();
         foreach ($stocks as $key) {
-            if($key->shift_id==null || $key->shift_id== '') {
+            if ($key->shift_id == null || $key->shift_id == '') {
 
-                $key->shift_id=$userShift->id;
-                $key->date=Carbon::today();
-                $key->opening_stock=$key->closing_stock;
+                $key->shift_id = $userShift->id;
+                $key->date = Carbon::today();
+                $key->opening_stock = $key->closing_stock;
                 $key->save();
-            }else{
+            } else {
 
                 DailyProductStock::updateOrCreate(
                     [
                         'product_id' => $key->product_id,
-                        'shift_id'=>$userShift->id,
+                        'shift_id' => $userShift->id,
                         'branch_id' => $branch_id,
                         'date' => Carbon::today(),
                         'opening_stock' => $key->closing_stock,

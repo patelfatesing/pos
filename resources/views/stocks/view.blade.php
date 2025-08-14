@@ -37,6 +37,9 @@
                                     @if ($stockRequest->status === 'pending')
                                         <span class="badge bg-warning">Pending
                                         </span>
+                                    @elseif ($stockRequest->status === 'rejected')
+                                        <span class="badge bg-danger">Rejected
+                                        </span>
                                     @else
                                         <span class="badge bg-success">Approved
                                         </span>
@@ -49,6 +52,11 @@
                             <div class="col-sm-4">
                                 <p><strong>Notes:</strong> {{ $stockRequest->notes ?? '-' }}</p>
                             </div>
+                            @if ($stockRequest->status === 'rejected')
+                                <div class="col-sm-4">
+                                    <p><strong>Reject Reason:</strong> {{ $stockRequest->reject_reason ?? '-' }}</p>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>

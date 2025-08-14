@@ -62,6 +62,7 @@ class UserController extends Controller
             $query->where(function ($q) use ($searchValue) {
                 $q->where('users.name', 'like', '%' . $searchValue . '%')
                     ->orWhere('users.email', 'like', '%' . $searchValue . '%')
+                    ->orWhere('users.username', 'like', '%' . $searchValue . '%')
                     ->orWhere('branches.name', 'like', '%' . $searchValue . '%')
                     ->orWhere('roles.name', 'like', '%' . $searchValue . '%');
             });
@@ -93,6 +94,7 @@ class UserController extends Controller
 
             $records[] = [
                 'name' => $employee->first_name . ' ' . $employee->last_name,
+                'username' => $employee->username,
                 'email' => $employee->email,
                 'phone_number' => $employee->phone_number,
                 'role_name' => $employee->role_name,
@@ -131,7 +133,7 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
-            //'last_name' => 'required|string|max:255',
+            'username' => 'required|string|unique:users,username',
             'email' => 'required|email|unique:users,email',
             'phone_number' => [
                 'required',
@@ -157,6 +159,7 @@ class UserController extends Controller
         $user = User::create([
             'name' => $request->first_name . ' ' . $request->last_name,
             'email' => $request->email,
+            'username' => $request->username,
             'password' => Hash::make($request->password),
             'role_id' => $request->role_id,
             'created_by' => $request->created_by
@@ -194,6 +197,7 @@ class UserController extends Controller
         $request->validate([
             'first_name'    => 'required|string|max:255',
             'last_name'     => 'required|string|max:255',
+            'username' => 'required|string|unique:users,username,' . $id,
             'phone_number'  => [
                 'required',
                 'regex:/^(\+?\d{1,3})?\d{10}$/'
@@ -220,6 +224,7 @@ class UserController extends Controller
         $user->update([
             'name'    => $request->first_name . ' ' . $request->last_name,
             'role_id' => $request->role_id,
+            'username' => $request->username,
             // 'updated_by' => $request->updated_by, // Optional if you have this
         ]);
 

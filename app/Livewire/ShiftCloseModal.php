@@ -115,6 +115,7 @@ class ShiftCloseModal extends Component
     public bool $showPhysicalModal = false;
     public $capturedImage;
     public $currentShift = "";
+    public $no_sale_product = false;
     protected $rules = [
         'closingCash' => 'required|numeric|min:0',
     ];
@@ -435,18 +436,24 @@ class ShiftCloseModal extends Component
 
     public function save()
     {
+        if (!$this->no_sale_product) {
+            // Only run these validations if no_sale_product is NOT checked
+            if (empty($this->products)) {
+                $this->dispatch('notiffication-error', [
+                    'message' => 'Please add qty of product'
+                ]);
+                return;
+            }
 
-        if (empty($this->products)) {
-            $this->dispatch('notiffication-error', ['message' => 'Please add qty of product ']);
-            return;
+            if (empty($this->capturedImage)) {
+                $this->dispatch('notiffication-error', [
+                    'message' => 'Please add physical stock image'
+                ]);
+                return;
+            }
         }
 
-        if (empty($this->capturedImage)) {
-            $this->dispatch('notiffication-error', ['message' => 'Please add 
-            physical stock image']);
-            return;
-        }
-
+        $filename = '';
         if ($this->capturedImage) {
             // Decode and store image
             $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $this->capturedImage));
