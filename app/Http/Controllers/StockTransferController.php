@@ -254,7 +254,9 @@ class StockTransferController extends Controller
                         'store_id'    => $request->to_store_id,
                         'product_id'  => $item['product_id'],
                         'batch_no'    => $inventory->batch_no,
-                        'expiry_date' => $inventory->expiry_date->toDateString(),
+                        'expiry_date' => $inventory->expiry_date
+                            ? $inventory->expiry_date->toDateString()
+                            : null,
                     ];
 
                     $storeInventory = Inventory::where($criteria)->first();
@@ -270,7 +272,9 @@ class StockTransferController extends Controller
                             'location_id'  => $request->to_store_id,
                             'product_id'   => $item['product_id'],
                             'batch_no'     => $inventory->batch_no,
-                            'expiry_date'  => $inventory->expiry_date->toDateString(),
+                            'expiry_date'  =>  $inventory->expiry_date
+                            ? $inventory->expiry_date->toDateString()
+                            : null,
                             'quantity'     => $deductQty,
                             'low_level_qty' => $low_qty_level_wh,
                         ]);
