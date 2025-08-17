@@ -174,7 +174,7 @@ textarea.form-control { resize: none;}
 .dashboard-panel .dashboard-content { justify-content: space-between; display: flex ; flex-direction: column;}
 .hold-transactions-table th,.product_search-panel th,.credit-ledger-table th,
 .sales-history-block th,.closing-stock-modal-body th,
-.collect-credit-table th { color: #ffffff; text-align: center; white-space: nowrap; }
+.collect-credit-table th { color: #ffffff; text-align: center; }
 .collect-credit-table .collect-credit-frame2742 { margin: 0 auto; position: unset; padding: 3px 6px; border: 1px solid rgba(46, 158, 209, 1); width: unset; display: block; color: #fff;}
 .credits-modal-block .frame-stock-request-searchbar6 { background-image: url(../../assets/images/sidebar-imgs/search-ic.svg); background-size: 18px; background-repeat: no-repeat; background-position: 96% center; }
 .collect-credit-table .collect-credit-frame2742:hover { color: rgba(46, 158, 209, 1); }
