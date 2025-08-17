@@ -317,6 +317,37 @@ if (!function_exists('stockStatusChange')) {
                 }
             }
         }
+
+         if ($type == "add_modify_stock") {
+
+            $existing = DailyProductStock::where('branch_id', $branch_id)
+                ->where('product_id', $product_id)
+                // ->whereDate('date', $date)
+                ->where('shift_id', $shift_id)
+                ->first();
+
+            if (!empty($existing)) {
+                $existing->modify_sale_remove_qty += $qty;
+                $existing->save();
+            } else {
+                if ($shift_id == "") {
+                    DailyProductStock::create([
+                        'branch_id' => $branch_id,
+                        'product_id' => $product_id,
+                        'date' => $date,
+                        'modify_sale_remove_qty' => $qty
+                    ]);
+                } else {
+                    DailyProductStock::create([
+                        'branch_id' => $branch_id,
+                        'product_id' => $product_id,
+                        'date' => $date,
+                        'modify_sale_remove_qty' => $qty,
+                        'shift_id' => $shift_id
+                    ]);
+                }
+            }
+        }
     }
 
     if (!function_exists('getProductStockQuery')) {
