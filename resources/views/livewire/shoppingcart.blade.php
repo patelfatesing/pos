@@ -8,10 +8,8 @@
         <div class="topbar d-flex flex-wrap justify-content-between align-items-center  bg-white shadow-sm">
 
             <!-- Logo -->
-            <div class="d-flex align-items-center">
-                <img src="{{ asset('assets/images/logo1.png') }}" alt="Logo" class="img-fluid"
-                    style="max-height: 40px;" />
-                <h4 class="logo-title m2-2 ml-2">LiquorHub</h4>
+            <div class="d-flex align-items-center logo-area">
+                <img src="{{ asset('assets/images/liquor_hub_logo.png') }}" alt="Logo" class="img-fluid" style="max-height: 40px;" />
             </div>
 
             <!-- Right Side -->
@@ -22,26 +20,27 @@
                     <span class="main-screen-text72">Store Location: {{ $this->branch_name }}</span>
                 </div>
 
+                <div class="ic-block-area">
                 <!-- Refresh -->
-                <div onclick="location.reload()" class="cursor-pointer main-screen-group1">
-                    <img src="{{ asset('external/vector4471-dtw.svg') }}" class="img-fluid main-screen-vector10"
-                        style="height: 20px;" />
-                    <img src="{{ asset('external/vector4471-wfwo.svg') }}" class="img-fluid main-screen-vector11"
-                        style="height: 20px;" />
+                    <div onclick="location.reload()" class="cursor-pointer main-screen-group1">
+                        <img src="{{ asset('public/external/vector4471-dtw.svg') }}" class="img-fluid main-screen-vector10"
+                            style="height: 20px;" />
+                        <img src="{{ asset('public/external/vector4471-wfwo.svg') }}" class="img-fluid main-screen-vector11"
+                            style="height: 20px;" />
+                    </div>
+
+                    <!-- Livewire Components -->
+                    <livewire:fullscreen-toggle />
+                    <livewire:notification />
+                    <livewire:language-switcher />
+
+                    <!-- Logout -->
+                    <button type="button" class="btn btn-light border ms-1" data-bs-toggle="tooltip" title="Logout"
+                        onclick="confirmLogout()">
+                        <img src="{{ asset('public/external/fi106093284471-0vjk.svg') }}" class="img-fluid"
+                            style="height: 25px;" />
+                    </button>
                 </div>
-
-                <!-- Livewire Components -->
-                <livewire:fullscreen-toggle />
-                <livewire:notification />
-                <livewire:language-switcher />
-
-                <!-- Logout -->
-                <button type="button" class="btn btn-light border ms-1" data-bs-toggle="tooltip" title="Logout"
-                    onclick="confirmLogout()">
-                    <img src="{{ asset('external/fi106093284471-0vjk.svg') }}" class="img-fluid"
-                        style="height: 25px;" />
-                </button>
-
                 <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                     @csrf
                 </form>
@@ -67,9 +66,9 @@
             <div class="main-screen-frame246 d-flex align-items-center">
                 <div class="main-screen-refresh1">
                     <div class="main-screen-group1" onclick="location.reload()">
-                        <img src="{{ asset('external/vector4471-dtw.svg') }}" alt="Vector4471"
+                        <img src="{{ asset('public/external/vector4471-dtw.svg') }}" alt="Vector4471"
                             class="main-screen-vector10" />
-                        <img src="{{ asset('external/vector4471-wfwo.svg') }}" alt="Vector4471"
+                        <img src="{{ asset('public/external/vector4471-wfwo.svg') }}" alt="Vector4471"
                             class="main-screen-vector11" />
                     </div>
                 </div>
@@ -80,7 +79,7 @@
 
                 <button type="button" class="btn btn-deafult" data-toggle="tooltip" data-placement="top" title="Logout"
                     onclick="confirmLogout()">
-                    <img src="{{ asset('external/fi106093284471-0vjk.svg') }}" alt="User Icon"
+                    <img src="{{ asset('public/external/fi106093284471-0vjk.svg') }}" alt="User Icon"
                         class="main-screen-fi10609328" />
                 </button>
                 <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
@@ -94,7 +93,7 @@
                         <span class="main-screen-text10">English</span>
                         <div class="main-screen-layer12">
                             <div class="main-screen-group2">
-                                <img src="{{ asset('external/vector4471-dli.svg') }}" alt="Vector4471"
+                                <img src="{{ asset('public/external/vector4471-dli.svg') }}" alt="Vector4471"
                                     class="main-screen-vector12" />
                             </div>
                         </div>
@@ -110,7 +109,8 @@
                     <div class="sidebar-item" data-bs-toggle="modal" data-bs-target="#storeStockRequest"
                         title="Stock Request">
                         <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
-                            <img src="{{ asset('assets/images/sidebar-imgs/st-ex-img.svg') }}" alt="Stock Request Icon">
+                            <img src="{{ asset('assets/images/sidebar-imgs/st-ex-img.svg') }}" alt="Stock Request Icon"
+                                >
                         </button>
                         <span class="ic-txt">Stock Request</span>
                     </div>
@@ -148,7 +148,7 @@
                 @if (auth()->user()->hasRole('warehouse'))
                     <div class="sidebar-item" wire:click="printLastInvoice" title="Print Invoice">
                         <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
-                            <img src="{{ asset('assets/images/sidebar-imgs/print_icon.png') }}" alt="Print Invoice Icon">
+                            <img src="{{ asset('assets/images/sidebar-imgs/print-invoice-img.svg') }}" alt="Print Invoice Icon">
                         </button>
                         <span class="ic-txt">Print Invoice</span>
                     </div>
@@ -179,7 +179,8 @@
                         <div class="sidebar-item">
                             <button class="btn btn-default" data-bs-toggle="modal" data-bs-target="#storeStockRequest"
                                 title="Stock Request">
-                                <img src="{{ asset('external/frame2834471-mtm.svg') }}" alt="Stock Request Icon" />
+                                <img src="{{ asset('public/external/frame2834471-mtm.svg') }}"
+                                    alt="Stock Request Icon" />
                             </button>
                             <span>Stock Request</span>
                         </div>
@@ -194,7 +195,7 @@
                 <div class="sidebar-item">
                     <button class="btn btn-default" data-bs-toggle="modal" data-bs-target="#cashout"
                         title="Cash Out">
-                        <img src="{{ asset('external/caseout.png') }}" alt="Cash Out" width="32"
+                        <img src="{{ asset('public/external/caseout.png') }}" alt="Cash Out" width="32"
                             height="32" />
                     </button>
                     <span>Cash Out</span>
@@ -204,7 +205,7 @@
                     <div class="sidebar-item">
                         <button class="btn btn-default" data-bs-toggle="modal"
                             data-bs-target="#holdTransactionsModal" title="View Hold">
-                            <img src="{{ asset('external/vector4471-4bnt.svg') }}" alt="View Hold Icon" />
+                            <img src="{{ asset('public/external/vector4471-4bnt.svg') }}" alt="View Hold Icon" />
                         </button>
                         <span>View Hold</span>
                     </div>
@@ -219,7 +220,7 @@
                     @if (auth()->user()->hasRole('warehouse'))
                         <div class="sidebar-item">
                             <button wire:click="printLastInvoice" class="btn btn-default" title="Print Invoice">
-                                <img src="{{ asset('external/pdf_icon_final.jpg') }}" alt="Print Invoice Icon" />
+                                <img src="{{ asset('public/external/pdf_icon_final.jpg') }}" alt="Print Invoice Icon" />
                             </button>
                             <span>Print Invoice</span>
                         </div>
@@ -228,14 +229,14 @@
                             <livewire:customer-credit-ledger-modal wire:key="mobile-credit-ledger-modal-static" />
                             <span class="d-none">Credit Ledger</span>
                         </div>
-                        <img src="{{ asset('external/rectangle4574471-dhdb-200h.png') }}"
+                        <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
                             class="main-screen-rectangle457" />
 
                         <div class="sidebar-item">
                             <livewire:collation-modal wire:key="mobile-collation-modal-static" />
                             <span class="d-none">Collect Credit</span>
                         </div>
-                        <img src="{{ asset('external/rectangle4574471-dhdb-200h.png') }}"
+                        <img src="{{ asset('public/external/rectangle4574471-dhdb-200h.png') }}"
                             class="main-screen-rectangle457" />
                     @endif
                 @endauth
@@ -248,7 +249,7 @@
         </div>
 
         <!-- Main Content -->
-        <div class="col-12 col-md-11 m-2 ml-2 dashboard-content">
+        <div class="col-12 col-md-11 m-2 dashboard-content">
             <div class="top-panel-dash">
                 <div class="d-flex justify-content-between align-items-center flex-wrap mt-2 py-2 ">
                     <div class="text-muted main-screen-text12">
@@ -272,8 +273,7 @@
                                         wire:keydown.enter="addToCartBarCode" autofocus>
 
                                     <!-- Barcode icon -->
-                                    <img class="barcode-search"
-                                        src="{{ asset('external/barcoderead14471-053n.svg') }}" alt="Barcode">
+                                    <img class="barcode-search" src="{{ asset('public/external/barcoderead14471-053n.svg') }}" alt="Barcode">
 
                                     <!-- Clear button -->
                                     @if ($search)
@@ -293,12 +293,10 @@
 
                             <div class="col-12 col-md-3">
                                 <div class="position-relative ">
-                                    <img class="down-arrow" src="{{ asset('external/vector4471-t8to.svg') }}"
-                                        alt="Icon">
+                                    <img class="down-arrow" src="{{ asset('public/external/vector4471-t8to.svg') }}" alt="Icon">
 
                                     @if (auth()->user()->hasRole('cashier'))
-                                        <select id="commissionUser"
-                                            class="form-control rounded-pill pe-5 custom-border"
+                                        <select id="commissionUser" class="form-control rounded-pill pe-5 custom-border"
                                             wire:model="selectedCommissionUser" wire:change="calculateCommission"
                                             @if ($removeCrossHold || $this->selectedSalesReturn == true) disabled @endif>
                                             <option value="">-- Select Commission Customer --</option>
@@ -312,8 +310,7 @@
                                         <select id="partyUser" class="form-control rounded-pill pe-5 custom-border"
                                             wire:model="selectedPartyUser" wire:change="calculateParty"
                                             @if ($removeCrossHold || $this->selectedSalesReturn == true) disabled @endif>
-                                            <option value="">-- {{ __('messages.select_party_customer') }} --
-                                            </option>
+                                            <option value="">-- {{ __('messages.select_party_customer') }} --</option>
                                             @foreach ($partyUsers as $user)
                                                 <option value="{{ $user->id }}">{{ $user->first_name }}</option>
                                             @endforeach
@@ -321,7 +318,7 @@
                                     @endif
                                 </div>
                             </div>
-                            <div class="col-12 col-md-3">
+                            <div class="col-12 col-md-3 capture-eve-block">
                                 <div class="position-relative capture-eve">
                                     <livewire:take-two-pictures />
                                 </div>
@@ -334,7 +331,7 @@
                                             class="form-control rounded-pill ps-4 pe-5 custom-border"
                                             placeholder="{{ __('messages.scan_invoice_no') }}" autofocus>
 
-                                        <img src="{{ asset('external/qrscan14471-8i6r.svg') }}" alt="QR Scan"
+                                        <img src="{{ asset('public/external/qrscan14471-8i6r.svg') }}" alt="QR Scan"
                                             class="position-absolute top-50 end-0 translate-middle-y me-3"
                                             style="width: 20px; height: 20px;">
                                     </div>
@@ -347,15 +344,12 @@
                                 <div class="row">
                                     <div class="col-md-12 position-relative">
                                         <form wire:submit.prevent="searchTerm" class="mb-0">
-                                            <div
-                                                class="input-group rounded-pill overflow-hidden custom-border customer-search-product">
+                                            <div class="input-group rounded-pill overflow-hidden custom-border customer-search-product">
                                                 <input type="text" wire:model.live.debounce.500ms="searchTerm"
                                                     placeholder="{{ __('messages.enter_product_name') }}"
-                                                    class="form-control border-0 ps-4" id="searchInput"
-                                                    autocomplete="off" />
+                                                    class="form-control border-0 ps-4" id="searchInput" autocomplete="off" />
                                                 <span class="input-group-text bg-transparent border-0 pe-3">
-                                                    <img src="{{ asset('external/vector4471-m3pl.svg') }}"
-                                                        alt="Search">
+                                                    <img src="{{ asset('public/external/vector4471-m3pl.svg') }}" alt="Search">
                                                 </span>
                                             </div>
                                         </form>
@@ -371,8 +365,7 @@
                                                             <div class="d-flex flex-column">
                                                                 <span class="fw-semibold">{{ $product->name }}</span>
                                                                 @if ($product->description)
-                                                                    <small
-                                                                        class="text-muted">{{ $product->description }}</small>
+                                                                    <small class="text-muted">{{ $product->description }}</small>
                                                                 @endif
                                                             </div>
                                                             <span
@@ -392,13 +385,11 @@
                                             <table class="table table-bordered product-table" id="cartTable">
                                                 <thead class="table-info">
                                                     <tr>
-                                                        <th class="col-7 col-sm-5 main-screen-text25">
-                                                            {{ __('messages.product') }}</th>
+                                                        <th class="col-7 col-sm-5 main-screen-text25">{{ __('messages.product') }}</th>
                                                         <th class="main-screen-text25">{{ __('messages.qty') }}</th>
                                                         <th class="main-screen-text25">{{ __('messages.price') }}</th>
                                                         <th class="main-screen-text25">{{ __('messages.total') }}</th>
-                                                        <th class="main-screen-text25">{{ __('messages.actions') }}
-                                                        </th>
+                                                        <th class="main-screen-text25">{{ __('messages.actions') }}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -409,8 +400,7 @@
                                                             $party = $partyAmount ?? 0;
                                                             $finalAmount = $total - $commission - $party;
                                                         @endphp
-                                                        <tr
-                                                            class="{{ $this->activeItemId === $item->id ? 'active' : '' }}">
+                                                        <tr class="{{ $this->activeItemId === $item->id ? 'active' : '' }}">
                                                             <td class="col-7 col-sm-5"
                                                                 wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})"
                                                                 style="cursor:pointer">
@@ -494,7 +484,7 @@
                                                                     <button class="btn btn-sm btn-default"
                                                                         wire:click="removeItem({{ $item->id }})"
                                                                         title="Remove item">
-                                                                        <img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}"
+                                                                        <img src="{{ asset('public/external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}"
                                                                             alt="Delete"
                                                                             class="main-screen-delete24dp1f1f1ffill0wght400grad0opsz24110">
                                                                     </button>
@@ -504,8 +494,7 @@
                                                         </tr>
                                                     @empty
                                                         <tr>
-                                                            <td colspan="5" class="text-center text-muted">No
-                                                                products found in the
+                                                            <td colspan="5" class="text-center text-muted">No products found in the
                                                                 cart.</td>
                                                         </tr>
                                                     @endforelse
@@ -556,16 +545,14 @@
                                                 class="btn btn-default main-screen-frame-key11 flex-fill">C</button>
                                             <button wire:click="removeItemActivte({{ $this->activeProductId }})"
                                                 class="btn btn-default main-screen-frame-key11 flex-fill">0</button>
-                                            <button type="button"
-                                                class="btn btn-deafult btn-primary main-screen-frame-key11 flex-fill"
+                                            <button type="button" class="btn btn-deafult btn-primary main-screen-frame-key11 flex-fill"
                                                 wire:click="incrementQty({{ $this->activeItemId }})">
-                                                <img src="{{ asset('../external/systemicon16pxplus4471-kuog.svg') }}"
+                                                <img src="{{ asset('../public/external/systemicon16pxplus4471-kuog.svg') }}"
                                                     alt="Left Icon">
                                             </button>
-                                            <button type="button"
-                                                class="btn btn-deafult btn-primary main-screen-frame-key11 flex-fill"
+                                            <button type="button" class="btn btn-deafult btn-primary main-screen-frame-key11 flex-fill"
                                                 wire:click="decrementQty({{ $this->activeItemId, $this->activeProductId }})">
-                                                <img src="{{ asset('../external/systemicon16pxplus4471-jpl.svg') }}"
+                                                <img src="{{ asset('../public/external/systemicon16pxplus4471-jpl.svg') }}"
                                                     alt="Right Icon">
                                             </button>
                                         </div>
@@ -580,27 +567,26 @@
                                             </button>
                                         </div>
                                         <div class="col-md-6 col-sm-12">
-                                            <button wire:click="voidSale" class="btn btn-danger btn-void w-100">
-                                                <span> {{ __('messages.void_sales') }}</span>
-                                            </button>
-                                        </div>
-                                        <div class="col-md-6 col-sm-12">
                                             <button wire:click="toggleBox" type="button"
-                                                class="btn btn-primary btn-cash w-100">
-                                                Cash
-                                            </button>
-                                        </div>
-                                        <div class="col-md-6 col-sm-12">
-                                            <button wire:click="onlinePayment"
-                                                class="btn btn-success btn-online w-100">
-                                                {{ __('messages.upi') }}
-                                            </button>
-                                        </div>
+                                            class="btn btn-primary btn-cash w-100">
+                                            Cash
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6 col-sm-12">
+                                        <button wire:click="onlinePayment" class="btn btn-success btn-online w-100">
+                                            {{ __('messages.upi') }}
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6 col-sm-12">
+                                        <button wire:click="voidSale" class="btn btn-danger btn-void w-100">
+                                            <span> {{ __('messages.void_sales') }}</span>
+                                        </button>
+                                    </div>
                                         <div class="col-12">
                                             <button type="button" class="btn btn-deafult btn-cash-upi w-100 px-3"
                                                 wire:click="cashupitoggleBox">
                                                 <span> Cash + UPI</span>
-                                                <img src="{{ asset('external/right4471-5iuh.svg') }}" alt="Right"
+                                                <img src="{{ asset('public/external/right4471-5iuh.svg') }}" alt="Right"
                                                     style="height: 18px;" class="float-end">
                                             </button>
                                         </div>
@@ -614,8 +600,7 @@
                                             </button>
                                         </div>
                                         <div class="col-6">
-                                            <button wire:click="srtoggleBox"
-                                                class="btn btn-sm btn-primary w-100 text-nowrap">
+                                            <button wire:click="srtoggleBox" class="btn btn-sm btn-primary w-100 text-nowrap">
                                                 <i class="fa fa-hand-holding-usd me-2"></i> Sales Return
                                             </button>
                                         </div>
@@ -638,20 +623,16 @@
                     </div>
                     <div class="total-val">
                         <div class="row text-center align-items-center">
-                            <div class="col-4 border-end fs-4 fw-bold tbody-txt text-custom-blue">
-                                {{ $this->cartCount }}</div>
+                            <div class="col-4 border-end fs-4 fw-bold tbody-txt text-custom-blue">{{ $this->cartCount }}</div>
                             <div class="col-4 border-end fs-4 fw-bold tbody-txt text-custom-blue">@php
                                 $this->roundedTotal =
-                                    (float) $this->cashAmount +
-                                    (float) $this->creditPay -
-                                    round($this->cartItemTotalSum);
+                                    (float) $this->cashAmount + (float) $this->creditPay - round($this->cartItemTotalSum);
                             @endphp
                                 {{ $this->roundedTotal }}
                                 <input type="hidden" id="roundedTotal" value="{{ $this->roundedTotal }}"
                                     wire:model="roundedTotal">
                             </div>
-                            <div class="col-4 fs-4 fw-bold tbody-txt text-custom-blue">
-                                {{ format_inr($this->cashAmount) }}</span>
+                            <div class="col-4 fs-4 fw-bold tbody-txt text-custom-blue">{{ format_inr($this->cashAmount) }}</span>
                                 <input type="hidden" id="totalPayable" value="{{ $this->cashAmount }}">
                             </div>
                         </div>
@@ -671,7 +652,7 @@
                 <div class="modal-header custom-modal-header">
                     <h5 class="modal-title" id="holdModalLabel">{{ __('messages.hold_transactions') }}
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     @livewire('hold-transactions', ['holdTransactions' => $holdTransactions])
@@ -824,8 +805,7 @@
                                                         <td class="" style="width: 28%;">
                                                             {{ $denomination }} x</td>
                                                         <td class="" style="width: 40%;">
-                                                            <div
-                                                                class="d-flex align-items-center counter-add-delete-area">
+                                                            <div class="d-flex align-items-center counter-add-delete-area">
                                                                 <button style="width: 40%;" type="button"
                                                                     class="btn btn-gray btn-decrease rounded-start"
                                                                     onclick="updateNote('{{ $key }}_{{ $denomination }}', -1, {{ $denomination }})">−</button>
@@ -869,7 +849,7 @@
                                         class="form-control mb-3" readonly required>
 
                                     <div class="row">
-                                        <div class="col-6">
+                                        <div class="col-xs-12 col-sm-6">
                                             <div class="mb-2">
                                                 <label for="narration"
                                                     class="form-label reason_withdrawal">{{ __('messages.select_reason_for_withdrawal') }}</label>
@@ -887,7 +867,7 @@
                                             </div>
                                         </div>
                                         {{-- Add this new textarea field below --}}
-                                        <div class="col-6">
+                                        <div class="col-xs-12 col-sm-6">
                                             <label for="withdraw_notes"
                                                 class="form-label">{{ __('messages.notes') }}</label>
                                             <textarea name="withdraw_notes" id="withdraw_notes" class="form-control " style="height: 40px !important;"
@@ -936,8 +916,7 @@
                                         @csrf
                                         {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
                                         <div class="store_id_block">
-                                            <input class="mb-3" type="hidden" name="store_id"
-                                                value="{{ @$branch_id }}">
+                                            <input class="mb-3" type="hidden" name="store_id" value="{{ @$branch_id }}">
                                         </div>
                                         <div id="product-items">
                                             <h5>Products</h5>
@@ -963,8 +942,7 @@
                                                     placeholder="Qty" min="1" required>
 
                                                 <button type="button"
-                                                    class="btn btn-danger btn-sm ms-2 remove-item"><i
-                                                        class="fa fa-trash-o" aria-hidden="true"></i></button>
+                                                    class="btn btn-danger btn-sm ms-2 remove-item"><i class="fa fa-trash-o" aria-hidden="true"></i></button>
                                             </div>
                                         </div>
 
@@ -982,7 +960,7 @@
                                         </div>
                                         <div class="d-flex submit_btn_block">
                                             <button type="submit"
-                                                class="frame-stock-request-group223 btn-submit">{{ __('messages.submit_request') }}</button>
+                                            class="frame-stock-request-group223 btn-submit">{{ __('messages.submit_request') }}</button>
                                         </div>
                                     </form>
                                 </div>
@@ -1047,7 +1025,7 @@
                                                 <div class="col-md-4">
                                                     <button type="button"
                                                         class="btn btn-danger btn-sm ms-2 remove-item-wh">X</button>
-                                                    {{-- <img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414472-853a.svg') }}" alt="Remove Stock Request Product" class="frame-stock-request-delete24dp1f1f1ffill0wght400grad0opsz2417"></button> --}}
+                                                    {{-- <img src="{{ asset('public/external/delete24dp1f1f1ffill0wght400grad0opsz2414472-853a.svg') }}" alt="Remove Stock Request Product" class="frame-stock-request-delete24dp1f1f1ffill0wght400grad0opsz2417"></button> --}}
                                                 </div>
 
                                                 <div class="availability-container-wh mt-2 small text-muted">
@@ -1095,7 +1073,7 @@
                             {{ __('messages.cash_in_hand_details') }}</h5>
                         <button type="button" class="btn btn-light border ms-1" data-bs-toggle="tooltip"
                             title="Logout" onclick="confirmLogout()">
-                            <img src="{{ asset('external/fi106093284471-0vjk.svg') }}" class="img-fluid"
+                            <img src="{{ asset('public/external/fi106093284471-0vjk.svg') }}" class="img-fluid"
                                 style="height: 25px;" />
                         </button>
 
@@ -1124,8 +1102,7 @@
                                             <td class="fw-semibold text-center">{{ $denomination }} <span
                                                     class="mx-3">x</span></td>
                                             <td class="text-center">
-                                                <div class="d-flex align-items-center counter-add-delete-area"
-                                                    style="width: 100%;">
+                                                <div class="d-flex align-items-center counter-add-delete-area" style="width: 100%;">
                                                     <button style="width: 40%;" type="button"
                                                         class="btn btn-gray btn-decrease rounded-start"
                                                         data-denomination="{{ $denomination }}"
@@ -1148,7 +1125,6 @@
                                                 ₹{{ number_format($denomination, 0) }}</td>
                                         </tr>
                                     @endforeach
-
                                 </tbody>
                                 <tfoot>
                                     <tr class="table-success-new">
@@ -1159,14 +1135,6 @@
                                     </tr>
                                 </tfoot>
                             </table>
-                            <!-- ✅ Start with 0 checkbox -->
-                            <div class="form-check mt-1">
-                                <input class="form-check-input start-zero-checkbox" type="checkbox" id="startZero"
-                                    name="startZero" value="1">
-                                <label class="form-check-label" for="startZero">
-                                    Start with 0
-                                </label>
-                            </div>
                         </div>
                         @error('amount')
                             <span class="text-red">{{ $message }}</span>
@@ -1235,8 +1203,8 @@
                         <!-- Add total in footer -->
                         <tfoot>
                             <tr class="table-success-new">
-                                <td class="fw-bold text-start total_bgc">Total Stock Quantity</td>
-                                <td class="fw-bold text-start total_bgc">
+                                <td class="fw-bold text-center total_bgc">Total Stock Quantity</td>
+                                <td class="fw-bold text-center total_bgc">
                                     <span>
                                         {{ $sum }}</span>
                                 </td>
@@ -1303,9 +1271,8 @@
             <div class="modal-content">
 
                 <div class="modal-header custom-modal-header">
-                    <span class="cash-summary-text61 modal-title">
-                        {{ $this->headertitle }} {{ __('messages.summary') }}
-                    </span>
+                    <span class="cash-summary-text61 modal-title">{{ $this->headertitle }}
+                        {{ __('messages.summary') }}</span>
                     <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
                 </div>
 
@@ -1313,11 +1280,10 @@
                     <div id="cash-payment">
                         <form onsubmit="event.preventDefault();" class="needs-validation" novalidate>
                             {{-- <h6 class="mb-3">💵 {{ __('messages.enter_cash_denominations') }}</h6> --}}
-
-                            @if ($inOutStatus)
+                            
                                 <div class="row g-3">
                                     <div class="col-md-12">
-                                        <table class="table table-bordered">
+                                        <table class=" table table-bordered ">
                                             <thead class="table-dark">
                                                 <tr>
                                                     @if (empty($this->selectedSalesReturn))
@@ -1326,107 +1292,109 @@
                                                         <th class="text-center" style="width:25%">
                                                             {{ __('messages.in') }}</th>
                                                     @endif
-                                                    <th class="text-center" style="width:20%">
+                                                    <th style="width: 20%;" class="text-center">
                                                         {{ __('messages.currency') }}</th>
                                                     <th class="text-center" style="width:25%">
                                                         {{ __('messages.out') }}</th>
                                                     <th class="text-center" style="width:15%">
                                                         {{ __('messages.amount') }}
-                                                        <button type="button" wire:click.prevent="clearCashNotes"
+                                                        <button wire:click="clearCashNotes"
                                                             class="btn btn-danger btn-sm">
                                                             <i class="fa fa-eraser"></i>
                                                         </button>
                                                     </th>
                                                 </tr>
                                             </thead>
-
                                             <tbody>
                                                 @foreach ($noteDenominations as $key => $denomination)
                                                     @php
                                                         $inValue = $cashNotes[$key][$denomination]['in'] ?? 0;
                                                         $outValue = $cashNotes[$key][$denomination]['out'] ?? 0;
+                                                        // $rowAmount = ($inValue - $outValue) * $denomination;
                                                     @endphp
                                                     <tr>
-                                                        {{-- Amount from IN (only when not a sales return) --}}
                                                         @if (empty($this->selectedSalesReturn))
                                                             <td class="text-center fw-bold">
                                                                 {{ format_inr($inValue * $denomination) }}
                                                             </td>
-
-                                                            {{-- IN controls --}}
                                                             <td class="text-center">
                                                                 <div class="d-flex align-items-center counter-add-delete-area"
-                                                                    style="width:100%">
-                                                                    <button type="button"
-                                                                        class="btn btn-gray rounded-start"
-                                                                        style="width:40px;"
-                                                                        wire:click.prevent="decrementNote('{{ $key }}', '{{ $denomination }}', 'in')">−</button>
+                                                                style="width: 100%">
+                                                                    <button class="btn btn-gray rounded-start"
+                                                                        style="width: 40px;"
+                                                                        wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'in')">
+                                                                        −
+                                                                    </button>
+
 
                                                                     <input type="text"
                                                                         class="form-control text-center rounded-0"
                                                                         value="{{ $inValue }}" readonly
-                                                                        style="width:60px;" />
+                                                                        style="width: 60px;" />
 
-                                                                    <button type="button"
-                                                                        class="btn btn-gray rounded-end"
-                                                                        style="width:40px;"
-                                                                        wire:click.prevent="incrementNote('{{ $key }}', '{{ $denomination }}', 'in')">+</button>
+                                                                    <button class="btn btn-gray rounded-end"
+                                                                        style="width: 40px;"
+                                                                        wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'in')">
+                                                                        +
+                                                                    </button>
                                                                 </div>
+
                                                             </td>
                                                         @endif
+                                                        @if (!empty($this->selectedSalesReturn))
+                                                            <td class="text-center ">
+                                                            @else
+                                                            <td class="text-center currency-center">
+                                                        @endif
+                                                        {{ format_inr($denomination) }}</td>
 
-                                                        {{-- Single currency column (only once per row) --}}
-                                                        <td
-                                                            class="text-center {{ empty($this->selectedSalesReturn) ? 'currency-center' : '' }}">
-                                                            {{ format_inr($denomination) }}
-                                                        </td>
-
-                                                        {{-- OUT controls --}}
                                                         <td class="text-center">
                                                             <div class="d-flex align-items-center counter-add-delete-area"
-                                                                style="width:100%">
-                                                                <button type="button"
-                                                                    class="btn btn-gray rounded-start"
-                                                                    style="width:40px;"
-                                                                    wire:click.prevent="decrementNote('{{ $key }}', '{{ $denomination }}', 'out')">−</button>
+                                                                style="width: 100%">
+                                                                <button class="btn btn-gray rounded-start"
+                                                                    style="width: 40px;"
+                                                                    wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'out')">
+                                                                    −
+                                                                </button>
 
                                                                 <input type="text"
                                                                     class="form-control text-center rounded-0"
                                                                     value="{{ $outValue }}" readonly
-                                                                    style="width:60px;" />
+                                                                    style="width: 60px;" />
 
-                                                                <button type="button"
-                                                                    class="btn btn-gray rounded-end"
-                                                                    style="width:40px;"
-                                                                    wire:click.prevent="incrementNote('{{ $key }}', '{{ $denomination }}', 'out')">+</button>
+                                                                <button class="btn btn-gray rounded-end"
+                                                                    style="width: 40px;"
+                                                                    wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'out')">
+                                                                    +
+                                                                </button>
                                                             </div>
                                                         </td>
 
-                                                        {{-- Amount from OUT --}}
                                                         <td class="text-center fw-bold">
                                                             {{ format_inr($outValue * $denomination) }}
                                                         </td>
                                                     </tr>
                                                 @endforeach
-
-                                                {{-- Totals row --}}
                                                 <tr class="table-dark">
                                                     @if (empty($this->selectedSalesReturn))
-                                                        <td class="text-center">{{ format_inr($totals['totalIn']) }}
+                                                        <td class="text-center">
+                                                            {{ format_inr($totals['totalIn']) }}</td>
+                                                        <td class="text-center">
+                                                            {{ $totals['totalInCount'] }}
                                                         </td>
-                                                        <td class="text-center">{{ $totals['totalInCount'] }}</td>
                                                     @endif
                                                     <td class="text-center">TOTAL</td>
-                                                    <td class="text-center">{{ $totals['totalOutCount'] }}</td>
-                                                    <td class="text-center">{{ format_inr($totals['totalOut']) }}
+                                                    <td class="text-center">
+                                                        {{ $totals['totalOutCount'] }}
                                                     </td>
+                                                    <td class="text-center">
+                                                        {{ format_inr($totals['totalOut']) }}</td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>
                                 </div>
-                            @endif
-
+                            
                             @if (!empty($this->selectedSalesReturn))
                                 <div class="row">
                                     <div class="col-md-12">
@@ -1436,27 +1404,28 @@
                                     </div>
                                 </div>
                             @endif
-
                             <div class="cash-summary-frame282">
-                                <div class="d-flex justify-content-between">
+                                <div class="d-flex justify-content-between ">
                                     {{ __('messages.subtotal') }}
                                     <span>{{ format_inr($sub_total) }}</span>
                                 </div>
-
-                                @if (auth()->user()->hasRole('cashier') && $commissionAmount > 0)
-                                    <div class="d-flex justify-content-between">
-                                        {{ __('messages.commission_deduction') }}
-                                        <span>- {{ format_inr($commissionAmount) }}</span>
-                                    </div>
+                                @if (auth()->user()->hasRole('cashier'))
+                                    @if ($commissionAmount > 0)
+                                        <div class="d-flex justify-content-between ">
+                                            {{ __('messages.commission_deduction') }}
+                                            <span>- {{ format_inr($commissionAmount) }}</span>
+                                        </div>
+                                    @endif
                                 @endif
-
                                 @if (auth()->user()->hasRole('warehouse'))
-                                    <div class="d-flex justify-content-between">
+                                    {{-- @if ($partyAmount > 0) --}}
+                                    <div class="d-flex justify-content-between ">
                                         {{ __('messages.commission_deduction') }}
                                         <span>- {{ format_inr($partyAmount) }}</span>
                                     </div>
-
-                                    <div class="">
+                                    {{-- @endif --}}
+                                    {{-- @if ($partyAmount > 0) --}}
+                                    <div class=" ">
                                         <label class="-label" for="useCreditCheck">
                                             <input type="checkbox" wire:model="showCheckbox"
                                                 wire:click="toggleCheck" />
@@ -1465,8 +1434,10 @@
                                     </div>
 
                                     @if ($this->useCredit && $this->showCheckbox)
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <label class="mb-0">{{ __('messages.credit') }}</label>
+                                        <div class="d-flex justify-content-between align-items-center credit-note">
+                                            <label class="mb-0">
+                                                {{ __('messages.credit') }}
+                                            </label>
                                             <div class="d-flex align-items-center">
                                                 <span class="badge bg-primary fs-6 me-2">
                                                     {{ __('messages.available_credit') }}:
@@ -1474,12 +1445,13 @@
                                                 </span>
                                                 <input type="number" wire:model="creditPay"
                                                     wire:input="creditPayChanged" class="form-control"
-                                                    style="width:100px;" />
+                                                    style="width: 100px;" />
                                             </div>
                                         </div>
                                     @endif
                                 @endif
 
+                                {{-- @endif --}}
                                 <div class="d-flex justify-content-between">
                                     {{ __('messages.tendered_amount') }}
                                     <span>{{ format_inr($this->cashAmount) }}</span>
@@ -1487,22 +1459,23 @@
                                         class="d-none" />
                                 </div>
                             </div>
-
                             @if (empty($this->selectedSalesReturn))
                                 <div class="row g-3 mt-1 align-items-end amount-row">
                                     <div class="col-md-3">
                                         <input type="hidden" wire-model="paymentType">
+
                                         <label for="cash"
                                             class="form-label">{{ __('messages.cash_amount') }}</label>
                                         <input type="number" class="form-control rounded-pill" id="cash"
-                                            value="{{ $this->cashAmount }}" readonly>
+                                            value="{{ $this->cashAmount }}" placeholder=""
+                                            oninput="calculateChange()" readonly>
                                     </div>
 
                                     <div class="col-md-3">
                                         <label for="tender"
                                             class="form-label">{{ __('messages.tendered_amount') }}</label>
                                         <input type="number" wire:model="cashPaTenderyAmt"
-                                            class="form-control rounded-pill" id="tender" readonly>
+                                            class="form-control rounded-pill" id="tender" placeholder="" readonly>
                                     </div>
 
                                     <div class="col-md-3">
@@ -1516,39 +1489,50 @@
                                                 class="form-control rounded-pill" id="change" readonly>
                                         @endif
                                     </div>
-
                                     <div class="col-md-3">
                                         @if (count($itemCarts) > 0)
-                                            <div>
+                                            <div class="">
+            
                                                 @if (!empty($this->selectedSalesReturn) && $this->cashAmount == $totals['totalOut'])
-                                                    <button type="button" id="paymentSubmit"
+                                                    <button id="paymentSubmit"
                                                         class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
                                                         wire:click="refund" wire:loading.attr="disabled">
                                                         Refund
                                                     </button>
                                                 @else
                                                     @if ($this->cashAmount == $totals['totalIn'] - $totals['totalOut'] && $errorInCredit == false)
-                                                        <button type="button" id="paymentSubmit"
+                                                        <button id="paymentSubmit"
                                                             class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
                                                             wire:click="checkout" wire:loading.attr="disabled"
                                                             wire:target="checkout">
-                                                            <span wire:loading.remove
-                                                                wire:target="checkout">{{ __('messages.submit') }}</span>
-                                                            <span wire:loading wire:target="checkout">Loading...</span>
+            
+                                                            <span wire:loading.remove wire:target="checkout">
+                                                                {{ __('messages.submit') }}
+                                                            </span>
+                                                            <span wire:loading wire:target="checkout">
+                                                                Loading...
+                                                            </span>
                                                         </button>
                                                     @endif
-
+            
                                                     @if (!$inOutStatus)
-                                                        <button type="button" id="paymentSubmit"
+                                                        <button id="paymentSubmit"
                                                             class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
                                                             wire:click="checkout" wire:loading.attr="disabled"
                                                             wire:target="checkout">
-                                                            <span wire:loading.remove
-                                                                wire:target="checkout">{{ __('messages.submit') }}</span>
-                                                            <span wire:loading wire:target="checkout">Loading...</span>
+            
+                                                            <span wire:loading.remove wire:target="checkout">
+                                                                {{ __('messages.submit') }}
+                                                            </span>
+                                                            <span wire:loading wire:target="checkout">
+                                                                Loading...
+                                                            </span>
                                                         </button>
                                                     @endif
+            
                                                 @endif
+                                                {{-- <div wire:loading class=" text-muted">{{ __('messages.processing_payment') }}...
+                                                </div> --}}
                                             </div>
                                         @endif
                                     </div>
@@ -1557,7 +1541,6 @@
                         </form>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
@@ -1678,117 +1661,113 @@
                                 $totalAmount = 0;
                             @endphp
 
-                            @if ($inOutStatus)
-                                <div class="row g-3">
-                                    <div class="col-md-12">
-                                        <table class="table table-bordered">
-                                            <thead class="table-dark">
-                                                <tr>
-                                                    <th class="text-center" style="width: 15%;">
-                                                        {{ __('messages.amount') }}</th>
-                                                    @if (empty($this->selectedSalesReturn))
-                                                        <th class="text-center" style="width:25%">
-                                                            {{ __('messages.in') }}</th>
-                                                    @endif
-                                                    <th class="text-center" style="width: 20%;">
-                                                        {{ __('messages.currency') }}</th>
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <table class="table table-bordered">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th class="text-center" style="width: 15%;">{{ __('messages.amount') }}</th>
+                                                @if (empty($this->selectedSalesReturn))
                                                     <th class="text-center" style="width:25%">
-                                                        {{ __('messages.out') }}</th>
-                                                    <th class="text-center" style="width: 15%;">
-                                                        {{ __('messages.amount') }}
-                                                        <button wire:click="clearCashUpiNotes"
-                                                            class="btn btn-danger btn-sm">
-                                                            <i class="fa fa-eraser"></i>
-                                                        </button>
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($noteDenominations as $key => $denomination)
-                                                    @php
-                                                        $inValue = $cashupiNotes[$key][$denomination]['in'] ?? 0;
-                                                        $outValue = $cashupiNotes[$key][$denomination]['out'] ?? 0;
-                                                        $rowAmount = ($inValue - $outValue) * $denomination;
+                                                        {{ __('messages.in') }}</th>
+                                                @endif
+                                                <th class="text-center" style="width: 20%;">{{ __('messages.currency') }}</th>
+                                                <th class="text-center" style="width:25%">
+                                                    {{ __('messages.out') }}</th>
+                                                <th class="text-center" style="width: 15%;">
+                                                    {{ __('messages.amount') }}
+                                                    <button wire:click="clearCashUpiNotes"
+                                                        class="btn btn-danger btn-sm">
+                                                        <i class="fa fa-eraser"></i>
+                                                    </button>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($noteDenominations as $key => $denomination)
+                                                @php
+                                                    $inValue = $cashupiNotes[$key][$denomination]['in'] ?? 0;
+                                                    $outValue = $cashupiNotes[$key][$denomination]['out'] ?? 0;
+                                                    $rowAmount = ($inValue - $outValue) * $denomination;
 
-                                                        $totalIn += $inValue * $denomination;
-                                                        $totalOut += $outValue * $denomination;
-                                                        $totalAmount += $rowAmount;
-                                                    @endphp
+                                                    $totalIn += $inValue * $denomination;
+                                                    $totalOut += $outValue * $denomination;
+                                                    $totalAmount += $rowAmount;
+                                                @endphp
 
-                                                    <tr>
-                                                        <td class="text-center">
-                                                            {{ format_inr($inValue * $denomination) }}
-                                                        </td>
+                                                <tr>
+                                                    <td class="text-center">
+                                                        {{ format_inr($inValue * $denomination) }}
+                                                    </td>
 
-                                                        @if (empty($this->selectedSalesReturn))
-                                                            <td class="text-center">
-                                                                <div class="d-flex align-items-center counter-add-delete-area"
-                                                                    style="width: 100%">
-                                                                    <button class="btn btn-gray rounded-start"
-                                                                        style="width: 40px;"
-                                                                        wire:click="decrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'in')">
-                                                                        -
-                                                                    </button>
-                                                                    <input type="text"
-                                                                        class="form-control text-center rounded-0"
-                                                                        value="{{ $inValue }}" readonly
-                                                                        style="width: 60px;">
-                                                                    <button class="btn btn-gray rounded-end"
-                                                                        style="width: 40px;"
-                                                                        wire:click="incrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'in')">
-                                                                        +
-                                                                    </button>
-                                                                </div>
-                                                            </td>
-                                                        @endif
-
-                                                        <td class="text-center currency-center">
-                                                            {{ format_inr($denomination) }}</td>
-
+                                                    @if (empty($this->selectedSalesReturn))
                                                         <td class="text-center">
                                                             <div class="d-flex align-items-center counter-add-delete-area"
                                                                 style="width: 100%">
                                                                 <button class="btn btn-gray rounded-start"
                                                                     style="width: 40px;"
-                                                                    wire:click="decrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'out')">
+                                                                    wire:click="decrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'in')">
                                                                     -
                                                                 </button>
                                                                 <input type="text"
-                                                                    class="form-control text-center"
-                                                                    value="{{ $outValue }}" readonly
+                                                                    class="form-control text-center rounded-0"
+                                                                    value="{{ $inValue }}" readonly
                                                                     style="width: 60px;">
                                                                 <button class="btn btn-gray rounded-end"
                                                                     style="width: 40px;"
-                                                                    wire:click="incrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'out')">
+                                                                    wire:click="incrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'in')">
                                                                     +
                                                                 </button>
                                                             </div>
                                                         </td>
-
-                                                        <td class="text-center">
-                                                            {{ format_inr($rowAmount) }}
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-
-                                                <tr class="table-dark">
-                                                    <td class="text-center">
-                                                        {{ format_inr($totalIn) }}
-                                                    </td>
-                                                    @if (empty($this->selectedSalesReturn))
-                                                        <td class="text-center">{{ $totalIn }}
-                                                        </td>
                                                     @endif
-                                                    <td class="text-center">TOTAL</td>
-                                                    <td class="text-center">{{ $totalOut }}</td>
+
+                                                    <td class="text-center currency-center">
+                                                        {{ format_inr($denomination) }}</td>
+
                                                     <td class="text-center">
-                                                        {{ format_inr($totalAmount) }}</td>
+                                                        <div class="d-flex align-items-center counter-add-delete-area"
+                                                            style="width: 100%">
+                                                            <button class="btn btn-gray rounded-start"
+                                                                style="width: 40px;"
+                                                                wire:click="decrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'out')">
+                                                                -
+                                                            </button>
+                                                            <input type="text"
+                                                                class="form-control text-center"
+                                                                value="{{ $outValue }}" readonly
+                                                                style="width: 60px;">
+                                                            <button class="btn btn-gray rounded-end"
+                                                                style="width: 40px;"
+                                                                wire:click="incrementCashUpiNote('{{ $key }}', '{{ $denomination }}', 'out')">
+                                                                +
+                                                            </button>
+                                                        </div>
+                                                    </td>
+
+                                                    <td class="text-center">
+                                                        {{ format_inr($rowAmount) }}
+                                                    </td>
                                                 </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                            @endforeach
+
+                                            <tr class="table-dark">
+                                                <td class="text-center">
+                                                    {{ format_inr($totalIn) }}
+                                                </td>
+                                                @if (empty($this->selectedSalesReturn))
+                                                    <td class="text-center">{{ $totalIn }}
+                                                    </td>
+                                                @endif
+                                                <td class="text-center">TOTAL</td>
+                                                <td class="text-center">{{ $totalOut }}</td>
+                                                <td class="text-center">
+                                                    {{ format_inr($totalAmount) }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
-                            @endif
+                            </div>
 
                             <div class="cash-summary-frame282">
                                 <div class="d-flex justify-content-between ">
@@ -1905,9 +1884,8 @@
                                     @if (!$inOutStatus)
                                         <button id="paymentSubmit"
                                             class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
-                                            wire:click="checkout" wire:loading.attr="disabled"
-                                            wire:target="checkout">
-
+                                            wire:click="checkout" wire:loading.attr="disabled" wire:target="checkout">
+    
                                             <span wire:loading.remove wire:target="checkout">
                                                 {{ __('messages.submit') }}
                                             </span>
@@ -1918,7 +1896,7 @@
                                     @endif
                                 </div>
                             </div>
-
+                            
                         </form>
                     </div>
                 </div>
@@ -1928,95 +1906,6 @@
 </div>
 
 <script>
-    (function() {
-        // Use capture phase so we receive the click even if inner handlers call stopPropagation
-        document.addEventListener('click', function(e) {
-            var popup = document.getElementById('notifPopup');
-            var toggle = document.getElementById('notifToggleBtn');
-
-            // If popup isn't open, nothing to do
-            if (!popup) return;
-
-            // Click is on the popup or the toggle button? Don't close.
-            if (popup.contains(e.target) || (toggle && toggle.contains(e.target))) return;
-
-            // Otherwise: clicked outside -> close via Livewire
-            try {
-                if (window.Livewire) {
-                    // v3
-                    if (typeof Livewire.dispatch === 'function') {
-                        Livewire.dispatch('closeNotificationPopup');
-                    } else {
-                        // v2
-                        Livewire.emit('closeNotificationPopup');
-                    }
-                }
-            } catch (err) {
-                console.error('Close notif (outside) failed:', err);
-            }
-        }, true); // <-- capture
-    })();
-
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const startZero = document.getElementById('startZero');
-        const amountInput = document.getElementById('holdamountTotal');
-
-        function updateAmountByStartZero() {
-            if (startZero.checked) {
-                // Force amount to 0 when "Start with 0" is checked
-                amountInput.value = 0;
-
-                // (Optional) reset all note inputs to 0 visually
-                document.querySelectorAll('.note-input').forEach(el => el.value = 0);
-
-                // (Optional) update total display in UI
-                const totalCell = document.getElementById('totalNoteCashHand');
-                if (totalCell) totalCell.textContent = '₹0';
-            }
-            // If unchecked, let your existing logic recalc amount from notes
-            // (no action needed here if you already compute it elsewhere)
-        }
-
-        if (startZero) {
-            startZero.addEventListener('change', updateAmountByStartZero);
-            // Run once on load in case it’s pre-checked
-            updateAmountByStartZero();
-        }
-
-        function uncheckStartZeroIfNeeded() {
-            if (!startZero) return;
-
-            // Uncheck if ANY note count > 0
-            const anyPositive = Array.from(document.querySelectorAll('.note-input'))
-                .some(el => (parseInt(el.value || '0', 10) > 0));
-
-            if (anyPositive && startZero.checked) {
-                startZero.checked = false;
-                // If you have a totals function, call it
-                if (typeof updateTotals === 'function') updateTotals();
-            }
-        }
-
-        // Delegate clicks on + / - buttons inside the table
-        const table = document.getElementById('case_in_hand');
-        if (table) {
-            table.addEventListener('click', function(e) {
-                if (e.target.closest('.btn-increase') || e.target.closest('.btn-decrease')) {
-                    // Wait for your +/- handlers to update the input values, then check
-                    setTimeout(uncheckStartZeroIfNeeded, 0);
-                }
-            });
-        }
-
-        // In case inputs become editable or are updated programmatically
-        document.querySelectorAll('.note-input').forEach(el => {
-            el.addEventListener('input', uncheckStartZeroIfNeeded);
-            el.addEventListener('change', uncheckStartZeroIfNeeded);
-        });
-    });
-
-
     // Before reload, set a flag to restore fullscreen
     // function reloadWithFullscreen() {
     //     localStorage.setItem('restoreFullscreen', 'true');
@@ -3306,10 +3195,10 @@
 
                 // Update button text to show status
                 this.captureProduct.innerHTML = this.hasProductPhoto ?
-                    '✅ Product Photo' :
+                    '✅ Product Photo Taken' :
                     '📷 Capture Product';
                 this.captureCustomer.innerHTML = this.hasCustomerPhoto ?
-                    '✅ Customer Photo' :
+                    '✅ Customer Photo Taken' :
                     '📷 Capture Customer';
 
                 // Update button styles

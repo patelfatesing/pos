@@ -22,7 +22,6 @@ body { font-family: 'Poppins', sans-serif; background-color: #f7f9fc; }
 .blue-bg { background-color: rgba(200, 225, 245, 1); }
 .btn-hold { padding: 5px 24px; border-radius: 6px; justify-content: center; background-color: rgba(224, 142, 20, 1); color: rgba(255, 255, 255, 1); }
 .btn-void { padding: 5px 0px; width: 100px; border-radius: 6px; justify-content: center; background-color: rgba(204, 68, 68, 1); color: rgba(255, 255, 255, 1); }
-.btn-void span {}
 .btn-cash { padding: 5px 24px; border-radius: 6px; justify-content: center; background-color: rgba(73, 89, 144, 1); color: rgba(255, 255, 255, 1); }
 .btn-online { padding: 5px 24px; border-radius: 6px; justify-content: center; background-color: rgba(46, 158, 209, 1); color: rgba(255, 255, 255, 1); }
 .btn-cash-upi { border-radius: 6px; justify-content: center; background-color: rgba(0, 179, 179, 1); color: rgba(255, 255, 255, 1); }
@@ -78,6 +77,7 @@ body { font-family: 'Poppins', sans-serif; background-color: #f7f9fc; }
 /* SideBar */
 .sidebar { background-color: #009fe3; border-radius: 0px !important; width: 125px; z-index: 999; padding: 0; position: sticky; max-height: calc(100vh - 62px); overflow-y: auto; height: 100%; top: 0; margin-left: 0; }
 .sidebar-item { font-weight: bold; padding: 20px 10px; cursor: pointer; border-bottom: 2px solid #ffffff; }
+.sidebar-item:last-child {border-bottom: 2px solid #ffffff;}
 .sidebar .sidebar-item img { width: 32px;}
 .sidebar-item:last-child img { max-width: 20px;}
 .sidebar-item button + span { display: block; }
@@ -220,8 +220,12 @@ table td { font-size: 14px; line-height: 20px; letter-spacing: 0.5px; font-weigh
 .credit-debit-table tr td { padding: 10px; }
 .collect-credit-modal-dialog .cash-upi-selection { margin-top: 0;}
 #product-items .item-row input[type="number"] { max-width: 100px; text-align: center;}
-
-
+.closing-stock-modal-body .physical-table td:not(:first-child),
+.closing-stock-modal-body .physical-table td:nth-child(2) { text-align: center; }
+.closing-stock-modal-body .physical-table tr:last-child td.text-start { text-align: center !important;}
+.closing-stock-modal-body .physical-table tr:last-child td { font-weight: bold; }
+.sidebar .sidebar-item .capture-modal-block .capture-img2 img { height: 100%; width: 100%; max-width: 100%; max-height: 100%; }
+.ic-block-area { display: flex; align-items: center; gap: 10px;}
 
 /* Media Start */
 /* Tablet View */
@@ -267,9 +271,15 @@ table td { font-size: 14px; line-height: 20px; letter-spacing: 0.5px; font-weigh
     .credits-modal-block .pagination-tab { margin-top: 0px;}  
     .credits-modal-block .pagination-tab .pagination{ margin: 0px;}  
     .page-item .page-link { font-size: 15px; line-height: 16px;}
-    .stock-status-btns { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #EAECEA; border-right: 0;}
-    .status-time-area h6.close-text:last-child { margin-bottom: 0px; } 
+    .stock-status-btns { margin-top: 0px; padding-top: 10px; border-top: 1px solid #EAECEA; border-right: 0;}
+    .card-body.close-shift-card-body { padding-top: 5px; padding-bottom: 5px;}
+    .close-shift-card-body .stock-status-btns { order: 2;}
+    .time-flex { display: flex; gap: 10px; }
+    .time-flex h6 { margin-bottom: 5px;}
+    .status-time-area > div:first-child .time-flex { justify-content: flex-end;}
     .cash-details_table .submit-btn th:first-child { padding-left: 10px;}
+    .card .table td, .card .table th { padding: 5px;}
+    .close-shift-modal-body { padding: 10px 24px !important;}
     .product_search-panel tbody td.border input.form-control { max-width: 100px;}
     .capture-buttons button { font-size: 12px; line-height: 20px;}
     #cash-payment .table.table-bordered,
@@ -302,7 +312,7 @@ table td { font-size: 14px; line-height: 20px; letter-spacing: 0.5px; font-weigh
     #cash-payment .table.table-bordered thead th, #cash-payment .table.table-bordered tr:last-child > td { padding: 5px;}
     #cashupi-payment .table.table-bordered thead th .btn.btn-sm,
     #cash-payment .table.table-bordered thead th .btn.btn-sm { margin-left: 5px; }
-
+    
 }
 /* Mobile View */
 @media (min-width: 768px) and (max-width: 991px) { 
@@ -366,18 +376,67 @@ table td { font-size: 14px; line-height: 20px; letter-spacing: 0.5px; font-weigh
 }
 @media (max-width: 767px)  { 
     .sidebar-item .d-none { display: none;}
+    .sidebar-item button { height: unset; max-width: unset;}
+    .topbar { padding: 10px;}
+    .main-screen-vector11,
+    .main-screen-vector10 { height: 10px !important; width: 15px;}
+    .main-screen-bell1,
+    .main-screen-expand1 { width: 15px; height: 15px;}
+    .dashboard-panel .dashboard-content { margin: 0 !important;}
+    .product-table td:not(:first-child), .product-table th:not(:first-child) { width: 100px;}
+    .product-table td:first-child, .product-table th:first-child { width: 225px;}
+    .main-screen-text72 { font-size: 11px; line-height: 16px; }
+    .top_header_panel .topbar { flex-wrap: nowrap !important; gap: 10px; }
+    .logo-area { min-width: 100px; }
+    .ic-block-area .main-screen-group1 { margin-top: 10px;}
+    .ic-block-area .form-control { font-size: 12px; line-height: 16px; padding: 5px;}
+    .ic-block-area .btn.btn-light { height: 25px !important; width: 25px; }
+    .ic-block-area .btn.btn-light img { height: 15px !important; }
+    .top_header_panel .bg-white.shadow-sm .flex-md-nowrap { justify-content: flex-end;}
+    .top_header_panel + .d-md-none.ms-2 { margin-top: 10px;}
+    .top-panel-dash .text-muted.main-screen-text12 { font-size: 12px; line-height: 18px;}
+    .search-bar-calc-area .row.mt-3 { margin-top: 10px !important;}
+    .search-bar-calc-area { margin-top: 10px;}
+    .search-bar-calc-area > .row { gap: 10px;}
+    .capture-eve-block { order: -1;}
+    .calc-area .d-flex .btn { font-size: 15px !important; height: 30px !important;}
+    .calc-area .d-flex .btn img { max-height: 20px;}
+    .qty-payble-table .fw-semibold { font-size: 14px; line-height: 20px;}
+    .total-val .text-custom-blue { font-size: 16px !important; line-height: 20px; }
+    .offcanvas-body { padding: 0px;}
+    .sidebar-item { width: calc(100% - 30px); padding: 10px; }
+    .offcanvas-body .sidebar-item > button { width: unset; height: unset; padding: 0 !important; margin-left: 10px !important; }
+    .sidebar-item img { width: 30px; height: 25px; }
+    .offcanvas-body .sidebar-item > div { width: 100%;}
+    .offcanvas-body .sidebar-item > div > div { display: flex; align-items: center; gap: 10px;}
+    .main-screen-rectangle457 { display: none;}
+    .custom-modal-header { padding: 10px;}
+    .modal-header .btn-close { font-size: 12px; line-height: 20px;}
+    .custom-modal-header .modal-title,
+    .item-row .frame-stock-request-searchbar6 { font-size: 14px; line-height: 20px;}
+    .card-body { padding: 5px 10px;}
+    .counter-add-delete-area button.btn, 
+    .offcanvas-body .sidebar-item .counter-add-delete-area button { margin: 0 !important; min-width: 30px; height: 25px !important; }
+    .counter-add-delete-area .form-control,
+    .offcanvas-body .sidebar-item .counter-add-delete-area .form-control { width: 40px !important; padding: 2px; height: 25px; }
+    .cashwithdraw-table { padding: 0px;}
+    .customer-ledger-modal .modal-body > .row.mb-3 { gap: 15px;}
+    .offcanvas-body .sidebar-item .pdf_ic .btn-danger { white-space: nowrap; padding: 5px !important; max-width: 100%; margin: 0; }
+    .width_300, .mb-3.width_300 { width: 100%;}
+    .credits-modal-block .frame-stock-request-searchbar6 { padding-right: 35px;}
+    .collect-credit-table .collect-credit-frame2742 { width: 100%; max-width: unset;}
+    .stock-status-btns  { flex-wrap: wrap; border: 0; margin-bottom: 10px; }
+    .stock-status-btns button { width: 100%; max-width: unset; white-space: nowrap; height: unset; }
+    .time-flex { display: flex; gap: 10px; justify-content: center; }
+    .time-flex h6 { font-size: 12px; line-height: 16px; }
+    .sidebar-item .capture-img2 img { width: 200px; height: 150px; max-width: 200px; margin-top: 10px;}
+    .shift-close-btn-block .footer_btn_block button { width: unset; max-width: unset; height: unset;}
+    #case_in_hand .product-table td:first-child,#case_in_hand .product-table th:first-child { width: 135px; }
+
 }
 
 
 /* Height Issue */
 @media screen and (min-height: 701px) {
     .sidebar { min-height: calc(100vh - 62px);}
-}
-
-.capture-img2 img {
-    max-width: 100% !important;
-}
-
-.form-check-label{
-    color: #000;
 }
