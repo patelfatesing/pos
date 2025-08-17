@@ -447,7 +447,7 @@ class ProductController extends Controller
             'discount_price'   => 'nullable|numeric|min:0|lte:sell_price',
             'reorder_level'    => 'nullable|numeric|min:0',
             'description'      => 'nullable|string',
-        ]);
+          ]);
 
         $image = $product->image;
         // Handle image upload

@@ -184,13 +184,25 @@
                                             <!-- Discount Price -->
                                             <div class="form-group">
                                                 <label for="mrp">MRP</label>
-                                                <input type="number" value="{{ old('mrp') }}"
-                                                    name="mrp" step="0.01" class="form-control">
+                                                <input type="number" value="{{ old('mrp') }}" name="mrp"
+                                                    step="0.01" class="form-control">
                                                 @error('mrp')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
                                         </div>
+                                        {{-- <div class="col-md-6">
+                                            <!-- Expiry Date -->
+                                            <div class="form-group">
+                                                <label for="expiry_date">Exp Date</label>
+                                                <input type="date"
+                                                    value="{{ old('expiry_date') }}"
+                                                    name="expiry_date" class="form-control">
+                                                @error('expiry_date')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div> --}}
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Description / Product Details</label>
