@@ -4,7 +4,7 @@
         data-placement="top">
 
         <button class="btn btn-default p-1 m-0 border-0 bg-transparent">
-            <img src="{{ asset('external/vector4471-k5i.svg') }}" alt="Cash Out Icon"
+            <img src="{{ asset('public/external/vector4471-k5i.svg') }}" alt="Cash Out Icon"
                 style="width: 20px; height: 20px;" />
         </button>
         <span class="ic-txt">Add Cash</span>
@@ -23,56 +23,57 @@
 
                     <div class="modal-body">
                         <!-- Table -->
-                        <table class=" table table-bordered ">
-                            <thead class="table-dark">
-                                <tr >
-                                    <th class="text-center" style="width: 15%;" >Amount</th>
-                                    <th class="text-center" style="width: 25%;" >In</th>
-                                    <th class="text-center" style="width: 20%;" >Currency</th>
-                                    <th class="text-center" style="width: 25%;" >Out</th>
-                                    <th class="text-center" style="width: 15%;" >Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($noteDenominations as $key => $denomination)
-                                    @php
-                                        $inValue = $cashNotes[$key][$denomination]['in'] ?? 0;
-                                        $outValue = $cashNotes[$key][$denomination]['out'] ?? 0;
-                                    @endphp
-                                    <tr>
-                                        <td class="text-center">{{ format_inr($inValue * $denomination) }}</td>
-                                        <td class="text-center">
-                                            <div class="d-flex align-items-center counter-add-delete-area" style="width: 100%">
-                                                <button style="width: 40%;" class="btn btn-gray rounded-start"
-                                                    wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'in')">−</button>
-                                                <input class="form-control text-center rounded-0" type="text" value="{{ $inValue }}" style="width: 60px;" readonly>
-                                                <button style="width: 40%;"  class="btn btn-gray rounded-end"
-                                                    wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'in')">+</button>
-                                            </div>
-                                        </td>
-                                        <td class="text-center currency-center">{{ format_inr($denomination) }}</td>
-                                        <td class="text-center">
-                                            <div class="d-flex align-items-center counter-add-delete-area" style="width: 100%" >
-                                                <button style="width: 40%;"  class="btn btn-gray rounded-start"
-                                                    wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'out')">−</button>
-                                                <input style="width: 60px;"  class="form-control text-center rounded-0"  type="text" value="{{ $outValue }}" readonly>
-                                                <button style="width: 40%;"  class="btn btn-gray rounded-end"
-                                                    wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'out')">+</button>
-                                            </div>
-                                        </td>
-                                        <td class="text-center">{{ format_inr($outValue * $denomination) }}</td>
+                         <div class="table-responsive">
+                            <table class=" table table-bordered ">
+                                <thead class="table-dark">
+                                    <tr >
+                                        <th class="text-center" style="width: 15%;" >Amount</th>
+                                        <th class="text-center" style="width: 25%;" >In</th>
+                                        <th class="text-center" style="width: 20%;" >Currency</th>
+                                        <th class="text-center" style="width: 25%;" >Out</th>
+                                        <th class="text-center" style="width: 15%;" >Amount</th>
                                     </tr>
-                                @endforeach
-                                <tr class="table-secondary fw-bold total-summary-block">
-                                    <td class="total_bgc text-center">{{ format_inr($totals['totalIn']) }}</td>
-                                    <td class="total_bgc text-center">{{ $totals['totalInCount'] }}</td>
-                                    <td class="text-success text-center total_bgc">TOTAL</td>
-                                    <td class="total_bgc text-center">{{ $totals['totalOutCount'] }}</td>
-                                    <td class="total_bgc text-center">{{ format_inr($totals['totalOut']) }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-
+                                </thead>
+                                <tbody>
+                                    @foreach ($noteDenominations as $key => $denomination)
+                                        @php
+                                            $inValue = $cashNotes[$key][$denomination]['in'] ?? 0;
+                                            $outValue = $cashNotes[$key][$denomination]['out'] ?? 0;
+                                        @endphp
+                                        <tr>
+                                            <td class="text-center">{{ format_inr($inValue * $denomination) }}</td>
+                                            <td class="text-center">
+                                                <div class="d-flex align-items-center counter-add-delete-area" style="width: 100%">
+                                                    <button style="width: 40%;" class="btn btn-gray rounded-start"
+                                                        wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'in')">−</button>
+                                                    <input class="form-control text-center rounded-0" type="text" value="{{ $inValue }}" style="width: 60px;" readonly>
+                                                    <button style="width: 40%;"  class="btn btn-gray rounded-end"
+                                                        wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'in')">+</button>
+                                                </div>
+                                            </td>
+                                            <td class="text-center currency-center">{{ format_inr($denomination) }}</td>
+                                            <td class="text-center">
+                                                <div class="d-flex align-items-center counter-add-delete-area" style="width: 100%" >
+                                                    <button style="width: 40%;"  class="btn btn-gray rounded-start"
+                                                        wire:click="decrementNote('{{ $key }}', '{{ $denomination }}', 'out')">−</button>
+                                                    <input style="width: 60px;"  class="form-control text-center rounded-0"  type="text" value="{{ $outValue }}" readonly>
+                                                    <button style="width: 40%;"  class="btn btn-gray rounded-end"
+                                                        wire:click="incrementNote('{{ $key }}', '{{ $denomination }}', 'out')">+</button>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">{{ format_inr($outValue * $denomination) }}</td>
+                                        </tr>
+                                    @endforeach
+                                    <tr class="table-secondary fw-bold total-summary-block">
+                                        <td class="total_bgc text-center">{{ format_inr($totals['totalIn']) }}</td>
+                                        <td class="total_bgc text-center">{{ $totals['totalInCount'] }}</td>
+                                        <td class="text-success text-center total_bgc">TOTAL</td>
+                                        <td class="total_bgc text-center">{{ $totals['totalOutCount'] }}</td>
+                                        <td class="total_bgc text-center">{{ format_inr($totals['totalOut']) }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                         <!-- Transaction Type & Total Amount -->
                         <div class="transaction-type-add">
                             <div class="col-12 bg-light shadow-sm">

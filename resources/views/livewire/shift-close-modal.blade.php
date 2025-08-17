@@ -20,13 +20,7 @@
                                 <i class="bi bi-cash-coin me-2"></i> {{ $this->currentShift->shift_no ?? '' }} - Shift
                                 Close Summary - {{ $branch_name ?? 'Shop' }}
                             </h5>
-
                         </div>
-                        <button type="button" class="btn btn-light border ms-1" data-bs-toggle="tooltip" title="Logout"
-                            onclick="confirmLogout()">
-                            <img src="{{ asset('external/fi106093284471-0vjk.svg') }}" class="img-fluid"
-                                style="height: 25px;" />
-                        </button>
                         @if ($this->showYesterDayShiftTime == false && $this->shiftclosehidecross == false)
                             {{-- <button type="button" class="close btn btn-default" wire:click="$set('showModal', false)">
                             <span aria-hidden="true">×</span>
@@ -37,7 +31,7 @@
                     </div>
 
                     {{-- Modal Body --}}
-                    <div class="modal-body px-4 py-4">
+                    <div class="modal-body px-4 py-4 close-shift-modal-body">
                         <form wire:submit.prevent="submit">
                             {{-- Hidden Fields --}}
                             <input type="hidden" wire:model="start_time">
@@ -50,7 +44,7 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="card">
-                                        <div class="card-body">
+                                        <div class="card-body close-shift-card-body">
                                             <div class="row">
                                                 <div class="col-md-6 col-lg-12 col-xl-6 stock-status-btns">
                                                     <button type="button" wire:click="openClosingStocksModal"
@@ -63,23 +57,30 @@
                                                     </button>
                                                     @if ($this->showYesterDayShiftTime)
                                                         <button type="button" wire:click="removeHold"
-                                                            class="btn btn-secondary rounded-pill remove_hold_btn"
-                                                            title="View Stock Status">
+                                                            class="btn btn-secondary rounded-pill remove_hold_btn" title="View Stock Status">
                                                             Remove Hold
                                                         </button>
                                                     @endif
+                                                    <button type="button" wire:click="removeHold"
+                                                        class="btn btn-secondary rounded-pill remove_hold_btn" title="View Stock Status">
+                                                        Remove Hold
+                                                    </button>
                                                 </div>
                                                 <div class="col-md-6 col-lg-12 col-xl-6">
                                                     <div class="row status-time-area">
-                                                        <div class="col-lg-5 col-md-12 offset-lg-1">
-                                                            <h6 class="text-start close-text">Start Time</h6>
-                                                            <h6 class="text-start close-text">
-                                                                {{ $this->currentShift->start_time ?? '-' }}</h6>
-                                                        </div>
-                                                        <div class="col-lg-5 col-md-12 offset-lg-1">
-                                                            <h6 class="text-start close-text">End Time</h6>
-                                                            <h6 class="text-start close-text">
-                                                                {{ $this->currentShift->start_time ?? '-' }}</h6>
+                                                        <div class="col-lg-6 col-md-12">
+                                                            <div class="time-flex">
+                                                                <h6 class="text-start close-text">Start Time</h6>
+                                                                <h6 class="text-start close-text">
+                                                                    {{ $this->currentShift->start_time ?? '-' }}</h6>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-lg-6 col-md-12">
+                                                            <div class="time-flex">
+                                                                <h6 class="text-start close-text">End Time</h6>
+                                                                <h6 class="text-start close-text">
+                                                                    {{ $this->currentShift->start_time ?? '-' }}</h6>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -144,76 +145,68 @@
 
                                 {{-- Shift Timing and Cash Details --}}
                                 <div class="col-lg-6 col-md-12">
-                                    @if ($inOutStatus)
-                                        <div class="card cash-details_table">
-                                            <div class="card-header custom-modal-header">
-                                                <h5 class="mb-0 cash-summary-text61">Cash Details
-                                                </h5>
-                                            </div>
-                                            <div class="card-body p-0">
+                                    <div class="card cash-details_table">
+                                        <div class="card-header custom-modal-header">
+                                            <h5 class="mb-0 cash-summary-text61">Cash Details
+                                            </h5>
+                                        </div>
+                                        <div class="card-body p-0">
 
-                                                <div class="table-responsive">
-                                                    <table
-                                                        class="table table-bordered table-sm text-center align-middle mb-0">
-                                                        <thead class="submit-btn">
-                                                            <tr>
-                                                                <th>Denomination</th>
-                                                                <th>Notes</th>
-                                                                <th>x</th>
-                                                                <th>Amount</th>
-                                                                <th>=</th>
-                                                                <th>Total</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @if (!empty($shiftcash))
+                                            <div class="table-responsive">
+                                                <table
+                                                    class="table table-bordered table-sm text-center align-middle mb-0">
+                                                    <thead class="submit-btn">
+                                                        <tr>
+                                                            <th>Denomination</th>
+                                                            <th>Notes</th>
+                                                            <th>x</th>
+                                                            <th>Amount</th>
+                                                            <th>=</th>
+                                                            <th>Total</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @if (!empty($shiftcash))
+                                                            @php
+                                                                $totalNotes = 0;
+                                                            @endphp
+                                                            @foreach ($shiftcash as $denomination => $quantity)
                                                                 @php
-                                                                    $totalNotes = 0;
+                                                                    $rowTotal = $denomination * $quantity;
+                                                                    $totalNotes += $rowTotal;
                                                                 @endphp
-                                                                @foreach ($shiftcash as $denomination => $quantity)
-                                                                    @php
-                                                                        $rowTotal = $denomination * $quantity;
-                                                                        $totalNotes += $rowTotal;
-                                                                    @endphp
-                                                                    <tr>
-                                                                        <td class="">
-                                                                            {{ format_inr($denomination) }}
-                                                                        </td>
-                                                                        <td>{{ abs($quantity) }}</td>
-                                                                        <td>X</td>
-                                                                        <td>{{ format_inr($denomination) }}</td>
-                                                                        <td>=</td>
-                                                                        <td class="fw-bold">{{ format_inr($rowTotal) }}
-                                                                        </td>
-                                                                    </tr>
-                                                                @endforeach
-                                                            @endif
-                                                        </tbody>
-                                                        <tfoot class="border table-success fw-bold">
-                                                            <tr>
-                                                                <th colspan="5" class="text-end">Total</th>
-                                                                <th class="fw-bold">
-                                                                    {{ format_inr(@$totalNotes) }}
-                                                                </th>
-                                                            </tr>
-                                                        </tfoot>
-                                                    </table>
-                                                </div>
+                                                                <tr>
+                                                                    <td class="">{{ format_inr($denomination) }}
+                                                                    </td>
+                                                                    <td>{{ abs($quantity) }}</td>
+                                                                    <td>X</td>
+                                                                    <td>{{ format_inr($denomination) }}</td>
+                                                                    <td>=</td>
+                                                                    <td class="fw-bold">{{ format_inr($rowTotal) }}
+                                                                    </td>
+                                                                </tr>
+                                                            @endforeach
+                                                        @endif
+                                                    </tbody>
+                                                    <tfoot class="border table-success fw-bold">
+                                                        <tr>
+                                                            <th colspan="5" class="text-end">Total</th>
+                                                            <th class="fw-bold">
+                                                                {{ format_inr(@$totalNotes) }}
+                                                            </th>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
                                             </div>
                                         </div>
-                                    @endif
+                                    </div>
                                     {{-- Summary Cash Totals --}}
                                     <div class="table-responsive mt-4 finalcash-details_table">
                                         <table class="table table-bordered">
                                             <tbody>
                                                 <tr>
                                                     <td class="text-start ">System Cash Sales</td>
-                                                    @if ($inOutStatus)
-                                                        <td class="text-end">{{ format_inr($totalNotes ?? 0) }}
-                                                        @else
-                                                        <td class="text-end">
-                                                            {{ format_inr(@$this->categoryTotals['summary']['TOTAL']) }}
-                                                    @endif
+                                                    <td class="text-end">{{ format_inr($totalNotes ?? 0) }}
                                                     </td>
                                                 </tr>
                                                 <tr>
@@ -303,9 +296,8 @@
 
                     <div class="modal-header custom-modal-header">
                         <h5 class="modal-title cash-summary-text61">Closing Stock Status</h5>
-                        <button type="button" class="btn-close" wire:click="$set('showStockModal', false)"> <span
-                                aria-hidden="true">×</span> </button>
-
+                        <button type="button" class="btn-close" wire:click="$set('showStockModal', false)"> <span aria-hidden="true">×</span> </button>
+                        
                     </div>
 
                     <div class="modal-body closing-stock-modal-body">
@@ -408,10 +400,10 @@
                                             placeholder="Search by product name..">
                                     </div>
                                 </div>
-                                <form wire:submit.prevent="save" id="stockPhysicalForm">
-                                    @if (!empty($this->addstockStatus))
-                                        <div class="table-responsive">
 
+                                @if (!empty($this->addstockStatus))
+                                    <div class="table-responsive">
+                                        <form wire:submit.prevent="save" id="stockPhysicalForm">
                                             <table class="table table-bordered physical-table mb-0">
                                                 <thead class="table-info">
                                                     <tr>
@@ -431,37 +423,23 @@
                                                                     wire:model="products.{{ $product['product_id'] }}.qty"
                                                                     class="form-control rounded-pill">
                                                                 @error("products.{$product['product_id']}.qty")
-                                                                    <span
-                                                                        class="text-danger small">{{ $message }}</span>
+                                                                    <span class="text-danger small">{{ $message }}</span>
                                                                 @enderror
                                                             </td>
                                                         </tr>
                                                     @endforeach
                                                 </tbody>
                                             </table>
-
-                                        </div>
-                                    @else
-                                        <div class="d-flex justify-content-center mt-1">
-                                            <div class="form-check d-flex align-items-center gap-2">
-                                                <input class="form-check-input start-zero-checkbox"
-                                                    wire:model="no_sale_product" type="checkbox" id="no_sale_product"
-                                                    name="no_sale_product" value="1">
-                                                <label class="form-check-label mb-0">
-                                                    Save with no sale product
-                                                </label>
-                                                @error("no_sale_product")
-                                                    <span class="text-danger small">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                    @endif
-                                </form>
+                                        </form>
+                                    </div>
+                                @else
+                                    <p class="text-muted">No stock data available.</p>
+                                @endif
                             </div>
                         </div>
-
+                        
                         <div class="capture-modal-block">
-                            <div class="row align-items-center">
+                            <div class="row">
                                 <!-- Physical Stock Image Capture -->
                                 <div class="col-md-4">
                                     <!-- <label class="form-label fw-bold mb-2">Physical Stock Image Capture</label> -->
@@ -488,8 +466,7 @@
                         </div>
                         <div class="row mt-3">
                             <div class="col-md-4">
-                                <button type="button" class="btn btn-primary rounded-pill capture-btn"
-                                    onclick="takeSnapshot()">
+                                <button type="button" class="btn btn-primary rounded-pill capture-btn" onclick="takeSnapshot()">
                                     <i class="bi bi-camera"></i> Capture
                                 </button>
                             </div>

@@ -14,7 +14,7 @@
     @if ($showModal)
         <div class="modal d-block" tabindex="-1"
             style="background-color: rgba(0,0,0,0.5);"wire:keydown.escape="$set('showModal', false)">
-            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable customer-ledger-modal">
                 <div class="modal-content">
                     <div class="modal-header custom-modal-header">
                         <h5 class="modal-title">Customer Credit Ledger</h5>
@@ -57,7 +57,7 @@
                                 <td style="text-align: left;">
                                     <strong>Debit:</strong> {{ number_format($totalDebit, 2) }} Dr
                                 </td>
-                                <td style="text-align: right;">
+                                <td style="text-align: right;"class="pdf_ic">
                                     <button wire:click="downloadPDF" class="btn btn-danger">
                                         <i class="fas fa-file-pdf"></i> Download PDF
                                     </button>
