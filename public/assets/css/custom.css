@@ -407,8 +407,8 @@ table td { font-size: 14px; line-height: 20px; letter-spacing: 0.5px; font-weigh
     .total-val .text-custom-blue { font-size: 16px !important; line-height: 20px; }
     .offcanvas-body { padding: 0px;}
     .sidebar-item { width: calc(100% - 30px); padding: 10px; }
-    .offcanvas-body .sidebar-item > button { width: unset; height: unset; padding: 0 !important; margin-left: 10px !important; }
-    .sidebar-item img { width: 30px; height: 25px; }
+    .offcanvas-body .sidebar-item > button { width: unset; height: unset; padding: 0 !important; }
+    .sidebar-item button img { width: 20px; height: 25px; margin: 0; }
     .offcanvas-body .sidebar-item > div { width: 100%;}
     .offcanvas-body .sidebar-item > div > div { display: flex; align-items: center; gap: 10px;}
     .main-screen-rectangle457 { display: none;}
