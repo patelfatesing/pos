@@ -201,8 +201,11 @@
                                     <div class="p-3">
                                         <h5 class="mb-3">Order Details</h5>
                                         <input type="hidden" id="total_discount" name="total_discount" value="0">
+                                        <input type="hidden" id="ori_total_discount" name="ori_total_discount" value="0">
                                         <input type="hidden" id="gr_total" name="total" value="0">
                                         <input type="hidden" id="sub_total" name="sub_total" value="0">
+                                        <input type="hidden" id="ori_sub_total" name="ori_sub_total"
+                                            value="{{ $sub_total }}">
                                         <input type="hidden" id="left_credit_id" value="0">
 
                                         <div class="mb-2 d-flex justify-content-between">
@@ -246,8 +249,8 @@
                                         <div class="mb-2 d-flex justify-content-between">
                                             <label><strong>Payment Method</strong></label>
                                             <div>
-                                                <input type="radio" id="cash-option" name="payment_method" value="cash"
-                                                    @if ($invoice->payment_mode == 'cash') checked @endif>
+                                                <input type="radio" id="cash-option" name="payment_method"
+                                                    value="cash" @if ($invoice->payment_mode == 'cash') checked @endif>
                                                 <label for="cash-option">Cash</label>
                                                 <input type="radio" id="upi-option" name="payment_method"
                                                     value="online" @if ($invoice->payment_mode == 'online') checked @endif>
@@ -280,7 +283,7 @@
                                     </div>
                                     <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
                                         <h6>Return Amount</h6>
-                                        <h3 class="text-primary font-weight-700" id="grand-total">
+                                        <h3 class="text-primary font-weight-700" id="return-amt">
                                             {{ number_format($sub_total, 2) }}</h3>
                                     </div>
                                 </div>
@@ -309,6 +312,8 @@
             let grandTotal = 0;
             let totalSellPrice = 0;
             let discountTotal = 0;
+            let ori_sub_total = $('#ori_sub_total').val();
+           
             $('#invoice-items-body tr').each(function() {
                 const qty = parseFloat($(this).find('.qty-input').val()) || 0;
                 const price = parseFloat($(this).find('.qty-input').data('price')) || 0;
@@ -323,7 +328,9 @@
                 grandTotal += rowTotal - dis;
                 discountTotal += dis;
             });
-            $('#total').text(totalSellPrice.toFixed(2));
+
+            $("#return-amt").text((ori_sub_total - grandTotal));
+            // $('#total').text(totalSellPrice.toFixed(2));
             $('#grand-total').text(grandTotal.toFixed(2));
             $('#discount-total').text(discountTotal.toFixed(2));
             $('#total_discount').val(discountTotal.toFixed(2));

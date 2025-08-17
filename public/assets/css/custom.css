@@ -226,6 +226,8 @@ table td { font-size: 14px; line-height: 20px; letter-spacing: 0.5px; font-weigh
 .closing-stock-modal-body .physical-table tr:last-child td { font-weight: bold; }
 .sidebar .sidebar-item .capture-modal-block .capture-img2 img { height: 100%; width: 100%; max-width: 100%; max-height: 100%; }
 .ic-block-area { display: flex; align-items: center; gap: 10px;}
+.modal-body.closing-stock-modal-body .table-responsive { max-height: 440px;}
+.modal-body.closing-stock-modal-body .table-responsive .border.table-success { position: sticky; bottom: 0; } 
 
 /* Media Start */
 /* Tablet View */

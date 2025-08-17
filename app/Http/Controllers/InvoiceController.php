@@ -564,13 +564,25 @@ class InvoiceController extends Controller
                 //     'date' => $Shift_data->statrt_time,
                 // ])->increment('modify_sale_remove_qty', $item['quantity']);
 
-                // $currentShift = ShiftClosing::where('branch_id', $branch_id)
-                //     ->where('start_time', '<=', now())
-                //     ->where('end_time', '>=', now())
-                //     ->first();
+                $currentShift = ShiftClosing::where('branch_id', $branch_id)
+                    ->where('start_time', '<=', now())
+                    ->where('end_time', '>=', now())
+                    ->first();
+
+                // if (!empty($currentShift)) {
+                stockStatusChange($item['product_id'], $branch_id, $item['quantity'], 'sold_stock', $shift_id);
+                // }
 
                 if (!empty($currentShift)) {
-                    stockStatusChange($item['product_id'], $branch_id, $item['quantity'], 'sold_stock', $currentShift->id);
+
+                    stockStatusChange($item['product_id'], $branch_id, $item['quantity'], 'add_modify_stock', $currentShift->id);
+                    DailyProductStock::where([
+                        'product_id' => $item['product_id'],
+                        'branch_id' => $branch_id,
+                        'shift_id' => $currentShift->id,
+                        'date' => $currentShift->start_time
+                    ])->increment('modify_sale_remove_qty', $item['quantity']);
+
                 }
 
                 \Log::info('Stock Status Changed for Product ID: ' . $item['product_id'] . ' Branch ID: ' . $branch_id . ' Quantity: ' . $item['quantity']);
@@ -617,7 +629,7 @@ class InvoiceController extends Controller
             $created_at = $modifiedEndTime->format('Y-m-d H:i:s');
 
             if ($creditPay > 0 && $partyUser->id != "") {
-                
+
                 $partyUser = PartyUser::where('status', 'Active')
                     ->where('is_delete', 'No')
                     ->where('id', $partyUser->id) // use the foreign key

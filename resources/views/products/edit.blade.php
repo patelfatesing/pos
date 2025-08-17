@@ -34,7 +34,6 @@
                                             </div>
                                         </div>
 
-                                      
                                         {{-- Category --}}
                                         <div class="col-md-6">
                                             <div class="form-group">
@@ -92,7 +91,7 @@
                                             </div>
                                         </div>
 
-                                      
+
                                         {{-- Barcode --}}
                                         <div class="col-md-6">
                                             <div class="form-group">
@@ -134,8 +133,7 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Sell Price *</label>
-                                                <input type="number" step="0.01" name="sell_price"
-                                                    class="form-control"
+                                                <input type="number" step="0.01" name="sell_price" class="form-control"
                                                     value="{{ old('sell_price', $record->sell_price) }}">
                                                 @error('sell_price')
                                                     <span class="text-danger">{{ $message }}</span>
@@ -155,6 +153,17 @@
                                                 @enderror
                                             </div>
                                         </div>
+                                        {{-- <div class="col-md-6">
+                                            <!-- Expiry Date -->
+                                            <div class="form-group">
+                                                <label for="expiry_date">Exp Date</label>
+                                                <input type="date" value="{{ old('expiry_date', $record->expiry_date) }}" name="expiry_date"
+                                                    class="form-control">
+                                                @error('expiry_date')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div> --}}
                                         <div class="col-md-6">
                                             <!-- Discount Price -->
                                             <div class="form-group">
@@ -215,7 +224,7 @@
                 if (subCatId) {
                     $.get("{{ url('/products/getpacksize') }}/" + subCatId, function(data) {
                         $('#pack_size').empty().append(
-                        '<option value="">Select Pack Size</option>');
+                            '<option value="">Select Pack Size</option>');
                         $.each(data, function(i, val) {
                             $('#pack_size').append('<option value="' + val.size + '">' + val
                                 .size + '</option>');
