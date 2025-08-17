@@ -442,3 +442,7 @@ table td { font-size: 14px; line-height: 20px; letter-spacing: 0.5px; font-weigh
 @media screen and (min-height: 701px) {
     .sidebar { min-height: calc(100vh - 62px);}
 }
+
+.form-check-label{
+    color: #000;
+}
