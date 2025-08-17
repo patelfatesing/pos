@@ -77,7 +77,7 @@
                         <!-- Transaction Type & Total Amount -->
                         <div class="transaction-type-add">
                             <div class="col-12 bg-light shadow-sm">
-                                <div class="row align-items-center mt-4 px-2 py-3 rounded">
+                                <div class="row align-items-center px-2 py-3 rounded">
                                     <div class="col-md-7 d-flex align-items-center gap-3">
                                         <label class="fw-bold mb-0 text-secondary">Transaction Type:</label>
                                         <div class="form-check form-check-inline mb-0">
@@ -98,7 +98,7 @@
                                         </div>
                                     </div>
                                     <div class="col-md-5 text-end">
-                                        <span class="fw-bold text-secondary">Total Amount:</span>
+                                        <span class="fw-bold text-secondary">Total Amount :</span>
                                         <span class="fw-bold text-success fs-5 ms-2">{{ $this->totalCollected }}</span>
                                     </div>
                                 </div>
