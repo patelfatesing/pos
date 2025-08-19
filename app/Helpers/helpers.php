@@ -231,7 +231,6 @@ if (!function_exists('stockStatusChange')) {
             }
         }
 
-
         if ($type == "transfer_stock") {
 
             $existing = DailyProductStock::where('branch_id', $branch_id)
@@ -329,6 +328,8 @@ if (!function_exists('stockStatusChange')) {
 
             if (!empty($existing)) {
                 $existing->modify_sale_remove_qty += $qty;
+                $existing->sold_stock = $existing->sold_stock - $qty;
+                $existing->closing_stock = $existing->opening_stock + $qty;
                 $existing->save();
             } else {
                 if ($shift_id == "") {
@@ -345,6 +346,96 @@ if (!function_exists('stockStatusChange')) {
                         'date' => $date,
                         'modify_sale_remove_qty' => $qty,
                         'shift_id' => $shift_id
+                    ]);
+                }
+            }
+        }
+
+        if ($type == "remove_modify_stock") {
+
+            $existing = DailyProductStock::where('branch_id', $branch_id)
+                ->where('product_id', $product_id)
+                // ->whereDate('date', $date)
+                ->where('shift_id', $shift_id)
+                ->first();
+
+            if (!empty($existing)) {
+                $existing->modify_sale_remove_qty += $qty;
+                $existing->sold_stock = $existing->sold_stock - $qty;
+                $existing->closing_stock = $existing->closing_stock + $qty;
+                $existing->save();
+            } else {
+                if ($shift_id == "") {
+                    DailyProductStock::create([
+                        'branch_id' => $branch_id,
+                        'product_id' => $product_id,
+                        'date' => $date,
+                        'modify_sale_add_qty' => $qty
+                    ]);
+                } else {
+                    DailyProductStock::create([
+                        'branch_id' => $branch_id,
+                        'product_id' => $product_id,
+                        'date' => $date,
+                        'modify_sale_add_qty' => $qty,
+                        'shift_id' => $shift_id
+                    ]);
+                }
+            }
+        }
+
+        if ($type == "remove_add_stock") {
+
+            $existing = DailyProductStock::where('branch_id', $branch_id)
+                ->where('product_id', $product_id)
+                // ->whereDate('date', $date)
+                ->where('shift_id', $shift_id)
+                ->first();
+
+            if (!empty($existing)) {
+                // $existing->added_stock += $qty;
+                if ($orderType == "refunded_order") {
+                    $existing->sold_stock -= $qty;
+                    $existing->closing_stock += $qty;
+                } else {
+                    $existing->opening_stock += $qty;
+                    $existing->closing_stock = closingStock($existing->opening_stock, $existing->added_stock, $existing->transferred_stock, $existing->sold_stock);
+                }
+                $existing->save();
+            } else {
+
+                $running_shift = ShiftClosing::where('branch_id', $branch_id)
+                    ->where('status', 'pending')
+                    ->first();
+
+                if (!empty($running_shift)) {
+                    $existing_ck = DailyProductStock::where('branch_id', $branch_id)
+                        ->where('shift_id', $running_shift->id)
+                        ->where('product_id', $product_id)
+                        ->first();
+                    if (!empty($existing_ck)) {
+                        // $existing_ck->added_stock += $qty;
+                        $existing_ck->shift_id = $running_shift->id;
+                        $existing->opening_stock += $qty;
+                        $existing_ck->closing_stock = closingStock($existing_ck->opening_stock, $existing_ck->added_stock, $existing_ck->transferred_stock, $existing_ck->sold_stock);
+                        $existing_ck->save();
+                    } else {
+                        DailyProductStock::create([
+                            'branch_id' => $branch_id,
+                            'product_id' => $product_id,
+                            'date' => $date,
+                            'opening_stock' => $qty,
+                            'closing_stock' => $qty,
+                            'shift_id' => $running_shift->id
+                        ]);
+                    }
+                } else {
+                    DailyProductStock::create([
+                        'branch_id' => $branch_id,
+                        'product_id' => $product_id,
+                        'date' => $date,
+                        'opening_stock' => $qty,
+                        'closing_stock' => $qty,
                     ]);
                 }
             }
