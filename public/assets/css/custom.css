@@ -390,6 +390,8 @@ table td { font-size: 14px; line-height: 20px; letter-spacing: 0.5px; font-weigh
     .main-screen-text72 { font-size: 11px; line-height: 16px; }
     .top_header_panel .topbar { flex-wrap: nowrap !important; gap: 10px; }
     .logo-area { min-width: 100px; }
+    .logo-area .img-fluid{ max-height: 20px !important; margin-right: 10px; }
+    .logo-area h4 { font-size: 14px; line-height: 20px; margin-bottom: 0; }
     .ic-block-area .main-screen-group1 { margin-top: 10px;}
     .ic-block-area .form-control { font-size: 12px; line-height: 16px; padding: 5px;}
     .ic-block-area .btn.btn-light { height: 25px !important; width: 25px; }
@@ -400,7 +402,6 @@ table td { font-size: 14px; line-height: 20px; letter-spacing: 0.5px; font-weigh
     .search-bar-calc-area .row.mt-3 { margin-top: 10px !important;}
     .search-bar-calc-area { margin-top: 10px;}
     .search-bar-calc-area > .row { gap: 10px;}
-    .capture-eve-block { order: -1;}
     .calc-area .d-flex .btn { font-size: 15px !important; height: 30px !important;}
     .calc-area .d-flex .btn img { max-height: 20px;}
     .qty-payble-table .fw-semibold { font-size: 14px; line-height: 20px;}
@@ -434,7 +435,8 @@ table td { font-size: 14px; line-height: 20px; letter-spacing: 0.5px; font-weigh
     .sidebar-item .capture-img2 img { width: 200px; height: 150px; max-width: 200px; margin-top: 10px;}
     .shift-close-btn-block .footer_btn_block button { width: unset; max-width: unset; height: unset;}
     #case_in_hand .product-table td:first-child,#case_in_hand .product-table th:first-child { width: 135px; }
-
+    .party-customer { width: 100%; flex: 1;}
+    .capture-eve-block { width: 20%;}
 }
 
 

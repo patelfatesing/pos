@@ -17,7 +17,8 @@
         <div class="card border-0 shadow-lg rounded-lg">
             <div class="row no-gutters">
                 <div class="col-md-6 d-flex flex-column justify-content-center align-items-center bg-primary text-white rounded-left p-4">
-                    <i class="fa fa-glass-martini-alt fa-3x mb-3"></i>
+                    <img src="{{ asset('assets/images/liquor_icon_.png') }}"
+                                alt="Print Invoice Icon" style="height: 185px">
                     <h2 class="font-weight-bold mb-2" style="letter-spacing: 2px;">LiquorHub</h2>
                     <p class="text-center mb-0" style="max-width: 220px;">
                         Welcome! Login to access your account and explore our exclusive collection.
