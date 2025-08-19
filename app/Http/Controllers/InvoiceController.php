@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\App;
 
 class InvoiceController extends Controller
 {
@@ -339,30 +340,37 @@ class InvoiceController extends Controller
                     'description' => "Qty decreased: {$oldQty} → {$newQty}",
                     'old_data' => $old,
                     'new_data' => $item,
-                    'user_id' => auth()->id(),
+                    'user_id' => auth()->id()
                 ]);
 
+
+
                 if ($invoiceShiftId) {
-                    DailyProductStock::where([
-                        'product_id' => $productId,
-                        'branch_id' => $branchId,
-                        'shift_id' => $invoiceShiftId,
-                        'date' => $invoiceDate,
-                    ])->increment('modify_sale_remove_qty', $diff);
+                    stockStatusChange($item['product_id'], $branchId, $diff, 'remove_modify_stock', $invoiceShiftId);
+                    // DailyProductStock::where([
+                    //     'product_id' => $productId,
+                    //     'branch_id' => $branchId,
+                    //     'shift_id' => $invoiceShiftId,
+                    //     'date' => $invoiceDate,
+                    // ])->increment('modify_sale_remove_qty', $diff);
                 }
 
                 if ($currentShiftId) {
-                    DailyProductStock::updateOrCreate(
-                        [
-                            'product_id' => $productId,
-                            'branch_id' => $branchId,
-                            'shift_id' => $currentShiftId,
-                            'date' => $currentDate,
-                        ],
-                        [
-                            'added_stock' => DB::raw('added_stock + ' . $diff),
-                        ]
-                    );
+
+                    stockStatusChange($item['product_id'], $branchId, $diff, 'remove_add_stock', $currentShiftId);
+                    // DailyProductStock::updateOrCreate(
+                    //     [
+                    //         'product_id' => $productId,
+                    //         'branch_id' => $branchId,
+                    //         'shift_id' => $currentShiftId,
+                    //         'date' => $currentDate,
+                    //     ],
+                    //     [
+                    //         'added_stock' => DB::raw('added_stock + ' . $diff),
+                    //     ]
+                    // );
+                } else {
+                    stockStatusChange($item['product_id'], $branchId, $diff, 'remove_add_stock', $invoiceShiftId);
                 }
             }
 
@@ -380,7 +388,8 @@ class InvoiceController extends Controller
         }
 
         // ❌ Removed Products
-        $currentItems->each(function ($item) use ($newItems, $invoice) {
+        $currentItems->each(function ($item) use ($newItems, $invoice, $invoiceShiftId, $branchId, $currentShiftId) {
+
             if (!$newItems->contains('product_id', $item['product_id'])) {
                 InvoiceActivityLog::create([
                     'invoice_id' => $invoice->id,
@@ -389,6 +398,17 @@ class InvoiceController extends Controller
                     'old_data' => $item,
                     'user_id' => auth()->id(),
                 ]);
+
+                if ($invoiceShiftId) {
+                    stockStatusChange($item['product_id'], $branchId, $item['quantity'], 'remove_modify_stock', $invoiceShiftId);
+                }
+
+                if ($currentShiftId) {
+
+                    stockStatusChange($item['product_id'], $branchId, $item['quantity'], 'remove_add_stock', $currentShiftId);
+                } else {
+                    stockStatusChange($item['product_id'], $branchId, $item['quantity'], 'remove_add_stock', $invoiceShiftId);
+                }
             }
         });
 
@@ -438,6 +458,9 @@ class InvoiceController extends Controller
         $invoice->total_item_total = $subTotal;
         $invoice->total_item_qty = $totalQty;
         $invoice->total = $request->total;
+        $invoice->cash_amount = $subTotal;
+        $invoice->change_amount = $subTotal;
+
 
         if ($branchId == 1) {
             $invoice->party_amount = $request->total_discount;
@@ -448,6 +471,33 @@ class InvoiceController extends Controller
         $invoice->invoice_status = $newCredit > 0 ? 'unpaid' : 'paid';
         $invoice->edit_in = 'yes';
         $invoice->save();
+
+        $cust_name = '';
+        if ($invoice->party_user_id  != "") {
+
+            $partyUser = PartyUser::where('status', 'Active')
+                ->where('is_delete', 'No')
+                ->where('id', $invoice->id) // use the foreign key
+                ->first();
+            $cust_name = $partyUser->first_name ?? '';
+        }
+
+        if ($invoice->commission_user_id != "") {
+            $commissionUser = Commissionuser::where('status', 'Active')
+                ->where('is_deleted', 'No')
+                ->where('id', $invoice->commission_user_id) // use the foreign key
+                ->first();
+
+            $cust_name = $commissionUser->first_name ?? '';
+        }
+
+        $pdf = App::make('dompdf.wrapper');
+
+        $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $newItems, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => $cust_name, "ref_no" => '', "hold_date" => '']);
+        $pdfPath = storage_path('app/public/invoices/edit_' . $invoice->invoice_number . '.pdf');
+        $pdf->save($pdfPath);
+
+
         return redirect()->route('sales.sales.list')->with('success', 'Invoice items updated successfully.');
     }
 
@@ -576,13 +626,12 @@ class InvoiceController extends Controller
                 if (!empty($currentShift)) {
 
                     stockStatusChange($item['product_id'], $branch_id, $item['quantity'], 'add_modify_stock', $currentShift->id);
-                    DailyProductStock::where([
-                        'product_id' => $item['product_id'],
-                        'branch_id' => $branch_id,
-                        'shift_id' => $currentShift->id,
-                        'date' => $currentShift->start_time
-                    ])->increment('modify_sale_remove_qty', $item['quantity']);
-
+                    // DailyProductStock::where([
+                    //     'product_id' => $item['product_id'],
+                    //     'branch_id' => $branch_id,
+                    //     'shift_id' => $currentShift->id,
+                    //     'date' => $currentShift->start_time
+                    // ])->increment('modify_sale_remove_qty', $item['quantity']);
                 }
 
                 \Log::info('Stock Status Changed for Product ID: ' . $item['product_id'] . ' Branch ID: ' . $branch_id . ' Quantity: ' . $item['quantity']);
@@ -628,13 +677,14 @@ class InvoiceController extends Controller
             // Format it in 'Y-m-d H:i:s' format for database insertion
             $created_at = $modifiedEndTime->format('Y-m-d H:i:s');
 
+            $cust_name = '';
             if ($creditPay > 0 && $partyUser->id != "") {
 
                 $partyUser = PartyUser::where('status', 'Active')
                     ->where('is_delete', 'No')
                     ->where('id', $partyUser->id) // use the foreign key
                     ->first();
-
+                $cust_name = $partyUser->first_name ?? '';
                 if (!empty($partyUser)) {
 
                     $partyUser->left_credit -= $creditPay;
@@ -643,33 +693,53 @@ class InvoiceController extends Controller
                 }
             }
 
+
+            if ($request->commission_user_id != "") {
+                $commissionUser = Commissionuser::where('status', 'Active')
+                    ->where('is_deleted', 'No')
+                    ->where('id', $request->commission_user_id) // use the foreign key
+                    ->first();
+
+                $cust_name = $commissionUser->first_name ?? '';
+            }
+
             \Log::info('Before Invoice Creation');
-            $invoice = DB::table('invoices')->insert([
-                'user_id' => Auth::id(),
-                'branch_id' => $branch_id,
-                'roundof' => $roundedTotal,
-                'invoice_number' => $invoice_number,
+            $invoiceId = DB::table('invoices')->insertGetId([
+                'user_id'            => Auth::id(),
+                'branch_id'          => $branch_id,
+                'roundof'            => $roundedTotal,
+                'invoice_number'     => $invoice_number,
                 'commission_user_id' => $commissionUser->id ?? null,
-                'party_user_id' => $partyUser->id ?? null,
-                'payment_mode' => $paymentType,
-                'items' => json_encode($cartitems),  // Ensure it's JSON encoded
-                'total_item_qty' => $totalQuantity,
-                'total_item_total' => $total_item_total,
-                'upi_amount' => $upi,
-                'change_amount' => $cashPayChangeAmt,
-                'creditpay' => $creditPay,
-                'cash_amount' => $cash,
-                'online_amount' => $online_amount,
-                'sub_total' => $sub_total,
-                'status' => "Paid",
-                'invoice_status' => $invoice_status,
-                'commission_amount' => $commissionAmount,
-                'party_amount' => $partyAmount,
-                'total' => $cashAmount,
-                'tax' => 0,
-                'created_at' => $created_at,  // Manually set created_at
-                'updated_at' => $created_at,  // Manually set updated_at
+                'party_user_id'      => $partyUser->id ?? null,
+                'payment_mode'       => $paymentType,
+                'items'              => json_encode($cartitems),
+                'total_item_qty'     => $totalQuantity,
+                'total_item_total'   => $total_item_total,
+                'upi_amount'         => $upi,
+                'change_amount'      => $cashPayChangeAmt,
+                'creditpay'          => $creditPay,
+                'cash_amount'        => $cash,
+                'online_amount'      => $online_amount,
+                'sub_total'          => $sub_total,
+                'status'             => 'Paid',
+                'invoice_status'     => $invoice_status,
+                'commission_amount'  => $commissionAmount,
+                'party_amount'       => $partyAmount,
+                'total'              => $cashAmount,
+                'tax'                => 0,
+                'created_at'         => $created_at,
+                'updated_at'         => $created_at,
             ]);
+
+            $invoice = DB::table('invoices')
+                ->where('id', $invoiceId)
+                ->first();
+
+            $pdf = App::make('dompdf.wrapper');
+
+            $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $cartitems, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => $cust_name, "ref_no" => '', "hold_date" => '']);
+            $pdfPath = storage_path('app/public/invoices/' . $invoice_number . '.pdf');
+            $pdf->save($pdfPath);
 
             // \Log::info('Invoice Created: ', $invoice->toArray());
             // InvoiceHistory::logFromInvoice($invoice, 'created', Auth::id());

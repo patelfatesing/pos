@@ -29,6 +29,7 @@ use App\Models\PartyUserImage;
 use App\Models\DailyProductStock;
 use App\Models\ExpenseCategory;
 use Illuminate\Support\Facades\Storage;
+use App\Models\SubCategory;
 
 class Shoppingcart extends Component
 {
@@ -110,7 +111,7 @@ class Shoppingcart extends Component
     public $focusedField = null; // Track the currently focused input field
     public $search = '';
 
-    public $selectedProduct;
+    // public $selectedProduct;
     public $selectedSalesReturn;
     public $holdTransactions = [];
     public $headertitle = "";
@@ -132,6 +133,9 @@ class Shoppingcart extends Component
     public $activeProductId = null;
     public $notFoundMessage = ''; // Add this property to your component
     public $inOutStatus = false; // Add this property to your component
+    public $subCategories;
+    public $selectedSubCategory = null;
+    public $selectedProduct = null;
 
     // This method is triggered whenever the checkbox is checked or unchecked
     public function updatedUseCredit($value)
@@ -433,7 +437,7 @@ class Shoppingcart extends Component
                 return;
             }
             $this->selectedPartyUser = $this->selectedSalesReturn->party_user_id ?? 0;
-            $this->showRefundBtn=true;
+            $this->showRefundBtn = true;
 
 
             //$this->partyAmount = $this->selectedSalesReturn->party_amount ?? 0;
@@ -443,7 +447,7 @@ class Shoppingcart extends Component
             $this->paymentType = "cash";
             $sumQty = 0;
             // if (!$this->selectedProduct) return;
-           // dd($this->selectedSalesReturn);
+            // dd($this->selectedSalesReturn);
             foreach ($this->selectedSalesReturn->items as $key => $value) {
 
                 $product = Product::where('id', $value['product_id'])->first();
@@ -1004,7 +1008,7 @@ class Shoppingcart extends Component
 
             stockStatusChange($inventory->product->id, $branch_id, $totalQuantity, 'add_stock', $this->shift->id, "refunded_order");
             $inventories = $product->inventories;
-            
+
             // if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
             // Deduct only from the first inventory if it has enough quantity
             $inventories[0]->quantity += $totalQuantity;
@@ -2436,6 +2440,8 @@ class Shoppingcart extends Component
         $branchId = auth()->user()?->userinfo?->branch?->id;
         $w_id = 1;
 
+        $this->subCategories = SubCategory::where('is_deleted', 'no')->get();
+
         $product_in_stocks = Product::with(['inventorieUnfiltered'])
             ->whereHas('inventorieUnfiltered', function ($query) use ($w_id) {
                 $query->where('store_id', $w_id);
@@ -3671,6 +3677,30 @@ class Shoppingcart extends Component
         $this->paymentType = null;  // Reset payment type
         $this->total = 0;
     }
+
+    public function updatedSelectedSubCategory($subCategoryId)
+    {
+        $this->selectedProduct = null;
+        $this->loadProducts($subCategoryId);
+    }
+
+    protected function loadProducts($subCategoryId)
+    {
+        if (!$subCategoryId) {
+            $this->products = [];
+            return;
+        }
+
+        $this->products = Product::with('inventorieUnfiltered')
+            ->where('sub_category_id', $subCategoryId)
+            ->where('is_active', 'yes')
+            ->where('is_deleted', 'no')
+            ->whereHas('inventorieUnfiltered', fn($q) => $q->where('store_id', 1))
+            ->orderBy('name')
+            ->get();
+    }
+
+
     // public function checkout()
     // {
     //     if (!empty($this->commissionAmount)) {

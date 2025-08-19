@@ -18,7 +18,7 @@
                                 </div>
                                 <div>
                                     <a href="{{ route('purchase.list') }}" class="btn btn-secondary">Back</a>
-                                    
+
                                 </div>
                             </div>
                             <div class="card-body">
@@ -698,6 +698,29 @@
         // Handle vendor change
         $('#vendor_id').on('change', function() {
             onVendorChange($(this).val());
+            let vendorId = $(this).val();
+            let ledgerSelect = $('#parchase_ledger');
+            let productSelect = $('#product_select');
+
+            // Auto sync ledger
+            ledgerSelect.val(vendorId);
+
+            // Reset products
+            productSelect.empty().append('<option value="">-- Select Product --</option>');
+
+            if (vendorId) {
+                $.ajax({
+                    url: "/vendor-products/" + vendorId,
+                    type: "GET",
+                    success: function(res) {
+                        $.each(res, function(i, product) {
+                            productSelect.append('<option value="' + product.id +
+                                '">' + product
+                                .name + '</option>');
+                        });
+                    }
+                });
+            }
         });
 
         // Replace this with dynamic value if needed
@@ -886,8 +909,17 @@
         updateBillingTotal();
     });
 
-    // Handle vendor change
-    $('#vendor_id').on('change', function() {
-        onVendorChange($(this).val());
+    document.addEventListener("DOMContentLoaded", function() {
+        const vendorSelect = document.getElementById("vendor_id");
+        const ledgerSelect = document.getElementById("parchase_ledger");
+
+        vendorSelect.addEventListener("change", function() {
+            ledgerSelect.value = this.value; // auto select the same vendor in ledger
+        });
+
+        // If vendor is already selected (old value), sync on page load
+        if (vendorSelect.value) {
+            ledgerSelect.value = vendorSelect.value;
+        }
     });
 </script>

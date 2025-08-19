@@ -149,7 +149,7 @@
                 @if (auth()->user()->hasRole('warehouse'))
                     <div class="sidebar-item" wire:click="printLastInvoice" title="Print Invoice">
                         <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
-                        <img src="{{ asset('assets/images/sidebar-imgs/print_icon.png') }}" alt="Print Invoice Icon">
+                            <img src="{{ asset('assets/images/sidebar-imgs/print_icon.png') }}" alt="Print Invoice Icon">
                         </button>
                         <span class="ic-txt">Print Invoice</span>
                     </div>
@@ -292,7 +292,7 @@
                                 @endif
                             </div>
 
-                            <div class="col-12 col-md-3">
+                            <div class="col-12 col-md-3 party-customer">
                                 <div class="position-relative ">
                                     <img class="down-arrow" src="{{ asset('external/vector4471-t8to.svg') }}"
                                         alt="Icon">
@@ -939,6 +939,18 @@
                                             <input class="mb-3" type="hidden" name="store_id"
                                                 value="{{ @$branch_id }}">
                                         </div>
+                                        {{-- SubCategory Dropdown --}}
+                                        {{-- <div class="mb-3">
+                                            <label for="subcategory" class="form-label">Sub Category</label>
+                                            <select wire:model="selectedSubCategory" id="subcategory"
+                                                class="form-control" required>
+                                                <option value="">-- Select Sub Category --</option>
+                                                @foreach ($subCategories as $sub)
+                                                    <option value="{{ $sub->id }}">{{ $sub->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div> --}}
                                         <div id="product-items">
                                             <h5>Products</h5>
                                             <div class="item-row mb-3">
@@ -1158,6 +1170,14 @@
                                     </tr>
                                 </tfoot>
                             </table>
+                               <!-- ✅ Start with 0 checkbox -->
+                            <div class="form-check mt-1">
+                                <input class="form-check-input start-zero-checkbox" type="checkbox" id="startZero"
+                                    name="startZero" value="1">
+                                <label class="form-check-label" for="startZero">
+                                    Start with 0
+                                </label>
+                            </div>
                         </div>
                         @error('amount')
                             <span class="text-red">{{ $message }}</span>

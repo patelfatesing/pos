@@ -314,4 +314,24 @@ class PurchaseController extends Controller
 
         return view('purchase.view', compact('purchase'));
     }
+
+    public function getVendorProducts($vendorId)
+    {
+        // Define vendor → subcategory mapping
+        $map = [
+            1 => [1, 2],   // vendor 1 → subcategories 1,2
+            2 => [2, 3],   // vendor 2 → subcategories 2,3
+        ];
+
+        $allowed = $map[$vendorId] ?? [];
+
+        $products = Product::select('id', 'name', 'subcategory_id')
+            ->where('is_deleted', 'no')
+            ->when(!empty($allowed), function ($q) use ($allowed) {
+                $q->whereIn('subcategory_id', $allowed);
+            })
+            ->get();
+
+        return response()->json($products);
+    }
 }

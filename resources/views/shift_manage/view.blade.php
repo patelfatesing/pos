@@ -82,6 +82,7 @@
                                                     <th>Total</th>
                                                     <th>Status</th>
                                                     <th>Created At</th>
+                                                    <th>Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -106,6 +107,22 @@
                                                         <td>{{ number_format($invoice->total, 2) }}</td>
                                                         <td>{{ $invoice->status }}</td>
                                                         <td>{{ \Carbon\Carbon::parse($invoice->created_at)->format('d-m-Y h:i:s') }}
+                                                        </td>
+                                                        <td>
+                                                            @php
+                                                                // Show edit button only if invoice was created yesterday (not today)
+                                                                $showEditButton = \Carbon\Carbon::parse(
+                                                                    $invoice->created_at,
+                                                                )->isYesterday();
+                                                            @endphp
+
+                                                           
+                                                                <a href="{{ url('/sales/edit-sales/' . $invoice->id) }}"
+                                                                    class="btn btn-sm btn-success mb-1"
+                                                                    title="Edit Invoice">
+                                                                    <i class="fa fa-edit"></i>
+                                                                </a>
+                                                            
                                                         </td>
                                                     </tr>
                                                 @endforeach

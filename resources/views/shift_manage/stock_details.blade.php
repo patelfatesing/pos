@@ -56,11 +56,11 @@
                                             <th>Added Stock</th>
                                             <th>Transferred Stock</th>
                                             <th>Sold Stock</th>
+                                            <th>Modify Sale Add Stock</th>
+                                            <th>Modify Sale Remove Stock</th>
                                             <th>Closing Stock</th>
                                             <th>Physical Stock</th>
                                             <th>Difference Stock</th>
-                                            <th>Modify Sale Add Stock</th>
-                                            <th>Modify Sale Remove Stock</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -90,17 +90,18 @@
                                                 <td class="text-center">{{ $stock->added_stock }}</td>
                                                 <td class="text-center">{{ $stock->transferred_stock }}</td>
                                                 <td class="text-center">{{ $stock->sold_stock }}</td>
-                                                <td class="text-center">{{ $stock->closing_stock }}</td>
-                                                <td class="text-center">{{ $stock->physical_stock }}</td>
-                                                <td class="text-center">
-                                                    {{ $stock->difference_in_stock }}
-                                                </td>
                                                 <td class="text-center">
                                                     {{ $stock->modify_sale_add_qty }}
                                                 </td>
                                                 <td class="text-center">
                                                     {{ $stock->modify_sale_remove_qty }}
                                                 </td>
+                                                <td class="text-center">{{ $stock->closing_stock }}</td>
+                                                <td class="text-center">{{ $stock->physical_stock }}</td>
+                                                <td class="text-center">
+                                                    {{ $stock->difference_in_stock }}
+                                                </td>
+
                                             </tr>
                                         @empty
                                             <tr>
