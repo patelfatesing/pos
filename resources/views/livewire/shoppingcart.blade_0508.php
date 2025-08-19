@@ -933,7 +933,7 @@
                                 <div class="card-body">
                                     <form method="POST" action="{{ route('stock.store') }}">
                                         @csrf
-                                        {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
+                                       
                                         <div class="mb-3">
                                             <input type="hidden" name="store_id" value="{{ @$branch_id }}">
                                         </div>

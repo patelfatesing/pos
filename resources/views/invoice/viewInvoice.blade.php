@@ -66,6 +66,22 @@
                                         </button>
                                     @endif
 
+                                    @if ($invoice->edit_in == 'yes')
+                                        <button class="btn btn-primary-dark mr-2" data-toggle="modal"
+                                            data-target="#editPdfModal">
+                                            <i class="las la-print"></i>Edit View Invoice
+                                        </button>
+                                        <button class="btn btn-primary-dark mr-2" data-toggle="modal"
+                                            data-target="#pdfModal">
+                                            <i class="las la-print"></i>Original View Invoice
+                                        </button>
+                                    @else
+                                        <button class="btn btn-primary-dark mr-2" data-toggle="modal"
+                                            data-target="#pdfModal">
+                                            <i class="las la-print"></i>View Invoice
+                                        </button>
+                                    @endif
+
                                     <button class="btn btn-primary-dark mr-2" data-toggle="modal" data-target="#pdfModal">
                                         <i class="las la-print"></i>View Invoice
                                     </button>
@@ -328,6 +344,25 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="editPdfModal" tabindex="-1" role="dialog" aria-labelledby="editPModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pdfModalLabel">Invoice PDF Preview</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <iframe src="{{ asset('storage/invoices/edit_' . $invoice->invoice_number . '.pdf') }}" width="100%"
+                        height="600px" frameborder="0"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 
     <script>
