@@ -127,7 +127,7 @@ class Shoppingcart extends Component
     public $productStock = [];
     public $roundedTotal = 0;
     public $invoice_no = '';
-    //public $product_in_stocks = [];
+    public $product_in_stocks = [];
     public bool $hasAppliedCreditPay = false;
     public $activeItemId = null;
     public $activeProductId = null;
@@ -136,6 +136,7 @@ class Shoppingcart extends Component
     public $subCategories;
     public $selectedSubCategory = null;
     public $selectedProduct = null;
+    public $items = [];
 
     // This method is triggered whenever the checkbox is checked or unchecked
     public function updatedUseCredit($value)
@@ -2442,13 +2443,13 @@ class Shoppingcart extends Component
 
         $this->subCategories = SubCategory::where('is_deleted', 'no')->get();
 
-        $product_in_stocks = Product::with(['inventorieUnfiltered'])
-            ->whereHas('inventorieUnfiltered', function ($query) use ($w_id) {
-                $query->where('store_id', $w_id);
-            })
-            ->where('is_active', 'yes')
-            ->where('is_deleted', 'no')
-            ->get();
+        // $product_in_stocks = Product::with(['inventorieUnfiltered'])
+        //     ->whereHas('inventorieUnfiltered', function ($query) use ($w_id) {
+        //         $query->where('store_id', $w_id);
+        //     })
+        //     ->where('is_active', 'yes')
+        //     ->where('is_deleted', 'no')
+        //     ->get();
 
         $data = User::with('userInfo')
             ->where('users.id', auth()->id())
@@ -2467,7 +2468,7 @@ class Shoppingcart extends Component
             'stores' => $stores,
             'products' => $products,
             'allProducts' => $products,
-            'product_in_stocks' => $product_in_stocks,
+            //'product_in_stocks' => $product_in_stocks,
             'data' => $data,
             'searchSalesResults' => $this->searchSalesResults,
             'getNotification' => $getNotification,
@@ -3678,26 +3679,36 @@ class Shoppingcart extends Component
         $this->total = 0;
     }
 
-    public function updatedSelectedSubCategory($subCategoryId)
+    public function selectedSubCategory2($subCategoryId)
     {
         $this->selectedProduct = null;
         $this->loadProducts($subCategoryId);
     }
 
-    protected function loadProducts($subCategoryId)
+    public function loadProducts($subCategoryId)
     {
         if (!$subCategoryId) {
             $this->products = [];
             return;
         }
 
-        $this->products = Product::with('inventorieUnfiltered')
-            ->where('sub_category_id', $subCategoryId)
-            ->where('is_active', 'yes')
-            ->where('is_deleted', 'no')
-            ->whereHas('inventorieUnfiltered', fn($q) => $q->where('store_id', 1))
-            ->orderBy('name')
-            ->get();
+        // $this->products = Product::with('inventorieUnfiltered')
+        //     ->where('subcategory_id', $subCategoryId)
+        //     ->where('is_active', 'yes')
+        //     ->where('is_deleted', 'no')
+        //     ->whereHas('inventorieUnfiltered', fn($q) => $q->where('store_id', 1))
+        //     ->orderBy('name')
+        //     ->get();
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+        $this->product_in_stocks = Product::with(['inventorieUnfiltered'])
+        ->whereHas('inventorieUnfiltered', function ($query) use ($branch_id) {
+        $query->where('store_id', $branch_id);
+        })
+        ->where('subcategory_id', $subCategoryId)
+        ->where('is_active', 'yes')
+        ->where('is_deleted', 'no')
+        ->orderBy('name')
+        ->get();
     }
 
 
