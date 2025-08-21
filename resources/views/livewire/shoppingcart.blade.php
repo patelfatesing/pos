@@ -912,7 +912,7 @@
     </div>
 
     <div class="modal fade" id="storeStockRequest" tabindex="-1" aria-labelledby="storeStockRequest"
-        aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        aria-hidden="true" data-backdrop="static" data-keyboard="false" wire:ignore.self>
         <div class="modal-dialog modal-dialog-scrollable  modal-lg roboto-fonts">
             <div class="modal-content shadow-sm rounded-4 border-0">
                 <div class="modal-header custom-modal-header frame-stock-request-frame303">
@@ -932,26 +932,26 @@
                         <div class="col-md-12">
                             <div class="card">
                                 <div class="card-body stock-request-form">
-                                    <form method="POST" action="{{ route('stock.store') }}">
-                                        @csrf
+                                <form method="POST" action="{{ route('stock.store') }}">
+                                    @csrf
                                         {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
                                         <div class="store_id_block">
                                             <input class="mb-3" type="hidden" name="store_id"
                                                 value="{{ @$branch_id }}">
                                         </div>
-                                        {{-- SubCategory Dropdown --}}
-                                        {{-- <div class="mb-3">
-                                            <label for="subcategory" class="form-label">Sub Category</label>
-                                            <select wire:model="selectedSubCategory" id="subcategory"
-                                                class="form-control" required>
-                                                <option value="">-- Select Sub Category --</option>
-                                                @foreach ($subCategories as $sub)
-                                                    <option value="{{ $sub->id }}">{{ $sub->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div> --}}
-                                        <div id="product-items">
+                                    {{-- SubCategory Dropdown --}}
+                                        <div class="mb-3">
+                                        <h5>Sub Category</h5>
+                                            <select wire:model="selectedSubCategory"
+                                            wire:change="selectedSubCategory2($event.target.value)"
+                                            class="form-control d-inline w-50 product-select-sh frame-stock-request-searchbar6 Specificity: (0,1,0)">
+                                            <option value="">-- Select Sub Category --</option>
+                                            @foreach ($subCategories as $sub)
+                                                <option value="{{ $sub->id }}">{{ $sub->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        </div>
+                                     <div id="product-items">
                                             <h5>Products</h5>
                                             <div class="item-row mb-3">
 
@@ -980,7 +980,7 @@
                                             </div>
                                         </div>
 
-                                        <button type="button" id="add-item" class="btn btn-primary btn-sm mb-3">+
+                                     <button type="button" id="add-item" class="btn btn-primary btn-sm mb-3">+
                                             {{ __('messages.add_another_product') }}</button>
                                         <button type="button" id="clear-items"
                                             class="btn btn-warning btn-sm mb-3 ms-2">
@@ -996,8 +996,8 @@
                                             <button type="submit"
                                                 class="frame-stock-request-group223 btn-submit">{{ __('messages.submit_request') }}</button>
                                         </div>
-                                    </form>
-                                </div>
+                                </form>
+                            </div>
                             </div>
                         </div>
                     </div>
@@ -2915,7 +2915,7 @@
         });
     });
 
-    let itemIndex = 1;
+     let itemIndex = 1;
     document.getElementById('add-item').addEventListener('click', function() {
         const row = document.querySelector('.item-row').cloneNode(true);
         row.querySelectorAll('select, input').forEach(el => {
