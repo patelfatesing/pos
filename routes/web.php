@@ -41,6 +41,8 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\CreditHistoryController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\Report2Controller;
 
 // Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
 // Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
@@ -410,6 +412,31 @@ Route::middleware('auth')->group(function () {
     // routes/web.php
     Route::get('credit/credit-ledger', [CreditHistoryController::class, 'index'])->name('credit.credit-ledger');
     Route::post('credit/credit-ledger-data', [CreditHistoryController::class, 'creditLedgerData'])->name('credit.credit-ledger-data');
+
+    Route::get('reports', [ReportController::class, 'index'])->name('reports.list');
+    Route::get('reports/low-stock', [ReportController::class, 'lowLevel'])->name('reports.low_stock.page');
+    Route::post('reports/low-stock/data', [ReportController::class, 'getLowLevelData'])->name('reports.low_stock.data');
+    Route::get('/reports/expiry',            [ReportController::class, 'expiryPage'])->name('reports.expiry.page');
+    Route::post('/reports/expiry/get-data',   [ReportController::class, 'getExpiryData'])->name('reports.expiry.get_data');
+    Route::get('/reports/profit-loss',          [ReportController::class, 'profitLossPage'])->name('reports.pl.page');
+    Route::post('/reports/profit-loss/get-data', [ReportController::class, 'getProfitLossData'])->name('reports.pl.get_data');
+    Route::get('/reports/product-pl',          [ReportController::class, 'productPLPage'])->name('reports.product_pl.page');
+    Route::post('/reports/product-pl/get-data', [ReportController::class, 'getProductPLData'])->name('reports.product_pl.get_data');
+    Route::get('/reports/daily-cash',          [ReportController::class, 'dailyCashPage'])->name('reports.daily_cash.page');
+    Route::post('/reports/daily-cash/get-data', [ReportController::class, 'getDailyCashData'])->name('reports.daily_cash.get_data');
+    Route::get('/reports/credit-payments',          [ReportController::class, 'creditPaymentsPage'])->name('reports.credit_payments.page');
+    Route::post('/reports/credit-payments/get-data', [ReportController::class, 'getCreditPaymentsData'])->name('reports.credit_payments.get_data');
+    Route::get('/reports/category-sales',          [ReportController::class, 'categorySalesPage'])->name('reports.category_sales.page');
+    Route::post('/reports/category-sales/get-data', [ReportController::class, 'getCategorySalesData'])->name('reports.category_sales.get_data');
+    Route::get('/reports/discounts',          [ReportController::class, 'discountOfferPage'])->name('reports.discounts.page');
+    Route::post('/reports/discounts/get-data', [ReportController::class, 'getDiscountOfferData'])->name('reports.discounts.get_data');
+    Route::get('/reports/expenses',          [ReportController::class, 'expensesPage'])->name('reports.expenses.page');
+    Route::post('/reports/expenses/get-data', [ReportController::class, 'getExpensesData'])->name('reports.expenses.get_data');
+    Route::get('/reports/vendor-purchases',          [ReportController::class, 'vendorPurchasesPage'])->name('reports.vendor_purchases.page');
+    Route::post('/reports/vendor-purchases/get-data', [ReportController::class, 'getVendorPurchasesData'])->name('reports.vendor_purchases.get_data');
+
+    Route::get('/reports/customer-outstanding',          [ReportController::class, 'customerOutstandingPage'])->name('reports.customer_outstanding.page');
+    Route::post('/reports/customer-outstanding/get-data', [ReportController::class, 'getCustomerOutstandingData'])->name('reports.customer_outstanding.get_data');
 });
 
 
