@@ -2886,6 +2886,7 @@ class Shoppingcart extends Component
                     'party_user_id' => $partyUser->id ?? null,
                     'store_id' => $branch_id,
                     'created_by' => auth()->id(),
+                    'status' => 'unpaid'
                 ]);
                 \Log::info('CreditHistory Created: ' . json_encode($creditHistory, true));
             }
@@ -3701,14 +3702,14 @@ class Shoppingcart extends Component
         //     ->get();
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
         $this->product_in_stocks = Product::with(['inventorieUnfiltered'])
-        ->whereHas('inventorieUnfiltered', function ($query) use ($branch_id) {
-        $query->where('store_id', $branch_id);
-        })
-        ->where('subcategory_id', $subCategoryId)
-        ->where('is_active', 'yes')
-        ->where('is_deleted', 'no')
-        ->orderBy('name')
-        ->get();
+            ->whereHas('inventorieUnfiltered', function ($query) use ($branch_id) {
+                $query->where('store_id', $branch_id);
+            })
+            ->where('subcategory_id', $subCategoryId)
+            ->where('is_active', 'yes')
+            ->where('is_deleted', 'no')
+            ->orderBy('name')
+            ->get();
     }
 
 
