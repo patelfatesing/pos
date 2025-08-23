@@ -69,41 +69,53 @@ class DashboardController extends Controller
 
     public function showStore($storeId)
     {
+        $filter_date = request('filter_date');
         $store = Branch::findOrFail($storeId); // or Branch if you're using Branch model
-        $data = $this->getDashboardDataForStore($storeId); // Your logic here
+        $data = $this->getDashboardDataForStore($storeId,$filter_date); // Your logic here
         return view('dashboard', compact('store', 'data'));
     }
 
-    protected function getDashboardDataForStore($storeId)
+    protected function getDashboardDataForStore($storeId,$filter_date="")
     {
         // Example: Fetch store
         $store = Branch::findOrFail($storeId);
-        $totals = Invoice::selectRaw('
-                SUM(total) as total_sales,
-                SUM(creditpay) as total_creditpay,
-                SUM(total_item_qty) as total_products,
-                COUNT(*) as invoice_count
+        $totalsQuery = Invoice::selectRaw('
+            SUM(total) as total_sales,
+            SUM(creditpay) as total_creditpay,
+            SUM(total_item_qty) as total_products,
+            COUNT(*) as invoice_count
             ')
             ->where('branch_id', $storeId)
-            ->whereNotIn('status', ['Hold', 'resumed', 'archived'])
-            ->first();
+            ->whereNotIn('status', ['Hold', 'resumed', 'archived']);
+
+        if (!empty($filter_date)) {
+            $totalsQuery->whereDate('created_at', $filter_date);
+        }
+
+        $totals = $totalsQuery->first();
 
         $totalSales = $totals->total_sales;
         $total_creditpay = $totals->total_creditpay;
         $totalProducts = $totals->total_products;
         $invoice_count = $totals->invoice_count;
 
-        $inventorySummary = \DB::table('inventories')
+        $inventorySummaryQuery = \DB::table('inventories')
             ->join('products', 'inventories.product_id', '=', 'products.id')
             ->selectRaw('SUM(products.cost_price * inventories.quantity) as total_cost_price')
-            ->where('inventories.store_id', $storeId)
-            ->first();
+            ->where('inventories.store_id', $storeId);
 
-        $totals_qty = Inventory::selectRaw('SUM(inventories.quantity) as total_quantity')
+        $totalsQtyQuery = Inventory::selectRaw('SUM(inventories.quantity) as total_quantity')
             ->join('products', 'products.id', '=', 'inventories.product_id')
             ->where('inventories.store_id', $storeId)
-            ->where('products.is_deleted', 'no')
-            ->first();
+            ->where('products.is_deleted', 'no');
+
+        if (!empty($filter_date)) {
+            $inventorySummaryQuery->whereDate('inventories.created_at', $filter_date);
+            $totalsQtyQuery->whereDate('inventories.created_at', $filter_date);
+        }
+
+        $inventorySummary = $inventorySummaryQuery->first();
+        $totals_qty = $totalsQtyQuery->first();
 
         $totalQuantity = $totals_qty->total_quantity;
 
