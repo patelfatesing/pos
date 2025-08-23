@@ -95,9 +95,32 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                 </div>
                             </div>
                         </li>
-
-
-
+                         <!-- Date Filter Start -->
+                        <li class="nav-item nav-icon d-flex align-items-center">
+                            <form id="dateFilterForm" class="d-flex align-items-center" method="GET" action="" onsubmit="return false;" style="gap: 0.5rem;">
+                                <div class="input-group input-group-sm">
+                                    
+                                    <input 
+                                        type="date" 
+                                        name="filter_date" 
+                                        id="filter_date" 
+                                        class="form-control border-left-0" 
+                                        value="{{ request('filter_date') }}" 
+                                        style="min-width: 130px; height: 38px;">
+                                    <div class="input-group-append">
+                                        <button 
+                                            type="button" 
+                                            id="clear_date" 
+                                            class="btn btn-outline-info" 
+                                            title="Clear Date"
+                                            style="padding: 0.25rem 0.5rem; height: 38px;">
+                                            <i class="ri-close-line"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </li>
+                        <!-- Date Filter End -->
                         <li class="nav-item nav-icon dropdown">
                             <a href="#" class="search-toggle dropdown-toggle btn border add-btn"
                                 id="dropdownMenuButton02" data-toggle="dropdown" aria-haspopup="true"
@@ -511,3 +534,36 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
         fetchNotifications();
     </script>
 @endif
+<script>
+    document.getElementById('filter_date').addEventListener('change', function() {
+        var selectedDate = this.value;
+        var storeId = "{{ $currentStoreId }}";
+        if (storeId) {
+            var url = "{{ route('dashboard.store', ['store' => '__STORE__']) }}";
+            url = url.replace('__STORE__', storeId);
+            if (selectedDate) {
+                url += (url.indexOf('?') === -1 ? '?' : '&') + 'filter_date=' + encodeURIComponent(selectedDate);
+            }
+            window.location.href = url;
+        } else {
+            // fallback for dashboard without store
+            var url = "{{ route('dashboard') }}";
+            if (selectedDate) {
+                url += (url.indexOf('?') === -1 ? '?' : '&') + 'filter_date=' + encodeURIComponent(selectedDate);
+            }
+            window.location.href = url;
+        }
+    });
+    document.getElementById('clear_date').addEventListener('click', function() {
+        document.getElementById('filter_date').value = '';
+        var storeId = "{{ $currentStoreId }}";
+        var url;
+        if (storeId) {
+            url = "{{ route('dashboard.store', ['store' => '__STORE__']) }}".replace('__STORE__', storeId);
+        } else {
+            url = "{{ route('dashboard') }}";
+        }
+        window.location.href = url;
+    });    
+</script>
+     
