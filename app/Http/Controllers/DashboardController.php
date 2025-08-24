@@ -69,13 +69,14 @@ class DashboardController extends Controller
 
     public function showStore($storeId)
     {
-        $filter_date = request('filter_date');
+        $start_date = request('start_date');
+        $end_date = request('end_date');
         $store = Branch::findOrFail($storeId); // or Branch if you're using Branch model
-        $data = $this->getDashboardDataForStore($storeId,$filter_date); // Your logic here
+        $data = $this->getDashboardDataForStore($storeId,$start_date,$end_date); // Your logic here
         return view('dashboard', compact('store', 'data'));
     }
 
-    protected function getDashboardDataForStore($storeId,$filter_date="")
+    protected function getDashboardDataForStore($storeId,$start_date="",$end_date="")
     {
         // Example: Fetch store
         $store = Branch::findOrFail($storeId);
@@ -88,8 +89,9 @@ class DashboardController extends Controller
             ->where('branch_id', $storeId)
             ->whereNotIn('status', ['Hold', 'resumed', 'archived']);
 
-        if (!empty($filter_date)) {
-            $totalsQuery->whereDate('created_at', $filter_date);
+        if (!empty($start_date) && !empty($end_date)) {
+            // Between two dates
+            $totalsQuery->whereBetween('created_at', [$start_date, $end_date]);
         }
 
         $totals = $totalsQuery->first();
@@ -108,10 +110,11 @@ class DashboardController extends Controller
             ->join('products', 'products.id', '=', 'inventories.product_id')
             ->where('inventories.store_id', $storeId)
             ->where('products.is_deleted', 'no');
+        if (!empty($start_date) && !empty($end_date)) {
+            // Between two dates
+            $inventorySummaryQuery->whereBetween('inventories.created_at', [$start_date, $end_date]);
+            $totalsQtyQuery->whereBetween('inventories.created_at', [$start_date, $end_date]);
 
-        if (!empty($filter_date)) {
-            $inventorySummaryQuery->whereDate('inventories.created_at', $filter_date);
-            $totalsQtyQuery->whereDate('inventories.created_at', $filter_date);
         }
 
         $inventorySummary = $inventorySummaryQuery->first();
