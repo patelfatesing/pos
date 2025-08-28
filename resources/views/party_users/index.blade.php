@@ -85,6 +85,7 @@
                                         <th>Phone</th>
                                         <th>Credit</th>
                                         <th>Status</th>
+                                        <th>Pending Credit</th>
                                         <th>Created Date</th>
                                         <th>Updated Date</th>
                                         <th>Actions</th>
@@ -95,7 +96,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
@@ -105,6 +105,51 @@
         aria-labelledby="custPriceChangeModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content" id="custModalContent"></div>
+        </div>
+    </div>
+
+    @php
+        // Calculate tomorrow's date
+$minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
+    @endphp
+
+    <div class="modal fade bd-example-modal-lg" id="dueDateModal" tabindex="-1" role="dialog"
+        aria-labelledby="dueDateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <form id="durDateForm">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="dueDateModalLabel">Due Date Set</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="row">
+                            <input type="hidden" name="party_user_id" id="party_user_id" value="">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Due Date</label>
+                                    <input type="date" name="due_date" min="{{ $minDate }}" class="form-control"
+                                        id="due_date">
+                                    <span class="text-danger" id="due_date_error"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- <span class="mt-2 badge badge-pill border border-secondary text-secondary">
+                            {{ __('messages.change_date_msg') }}
+                        </span> --}}
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 @endsection
@@ -153,6 +198,9 @@
                         data: 'status'
                     },
                     {
+                        data: 'use_credit',
+                    },
+                    {
                         data: 'created_at'
                     },
                     {
@@ -167,7 +215,7 @@
                 order: [
                     [7, 'desc']
                 ],
-                
+
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, "All"]
@@ -277,5 +325,63 @@
                 }
             });
         }
+
+        function set_due_date(u_id) {
+
+
+            $('#party_user_id').val(u_id);
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                var myModal = new bootstrap.Modal(document.getElementById('dueDateModal'));
+                myModal.show();
+            } else {
+                // For Bootstrap 4 (with jQuery)
+                $('#dueDateModal').modal('show');
+            }
+            // $('#dueDateModal').modal('show');
+        }
+
+        $('#durDateForm').on('submit', function(e) {
+            e.preventDefault();
+
+            // Clear previous validation errors
+
+            $('#due_date_error').text('');
+
+            let formData = {
+                _token: $('input[name="_token"]').val(),
+                party_user_id: $('#party_user_id').val(),
+                due_date: $('#due_date').val()
+            };
+
+            $.ajax({
+                type: "POST",
+                url: "{{ route('party-users.set.due.date') }}", // Adjust to match your route name
+                data: formData,
+                success: function(response) {
+                    // Show success message
+                    alert(response.message); // or use toastr.success()
+
+                    // Close and reset modal
+                    var modalEl = document.getElementById('dueDateModal');
+                    var myModal = new bootstrap.Modal(modalEl);
+                    myModal.hide();
+                    $('#durDateForm')[0].reset();
+
+                    // Reload DataTable
+                    $('#party_users_table').DataTable().ajax.reload(null, false);
+                },
+                error: function(xhr) {
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+
+                        if (errors.due_date) {
+                            $('#due_date_error').text(errors.due_date[0]);
+                        }
+                    } else {
+                        alert("An unexpected error occurred.");
+                    }
+                }
+            });
+        });
     </script>
 @endsection

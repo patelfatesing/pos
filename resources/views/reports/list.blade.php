@@ -35,7 +35,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-lg-3 col-md-3">
+                                    {{-- <div class="col-lg-3 col-md-3">
                                         <div class="card card-block card-stretch card-height">
                                             <div class="card-body">
                                                 <a href="{{ route('sales.sales-daily') }}">
@@ -50,7 +50,7 @@
                                                 </a>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> --}}
 
                                     <div class="col-lg-3 col-md-3">
                                         <div class="card card-block card-stretch card-height">
@@ -85,8 +85,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="row mb-3">
+
                                     <div class="col-lg-3 col-md-3">
                                         <div class="card card-block card-stretch card-height">
                                             <div class="card-body">
@@ -127,7 +126,7 @@
                                                 <a href="{{ route('reports.pl.page') }}">
                                                     <div class="d-flex align-items-center mb-4 card-total-sale">
                                                         <div class="icon iq-icon-box-2 bg-success-light">
-                                                            <i class="fi fi-sr-usd-circle"></i>
+                                                            <i class="fa fa-inr text-success fa-2x"></i>
                                                         </div>
                                                         <div>
                                                             <p class="mb-2">Profit Loss</p>
@@ -144,7 +143,7 @@
                                                 <a href="{{ route('reports.product_pl.page') }}">
                                                     <div class="d-flex align-items-center mb-4 card-total-sale">
                                                         <div class="icon iq-icon-box-2 bg-success-light">
-                                                            <i class="fas fa-box-open text-success fa-2x"></i>
+                                                            {{-- <i class="fas fa-box-open text-success fa-2x"></i> --}}
                                                         </div>
                                                         <div>
                                                             <p class="mb-2">Profit Loss Poduct Wise</p>
@@ -154,18 +153,17 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="row mb-3">
+                              
                                     <div class="col-lg-3 col-md-3">
                                         <div class="card card-block card-stretch card-height">
                                             <div class="card-body">
                                                 <a href="{{ route('reports.credit_payments.page') }}">
                                                     <div class="d-flex align-items-center mb-4 card-total-sale">
                                                         <div class="icon iq-icon-box-2 bg-info-light">
-                                                            <i class="fi fi-sr-credit-card"></i>
+                                                            <i class="fa fa-credit-card"></i>
                                                         </div>
                                                         <div>
-                                                            <p class="mb-2">Credit Customer Ledger Report</p>
+                                                            <p class="mb-2">Credit Party Customer Ledger Report</p>
                                                         </div>
                                                     </div>
                                                 </a>
@@ -179,8 +177,7 @@
                                                 <a href="{{ route('reports.category_sales.page') }}">
                                                     <div class="d-flex align-items-center mb-4 card-total-sale">
                                                         <div class="icon iq-icon-box-2 bg-danger-light">
-                                                           
-                                                            <i class="fi fi-rr-copy text-danger fa-2x"></i>
+                                                            {{-- <i class="fa fa-gg-circle text-danger fa-2x"></i> --}}
                                                         </div>
                                                         <div>
                                                             <p class="mb-2">Category Wise Sales Report</p>
@@ -197,7 +194,7 @@
                                                 <a href="{{ route('reports.discounts.page') }}">
                                                     <div class="d-flex align-items-center mb-4 card-total-sale">
                                                         <div class="icon iq-icon-box-2 bg-success-light">
-                                                            <i class="fas fa-box-open text-success fa-2x"></i>
+                                                            {{-- <i class="fas fa-box-open text-success fa-2x"></i> --}}
                                                         </div>
                                                         <div>
                                                             <p class="mb-2">Discounts & Offers Report</p>
@@ -214,10 +211,197 @@
                                                 <a href="{{ route('reports.vendor_purchases.page') }}">
                                                     <div class="d-flex align-items-center mb-4 card-total-sale">
                                                         <div class="icon iq-icon-box-2 bg-success-light">
-                                                            <i class="fas fa-box-open text-success fa-2x"></i>
+                                                            {{-- <i class="fas fa-box-open text-success fa-2x"></i> --}}
                                                         </div>
                                                         <div>
-                                                            <p class="mb-2">Vendor Purchase Report</p>
+                                                            <p class="mb-2">Vendor Delivery Invoice Report</p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-3">
+                                        <div class="card card-block card-stretch card-height">
+                                            <div class="card-body">
+                                                <a href="{{ route('reports.discount.product.view') }}">
+                                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                                        <div class="icon iq-icon-box-2 bg-success-light">
+                                                            {{-- <i class="fas fa-box-open text-success fa-2x"></i> --}}
+                                                        </div>
+                                                        <div>
+                                                            <p class="mb-2">Product Wise Discount</p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-3">
+                                        <div class="card card-block card-stretch card-height">
+                                            <div class="card-body">
+                                                <a href="{{ route('reports.day_end.view') }}">
+                                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                                        <div class="icon iq-icon-box-2 bg-success-light">
+                                                            {{-- <i class="fas fa-box-open text-success fa-2x"></i> --}}
+                                                        </div>
+                                                        <div>
+                                                            <p class="mb-2">End Day Summary Report</p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-3">
+                                        <div class="card card-block card-stretch card-height">
+                                            <div class="card-body">
+                                                <a href="{{ route('reports.product_inactive.view') }}">
+                                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                                        <div class="icon iq-icon-box-2 bg-success-light">
+                                                            {{-- <i class="fas fa-box-open text-success fa-2x"></i> --}}
+                                                        </div>
+                                                        <div>
+                                                            <p class="mb-2">Product Inactive Report</p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-3">
+                                        <div class="card card-block card-stretch card-height">
+                                            <div class="card-body">
+                                                <a href="{{ route('reports.best_selling.view') }}">
+                                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                                        <div class="icon iq-icon-box-2 bg-success-light">
+                                                            {{-- <i class="fas fa-box-open text-success fa-2x"></i> --}}
+                                                        </div>
+                                                        <div>
+                                                            <p class="mb-2">Best Selling Product Report</p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-3">
+                                        <div class="card card-block card-stretch card-height">
+                                            <div class="card-body">
+                                                <a href="{{ route('reports.worst_selling.view') }}">
+                                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                                        <div class="icon iq-icon-box-2 bg-success-light">
+                                                            {{-- <i class="fas fa-box-open text-success fa-2x"></i> --}}
+                                                        </div>
+                                                        <div>
+                                                            <p class="mb-2">Worst Selling Product Report</p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-3">
+                                        <div class="card card-block card-stretch card-height">
+                                            <div class="card-body">
+                                                <a href="{{ route('reports.not_sold.view') }}">
+                                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                                        <div class="icon iq-icon-box-2 bg-success-light">
+                                                            {{-- <i class="fas fa-box-open text-success fa-2x"></i> --}}
+                                                        </div>
+                                                        <div>
+                                                            <p class="mb-2">Not Sold Product Report</p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-3">
+                                        <div class="card card-block card-stretch card-height">
+                                            <div class="card-body">
+                                                <a href="{{ route('reports.stock_transfer.view') }}">
+                                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                                        <div class="icon iq-icon-box-2 bg-success-light">
+                                                            {{-- <i class="fas fa-box-open text-success fa-2x"></i> --}}
+                                                        </div>
+                                                        <div>
+                                                            <p class="mb-2">Stock Transfer Report</p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-3">
+                                        <div class="card card-block card-stretch card-height">
+                                            <div class="card-body">
+                                                <a href="{{ route('reports.purchase.view') }}">
+                                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                                        <div class="icon iq-icon-box-2 bg-success-light">
+                                                            {{-- <i class="fas fa-box-open text-success fa-2x"></i> --}}
+                                                        </div>
+                                                        <div>
+                                                            <p class="mb-2">purchase Report</p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-3">
+                                        <div class="card card-block card-stretch card-height">
+                                            <div class="card-body">
+                                                <a href="{{ route('reports.purchase_by_product.view') }}">
+                                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                                        <div class="icon iq-icon-box-2 bg-success-light">
+                                                            {{-- <i class="fas fa-box-open text-success fa-2x"></i> --}}
+                                                        </div>
+                                                        <div>
+                                                            <p class="mb-2">Purchase By Product Report</p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-3">
+                                        <div class="card card-block card-stretch card-height">
+                                            <div class="card-body">
+                                                <a href="{{ route('reports.closing_summary.view') }}">
+                                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                                        <div class="icon iq-icon-box-2 bg-success-light">
+                                                            {{-- <i class="fas fa-box-open text-success fa-2x"></i> --}}
+                                                        </div>
+                                                        <div>
+                                                            <p class="mb-2">Closing Summary Report</p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-3">
+                                        <div class="card card-block card-stretch card-height">
+                                            <div class="card-body">
+                                                <a href="{{ route('reports.profit_invoice.view') }}">
+                                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                                        <div class="icon iq-icon-box-2 bg-success-light">
+                                                            {{-- <i class="fas fa-box-open text-success fa-2x"></i> --}}
+                                                        </div>
+                                                        <div>
+                                                            <p class="mb-2">Profit on-sales Invoice Report</p>
                                                         </div>
                                                     </div>
                                                 </a>
