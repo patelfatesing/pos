@@ -10,6 +10,7 @@ use App\Models\PartyCustomerProductsPrice;
 use Illuminate\Support\Facades\Auth;
 use App\Models\CommissionUserImage;
 use App\Models\Invoice;
+use Illuminate\Support\Facades\Validator;
 
 class PartyUserController extends Controller
 {
@@ -69,9 +70,17 @@ class PartyUserController extends Controller
                 return asset('storage/' . $image->image_path);
             })->toArray();
 
-            $action = '<div class="d-flex align-items-center list-action">
-            <a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                    href="' . url('/cust-product-price-change/form?id=' . $partyUser->id) . '"><i class="ri-currency-fill"></i></a>     
+            $action = '';
+
+
+            $action .= '<div class="d-flex align-items-center list-action">';
+
+            if ($partyUser->use_credit > 0) {
+                $action .= ' <a class="badge bg-primary mr-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Inline Price Change"'
+                    . ' href="#" onclick="set_due_date(' . (int)$partyUser->id . ')"><i class="ri-calendar-event-fill"></i></a>';
+            }
+            $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
+                    href="' . url('/cust-product-price-change/form?id=' . $partyUser->id) . '"><i class="ri-currency-fill"></i></a>
             <a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
                                         href="' . url('/party-users/view/' . $partyUser->id) . '"><i class="ri-eye-line mr-0"></i></a>
             <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
@@ -93,7 +102,7 @@ class PartyUserController extends Controller
                     ? '<span onclick=\'statusChange("' . $partyUser->id . '", "Inactive")\'><div class="badge badge-success" style="cursor:pointer">Active</div></span>'
                     : '<span onclick=\'statusChange("' . $partyUser->id . '", "Active")\'><div class="badge badge-danger" style="cursor:pointer">Inactive</div></span>',
                 // 'is_delete' => ($partyUser->is_delete=="No" ? '<div class="badge badge-success">Not Deleted</div>' : '<div class="badge badge-danger">Deleted</div>'),
-
+                'use_credit' => $partyUser->use_credit,
                 'created_at' => date('d-m-Y h:i', strtotime($partyUser->created_at)),
                 'updated_at' => date('d-m-Y h:i', strtotime($partyUser->updated_at)),
                 'action' => $action
@@ -604,5 +613,38 @@ class PartyUserController extends Controller
                 'discount' => 0 // Default discount if not found
             ]);
         }
+    }
+
+    public function setDueDate(Request $request)
+    {
+        // 🔍 Validate input
+        $validator = Validator::make($request->all(), [
+            'due_date' => 'required'
+        ]);
+
+        $id = $request->party_user_id;
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // 🧱 Find the product
+        $product = Partyuser::findOrFail($id);
+        // 🔁 Update product
+        $product->due_date = $request->due_date;
+        $product->save();
+
+       
+            // sendNotification('price_change', $product->name . ' Product price is changed.', $store->id, Auth::id(), json_encode(['id' => (string)$his_data->id]), 0);
+        
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Party user due date set has been successfully.',
+            'data' => $product,
+        ]);
     }
 }

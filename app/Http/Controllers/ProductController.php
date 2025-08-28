@@ -355,7 +355,6 @@ class ProductController extends Controller
     {
         $barcode = Product::where('code', $request->code)->first();
 
-        dd($barcode);
         $record = Product::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
         return view('products.edit', compact('record'));
     }

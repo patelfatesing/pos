@@ -108,7 +108,6 @@
                                 <th>English Sales</th>
                                 <th>Discount</th>
                                 <th>Total Sales</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -189,12 +188,7 @@
                     },
                     {
                         data: 'total_sales'
-                    },
-                    {
-                        data: 'action',
-                        orderable: false,
-                        searchable: false
-                    },
+                    }
                 ],
                 order: [
                     [1, 'desc']

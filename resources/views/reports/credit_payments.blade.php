@@ -21,7 +21,7 @@
       <div class="row align-items-center mb-3">
         <div class="col-lg-12">
           <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-            <div><h4 class="mb-3">Credit Payment Report</h4></div>
+            <div><h4 class="mb-3">Credit Party Customer Ledger Report</h4></div>
           </div>
         </div>
       </div>
@@ -91,8 +91,7 @@
               <th>Debit</th>
               <th>Net (Cr−Dr)</th>
               <th>Status</th>
-              <th>By</th>
-              <th>Actions</th>
+             
             </tr>
           </thead>
           <tbody></tbody>
@@ -138,9 +137,7 @@ $(function(){
       { data: 'credit_amount' },
       { data: 'debit_amount' },
       { data: 'net_amount' },
-      { data: 'status' },         // badge HTML
-      { data: 'created_by' },
-      { data: 'action', orderable:false, searchable:false },
+      { data: 'status' }
     ],
     order: [[1, 'desc']], // date desc
     lengthMenu: [[10,25,50,100,-1],[10,25,50,100,"All"]],
