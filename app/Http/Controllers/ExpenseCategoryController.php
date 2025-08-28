@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ExpenseCategory;
+use App\Models\ExpenseMainCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -11,7 +12,8 @@ class ExpenseCategoryController extends Controller
     public function index()
     {
         $categories = ExpenseCategory::latest()->paginate(10);
-        return view('expense_categories.index', compact('categories'));
+        $expMainCategory = ExpenseMainCategory::get();
+        return view('expense_categories.index', compact('categories', 'expMainCategory'));
     }
 
     public function getData(Request $request)
@@ -21,15 +23,15 @@ class ExpenseCategoryController extends Controller
         $length = $request->input('length', 10);
         $searchValue = $request->input('search.value', '');
         $orderColumnIndex = $request->input('order.0.column', 0);
-        $orderColumn = $request->input("columns.$orderColumnIndex.data", 'id'); // Fixed input key
+        $orderColumn = $request->input("columns.$orderColumnIndex.data", 'id');
         $orderDirection = $request->input('order.0.dir', 'asc');
 
-        // Validate order direction
         if (!in_array($orderDirection, ['asc', 'desc'])) {
             $orderDirection = 'asc';
         }
 
-        $query = ExpenseCategory::query()->where('status', 1);
+        $query = ExpenseCategory::with('expenseType')
+            ->where('status', 1);
 
         if (!empty($searchValue)) {
             $query->where('name', 'like', '%' . $searchValue . '%');
@@ -44,20 +46,20 @@ class ExpenseCategoryController extends Controller
             ->get();
 
         $records = [];
-        $url = url('/');
-
         foreach ($data as $role) {
-
             $action = '<div class="d-flex align-items-center list-action">
-                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                                        href="' . url('/exp-category/edit/' . $role->id) . '"><i class="ri-pencil-line mr-0"></i></a>
-                               </div>';
+                        <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit"
+                            href="' . url('/exp-category/edit/' . $role->id) . '"><i class="ri-pencil-line mr-0"></i></a>
+                    </div>';
 
             $records[] = [
                 'name' => $role->name,
-                'is_active' => ($role->status == 1 ? '<div class="badge badge-success">Active</div>' : '<div class="badge badge-success">Inactive</div>'),
-                'created_at' => \Carbon\Carbon::parse($role->created_at)->format('d-m-Y H:i'),
-                'updated_at' => \Carbon\Carbon::parse($role->updated_at)->format('d-m-Y H:i'),
+                'expense_type' => $role->expenseType->name ?? '<span class="badge bg-secondary">N/A</span>',
+                'is_active' => ($role->status == 1
+                    ? '<div class="badge badge-success">Active</div>'
+                    : '<div class="badge badge-danger">Inactive</div>'),
+                'created_at' => $role->created_at ? $role->created_at->format('d-m-Y H:i') : '',
+                'updated_at' => $role->updated_at ? $role->updated_at->format('d-m-Y H:i') : '',
                 'action' => $action
             ];
         }
@@ -83,6 +85,7 @@ class ExpenseCategoryController extends Controller
 
         ExpenseCategory::create([
             'name' => $request->name,
+            'expense_type_id' => $request->expense_type_id,
             'slug' => Str::slug($request->name),
             'status' => $request->status ?? true,
             'created_by' => auth()->id()

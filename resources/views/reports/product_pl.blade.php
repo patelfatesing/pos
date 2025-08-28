@@ -79,7 +79,7 @@
               <th>Gross Profit</th>
              
               <th>Net Profit</th>
-              <th>Actions</th>
+         
             </tr>
           </thead>
           <tbody></tbody>
@@ -126,7 +126,7 @@ $(function(){
       { data: 'refunds' },
       { data: 'gross_profit' },
       { data: 'net_profit' },
-      { data: 'action', orderable:false, searchable:false },
+     
     ],
     order: [[14, 'desc']], // default by Net Profit desc
     lengthMenu: [[10,25,50,100,-1],[10,25,50,100,"All"]],

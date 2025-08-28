@@ -62,7 +62,7 @@
                 <div class="row align-items-center mb-2">
                     <div class="col-lg-12">
                         <div class="d-flex flex-wrap align-items-center justify-content-between mb-2">
-                            <h4 class="mb-0">Vendor Purchase Report</h4>
+                            <h4 class="mb-0">Vendor Delivery Invoice Report</h4>
                         </div>
                         <div class="summary-badges">
                             <span class="badge bg-dark">Total Qty: <span id="sum_qty">0</span></span>
@@ -97,12 +97,7 @@
                     <div class="col-md-2">
                         <input type="date" id="end_date" class="form-control w-120" />
                     </div>
-                    <div class="col-md-1">
-                        <input type="number" step="0.01" id="min_total" class="form-control" placeholder="Min ₹" />
-                    </div>
-                    <div class="col-md-1">
-                        <input type="number" step="0.01" id="max_total" class="form-control" placeholder="Max ₹" />
-                    </div>
+
                 </div>
 
                 <div class="table-responsive rounded">
@@ -114,7 +109,6 @@
                                 <th>Date</th>
                                 <th>Bill No</th>
                                 <th>Vendor</th>
-                                <th>Ledger</th>
                                 <th>Items Qty</th>
                                 <th>Items Amount</th>
                                 <th>Excise Fee</th>
@@ -123,7 +117,6 @@
                                 <th>Other Charges</th>
                                 <th>Grand Total</th>
                                 <th>Status</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -175,9 +168,6 @@
                         data: 'vendor_name'
                     },
                     {
-                        data: 'ledger'
-                    },
-                    {
                         data: 'items_qty'
                     },
                     {
@@ -200,12 +190,7 @@
                     },
                     {
                         data: 'status'
-                    },
-                    {
-                        data: 'action',
-                        orderable: false,
-                        searchable: false
-                    },
+                    }
                 ],
                 order: [
                     [1, 'desc']

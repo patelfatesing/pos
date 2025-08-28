@@ -300,7 +300,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/cust-trasaction-photo/view/{id}', [PartyUserController::class, 'custTrasactionPhoto'])->name('cust-trasaction-photo-view');
     Route::post('/party-users/status-change', [PartyUserController::class, 'statusChange'])->name('party-users.status-change');
     Route::post('/party-users/get-credit-history', [PartyUserController::class, 'getCreditHistory'])->name('party-users.get.credit.history');
-
+    Route::post('/party-users/set-due-date', [PartyUserController::class, 'setDueDate'])->name('party-users.set.due.date');
     // });
 
     Route::get('/stock-transfer/craete-transfer', [StockTransferController::class, 'craeteTransfer'])->name('stock-transfer.craete-transfer');
@@ -413,30 +413,58 @@ Route::middleware('auth')->group(function () {
     Route::get('credit/credit-ledger', [CreditHistoryController::class, 'index'])->name('credit.credit-ledger');
     Route::post('credit/credit-ledger-data', [CreditHistoryController::class, 'creditLedgerData'])->name('credit.credit-ledger-data');
 
-    Route::get('reports', [ReportController::class, 'index'])->name('reports.list');
-    Route::get('reports/low-stock', [ReportController::class, 'lowLevel'])->name('reports.low_stock.page');
-    Route::post('reports/low-stock/data', [ReportController::class, 'getLowLevelData'])->name('reports.low_stock.data');
-    Route::get('/reports/expiry',            [ReportController::class, 'expiryPage'])->name('reports.expiry.page');
-    Route::post('/reports/expiry/get-data',   [ReportController::class, 'getExpiryData'])->name('reports.expiry.get_data');
-    Route::get('/reports/profit-loss',          [ReportController::class, 'profitLossPage'])->name('reports.pl.page');
-    Route::post('/reports/profit-loss/get-data', [ReportController::class, 'getProfitLossData'])->name('reports.pl.get_data');
-    Route::get('/reports/product-pl',          [ReportController::class, 'productPLPage'])->name('reports.product_pl.page');
-    Route::post('/reports/product-pl/get-data', [ReportController::class, 'getProductPLData'])->name('reports.product_pl.get_data');
-    Route::get('/reports/daily-cash',          [ReportController::class, 'dailyCashPage'])->name('reports.daily_cash.page');
-    Route::post('/reports/daily-cash/get-data', [ReportController::class, 'getDailyCashData'])->name('reports.daily_cash.get_data');
-    Route::get('/reports/credit-payments',          [ReportController::class, 'creditPaymentsPage'])->name('reports.credit_payments.page');
-    Route::post('/reports/credit-payments/get-data', [ReportController::class, 'getCreditPaymentsData'])->name('reports.credit_payments.get_data');
-    Route::get('/reports/category-sales',          [ReportController::class, 'categorySalesPage'])->name('reports.category_sales.page');
-    Route::post('/reports/category-sales/get-data', [ReportController::class, 'getCategorySalesData'])->name('reports.category_sales.get_data');
-    Route::get('/reports/discounts',          [ReportController::class, 'discountOfferPage'])->name('reports.discounts.page');
-    Route::post('/reports/discounts/get-data', [ReportController::class, 'getDiscountOfferData'])->name('reports.discounts.get_data');
-    Route::get('/reports/expenses',          [ReportController::class, 'expensesPage'])->name('reports.expenses.page');
-    Route::post('/reports/expenses/get-data', [ReportController::class, 'getExpensesData'])->name('reports.expenses.get_data');
-    Route::get('/reports/vendor-purchases',          [ReportController::class, 'vendorPurchasesPage'])->name('reports.vendor_purchases.page');
-    Route::post('/reports/vendor-purchases/get-data', [ReportController::class, 'getVendorPurchasesData'])->name('reports.vendor_purchases.get_data');
+    Route::prefix('reports/')->group(function () {
+        Route::get('', [ReportController::class, 'index'])->name('reports.list');
+        Route::get('low-stock', [ReportController::class, 'lowLevel'])->name('reports.low_stock.page');
+        Route::post('low-stock/data', [ReportController::class, 'getLowLevelData'])->name('reports.low_stock.data');
+        Route::get('expiry',            [ReportController::class, 'expiryPage'])->name('reports.expiry.page');
+        Route::post('expiry/get-data',   [ReportController::class, 'getExpiryData'])->name('reports.expiry.get_data');
+        Route::get('profit-loss',          [ReportController::class, 'profitLossPage'])->name('reports.pl.page');
+        Route::post('profit-loss/get-data', [ReportController::class, 'getProfitLossData'])->name('reports.pl.get_data');
+        Route::get('product-pl',          [ReportController::class, 'productPLPage'])->name('reports.product_pl.page');
+        Route::post('product-pl/get-data', [ReportController::class, 'getProductPLData'])->name('reports.product_pl.get_data');
+        Route::get('daily-cash',          [ReportController::class, 'dailyCashPage'])->name('reports.daily_cash.page');
+        Route::post('daily-cash/get-data', [ReportController::class, 'getDailyCashData'])->name('reports.daily_cash.get_data');
+        Route::get('credit-payments',          [ReportController::class, 'creditPaymentsPage'])->name('reports.credit_payments.page');
+        Route::post('credit-payments/get-data', [ReportController::class, 'getCreditPaymentsData'])->name('reports.credit_payments.get_data');
+        Route::get('category-sales',          [ReportController::class, 'categorySalesPage'])->name('reports.category_sales.page');
+        Route::post('category-sales/get-data', [ReportController::class, 'getCategorySalesData'])->name('reports.category_sales.get_data');
+        Route::get('discounts',          [ReportController::class, 'discountOfferPage'])->name('reports.discounts.page');
+        Route::post('discounts/get-data', [ReportController::class, 'getDiscountOfferData'])->name('reports.discounts.get_data');
+        Route::get('expenses',          [ReportController::class, 'expensesPage'])->name('reports.expenses.page');
+        Route::post('expenses/get-data', [ReportController::class, 'getExpensesData'])->name('reports.expenses.get_data');
+        Route::get('vendor-purchases',          [ReportController::class, 'vendorPurchasesPage'])->name('reports.vendor_purchases.page');
+        Route::post('vendor-purchases/get-data', [ReportController::class, 'getVendorPurchasesData'])->name('reports.vendor_purchases.get_data');
 
-    Route::get('/reports/customer-outstanding',          [ReportController::class, 'customerOutstandingPage'])->name('reports.customer_outstanding.page');
-    Route::post('/reports/customer-outstanding/get-data', [ReportController::class, 'getCustomerOutstandingData'])->name('reports.customer_outstanding.get_data');
+        Route::get('customer-outstanding',          [ReportController::class, 'customerOutstandingPage'])->name('reports.customer_outstanding.page');
+        Route::post('customer-outstanding/get-data', [ReportController::class, 'getCustomerOutstandingData'])->name('reports.customer_outstanding.get_data');
+
+        Route::get('profit-loss1',  [Report2Controller::class, 'profitLoss'])->name('reports.pnl_tally.view');
+        Route::post('getProfitLossData', [Report2Controller::class, 'getProfitLossData'])->name('reports.pnl_tally.data');
+
+        Route::get('product-wise',  [Report2Controller::class, 'productWise'])->name('reports.discount.product.view');
+        Route::post('product-wise-data', [Report2Controller::class, 'getProductWiseData'])->name('reports.discount.product.data');
+        Route::get('end-day-summary',  [Report2Controller::class, 'endDaySummary'])->name('reports.day_end.view');
+        Route::post('end-day-summary-data', [Report2Controller::class, 'getEndDaySummaryData'])->name('reports.day_end.data');
+        Route::get('best-selling-product',  [Report2Controller::class, 'bestSellingProducts'])->name('reports.best_selling.view');
+        Route::post('get-best-selling-product-data', [Report2Controller::class, 'getBestSellingProductsData'])->name('reports.best_selling.data');
+        Route::get('worst-selling-product',  [Report2Controller::class, 'worstSellingProducts'])->name('reports.worst_selling.view');
+        Route::post('get-worst-selling-product-data', [Report2Controller::class, 'getWorstSellingProductsData'])->name('reports.worst_selling.data');
+        Route::get('not-sale',  [Report2Controller::class, 'notSale'])->name('reports.not_sold.view');
+        Route::post('not-sale-data', [Report2Controller::class, 'getNotSaleData'])->name('reports.not_sold.data');
+        Route::get('stock-transfer',  [Report2Controller::class, 'stockTransfer'])->name('reports.stock_transfer.view');
+        Route::post('get-stock-transfer-data', [Report2Controller::class, 'getStockTransferData'])->name('reports.stock_transfer.data');
+        Route::get('purchase-report',  [Report2Controller::class, 'purchaseReport'])->name('reports.purchase.view');
+        Route::post('get-purchase-report-data', [Report2Controller::class, 'getPurchaseReportData'])->name('reports.purchase.data');
+        Route::get('purchase-by-product-report',  [Report2Controller::class, 'purchaseByProductReport'])->name('reports.purchase_by_product.view');
+        Route::post('get-purchase-by-product-report-data', [Report2Controller::class, 'getPurchaseByProductReportData'])->name('reports.purchase_by_product.data');
+        Route::get('closing-summary',  [Report2Controller::class, 'closingSummary'])->name('reports.closing_summary.view');
+        Route::post('get-closing-summary-data', [Report2Controller::class, 'getClosingSummaryData'])->name('reports.closing_summary.data');
+        Route::get('profit-on-sales-invoice',  [Report2Controller::class, 'profitOnSalesInvoice'])->name('reports.profit_invoice.view');
+        Route::post('get-profit-on-sales-invoice-data', [Report2Controller::class, 'getProfitOnSalesInvoiceData'])->name('reports.profit_invoice.data');
+        Route::get('product-inactive',  [Report2Controller::class, 'productInactive'])->name('reports.product_inactive.view');
+        Route::post('get-product-inactive-data', [Report2Controller::class, 'getProductInactiveData'])->name('reports.product_inactive.data');
+    });
 });
 
 

@@ -384,6 +384,7 @@ class ReportController extends Controller
                 ->where('is_deleted', 'no')->orderBy('name')->get(),
         ]);
     }
+    
     public function getProfitLossData(Request $request)
     {
         $branchId    = $request->integer('branch_id');

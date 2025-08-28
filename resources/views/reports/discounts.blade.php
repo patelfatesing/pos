@@ -120,7 +120,6 @@
                                 <th>Computed Total</th>
                                 <th>Payment Mode</th>
                                 <th>Status</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -203,12 +202,7 @@
                     },
                     {
                         data: 'status'
-                    },
-                    {
-                        data: 'action',
-                        orderable: false,
-                        searchable: false
-                    },
+                    }
                 ],
                 order: [
                     [1, 'desc']
