@@ -35,6 +35,7 @@
                                             <b>N</b>ame
                                         </th>
                                         <th>Status</th>
+                                        <th>Expense Type</th>
                                         <th>Created Date</th>
                                         <th>Updated Date</th>
                                         <th>Action</th>
@@ -73,6 +74,23 @@
                                     <input type="text" name="name" class="form-control" id="name"
                                         placeholder="Enter Low Level Quantity">
                                     <span class="text-danger" id="name_error"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Select Expense Type</label>
+                                    <select name="expense_type_id" id="expense_type_id" class="selectpicker form-control"
+                                        data-style="py-0">
+                                        <option value="" disabled selected>Select Expenct Type</option>
+                                        @foreach ($expMainCategory as $category)
+                                            <option value="{{ $category->id }}"
+                                                {{ old('expense_type_id') == $category->id ? 'selected' : '' }}>
+                                                {{ $category->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+
+                                    <span class="text-danger" id="expense_type_id_error"></span>
                                 </div>
                             </div>
                         </div>
@@ -120,8 +138,11 @@
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
-                     {
+                    {
                         data: 'name'
+                    },
+                    {
+                        data: 'expense_type'
                     },
                     {
                         data: 'is_active'
@@ -142,9 +163,9 @@
                     aTargets: [5] // make "action" column unsortable
                 }],
                 order: [
-                    [3, 'desc']
+                    [4, 'desc']
                 ], // 🟢 Sort by created_at DESC by default
-                
+
                 dom: "Bfrtip",
                 lengthMenu: [
                     [10, 25, 50],
@@ -195,6 +216,7 @@
             let formData = {
                 _token: $('input[name="_token"]').val(),
                 name: $('#name').val(),
+                expense_type_id: $('#expense_type_id').val(),
             };
 
             $.ajax({

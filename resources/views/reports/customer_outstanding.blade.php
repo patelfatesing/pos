@@ -122,7 +122,6 @@
                                 <th>61–90</th>
                                 <th>90+</th>
                                 <th>Last Tx</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -198,12 +197,7 @@
                     },
                     {
                         data: 'last_tx_date'
-                    },
-                    {
-                        data: 'action',
-                        orderable: false,
-                        searchable: false
-                    },
+                    }
                 ],
                 order: [
                     [7, 'desc']

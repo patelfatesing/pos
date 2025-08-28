@@ -115,7 +115,6 @@
                                 <th>Tax</th>
                                 <th>Total Sales</th>
                                 <th>Bills</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -180,12 +179,7 @@
                     },
                     {
                         data: 'bills'
-                    },
-                    {
-                        data: 'action',
-                        orderable: false,
-                        searchable: false
-                    },
+                    }
                 ],
                 order: [
                     [7, 'desc']

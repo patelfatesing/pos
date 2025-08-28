@@ -256,6 +256,7 @@ class DemandOrderController extends Controller
             ->when(!empty($request->subcategory_id), function ($query) use ($request) {
                 $query->where('subcategory_id', $request->subcategory_id);
             })
+            ->where('is_deleted', 'no')
             ->get();
         // 2. Map product names + size → IDs
         $nameSizeToId = $products->mapWithKeys(function ($product) {
@@ -793,10 +794,9 @@ class DemandOrderController extends Controller
 
     public function getSubCategory($p_id)
     {
-        $product_data = DemandOrderProduct::select('product_id')->where('demand_order_id',$p_id)->first();
+        $product_data = DemandOrderProduct::select('product_id')->where('demand_order_id', $p_id)->first();
         $product = Product::with('subcategory')->find($product_data->product_id);
 
         return $product && $product->subcategory ? $product->subcategory->name : 'N/A';
-
     }
 }

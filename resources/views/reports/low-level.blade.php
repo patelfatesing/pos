@@ -99,14 +99,14 @@
                                     <tr class="ligth ligth-data">
                                         <th>Sr No</th>
                                         <th>Product</th>
-                                        <th>Category</th>
+                                        
                                         <th>Subcategory</th>
                                         <th>Branch</th>
                                         <th>Available Qty</th>
-                                        <th>Reorder Level</th>
+                                        <th>Low Level Stock</th>
                                         <th>Status</th>
-                                        <th>Nearest Expiry</th>
-                                        <th>Actions</th>
+                                       
+                                       
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -151,9 +151,6 @@
                         data: 'product_name'
                     },
                     {
-                        data: 'category_name'
-                    },
-                    {
                         data: 'sub_category_name'
                     },
                     {
@@ -167,18 +164,10 @@
                     },
                     {
                         data: 'status'
-                    },
-                    {
-                        data: 'nearest_expiry'
-                    },
-                    {
-                        data: 'action',
-                        orderable: false,
-                        searchable: false
                     }
                 ],
                 order: [
-                    [7, 'asc']
+                    [6, 'asc']
                 ], // Status column
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
