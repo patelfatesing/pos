@@ -41,6 +41,27 @@
                 margin-bottom: 10px;
             }
         }
+
+        .filters.one-line {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            flex-wrap: nowrap;
+            overflow: hidden;
+            white-space: nowrap;
+            /* one row, no scroll */
+        }
+
+        .filters.one-line .form-control {
+            flex: 0 1 160px;
+            min-width: 120px;
+            /* shrink to fit, no wrap */
+        }
+
+        #branch_id {
+            flex: 0 1 220px;
+            min-width: 160px;
+        }
     </style>
 @endsection
 
@@ -72,7 +93,6 @@
                         </tfoot>
                     </table>
                 </div>
-
             </div>
         </div>
     </div>
@@ -88,18 +108,18 @@
             });
 
             const filtersHtml = `
-    <div class="filters">
-      <input type="date" id="start_date" class="form-control form-control-sm" placeholder="Start date">
-      <input type="date" id="end_date" class="form-control form-control-sm" placeholder="End date">
+                <div class="filters one-line">
+                    <input type="date" id="start_date" class="form-control form-control-sm" placeholder="Start date">
+                    <input type="date" id="end_date"   class="form-control form-control-sm" placeholder="End date">
 
-      <select id="branch_id" class="form-control form-control-sm">
-        <option value="">All Branches</option>
-        @foreach ($branches as $b)
-          <option value="{{ $b->id }}">{{ $b->name }}</option>
-        @endforeach
-      </select>
-    </div>
-  `;
+                    <select id="branch_id" class="form-control form-control-sm">
+                    <option value="">All Branches</option>
+                    @foreach ($branches as $b)
+                        <option value="{{ $b->id }}">{{ $b->name }}</option>
+                    @endforeach
+                    </select>
+                </div>
+                `;
 
             const table = $('#not_sold_table').DataTable({
                 processing: true,

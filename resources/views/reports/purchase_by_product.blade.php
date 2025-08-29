@@ -42,6 +42,42 @@
                 margin-bottom: 10px;
             }
         }
+
+        .filters.one-line {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            flex-wrap: nowrap;
+            overflow: hidden;
+            white-space: nowrap;
+            /* one row, no scroll */
+        }
+
+        .filters.one-line label {
+            margin-bottom: 0;
+            white-space: nowrap;
+            font-size: .85rem;
+            color: #6b7280;
+        }
+
+        .filters.one-line .form-control {
+            flex: 0 1 160px;
+            min-width: 120px;
+        }
+
+        /* shrink to fit */
+        #vendor_id {
+            flex: 0 1 260px;
+            min-width: 180px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        #start_date,
+        #end_date {
+            flex: 0 1 140px;
+            min-width: 110px;
+        }
     </style>
 @endsection
 
@@ -93,19 +129,19 @@
             });
 
             const filtersHtml = `
-    <div class="filters">
-      <label class="mb-0">Vendor</label>
-      <select id="vendor_id" class="form-control form-control-sm">
-        <option value="">All</option>
-        @foreach ($vendors as $v)
-          <option value="{{ $v->id }}">{{ $v->name }}</option>
-        @endforeach
-      </select>
+            <div class="filters one-line">
+                <label class="mb-0">Vendor</label>
+                <select id="vendor_id" class="form-control form-control-sm">
+                <option value="">All</option>
+                @foreach ($vendors as $v)
+                    <option value="{{ $v->id }}">{{ $v->name }}</option>
+                @endforeach
+                </select>
 
-      <input type="date" id="start_date" class="form-control form-control-sm" placeholder="Start date">
-      <input type="date" id="end_date" class="form-control form-control-sm" placeholder="End date">
-    </div>
-  `;
+                <input type="date" id="start_date" class="form-control form-control-sm" placeholder="Start date">
+                <input type="date" id="end_date"   class="form-control form-control-sm" placeholder="End date">
+            </div>
+            `;
 
             const table = $('#pbp_table').DataTable({
                 processing: true,
