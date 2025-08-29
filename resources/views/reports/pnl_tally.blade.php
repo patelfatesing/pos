@@ -70,6 +70,42 @@
             align-items: center;
             margin-bottom: 10px;
         }
+
+        tyle>.filters.one-line {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            flex-wrap: nowrap;
+            overflow: hidden;
+            white-space: nowrap;
+            /* single row */
+        }
+
+        .filters.one-line label {
+            margin-bottom: 0;
+            white-space: nowrap;
+            font-size: .85rem;
+            color: #6b7280;
+        }
+
+        .filters.one-line .form-control-sm {
+            flex: 0 1 170px;
+            min-width: 120px;
+        }
+
+        /* shrinkable inputs */
+        #branch_id {
+            flex: 0 1 230px;
+            min-width: 160px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        #btn_refresh {
+            flex: 0 0 auto;
+        }
+
+        /* buttons keep natural size */
     </style>
 @endsection
 
@@ -80,13 +116,13 @@
 
                 <div class="pnl-card">
                     <div class="pnl-head">
-                        <div class="pnl-title">Profit &amp; Loss (Tally Style)</div>
+                        <div class="pnl-title">Profit &amp; Loss</div>
                         <div class="pnl-sub" id="pnl_period">—</div>
                     </div>
 
-                    <div class="filters">
+                    <div class="filters one-line">
                         <label class="mb-0">Branch</label>
-                        <select id="branch_id" class="form-control form-control-sm" style="min-width:220px;">
+                        <select id="branch_id" class="form-control form-control-sm">
                             <option value="">All</option>
                             @foreach ($branches as $b)
                                 <option value="{{ $b->id }}">{{ $b->name }}</option>
@@ -100,7 +136,7 @@
                     </div>
 
                     {{-- Trading Account --}}
-                    <div class="two-col">
+                    <div class="two-col mt-2">
                         <div>
                             <div class="muted mb-1">Trading Account (Dr)</div>
                             <table class="pnl" id="tbl_trading_dr">

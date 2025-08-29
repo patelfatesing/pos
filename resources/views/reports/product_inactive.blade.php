@@ -42,6 +42,52 @@
                 margin-bottom: 10px;
             }
         }
+
+        /* single-line filter row (no scroll) */
+        .filters.one-line {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            flex-wrap: nowrap;
+            overflow: hidden;
+        }
+
+        .filters.one-line label {
+            white-space: nowrap;
+            margin-bottom: 0;
+        }
+
+        /* make inputs shrink instead of wrapping */
+        .filters.one-line .form-control {
+            flex: 0 1 160px;
+            min-width: 120px;
+        }
+
+        /* finer control per input */
+        #category_id,
+        #sub_category_id {
+            flex: 0 1 220px;
+            min-width: 160px;
+        }
+
+        #start_date,
+        #end_date {
+            flex: 0 1 140px;
+            min-width: 110px;
+        }
+
+        /* keep the checkbox compact & inline */
+        .filters.one-line .form-check {
+            display: flex;
+            align-items: center;
+            gap: .35rem;
+            margin: 0 .25rem 0 0;
+            white-space: nowrap;
+        }
+
+        .filters.one-line .form-check-input {
+            margin-top: 0;
+        }
     </style>
 @endsection
 
@@ -93,34 +139,23 @@
             });
 
             const filtersHtml = `
-    <div class="filters">
-      <label class="mb-0">Category</label>
-      <select id="category_id" class="form-control form-control-sm">
-        <option value="">All</option>
-        @foreach ($categories as $c)
-          <option value="{{ $c->id }}">{{ $c->name }}</option>
-        @endforeach
-      </select>
+                <div class="filters one-line">
+                    <label class="mb-0">Subcategory</label>
+                    <select id="sub_category_id" class="form-control form-control-sm">
+                    <option value="">All</option>
+                    @foreach ($subcats as $sc)
+                        <option value="{{ $sc->id }}">
+                        {{ $sc->category_name }}
+                        </option>
+                    @endforeach
+                    </select>
 
-      <label class="mb-0">Subcategory</label>
-      <select id="sub_category_id" class="form-control form-control-sm">
-        <option value="">All</option>
-        @foreach ($subcats as $sc)
-          <option value="{{ $sc->id }}" data-cat="{{ $sc->category_id }}">
-            {{ $sc->category_name }} → {{ $sc->subcategory_name }}
-          </option>
-        @endforeach
-      </select>
-
-      <div class="form-check mt-1">
-        <input class="form-check-input" type="checkbox" id="include_deleted">
-        <label class="form-check-label" for="include_deleted">Include Deleted</label>
-      </div>
-
-      <input type="date" id="start_date" class="form-control form-control-sm" placeholder="Start date">
-      <input type="date" id="end_date" class="form-control form-control-sm" placeholder="End date">
-    </div>
-  `;
+                    <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="include_deleted">
+                    <label class="form-check-label" for="include_deleted">Include Deleted</label>
+                    </div>
+                </div>
+                `;
 
             const table = $('#product_inactive_table').DataTable({
                 processing: true,
@@ -255,7 +290,7 @@
                 }]
             });
 
-          
+
         });
     </script>
 @endsection

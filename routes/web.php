@@ -419,7 +419,7 @@ Route::middleware('auth')->group(function () {
         Route::post('low-stock/data', [ReportController::class, 'getLowLevelData'])->name('reports.low_stock.data');
         Route::get('expiry',            [ReportController::class, 'expiryPage'])->name('reports.expiry.page');
         Route::post('expiry/get-data',   [ReportController::class, 'getExpiryData'])->name('reports.expiry.get_data');
-        Route::get('profit-loss',          [ReportController::class, 'profitLossPage'])->name('reports.pl.page');
+        Route::get('profit-loss1',          [ReportController::class, 'profitLossPage'])->name('reports.pl.page');
         Route::post('profit-loss/get-data', [ReportController::class, 'getProfitLossData'])->name('reports.pl.get_data');
         Route::get('product-pl',          [ReportController::class, 'productPLPage'])->name('reports.product_pl.page');
         Route::post('product-pl/get-data', [ReportController::class, 'getProductPLData'])->name('reports.product_pl.get_data');
@@ -439,7 +439,7 @@ Route::middleware('auth')->group(function () {
         Route::get('customer-outstanding',          [ReportController::class, 'customerOutstandingPage'])->name('reports.customer_outstanding.page');
         Route::post('customer-outstanding/get-data', [ReportController::class, 'getCustomerOutstandingData'])->name('reports.customer_outstanding.get_data');
 
-        Route::get('profit-loss1',  [Report2Controller::class, 'profitLoss'])->name('reports.pnl_tally.view');
+        Route::get('profit-loss',  [Report2Controller::class, 'profitLoss'])->name('reports.pnl_tally.view');
         Route::post('getProfitLossData', [Report2Controller::class, 'getProfitLossData'])->name('reports.pnl_tally.data');
 
         Route::get('product-wise',  [Report2Controller::class, 'productWise'])->name('reports.discount.product.view');

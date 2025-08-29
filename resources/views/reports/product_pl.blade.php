@@ -77,9 +77,7 @@
               <th>COGS</th>
               <th>Refunds</th>
               <th>Gross Profit</th>
-             
               <th>Net Profit</th>
-         
             </tr>
           </thead>
           <tbody></tbody>
@@ -128,7 +126,7 @@ $(function(){
       { data: 'net_profit' },
      
     ],
-    order: [[14, 'desc']], // default by Net Profit desc
+    order: [[13, 'desc']], // default by Net Profit desc
     lengthMenu: [[10,25,50,100,-1],[10,25,50,100,"All"]],
     pageLength: 10,
     dom: "<'custom-toolbar-row'lfB>t<'row mt-2'<'col-md-6'i><'col-md-6'p>>",
