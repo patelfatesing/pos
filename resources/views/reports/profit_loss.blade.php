@@ -12,10 +12,7 @@
   .w-140{width:140px}
 </style>
 @endsection
-<?php
-dd('ddfg');
 
-?>
 @section('page-content')
 <div class="wrapper">
   <div class="content-page">

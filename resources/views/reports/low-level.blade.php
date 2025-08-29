@@ -202,7 +202,7 @@
                 <div class="status-filter">
                     <select id="status" class="form-control">
                         <option value="">All Status</option>
-                        <option value="low">Low Stock</option>
+                        <option value="low" selected>Low Stock</option>
                         <option value="out">Out of Stock</option>
                     </select>
                 </div>`;
