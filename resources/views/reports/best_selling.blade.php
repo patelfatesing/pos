@@ -41,6 +41,27 @@
                 margin-bottom: 10px;
             }
         }
+
+        .filters.one-line {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            flex-wrap: nowrap;
+            overflow: hidden;
+            /* no scrollbars */
+            white-space: nowrap;
+        }
+
+        .filters.one-line .form-control {
+            flex: 0 1 150px;
+            min-width: 120px;
+            /* shrink to fit */
+        }
+
+        #branch_id {
+            flex: 0 1 220px;
+            min-width: 160px;
+        }
     </style>
 @endsection
 
@@ -87,18 +108,18 @@
 
             // Toolbar filters (date + branch). We prefill dates to last 30 days below.
             const filtersHtml = `
-    <div class="filters">
-      <input type="date" id="start_date" class="form-control form-control-sm" placeholder="Start date">
-      <input type="date" id="end_date" class="form-control form-control-sm" placeholder="End date">
+                <div class="filters one-line">
+                    <input type="date" id="start_date" class="form-control form-control-sm" placeholder="Start date">
+                    <input type="date" id="end_date"   class="form-control form-control-sm" placeholder="End date">
 
-      <select id="branch_id" class="form-control form-control-sm">
-        <option value="">All Branches</option>
-        @foreach ($branches as $b)
-          <option value="{{ $b->id }}">{{ $b->name }}</option>
-        @endforeach
-      </select>
-    </div>
-  `;
+                    <select id="branch_id" class="form-control form-control-sm">
+                    <option value="">All Branches</option>
+                    @foreach ($branches as $b)
+                        <option value="{{ $b->id }}">{{ $b->name }}</option>
+                    @endforeach
+                    </select>
+                </div>
+                `;
 
             const table = $('#best_selling_table').DataTable({
                 processing: true,

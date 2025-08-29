@@ -1810,11 +1810,11 @@ class Report2Controller extends Controller
             ->orderBy('name')->get();
 
         $subcats = DB::table('sub_categories as sc')
-            ->leftJoin('categories as c', 'c.id', '=', 'sc.category_id')
-            ->select('sc.id', 'sc.name as subcategory_name', 'sc.category_id', 'c.name as category_name')
+          
+            ->select('sc.id', 'sc.name as category_name')
             ->when(DB::getSchemaBuilder()->hasColumn('sc', 'is_deleted'), fn($q) => $q->where('sc.is_deleted', 'no'))
             ->when(DB::getSchemaBuilder()->hasColumn('sc', 'is_active'),  fn($q) => $q->where('sc.is_active', 'yes'))
-            ->orderBy('c.name')->orderBy('sc.name')->get();
+            ->orderBy('sc.name')->get();
 
         return view('reports.product_inactive', compact('categories', 'subcats'));
     }
