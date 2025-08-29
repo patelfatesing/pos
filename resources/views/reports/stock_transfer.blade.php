@@ -42,6 +42,46 @@
                 margin-bottom: 10px;
             }
         }
+
+        .filters.one-line {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            flex-wrap: nowrap;
+            overflow: hidden;
+            white-space: nowrap;
+            /* one row, no scroll */
+        }
+
+        .filters.one-line label {
+            margin-bottom: 0;
+            white-space: nowrap;
+            font-size: .85rem;
+            color: #6b7280;
+        }
+
+        .filters.one-line .form-control {
+            flex: 0 1 160px;
+            min-width: 120px;
+        }
+
+        /* shrink to fit */
+        #mode {
+            flex: 0 1 190px;
+            min-width: 150px;
+        }
+
+        #from_branch_id,
+        #to_branch_id {
+            flex: 0 1 210px;
+            min-width: 160px;
+        }
+
+        #start_date,
+        #end_date {
+            flex: 0 1 140px;
+            min-width: 110px;
+        }
     </style>
 @endsection
 
@@ -85,33 +125,33 @@
             });
 
             const filtersHtml = `
-    <div class="filters">
-      <label class="mb-0">Type</label>
-      <select id="mode" class="form-control form-control-sm">
-        <option value="admin" selected>Admin Transfer</option>
-        <option value="request">Requested Store</option>
-      </select>
+                <div class="filters one-line">
+                    <label class="mb-0">Type</label>
+                    <select id="mode" class="form-control form-control-sm">
+                    <option value="admin" selected>Admin Transfer</option>
+                    <option value="request">Requested Store</option>
+                    </select>
 
-      <label class="mb-0">From</label>
-      <select id="from_branch_id" class="form-control form-control-sm">
-        <option value="">All</option>
-        @foreach ($branches as $b)
-          <option value="{{ $b->id }}">{{ $b->name }}</option>
-        @endforeach
-      </select>
+                    <label class="mb-0">From</label>
+                    <select id="from_branch_id" class="form-control form-control-sm">
+                    <option value="">All</option>
+                    @foreach ($branches as $b)
+                        <option value="{{ $b->id }}">{{ $b->name }}</option>
+                    @endforeach
+                    </select>
 
-      <label class="mb-0">To</label>
-      <select id="to_branch_id" class="form-control form-control-sm">
-        <option value="">All</option>
-        @foreach ($branches as $b)
-          <option value="{{ $b->id }}">{{ $b->name }}</option>
-        @endforeach
-      </select>
+                    <label class="mb-0">To</label>
+                    <select id="to_branch_id" class="form-control form-control-sm">
+                    <option value="">All</option>
+                    @foreach ($branches as $b)
+                        <option value="{{ $b->id }}">{{ $b->name }}</option>
+                    @endforeach
+                    </select>
 
-      <input type="date" id="start_date" class="form-control form-control-sm" placeholder="Start date">
-      <input type="date" id="end_date" class="form-control form-control-sm" placeholder="End date">
-    </div>
-  `;
+                    <input type="date" id="start_date" class="form-control form-control-sm" placeholder="Start date">
+                    <input type="date" id="end_date"   class="form-control form-control-sm" placeholder="End date">
+                </div>
+                `;
 
             const table = $('#stock_transfer_table').DataTable({
                 processing: true,

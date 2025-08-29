@@ -41,6 +41,47 @@
                 margin-bottom: 10px;
             }
         }
+
+        /* single-line, no-scroll filter row */
+        .filters.one-line {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            flex-wrap: nowrap;
+            overflow: hidden;
+            /* no scrollbars */
+        }
+
+        .filters.one-line .form-control {
+            flex: 0 1 140px;
+            /* shrinkable, ~140px base */
+            min-width: 110px;
+            /* don’t get too tiny */
+        }
+
+        /* wider (but still shrinkable) for user selects */
+        #party_user_id,
+        #commission_user_id {
+            flex: 0 1 220px;
+            min-width: 150px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        /* optional: tighten spacing further on smaller widths without wrapping */
+        @media (max-width: 1280px) {
+            .filters.one-line .form-control {
+                flex-basis: 120px;
+                min-width: 100px;
+            }
+
+            #party_user_id,
+            #commission_user_id {
+                flex-basis: 200px;
+                min-width: 140px;
+            }
+        }
     </style>
 @endsection
 
@@ -66,7 +107,7 @@
                                 <th>Commission Discount</th>
                                 <th>Total Discount</th>
                                 <th>Net Sales</th>
-                               
+
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -79,7 +120,7 @@
                                 <th id="ft_comm">0.00</th>
                                 <th id="ft_total_disc">0.00</th>
                                 <th id="ft_net">0.00</th>
-                             
+
                             </tr>
                         </tfoot>
                     </table>
@@ -101,31 +142,31 @@
 
             // Build filter controls into the toolbar
             const filtersHtml = `
-    <div class="filters">
-      <input type="date" id="start_date" class="form-control form-control-sm" placeholder="Start date">
-      <input type="date" id="end_date" class="form-control form-control-sm" placeholder="End date">
+                <div class="filters one-line">
+                    <input type="date" id="start_date" class="form-control form-control-sm" placeholder="Start date">
+                    <input type="date" id="end_date"   class="form-control form-control-sm" placeholder="End date">
 
-      <select id="discount_scope" class="form-control form-control-sm">
-        <option value="all" selected>All</option>
-        <option value="party">Party Customer</option>
-        <option value="commission">Commission Customer</option>
-      </select>
+                    <select id="discount_scope" class="form-control form-control-sm">
+                    <option value="all" selected>All</option>
+                    <option value="party">Party Customer</option>
+                    <option value="commission">Commission Customer</option>
+                    </select>
 
-      <select id="party_user_id" class="form-control form-control-sm" style="display:none;min-width:220px;">
-        <option value="">All Party Customers</option>
-        @foreach ($partyUsers as $u)
-          <option value="{{ $u->id }}">{{ $u->first_name }}</option>
-        @endforeach
-      </select>
+                    <select id="party_user_id" class="form-control form-control-sm" style="display:none;">
+                    <option value="">All Party Customers</option>
+                    @foreach ($partyUsers as $u)
+                        <option value="{{ $u->id }}">{{ $u->first_name }}</option>
+                    @endforeach
+                    </select>
 
-      <select id="commission_user_id" class="form-control form-control-sm" style="display:none;min-width:220px;">
-        <option value="">All Commission Customers</option>
-        @foreach ($commissionUsers as $u)
-          <option value="{{ $u->id }}">{{ $u->first_name }}</option>
-        @endforeach
-      </select>
-    </div>
-  `;
+                    <select id="commission_user_id" class="form-control form-control-sm" style="display:none;">
+                    <option value="">All Commission Customers</option>
+                    @foreach ($commissionUsers as $u)
+                        <option value="{{ $u->id }}">{{ $u->first_name }}</option>
+                    @endforeach
+                    </select>
+                </div>
+                `;
 
             const table = $('#discount_product_table').DataTable({
                 processing: true,
@@ -246,6 +287,12 @@
                     targets: '_all',
                     defaultContent: ''
                 }]
+            });
+
+            $(document).on('change', '#discount_scope', function() {
+                const v = this.value;
+                $('#party_user_id').toggle(v === 'party').prop('disabled', v !== 'party');
+                $('#commission_user_id').toggle(v === 'commission').prop('disabled', v !== 'commission');
             });
         });
     </script>

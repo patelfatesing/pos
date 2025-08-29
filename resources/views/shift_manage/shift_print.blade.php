@@ -246,10 +246,10 @@
                     {{ $categoryTotals['payment']['CASH'] + ($categoryTotals['summary']['CREDIT COLLACTED BY CASH'] ?? 0) }}
                 </td>
             </tr>
-            <tr>
+            {{-- <tr>
                 <td>Withdrawal Payment (-)</td>
                 <td class="text-right">{{ $categoryTotals['summary']['WITHDRAWAL'] ?? 0 }}</td>
-            </tr>
+            </tr> --}}
             <tr>
                 <td>Expense (-)</td>
                 <td class="text-right">{{ $categoryTotals['summary']['EXPENSE'] ?? 0 }}</td>
