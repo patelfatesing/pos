@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\ShiftClosing;
 use App\Models\ExpenseCategory;
 use App\Models\Expense;
+use App\Models\PurchaseLedger;
 
 class PurchaseController extends Controller
 {
@@ -35,6 +36,7 @@ class PurchaseController extends Controller
         $vendors = VendorList::where('is_active', 1)->get();
         $products = Product::select('id', 'name')->where('is_deleted', 'no')->get();
         $expMainCategory = ExpenseCategory::where('expense_type_id', 1)->get();
+        $purchaseLedger = PurchaseLedger::where('is_active', 'Yes')->get();
 
         // $products = Product::select('products.id', 'products.name', DB::raw('SUM(inventories.quantity) as total_quantity'))
         // ->join('inventories', 'products.id', '=', 'inventories.product_id')
@@ -43,7 +45,7 @@ class PurchaseController extends Controller
         // ->orderBy('inventories.id', 'asc')
         // ->get();
 
-        return view('purchase.create', compact('vendors', 'products', 'expMainCategory'));
+        return view('purchase.create', compact('vendors', 'products', 'expMainCategory','purchaseLedger'));
     }
 
     /**
@@ -185,15 +187,15 @@ class PurchaseController extends Controller
                 }
             }
 
-            $expense = new Expense();
-            $expense->user_id = auth()->id();
-            // $expense->branch_id = '';
-            $expense->amount = $request->total;
-            $expense->description = 'purchase by bill no '.$request->bill_no;
-            $expense->expense_category_id  = $request->parchase_ledger;
-            $expense->title = $exp_cate->name ?? 'Withdrawal';
-            $expense->expense_date = date('Y-m-d');
-            $expense->save();
+            // $expense = new Expense();
+            // $expense->user_id = auth()->id();
+            // // $expense->branch_id = '';
+            // $expense->amount = $request->total;
+            // $expense->description = 'purchase by bill no '.$request->bill_no;
+            // $expense->expense_category_id  = $request->parchase_ledger;
+            // $expense->title = $exp_cate->name ?? 'Withdrawal';
+            // $expense->expense_date = date('Y-m-d');
+            // $expense->save();
 
             DB::commit();
 

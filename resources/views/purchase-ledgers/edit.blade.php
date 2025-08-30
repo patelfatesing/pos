@@ -9,14 +9,14 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between">
                                 <div class="header-title">
-                                    <h4 class="card-title">Edit Expense Category</h4>
+                                    <h4 class="card-title">Edit Purchase Ledger</h4>
                                 </div>
                                 <div>
                                     <a href="{{ route('exp_category.list') }}" class="btn btn-secondary">Back</a>
                                 </div>
                             </div>
                             <div class="card-body">
-                                <form action="{{ route('exp_category.update', $record->id) }}" method="POST">
+                                <form action="{{ route('purchase_ledger.update', $record->id) }}" method="POST">
                                     @csrf
                                     @method('POST')
                                     <input type="hidden" name="id" value="{{ $record->id }}">
@@ -33,23 +33,23 @@
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label>Select Expense Type</label>
-                                                <select name="expense_type_id" id="expense_type_id" class="selectpicker form-control"
+                                                <label>Select Vendor</label>
+                                                <select name="vendor_id" id="vendor_id" class="selectpicker form-control"
                                                     data-style="py-0">
-                                                    <option value="" disabled selected>Select Expense Type</option>
-                                                    @foreach ($expMainCategory as $category)
+                                                    <option value="" disabled selected>Select Vendor</option>
+                                                    @foreach ($vendorList as $category)
                                                         <option value="{{ $category->id }}"
-                                                            {{ $record->expense_type_id == $category->id ? 'selected' : '' }}>
+                                                            {{ $record->vendor_id == $category->id ? 'selected' : '' }}>
                                                             {{ $category->name }}
                                                         </option>
                                                     @endforeach
                                                 </select>
 
-                                                <span class="text-danger" id="expense_type_id_error"></span>
+                                                <span class="text-danger" id="vendor_id_error"></span>
                                             </div>
                                         </div>
                                     </div>
-                                    <button type="submit" class="btn btn-primary mr-2">Update Expense Category</button>
+                                    <button type="submit" class="btn btn-primary mr-2">Update Purchase Ledger</button>
                                     <button type="reset" class="btn btn-danger">Reset</button>
                                 </form>
                             </div>

@@ -30,8 +30,7 @@ class ExpenseCategoryController extends Controller
             $orderDirection = 'asc';
         }
 
-        $query = ExpenseCategory::with('expenseType')
-            ->where('status', 1);
+        $query = ExpenseCategory::with('expenseType');
 
         if (!empty($searchValue)) {
             $query->where('name', 'like', '%' . $searchValue . '%');
@@ -56,8 +55,8 @@ class ExpenseCategoryController extends Controller
                 'name' => $role->name,
                 'expense_type' => $role->expenseType->name ?? '<span class="badge bg-secondary">N/A</span>',
                 'is_active' => ($role->status == 1
-                    ? '<div class="badge badge-success">Active</div>'
-                    : '<div class="badge badge-danger">Inactive</div>'),
+                    ? '<div class="badge badge-success" onclick=\'statusChange("' . $role->id . '", 0)\'>Active</div>'
+                    : '<div class="badge badge-danger" onclick=\'statusChange("' . $role->id . '", 1)\'>Inactive</div>'),
                 'created_at' => $role->created_at ? $role->created_at->format('d-m-Y H:i') : '',
                 'updated_at' => $role->updated_at ? $role->updated_at->format('d-m-Y H:i') : '',
                 'action' => $action
@@ -122,8 +121,8 @@ class ExpenseCategoryController extends Controller
     public function edit($id)
     {
         $record = ExpenseCategory::where('id', $id)->where('status', 1)->firstOrFail();
-
-        return view('expense_categories.edit', compact('record'));
+        $expMainCategory = ExpenseMainCategory::get();
+        return view('expense_categories.edit', compact('record', 'expMainCategory'));
     }
 
     public function update(Request $request)
@@ -142,6 +141,7 @@ class ExpenseCategoryController extends Controller
         $expenseCategory->update([
             'name' => $request->name,
             'slug' => Str::slug($request->name),
+            'expense_type_id' => $request->expense_type_id,
             'description' => $request->description,
             'status' => $request->status ?? true,
             'updated_by' => auth()->id(),
@@ -157,5 +157,14 @@ class ExpenseCategoryController extends Controller
 
         return redirect()->route('exp_category.list')
             ->with('success', 'xpense Category deleted successfully.');
+    }
+
+    public function statusChange(Request $request)
+    {
+        $user = ExpenseCategory::findOrFail($request->id);
+        $user->status = $request->status;
+        $user->save();
+
+        return response()->json(['message' => 'Status updated successfully']);
     }
 }

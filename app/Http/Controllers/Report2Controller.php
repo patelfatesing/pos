@@ -1184,10 +1184,10 @@ class Report2Controller extends Controller
             ->get();
 
         $subcats = DB::table('sub_categories as sc')
-            ->leftJoin('categories as c', 'c.id', '=', 'sc.category_id')
-            ->select('sc.id', 'sc.name as subcategory_name', 'c.name as category_name')
+
+            ->select('sc.id', 'sc.name as subcategory_name')
             ->where('sc.is_deleted', 'no')->where('sc.is_active', 'yes')
-            ->orderBy('c.name')->orderBy('sc.name')
+            ->orderBy('sc.name')
             ->get();
 
         return view('reports.purchases', compact('vendors', 'subcats'));
@@ -1810,7 +1810,7 @@ class Report2Controller extends Controller
             ->orderBy('name')->get();
 
         $subcats = DB::table('sub_categories as sc')
-          
+
             ->select('sc.id', 'sc.name as category_name')
             ->when(DB::getSchemaBuilder()->hasColumn('sc', 'is_deleted'), fn($q) => $q->where('sc.is_deleted', 'no'))
             ->when(DB::getSchemaBuilder()->hasColumn('sc', 'is_active'),  fn($q) => $q->where('sc.is_active', 'yes'))
@@ -1962,112 +1962,150 @@ class Report2Controller extends Controller
     {
         $branchId = $request->integer('branch_id');
         $tz  = config('app.timezone', 'Asia/Kolkata');
-        $now = Carbon::now($tz);
+        $now = \Carbon\Carbon::now($tz);
 
         $start = $request->filled('start_date')
-            ? Carbon::parse($request->input('start_date'), $tz)->startOfDay()
+            ? \Carbon\Carbon::parse($request->input('start_date'), $tz)->startOfDay()
             : $now->copy()->subDays(29)->startOfDay();
         $end   = $request->filled('end_date')
-            ? Carbon::parse($request->input('end_date'), $tz)->endOfDay()
+            ? \Carbon\Carbon::parse($request->input('end_date'), $tz)->endOfDay()
             : $now->copy()->endOfDay();
 
-        // ---------- 1) Sales (Net) ----------
-        $salesNet = DB::table('invoices as i')
+        /* ---------- Sales (net of discounts), then less refunds ---------- */
+        $salesAgg = \DB::table('invoices as i')
             ->when($branchId, fn($q, $v) => $q->where('i.branch_id', $v))
             ->whereBetween('i.created_at', [$start, $end])
-            ->when(DB::getSchemaBuilder()->hasColumn('invoices', 'status'), fn($q) => $q->where('i.status', '!=', 'Hold'))
-            ->selectRaw('COALESCE(SUM(i.sub_total - (GREATEST(i.commission_amount,0) + GREATEST(i.party_amount,0))),0) as ns')
-            ->value('ns');
+            ->when(\DB::getSchemaBuilder()->hasColumn('invoices', 'status'), fn($q) => $q->where('i.status', '!=', 'Hold'))
+            ->selectRaw('
+            COALESCE(SUM(i.sub_total),0)         as sum_sub_total,
+            COALESCE(SUM(i.tax),0)               as sum_tax,
+            COALESCE(SUM(i.total),0)             as sum_total,
+            COALESCE(SUM(i.commission_amount),0) as sum_commission,
+            COALESCE(SUM(i.party_amount),0)      as sum_party
+        ')
+            ->first();
 
-        // Refunds reduce Sales (if you track them)
-        $refunds = DB::table('credit_histories as ch')
+        $sumSub   = (float) ($salesAgg->sum_sub_total ?? 0);
+        $sumComm  = (float) ($salesAgg->sum_commission ?? 0);
+        $sumParty = (float) ($salesAgg->sum_party ?? 0);
+
+        $salesNetBeforeRefunds = max(0, $sumSub - ($sumComm + $sumParty));
+
+        $refunds = (float) \DB::table('credit_histories as ch')
             ->where('ch.transaction_kind', 'refund')
             ->when($branchId, fn($q, $v) => $q->where('ch.store_id', $v))
             ->whereBetween('ch.created_at', [$start, $end])
             ->selectRaw('COALESCE(SUM(CASE WHEN ch.type="debit" THEN ch.debit_amount ELSE 0 END),0) as rf')
             ->value('rf');
 
-        $salesAccounts = max(0, (float)$salesNet - (float)$refunds);
+        $salesAccounts = $salesNetBeforeRefunds - $refunds; // Trading CR “Sales Accounts”
 
-        // ---------- 2) Purchases (accounts) ----------
-        // purchases table has no branch_id in your schema; computed for the company
+        /* ---------- Purchases: overall + ledger-wise (by name) ---------- */
         $purchasesTotal = 0.0;
-        if (DB::getSchemaBuilder()->hasTable('purchases')) {
-            $purchasesTotal = (float) DB::table('purchases as pu')
-                ->whereBetween('pu.date', [$start->toDateString(), $end->toDateString()])
-                ->selectRaw('COALESCE(SUM(pu.total_amount),0) as amt')
-                ->value('amt');
+        $purchaseLedgerRows = []; // for nesting under “Purchase Accounts”
+
+        /* ---------- Purchases: overall + ledger-wise (by name) ---------- */
+        $purchasesTotal = 0.0;
+        $purchaseLedgerRows = []; // for nesting under “Purchase Accounts”
+
+        if (\DB::getSchemaBuilder()->hasTable('purchases')) {
+
+            // Only build Purchase Accounts when branch_id is empty (all) OR branch_id == 1
+            if (!$branchId || $branchId == 1) {
+                $ledgerBase = \DB::table('purchases as pu')
+                    ->whereBetween('pu.date', [$start->toDateString(), $end->toDateString()]);
+
+                if ($branchId) {
+                    if (\DB::getSchemaBuilder()->hasColumn('purchases', 'branch_id')) {
+                        $ledgerBase->where('pu.branch_id', $branchId);
+                    } elseif (\DB::getSchemaBuilder()->hasColumn('purchases', 'store_id')) {
+                        $ledgerBase->where('pu.store_id', $branchId);
+                    }
+                }
+
+                $ledgerRows = $ledgerBase
+                    ->leftJoin('purchase_ledgers as pl', 'pl.id', '=', 'pu.parchase_ledger')
+                    ->selectRaw("
+                COALESCE(pl.name, pu.parchase_ledger)                   as ledger_name,
+                COUNT(*)                                                as bills,
+                COALESCE(SUM(COALESCE(pu.total_amount, pu.total, 0)),0) as amount
+            ")
+                    ->groupBy('ledger_name')
+                    ->orderBy('ledger_name')
+                    ->get();
+
+                $purchasesTotal = (float) $ledgerRows->sum('amount');
+
+                foreach ($ledgerRows as $r) {
+                    $purchaseLedgerRows[] = [
+                        'label'  => $r->ledger_name ?: 'Unmapped',
+                        'bills'  => (int) $r->bills,
+                        'amount' => number_format((float) $r->amount, 2),
+                    ];
+                }
+            }
         }
 
-        // ---------- 3) Direct & Indirect Expenses ----------
+        /* ---------- Direct / Indirect expenses ---------- */
         $directExp = 0.0;
         $indirectExp = 0.0;
 
-        if (DB::getSchemaBuilder()->hasTable('expenses')) {
-            $expBase = DB::table('expenses as e')
+        if (\DB::getSchemaBuilder()->hasTable('expenses')) {
+            $expBase = \DB::table('expenses as e')
                 ->when($branchId, fn($q, $v) => $q->where('e.branch_id', $v))
                 ->whereBetween('e.expense_date', [$start->toDateString(), $end->toDateString()]);
 
             if (
-                DB::getSchemaBuilder()->hasTable('expense_categories') &&
-                DB::getSchemaBuilder()->hasColumn('expense_categories', 'type')
+                \DB::getSchemaBuilder()->hasTable('expense_categories') &&
+                \DB::getSchemaBuilder()->hasColumn('expense_categories', 'type')
             ) {
                 $exp = $expBase
                     ->leftJoin('expense_categories as ec', 'ec.id', '=', 'e.expense_category_id')
                     ->selectRaw("
-                        COALESCE(SUM(CASE WHEN ec.type='direct' THEN e.amount ELSE 0 END),0)  as direct_total,
-                        COALESCE(SUM(CASE WHEN ec.type='indirect' OR ec.type IS NULL THEN e.amount ELSE 0 END),0) as indirect_total
-                    ")
+                    COALESCE(SUM(CASE WHEN ec.type='direct'   THEN e.amount ELSE 0 END),0) as direct_total,
+                    COALESCE(SUM(CASE WHEN ec.type='indirect' OR ec.type IS NULL THEN e.amount ELSE 0 END),0) as indirect_total
+                ")
                     ->first();
                 $directExp   = (float) ($exp->direct_total   ?? 0);
                 $indirectExp = (float) ($exp->indirect_total ?? 0);
             } else {
-                // No 'type' column → treat all as indirect
                 $indirectExp = (float) $expBase->selectRaw('COALESCE(SUM(e.amount),0) as t')->value('t');
             }
         }
 
-        // ---------- 4) Stock valuation (Opening & Closing) ----------
-        // Helper to find snapshot rows on the target day; if none, fallback to nearest prior day
-        $valueStock = function (Carbon $targetDate, bool $useOpening) use ($branchId): float {
-            // Try exact day first
-            $rows = DB::table('daily_product_stocks as dps')
+        /* ---------- Stock valuation helpers (opening & closing) ---------- */
+        $valueStock = function (\Carbon\Carbon $targetDate, bool $useOpening) use ($branchId): float {
+            $rows = \DB::table('daily_product_stocks as dps')
                 ->when($branchId, fn($q, $v) => $q->where('dps.branch_id', $v))
                 ->whereDate('dps.date', $targetDate->toDateString())
                 ->select(
                     'dps.product_id',
-                    $useOpening ? DB::raw('SUM(dps.opening_stock) as qty') : DB::raw('SUM(dps.closing_stock) as qty')
+                    $useOpening ? \DB::raw('SUM(dps.opening_stock) as qty') : \DB::raw('SUM(dps.closing_stock) as qty')
                 )
                 ->groupBy('dps.product_id')
                 ->pluck('qty', 'product_id');
 
             if ($rows->isEmpty()) {
-                // Fallback to latest snapshot <= target date
-                $lastDates = DB::table('daily_product_stocks as d1')
+                $lastDates = \DB::table('daily_product_stocks as d1')
                     ->when($branchId, fn($q, $v) => $q->where('d1.branch_id', $v))
                     ->whereDate('d1.date', '<=', $targetDate->toDateString())
-                    ->select('d1.product_id', DB::raw('MAX(d1.date) as last_date'))
+                    ->select('d1.product_id', \DB::raw('MAX(d1.date) as last_date'))
                     ->groupBy('d1.product_id');
 
-                $rows = DB::table('daily_product_stocks as d2')
+                $rows = \DB::table('daily_product_stocks as d2')
                     ->joinSub($lastDates, 'ld', function ($j) {
                         $j->on('d2.product_id', '=', 'ld.product_id')->on('d2.date', '=', 'ld.last_date');
                     })
                     ->when($branchId, fn($q, $v) => $q->where('d2.branch_id', $v))
-                    ->select(
-                        'd2.product_id',
-                        DB::raw('SUM(d2.closing_stock) as qty')
-                    ) // closest snapshot’s closing as our qty
+                    ->select('d2.product_id', \DB::raw('SUM(d2.closing_stock) as qty'))
                     ->groupBy('d2.product_id')
                     ->pluck('qty', 'product_id');
             }
 
             if ($rows->isEmpty()) return 0.0;
 
-            $ids = $rows->keys()->all();
-            $costs = DB::table('products')
-                ->whereIn('id', $ids)
-                ->pluck('cost_price', 'id');
+            $ids   = $rows->keys()->all();
+            $costs = \DB::table('products')->whereIn('id', $ids)->pluck('cost_price', 'id');
 
             $total = 0.0;
             foreach ($rows as $pid => $qty) {
@@ -2077,119 +2115,134 @@ class Report2Controller extends Controller
             return $total;
         };
 
-        $openingStock = $valueStock($start, true);   // opening at start date
-        $closingStock = $valueStock($end,   false);  // closing at end date
+        $openingStock = $valueStock($start, true);
+        $closingStock = $valueStock($end,   false);
 
-        // ---------- 5) Trading Account (Gross) ----------
+        /* ---------- Trading Account (gross) ---------- */
         $tradingDr = $openingStock + $purchasesTotal + $directExp;
         $tradingCr = $salesAccounts + $closingStock;
 
-        $grossProfit  = 0.0;  // positive → profit; negative → gross loss
-        $grossLoss    = 0.0;
-
+        $grossProfit = 0.0;
+        $grossLoss   = 0.0;
         if ($tradingCr >= $tradingDr) {
             $grossProfit = $tradingCr - $tradingDr;
         } else {
             $grossLoss = $tradingDr - $tradingCr;
         }
+        $tradingTableTotal = max($tradingDr + $grossProfit, $tradingCr + $grossLoss);
 
-        // Balancing totals for Trading section
-        $tradingTotal = max($tradingDr + $grossProfit, $tradingCr + $grossLoss);
+        /* ---------- Profit & Loss (net) ---------- */
+        $plDrRows = [];
+        $plCrRows = [];
 
-        // ---------- 6) Profit & Loss (Net) ----------
-        // Bring down/brought forward
-        $gp_bf = $grossProfit;     // if there was a gross loss → gp_bf = 0 and we’d carry Gross Loss to CR instead (handled below)
+        // If there is a gross loss, carry it down to P&L Dr (b/f)
+        if ($grossLoss > 0) {
+            $plDrRows[] = ['label' => 'Gross Loss b/f', 'amount' => number_format($grossLoss, 2)];
+        }
+        if ($indirectExp > 0) {
+            $plDrRows[] = ['label' => 'Indirect Expenses', 'amount' => number_format($indirectExp, 2)];
+        }
+
+        // If there is a gross profit, bring it down to P&L Cr (b/f)
+        if ($grossProfit > 0) {
+            $plCrRows[] = ['label' => 'Gross Profit b/f', 'amount' => number_format($grossProfit, 2)];
+        }
+
+        $plDrSum = array_sum(array_map(fn($r) => (float) str_replace(',', '', $r['amount']), $plDrRows));
+        $plCrSum = array_sum(array_map(fn($r) => (float) str_replace(',', '', $r['amount']), $plCrRows));
 
         $nettProfit = 0.0;
         $nettLoss   = 0.0;
-
-        if ($grossProfit > 0) {
-            // P&L Cr has GP b/f; Dr has Indirect Expenses + Nett Profit balancing
-            if ($gp_bf >= $indirectExp) {
-                $nettProfit = $gp_bf - $indirectExp;
-            } else {
-                // net loss in P&L even though trading was profit (rare if indirect > GP)
-                $nettLoss = $indirectExp - $gp_bf;
-            }
+        if ($plCrSum >= $plDrSum) {
+            $nettProfit = $plCrSum - $plDrSum;
+            $plDrRows[] = ['label' => 'Nett Profit', 'amount' => number_format($nettProfit, 2)];
         } else {
-            // Gross loss case: P&L Cr has nothing from GP; Dr has indirect + (nett loss)
-            $nettLoss = $indirectExp + $grossLoss; // everything is a loss
+            $nettLoss = $plDrSum - $plCrSum;
+            $plCrRows[] = ['label' => 'Nett Loss', 'amount' => number_format($nettLoss, 2)];
         }
 
-        // ---------- 7) Build "Tally-like" rows ----------
-        // Trading section
-        $drTrading = [
-            ['label' => 'Opening Stock',      'amount' => $openingStock],
-            ['label' => 'Purchase Accounts',  'amount' => $purchasesTotal],
+        $plTableTotal = max(
+            array_sum(array_map(fn($r) => (float) str_replace(',', '', $r['amount']), $plDrRows)),
+            array_sum(array_map(fn($r) => (float) str_replace(',', '', $r['amount']), $plCrRows))
+        );
+
+        /* ---------- Build “PDF-like” payload ---------- */
+        $branchName = $branchId
+            ? (\DB::table('branches')->where('id', $branchId)->value('name') ?? ('Branch #' . $branchId))
+            : 'All Branches';
+
+        // Trading rows (Dr / Cr) with ledger children under Purchase Accounts
+        $tradingDrRows = [
+            ['label' => 'Opening Stock', 'amount' => number_format($openingStock, 2)],
+            [
+                'label'    => 'Purchase Accounts',
+                'amount'   => number_format($purchasesTotal, 2),
+                'children' => $purchaseLedgerRows, // [{label,bills,amount}]
+            ],
         ];
         if ($directExp > 0) {
-            $drTrading[] = ['label' => 'Direct Expenses', 'amount' => $directExp];
+            $tradingDrRows[] = ['label' => 'Direct Expenses', 'amount' => number_format($directExp, 2)];
         }
         if ($grossProfit > 0) {
-            $drTrading[] = ['label' => 'Gross Profit c/o', 'amount' => $grossProfit];
+            $tradingDrRows[] = ['label' => 'Gross Profit c/o', 'amount' => number_format($grossProfit, 2)];
         }
 
-        $crTrading = [
-            ['label' => 'Sales Accounts', 'amount' => $salesAccounts],
-            ['label' => 'Closing Stock',  'amount' => $closingStock],
+        $tradingCrRows = [
+            ['label' => 'Sales Accounts', 'amount' => number_format($salesAccounts, 2)],
+            ['label' => 'Closing Stock',  'amount' => number_format($closingStock, 2)],
         ];
         if ($grossLoss > 0) {
-            $crTrading[] = ['label' => 'Gross Loss c/o', 'amount' => $grossLoss];
+            $tradingCrRows[] = ['label' => 'Gross Loss c/o', 'amount' => number_format($grossLoss, 2)];
         }
-
-        // P&L section
-        $drPL = [];
-        if ($indirectExp > 0) {
-            $drPL[] = ['label' => 'Indirect Expenses', 'amount' => $indirectExp];
-        }
-        if ($nettProfit > 0) {
-            $drPL[] = ['label' => 'Nett Profit', 'amount' => $nettProfit];
-        }
-
-        $crPL = [];
-        if ($grossProfit > 0) {
-            $crPL[] = ['label' => 'Gross Profit b/f', 'amount' => $grossProfit];
-        }
-        if ($nettLoss > 0) {
-            $crPL[] = ['label' => 'Nett Loss', 'amount' => $nettLoss];
-        }
-
-        // Bottom totals to display (Tally shows section totals equal)
-        $tradingTotalFormatted = number_format($tradingTotal, 2);
-        $plTotal = max(
-            array_sum(array_column($drPL, 'amount')),
-            array_sum(array_column($crPL, 'amount'))
-        );
-        $plTotalFormatted = number_format($plTotal, 2);
 
         return response()->json([
-            'period' => [
-                'start' => $start->toDateString(),
-                'end'   => $end->toDateString(),
+            'header' => [
+                'title'  => 'Profit & Loss',
+                'period' => $start->toDateString() . ' to ' . $end->toDateString(),
+                'branch' => $branchName,
             ],
-            'branch' => $branchId ? (DB::table('branches')->where('id', $branchId)->value('name') ?? ('Branch #' . $branchId)) : 'All Branches',
+
+            // Section 1: Trading (two-column like the PDF)
             'trading' => [
-                'dr'     => array_map(fn($r) => ['label' => $r['label'], 'amount' => number_format($r['amount'], 2)], $drTrading),
-                'cr'     => array_map(fn($r) => ['label' => $r['label'], 'amount' => number_format($r['amount'], 2)], $crTrading),
-                'total'  => $tradingTotalFormatted,
+                'dr' => [
+                    'title' => 'Trading Account (Dr)',
+                    'rows'  => $tradingDrRows,
+                ],
+                'cr' => [
+                    'title' => 'Trading Account (Cr)',
+                    'rows'  => $tradingCrRows,
+                ],
+                'table_total' => number_format($tradingTableTotal, 2),
             ],
+
+            // Section 2: Profit & Loss (two-column like the PDF)
             'pl' => [
-                'dr'     => array_map(fn($r) => ['label' => $r['label'], 'amount' => number_format($r['amount'], 2)], $drPL),
-                'cr'     => array_map(fn($r) => ['label' => $r['label'], 'amount' => number_format($r['amount'], 2)], $crPL),
-                'total'  => $plTotalFormatted,
+                'dr' => [
+                    'title' => 'Profit & Loss (Dr)',
+                    'rows'  => $plDrRows,
+                ],
+                'cr' => [
+                    'title' => 'Profit & Loss (Cr)',
+                    'rows'  => $plCrRows,
+                ],
+                'table_total' => number_format($plTableTotal, 2),
             ],
-            'raw' => [
-                'opening_stock'  => round($openingStock, 2),
-                'purchases'      => round($purchasesTotal, 2),
-                'direct_exp'     => round($directExp, 2),
-                'sales_accounts' => round($salesAccounts, 2),
-                'closing_stock'  => round($closingStock, 2),
-                'gross_profit'   => round($grossProfit, 2),
-                'gross_loss'     => round($grossLoss, 2),
-                'indirect_exp'   => round($indirectExp, 2),
-                'nett_profit'    => round($nettProfit, 2),
-                'nett_loss'      => round($nettLoss, 2),
-            ]
+
+            // Extras for tooltips/checks
+            'extras' => [
+                'sales_net_before_refunds' => number_format($salesNetBeforeRefunds, 2),
+                'refunds'                  => number_format($refunds, 2),
+                'sales_accounts'           => number_format($salesAccounts, 2),
+                'purchases_total'          => number_format($purchasesTotal, 2),
+                'direct_exp'               => number_format($directExp, 2),
+                'indirect_exp'             => number_format($indirectExp, 2),
+                'opening_stock'            => number_format($openingStock, 2),
+                'closing_stock'            => number_format($closingStock, 2),
+                'gross_profit'             => number_format($grossProfit, 2),
+                'gross_loss'               => number_format($grossLoss, 2),
+                'nett_profit'              => number_format($nettProfit, 2),
+                'nett_loss'                => number_format($nettLoss, 2),
+            ],
         ]);
     }
 

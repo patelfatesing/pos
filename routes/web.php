@@ -43,6 +43,7 @@ use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\CreditHistoryController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Report2Controller;
+use App\Http\Controllers\PurchaseLedgerController;
 
 // Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
 // Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
@@ -338,7 +339,7 @@ Route::middleware('auth')->group(function () {
     // routes/web.php
     Route::get('sales/sales-list', [SalesReportController::class, 'salasList'])->name('sales.sales.list');
     Route::get('sales/sales-report', [SalesReportController::class, 'index'])->name('sales.report');
-    Route::get('sales-report/data', [SalesReportController::class, 'getSalesReportData'])->name('sales.report.data');
+    Route::post('sales-report/data', [SalesReportController::class, 'getSalesReportData'])->name('sales.report.data');
     Route::post('sales/get-data', [SalesReportController::class, 'getData'])->name('sales.get.data');
     Route::get('/store-sales-summary', [SalesReportController::class, 'storeSummary'])->name('store-sales-summary');
 
@@ -359,6 +360,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/exp-category/edit/{id}', [ExpenseCategoryController::class, 'edit'])->name('exp_category.edit');
     Route::post('/exp-category/update', [ExpenseCategoryController::class, 'update'])->name('exp_category.update');
     Route::delete('/exp-category/delete/{id}', [ExpenseCategoryController::class, 'destroy'])->name('exp_category.destroy');
+    Route::post('/exp-category/status-change', [ExpenseCategoryController::class, 'statusChange'])->name('exp_category.status-change');
+
+
+    Route::get('/purchase-ledger/list', [PurchaseLedgerController::class, 'index'])->name('purchase_ledger.list');
+    Route::post('/purchase-ledger/get-data', [PurchaseLedgerController::class, 'getData'])->name('purchase_ledger.getData');
+    Route::get('/purchase-ledger/create', [PurchaseLedgerController::class, 'create'])->name('purchase_ledger.create');
+    Route::post('/purchase-ledger/store', [PurchaseLedgerController::class, 'store'])->name('purchase_ledger.store');
+    Route::get('/purchase-ledger/edit/{id}', [PurchaseLedgerController::class, 'edit'])->name('purchase_ledger.edit');
+    Route::post('/purchase-ledger/update', [PurchaseLedgerController::class, 'update'])->name('purchase_ledger.update');
+    Route::delete('/purchase-ledger/delete/{id}', [PurchaseLedgerController::class, 'destroy'])->name('purchase_ledger.destroy');
+    Route::post('/purchase-ledger/status-change', [PurchaseLedgerController::class, 'statusChange'])->name('purchase_ledger.status-change');
 
     Route::get('/exp/list', [ExpenseController::class, 'index'])->name('exp.list');
     Route::post('/exp/get-data', [ExpenseController::class, 'getData'])->name('exp.getData');

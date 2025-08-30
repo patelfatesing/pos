@@ -13,10 +13,10 @@
                     <div class="col-lg-12">
                         <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
                             <div>
-                                <h4 class="mb-3">Expense Category List</h4>
+                                <h4 class="mb-3">Purchase Ledger List</h4>
                             </div>
                             <a href="#" onclick="add_exp_category()" class="btn btn-primary add-list">
-                                <i class="las la-plus mr-3"></i>Create New Expense Category
+                                <i class="las la-plus mr-3"></i>Create New Purchase Ledger
                             </a>
                         </div>
                     </div>
@@ -26,7 +26,7 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="table-responsive rounded">
-                            <table class="table table-striped table-bordered nowrap" id="exp_category_tbl"
+                            <table class="table table-striped table-bordered nowrap" id="purchase_ledger_tbl"
                                 style="width:100%;">
                                 <thead class="bg-white">
                                     <tr class="ligth ligth-data">
@@ -34,7 +34,7 @@
                                         <th>
                                             <b>N</b>ame
                                         </th>
-                                        <th>Expense Type</th>
+                                        <th>Vendor</th>
                                         <th>Status</th>
                                         <th>Created Date</th>
                                         <th>Updated Date</th>
@@ -56,10 +56,10 @@
         aria-labelledby="addExpModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
-                <form id="addExpenseForm">
+                <form id="addPurchaseLedgerForm">
                     @csrf
                     <div class="modal-header">
-                        <h5 class="modal-title" id="addExpModalLabel">Add Expense Category</h5>
+                        <h5 class="modal-title" id="addExpModalLabel">Add Purchase Ledger</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -78,19 +78,19 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label>Select Expense Type</label>
-                                    <select name="expense_type_id" id="expense_type_id" class="selectpicker form-control"
+                                    <label>Select Vendor</label>
+                                    <select name="vendor_id" id="vendor_id" class="selectpicker form-control"
                                         data-style="py-0">
-                                        <option value="" disabled selected>Select Expenct Type</option>
-                                        @foreach ($expMainCategory as $category)
+                                        <option value="" disabled selected>Select Vendor</option>
+                                        @foreach ($vendorList as $category)
                                             <option value="{{ $category->id }}"
-                                                {{ old('expense_type_id') == $category->id ? 'selected' : '' }}>
+                                                {{ old('vendor_id') == $category->id ? 'selected' : '' }}>
                                                 {{ $category->name }}
                                             </option>
                                         @endforeach
                                     </select>
 
-                                    <span class="text-danger" id="expense_type_id_error"></span>
+                                    <span class="text-danger" id="vendor_id_error"></span>
                                 </div>
                             </div>
                         </div>
@@ -114,9 +114,9 @@
                 }
             });
 
-            $('#exp_category_tbl').DataTable().clear().destroy();
+            $('#purchase_ledger_tbl').DataTable().clear().destroy();
 
-            $('#exp_category_tbl').DataTable({
+            $('#purchase_ledger_tbl').DataTable({
                 pagelength: 10,
                 responsive: true,
                 processing: true,
@@ -125,7 +125,7 @@
                 serverSide: true,
 
                 "ajax": {
-                    "url": '{{ url('exp-category/get-data') }}',
+                    "url": '{{ url('purchase-ledger/get-data') }}',
                     "type": "post",
                     "data": function(d) {},
                 },
@@ -209,24 +209,24 @@
 
         }
 
-        $('#addExpenseForm').on('submit', function(e) {
+        $('#addPurchaseLedgerForm').on('submit', function(e) {
             e.preventDefault();
             $('#name_error').text('');
 
             let formData = {
                 _token: $('input[name="_token"]').val(),
                 name: $('#name').val(),
-                expense_type_id: $('#expense_type_id').val(),
+                vendor_id: $('#vendor_id').val(),
             };
 
             $.ajax({
                 type: "POST",
-                url: "{{ route('exp_category.store') }}",
+                url: "{{ route('purchase_ledger.store') }}",
                 data: formData,
                 success: function(response) {
                     alert(response.message);
                     $('#addExpModal').modal('hide');
-                    $('#addExpenseForm')[0].reset();
+                    $('#PurchaseLedgerForm')[0].reset();
                     location.reload();
                 },
                 error: function(xhr) {
@@ -264,7 +264,7 @@
                 if (result.isConfirmed) {
                     $.ajax({
                         type: "POST",
-                        url: "{{ url('exp-category/status-change') }}", // Update this to your route
+                        url: "{{ url('purchase-ledger/status-change') }}", // Update this to your route
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },

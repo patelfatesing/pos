@@ -177,6 +177,11 @@
                                 <i class="las la-minus"></i><span>Demand Order</span>
                             </a>
                         </li>
+                        <li class="">
+                            <a href="{{ route('purchase_ledger.list') }}">
+                                <i class="las la-minus"></i><span>Purchase Ledger</span>
+                            </a>
+                        </li>
                     </ul>
                 </li>
 
