@@ -34,8 +34,8 @@
                                         <th>
                                             <b>N</b>ame
                                         </th>
-                                        <th>Status</th>
                                         <th>Expense Type</th>
+                                        <th>Status</th>
                                         <th>Created Date</th>
                                         <th>Updated Date</th>
                                         <th>Action</th>
@@ -251,6 +251,39 @@
                 // For Bootstrap 4 (with jQuery)
                 $('#addExpModal').modal('show');
             }
+        }
+
+        function statusChange(id, newStatus) {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "Do you want to change the status?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, change it!",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ url('exp-category/status-change') }}", // Update this to your route
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        data: {
+                            id: id,
+                            status: newStatus
+                        },
+                        success: function(response) {
+                            Swal.fire("Success!", "Status has been changed.", "success").then(() => {
+                                $('#purchase_ledger_tbl').DataTable().ajax.reload(null,
+                                    false); // ✅ Only reload DataTable
+                            });
+                        },
+                        error: function(xhr) {
+                            Swal.fire("Error!", "Something went wrong.", "error");
+                        }
+                    });
+                }
+            });
         }
     </script>
 @endsection
