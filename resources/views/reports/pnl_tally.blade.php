@@ -7,105 +7,129 @@
             border: 1px solid #e5e7eb;
             border-radius: 8px;
             padding: 12px;
-            background: #fff;
+            background: #fff
         }
 
         .pnl-head {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 8px
         }
 
         .pnl-title {
             font-weight: 700;
-            font-size: 18px;
+            font-size: 18px
         }
 
         .pnl-sub {
-            color: #6b7280;
+            color: #6b7280
         }
 
         .two-col {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 16px;
+            gap: 16px
         }
 
         table.pnl {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: collapse
         }
 
         table.pnl th,
         table.pnl td {
             padding: 6px 8px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #eee
         }
 
         table.pnl th {
             font-weight: 700;
             text-transform: uppercase;
             font-size: 12px;
-            color: #6b7280;
+            color: #6b7280
         }
 
         .row-total {
             font-weight: 700;
-            border-top: 2px solid #111;
+            border-top: 2px solid #111
         }
 
         .amount {
-            text-align: right;
+            text-align: right
         }
 
         .muted {
-            color: #6b7280;
+            color: #6b7280
         }
 
         .filters {
-            display: flex;
-            flex-wrap: wrap;
-            gap: .5rem;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        tyle>.filters.one-line {
             display: flex;
             align-items: center;
             gap: .5rem;
             flex-wrap: nowrap;
             overflow: hidden;
             white-space: nowrap;
-            /* single row */
+            margin-bottom: 10px
         }
 
-        .filters.one-line label {
+        .filters label {
             margin-bottom: 0;
             white-space: nowrap;
             font-size: .85rem;
-            color: #6b7280;
+            color: #6b7280
         }
 
-        .filters.one-line .form-control-sm {
+        .filters .form-control-sm {
             flex: 0 1 170px;
-            min-width: 120px;
+            min-width: 120px
         }
 
-        /* shrinkable inputs */
         #branch_id {
             flex: 0 1 230px;
             min-width: 160px;
             text-overflow: ellipsis;
-            overflow: hidden;
+            overflow: hidden
         }
 
         #btn_refresh {
-            flex: 0 0 auto;
+            flex: 0 0 auto
         }
 
-        /* buttons keep natural size */
+        /* nested ledger rows */
+        .pnl .child-row td {
+            padding-top: 2px;
+            padding-bottom: 2px
+        }
+
+        .pnl .child-label {
+            padding-left: 22px;
+            position: relative
+        }
+
+        .pnl .child-label:before {
+            content: "•";
+            position: absolute;
+            left: 10px;
+            top: 0;
+            color: #9ca3af
+        }
+
+        .pnl .child-meta {
+            color: #9ca3af;
+            font-size: 12px
+        }
+
+        @media (max-width: 768px) {
+            .two-col {
+                grid-template-columns: 1fr
+            }
+
+            .filters {
+                flex-wrap: wrap;
+                white-space: normal
+            }
+        }
     </style>
 @endsection
 
@@ -120,10 +144,10 @@
                         <div class="pnl-sub" id="pnl_period">—</div>
                     </div>
 
-                    <div class="filters one-line">
-                        <label class="mb-0">Branch</label>
+                    <div class="filters">
+                        <label>Branch</label>
                         <select id="branch_id" class="form-control form-control-sm">
-                            <option value="">All</option>
+                            <option value="" selected>All</option>
                             @foreach ($branches as $b)
                                 <option value="{{ $b->id }}">{{ $b->name }}</option>
                             @endforeach
@@ -138,7 +162,7 @@
                     {{-- Trading Account --}}
                     <div class="two-col mt-2">
                         <div>
-                            <div class="muted mb-1">Trading Account (Dr)</div>
+                            <div class="muted mb-1" id="lbl_tr_dr">Trading Account (Dr)</div>
                             <table class="pnl" id="tbl_trading_dr">
                                 <thead>
                                     <tr>
@@ -156,7 +180,7 @@
                             </table>
                         </div>
                         <div>
-                            <div class="muted mb-1">Trading Account (Cr)</div>
+                            <div class="muted mb-1" id="lbl_tr_cr">Trading Account (Cr)</div>
                             <table class="pnl" id="tbl_trading_cr">
                                 <thead>
                                     <tr>
@@ -180,7 +204,7 @@
                     {{-- Profit & Loss Account --}}
                     <div class="two-col">
                         <div>
-                            <div class="muted mb-1">Profit &amp; Loss A/c (Dr)</div>
+                            <div class="muted mb-1" id="lbl_pl_dr">Profit &amp; Loss A/c (Dr)</div>
                             <table class="pnl" id="tbl_pl_dr">
                                 <thead>
                                     <tr>
@@ -198,7 +222,7 @@
                             </table>
                         </div>
                         <div>
-                            <div class="muted mb-1">Profit &amp; Loss A/c (Cr)</div>
+                            <div class="muted mb-1" id="lbl_pl_cr">Profit &amp; Loss A/c (Cr)</div>
                             <table class="pnl" id="tbl_pl_cr">
                                 <thead>
                                     <tr>
@@ -227,58 +251,106 @@
 @section('scripts')
     <script>
         (function() {
-            const toISO = (d) => new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().slice(0, 10);
-            const now = new Date();
-            const start = new Date();
-            start.setDate(now.getDate() - 29);
-            document.getElementById('start_date').value = toISO(start);
-            document.getElementById('end_date').value = toISO(now);
+            const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+            const today = new Date(),
+                d30 = new Date();
+            d30.setDate(today.getDate() - 29);
+            document.getElementById('start_date').value = iso(d30);
+            document.getElementById('end_date').value = iso(today);
 
-            function fillTable(tbodyId, rows) {
-                const tb = document.querySelector(tbodyId);
-                tb.innerHTML = '';
+            const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            function clearTbody(tbody) {
+                while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+            }
+
+            function appendRow(tbody, label, amount, extraHtml = '') {
+                const tr = document.createElement('tr');
+                const td1 = document.createElement('td');
+                td1.innerHTML = label + (extraHtml || '');
+                const td2 = document.createElement('td');
+                td2.className = 'amount';
+                td2.textContent = amount ?? '0.00';
+                tr.appendChild(td1);
+                tr.appendChild(td2);
+                tbody.appendChild(tr);
+            }
+
+            // Render a side (Dr/Cr). Supports children for Purchase Accounts.
+            function renderSide(tbodySelector, rows) {
+                const tbody = document.querySelector(tbodySelector);
+                clearTbody(tbody);
                 (rows || []).forEach(r => {
-                    const tr = document.createElement('tr');
-                    const td1 = document.createElement('td');
-                    td1.textContent = r.label;
-                    const td2 = document.createElement('td');
-                    td2.className = 'amount';
-                    td2.textContent = r.amount;
-                    tr.appendChild(td1);
-                    tr.appendChild(td2);
-                    tb.appendChild(tr);
+                    appendRow(tbody, r.label, r.amount);
+
+                    // If this row has children (e.g., Purchase Ledger breakup)
+                    if (Array.isArray(r.children) && r.children.length) {
+                        r.children.forEach(ch => {
+                            const tr = document.createElement('tr');
+                            tr.className = 'child-row';
+                            const td1 = document.createElement('td');
+                            td1.className = 'child-label';
+                            const bills = (typeof ch.bills !== 'undefined') ?
+                                `<span class="child-meta"> (Bills: ${ch.bills})</span>` : '';
+                            td1.innerHTML = (ch.label ?? 'Ledger') + bills;
+                            const td2 = document.createElement('td');
+                            td2.className = 'amount';
+                            td2.textContent = ch.amount ?? '0.00';
+                            tr.appendChild(td1);
+                            tr.appendChild(td2);
+                            tbody.appendChild(tr);
+                        });
+                    }
                 });
             }
 
             function refresh() {
-                const payload = {
+                const body = {
                     branch_id: document.getElementById('branch_id').value,
                     start_date: document.getElementById('start_date').value,
-                    end_date: document.getElementById('end_date').value,
-                    _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    end_date: document.getElementById('end_date').value
                 };
+
                 fetch("{{ route('reports.pnl_tally.data') }}", {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': payload._token
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrf
                         },
-                        body: JSON.stringify(payload)
+                        body: JSON.stringify(body)
                     })
                     .then(r => r.json())
                     .then(json => {
-                        document.getElementById('pnl_period').textContent =
-                            `${json.branch} • ${json.period.start} → ${json.period.end}`;
+                        // Header
+                        const header = json.header || {};
+                        const period = (header.period || (json.period?.start + ' to ' + json.period?.end)) ?? '';
+                        const branch = header.branch ?? json.branch ?? '';
+                        document.getElementById('pnl_period').textContent = `${branch} • ${period}`;
 
-                        fillTable('#tbl_trading_dr tbody', json.trading.dr);
-                        fillTable('#tbl_trading_cr tbody', json.trading.cr);
-                        document.getElementById('trading_total_dr').textContent = json.trading.total;
-                        document.getElementById('trading_total_cr').textContent = json.trading.total;
+                        // Titles (optional from API)
+                        document.getElementById('lbl_tr_dr').textContent = json.trading?.dr?.title ??
+                            'Trading Account (Dr)';
+                        document.getElementById('lbl_tr_cr').textContent = json.trading?.cr?.title ??
+                            'Trading Account (Cr)';
+                        document.getElementById('lbl_pl_dr').textContent = json.pl?.dr?.title ??
+                            'Profit & Loss A/c (Dr)';
+                        document.getElementById('lbl_pl_cr').textContent = json.pl?.cr?.title ??
+                            'Profit & Loss A/c (Cr)';
 
-                        fillTable('#tbl_pl_dr tbody', json.pl.dr);
-                        fillTable('#tbl_pl_cr tbody', json.pl.cr);
-                        document.getElementById('pl_total_dr').textContent = json.pl.total;
-                        document.getElementById('pl_total_cr').textContent = json.pl.total;
+                        // Trading
+                        renderSide('#tbl_trading_dr tbody', json.trading?.dr?.rows ?? json.trading?.dr ?? []);
+                        renderSide('#tbl_trading_cr tbody', json.trading?.cr?.rows ?? json.trading?.cr ?? []);
+                        const trTot = json.trading?.table_total ?? json.trading?.total ?? '0.00';
+                        document.getElementById('trading_total_dr').textContent = trTot;
+                        document.getElementById('trading_total_cr').textContent = trTot;
+
+                        // P&L
+                        renderSide('#tbl_pl_dr tbody', json.pl?.dr?.rows ?? json.pl?.dr ?? []);
+                        renderSide('#tbl_pl_cr tbody', json.pl?.cr?.rows ?? json.pl?.cr ?? []);
+                        const plTot = json.pl?.table_total ?? json.pl?.total ?? '0.00';
+                        document.getElementById('pl_total_dr').textContent = plTot;
+                        document.getElementById('pl_total_cr').textContent = plTot;
                     })
                     .catch(() => alert('Failed to load P&L.'));
             }

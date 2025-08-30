@@ -983,6 +983,7 @@ class Shoppingcart extends Component
                     'total_purchase_items' => $this->cashAmount,
                     'store_id' => $branch_id,
                     'created_by' => auth()->id(),
+                    'status' => 'unpaid'
                 ]
             );
         }
@@ -3223,7 +3224,6 @@ class Shoppingcart extends Component
         // }
         if (!empty($partyUser->id) && $this->creditPay > 0) {
             CreditHistory::create(
-
                 [
                     'invoice_id' => $invoice->id,
                     'party_user_id' => $partyUser->id ?? null,
@@ -3234,6 +3234,7 @@ class Shoppingcart extends Component
                     'total_purchase_items' => $this->cashAmount,
                     'store_id' => $branch_id,
                     'created_by' => auth()->id(),
+                    'status' => 'unpaid'
                 ]
             );
         }
@@ -3559,6 +3560,7 @@ class Shoppingcart extends Component
                     'party_user_id' => $partyUser->id ?? null,
                     'store_id' => $branch_id,
                     'created_by' => auth()->id(),
+                    'status' => 'unpaid'
                 ]);
             }
 

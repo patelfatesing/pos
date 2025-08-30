@@ -49,7 +49,7 @@ class ExpenseCategoryController extends Controller
         foreach ($data as $role) {
             $action = '<div class="d-flex align-items-center list-action">
                         <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit"
-                            href="' . url('/exp-category/edit/' . $role->id) . '"><i class="ri-pencil-line mr-0"></i></a>
+                            href="' . url('/purchase-ledger/edit/' . $role->id) . '"><i class="ri-pencil-line mr-0"></i></a>
                     </div>';
 
             $records[] = [

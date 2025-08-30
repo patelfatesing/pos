@@ -102,7 +102,7 @@
                                 <th>Category (from Subcategory)</th>
                                 <th>Status</th>
                                 <th>Shipping Date</th>
-                                <th>Actions</th>
+                               
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -112,7 +112,7 @@
                                 <th id="ft_qty">0</th>
                                 <th id="ft_amt">0.00</th>
                                 <th colspan="3"></th>
-                                <th></th>
+                                
                             </tr>
                         </tfoot>
                     </table>
@@ -146,7 +146,7 @@
                     <select id="sub_category_id" class="form-control form-control-sm">
                     <option value="">All</option>
                     @foreach ($subcats as $sc)
-                        <option value="{{ $sc->id }}">{{ $sc->category_name }} → {{ $sc->subcategory_name }}</option>
+                        <option value="{{ $sc->id }}"> {{ $sc->subcategory_name }}</option>
                     @endforeach
                     </select>
 
@@ -192,12 +192,6 @@
                     },
                     {
                         data: 'ship_date'
-                    },
-                    {
-                        data: 'action',
-                        orderable: false,
-                        searchable: false,
-                        defaultContent: ''
                     }
                 ],
                 order: [

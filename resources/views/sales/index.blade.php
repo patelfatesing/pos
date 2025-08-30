@@ -1,194 +1,225 @@
-@extends('layouts.backend.layouts')
+@extends('layouts.backend.datatable_layouts')
 
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <!-- Flatpickr CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 
-    <!-- Flatpickr JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/rangePlugin.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    <!-- Wrapper Start -->
+    <style>
+        .filters.one-line {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            flex-wrap: nowrap;
+            white-space: nowrap
+        }
+
+        .filters.one-line .form-control {
+            flex: 0 1 200px;
+            min-width: 140px
+        }
+
+        .filters.one-line .btn {
+            flex: 0 0 auto
+        }
+
+        .table-primary td,
+        .table-success td,
+        .table-warning td {
+            font-weight: 600
+        }
+    </style>
+
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
+
                 <div class="row">
-                    <div class="col-lg-12">
-                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                            <div>
-                                <h4 class="mb-3">Sales Report</h4>
-                            </div>
-                        </div>
+                    <div class="col-lg-12 d-flex flex-wrap align-items-center justify-content-between mb-3">
+                        <h4 class="mb-0">Sales Report — Shift-wise</h4>
                     </div>
 
                     <div class="col-lg-12">
-                        <div class="table-responsive rounded mb-3">
+                        <div class="table-responsive rounded mb-3 p-2">
 
-                            <div class="container">
-                                <div class="row mb-3">
-                                    <!-- Date Range Picker Input -->
-                                    <div class="col-md-3 mb-2">
-                                        <input type="text" id="date_range" class="form-control" placeholder="Select Date"
-                                            readonly />
-                                    </div>
-
-                                    <!-- Preset Dropdown -->
-                                    <div class="col-md-3 mb-2">
-                                        <select id="preset_ranges" class="form-control">
-                                            <option value="">Select Preset</option>
-                                            <option value="today">Today</option>
-                                            <option value="this_week">This Week</option>
-                                            <option value="last_week">Last Week</option>
-                                            <option value="this_month">This Month</option>
-                                            <option value="last_month">Last Month</option>
-                                            <option value="this_year">This Year</option>
-                                            <option value="last_year">Last Year</option>
-                                        </select>
-                                    </div>
-
-                                    <!-- Branch Filter -->
-                                    <div class="col-md-3 mb-2">
-                                        <select id="branch_id" class="form-control">
-                                            <option value="">All Branches</option>
-                                            @foreach ($branches as $branch)
-                                                <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    <div class="col-md-3 d-flex gap-2 mb-2">
-                                        <button id="filter" class="btn btn-primary mr-2">Filter</button>
-                                        <button id="reset" class="btn btn-secondary">Reset</button>
-                                    </div>
-                                </div>
-                                <div class="table-responsive rounded mb-3">
-                                    <table class="table data-tables table-striped" id="sales-table">
-                                        <thead class="bg-white text-uppercase">
-                                            <tr class="ligth ligth-data">
-                                                <th>Store</th>
-                                                <th>Invoice #</th>
-                                                <th>Status</th>
-                                                <th>Sub Total</th>
-                                                <th>Tax</th>
-                                                <th>Commission Amount</th> <!-- 👈 New -->
-                                                <th>Party Amount</th> <!-- 👈 New -->
-                                                <th>Total</th>
-                                                <th>Item Count</th>
-                                                <th>Date</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
+                            <!-- one-line filters -->
+                            <div class="filters one-line mb-2">
+                                <input type="text" id="date_range" class="form-control" placeholder="Select Date Range"
+                                    readonly />
+                                <select id="preset_ranges" class="form-control">
+                                    <option value="">Select Preset</option>
+                                    <option value="today">Today</option>
+                                    <option value="this_week">This Week</option>
+                                    <option value="last_week">Last Week</option>
+                                    <option value="this_month">This Month</option>
+                                    <option value="last_month">Last Month</option>
+                                    <option value="this_year">This Year</option>
+                                    <option value="last_year">Last Year</option>
+                                </select>
+                                <select id="branch_id" class="form-control" data-default="all">
+                                    <option value="" selected>All Branches</option>
+                                    @foreach ($branches as $branch)
+                                        <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                                    @endforeach
+                                </select>
+                                <button id="filter" class="btn btn-primary btn-sm">Filter</button>
+                                <button id="reset" class="btn btn-outline-secondary btn-sm">Reset</button>
                             </div>
+
+                            <table class="table table-striped" id="sales-table">
+                                <thead class="bg-white text-uppercase">
+                                    <tr class="ligth ligth-data">
+                                        <th style="display:none;">Branch</th> <!-- hidden grouping column -->
+                                        <th>Shift No</th>
+                                        <th>Sub Total</th>
+                                        <th>Commission Amount</th>
+                                        <th>Party Amount</th>
+                                        <th>Total</th>
+                                        <th>Item Count</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+
                         </div>
                     </div>
-
                 </div>
+
             </div>
         </div>
     </div>
-    <!-- Wrapper End -->
 
     <script>
-        $(document).ready(function() {
-            // Initialize Flatpickr
+        $(function() {
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            // Date picker
             flatpickr("#date_range", {
                 mode: "range",
                 dateFormat: "Y-m-d"
             });
 
-            // Preset Date Ranges
-            const setPresetRange = (value) => {
-                let start = moment();
-                let end = moment();
-
-                switch (value) {
+            // Presets
+            function setPresetRange(val) {
+                let s = moment(),
+                    e = moment();
+                switch (val) {
                     case 'today':
                         break;
                     case 'this_week':
-                        start.startOf('week');
-                        end.endOf('week');
+                        s.startOf('week');
+                        e.endOf('week');
                         break;
                     case 'last_week':
-                        start.subtract(1, 'weeks').startOf('week');
-                        end = start.clone().endOf('week');
+                        s.subtract(1, 'weeks').startOf('week');
+                        e = s.clone().endOf('week');
                         break;
                     case 'this_month':
-                        start.startOf('month');
-                        end.endOf('month');
+                        s.startOf('month');
+                        e.endOf('month');
                         break;
                     case 'last_month':
-                        start.subtract(1, 'months').startOf('month');
-                        end = start.clone().endOf('month');
+                        s.subtract(1, 'months').startOf('month');
+                        e = s.clone().endOf('month');
                         break;
                     case 'this_year':
-                        start.startOf('year');
-                        end.endOf('year');
+                        s.startOf('year');
+                        e.endOf('year');
                         break;
                     case 'last_year':
-                        start.subtract(1, 'years').startOf('year');
-                        end = start.clone().endOf('year');
+                        s.subtract(1, 'years').startOf('year');
+                        e = s.clone().endOf('year');
                         break;
                     default:
                         return;
                 }
-
-                const range = `${start.format('YYYY-MM-DD')} to ${end.format('YYYY-MM-DD')}`;
-                $('#date_range').val(range);
-            };
-
+                $('#date_range').val(s.format('YYYY-MM-DD') + ' to ' + e.format('YYYY-MM-DD'));
+            }
             $('#preset_ranges').on('change', function() {
                 setPresetRange(this.value);
             });
 
-            function loadDataTable(start_date = '', end_date = '', branch_id = '') {
+            function parseRange() {
+                const txt = $('#date_range').val() || '';
+                if (!txt.includes('to')) return {
+                    start_date: '',
+                    end_date: ''
+                };
+                const [s, e] = txt.split(' to ');
+                return {
+                    start_date: s,
+                    end_date: e
+                };
+            }
+
+            function n(v) {
+                const x = parseFloat(v);
+                return isNaN(x) ? 0 : x;
+            }
+
+            function i(v) {
+                const x = parseInt(v, 10);
+                return isNaN(x) ? 0 : x;
+            }
+
+            function setAllDefaults(scope = '.filters') {
+                $(`${scope} select[data-default="all"]`).each(function() {
+                    const $sel = $(this);
+                    if ($sel.find('option[value=""]').length === 0) {
+                        const label = $sel.attr('data-all-label') || 'All';
+                        $sel.prepend(`<option value="">${label}</option>`);
+                    }
+                    $sel.val('');
+                }).trigger('change');
+            }
+
+            function loadTable() {
+                const {
+                    start_date,
+                    end_date
+                } = parseRange();
+                const branch_id = $('#branch_id').val();
+
                 $('#sales-table').DataTable({
                     processing: true,
                     destroy: true,
                     ajax: {
                         url: "{{ route('sales.report.data') }}",
+                        type: 'POST',
                         data: {
-                            start_date: start_date,
-                            end_date: end_date,
-                            branch_id: branch_id
-                        },
-                        dataSrc: function(json) {
-                            // ✅ Filter out rows where branch_name contains (Summary)
-                            json.data = json.data.filter(function(row) {
-                                return !row.branch_name.includes('(Summary)');
-                            });
-                            return json.data;
+                            start_date,
+                            end_date,
+                            branch_id
                         }
                     },
                     columns: [{
                             data: 'branch_name'
-                        },
+                        }, // hidden
                         {
-                            data: 'invoice_number'
-                        },
-                        {
-                            data: 'status'
+                            data: 'shift_no'
                         },
                         {
                             data: 'sub_total'
                         },
                         {
-                            data: 'tax'
+                            data: 'commission_amount'
                         },
                         {
-                            data: 'commission_amount'
-                        }, // 👈 New
-                        {
                             data: 'party_amount'
-                        }, // 👈 New
+                        },
                         {
                             data: 'total'
                         },
@@ -196,141 +227,159 @@
                             data: 'items_count'
                         },
                         {
-                            data: 'created_at'
+                            data: 'shift_date'
                         }
                     ],
-                aoColumnDefs: [{
-                    bSortable: false,
-                    aTargets: [1,2,3,4,5, 6, 7,8] // make "action" column unsortable
-                }],
-                    drawCallback: function(settings) {
-                        var api = this.api();
-                        var rows = api.rows({
+                    columnDefs: [{
+                        targets: [0],
+                        visible: false,
+                        searchable: false
+                    }],
+                    order: [
+                        [0, 'asc'],
+                        [7, 'desc'],
+                        [1, 'asc']
+                    ],
+
+                    // 👇 your requested page-size menu
+                    lengthMenu: [
+                        [10, 25, 50, 100, -1],
+                        [10, 25, 50, 100, "All"]
+                    ],
+                    pageLength: 10,
+
+                    drawCallback: function() {
+                        const api = this.api();
+                        const rows = api.rows({
                             page: 'current'
                         }).nodes();
-                        var lastBranch = null;
-                        var branchTotal = 0;
-                        var commissionTotal = 0;
-                        var discountTotal = 0;
-                        var subTotal = 0;
-                        var branchItems = 0;
-                        var grandTotal = 0;
-                        var grandCommissionTotal = 0;
-                        var grandDiscountTotal = 0;
-                        var grandSubTotal = 0;
-                        var grandTotal = 0;
-                        var grandItems = 0;
-
-                        api.rows({
+                        const data = api.rows({
                             page: 'current'
-                        }).data().each(function(rowData, i) {
-                            grandCommissionTotal += parseFloat(rowData.commission_amount || 0);
-                            grandDiscountTotal += parseFloat(rowData.party_amount || 0);
-                            grandSubTotal += parseFloat(rowData.sub_total || 0);
-                            
-                            grandTotal += parseFloat(rowData.total || 0);
-                            grandItems += parseInt(rowData.items_count || 0);
+                        }).data();
 
-                            if (lastBranch !== rowData.branch_name) {
+                        let lastBranch = null;
+
+                        // branch running sums
+                        let bSub = 0,
+                            bCom = 0,
+                            bPar = 0,
+                            bTot = 0,
+                            bItems = 0;
+
+                        // grand totals
+                        let gSub = 0,
+                            gCom = 0,
+                            gPar = 0,
+                            gTot = 0,
+                            gItems = 0;
+
+                        data.each(function(r, idx) {
+                            // accumulate grand totals
+                            gSub += n(r.sub_total);
+                            gCom += n(r.commission_amount);
+                            gPar += n(r.party_amount);
+                            gTot += n(r.total);
+                            gItems += i(r.items_count);
+
+                            // on branch change -> print previous branch summary + add new header
+                            if (lastBranch !== r.branch_name) {
                                 if (lastBranch !== null) {
-                                    // ✅ Insert branch subtotal row before next branch starts
-                                    $(rows).eq(i).before(
-                                        '<tr class="table-success">' +
-                                        '<td colspan="3" style="text-align:right;"><b>' +
-                                        lastBranch + ' Summary</b></td>' +
-                                        '<td><b>' + subTotal.toFixed(2) + '</b></td>' +
-                                        '<td></td>' +
-                                        '<td><b>' + commissionTotal.toFixed(2) +
-                                        '</b></td>' +
-                                        '<td><b>' + discountTotal.toFixed(2) + '</b></td>' +
-                                        '<td><b>' + branchTotal.toFixed(2) + '</b></td>' +
-                                        '<td><b>' + branchItems + '</b></td>' +
-                                        '<td></td>' +
-                                        '</tr>'
-                                    );
+                                    $(rows).eq(idx).before(`
+                <tr class="table-success">
+                  <td colspan="1" style="display:none;"></td>
+                  <td style="text-align:right;"><b>${lastBranch} Summary</b></td>
+                  <td><b>${bSub.toFixed(2)}</b></td>
+                  <td><b>${bCom.toFixed(2)}</b></td>
+                  <td><b>${bPar.toFixed(2)}</b></td>
+                  <td><b>${bTot.toFixed(2)}</b></td>
+                  <td><b>${bItems}</b></td>
+                  <td></td>
+                </tr>
+              `);
                                 }
-
-                                // Insert new branch header
-                                $(rows).eq(i).before(
-                                    '<tr class="table-primary">' +
-                                    '<td colspan="10" style="text-align:left;"><b>Branch: ' +
-                                    rowData.branch_name + '</b></td>' +
-                                    '</tr>'
-                                );
-
-                                subTotal = 0;
-                                commissionTotal = 0;
-                                discountTotal = 0;
-                                branchTotal = 0;
-                                branchItems = 0;
-                                lastBranch = rowData.branch_name;
+                                $(rows).eq(idx).before(`
+              <tr class="table-primary">
+                <td colspan="8"><b>Branch: ${r.branch_name}</b></td>
+              </tr>
+            `);
+                                bSub = bCom = bPar = bTot = bItems = 0;
+                                lastBranch = r.branch_name;
                             }
 
-                            branchTotal += parseFloat(rowData.total || 0);
-                            commissionTotal += parseFloat(rowData.commission_amount || 0);
-                            discountTotal += parseFloat(rowData.party_amount || 0);
-                            subTotal += parseFloat(rowData.sub_total || 0);
-                            branchItems += parseInt(rowData.items_count || 0);
+                            // accumulate branch totals
+                            bSub += n(r.sub_total);
+                            bCom += n(r.commission_amount);
+                            bPar += n(r.party_amount);
+                            bTot += n(r.total);
+                            bItems += i(r.items_count);
                         });
 
-                        // ✅ Insert the last branch subtotal
+                        // final branch summary
                         if (lastBranch !== null) {
-                            $('#sales-table tbody').append(
-                                '<tr class="table-success">' +
-                                '<td colspan="3" style="text-align:right;"><b>' + lastBranch +
-                                ' Summary</b></td>' +
-                                '<td><b>' + subTotal.toFixed(2) + '</b></td>' +
-                                '<td></td>' +
-                                '<td><b>' + commissionTotal.toFixed(2) + '</b></td>' +
-                                '<td><b>' + discountTotal.toFixed(2) + '</b></td>' +
-                                '<td><b>' + branchTotal.toFixed(2) + '</b></td>' +
-                                '<td><b>' + branchItems + '</b></td>' +
-                                '<td></td>' +
-                                '</tr>'
-                            );
+                            $('#sales-table tbody').append(`
+            <tr class="table-success">
+              <td colspan="1" style="display:none;"></td>
+              <td style="text-align:right;"><b>${lastBranch} Summary</b></td>
+              <td><b>${bSub.toFixed(2)}</b></td>
+              <td><b>${bCom.toFixed(2)}</b></td>
+              <td><b>${bPar.toFixed(2)}</b></td>
+              <td><b>${bTot.toFixed(2)}</b></td>
+              <td><b>${bItems}</b></td>
+              <td></td>
+            </tr>
+          `);
                         }
 
-                        // ✅ Then finally, the grand total for all branches
-                        $('#sales-table tbody').append(
-                            '<tr class="table-warning">' +
-                            '<td colspan="3" style="text-align:right;"><b>Grand Total (All Branches)</b></td>' +
-                            '<td><b>' + grandSubTotal.toFixed(2) + '</b></td>' +
-                            '<td><b></b></td>' +
-                            '<td><b>' + grandCommissionTotal.toFixed(2) + '</b></td>' +
-                            '<td><b>' + grandDiscountTotal.toFixed(2) + '</b></td>' +
-                            '<td><b>' + grandTotal.toFixed(2) + '</b></td>' +
-                            '<td><b>' + grandItems + '</b></td>' +
-                            '<td></td>' +
-                            '</tr>'
-                        );
+                        // grand total
+                        $('#sales-table tbody').append(`
+          <tr class="table-warning">
+            <td colspan="1" style="display:none;"></td>
+            <td style="text-align:right;"><b>Grand Total (All Branches)</b></td>
+            <td><b>${gSub.toFixed(2)}</b></td>
+            <td><b>${gCom.toFixed(2)}</b></td>
+            <td><b>${gPar.toFixed(2)}</b></td>
+            <td><b>${gTot.toFixed(2)}</b></td>
+            <td><b>${gItems}</b></td>
+            <td></td>
+          </tr>
+        `);
                     }
-
                 });
             }
 
-            loadDataTable();
+            // Defaults: last 30 days + All branches
+            (function setDefaultRange() {
+                const end = moment(),
+                    start = moment().subtract(29, 'days');
+                $('#date_range').val(start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
+            })();
+            (function setAllDefaults(scope = '.filters') {
+                $(`${scope} select[data-default="all"]`).each(function() {
+                    const $sel = $(this);
+                    if ($sel.find('option[value=""]').length === 0) {
+                        const label = $sel.attr('data-all-label') || 'All';
+                        $sel.prepend(`<option value="">${label}</option>`);
+                    }
+                    $sel.val('');
+                }).trigger('change');
+            })();
 
+            // initial load
+            loadTable();
+
+            // actions
             $('#filter').on('click', function() {
-                const rangeText = $('#date_range').val();
-                let start_date = '';
-                let end_date = '';
-
-                if (rangeText.includes('to')) {
-                    const date_range = rangeText.split(' to ');
-                    start_date = date_range[0];
-                    end_date = date_range[1];
-                }
-
-                const branch_id = $('#branch_id').val();
-                loadDataTable(start_date, end_date, branch_id);
+                loadTable();
             });
-
             $('#reset').on('click', function() {
-                $('#date_range').val('');
                 $('#preset_ranges').val('');
+                const end = moment(),
+                    start = moment().subtract(29, 'days');
+                $('#date_range').val(start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
                 $('#branch_id').val('');
-                loadDataTable();
+                loadTable();
             });
+
         });
     </script>
 @endsection

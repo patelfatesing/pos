@@ -78,7 +78,7 @@
                             @endforeach
                         </select>
                     </div>
-                 
+
                     <div class="col-md-3">
                         <select id="sub_category_id" class="form-control">
                             <option value="">All Subcategories</option>
@@ -99,14 +99,14 @@
                                     <tr class="ligth ligth-data">
                                         <th>Sr No</th>
                                         <th>Product</th>
-                                        
+
                                         <th>Subcategory</th>
                                         <th>Branch</th>
                                         <th>Available Qty</th>
                                         <th>Low Level Stock</th>
                                         <th>Status</th>
-                                       
-                                       
+
+
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -128,18 +128,32 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-
             const table = $('#low_stock_table').DataTable({
                 processing: true,
-                serverSide: false, // we fetch all filtered rows at once
+                serverSide: false, // fetch all filtered rows at once
                 responsive: true,
                 ajax: {
                     url: "{{ route('reports.low_stock.data') }}",
                     type: 'POST',
                     data: function(d) {
-                        d.status = $('#status').val(); // 'low' | 'out' | ''
+                        // first load: #status may not exist yet → default to 'low' (or '')
+                        const uiStatus = $('#status').length ? $('#status').val() : 'low';
+                        d.status = uiStatus; // 'low' | 'out' | 'ok' | ''
                         d.branch_id = $('#branch_id').val();
                         d.sub_category_id = $('#sub_category_id').val();
+                    },
+                    // ensure we always have a status_code for sorting (in case backend didn't add it)
+                    dataSrc: function(json) {
+                        const rows = json.data || json; // handle {data:[...]} or [...]
+                        (rows || []).forEach(r => {
+                            if (!('status_code' in r)) {
+                                const t = (r.status || '').toString().toLowerCase();
+                                if (t.includes('out')) r.status_code = 'out';
+                                else if (t.includes('low')) r.status_code = 'low';
+                                else r.status_code = 'ok';
+                            }
+                        });
+                        return rows;
                     }
                 },
                 columns: [{
@@ -163,12 +177,24 @@
                         data: 'reorder_level'
                     },
                     {
-                        data: 'status'
-                    }
+                        data: 'status',
+                        orderable: false,
+                        searchable: false
+                    }, // HTML badge
+                    {
+                        data: 'status_code'
+                    } // hidden, for sort/filter
+                ],
+                columnDefs: [{
+                        targets: [7],
+                        visible: false,
+                        searchable: false
+                    } // hide status_code
                 ],
                 order: [
-                    [6, 'asc']
-                ], // Status column
+                    [7, 'asc'],
+                    [4, 'asc']
+                ], // out → low → ok, then qty asc
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, "All"]
@@ -197,23 +223,28 @@
                     }
                 ],
                 initComplete: function() {
-                    // Insert status dropdown after buttons to match your order
+                    // status filter UI
                     const statusFilter = `
-                <div class="status-filter">
-                    <select id="status" class="form-control">
-                        <option value="">All Status</option>
-                        <option value="low" selected>Low Stock</option>
-                        <option value="out">Out of Stock</option>
-                    </select>
-                </div>`;
+                        <div class="status-filter">
+                            <select id="status" class="form-control">
+                            <option value="">All Status</option>
+                            <option value="low" selected>Low Stock</option>
+                            <option value="out">Out of Stock</option>
+                            
+                            </select>
+                        </div>`;
                     $(statusFilter).insertAfter('.dt-buttons');
 
-                    // Bind change events
-                    $('#status, #branch_id,  #sub_category_id').on('change', function() {
+                    // bind changes
+                    $('#status, #branch_id, #sub_category_id').on('change', function() {
                         table.ajax.reload();
                     });
+
+                    // first load was done before #status existed → reload once to apply default
+                    table.ajax.reload(null, false);
                 }
             });
+
         });
     </script>
 @endsection

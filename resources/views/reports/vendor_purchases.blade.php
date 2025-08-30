@@ -82,15 +82,15 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-2">
-                        <select id="status" class="form-control">
-                            <option value="">All Status</option>
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="completed">Completed</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                    </div>
+                        {{-- <div class="col-md-2">
+                            <select id="status" class="form-control">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div> --}}
                     <div class="col-md-2">
                         <input type="date" id="start_date" class="form-control w-120" />
                     </div>
@@ -116,7 +116,6 @@
                                 <th>TCS</th>
                                 <th>Other Charges</th>
                                 <th>Grand Total</th>
-                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -187,9 +186,6 @@
                     },
                     {
                         data: 'grand_total'
-                    },
-                    {
-                        data: 'status'
                     }
                 ],
                 order: [
