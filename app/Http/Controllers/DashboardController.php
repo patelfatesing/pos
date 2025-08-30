@@ -8,6 +8,8 @@ use App\Models\Invoice;
 use App\Models\Inventory;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -18,6 +20,11 @@ class DashboardController extends Controller
 
     public function index()
     {
+        $start_date = request('start_date');
+        $end_date = request('end_date');
+        $start = Carbon::parse($start_date)->startOfDay();
+        $end   = Carbon::parse($end_date)->endOfDay();
+
         // Get role name from session
         $roleName = strtolower(session('role_name'));
         // Redirect non-admin users to items.cart
@@ -55,6 +62,65 @@ class DashboardController extends Controller
             ->selectRaw('SUM(products.cost_price * inventories.quantity) as total_cost_price')
             ->first();
 
+        // If range <= 45 days -> daily; otherwise -> monthly (matches screenshot behaviour)
+        $groupDaily = $start->diffInDays($end) <= 45;
+
+        // Change 'created_at' to 'date' if you store invoice date in a DATE column.
+        $dateCol = 'created_at';
+
+        $sales_trend = [];
+
+        if ($groupDaily) {
+            // Daily buckets
+            $rows = DB::table('invoices')
+                ->selectRaw("DATE($dateCol) as bucket, SUM(total) as amt")
+                ->whereBetween($dateCol, [$start, $end])
+                ->where('status', 'Paid')
+                ->groupBy('bucket')
+                ->orderBy('bucket')
+                ->get();
+
+            // Build full sequence so missing days show as 0
+            $labels = [];
+            $data   = [];
+            $cursor = $start->copy();
+            $map = collect($rows)->keyBy('bucket');
+
+            while ($cursor->lte($end)) {
+                $key = $cursor->toDateString();
+                $labels[] = $cursor->format('d-M');
+                $sum = ($map->get($key)->amt ?? 0);
+                $data[] = round($sum / 100000, 2); // to Lakhs
+                $cursor->addDay();
+            }
+        } else {
+            // Monthly buckets (like Apr-25, May-25, Jun-25)
+            $rows = DB::table('invoices')
+                ->selectRaw("DATE_FORMAT($dateCol, '%Y-%m-01') as bucket, SUM(total) as amt")
+                ->whereBetween($dateCol, [$start, $end])
+                ->where('status', 'Paid')
+                ->groupBy('bucket')
+                ->orderBy('bucket')
+                ->get();
+
+            // Build full month sequence
+            $labels = [];
+            $data   = [];
+            $cursor = $start->copy()->startOfMonth();
+            $endMonth = $end->copy()->startOfMonth();
+            $map = collect($rows)->keyBy('bucket');
+
+            while ($cursor->lte($endMonth)) {
+                $key = $cursor->format('Y-m-01');
+                $labels[] = $cursor->format('M-\'' . $cursor->format('y')); // Apr-25
+                $sum = ($map->get($key)->amt ?? 0);
+                $data[] = round($sum / 100000, 2); // to Lakhs
+                $cursor->addMonth();
+            }
+        }
+
+        
+
         $data = [
             'store'         => "Selete Store",
             'sales'         => $totalSales + $total_creditpay,
@@ -62,7 +128,14 @@ class DashboardController extends Controller
             'total_cost_price'     => $inventorySummary->total_cost_price,
             'top_products'  => $totalSales,
             'total_quantity' => $totalQuantity,
-            'invoice_count' => $invoice_count
+            'invoice_count' => $invoice_count,
+            'sales_trend' => response()->json([
+                'categories' => $labels,
+                'series' => [
+                    ['name' => 'Net Transactions', 'data' => $data]
+                ],
+                'range_text' => $start->format('j-M-y') . ' to ' . $end->format('j-M-y'),
+            ])
         ];
         return view('dashboard', compact('branch', 'data')); // This refers to resources/views/dashboard.blade.php
     }
@@ -72,11 +145,11 @@ class DashboardController extends Controller
         $start_date = request('start_date');
         $end_date = request('end_date');
         $store = Branch::findOrFail($storeId); // or Branch if you're using Branch model
-        $data = $this->getDashboardDataForStore($storeId,$start_date,$end_date); // Your logic here
+        $data = $this->getDashboardDataForStore($storeId, $start_date, $end_date); // Your logic here
         return view('dashboard', compact('store', 'data'));
     }
 
-    protected function getDashboardDataForStore($storeId,$start_date="",$end_date="")
+    protected function getDashboardDataForStore($storeId, $start_date = "", $end_date = "")
     {
         // Example: Fetch store
         $store = Branch::findOrFail($storeId);
@@ -114,7 +187,6 @@ class DashboardController extends Controller
             // Between two dates
             $inventorySummaryQuery->whereBetween('inventories.created_at', [$start_date, $end_date]);
             $totalsQtyQuery->whereBetween('inventories.created_at', [$start_date, $end_date]);
-
         }
 
         $inventorySummary = $inventorySummaryQuery->first();

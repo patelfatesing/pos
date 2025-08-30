@@ -65,7 +65,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                             $currentStoreId = request()->route('store'); // or session('store_id') depending on how you manage it
                         @endphp
 
-                        <li class="nav-item nav-icon dropdown">
+                        <li class="nav-item nav-icon dropdown mr-2">
                             <a href="#" class="dropdown-toggle btn border add-btn" id="dropdownMenuButton31"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <img src="{{ asset('assets/images/small/store.png') }}" alt="store-icon"
