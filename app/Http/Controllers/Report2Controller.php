@@ -2246,6 +2246,32 @@ class Report2Controller extends Controller
         ]);
     }
 
+    public function profitLossPdf(Request $request)
+    {
+        // 1) Reuse the JSON method (no data-code changes)
+        $json = $this->getProfitLossData($request);           // Illuminate\Http\JsonResponse
+        $data = $json->getData(true);                         // decode to array
+
+        // 2) Optional: create a nice filename
+        $period    = $data['header']['period'] ?? now()->toDateString();
+        $branch    = $data['header']['branch'] ?? 'All-Branches';
+        $safeName  = preg_replace('/[^A-Za-z0-9\- ]/', '', $branch);
+        $fileName  = "Profit-and-Loss_{$safeName}_" . str_replace([' to ', ' '], ['_', ''], $period) . ".pdf";
+
+        // 3) Render Blade to PDF
+        $pdf = app('dompdf.wrapper');
+        $pdf->setPaper('A4', 'portrait'); // change to 'landscape' if you prefer
+        $pdf->loadView('reports.profit_loss_pdf', [
+            'payload' => $data,
+        ])->setOptions([
+            'isRemoteEnabled' => true,
+            'dpi'             => 144,
+        ]);
+
+        // 4) Stream (or ->download($fileName))
+        return $pdf->stream($fileName);
+    }
+
     private function formatCategory(?string $cat, ?string $sub): string
     {
         if ($cat && $sub) return "{$cat} → {$sub}";
