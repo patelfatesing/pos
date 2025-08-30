@@ -2004,27 +2004,45 @@ class Report2Controller extends Controller
         $purchasesTotal = 0.0;
         $purchaseLedgerRows = []; // for nesting under “Purchase Accounts”
 
+        /* ---------- Purchases: overall + ledger-wise (by name) ---------- */
+        $purchasesTotal = 0.0;
+        $purchaseLedgerRows = []; // for nesting under “Purchase Accounts”
+
         if (\DB::getSchemaBuilder()->hasTable('purchases')) {
-            $ledgerRows = \DB::table('purchases as pu')
-                ->leftJoin('purchase_ledgers as pl', 'pl.name', '=', 'pu.parchase_ledger')
-                ->whereBetween('pu.date', [$start->toDateString(), $end->toDateString()])
-                ->selectRaw("
+
+            // Only build Purchase Accounts when branch_id is empty (all) OR branch_id == 1
+            if (!$branchId || $branchId == 1) {
+                $ledgerBase = \DB::table('purchases as pu')
+                    ->whereBetween('pu.date', [$start->toDateString(), $end->toDateString()]);
+
+                if ($branchId) {
+                    if (\DB::getSchemaBuilder()->hasColumn('purchases', 'branch_id')) {
+                        $ledgerBase->where('pu.branch_id', $branchId);
+                    } elseif (\DB::getSchemaBuilder()->hasColumn('purchases', 'store_id')) {
+                        $ledgerBase->where('pu.store_id', $branchId);
+                    }
+                }
+
+                $ledgerRows = $ledgerBase
+                    ->leftJoin('purchase_ledgers as pl', 'pl.id', '=', 'pu.parchase_ledger')
+                    ->selectRaw("
                 COALESCE(pl.name, pu.parchase_ledger)                   as ledger_name,
                 COUNT(*)                                                as bills,
                 COALESCE(SUM(COALESCE(pu.total_amount, pu.total, 0)),0) as amount
             ")
-                ->groupBy('ledger_name')
-                ->orderBy('ledger_name')
-                ->get();
+                    ->groupBy('ledger_name')
+                    ->orderBy('ledger_name')
+                    ->get();
 
-            $purchasesTotal = (float) $ledgerRows->sum('amount');
+                $purchasesTotal = (float) $ledgerRows->sum('amount');
 
-            foreach ($ledgerRows as $r) {
-                $purchaseLedgerRows[] = [
-                    'label'   => $r->ledger_name ?: 'Unmapped',
-                    'bills'   => (int) $r->bills,
-                    'amount'  => number_format((float)$r->amount, 2),
-                ];
+                foreach ($ledgerRows as $r) {
+                    $purchaseLedgerRows[] = [
+                        'label'  => $r->ledger_name ?: 'Unmapped',
+                        'bills'  => (int) $r->bills,
+                        'amount' => number_format((float) $r->amount, 2),
+                    ];
+                }
             }
         }
 

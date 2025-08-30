@@ -110,7 +110,7 @@
                                         <div class="icon iq-icon-box-2 sky-blue-gb">
                                             <i class="fab fa-accusoft text-success fa-2x" title="Available Stock"></i>
                                         </div>
-                                        
+
                                         <div>
                                             <p class="mb-2">Total Transaction</p>
                                             <h4>{{ $data['invoice_count'] ?? 0 }}</h4>
@@ -119,6 +119,60 @@
                                     <div class="iq-progress-bar mt-2">
                                         <span class="sky-blue-gb iq-progress progress-1" data-percent="75"></span>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card card-block card-stretch card-height-helf">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-top justify-content-between">
+                                        <div class="">
+                                            <p class="mb-0">Purchase Trend</p>
+                                            <h5></h5>
+                                        </div>
+                                        <div class="card-header-toolbar d-flex align-items-center">
+                                            <div class="dropdown">
+                                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton003"
+                                                    data-toggle="dropdown">
+                                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
+                                                </span>
+                                                <div class="dropdown-menu dropdown-menu-right shadow-none"
+                                                    aria-labelledby="dropdownMenuButton003">
+                                                    <a class="dropdown-item" href="#">Year</a>
+                                                    <a class="dropdown-item" href="#">Month</a>
+                                                    <a class="dropdown-item" href="#">Week</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="layout1-chart-3" class="layout-chart-1"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card card-block card-stretch card-height-helf">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-top justify-content-between">
+                                        <div class="">
+                                            <p class="mb-0">Sales Trend</p>
+                                            <h5></h5>
+                                        </div>
+                                        <div class="card-header-toolbar d-flex align-items-center">
+                                            <div class="dropdown">
+                                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton004"
+                                                    data-toggle="dropdown">
+                                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
+                                                </span>
+                                                <div class="dropdown-menu dropdown-menu-right shadow-none"
+                                                    aria-labelledby="dropdownMenuButton004">
+                                                    <a class="dropdown-item" href="#">Year</a>
+                                                    <a class="dropdown-item" href="#">Month</a>
+                                                    <a class="dropdown-item" href="#">Week</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="layout1-chart-4" class="layout-chart-2"></div>
                                 </div>
                             </div>
                         </div>
@@ -422,3 +476,8 @@
         </div>
         <!-- Wrapper End-->
     @endsection
+
+    <script>
+
+
+    </script>

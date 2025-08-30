@@ -130,6 +130,12 @@
                 white-space: normal
             }
         }
+
+        .filters {
+            overflow: visible;
+        }
+
+        /* instead of hidden */
     </style>
 @endsection
 
@@ -144,20 +150,23 @@
                         <div class="pnl-sub" id="pnl_period">—</div>
                     </div>
 
-                    <div class="filters">
-                        <label>Branch</label>
-                        <select id="branch_id" class="form-control form-control-sm">
+                    <div class="filters" id="pnl_filters">
+                        <label for="pnl_branch">Branch</label>
+                        <select id="pnl_branch" class="form-control form-control-sm" autocomplete="off">
                             <option value="" selected>All</option>
                             @foreach ($branches as $b)
                                 <option value="{{ $b->id }}">{{ $b->name }}</option>
                             @endforeach
                         </select>
 
-                        <input type="date" id="start_date" class="form-control form-control-sm" placeholder="Start date">
-                        <input type="date" id="end_date" class="form-control form-control-sm" placeholder="End date">
+                        {{-- No Blade defaults: JS sets them once or restores from localStorage --}}
+                        <input type="date" id="pnl_start" class="form-control form-control-sm" autocomplete="off">
+                        <input type="date" id="pnl_end" class="form-control form-control-sm" autocomplete="off">
 
-                        <button id="btn_refresh" class="btn btn-primary btn-sm">Apply</button>
+                        <button id="pnl_apply" type="button" class="btn btn-primary btn-sm">Apply</button>
                     </div>
+
+
 
                     {{-- Trading Account --}}
                     <div class="two-col mt-2">
@@ -249,114 +258,173 @@
 @endsection
 
 @section('scripts')
-    <script>
-        (function() {
-            const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-            const today = new Date(),
-                d30 = new Date();
-            d30.setDate(today.getDate() - 29);
-            document.getElementById('start_date').value = iso(d30);
-            document.getElementById('end_date').value = iso(today);
+<script>
+(function() {
+    // ---------- Helpers ----------
+    const $ = (id) => document.getElementById(id);
 
-            const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    // Safe YYYY-MM-DD for <input type="date">
+    const fmtDate = (d) => {
+        const dt = (d instanceof Date) ? d : new Date(d);
+        const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000);
+        return local.toISOString().slice(0, 10);
+    };
+    const todayStr = () => fmtDate(new Date());
+    const daysAgoStr = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return fmtDate(d); };
 
-            function clearTbody(tbody) {
-                while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
-            }
+    const CSRF = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
-            function appendRow(tbody, label, amount, extraHtml = '') {
-                const tr = document.createElement('tr');
-                const td1 = document.createElement('td');
-                td1.innerHTML = label + (extraHtml || '');
-                const td2 = document.createElement('td');
-                td2.className = 'amount';
-                td2.textContent = amount ?? '0.00';
-                tr.appendChild(td1);
-                tr.appendChild(td2);
-                tbody.appendChild(tr);
-            }
+    // Persist user picks (prevents “jumping back”)
+    const LS_KEY = 'pnl_tally_filters_v2';
+    const loadSaved = () => { try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; } };
+    const saveCurrent = () => {
+        localStorage.setItem(LS_KEY, JSON.stringify({
+            branch_id: $('pnl_branch').value || '',
+            start_date: $('pnl_start').value || '',
+            end_date: $('pnl_end').value || '',
+        }));
+    };
 
-            // Render a side (Dr/Cr). Supports children for Purchase Accounts.
-            function renderSide(tbodySelector, rows) {
-                const tbody = document.querySelector(tbodySelector);
-                clearTbody(tbody);
-                (rows || []).forEach(r => {
-                    appendRow(tbody, r.label, r.amount);
+    // Initialize inputs with saved or last-30-days
+    (function initInputs() {
+        const saved = loadSaved();
+        if (saved.start_date) $('pnl_start').value = saved.start_date;
+        if (saved.end_date) $('pnl_end').value = saved.end_date;
+        if (saved.branch_id !== undefined) $('pnl_branch').value = saved.branch_id;
 
-                    // If this row has children (e.g., Purchase Ledger breakup)
-                    if (Array.isArray(r.children) && r.children.length) {
-                        r.children.forEach(ch => {
-                            const tr = document.createElement('tr');
-                            tr.className = 'child-row';
-                            const td1 = document.createElement('td');
-                            td1.className = 'child-label';
-                            const bills = (typeof ch.bills !== 'undefined') ?
-                                `<span class="child-meta"> (Bills: ${ch.bills})</span>` : '';
-                            td1.innerHTML = (ch.label ?? 'Ledger') + bills;
-                            const td2 = document.createElement('td');
-                            td2.className = 'amount';
-                            td2.textContent = ch.amount ?? '0.00';
-                            tr.appendChild(td1);
-                            tr.appendChild(td2);
-                            tbody.appendChild(tr);
-                        });
-                    }
+        if (!$('pnl_start').value) $('pnl_start').value = daysAgoStr(29);
+        if (!$('pnl_end').value) $('pnl_end').value = todayStr();
+
+        // Make sure nothing disabled/readonly
+        ['pnl_start','pnl_end'].forEach(id => { $(id).removeAttribute('readonly'); $(id).disabled = false; });
+    })();
+
+    function selectedBranchText() {
+        const sel = $('pnl_branch');
+        return sel?.selectedOptions?.[0]?.textContent?.trim() || 'All';
+    }
+
+    function updateHeader() {
+        const s = $('pnl_start').value || '';
+        const e = $('pnl_end').value || '';
+        $('pnl_period').textContent = `${selectedBranchText()} • ${s} to ${e}`;
+    }
+
+    function clearTbody(tbody) { while (tbody.firstChild) tbody.removeChild(tbody.firstChild); }
+
+    function appendRow(tbody, label, amount, extraHtml = '') {
+        const tr = document.createElement('tr');
+        const td1 = document.createElement('td');
+        const td2 = document.createElement('td');
+        td1.innerHTML = label + (extraHtml || '');
+        td2.className = 'amount';
+        td2.textContent = (amount ?? '0.00');
+        tr.appendChild(td1); tr.appendChild(td2);
+        tbody.appendChild(tr);
+    }
+
+    function renderSide(tbodySelector, rows) {
+        const tbody = document.querySelector(tbodySelector);
+        clearTbody(tbody);
+        (rows || []).forEach(r => {
+            appendRow(tbody, r.label, r.amount);
+            if (Array.isArray(r.children)) {
+                r.children.forEach(ch => {
+                    const tr = document.createElement('tr'); tr.className = 'child-row';
+                    const td1 = document.createElement('td'); td1.className = 'child-label';
+                    const td2 = document.createElement('td'); td2.className = 'amount';
+                    const bills = (typeof ch.bills !== 'undefined') ? `<span class="child-meta"> (Bills: ${ch.bills})</span>` : '';
+                    td1.innerHTML = (ch.label ?? 'Ledger') + bills;
+                    td2.textContent = ch.amount ?? '0.00';
+                    tr.appendChild(td1); tr.appendChild(td2);
+                    tbody.appendChild(tr);
                 });
             }
+        });
+    }
 
-            function refresh() {
-                const body = {
-                    branch_id: document.getElementById('branch_id').value,
-                    start_date: document.getElementById('start_date').value,
-                    end_date: document.getElementById('end_date').value
-                };
+    // Prevent parent form submit (Enter key)
+    $('pnl_filters')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') e.preventDefault();
+    });
 
-                fetch("{{ route('reports.pnl_tally.data') }}", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': csrf
-                        },
-                        body: JSON.stringify(body)
-                    })
-                    .then(r => r.json())
-                    .then(json => {
-                        // Header
-                        const header = json.header || {};
-                        const period = (header.period || (json.period?.start + ' to ' + json.period?.end)) ?? '';
-                        const branch = header.branch ?? json.branch ?? '';
-                        document.getElementById('pnl_period').textContent = `${branch} • ${period}`;
+    // ---------- Main loader ----------
+    function refresh(e) {
+        if (e?.preventDefault) e.preventDefault();
 
-                        // Titles (optional from API)
-                        document.getElementById('lbl_tr_dr').textContent = json.trading?.dr?.title ??
-                            'Trading Account (Dr)';
-                        document.getElementById('lbl_tr_cr').textContent = json.trading?.cr?.title ??
-                            'Trading Account (Cr)';
-                        document.getElementById('lbl_pl_dr').textContent = json.pl?.dr?.title ??
-                            'Profit & Loss A/c (Dr)';
-                        document.getElementById('lbl_pl_cr').textContent = json.pl?.cr?.title ??
-                            'Profit & Loss A/c (Cr)';
+        // Read current values RIGHT NOW (no stale refs)
+        const payload = {
+            branch_id: $('pnl_branch').value || '',
+            start_date: $('pnl_start').value || '',
+            end_date: $('pnl_end').value || '',
+            _ts: Date.now()
+        };
 
-                        // Trading
-                        renderSide('#tbl_trading_dr tbody', json.trading?.dr?.rows ?? json.trading?.dr ?? []);
-                        renderSide('#tbl_trading_cr tbody', json.trading?.cr?.rows ?? json.trading?.cr ?? []);
-                        const trTot = json.trading?.table_total ?? json.trading?.total ?? '0.00';
-                        document.getElementById('trading_total_dr').textContent = trTot;
-                        document.getElementById('trading_total_cr').textContent = trTot;
+        // Quick sanity: start <= end
+        if (payload.start_date && payload.end_date && payload.start_date > payload.end_date) {
+            alert('Start date cannot be after End date.');
+            return;
+        }
 
-                        // P&L
-                        renderSide('#tbl_pl_dr tbody', json.pl?.dr?.rows ?? json.pl?.dr ?? []);
-                        renderSide('#tbl_pl_cr tbody', json.pl?.cr?.rows ?? json.pl?.cr ?? []);
-                        const plTot = json.pl?.table_total ?? json.pl?.total ?? '0.00';
-                        document.getElementById('pl_total_dr').textContent = plTot;
-                        document.getElementById('pl_total_cr').textContent = plTot;
-                    })
-                    .catch(() => alert('Failed to load P&L.'));
-            }
+        // Reflect & persist
+        updateHeader();
+        saveCurrent();
 
-            document.getElementById('btn_refresh').addEventListener('click', refresh);
-            refresh();
-        })();
-    </script>
+        // Debug what we send
+        console.log('P&L sending JSON:', payload);
+
+        fetch("{{ route('reports.pnl_tally.data') }}", {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',   // <— send JSON
+                'X-CSRF-TOKEN': CSRF,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Cache-Control': 'no-store'
+            },
+            body: JSON.stringify(payload),
+            cache: 'no-store',
+        })
+        .then(r => r.json())
+        .then(json => {
+            // Titles
+            $('lbl_tr_dr').textContent = json?.trading?.dr?.title ?? 'Trading Account (Dr)';
+            $('lbl_tr_cr').textContent = json?.trading?.cr?.title ?? 'Trading Account (Cr)';
+            $('lbl_pl_dr').textContent = json?.pl?.dr?.title ?? 'Profit & Loss A/c (Dr)';
+            $('lbl_pl_cr').textContent = json?.pl?.cr?.title ?? 'Profit & Loss A/c (Cr)';
+
+            // Tables
+            renderSide('#tbl_trading_dr tbody', json?.trading?.dr?.rows ?? json?.trading?.dr ?? []);
+            renderSide('#tbl_trading_cr tbody', json?.trading?.cr?.rows ?? json?.trading?.cr ?? []);
+            renderSide('#tbl_pl_dr tbody', json?.pl?.dr?.rows ?? json?.pl?.dr ?? []);
+            renderSide('#tbl_pl_cr tbody', json?.pl?.cr?.rows ?? json?.pl?.cr ?? []);
+
+            // Totals (mirror across sides)
+            const trTot = json?.trading?.table_total ?? json?.trading?.total ?? '0.00';
+            $('trading_total_dr').textContent = trTot;
+            $('trading_total_cr').textContent = trTot;
+
+            const plTot = json?.pl?.table_total ?? json?.pl?.total ?? '0.00';
+            $('pl_total_dr').textContent = plTot;
+            $('pl_total_cr').textContent = plTot;
+        })
+        .catch(err => {
+            console.error('P&L fetch error', err);
+            alert('Failed to load P&L.');
+        });
+    }
+
+    // Live header update & save on changes
+    ['pnl_branch', 'pnl_start', 'pnl_end'].forEach(id => {
+        $(id).addEventListener('change', () => { updateHeader(); saveCurrent(); });
+    });
+
+    // Apply click (no form submit)
+    $('pnl_apply').addEventListener('click', refresh);
+
+    // First render
+    updateHeader();
+    refresh();
+})();
+</script>
 @endsection

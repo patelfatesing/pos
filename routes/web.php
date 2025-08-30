@@ -360,6 +360,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/exp-category/edit/{id}', [ExpenseCategoryController::class, 'edit'])->name('exp_category.edit');
     Route::post('/exp-category/update', [ExpenseCategoryController::class, 'update'])->name('exp_category.update');
     Route::delete('/exp-category/delete/{id}', [ExpenseCategoryController::class, 'destroy'])->name('exp_category.destroy');
+    Route::post('/exp-category/status-change', [ExpenseCategoryController::class, 'statusChange'])->name('exp_category.status-change');
+
 
     Route::get('/purchase-ledger/list', [PurchaseLedgerController::class, 'index'])->name('purchase_ledger.list');
     Route::post('/purchase-ledger/get-data', [PurchaseLedgerController::class, 'getData'])->name('purchase_ledger.getData');

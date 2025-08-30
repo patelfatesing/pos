@@ -31,6 +31,23 @@
                                                 @enderror
                                             </div>
                                         </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Select Expense Type</label>
+                                                <select name="expense_type_id" id="expense_type_id" class="selectpicker form-control"
+                                                    data-style="py-0">
+                                                    <option value="" disabled selected>Select Expense Type</option>
+                                                    @foreach ($expMainCategory as $category)
+                                                        <option value="{{ $category->id }}"
+                                                            {{ $record->expense_type_id == $category->id ? 'selected' : '' }}>
+                                                            {{ $category->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+
+                                                <span class="text-danger" id="expense_type_id_error"></span>
+                                            </div>
+                                        </div>
                                     </div>
                                     <button type="submit" class="btn btn-primary mr-2">Update Expense Category</button>
                                     <button type="reset" class="btn btn-danger">Reset</button>
