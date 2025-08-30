@@ -69,7 +69,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-lg-3 col-md-3">
+                                    {{-- <div class="col-lg-3 col-md-3">
                                         <div class="card card-block card-stretch card-height">
                                             <div class="card-body">
                                                 <a href="{{ route('sales.commission.report') }}">
@@ -84,7 +84,7 @@
                                                 </a>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> --}}
 
                                     <div class="col-lg-3 col-md-3">
                                         <div class="card card-block card-stretch card-height">
@@ -123,7 +123,7 @@
                                     <div class="col-lg-3 col-md-3">
                                         <div class="card card-block card-stretch card-height">
                                             <div class="card-body">
-                                                <a href="{{ route('reports.pl.page') }}">
+                                                <a href="{{ route('reports.pnl_tally.view') }}">
                                                     <div class="d-flex align-items-center mb-4 card-total-sale">
                                                         <div class="icon iq-icon-box-2 bg-success-light">
                                                             <i class="fa fa-money text-success fa-2x"></i>

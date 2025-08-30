@@ -78,20 +78,15 @@
                     <div class="col-md-2">
                         <input type="date" id="end_date" class="form-control w-140" />
                     </div>
-                    <div class="col-md-2">
-                        <select id="group_by" class="form-control">
-                            <option value="category">Group by: Category</option>
-                            <option value="subcategory">Group by: Subcategory</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
+                   
+                    {{-- <div class="col-md-2">
                         <select id="category_id" class="form-control">
                             <option value="">All Categories</option>
                             @foreach ($categories as $c)
                                 <option value="{{ $c->id }}">{{ $c->name }}</option>
                             @endforeach
                         </select>
-                    </div>
+                    </div> --}}
                     <div class="col-md-2">
                         <select id="sub_category_id" class="form-control">
                             <option value="">All Subcategories</option>

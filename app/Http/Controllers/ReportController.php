@@ -27,12 +27,11 @@ class ReportController extends Controller
 
     public function getLowLevelData(Request $request)
     {
-
         $branchId    = $request->integer('branch_id');
-        $status      = $request->string('status')->toString(); // '', 'low', 'out'
+        $statusParam = strtolower(trim((string) $request->input('status', ''))); // expected: '', 'all', 'low', 'out', 'ok'
         $searchValue = $request->input('search.value');
 
-        // Apply filters/search BEFORE aggregation
+        // Base with search BEFORE aggregation
         $base = DB::table('inventories as inv')
             ->join('products as p', 'p.id', '=', 'inv.product_id')
             ->leftJoin('branches as b', 'b.id', '=', 'inv.store_id')
@@ -44,13 +43,13 @@ class ReportController extends Controller
             ->when($searchValue, function ($q) use ($searchValue) {
                 $q->where(function ($qq) use ($searchValue) {
                     $qq->where('p.name', 'like', "%{$searchValue}%")
-                        ->orWhere('c.name', 'like', "%{$searchValue}%")   // category
-                        ->orWhere('sc.name', 'like', "%{$searchValue}%")  // subcategory
+                        ->orWhere('c.name', 'like', "%{$searchValue}%")
+                        ->orWhere('sc.name', 'like', "%{$searchValue}%")
                         ->orWhere('b.name', 'like', "%{$searchValue}%");
                 });
             });
 
-        // Grouped rows: one per (branch, product)
+        // Group per (branch, product)
         $grouped = $base->cloneWithout(['columns', 'orders', 'limit', 'offset'])
             ->selectRaw("
             inv.store_id AS branch_id,
@@ -64,88 +63,89 @@ class ReportController extends Controller
             SUM(inv.quantity) AS qty,
             MIN(inv.expiry_date) AS nearest_expiry
         ")
-            ->groupBy(
-                'inv.store_id',   // for branch_name expression
-                'b.name',
-                'p.id',
-                'p.name',
-                'c.name',
-                'sc.name',
-                'p.reorder_level'
-            )
+            ->groupBy('inv.store_id', 'b.name', 'p.id', 'p.name', 'c.name', 'sc.name', 'p.reorder_level')
             ->get();
 
-        // Compute status (OK / Low Stock / Out of Stock)
+        // Compute status_code + status_html
         $rows = $grouped->map(function ($r) {
             $threshold = (int) $r->reorder_level;
             if ($threshold <= 0 && (int)$r->low_level_sum > 0) {
                 $threshold = (int) $r->low_level_sum; // fallback to inventories.low_level_qty
             }
 
-            $status = 'OK';
-            if ((int)$r->qty <= 0) {
-                $status = '<span class ="text-danger">Out of Stock</span>';
-            } elseif ($threshold > 0 && (int)$r->qty <= $threshold) {
-                $status = '<span class="text-danger">Low Stock</span>';
+            $qty = (int) $r->qty;
+            $code = 'ok';
+            $label = 'OK';
+            $html = '<span class="text-success">OK</span>';
+
+            if ($qty <= 0) {
+                $code = 'out';
+                $label = 'Out of Stock';
+                $html = '<span class="text-danger">Out of Stock</span>';
+            } elseif ($threshold > 0 && $qty <= $threshold) {
+                $code = 'low';
+                $label = 'Low Stock';
+                $html = '<span class="text-danger">Low Stock</span>';
             }
 
             return [
-                'product_name'     => $r->product_name,
-                'category_name'    => $r->category_name,     // 👈 was brand
-                'sub_category_name' => $r->sub_category_name, // 👈 was sku
-                'branch_name'      => $r->branch_name,
-                'qty'              => (int) $r->qty,
-                'reorder_level'    => (int) $r->reorder_level,
-                'status'           => $status,
-                'nearest_expiry'   => $r->nearest_expiry,
-                'actions'          => '',
+                'status_code'       => $code,        // for filtering/sorting
+                'status_html'       => $html,        // for display
+                'status_label'      => $label,       // optional (plain text)
+                'product_name'      => $r->product_name,
+                'category_name'     => $r->category_name,
+                'sub_category_name' => $r->sub_category_name,
+                'branch_name'       => $r->branch_name,
+                'qty'               => $qty,
+                'reorder_level'     => (int) $r->reorder_level,
+                'nearest_expiry'    => $r->nearest_expiry,
+                'actions'           => '',
             ];
         });
 
-        // Filter by status if requested
-        if ($status === 'low') {
-            $rows = $rows->where('status', 'Low Stock')->values();
-        } elseif ($status === 'out') {
-            $rows = $rows->where('status', 'Out of Stock')->values();
+        // Filter by status code: 'low' | 'out' | 'ok'
+        if (in_array($statusParam, ['low', 'out', 'ok'], true)) {
+            $rows = $rows->where('status_code', $statusParam)->values();
         }
+        // '', 'all' → no extra filtering
 
-        // Order (default: status priority then qty asc)
+        // Ordering
         if (!empty($request->order)) {
             $orderColumnIndex = (int) $request->order[0]['column'];
             $orderDir = strtolower($request->order[0]['dir'] ?? 'asc');
             $columns = [
                 null,                 // 0 Sr No
                 'product_name',       // 1
-                'category_name',      // 2 (replaces brand)
-                'sub_category_name',  // 3 (replaces sku)
+                'category_name',      // 2
+                'sub_category_name',  // 3
                 'branch_name',        // 4
                 'qty',                // 5
                 'reorder_level',      // 6
-                'status',             // 7
+                'status_code',        // 7 (sort by code)
                 'nearest_expiry',     // 8
                 null,                 // 9 actions
             ];
-            $key = $columns[$orderColumnIndex] ?? 'status';
+            $key = $columns[$orderColumnIndex] ?? 'status_code';
             if ($key) {
                 $rows = $rows->sortBy($key, SORT_REGULAR, $orderDir === 'desc')->values();
             }
         } else {
-            $priority = ['Out of Stock' => 0, 'Low Stock' => 1, 'OK' => 2];
-            $rows = $rows->sortBy(
-                fn($r) => ($priority[$r['status']] ?? 99) . '|' . str_pad((string)$r['qty'], 10, '0', STR_PAD_LEFT)
-            )->values();
+            // Default: out → low → ok, then qty asc
+            $priority = ['out' => 0, 'low' => 1, 'ok' => 2];
+            $rows = $rows->sortBy(fn($r) => ($priority[$r['status_code']] ?? 99) . '|' . str_pad((string)$r['qty'], 10, '0', STR_PAD_LEFT))
+                ->values();
         }
 
         // Pagination
-        $start = (int) $request->start;
+        $start  = (int) $request->start;
         $length = (int) $request->length;
-        $paged = $length > 0 ? $rows->slice($start, $length)->values() : $rows;
+        $paged  = $length > 0 ? $rows->slice($start, $length)->values() : $rows;
 
-        // Totals for DataTables
+        // Totals
         $recordsFiltered = $rows->count();
         $totalRecords    = $recordsFiltered;
 
-        // Build final data
+        // Build DataTables rows
         $data = [];
         foreach ($paged as $i => $r) {
             $data[] = [
@@ -156,7 +156,7 @@ class ReportController extends Controller
                 'branch_name'       => e($r['branch_name']),
                 'qty'               => $r['qty'],
                 'reorder_level'     => $r['reorder_level'],
-                'status'            => $r['status'],
+                'status'            => $r['status_html'],                // 👈 show HTML
                 'nearest_expiry'    => $r['nearest_expiry'] ?? '',
                 'action'            => $r['actions'],
             ];
@@ -384,7 +384,7 @@ class ReportController extends Controller
                 ->where('is_deleted', 'no')->orderBy('name')->get(),
         ]);
     }
-    
+
     public function getProfitLossData(Request $request)
     {
         $branchId    = $request->integer('branch_id');

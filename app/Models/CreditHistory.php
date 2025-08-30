@@ -18,5 +18,6 @@ class CreditHistory extends Model
         'created_by',
         'type',
         'transaction_kind',
+        'status'
     ];
 }

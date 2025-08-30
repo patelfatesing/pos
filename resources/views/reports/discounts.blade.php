@@ -84,9 +84,9 @@
                         <select id="payment_mode" class="form-control">
                             <option value="">Payment: All</option>
                             <option value="cash">Cash</option>
-                            <option value="upi">UPI</option>
-                            <option value="online">Online</option>
-                            <option value="credit">Credit</option>
+                            <option value="online">UPI</option>
+                            <option value="cashupi">CASE+UPI</option>
+                            
                         </select>
                     </div>
                     <div class="col-md-2">
@@ -95,10 +95,10 @@
                     <div class="col-md-2">
                         <input type="date" id="end_date" class="form-control w-120" />
                     </div>
-                    <div class="col-md-1">
+                    {{-- <div class="col-md-1">
                         <input type="number" min="0" max="100" step="0.01" id="min_discount_pct"
                             class="form-control" placeholder="% ≥" title="Minimum Discount %" />
-                    </div>
+                    </div> --}}
                 </div>
 
                 <div class="table-responsive rounded">
