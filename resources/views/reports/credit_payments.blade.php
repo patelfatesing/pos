@@ -44,21 +44,13 @@
             @endforeach
           </select>
         </div>
-        <div class="col-md-2">
+        {{-- <div class="col-md-2">
           <select id="type" class="form-control">
             <option value="">Type: All</option>
             <option value="debit">Debit (Payment)</option>
             <option value="credit">Credit (On Credit)</option>
           </select>
-        </div>
-        <div class="col-md-2">
-          <select id="transaction_kind" class="form-control">
-            <option value="">Kind: All</option>
-            <option value="order">Order</option>
-            <option value="refund">Refund</option>
-            <option value="collact_credit">Credit Collection</option>
-          </select>
-        </div>
+        </div> --}}
         <div class="col-md-1">
           <select id="status" class="form-control">
             <option value="">Status</option>
@@ -67,10 +59,10 @@
             <option value="unpaid">Unpaid</option>
           </select>
         </div>
-        <div class="col-md-1">
+        <div class="col-md-2">
           <input type="date" id="start_date" class="form-control w-140" />
         </div>
-        <div class="col-md-1">
+        <div class="col-md-2">
           <input type="date" id="end_date" class="form-control w-140" />
         </div>
       </div>
@@ -85,7 +77,7 @@
               <th>Party</th>
               <th>Invoice</th>
               <th>Type</th>
-              <th>Kind</th>
+              
               <th>Total</th>
               <th>Credit</th>
               <th>Debit</th>
@@ -132,7 +124,7 @@ $(function(){
       { data: 'party_name' },
       { data: 'invoice' },
       { data: 'type' },           // badge HTML
-      { data: 'kind' },
+     
       { data: 'total_amount' },
       { data: 'credit_amount' },
       { data: 'debit_amount' },

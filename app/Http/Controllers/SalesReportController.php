@@ -238,127 +238,79 @@ class SalesReportController extends Controller
 
     public function getSalesReportData(Request $request)
     {
-        $query = DB::table('invoices')
-            ->select(
-                'invoices.id',
-                'invoices.invoice_number',
-                'invoices.sub_total',
-                'invoices.tax',
-                'invoices.total',
-                'invoices.commission_amount', // <-- Added
-                'invoices.creditpay',      // <-- Added
-                'invoices.items',
-                'invoices.status',
-                'invoices.created_at',
-                'branches.name as branch_name'
+        $tz = config('app.timezone', 'Asia/Kolkata');
+
+        // Default last 30 days
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $start = \Carbon\Carbon::parse($request->input('start_date'), $tz)->startOfDay();
+            $end   = \Carbon\Carbon::parse($request->input('end_date'),   $tz)->endOfDay();
+        } else {
+            $end   = \Carbon\Carbon::now($tz)->endOfDay();
+            $start = (clone $end)->subDays(29)->startOfDay();
+        }
+
+        $branchId = $request->input('branch_id');
+        $dateStart = $start->toDateString();
+        $dateEnd   = $end->toDateString();
+
+        // 1) Subquery: define each shift’s window and date (one row per shift)
+        $S = \DB::table('shift_closings as sc')
+            ->join('branches as b', 'b.id', '=', 'sc.branch_id')
+            ->when($branchId, fn($q, $v) => $q->where('sc.branch_id', $v))
+            ->whereBetween(
+                \DB::raw("DATE(COALESCE(sc.closing_shift_time, NULLIF(sc.end_time,'0000-00-00 00:00:00'), sc.start_time))"),
+                [$dateStart, $dateEnd]
             )
-            ->join('branches', 'invoices.branch_id', '=', 'branches.id');
+            ->selectRaw("
+            sc.branch_id,
+            b.name as branch_name,
+            sc.shift_no,
+            sc.start_time as start_ts,
+            COALESCE(sc.closing_shift_time, NULLIF(sc.end_time,'0000-00-00 00:00:00'), sc.start_time) as end_ts,
+            DATE(COALESCE(sc.closing_shift_time, NULLIF(sc.end_time,'0000-00-00 00:00:00'), sc.start_time)) as shift_date
+        ");
 
-        if ($request->start_date && $request->end_date) {
-            $query->whereBetween('invoices.created_at', [
-                Carbon::parse($request->start_date)->startOfDay(),
-                Carbon::parse($request->end_date)->endOfDay()
-            ]);
-        }
+        // 2) Aggregate invoices inside each shift window (LEFT JOIN keeps shifts with 0 invoices)
+        $rows = \DB::query()
+            ->fromSub($S, 'S')
+            ->leftJoin('invoices as i', function ($j) {
+                $j->on('i.branch_id', '=', 'S.branch_id')
+                    ->where('i.status', '!=', 'Hold')
+                    ->whereRaw('i.created_at >= S.start_ts')
+                    ->whereRaw('i.created_at <= S.end_ts');
+            })
+            ->selectRaw("
+            S.branch_id,
+            S.branch_name,
+            S.shift_no,
+            S.shift_date,
+            SUM(COALESCE(i.sub_total,0))          as sub_total,
+            SUM(COALESCE(i.commission_amount,0))  as commission_amount,
+            SUM(COALESCE(i.party_amount,0))       as party_amount,
+            SUM(COALESCE(i.total,0))              as total,
+            SUM(COALESCE(i.total_item_qty,0))     as items_count
+        ")
+            ->groupBy('S.branch_id', 'S.branch_name', 'S.shift_no', 'S.shift_date') // ✅ ONLY_FULL_GROUP_BY safe
+            ->orderBy('S.branch_name')
+            ->orderByDesc('S.shift_date')
+            ->orderBy('S.shift_no')
+            ->get();
 
-        if ($request->branch_id) {
-            $query->where('invoices.branch_id', $request->branch_id);
-        }
-
-        $invoices = $query->orderBy('branches.name')
-            ->orderBy('invoices.created_at', 'desc')
-            ->get()
-            ->groupBy('branch_name');
-
-        $finalData = [];
-        $totalItemsOverall = 0;
-        $totalAmountOverall = 0;
-        $totalCommissionOverall = 0;
-        $totalPartyAmountOverall = 0;
-
-        foreach ($invoices as $branchName => $branchInvoices) {
-            $branchInvoices = $branchInvoices->take(3); // Only 3 invoices per branch
-
-            $total_sub_total = 0.0;
-            $total_tax = 0.0;
-            $total_total = 0.0;
-            $total_items_count = 0;
-            $total_commission = 0.0;
-            $total_party_amount = 0.0;
-
-            foreach ($branchInvoices as $invoice) {
-                $items = json_decode($invoice->items, true);
-                $items_count = count($items);
-                $invoice_sub_total = 0.0;
-
-                foreach ($items as $item) {
-                    $invoice_sub_total += (float)$item['quantity'] * (float)$item['mrp'];
-                }
-
-                // Add each invoice data to finalData
-                $finalData[] = [
-                    'branch_name'        => $branchName,
-                    'invoice_number'     => $invoice->invoice_number,
-                    'status'             => $invoice->status,
-                    'sub_total'          => $invoice_sub_total,
-                    'tax'                => (float)$invoice->tax,
-                    'commission_amount'  => (float)$invoice->commission_amount,
-                    'party_amount'       => (float)$invoice->creditpay,
-                    'total'              => (float)$invoice->total,
-                    'items_count'        => $items_count,
-                    'created_at'         => Carbon::parse($invoice->created_at)->format('Y-m-d'),
-                    'colspan'            => 9
-                ];
-
-                // Update totals
-                $total_sub_total += $invoice_sub_total;
-                $total_tax += (float)$invoice->tax;
-                $total_commission += (float)$invoice->commission_amount;
-                $total_party_amount += (float)$invoice->creditpay;
-                $total_total += (float)$invoice->total;
-                $total_items_count += $items_count;
-            }
-
-            // Add summary row for this branch
-            $finalData[] = [
-                'branch_name'        => $branchName . ' (Summary)',
-                'invoice_number'     => '',
-                'status'             => '',
-                'sub_total'          => $total_sub_total,
-                'tax'                => $total_tax,
-                'commission_amount'  => $total_commission,
-                'party_amount'       => $total_party_amount,
-                'total'              => $total_total,
-                'items_count'        => $total_items_count,
-                'created_at'         => '',
-                'colspan'            => 8
+        // Normalize for DataTables (your frontend already groups/prints summaries)
+        $data = $rows->map(function ($r) {
+            return [
+                'branch_name'       => (string)$r->branch_name,   // hidden col for grouping
+                'shift_no'          => (string)$r->shift_no,
+                'sub_total'         => round((float)$r->sub_total, 2),
+                'commission_amount' => round((float)$r->commission_amount, 2),
+                'party_amount'      => round((float)$r->party_amount, 2),
+                'total'             => round((float)$r->total, 2),
+                'items_count'       => (int)$r->items_count,
+                'shift_date'        => (string)$r->shift_date,
             ];
+        });
 
-            // Track overall totals
-            $totalItemsOverall += $total_items_count;
-            $totalAmountOverall += $total_total;
-            $totalCommissionOverall += $total_commission;
-            $totalPartyAmountOverall += $total_party_amount;
-        }
-
-        // Optionally: Grand Total
-        // $finalData[] = [
-        //     'branch_name'        => 'Grand Total',
-        //     'invoice_number'     => '',
-        //     'status'             => '',
-        //     'sub_total'          => '',
-        //     'tax'                => '',
-        //     'commission_amount'  => $totalCommissionOverall,
-        //     'party_amount'       => $totalPartyAmountOverall,
-        //     'total'              => $totalAmountOverall,
-        //     'items_count'        => $totalItemsOverall,
-        //     'created_at'         => '',
-        //     'colspan'            => 5
-        // ];
-
-        return response()->json([
-            'data' => $finalData
-        ]);
+        return response()->json(['data' => $data]);
     }
 
     public function salesDaily()

@@ -53,4 +53,9 @@ class Purchase extends Model
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
+
+    public function PurchaseLedger(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseLedger::class);
+    }
 }

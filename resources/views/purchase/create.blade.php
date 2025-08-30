@@ -3,7 +3,6 @@
 @section('page-content')
     <!-- Wrapper Start -->
     <div class="wrapper">
-
         <div class="content-page">
             <div class="container-fluid add-form-list">
                 <div class="row">
@@ -18,7 +17,6 @@
                                 </div>
                                 <div>
                                     <a href="{{ route('purchase.list') }}" class="btn btn-secondary">Back</a>
-
                                 </div>
                             </div>
                             <div class="card-body">
@@ -68,10 +66,10 @@
                                                         <select name="parchase_ledger" id="parchase_ledger"
                                                             class="form-control">
                                                             <option value="">-- Select Ledger --</option>
-                                                            @foreach ($expMainCategory as $vendor)
-                                                                <option value="{{ $vendor->id }}"
-                                                                    {{ old('parchase_ledger') == $vendor->id ? 'selected' : '' }}>
-                                                                    {{ $vendor->name }}
+                                                            @foreach ($purchaseLedger as $ven)
+                                                                <option value="{{ $ven->id }}"
+                                                                    {{ old('parchase_ledger') == $ven->id ? 'selected' : '' }}>
+                                                                    {{ $ven->name }}
                                                                 </option>
                                                             @endforeach
                                                         </select>
@@ -442,7 +440,7 @@
                 <tr>
                     <td>${srNo}</td>
                     <input type="hidden" name="products[${srNo - 1}][product_id]" value="${brand}">
-                    <td style="width:40%"><input type="text" name="products[${srNo - 1}][brand_name]" class="form-control" value="${brandVal}" readonly></td>
+                    <td style="width:30%"><input type="text" name="products[${srNo - 1}][brand_name]" class="form-control" value="${brandVal}" readonly></td>
                     <td><input type="text" name="products[${srNo - 1}][batch]" class="form-control" value="${batch}"></td>
                     <td><input type="date" name="products[${srNo - 1}][mfg_date]" class="form-control" value="${mfg}"></td>
                     <td><input type="hidden" name="products[${srNo - 1}][mrp]" value="${mrp}"><input type="number" class="form-control" value="${mrp}" disabled></td>
@@ -699,11 +697,11 @@
         $('#vendor_id').on('change', function() {
             onVendorChange($(this).val());
             let vendorId = $(this).val();
-            // let ledgerSelect = $('#parchase_ledger');
+            let ledgerSelect = $('#parchase_ledger');
             let productSelect = $('#product_select');
 
             // Auto sync ledger
-            // ledgerSelect.val(vendorId);
+            ledgerSelect.val(vendorId);
 
             // Reset products
             productSelect.empty().append('<option value="">-- Select Product --</option>');
@@ -911,15 +909,15 @@
 
     document.addEventListener("DOMContentLoaded", function() {
         const vendorSelect = document.getElementById("vendor_id");
-        // const ledgerSelect = document.getElementById("parchase_ledger");
+        const ledgerSelect = document.getElementById("parchase_ledger");
 
         vendorSelect.addEventListener("change", function() {
-            // ledgerSelect.value = this.value; // auto select the same vendor in ledger
+            ledgerSelect.value = this.value; // auto select the same vendor in ledger
         });
 
         // If vendor is already selected (old value), sync on page load
         if (vendorSelect.value) {
-            // ledgerSelect.value = vendorSelect.value;
+            ledgerSelect.value = vendorSelect.value;
         }
     });
 </script>
