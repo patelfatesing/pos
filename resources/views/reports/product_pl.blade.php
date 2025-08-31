@@ -66,8 +66,7 @@
             <tr class="ligth ligth-data">
               <th>Sr No</th>
               <th>Product</th>
-              <th>Category</th>
-              <th>Subcategory</th>
+              <th>Sub Category</th>
               <th>Qty</th>
               <th>Gross Revenue</th>
               <th>Discounts</th>
@@ -112,7 +111,6 @@ $(function(){
     columns: [
       { data: 'sr_no', orderable:false, searchable:false },
       { data: 'product_name' },
-      { data: 'category_name' },
       { data: 'sub_category_name' },
       { data: 'qty' },
       { data: 'gross_revenue' },
@@ -126,7 +124,7 @@ $(function(){
       { data: 'net_profit' },
      
     ],
-    order: [[13, 'desc']], // default by Net Profit desc
+    order: [[12, 'desc']], // default by Net Profit desc
     lengthMenu: [[10,25,50,100,-1],[10,25,50,100,"All"]],
     pageLength: 10,
     dom: "<'custom-toolbar-row'lfB>t<'row mt-2'<'col-md-6'i><'col-md-6'p>>",

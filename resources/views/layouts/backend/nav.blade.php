@@ -96,7 +96,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                             </div>
                         </li>
                          <!-- Date Filter Start -->
-                        <li class="nav-item nav-icon d-flex align-items-center">
+                        <li class="nav-item nav-icon d-flex align-items-center mt-4">
                             <form id="dateFilterForm" class="d-flex align-items-center" method="GET" action="{{ url()->current() }}" style="gap: 0.5rem;">
                                 <div class="input-group input-group-sm">
                                     <input 
