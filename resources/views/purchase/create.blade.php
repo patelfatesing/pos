@@ -661,7 +661,9 @@
                 if (oldValues.composition_vat) $('#composition_vat').val(oldValues.composition_vat);
                 if (oldValues.surcharge_on_ca) $('#surcharge_on_ca').val(oldValues.surcharge_on_ca);
                 if (oldValues.aed_to_be_paid) $('#aed_to_be_paid').val(oldValues.aed_to_be_paid);
+                $('.vendor-common').show();
             } else if (vendorId === '2') {
+                $('.vendor-common').hide();
                 $('#vendor-2-fields').removeClass('d-none');
                 // Restore vendor 2 fields
                 if (oldValues.vat) $('#vat').val(oldValues.vat);
