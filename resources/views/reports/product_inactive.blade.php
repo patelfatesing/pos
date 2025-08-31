@@ -99,7 +99,6 @@
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <h4 class="mb-0">Product Inactive Report</h4>
                 </div>
-
                 <div class="table-responsive rounded">
                     <table class="table table-striped table-bordered nowrap" id="product_inactive_table" style="width:100%;">
                         <thead class="bg-white">
@@ -109,8 +108,7 @@
                                 <th>SKU</th>
                                 <th>Brand</th>
                                 <th>Size</th>
-                                <th>Category</th>
-                                <th>Subcategory</th>
+                                <th>Sub Category</th>
                                 <th>Sell Price</th>
                                 <th>Cost Price</th>
                                 <th>Status</th>
@@ -121,7 +119,6 @@
                         <tbody></tbody>
                     </table>
                 </div>
-
             </div>
         </div>
     </div>
@@ -140,7 +137,7 @@
 
             const filtersHtml = `
                 <div class="filters one-line">
-                    <label class="mb-0">Subcategory</label>
+                    <label class="mb-0">Sub Category</label>
                     <select id="sub_category_id" class="form-control form-control-sm">
                     <option value="">All</option>
                     @foreach ($subcats as $sc)
@@ -190,9 +187,6 @@
                         data: 'size'
                     },
                     {
-                        data: 'category_name'
-                    },
-                    {
                         data: 'sub_category_name'
                     },
                     {
@@ -214,7 +208,7 @@
                     }
                 ],
                 order: [
-                    [11, 'desc']
+                    [10, 'desc']
                 ], // updated desc
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
