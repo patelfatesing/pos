@@ -107,6 +107,15 @@
                             </tr>
                         </thead>
                         <tbody></tbody>
+                        {{-- ✅ Footer to display totals --}}
+                        <tfoot>
+                            <tr>
+                                <th colspan="3" class="text-end">Total QTY</th>
+                                <th id="qty_total_cell">0</th> {{-- will show "pageTotal (All: X)" --}}
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
 
@@ -152,6 +161,8 @@
                     <input type="date" id="end_date"   class="form-control form-control-sm" placeholder="End date">
                 </div>
                 `;
+
+            let serverTotalQty = null; // 👈 keep the "All rows" total from server
 
             const table = $('#stock_transfer_table').DataTable({
                 processing: true,
@@ -255,7 +266,26 @@
                 columnDefs: [{
                     targets: '_all',
                     defaultContent: ''
-                }]
+                }],
+                // ✅ Footer totals (page + overall if available)
+                footerCallback: function(row, data, start, end, display) {
+                    const api = this.api();
+
+                    // page total of QTY (column index 3)
+                    const pageTotal = api
+                        .column(3, {
+                            page: 'current'
+                        })
+                        .data()
+                        .reduce((sum, v) => sum + (parseFloat(String(v).replace(/[, ]/g, '')) || 0), 0);
+
+                    // prefer server grand total, fallback to page total
+                    const grand = (serverTotalQty !== null) ? serverTotalQty : pageTotal;
+
+                    $(api.column(3).footer()).html(
+                        `${pageTotal.toFixed(0)} <small class="text-muted">(All: ${Number(grand).toFixed(0)})</small>`
+                    );
+                }
             });
         });
     </script>
