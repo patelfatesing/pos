@@ -103,7 +103,7 @@
                                         <th>Subcategory</th>
                                         <th>Branch</th>
                                         <th>Available Qty</th>
-                                        <th>Low Level Stock</th>
+                                        <th>Low Level Stock Set</th>
                                         <th>Status</th>
 
 
