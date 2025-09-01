@@ -249,11 +249,11 @@ class SalesReportController extends Controller
             $start = (clone $end)->subDays(29)->startOfDay();
         }
 
-        $branchId = $request->input('branch_id');
+        $branchId  = $request->input('branch_id');
         $dateStart = $start->toDateString();
         $dateEnd   = $end->toDateString();
 
-        // 1) Subquery: define each shift’s window and date (one row per shift)
+        // 1) One row per shift with its time window
         $S = \DB::table('shift_closings as sc')
             ->join('branches as b', 'b.id', '=', 'sc.branch_id')
             ->when($branchId, fn($q, $v) => $q->where('sc.branch_id', $v))
@@ -270,7 +270,7 @@ class SalesReportController extends Controller
             DATE(COALESCE(sc.closing_shift_time, NULLIF(sc.end_time,'0000-00-00 00:00:00'), sc.start_time)) as shift_date
         ");
 
-        // 2) Aggregate invoices inside each shift window (LEFT JOIN keeps shifts with 0 invoices)
+        // 2) Aggregate invoices within each shift window
         $rows = \DB::query()
             ->fromSub($S, 'S')
             ->leftJoin('invoices as i', function ($j) {
@@ -284,34 +284,37 @@ class SalesReportController extends Controller
             S.branch_name,
             S.shift_no,
             S.shift_date,
-            SUM(COALESCE(i.sub_total,0))          as sub_total,
-            SUM(COALESCE(i.commission_amount,0))  as commission_amount,
-            SUM(COALESCE(i.party_amount,0))       as party_amount,
-            SUM(COALESCE(i.total,0))              as total,
-            SUM(COALESCE(i.total_item_qty,0))     as items_count
+            COUNT(i.id)                                as transactions,   -- 👈 total transaction count (invoices)
+            SUM(COALESCE(i.sub_total,0))              as sub_total,
+            SUM(COALESCE(i.commission_amount,0))      as commission_amount,
+            SUM(COALESCE(i.party_amount,0))           as party_amount,
+            SUM(COALESCE(i.total,0))                  as total,
+            SUM(COALESCE(i.total_item_qty,0))         as items_count
         ")
-            ->groupBy('S.branch_id', 'S.branch_name', 'S.shift_no', 'S.shift_date') // ✅ ONLY_FULL_GROUP_BY safe
+            ->groupBy('S.branch_id', 'S.branch_name', 'S.shift_no', 'S.shift_date')
             ->orderBy('S.branch_name')
             ->orderByDesc('S.shift_date')
             ->orderBy('S.shift_no')
             ->get();
 
-        // Normalize for DataTables (your frontend already groups/prints summaries)
+        // 3) Normalize for frontend
         $data = $rows->map(function ($r) {
             return [
-                'branch_name'       => (string)$r->branch_name,   // hidden col for grouping
+                'branch_name'       => (string)$r->branch_name,
                 'shift_no'          => (string)$r->shift_no,
+                'shift_date'        => (string)$r->shift_date,
+                'transactions'      => (int)$r->transactions,         // 👈 new field
                 'sub_total'         => round((float)$r->sub_total, 2),
                 'commission_amount' => round((float)$r->commission_amount, 2),
                 'party_amount'      => round((float)$r->party_amount, 2),
                 'total'             => round((float)$r->total, 2),
                 'items_count'       => (int)$r->items_count,
-                'shift_date'        => (string)$r->shift_date,
             ];
         });
 
         return response()->json(['data' => $data]);
     }
+
 
     public function salesDaily()
     {

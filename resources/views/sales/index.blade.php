@@ -83,6 +83,7 @@
                                         <th>Party Amount</th>
                                         <th>Total</th>
                                         <th>Item Count</th>
+                                        <th>Transactions</th>
                                         <th>Date</th>
                                     </tr>
                                 </thead>
@@ -226,6 +227,9 @@
                         {
                             data: 'items_count'
                         },
+                        {
+                            data: 'transactions',
+                        }, 
                         {
                             data: 'shift_date'
                         }
