@@ -210,6 +210,30 @@
 
                                             <hr />
                                             <div class="row mt-4 mb-3">
+                                                <div class="col-lg-4">
+                                                    <div class="or-detail rounded">
+                                                        <div class="p-3">
+                                                            <h5 class="mb-3"></h5>
+                                                            <div id="vendor-1-fields"
+                                                                class="vendor-fields d-none vendor-1">
+                                                                <div class="form-group">
+                                                                    <label>AED TO BE PAID</label>
+                                                                    <input type="tel" class="form-control"
+                                                                        value="{{ old('aed_to_be_paid') }}"
+                                                                        name="aed_to_be_paid" id="aed_to_be_paid" />
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>Guarantee Fulfilled</label>
+                                                                    <input type="tel" class="form-control"
+                                                                        value="{{ old('guarantee_fulfilled') }}"
+                                                                        name="guarantee_fulfilled"
+                                                                        id="guarantee_fulfilled" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
                                                 <div class="offset-lg-8 col-lg-4">
                                                     <div class="or-detail rounded">
                                                         <div class="p-3">
@@ -241,6 +265,12 @@
                                                                     <input type="tel" class="form-control"
                                                                         value="{{ old('aed_to_be_paid') }}"
                                                                         name="aed_to_be_paid" id="aed_to_be_paid" />
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>Guarantee Fulfilled</label>
+                                                                    <input type="tel" class="form-control"
+                                                                        value="{{ old('guarantee_fulfilled') }}"
+                                                                        name="guarantee_fulfilled" id="guarantee_fulfilled" />
                                                                 </div>
                                                             </div>
 
@@ -322,7 +352,8 @@
                                                                 <input type="hidden" name="total_amount"
                                                                     class="total_amount" value="" />
                                                                 <h3 class="text-primary font-weight-700"
-                                                                    id="total_amount"></h3>
+                                                                    id="total_amount">
+                                                                </h3>
                                                             </div>
                                                         </div>
 
@@ -546,7 +577,7 @@
             updateFromAmount();
         });
 
-        $('#excise_fee, #composition_vat, #surcharge_on_ca, #tcs, #aed_to_be_paid,#vat,#surcharge_on_vat,#blf,#permit_fee,#rsgsm_purchase')
+        $('#excise_fee, #composition_vat, #surcharge_on_ca, #tcs, #vat,#surcharge_on_vat,#blf,#permit_fee,#rsgsm_purchase')
             .on('input', function() {
                 updateBillingTotal();
                 // updateFromPercentage();
@@ -661,6 +692,7 @@
                 if (oldValues.composition_vat) $('#composition_vat').val(oldValues.composition_vat);
                 if (oldValues.surcharge_on_ca) $('#surcharge_on_ca').val(oldValues.surcharge_on_ca);
                 if (oldValues.aed_to_be_paid) $('#aed_to_be_paid').val(oldValues.aed_to_be_paid);
+                if (oldValues.guarantee_fulfilled) $('#guarantee_fulfilled').val(oldValues.guarantee_fulfilled);
                 $('.vendor-common').show();
             } else if (vendorId === '2') {
                 $('.vendor-common').hide();
@@ -868,6 +900,8 @@
             if (oldValues.composition_vat) $('#composition_vat').val(oldValues.composition_vat);
             if (oldValues.surcharge_on_ca) $('#surcharge_on_ca').val(oldValues.surcharge_on_ca);
             if (oldValues.aed_to_be_paid) $('#aed_to_be_paid').val(oldValues.aed_to_be_paid);
+            if (oldValues.guarantee_fulfilled) $('#guarantee_fulfilled').val(oldValues.guarantee_fulfilled);
+
         } else if (vendorId === '2') {
             $('#vendor-2-fields').removeClass('d-none');
             // Restore vendor 2 fields
@@ -899,7 +933,7 @@
     });
 
     // Event handlers for billing details changes
-    $('#excise_fee, #composition_vat, #surcharge_on_ca, #tcs, #aed_to_be_paid, #vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase')
+    $('#excise_fee, #composition_vat, #surcharge_on_ca, #tcs,  #vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase')
         .on('input', function() {
             updateBillingTotal();
         });

@@ -82,10 +82,9 @@
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
                         </div>
-                        <div class="col-lg-6 col-md-6">
+                        <div class="col-lg-3 col-md-3">
                             <div class="card card-block card-stretch card-height">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center mb-4 card-total-sale">
@@ -103,7 +102,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-6 col-md-6">
+                        <div class="col-lg-3 col-md-3">
                             <div class="card card-block card-stretch card-height">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center mb-4 card-total-sale">
@@ -122,12 +121,50 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-lg-3 col-md-3">
+                            <div class="card card-block card-stretch card-height">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                        <div class="icon iq-icon-box-2 sky-blue-gb">
+                                            <i class="far fa-star text-success fa-2x" title="Available Stock"></i>
+                                        </div>
+
+                                        <div>
+                                            <p class="mb-2">Guarantee Fulfilled</p>
+                                            <h4>{{ $data['guaranteeFulfilled'] ?? 0 }}</h4>
+                                        </div>
+                                    </div>
+                                    <div class="iq-progress-bar mt-2">
+                                        <span class="sky-blue-gb iq-progress progress-1" data-percent="75"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3">
+                            <div class="card card-block card-stretch card-height">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                        <div class="icon iq-icon-box-2 sky-blue-gb">
+                                            <i class="ri-creative-commons-nc-fill" title="AED to be Paid"></i>
+                                        </div>
+
+                                        <div>
+                                            <p class="mb-2">AED to be Paid</p>
+                                            <h4>{{ $data['aedToBePaid'] ?? 0 }}</h4>
+                                        </div>
+                                    </div>
+                                    <div class="iq-progress-bar mt-2">
+                                        <span class="sky-blue-gb iq-progress progress-1" data-percent="75"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="col-lg-6">
                             <div class="card card-block card-stretch card-height-helf">
                                 <div class="card-body">
                                     <div class="d-flex align-items-top justify-content-between">
                                         <div class="">
-                                            <p class="mb-0">Purchase Trend</p>
+                                            <p class="mb-0">Sales Trend</p>
                                             <h5></h5>
                                         </div>
                                         <div class="card-header-toolbar d-flex align-items-center">
@@ -145,7 +182,9 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div id="layout1-chart-3" class="layout-chart-1"></div>
+                                    <div id="apex-basic1"></div>
+                                    {{-- <div id="layout1-chart-3" class="layout-chart-1"></div> --}}
+
                                 </div>
                             </div>
                         </div>
@@ -154,7 +193,7 @@
                                 <div class="card-body">
                                     <div class="d-flex align-items-top justify-content-between">
                                         <div class="">
-                                            <p class="mb-0">Sales Trend</p>
+                                            <p class="mb-0">Purchase Trend</p>
                                             <h5></h5>
                                         </div>
                                         <div class="card-header-toolbar d-flex align-items-center">
@@ -172,7 +211,8 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div id="layout1-chart-4" class="layout-chart-2"></div>
+                                    <div id="apex-basic2"></div>
+                                    {{-- <div id="layout1-chart-4" class="layout-chart-2"></div> --}}
                                 </div>
                             </div>
                         </div>
@@ -474,10 +514,128 @@
                 </div>
             </div>
         </div>
+        <?php
+        // dd($data);
+        ?>
         <!-- Wrapper End-->
     @endsection
 
-    <script>
+    <script defer>
+        document.addEventListener('DOMContentLoaded', function() {
+            const el = document.getElementById('apex-basic1');
+            if (!el) return; // Chart container not on this page
 
+            if (!window.ApexCharts) { // ApexCharts not loaded
+                console.error('ApexCharts is not loaded. Include it before this script.');
+                return;
+            }
 
+            let options = {
+                chart: {
+                    height: 350,
+                    type: 'line',
+                    zoom: {
+                        enabled: false
+                    }
+                },
+                colors: ['#4788ff'],
+                series: [{
+                    name: 'Desktops',
+                    data: @json($data['data_sales'])
+                }],
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    curve: 'straight'
+                },
+                title: {
+                    text: 'Sales by Month',
+                    align: 'left'
+                },
+                grid: {
+                    row: {
+                        colors: ['#f3f3f3', 'transparent'],
+                        opacity: .5
+                    }
+                },
+                xaxis: {
+                    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep']
+                }
+            };
+
+            const chart = new ApexCharts(el, options);
+            chart.render();
+
+            const body = document.body;
+            if (body.classList.contains('dark') && typeof window.apexChartUpdate === 'function') {
+                window.apexChartUpdate(chart, {
+                    dark: true
+                });
+            }
+
+            document.addEventListener('ChangeColorMode', function(e) {
+                if (typeof window.apexChartUpdate === 'function') {
+                    window.apexChartUpdate(chart, e.detail);
+                }
+            });
+
+            const el2 = document.getElementById('apex-basic2');
+            if (!el2) return; // Chart container not on this page
+
+            if (!window.ApexCharts) { // ApexCharts not loaded
+                console.error('ApexCharts is not loaded. Include it before this script.');
+                return;
+            }
+
+            let options2 = {
+                chart: {
+                    height: 350,
+                    type: 'line',
+                    zoom: {
+                        enabled: false
+                    }
+                },
+                colors: ['#4788ff'],
+                series: [{
+                    name: 'Desktops',
+                    data: @json($data['data_pur'])
+                }],
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    curve: 'straight'
+                },
+                title: {
+                    text: 'Sales by Month',
+                    align: 'left'
+                },
+                grid: {
+                    row: {
+                        colors: ['#f3f3f3', 'transparent'],
+                        opacity: .5
+                    }
+                },
+                xaxis: {
+                    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep']
+                }
+            };
+
+            const chart2 = new ApexCharts(el2, options2);
+            chart2.render();
+
+            const body2 = document.body;
+            if (body2.classList.contains('dark') && typeof window.apexChartUpdate === 'function') {
+                window.apexChartUpdate(chart2, {
+                    dark: true
+                });
+            }
+
+            document.addEventListener('ChangeColorMode', function(e) {
+                if (typeof window.apexChartUpdate === 'function') {
+                    window.apexChartUpdate(chart2, e.detail);
+                }
+            });
+        });
     </script>

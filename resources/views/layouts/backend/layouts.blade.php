@@ -60,29 +60,20 @@
 
     @include('layouts.backend.footer') <!-- Include footer -->
 
-    <script src="{{ asset('assets/js/script.js') }}"></script>
-    <!-- Backend Bundle JavaScript -->
-    <script src="{{ asset('assets/js/backend-bundle.min.js') }}"></script>
+    {{-- vendor (after jQuery/Bootstrap) --}}
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts" defer></script>
+    @stack('page-vendor')
 
-    <!-- Table Treeview JavaScript -->
-    <script src="{{ asset('assets/js/table-treeview.js') }}"></script>
+    {{-- your bundles --}}
+    <script src="{{ asset('assets/js/backend-bundle.min.js') }}" defer></script>
+    <script src="{{ asset('assets/js/table-treeview.js') }}" defer></script>
+    <script src="{{ asset('assets/js/customizer.js') }}" defer></script>
+    <script src="{{ asset('assets/js/chart-custom.js') }}" defer></script>
+    <script src="{{ asset('assets/js/script.js') }}" defer></script>
+    <script src="{{ asset('assets/js/app.js') }}" defer></script>
 
-    <!-- Chart Custom JavaScript -->
-    <script src="{{ asset('assets/js/customizer.js') }}"></script>
+    @stack('page-scripts')
 
-    <!-- Chart Custom JavaScript -->
-    <script async src="{{ asset('assets/js/chart-custom.js') }}"></script>
-
-    <!-- app JavaScript -->
-    <script src="{{ asset('assets/js/app.js') }}"></script>
-    <!-- Add these manually AFTER backend-bundle -->
-    {{-- <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
- --}}
 
     <!-- Include your JavaScript files here -->
     <script>
