@@ -99,6 +99,7 @@ class PurchaseController extends Controller
                 'surcharge_on_vat' => $request->surcharge_on_vat,
                 'blf' => $request->blf,
                 'permit_fee' => $request->permit_fee,
+                'guarantee_fulfilled' => $request->guarantee_fulfilled ?? 0,
                 'rsgsm_purchase' => $request->rsgsm_purchase,
                 'case_purchase' => $request->case_purchase,
                 'case_purchase_per' => $request->case_purchase_per,
