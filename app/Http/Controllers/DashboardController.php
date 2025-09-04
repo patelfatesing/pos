@@ -119,7 +119,85 @@ class DashboardController extends Controller
             }
         }
 
+        $guaranteeFulfilled = 0;
+        $aedToBePaid = 0;
+
+        $lastPurchase = \App\Models\Purchase::latest('id')->first(['guarantee_fulfilled', 'aed_to_be_paid']);
+
+        if ($lastPurchase) {
+            $guaranteeFulfilled = $lastPurchase->guarantee_fulfilled;
+            $aedToBePaid = $lastPurchase->aed_to_be_paid;
+        }
+
+        $tz = config('app.timezone', 'Asia/Kolkata');
+        $now = \Carbon\Carbon::now($tz);
+
+        // $start = $request->filled('start_date')
+        //     ? \Carbon\Carbon::parse($request->input('start_date'), $tz)->startOfMonth()
+        //     : $now->copy()->subMonths(8)->startOfMonth();
+
+        // $end = $request->filled('end_date')
+        //     ? \Carbon\Carbon::parse($request->input('end_date'), $tz)->endOfMonth()
+        //     : $now->copy()->endOfMonth();
+
+        if ($start_date && $end_date) {
+            // User provided dates
+            $start = Carbon::parse($start_date)->startOfDay();
+            $end   = Carbon::parse($end_date)->endOfDay();
+        } else {
+            // No date filters → whole current year
+            $start = Carbon::now()->startOfYear();
+            $end   = Carbon::now()->endOfYear();
+        }
+
+        // $branchId = $request->integer('branch_id');
+
+        $sales = \DB::table('invoices')
+            ->selectRaw("DATE_FORMAT(created_at, '%b') as month, SUM(total) as total")
+            ->whereBetween('created_at', [$start, $end])
+            // ->when($branchId, fn($q, $v) => $q->where('branch_id', $v))
+            ->where(function ($q) {
+                $q->where('status', 'Paid')->orWhere('invoice_status', 'paid');
+            })
+            ->groupBy('month')
+            ->orderByRaw("MIN(created_at)")
+            ->pluck('total', 'month')
+            ->toArray();
+
+        // dd($sales);
+
+        // fill missing months with 0
+        $months = [];
+        $data_sales = [];
+        $period = \Carbon\CarbonPeriod::create($start, '1 month', $end);
+        foreach ($period as $m) {
+            $label = $m->format('M');
+            $months[] = $label;
+            $data_sales[] = isset($sales[$label]) ? (float)$sales[$label] : 0;
+        }
+
+
+        // $vendorId = $request->integer('vendor_id');
+
+        $query = \DB::table('purchases')
+            ->selectRaw("DATE_FORMAT(date, '%b') as month, SUM(total_amount) as total")
+            ->whereBetween('date', [$start, $end])
+            // ->when($vendorId, fn($q, $v) => $q->where('vendor_id', $v))
+            ->groupBy('month')
+            ->orderByRaw("MIN(date)");
+
+        $purchases = $query->pluck('total', 'month')->toArray();
+
+        // Fill buckets with 0 if missing
         
+        $data_pur = [];
+        $period = \Carbon\CarbonPeriod::create($start, '1 month', $end);
+        foreach ($period as $m) {
+            $label = $m->format('M');
+            $months[] = $label;
+            $data_pur[] = isset($purchases[$label]) ? (float)$purchases[$label] : 0;
+        }
+        // dd($data);
 
         $data = [
             'store'         => "Selete Store",
@@ -135,7 +213,11 @@ class DashboardController extends Controller
                     ['name' => 'Net Transactions', 'data' => $data]
                 ],
                 'range_text' => $start->format('j-M-y') . ' to ' . $end->format('j-M-y'),
-            ])
+            ]),
+            'guaranteeFulfilled' => $guaranteeFulfilled,
+            'aedToBePaid' => $aedToBePaid,
+            'data_sales' => $data_sales,
+            'data_pur' => $data_pur
         ];
         return view('dashboard', compact('branch', 'data')); // This refers to resources/views/dashboard.blade.php
     }
