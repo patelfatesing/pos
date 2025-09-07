@@ -30,6 +30,7 @@
                                 </th>
                                 <th>Status</th>
                                 <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -74,6 +75,10 @@
                     },
                     {
                         data: 'created_at'
+                    }, 
+                    {
+                        data: 'action',
+                        orderable: false
                     }
                     // Define more columns as per your table structure
                 ],

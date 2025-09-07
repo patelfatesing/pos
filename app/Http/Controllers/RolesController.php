@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Roles;
+use App\Models\Role;
+use App\Models\Permission;
 use Illuminate\Http\Request;
 
 class RolesController extends Controller
 {
-      /**
+    /**
      * Display a listing of the resource.
      */
     public function index()
@@ -49,12 +51,13 @@ class RolesController extends Controller
         $url = url('/');
 
         foreach ($data as $role) {
-            $action = "<a href='" . $url . "/roles/edit/" . $role->id . "' class='btn btn-info mr-2'>Edit</a>";
+            // $action = "<a href='" . $url . "/roles/edit/" . $role->id . "' class='btn btn-info mr-2'>Edit</a>";
+            $action = "<a href='" . $url . "/roles/view/" . $role->id . "' class='btn btn-primary mr-2'>View</a>";
             $action .= '<button type="button" onclick="delete_role(' . $role->id . ')" class="btn btn-danger ml-2">Delete</button>';
 
             $records[] = [
                 'name' => $role->name,
-                'is_active' => ($role->is_active ? '<div class="badge badge-success">Active</div>':'<div class="badge badge-success">Inactive</div>'),
+                'is_active' => ($role->is_active ? '<div class="badge badge-success">Active</div>' : '<div class="badge badge-success">Inactive</div>'),
                 'created_at' => \Carbon\Carbon::parse($role->created_at)->format('d-m-Y H:i'),
                 'action' => $action
             ];
@@ -73,7 +76,7 @@ class RolesController extends Controller
      */
     public function create()
     {
-           return view('roles.create');
+        return view('roles.create');
     }
 
     /**
@@ -102,9 +105,57 @@ class RolesController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Roles $Roles)
+    // public function show(Roles $Roles)
+    // {
+    //     //
+    // }
+
+    public function show($id)
     {
-        //
+        $role = Role::findOrFail($id);
+        // group permissions by module
+        $perms = Permission::orderBy('name')->get()
+            ->groupBy(function ($p) {
+                return explode('.', $p->name)[0] ?? 'misc';
+            });
+
+        // currently assigned permission names for this role
+        $current     = $role->permissions()->pluck('permissions.name')->toArray();
+
+        // describe how each action should render
+        $actionConfig = [
+            // binary: Yes/No
+            'enable' => ['type' => 'binary'],
+            'create' => ['type' => 'binary'],
+
+            // scoped: None/Own/All
+            'listing' => ['type' => 'scoped'],
+            'view'    => ['type' => 'scoped'],
+            'update'  => ['type' => 'scoped'],
+            'delete'  => ['type' => 'scoped'],
+        ];
+
+        // modules you want to show (left labels)
+        $modules = [
+            'inventory'        => 'Inventory',
+            'stock_request'    => 'Manage Stock Requests',
+            'stock_transfer'   => 'Manage Stock Transfers',
+            'product'          => 'Manage Products',
+            'category'        => 'Manage Categories',
+            'sub_category'     => 'Manage Sub Categories',
+            'pack_size'       => 'Manage Pack Sizes',
+            'store_management' => 'Manage Store',
+            'shift_management' => 'Manage Shifts',
+            'users'            => 'Users',
+            // 'role_permission'  => 'Role and Permission',
+            // add more here...
+        ];
+
+        // permissions already attached to the role (names)
+        $current = $role->permissions()->pluck('permissions.name')->toArray();
+
+
+        return view('roles.permissions', compact('role', 'perms', 'current', 'actionConfig', 'modules', 'current'));
     }
 
     // Show edit form
@@ -118,7 +169,7 @@ class RolesController extends Controller
     public function update(Request $request)
     {
         $id = $request->id;
-        
+
         $record = Roles::findOrFail($id);
 
         $validated = $request->validate([
