@@ -44,6 +44,9 @@ use App\Http\Controllers\CreditHistoryController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Report2Controller;
 use App\Http\Controllers\PurchaseLedgerController;
+use App\Http\Controllers\Accounting\GroupController;
+use App\Http\Controllers\Accounting\LedgerController;
+use App\Http\Controllers\Accounting\VoucherController;
 
 // Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
 // Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
@@ -129,8 +132,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/roles/create', [RolesController::class, 'create'])->name('roles.create');
     Route::post('/roles', [RolesController::class, 'store'])->name('roles.store');
     Route::get('/roles/edit/{id}', [RolesController::class, 'edit'])->name('roles.edit');
+    Route::get('/roles/view/{role}', [RolesController::class, 'show'])->name('roles.show');
     Route::post('/roles/update', [RolesController::class, 'update'])->name('roles.update');
     Route::delete('/roles/{id}', [RolesController::class, 'destroy'])->name('roles.destroy');
+    Route::post('{role}/permissions', [RolesController::class, 'updatePermission'])
+        ->name('roles.permissions.update');
 
     Route::get('/store/list', [BranchController::class, 'index'])->name('branch.list');
     Route::post('/store/get-data', [BranchController::class, 'getData'])->name('user.getData');
@@ -477,6 +483,34 @@ Route::middleware('auth')->group(function () {
         Route::post('get-profit-on-sales-invoice-data', [Report2Controller::class, 'getProfitOnSalesInvoiceData'])->name('reports.profit_invoice.data');
         Route::get('product-inactive',  [Report2Controller::class, 'productInactive'])->name('reports.product_inactive.view');
         Route::post('get-product-inactive-data', [Report2Controller::class, 'getProductInactiveData'])->name('reports.product_inactive.data');
+    });
+
+    // routes/web.php
+    Route::prefix('accounting')->name('accounting.')->middleware(['auth'])->group(function () {
+
+        Route::get('/groups/list', [GroupController::class, 'index'])->name('groups.list');
+        Route::post('/groups/get-data', [GroupController::class, 'getData'])->name('groups.getData');
+        Route::get('/groups/create', [GroupController::class, 'create'])->name('groups.create');
+        Route::post('/groups/store', [GroupController::class, 'store'])->name('groups.store');
+        Route::get('/groups/edit/{id}', [GroupController::class, 'edit'])->name('groups.edit');
+        Route::put('/groups/update', [GroupController::class, 'update'])->name('groups.update');
+        Route::delete('/groups/delete/{id}', [GroupController::class, 'destroy'])->name('groups.destroy');
+        Route::get('/groups/children/{group}', [GroupController::class, 'children'])->name('groups.children');
+
+        Route::get('/ledgers/list', [LedgerController::class, 'index'])->name('ledgers.list');
+        Route::post('/ledgers/get-data', [LedgerController::class, 'getData'])->name('ledgers.getData');
+        Route::get('/ledgers/create', [LedgerController::class, 'create'])->name('ledgers.create');
+        Route::post('/ledgers/store', [LedgerController::class, 'store'])->name('ledgers.store');
+        Route::get('/ledgers/edit/{id}', [LedgerController::class, 'edit'])->name('ledgers.edit');
+        Route::put('/ledgers/update', [LedgerController::class, 'update'])->name('ledgers.update');
+        Route::delete('/ledgers/delete/{id}', [LedgerController::class, 'destroy'])->name('ledgers.destroy');
+
+        Route::get('vouchers',        [\App\Http\Controllers\Accounting\VoucherController::class, 'index'])->name('vouchers.index');
+        Route::get('vouchers/create', [\App\Http\Controllers\Accounting\VoucherController::class, 'create'])->name('vouchers.create');
+        Route::post('vouchers',       [\App\Http\Controllers\Accounting\VoucherController::class, 'store'])->name('vouchers.store');
+        Route::delete('vouchers/{voucher}', [\App\Http\Controllers\Accounting\VoucherController::class, 'destroy'])->name('vouchers.destroy'); // optional
+
+
     });
 });
 
