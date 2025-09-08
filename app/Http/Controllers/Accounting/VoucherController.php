@@ -17,13 +17,104 @@ class VoucherController extends Controller
     {
         $vouchers = Voucher::with('lines')->latest('voucher_date')->paginate(20);
         $branches = \App\Models\Branch::select('name', 'id')->get();
+        $types    = ['Payment', 'Receipt', 'Contra', 'Journal', 'Purchase', 'Sales', 'Credit Note', 'Debit Note']; // adjust to your set
 
-        return view('accounting.vouchers.index', compact('vouchers', 'branches'));
+        return view('accounting.vouchers.index', compact('vouchers', 'branches', 'types'));
+    }
+
+    public function getData(Request $request)
+    {
+        $draw   = (int) $request->input('draw', 1);
+        $start  = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
+
+        $searchValue      = $request->input('search.value', '');
+        $orderColumnIndex = (int) $request->input('order.0.column', 0);
+        $orderColumn      = $request->input("columns.$orderColumnIndex.data", 'voucher_date');
+        $orderDirection   = $request->input('order.0.dir', 'asc') === 'desc' ? 'desc' : 'asc';
+
+        // Base with aggregates
+        $base = DB::table('vouchers as v')
+            ->leftJoin('branches as b', 'b.id', '=', 'v.branch_id')
+            ->leftJoin('voucher_lines as l', 'l.voucher_id', '=', 'v.id')
+            ->select([
+                'v.id',
+                'v.voucher_date',
+                'v.voucher_type',
+                'v.ref_no',
+                'v.narration',
+                DB::raw('COALESCE(b.name, "-") as branch_name'),
+                DB::raw("ROUND(SUM(CASE WHEN l.dc='Dr' THEN l.amount ELSE 0 END),2) as dr_total"),
+                DB::raw("ROUND(SUM(CASE WHEN l.dc='Cr' THEN l.amount ELSE 0 END),2) as cr_total"),
+            ])
+            ->groupBy('v.id', 'v.voucher_date', 'v.voucher_type', 'v.ref_no', 'v.narration', 'b.name');
+
+        $recordsTotal = (clone $base)->count();
+
+        if ($searchValue !== '') {
+            $base->where(function ($q) use ($searchValue) {
+                $q->where('v.voucher_type', 'like', "%{$searchValue}%")
+                    ->orWhere('v.ref_no', 'like', "%{$searchValue}%")
+                    ->orWhere('v.narration', 'like', "%{$searchValue}%")
+                    ->orWhere('b.name', 'like', "%{$searchValue}%");
+            });
+        }
+
+        $recordsFiltered = (clone $base)->count();
+
+        $sortable = [
+            'voucher_date' => 'v.voucher_date',
+            'voucher_type' => 'v.voucher_type',
+            'ref_no'       => 'v.ref_no',
+            'branch_name'  => 'branch_name',
+            'dr_total'     => 'dr_total',
+            'cr_total'     => 'cr_total',
+        ];
+        $orderBy = $sortable[$orderColumn] ?? 'v.voucher_date';
+
+        $rows = $base->orderBy($orderBy, $orderDirection)
+            ->offset($start)->limit($length)->get();
+
+        $data = $rows->map(function ($r) {
+            $ok = (float)$r->dr_total === (float)$r->cr_total;
+            $status = $ok
+                ? '<span class="badge bg-success">Balanced</span>'
+                : '<span class="badge bg-danger">Unbalanced</span>';
+
+            $deleteUrl = route('accounting.vouchers.destroy', $r->id);
+
+            $actions = '
+              <div class="d-flex align-items-center gap-1">
+                <form method="POST" action="' . e($deleteUrl) . '" class="d-inline-block frm-del">
+                  ' . csrf_field() . method_field('DELETE') . '
+                  <button type="button" class="btn btn-sm btn-danger btn-delete" data-id="' . (int)$r->id . '">Delete</button>
+                </form>
+              </div>';
+
+            return [
+                'voucher_date' => $r->voucher_date ? \Illuminate\Support\Carbon::parse($r->voucher_date)->format('Y-m-d') : '-',
+                'voucher_type' => e($r->voucher_type),
+                'ref_no'       => e($r->ref_no ?? '-'),
+                'branch'       => e($r->branch_name),
+                'narration'    => e(\Illuminate\Support\Str::limit($r->narration ?? '', 60)),
+                'dr_total'     => number_format((float)$r->dr_total, 2),
+                'cr_total'     => number_format((float)$r->cr_total, 2),
+                'status'       => $status,
+                'action'       => $actions,
+            ];
+        });
+
+        return response()->json([
+            'draw'            => $draw,
+            'recordsTotal'    => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data'            => $data,
+        ]);
     }
 
     public function create()
     {
-        $branches = \App\Models\Branch::select('name', 'id')->get();    
+        $branches = \App\Models\Branch::select('name', 'id')->get();
         return view('accounting.vouchers.create', [
             'ledgers' => AccountLedger::where('is_active', 1)->orderBy('name')->get(),
             'branches' => $branches
@@ -68,6 +159,7 @@ class VoucherController extends Controller
             }
         });
 
-        return redirect()->route('vouchers.index')->with('success', 'Voucher posted successfully.');
+        return redirect()->route('accounting.vouchers.index')
+            ->with('success', 'Voucher posted successfully.');
     }
 }

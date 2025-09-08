@@ -146,7 +146,7 @@ class ShiftClosingController extends Controller
             'branch_id' => $branch_id,
             'denominations' => json_encode($cashNotes),
             'total' => $total,
-            'type' => "withdraw"
+            'type' => "withdraw",
 
         ]);
         // Save shift close info
@@ -169,6 +169,7 @@ class ShiftClosingController extends Controller
         $expense->expense_category_id  = $request->narration;
         $expense->title = $exp_cate->name ?? 'Withdrawal';
         $expense->expense_date = Carbon::parse($expense->expense_date);
+        $expense->verify = 'No';
         $expense->save();
 
         return redirect()->back()->with('notification-sucess', 'Amount withdrawn successfully.');

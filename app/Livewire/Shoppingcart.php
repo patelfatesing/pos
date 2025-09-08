@@ -30,6 +30,7 @@ use App\Models\DailyProductStock;
 use App\Models\ExpenseCategory;
 use Illuminate\Support\Facades\Storage;
 use App\Models\SubCategory;
+use App\Models\Accounting\AccountLedger;
 
 class Shoppingcart extends Component
 {
@@ -1510,8 +1511,25 @@ class Shoppingcart extends Component
         //     ->whereDate('date', Carbon::today())
         //     ->get();
 
-        $this->narrations = ExpenseCategory::where('status', 1)
-            ->pluck('name', 'id')  // assuming the column name is `name`
+        // $this->narrations = ExpenseCategory::where('status', 1)
+        //     ->pluck('name', 'id')  // assuming the column name is `name`
+        //     ->toArray();
+
+        // Adjust names if your COA uses a different label
+        $rootNames = ['Indirect Expenses', 'Indirect Expense', 'Expense - Indirect'];
+
+        // Find root group ids by name
+        $this->narrations  = AccountLedger::query()
+            ->leftJoin('account_groups as g', 'g.id', '=', 'account_ledgers.group_id')
+            ->whereIn('g.name', ['Indirect Expenses', 'Indirect Expense', 'Expense - Indirect']) // adjust names
+            ->where(function ($q) {
+                $q->where('account_ledgers.is_deleted', 'No')->orWhereNull('account_ledgers.is_deleted');
+            })
+            ->where(function ($q) {
+                $q->where('account_ledgers.is_active', 1)->orWhere('account_ledgers.is_active', 'Yes');
+            })
+            ->orderBy('account_ledgers.name')
+            ->pluck('account_ledgers.name', 'account_ledgers.id')
             ->toArray();
 
         foreach ($this->noteDenominations as $index => $denomination) {
