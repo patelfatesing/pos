@@ -483,6 +483,9 @@ Route::middleware('auth')->group(function () {
         Route::post('get-profit-on-sales-invoice-data', [Report2Controller::class, 'getProfitOnSalesInvoiceData'])->name('reports.profit_invoice.data');
         Route::get('product-inactive',  [Report2Controller::class, 'productInactive'])->name('reports.product_inactive.view');
         Route::post('get-product-inactive-data', [Report2Controller::class, 'getProductInactiveData'])->name('reports.product_inactive.data');
+
+        Route::get('balance-sheet',        [Report2Controller::class, 'balanceSheet'])->name('reports.balance-sheet');
+        Route::post('balance-sheet/data',   [Report2Controller::class, 'getBalanceSheetData'])->name('reports.balance-sheet.data');
     });
 
     // routes/web.php
@@ -496,6 +499,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/groups/update', [GroupController::class, 'update'])->name('groups.update');
         Route::delete('/groups/delete/{id}', [GroupController::class, 'destroy'])->name('groups.destroy');
         Route::get('/groups/children/{group}', [GroupController::class, 'children'])->name('groups.children');
+        // Route::get('/ledgers/{vendor}', [LedgerController::class, 'getPurchaseLedgers'])
+        // ->name('ledgers.products');
 
         Route::get('/ledgers/list', [LedgerController::class, 'index'])->name('ledgers.list');
         Route::post('/ledgers/get-data', [LedgerController::class, 'getData'])->name('ledgers.getData');
@@ -505,12 +510,11 @@ Route::middleware('auth')->group(function () {
         Route::put('/ledgers/update', [LedgerController::class, 'update'])->name('ledgers.update');
         Route::delete('/ledgers/delete/{id}', [LedgerController::class, 'destroy'])->name('ledgers.destroy');
 
-        Route::get('vouchers',        [\App\Http\Controllers\Accounting\VoucherController::class, 'index'])->name('vouchers.index');
-        Route::get('vouchers/create', [\App\Http\Controllers\Accounting\VoucherController::class, 'create'])->name('vouchers.create');
-        Route::post('vouchers',       [\App\Http\Controllers\Accounting\VoucherController::class, 'store'])->name('vouchers.store');
-        Route::delete('vouchers/{voucher}', [\App\Http\Controllers\Accounting\VoucherController::class, 'destroy'])->name('vouchers.destroy'); // optional
-
-
+        Route::get('vouchers',        [VoucherController::class, 'index'])->name('vouchers.index');
+        Route::get('vouchers/create', [VoucherController::class, 'create'])->name('vouchers.create');
+        Route::post('vouchers/store',       [VoucherController::class, 'store'])->name('vouchers.store');
+        Route::delete('vouchers/{voucher}', [VoucherController::class, 'destroy'])->name('vouchers.destroy'); // optional
+        Route::post('vouchers/get-data', [VoucherController::class, 'getData'])->name('vouchers.getData');
     });
 });
 

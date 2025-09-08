@@ -140,6 +140,23 @@
                                     <div class="col-lg-3 col-md-3">
                                         <div class="card card-block card-stretch card-height">
                                             <div class="card-body">
+                                                <a href="{{ route('reports.balance-sheet') }}">
+                                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                                        <div class="icon iq-icon-box-2 bg-success-light">
+                                                            <i class="fa fa-money text-success fa-2x"></i>
+                                                        </div>
+                                                        <div>
+                                                            <p class="mb-2">Balance Sheet</p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-3">
+                                        <div class="card card-block card-stretch card-height">
+                                            <div class="card-body">
                                                 <a href="{{ route('reports.product_pl.page') }}">
                                                     <div class="d-flex align-items-center mb-4 card-total-sale">
                                                         <div class="icon iq-icon-box-2 bg-success-light">
@@ -153,7 +170,7 @@
                                             </div>
                                         </div>
                                     </div>
-                              
+
                                     <div class="col-lg-3 col-md-3">
                                         <div class="card card-block card-stretch card-height">
                                             <div class="card-body">

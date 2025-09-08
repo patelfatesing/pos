@@ -16,7 +16,8 @@ class AccountLedger extends Model
         'opening_type', // Dr or Cr
         'is_active',
         'is_deleted',
-        'updated_by'
+        'updated_by',
+        'contact_details'
     ];
 
     protected $casts = [
