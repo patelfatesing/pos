@@ -134,6 +134,7 @@ class LedgerController extends Controller
             'opening_balance' => 'nullable|numeric|min:0',
             'opening_type'    => 'required|in:Dr,Cr',
             'is_active'       => 'nullable|boolean',
+            'contact_details' => 'nullable|string', // ← new
         ]);
 
         AccountLedger::create($data);
@@ -165,6 +166,7 @@ class LedgerController extends Controller
             'opening_balance' => 'nullable|numeric|min:0',
             'opening_type'    => 'required|in:Dr,Cr',
             'is_active'       => 'nullable|boolean',
+            'contact_details' => 'nullable|string'
         ]);
 
         $ledger->update($data);

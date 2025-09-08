@@ -66,7 +66,7 @@
                                                         <select name="parchase_ledger" id="parchase_ledger"
                                                             class="form-control">
                                                             <option value="">-- Select Ledger --</option>
-                                                            @foreach ($purchaseLedger as $ven)
+                                                            @foreach ($ledgers as $ven)
                                                                 <option value="{{ $ven->id }}"
                                                                     {{ old('parchase_ledger') == $ven->id ? 'selected' : '' }}>
                                                                     {{ $ven->name }}
@@ -738,21 +738,21 @@
             ledgerSelect.val(vendorId);
 
             // Reset products
-            productSelect.empty().append('<option value="">-- Select Product --</option>');
+            // productSelect.empty().append('<option value="">-- Select Product --</option>');
 
-            if (vendorId) {
-                $.ajax({
-                    url: "/vendor-products/" + vendorId,
-                    type: "GET",
-                    success: function(res) {
-                        $.each(res, function(i, product) {
-                            productSelect.append('<option value="' + product.id +
-                                '">' + product
-                                .name + '</option>');
-                        });
-                    }
-                });
-            }
+            // if (vendorId) {
+            //     $.ajax({
+            //         url: "/vendor-products/" + vendorId,
+            //         type: "GET",
+            //         success: function(res) {
+            //             $.each(res, function(i, product) {
+            //                 productSelect.append('<option value="' + product.id +
+            //                     '">' + product
+            //                     .name + '</option>');
+            //             });
+            //         }
+            //     });
+            // }
         });
 
         // Replace this with dynamic value if needed

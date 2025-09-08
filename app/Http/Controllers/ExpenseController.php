@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
+use App\Models\Accounting\AccountLedger;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 
@@ -21,79 +22,85 @@ class ExpenseController extends Controller
 
     public function getData(Request $request)
     {
-        $draw = $request->input('draw', 1);
-        $start = $request->input('start', 0);
-        $length = $request->input('length', 10);
-        $searchValue = $request->input('search.value', '');
-        $orderColumnIndex = $request->input('order.0.column', 0);
-        $orderColumn = $request->input("columns.$orderColumnIndex.data", 'expenses.id');
-        $orderDirection = $request->input('order.0.dir', 'asc');
+        $draw              = (int) $request->input('draw', 1);
+        $start             = (int) $request->input('start', 0);
+        $length            = (int) $request->input('length', 10);
+        $searchValue       = (string) $request->input('search.value', '');
+        $orderColumnIndex  = (int) $request->input('order.0.column', 0);
+        $orderDirection    = $request->input('order.0.dir', 'asc') === 'desc' ? 'desc' : 'asc';
+        $orderColumn       = (string) $request->input("columns.$orderColumnIndex.data", 'created_at');
 
-        if (!in_array($orderDirection, ['asc', 'desc'])) {
-            $orderDirection = 'asc';
-        }
+        // Whitelist orderable columns to avoid SQL injection
+        $sortable = [
+            'title'        => 'expenses.title',
+            'title'        => 'expenses.title',
+            'description'  => 'expenses.description',
+            'ledger_name'  => 'ledger_name',
+            'amount'       => 'expenses.amount',
+            'branch_name'  => 'branch_name',
+            'user_name'    => 'user_name',
+            'created_at'   => 'expenses.created_at',
+        ];
+        $orderBy = $sortable[$orderColumn] ?? 'expenses.created_at';
 
+        // If your FK column is different, change 'account_ledger_id' below to your column (e.g., 'ledger_id')
         $query = \DB::table('expenses')
-            ->leftJoin('expense_categories', 'expenses.expense_category_id', '=', 'expense_categories.id')
-            ->leftJoin('branches', 'expenses.branch_id', '=', 'branches.id')
-            ->leftJoin('users', 'expenses.user_id', '=', 'users.id')
-            ->select(
+            ->leftJoin('account_ledgers as l', 'expenses.expense_category_id', '=', 'l.id')
+            ->leftJoin('branches as b', 'expenses.branch_id', '=', 'b.id')
+            ->leftJoin('users as u', 'expenses.user_id', '=', 'u.id')
+            ->select([
                 'expenses.id',
                 'expenses.title',
                 'expenses.description',
-                'expense_categories.name as category_name',
                 'expenses.amount',
                 'expenses.expense_date',
-                'branches.name as branch_name',
-                'users.name as user_name',
-                'expenses.created_at'
-            );
+                'expenses.created_at',
+                \DB::raw('COALESCE(l.name, "-") as ledger_name'),
+                \DB::raw('COALESCE(b.name, "-") as branch_name'),
+                \DB::raw('COALESCE(u.name, "-") as user_name'),
+            ]);
 
-        if (!empty($searchValue)) {
+        // Search
+        if ($searchValue !== '') {
             $query->where(function ($q) use ($searchValue) {
-                $q->where('expenses.title', 'like', '%' . $searchValue . '%')
-                    ->orWhere('expenses.description', 'like', '%' . $searchValue . '%')
-                    ->orWhere('expense_categories.name', 'like', '%' . $searchValue . '%')
-                    ->orWhere('branches.name', 'like', '%' . $searchValue . '%')
-                    ->orWhere('users.name', 'like', '%' . $searchValue . '%');
+                $q->where('expenses.title', 'like', "%{$searchValue}%")
+                    ->orWhere('expenses.description', 'like', "%{$searchValue}%")
+                    ->orWhere('l.name', 'like', "%{$searchValue}%")
+                    ->orWhere('b.name', 'like', "%{$searchValue}%")
+                    ->orWhere('u.name', 'like', "%{$searchValue}%");
             });
         }
 
-        $recordsTotal = \DB::table('expenses')->count();
-        $recordsFiltered = $query->count();
+        // Totals
+        $recordsTotal    = \DB::table('expenses')->count();
+        $recordsFiltered = (clone $query)->count();
 
-        $data = $query->orderBy($orderColumn, $orderDirection)
+        // Page
+        $rows = $query->orderBy($orderBy, $orderDirection)
             ->offset($start)
             ->limit($length)
             ->get();
 
-        $records = [];
-
-        foreach ($data as $expense) {
-            $action = '';
-            // $action = '<div class="d-flex align-items-center list-action">
-            //             <a class="badge bg-success mr-2" data-toggle="tooltip" title="Edit"
-            //                 href="' . url('/exp/edit/' . $expense->id) . '"><i class="ri-pencil-line"></i></a>
-            //        </div>';
-
-            $records[] = [
-                'title' => $expense->title,
-                'description' => Str::limit(strip_tags($expense->description), 50, '...') .
-                    '<a href="#" class="text-primary view-desc" data-desc="' . e($expense->description) . '"> View</a>',
-                'category_name' => $expense->category_name,
-                'amount' => number_format($expense->amount, 2),
-                'branch_name' => $expense->branch_name,
-                'user_name' => $expense->user_name,
-                'created_at' => \Carbon\Carbon::parse($expense->created_at)->format('d-m-Y  h:i A'),
-                'action' => $action
+        // Build response data
+        $data = $rows->map(function ($e) {
+            return [
+                'title'        => $e->title,
+                'description'  => \Illuminate\Support\Str::limit(strip_tags($e->description), 50, '...')
+                    . ' <a href="#" class="text-primary view-desc" data-desc="' . e($e->description) . '">View</a>',
+                'ledger_name'  => $e->ledger_name,
+                'amount'       => number_format((float)$e->amount, 2),
+                'branch_name'  => $e->branch_name,
+                'user_name'    => $e->user_name,
+                'created_at'   => \Carbon\Carbon::parse($e->created_at)->format('d-m-Y  h:i A'),
+                'action'       => '', // add buttons if needed
             ];
-        }
+        });
 
         return response()->json([
-            'draw' => $draw,
-            'recordsTotal' => $recordsTotal,
+            'draw'            => $draw,
+            'recordsTotal'    => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
-            'data' => $records
+            'data'            => $data,
         ]);
     }
 
@@ -103,13 +110,29 @@ class ExpenseController extends Controller
     public function create()
     {
         $categories = ExpenseCategory::where('status', true)->pluck('name', 'id');
-        return view('expenses.create', compact('categories'));
+        $directNames   = ['Direct Expenses', 'Direct Expense', 'Expense - Direct'];
+        $indirectNames = ['Indirect Expenses', 'Indirect Expense', 'Expense - Indirect'];
+
+        $expense = AccountLedger::query()
+            ->leftJoin('account_groups as g', 'g.id', '=', 'account_ledgers.group_id')
+            ->whereIn('g.name', array_merge($directNames, $indirectNames))
+            ->where(function ($q) {
+                $q->where('account_ledgers.is_deleted', 'No')->orWhereNull('account_ledgers.is_deleted');
+            })
+            ->where(function ($q) {
+                $q->where('account_ledgers.is_active', 1)->orWhere('account_ledgers.is_active', 'Yes');
+            })
+            ->orderBy('account_ledgers.name')
+            ->pluck('account_ledgers.name', 'account_ledgers.id')
+            ->toArray();
+
+        return view('expenses.create', compact('categories', 'expense'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'expense_category_id' => 'required|exists:expense_categories,id',
+            'expense_category_id' => 'required|exists:account_ledgers,id',
             'title' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
             'expense_date' => 'required|date',
