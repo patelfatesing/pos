@@ -25,7 +25,8 @@
                     <table class="table data-tables table-striped" id="exp_tbl">
                         <thead class="bg-white text-uppercase">
                             <tr class="ligth ligth-data">
-                                <th>Expense Type</th>
+                                <th>Expense</th>
+                                <th>Ledger</th>
                                 <th>Amount</th>
                                 <th>Store</th>
                                 <th>User</th>
@@ -69,8 +70,12 @@
                     "data": function(d) {},
                 },
                 aoColumns: [{
-                        data: 'category_name',
-                        name: 'category_name'
+                        data: 'title',
+                        name: 'title'
+                    },
+                    {
+                        data: 'ledger_name',
+                        name: 'ledger_name'
                     },
                     {
                         data: 'amount',

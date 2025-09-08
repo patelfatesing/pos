@@ -1,4 +1,3 @@
-{{-- resources/views/reports/pnl_tally.blade.php --}}
 @extends('layouts.backend.datatable_layouts')
 
 @section('styles')
@@ -96,7 +95,7 @@
             flex: 0 0 auto
         }
 
-        /* nested ledger rows */
+        /* nested (group) rows */
         .pnl .child-row td {
             padding-top: 2px;
             padding-bottom: 2px
@@ -120,7 +119,32 @@
             font-size: 12px
         }
 
-        @media (max-width: 768px) {
+        /* second level (ledger) */
+        .pnl .grand-child-row td {
+            padding-top: 2px;
+            padding-bottom: 2px
+        }
+
+        .pnl .grand-child-label {
+            padding-left: 38px;
+            position: relative
+        }
+
+        .pnl .grand-child-label:before {
+            content: "◦";
+            position: absolute;
+            left: 28px;
+            top: 0;
+            color: #cbd5e1
+        }
+
+        /* group subtotal line */
+        .pnl .grand-child-total td {
+            font-weight: 700;
+            border-top: 1px solid #e5e7eb
+        }
+
+        @media (max-width:768px) {
             .two-col {
                 grid-template-columns: 1fr
             }
@@ -135,7 +159,27 @@
             overflow: visible;
         }
 
-        /* instead of hidden */
+        .grand-child-row td {
+            padding-top: 2px;
+            padding-bottom: 2px;
+        }
+
+        .grand-child-label {
+            padding-left: 38px;
+            position: relative;
+        }
+
+        .grand-child-label:before {
+            content: "·";
+            position: absolute;
+            left: 26px;
+            color: #9ca3af;
+        }
+
+        .grand-child-total td {
+            font-weight: 600;
+            border-top: 1px solid #ddd;
+        }
     </style>
 @endsection
 
@@ -159,23 +203,15 @@
                             @endforeach
                         </select>
 
-                        {{-- No Blade defaults: JS sets them once or restores from localStorage --}}
                         <input type="date" id="pnl_start" class="form-control form-control-sm" autocomplete="off">
                         <input type="date" id="pnl_end" class="form-control form-control-sm" autocomplete="off">
 
                         <button id="pnl_apply" type="button" class="btn btn-primary btn-sm">Apply</button>
                     </div>
-                    <a class="btn btn-sm btn-outline-primary"
-                        href="{{ route('reports.profit-loss.pdf', [
-                            'start_date' => request('start_date'),
-                            'end_date' => request('end_date'),
-                            'branch_id' => request('branch_id'),
-                        ]) }}"
-                        target="_blank">
+
+                    <a id="pnl_pdf_link" class="btn btn-sm btn-outline-primary" href="#" target="_blank">
                         Download PDF
                     </a>
-
-
 
                     {{-- Trading Account --}}
                     <div class="two-col mt-2">
@@ -269,10 +305,8 @@
 @section('scripts')
     <script>
         (function() {
-            // ---------- Helpers ----------
             const $ = (id) => document.getElementById(id);
 
-            // Safe YYYY-MM-DD for <input type="date">
             const fmtDate = (d) => {
                 const dt = (d instanceof Date) ? d : new Date(d);
                 const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000);
@@ -286,8 +320,8 @@
             };
 
             const CSRF = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const PDF_BASE = @json(route('reports.profit-loss.pdf'));
 
-            // Persist user picks (prevents “jumping back”)
             const LS_KEY = 'pnl_tally_filters_v2';
             const loadSaved = () => {
                 try {
@@ -296,30 +330,11 @@
                     return {};
                 }
             };
-            const saveCurrent = () => {
-                localStorage.setItem(LS_KEY, JSON.stringify({
-                    branch_id: $('pnl_branch').value || '',
-                    start_date: $('pnl_start').value || '',
-                    end_date: $('pnl_end').value || '',
-                }));
-            };
-
-            // Initialize inputs with saved or last-30-days
-            (function initInputs() {
-                const saved = loadSaved();
-                if (saved.start_date) $('pnl_start').value = saved.start_date;
-                if (saved.end_date) $('pnl_end').value = saved.end_date;
-                if (saved.branch_id !== undefined) $('pnl_branch').value = saved.branch_id;
-
-                if (!$('pnl_start').value) $('pnl_start').value = daysAgoStr(29);
-                if (!$('pnl_end').value) $('pnl_end').value = todayStr();
-
-                // Make sure nothing disabled/readonly
-                ['pnl_start', 'pnl_end'].forEach(id => {
-                    $(id).removeAttribute('readonly');
-                    $(id).disabled = false;
-                });
-            })();
+            const saveCurrent = () => localStorage.setItem(LS_KEY, JSON.stringify({
+                branch_id: $('pnl_branch').value || '',
+                start_date: $('pnl_start').value || '',
+                end_date: $('pnl_end').value || '',
+            }));
 
             function selectedBranchText() {
                 const sel = $('pnl_branch');
@@ -330,6 +345,15 @@
                 const s = $('pnl_start').value || '';
                 const e = $('pnl_end').value || '';
                 $('pnl_period').textContent = `${selectedBranchText()} • ${s} to ${e}`;
+            }
+
+            function updatePdfLink() {
+                const params = new URLSearchParams({
+                    start_date: $('pnl_start').value || '',
+                    end_date: $('pnl_end').value || '',
+                    branch_id: $('pnl_branch').value || ''
+                });
+                $('pnl_pdf_link').href = `${PDF_BASE}?${params.toString()}`;
             }
 
             function clearTbody(tbody) {
@@ -348,12 +372,43 @@
                 tbody.appendChild(tr);
             }
 
+            // Render Section → Groups → Ledgers (+ group subtotal)
             function renderSide(tbodySelector, rows) {
                 const tbody = document.querySelector(tbodySelector);
-                clearTbody(tbody);
+                while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+
                 (rows || []).forEach(r => {
+                    // Section header row (e.g., Purchase Accounts, Direct Expenses, etc.)
                     appendRow(tbody, r.label, r.amount);
-                    if (Array.isArray(r.children)) {
+
+                    if (!Array.isArray(r.children)) return;
+
+                    if (r.flatten) {
+                        // children are LEDGERS directly
+                        r.children.forEach(led => {
+                            const tr = document.createElement('tr');
+                            const td1 = document.createElement('td');
+                            const td2 = document.createElement('td');
+                            td2.className = 'amount';
+
+                            if (led.is_total) {
+                                tr.className = 'grand-child-total';
+                                td1.textContent = led.label ?? 'Total';
+                            } else {
+                                tr.className = 'grand-child-row';
+                                td1.className = 'grand-child-label';
+                                const bills = (typeof led.bills !== 'undefined') ?
+                                    `<span class="child-meta"> (Bills: ${led.bills})</span>` : '';
+                                td1.innerHTML = (led.label ?? 'Ledger') + bills;
+                            }
+
+                            td2.textContent = led.amount ?? '0.00';
+                            tr.appendChild(td1);
+                            tr.appendChild(td2);
+                            tbody.appendChild(tr);
+                        });
+                    } else {
+                        // children are GROUPS; each group has LEDGERS + group total
                         r.children.forEach(ch => {
                             const tr = document.createElement('tr');
                             tr.className = 'child-row';
@@ -361,53 +416,91 @@
                             td1.className = 'child-label';
                             const td2 = document.createElement('td');
                             td2.className = 'amount';
+
                             const bills = (typeof ch.bills !== 'undefined') ?
                                 `<span class="child-meta"> (Bills: ${ch.bills})</span>` : '';
-                            td1.innerHTML = (ch.label ?? 'Ledger') + bills;
+                            td1.innerHTML = (ch.label ?? 'Group') + bills;
                             td2.textContent = ch.amount ?? '0.00';
                             tr.appendChild(td1);
                             tr.appendChild(td2);
                             tbody.appendChild(tr);
+
+                            if (Array.isArray(ch.children)) {
+                                ch.children.forEach(led => {
+                                    const tr2 = document.createElement('tr');
+                                    const td1g = document.createElement('td');
+                                    const td2g = document.createElement('td');
+                                    td2g.className = 'amount';
+
+                                    if (led.is_total) {
+                                        tr2.className = 'grand-child-total';
+                                        td1g.textContent = led.label ?? 'Total';
+                                    } else {
+                                        tr2.className = 'grand-child-row';
+                                        td1g.className = 'grand-child-label';
+                                        const bills2 = (typeof led.bills !== 'undefined') ?
+                                            `<span class="child-meta"> (Bills: ${led.bills})</span>` :
+                                            '';
+                                        td1g.innerHTML = (led.label ?? 'Ledger') + bills2;
+                                    }
+
+                                    td2g.textContent = led.amount ?? '0.00';
+                                    tr2.appendChild(td1g);
+                                    tr2.appendChild(td2g);
+                                    tbody.appendChild(tr2);
+                                });
+                            }
                         });
                     }
                 });
             }
 
-            // Prevent parent form submit (Enter key)
+            // Init inputs from localStorage or last 30 days
+            (function initInputs() {
+                const saved = loadSaved();
+                if (saved.start_date) $('pnl_start').value = saved.start_date;
+                if (saved.end_date) $('pnl_end').value = saved.end_date;
+                if (saved.branch_id !== undefined) $('pnl_branch').value = saved.branch_id;
+
+                if (!$('pnl_start').value) $('pnl_start').value = daysAgoStr(29);
+                if (!$('pnl_end').value) $('pnl_end').value = todayStr();
+
+                ['pnl_start', 'pnl_end'].forEach(id => {
+                    $(id).removeAttribute('readonly');
+                    $(id).disabled = false;
+                });
+
+                updateHeader();
+                updatePdfLink();
+            })();
+
             $('pnl_filters')?.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') e.preventDefault();
             });
 
-            // ---------- Main loader ----------
             function refresh(e) {
                 if (e?.preventDefault) e.preventDefault();
 
-                // Read current values RIGHT NOW (no stale refs)
                 const payload = {
                     branch_id: $('pnl_branch').value || '',
                     start_date: $('pnl_start').value || '',
                     end_date: $('pnl_end').value || '',
                     _ts: Date.now()
                 };
-
-                // Quick sanity: start <= end
                 if (payload.start_date && payload.end_date && payload.start_date > payload.end_date) {
                     alert('Start date cannot be after End date.');
                     return;
                 }
 
-                // Reflect & persist
                 updateHeader();
+                updatePdfLink();
                 saveCurrent();
 
-                // Debug what we send
-                console.log('P&L sending JSON:', payload);
-
-                fetch("{{ route('reports.pnl_tally.data') }}", {
+                fetch(@json(route('reports.pnl_tally.data')), {
                         method: 'POST',
                         headers: {
                             'Accept': 'application/json',
-                            'Content-Type': 'application/json', // <— send JSON
+                            'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': CSRF,
                             'X-Requested-With': 'XMLHttpRequest',
                             'Cache-Control': 'no-store'
@@ -423,18 +516,17 @@
                         $('lbl_pl_dr').textContent = json?.pl?.dr?.title ?? 'Profit & Loss A/c (Dr)';
                         $('lbl_pl_cr').textContent = json?.pl?.cr?.title ?? 'Profit & Loss A/c (Cr)';
 
-                        // Tables
+                        // Tables (support Section → Group → Ledger + subtotal)
                         renderSide('#tbl_trading_dr tbody', json?.trading?.dr?.rows ?? json?.trading?.dr ?? []);
                         renderSide('#tbl_trading_cr tbody', json?.trading?.cr?.rows ?? json?.trading?.cr ?? []);
                         renderSide('#tbl_pl_dr tbody', json?.pl?.dr?.rows ?? json?.pl?.dr ?? []);
                         renderSide('#tbl_pl_cr tbody', json?.pl?.cr?.rows ?? json?.pl?.cr ?? []);
 
-                        // Totals (mirror across sides)
+                        // Totals mirrored
                         const trTot = json?.trading?.table_total ?? json?.trading?.total ?? '0.00';
+                        const plTot = json?.pl?.table_total ?? json?.pl?.total ?? '0.00';
                         $('trading_total_dr').textContent = trTot;
                         $('trading_total_cr').textContent = trTot;
-
-                        const plTot = json?.pl?.table_total ?? json?.pl?.total ?? '0.00';
                         $('pl_total_dr').textContent = plTot;
                         $('pl_total_cr').textContent = plTot;
                     })
@@ -444,19 +536,17 @@
                     });
             }
 
-            // Live header update & save on changes
             ['pnl_branch', 'pnl_start', 'pnl_end'].forEach(id => {
                 $(id).addEventListener('change', () => {
                     updateHeader();
+                    updatePdfLink();
                     saveCurrent();
                 });
             });
 
-            // Apply click (no form submit)
             $('pnl_apply').addEventListener('click', refresh);
 
             // First render
-            updateHeader();
             refresh();
         })();
     </script>

@@ -23,10 +23,10 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="expense_category_id">Expense Category *</label>
+                                            <label for="expense_category_id">Expense Ledger *</label>
                                             <select name="expense_category_id" class="form-control">
-                                                <option value="">Select Category</option>
-                                                @foreach($categories as $id => $name)
+                                                <option value="">Select Ledger</option>
+                                                @foreach($expense as $id => $name)
                                                     <option value="{{ $id }}">{{ $name }}</option>
                                                 @endforeach
                                             </select>

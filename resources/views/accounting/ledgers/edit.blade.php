@@ -65,6 +65,14 @@
                                             <input type="checkbox" name="is_active" value="1"
                                                 {{ old('is_active', $ledger->is_active) ? 'checked' : '' }}> Yes
                                         </div>
+                                        <div class="col-md-12">
+                                            <label class="form-label">Contact Details (optional)</label>
+                                            <textarea name="contact_details" class="form-control" rows="3">{{ old('contact_details', $ledger->contact_details) }}</textarea>
+                                            @error('contact_details')
+                                                <span class="text-danger">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+
                                     </div>
 
                                     <div class="mt-3">

@@ -38,6 +38,21 @@ class PurchaseController extends Controller
         $expMainCategory = ExpenseCategory::where('expense_type_id', 1)->get();
         $purchaseLedger = PurchaseLedger::where('is_active', 'Yes')->get();
 
+        $purchaseGroupNames = ['Purchase Ledger', 'Purchase Ledgers', 'Purchase Accounts'];
+
+        $ledgers = \DB::table('account_ledgers as l')
+            ->join('account_groups as g', 'g.id', '=', 'l.group_id')
+            ->whereIn('g.name', $purchaseGroupNames)
+            ->where(function ($q) {
+                $q->where('l.is_deleted', 'No')->orWhereNull('l.is_deleted');
+            })
+            ->where(function ($q) {
+                // handle boolean or enum
+                $q->where('l.is_active', 1)->orWhere('l.is_active', 'Yes');
+            })
+            ->orderBy('l.name')
+            ->get(['l.id', 'l.name']);
+
         // $products = Product::select('products.id', 'products.name', DB::raw('SUM(inventories.quantity) as total_quantity'))
         // ->join('inventories', 'products.id', '=', 'inventories.product_id')
         // ->where('products.is_deleted', 'no')
@@ -45,7 +60,7 @@ class PurchaseController extends Controller
         // ->orderBy('inventories.id', 'asc')
         // ->get();
 
-        return view('purchase.create', compact('vendors', 'products', 'expMainCategory','purchaseLedger'));
+        return view('purchase.create', compact('vendors', 'products', 'expMainCategory', 'purchaseLedger','ledgers'));
     }
 
     /**
