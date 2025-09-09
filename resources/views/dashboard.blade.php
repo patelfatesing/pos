@@ -159,6 +159,238 @@
                                 </div>
                             </div>
                         </div>
+                        {{-- Assets/Liabilities --}}
+                        @php($al = $data['assets_liabilities'] ?? [])
+                        @php($ca = $al[0] ?? null) {{-- Current Assets --}}
+                        @php($cl = $al[1] ?? null) {{-- Current Liabilities --}}
+                        <div class="col-lg-3 col-md-3">
+                            <div class="card card-block card-stretch card-height">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                        <div class="icon iq-icon-box-2 orange-bg-light">
+                                            <i class="fas fa-balance-scale text-warning fa-2x"></i>
+                                        </div>
+                                        <div>
+                                            <p class="mb-2">Assets/Liabilities</p>
+                                            <h4>{{ $ca['closing'] ?? '0.00' }} {{ $ca['side'] ?? '' }}</h4>
+                                            <div class="small text-muted">{{ $ca['label'] ?? 'Current Assets' }}</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="small d-flex justify-content-between">
+                                        <span>{{ $ca['label'] ?? 'Current Assets' }}</span>
+                                        <span>{{ $ca['closing'] ?? '0.00' }} {{ $ca['side'] ?? '' }}</span>
+                                    </div>
+                                    <div class="small d-flex justify-content-between">
+                                        <span>{{ $cl['label'] ?? 'Current Liabilities' }}</span>
+                                        <span>{{ $cl['closing'] ?? '0.00' }} {{ $cl['side'] ?? '' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Cash In/Out Flow --}}
+                        @php($cf = $data['cash_flow'] ?? [])
+                        <div class="col-lg-3 col-md-3">
+                            <div class="card card-block card-stretch card-height">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                        <div class="icon iq-icon-box-2 sky-blue-gb">
+                                            @php($netUp = !Str::contains($data['cash_flow']['net'] ?? '', '-'))
+                                            <i class="fas {{ $netUp ? 'fa-arrow-up text-success' : 'fa-arrow-down text-danger' }} fa-2x"
+                                                title="Cash Flow"></i>
+                                        </div>
+                                        <div>
+                                            <p class="mb-2">Cash In/Out Flow</p>
+                                            <h4>{{ $cf['net'] ?? '0.00' }}</h4>
+                                            <div class="small text-muted">Net Flow</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="small d-flex justify-content-between">
+                                        <span>Inflow</span><span>{{ $cf['inflow'] ?? '0.00' }}</span>
+                                    </div>
+                                    <div class="small d-flex justify-content-between">
+                                        <span>Outflow</span><span>{{ $cf['outflow'] ?? '0.00' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Cash/Bank Accounts --}}
+                        @php($cba = $data['cash_bank_accounts'] ?? [])
+                        <div class="col-lg-3 col-md-3">
+                            <div class="card card-block card-stretch card-height">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                        <div class="icon iq-icon-box-2 sky-blue-gb">
+                                            <i class="fas fa-piggy-bank text-success fa-2x" title="Cash/Bank"></i>
+                                        </div>
+                                        <div>
+                                            <p class="mb-2">Cash/Bank Accounts</p>
+                                            <h4>{{ $cba['closing'] ?? '0.00' }} {{ $cba['side'] ?? '' }}</h4>
+                                            <div class="small text-muted">Closing Balance</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Trading Details --}}
+                        @php($td = $data['trading_details'] ?? [])
+                        <div class="col-lg-3 col-md-3">
+                            <div class="card card-block card-stretch card-height">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                        <div class="icon iq-icon-box-2 sky-blue-gb">
+                                            <i class="fas fa-chart-line text-primary fa-2x" title="Trading"></i>
+                                        </div>
+                                        <div>
+                                            <p class="mb-2">Trading Details</p>
+                                            <h4>{{ $td['gross_profit'] ?? '0.00' }}</h4>
+                                            <div class="small text-muted">Gross Profit</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="small d-flex justify-content-between">
+                                        <span>Nett Profit</span><span>{{ $td['nett_profit'] ?? '0.00' }}</span>
+                                    </div>
+                                    <div class="small d-flex justify-content-between">
+                                        <span>Sales Accounts</span><span>{{ $td['sales_accounts'] ?? '0.00' }}</span>
+                                    </div>
+                                    <div class="small d-flex justify-content-between">
+                                        <span>Purchase Accounts</span><span>{{ $td['purchase_accounts'] ?? '0.00' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Inventory Details --}}
+                        @php($inv = $data['inventory'] ?? [])
+                        <div class="col-lg-3 col-md-3">
+                            <div class="card card-block card-stretch card-height">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                        <div class="icon iq-icon-box-2 sky-blue-gb">
+                                            <i class="fas fa-boxes text-info fa-2x" title="Inventory"></i>
+                                        </div>
+                                        <div>
+                                            <p class="mb-2">Inventory Details</p>
+                                            <h4>{{ $inv['closing_value'] ?? '0.00' }}</h4>
+                                            <div class="small text-muted">Closing Stock (Value)</div>
+                                        </div>
+                                    </div>
+
+                                    @if (!empty($inv['inwards_value']))
+                                        <div class="small d-flex justify-content-between">
+                                            <span>Inwards</span><span>{{ $inv['inwards_value'] }}</span>
+                                        </div>
+                                    @endif
+                                    @if (!empty($inv['outwards_value']))
+                                        <div class="small d-flex justify-content-between">
+                                            <span>Outwards</span><span>{{ $inv['outwards_value'] }}</span>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Accounting Ratios --}}
+                        @php($rat = $data['ratios'] ?? [])
+                        <div class="col-lg-3 col-md-3">
+                            <div class="card card-block card-stretch card-height">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                        <div class="icon iq-icon-box-2 sky-blue-gb">
+                                            <i class="fas fa-percentage text-secondary fa-2x" title="Ratios"></i>
+                                        </div>
+                                        <div>
+                                            <p class="mb-2">Accounting Ratios</p>
+                                            <h4>{{ !empty($rat['roi_percent']) ? $rat['roi_percent'] . ' %' : '—' }}</h4>
+                                            <div class="small text-muted">Return on Investment</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="small d-flex justify-content-between">
+                                        <span>Inventory Turnover</span><span>{{ $rat['inventory_turnover'] ?? '—' }}</span>
+                                    </div>
+                                    <div class="small d-flex justify-content-between">
+                                        <span>Debt/Equity</span><span>{{ $rat['debt_equity'] ?? '—' }}</span>
+                                    </div>
+                                    <div class="small d-flex justify-content-between">
+                                        <span>Receivable Turnover
+                                            (Days)</span><span>{{ $rat['receivable_turnover_days'] ?? '—' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Receivables/Payables --}}
+                        @php($rp = $data['receivablesPayables'] ?? [])
+                        <div class="col-lg-3 col-md-3">
+                            <div class="card card-block card-stretch card-height">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                        <div class="icon iq-icon-box-2 sky-blue-gb">
+                                            <i class="fas fa-file-invoice-dollar text-primary fa-2x" title="AR/AP"></i>
+                                        </div>
+                                        <div>
+                                            <p class="mb-2">Receivables / Payables</p>
+                                            <h4>{{ $rp['receivables'] ?? '0.00' }}</h4>
+                                            <div class="small text-muted">Receivables</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="small d-flex justify-content-between">
+                                        <span>Payables</span><span>{{ $rp['payables'] ?? '0.00' }}</span>
+                                    </div>
+                                    @if (array_key_exists('overdue_receivables', $rp) && !is_null($rp['overdue_receivables']))
+                                        <div class="small d-flex justify-content-between">
+                                            <span>Overdue Receivables</span><span>{{ $rp['overdue_receivables'] }}</span>
+                                        </div>
+                                    @endif
+                                    @if (array_key_exists('overdue_payables', $rp) && !is_null($rp['overdue_payables']))
+                                        <div class="small d-flex justify-content-between">
+                                            <span>Overdue Payables</span><span>{{ $rp['overdue_payables'] }}</span>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Top Groups/Ledgers (Bank) --}}
+                        @php($tbl = $data['top_bank_ledgers'] ?? [])
+                        <div class="col-lg-3 col-md-3">
+                            <div class="card card-block card-stretch card-height">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                        <div class="icon iq-icon-box-2 sky-blue-gb">
+                                            <i class="fas fa-university text-primary fa-2x" title="Top Banks"></i>
+                                        </div>
+                                        <div>
+                                            <p class="mb-2">Top Groups/Ledgers (Bank)</p>
+                                            <h4>{{ isset($tbl[0]) ? $tbl[0]['closing'] . ' ' . $tbl[0]['side'] : '—' }}
+                                            </h4>
+                                            <div class="small text-muted">{{ $tbl[0]['name'] ?? '' }}</div>
+                                        </div>
+                                    </div>
+
+                                    @foreach ($tbl ?? [] as $i => $r)
+                                        @if ($i === 0)
+                                            @continue
+                                        @endif
+                                        <div class="small d-flex justify-content-between">
+                                            <span>{{ $r['name'] }}</span>
+                                            <span>{{ $r['closing'] }} {{ $r['side'] }}</span>
+                                        </div>
+                                    @endforeach
+                                    @if (empty($tbl))
+                                        <div class="small text-muted">No data</div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="col-lg-6">
                             <div class="card card-block card-stretch card-height-helf">
                                 <div class="card-body">
