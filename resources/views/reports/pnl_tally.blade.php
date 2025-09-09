@@ -304,6 +304,8 @@
 
 @section('scripts')
     <script>
+        const GROUP_URL = @json(route('reports.pnl.group'));
+        const LEDGER_URL = @json(route('reports.pnl.ledger'));
         (function() {
             const $ = (id) => document.getElementById(id);
 
@@ -378,10 +380,11 @@
                 while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
 
                 (rows || []).forEach(r => {
-                    // Section header row (e.g., Purchase Accounts, Direct Expenses, etc.)
                     appendRow(tbody, r.label, r.amount);
 
                     if (!Array.isArray(r.children)) return;
+
+                    const section = r.section || ''; // purchase|direct|indirect|income|sales
 
                     if (r.flatten) {
                         // children are LEDGERS directly
@@ -397,9 +400,22 @@
                             } else {
                                 tr.className = 'grand-child-row';
                                 td1.className = 'grand-child-label';
+
+                                // clickable ledger
+                                if (led.ledger_id) {
+                                    const a = document.createElement('a');
+                                    a.textContent = led.label ?? 'Ledger';
+                                    a.href =
+                                        `${LEDGER_URL}?ledger_id=${encodeURIComponent(led.ledger_id)}&section=${encodeURIComponent(section)}&start_date=${encodeURIComponent($('#pnl_start').value)}&end_date=${encodeURIComponent($('#pnl_end').value)}&branch_id=${encodeURIComponent($('#pnl_branch').value)}`;
+                                    a.target = '_blank';
+                                    td1.appendChild(a);
+                                } else {
+                                    td1.textContent = led.label ?? 'Ledger';
+                                }
+
                                 const bills = (typeof led.bills !== 'undefined') ?
-                                    `<span class="child-meta"> (Bills: ${led.bills})</span>` : '';
-                                td1.innerHTML = (led.label ?? 'Ledger') + bills;
+                                    ` <span class="child-meta">(Bills: ${led.bills})</span>` : '';
+                                td1.insertAdjacentHTML('beforeend', bills);
                             }
 
                             td2.textContent = led.amount ?? '0.00';
@@ -408,7 +424,7 @@
                             tbody.appendChild(tr);
                         });
                     } else {
-                        // children are GROUPS; each group has LEDGERS + group total
+                        // children are GROUPS; each group has LEDGERS + subtotal
                         r.children.forEach(ch => {
                             const tr = document.createElement('tr');
                             tr.className = 'child-row';
@@ -417,9 +433,22 @@
                             const td2 = document.createElement('td');
                             td2.className = 'amount';
 
+                            // clickable group
+                            if (ch.group_id) {
+                                const a = document.createElement('a');
+                                a.textContent = ch.label ?? 'Group';
+                                a.href =
+                                    `${GROUP_URL}?section=${encodeURIComponent(section)}&group_id=${encodeURIComponent(ch.group_id)}&start_date=${encodeURIComponent($('#pnl_start').value)}&end_date=${encodeURIComponent($('#pnl_end').value)}&branch_id=${encodeURIComponent($('#pnl_branch').value)}`;
+                                a.target = '_blank';
+                                td1.appendChild(a);
+                            } else {
+                                td1.textContent = ch.label ?? 'Group';
+                            }
+
                             const bills = (typeof ch.bills !== 'undefined') ?
-                                `<span class="child-meta"> (Bills: ${ch.bills})</span>` : '';
-                            td1.innerHTML = (ch.label ?? 'Group') + bills;
+                                ` <span class="child-meta">(Bills: ${ch.bills})</span>` : '';
+                            td1.insertAdjacentHTML('beforeend', bills);
+
                             td2.textContent = ch.amount ?? '0.00';
                             tr.appendChild(td1);
                             tr.appendChild(td2);
@@ -438,10 +467,23 @@
                                     } else {
                                         tr2.className = 'grand-child-row';
                                         td1g.className = 'grand-child-label';
+
+                                        // clickable ledger
+                                        if (led.ledger_id) {
+                                            const a = document.createElement('a');
+                                            a.textContent = led.label ?? 'Ledger';
+                                            a.href =
+                                                `${LEDGER_URL}?ledger_id=${encodeURIComponent(led.ledger_id)}&section=${encodeURIComponent(section)}&start_date=${encodeURIComponent($('#pnl_start').value)}&end_date=${encodeURIComponent($('#pnl_end').value)}&branch_id=${encodeURIComponent($('#pnl_branch').value)}`;
+                                            a.target = '_blank';
+                                            td1g.appendChild(a);
+                                        } else {
+                                            td1g.textContent = led.label ?? 'Ledger';
+                                        }
+
                                         const bills2 = (typeof led.bills !== 'undefined') ?
-                                            `<span class="child-meta"> (Bills: ${led.bills})</span>` :
+                                            ` <span class="child-meta">(Bills: ${led.bills})</span>` :
                                             '';
-                                        td1g.innerHTML = (led.label ?? 'Ledger') + bills2;
+                                        td1g.insertAdjacentHTML('beforeend', bills2);
                                     }
 
                                     td2g.textContent = led.amount ?? '0.00';

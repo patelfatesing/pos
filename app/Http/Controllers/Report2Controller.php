@@ -2869,6 +2869,249 @@ class Report2Controller extends Controller
         return $rows;
     }
 
+    public function group(Request $request, int $groupId)
+    {
+        $branchId  = $request->integer('branch_id');
+        $startDate = $request->date('start_date');
+        $endDate   = $request->date('end_date');
+
+        $group = DB::table('account_groups')->where('id', $groupId)->first();
+        abort_unless($group, 404);
+
+        // Descendants
+        $all = DB::table('account_groups')->select('id', 'parent_id', 'name', 'nature', 'affects_gross')->get();
+        $byP = [];
+        foreach ($all as $g) {
+            $byP[$g->parent_id ?? 0][] = $g;
+        }
+
+        $desc = [];
+        $queue = [$groupId];
+        $desc[$groupId] = true;
+        while ($queue) {
+            $pid = array_shift($queue);
+            foreach ($byP[$pid] ?? [] as $c) {
+                if (!isset($desc[$c->id])) {
+                    $desc[$c->id] = true;
+                    $queue[] = $c->id;
+                }
+            }
+        }
+        $groupIds = array_keys($desc);
+
+        // Ledgers under this (and children) groups
+        $ledgers = DB::table('account_ledgers')->whereIn('group_id', $groupIds)
+            ->when(Schema::hasColumn('account_ledgers', 'is_deleted'), fn($q) => $q->where('is_deleted', 0))
+            ->pluck('name', 'id');
+
+        // Summary by ledger
+        $summary = collect();
+        if (Schema::hasTable('voucher_lines') && Schema::hasTable('vouchers')) {
+            $vl = DB::table('voucher_lines as vl')
+                ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
+                ->join('account_ledgers as l', 'l.id', '=', 'vl.ledger_id')
+                ->whereBetween('v.voucher_date', [$startDate, $endDate])
+                ->when($branchId, fn($q, $v) => $q->where('v.branch_id', $v))
+                ->whereIn('l.id', $ledgers->keys())
+                ->selectRaw("
+                    l.id as lid, l.name as lname,
+                    COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0) as dr,
+                    COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0) as cr
+                ")
+                ->groupBy('l.id', 'l.name')
+                ->get()
+                ->map(fn($r) => [
+                    'lid'    => $r->lid,
+                    'ledger' => $r->lname,
+                    'amount' => (float)$r->dr - (float)$r->cr
+                ]);
+
+            $summary = $summary->merge($vl);
+        }
+
+        // Expenses table (Dr only) – expense_category_id IS ledger_id
+        if (Schema::hasTable('expenses')) {
+            $ex = DB::table('expenses as e')
+                ->join('account_ledgers as l', 'l.id', '=', 'e.expense_category_id')
+                ->whereBetween('e.expense_date', [$startDate, $endDate])
+                ->when($branchId, fn($q, $v) => $q->where('e.branch_id', $v))
+                ->whereIn('l.id', $ledgers->keys())
+                ->selectRaw('l.id as lid, l.name as lname, COALESCE(SUM(e.amount),0) as amt')
+                ->groupBy('l.id', 'l.name')->get()
+                ->map(fn($r) => [
+                    'lid'    => $r->lid,
+                    'ledger' => $r->lname,
+                    'amount' => (float)$r->amt
+                ]);
+
+            // combine by ledger
+            $by = [];
+            foreach ($summary as $row) $by[$row['lid']] = $row['amount'];
+            foreach ($ex as $row)     $by[$row['lid']] = ($by[$row['lid']] ?? 0) + $row['amount'];
+
+            $summary = collect();
+            foreach ($by as $lid => $amt) {
+                $summary->push(['lid' => $lid, 'ledger' => $ledgers[$lid] ?? ('Ledger #' . $lid), 'amount' => $amt]);
+            }
+        }
+
+        // Purchases table rows if this is under Purchase Accounts (optional)
+        $groupNameLower = strtolower($group->name ?? '');
+        $isPurchaseGroup = str_contains($groupNameLower, 'purchase');
+        if ($isPurchaseGroup && Schema::hasTable('purchases')) {
+            $p = DB::table('purchases')->whereBetween('date', [$startDate, $endDate])
+                ->when($branchId, fn($q, $v) => $q->where(function ($w) use ($v) {
+                    // adjust if you have branch_id or store_id
+                    if (Schema::hasColumn('purchases', 'branch_id')) $w->where('branch_id', $v);
+                    if (Schema::hasColumn('purchases', 'store_id'))  $w->orWhere('store_id', $v);
+                }))
+                ->whereIn('parchase_ledger', $ledgers->keys())
+                ->selectRaw('parchase_ledger as lid, COALESCE(SUM(COALESCE(total_amount, total, 0)),0) as amt')
+                ->groupBy('parchase_ledger')->get();
+
+            $by = [];
+            foreach ($summary as $row) $by[$row['lid']] = $row['amount'];
+            foreach ($p as $row)       $by[$row->lid]   = ($by[$row->lid] ?? 0) + (float)$row->amt;
+
+            $summary = collect();
+            foreach ($by as $lid => $amt) {
+                $summary->push(['lid' => $lid, 'ledger' => $ledgers[$lid] ?? ('Ledger #' . $lid), 'amount' => $amt]);
+            }
+        }
+
+        $summary = $summary->sortBy('ledger')->values();
+        $total   = (float) $summary->sum('amount');
+
+        // Transaction list (voucher lines + expenses + purchases) for the group
+        $tx = collect();
+
+        if (Schema::hasTable('voucher_lines') && Schema::hasTable('vouchers')) {
+            $tx = $tx->merge(
+                DB::table('voucher_lines as vl')
+                    ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
+                    ->join('account_ledgers as l', 'l.id', '=', 'vl.ledger_id')
+                    ->whereBetween('v.voucher_date', [$startDate, $endDate])
+                    ->when($branchId, fn($q, $v) => $q->where('v.branch_id', $v))
+                    ->whereIn('l.id', $ledgers->keys())
+                    ->selectRaw("v.voucher_date as dt, v.voucher_no as doc_no, v.voucher_type as src, l.name as ledger,
+                                 CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END as dr,
+                                 CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END as cr")
+                    ->get()
+            );
+        }
+
+        if (Schema::hasTable('expenses')) {
+            $tx = $tx->merge(
+                DB::table('expenses as e')
+                    ->join('account_ledgers as l', 'l.id', '=', 'e.expense_category_id')
+                    ->whereBetween('e.expense_date', [$startDate, $endDate])
+                    ->when($branchId, fn($q, $v) => $q->where('e.branch_id', $v))
+                    ->whereIn('l.id', $ledgers->keys())
+                    ->selectRaw("e.expense_date as dt, CONCAT('EXP-', e.id) as doc_no, 'Expense' as src, l.name as ledger,
+                                 e.amount as dr, 0 as cr")
+                    ->get()
+            );
+        }
+
+        if ($isPurchaseGroup && Schema::hasTable('purchases')) {
+            $tx = $tx->merge(
+                DB::table('purchases as p')
+                    ->join('account_ledgers as l', 'l.id', '=', 'p.parchase_ledger')
+                    ->whereBetween('p.date', [$startDate, $endDate])
+                    ->when($branchId, fn($q, $v) => $q->where(function ($w) use ($v) {
+                        if (Schema::hasColumn('p', 'branch_id')) $w->where('p.branch_id', $v);
+                        if (Schema::hasColumn('p', 'store_id'))  $w->orWhere('p.store_id', $v);
+                    }))
+                    ->whereIn('p.parchase_ledger', $ledgers->keys())
+                    ->selectRaw("p.date as dt, p.bill_no as doc_no, 'Purchase' as src, l.name as ledger,
+                                 COALESCE(p.total_amount, p.total, 0) as dr, 0 as cr")
+                    ->get()
+            );
+        }
+
+        $tx = $tx->sortBy('dt')->values();
+
+        return view('reports.pnl_drilldown_group', [
+            'group'     => $group,
+            'summary'   => $summary,
+            'total'     => $total,
+            'tx'        => $tx,
+            'params'    => compact('branchId', 'startDate', 'endDate'),
+        ]);
+    }
+
+    /** LEDGER DRILLDOWN: all transactions for one ledger in the period */
+    public function ledger(Request $request, int $ledgerId)
+    {
+        $branchId  = $request->integer('branch_id');
+        $startDate = $request->date('start_date');
+        $endDate   = $request->date('end_date');
+
+        $ledger = DB::table('account_ledgers as l')
+            ->leftJoin('account_groups as g', 'g.id', '=', 'l.group_id')
+            ->where('l.id', $ledgerId)
+            ->select('l.*', 'g.name as group_name')
+            ->first();
+        abort_unless($ledger, 404);
+
+        $rows = collect();
+
+        if (Schema::hasTable('voucher_lines') && Schema::hasTable('vouchers')) {
+            $rows = $rows->merge(
+                DB::table('voucher_lines as vl')
+                    ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
+                    ->whereBetween('v.voucher_date', [$startDate, $endDate])
+                    ->when($branchId, fn($q, $v) => $q->where('v.branch_id', $v))
+                    ->where('vl.ledger_id', $ledgerId)
+                    ->selectRaw("v.voucher_date as dt, v.voucher_no as doc_no, v.voucher_type as src,
+                                 CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END as dr,
+                                 CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END as cr")
+                    ->get()
+            );
+        }
+
+        if (Schema::hasTable('expenses')) {
+            $rows = $rows->merge(
+                DB::table('expenses')
+                    ->whereBetween('expense_date', [$startDate, $endDate])
+                    ->when($branchId, fn($q, $v) => $q->where('branch_id', $v))
+                    ->where('expense_category_id', $ledgerId)
+                    ->selectRaw("expense_date as dt, CONCAT('EXP-', id) as doc_no, 'Expense' as src, amount as dr, 0 as cr")
+                    ->get()
+            );
+        }
+
+        if (Schema::hasTable('purchases')) {
+            $rows = $rows->merge(
+                DB::table('purchases')
+                    ->whereBetween('date', [$startDate, $endDate])
+                    ->when($branchId, fn($q, $v) => $q->where(function ($w) use ($v) {
+                        if (Schema::hasColumn('purchases', 'branch_id')) $w->where('branch_id', $v);
+                        if (Schema::hasColumn('purchases', 'store_id'))  $w->orWhere('store_id', $v);
+                    }))
+                    ->where('parchase_ledger', $ledgerId)
+                    ->selectRaw("date as dt, bill_no as doc_no, 'Purchase' as src,
+                                 COALESCE(total_amount, total, 0) as dr, 0 as cr")
+                    ->get()
+            );
+        }
+
+        $rows = $rows->sortBy('dt')->values();
+
+        $sumDr = (float) $rows->sum('dr');
+        $sumCr = (float) $rows->sum('cr');
+        $balance = $sumDr - $sumCr;
+
+        return view('reports.pnl_drilldown_ledger', [
+            'ledger'   => $ledger,
+            'rows'     => $rows,
+            'sumDr'    => $sumDr,
+            'sumCr'    => $sumCr,
+            'balance'  => $balance,
+            'params'   => compact('branchId', 'startDate', 'endDate'),
+        ]);
+    }
+
     private function formatCategory(?string $cat, ?string $sub): string
     {
         if ($cat && $sub) return "{$cat} → {$sub}";
