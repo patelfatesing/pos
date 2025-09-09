@@ -486,6 +486,18 @@ Route::middleware('auth')->group(function () {
 
         Route::get('balance-sheet',        [Report2Controller::class, 'balanceSheet'])->name('reports.balance-sheet');
         Route::post('balance-sheet/data',   [Report2Controller::class, 'getBalanceSheetData'])->name('reports.balance-sheet.data');
+
+        Route::get('pnl-drilldown/group/{group}',  [Report2Controller::class, 'group'])
+            ->name('reports.pnl.group');
+
+        Route::get('pnl-drilldown/ledger/{ledger}', [Report2Controller::class, 'ledger'])
+            ->name('reports.pnl.ledger');
+
+        Route::get('pnl/group',  [Report2Controller::class, 'pnlGroupDetail'])
+            ->name('reports.pnl.group');
+
+        Route::get('pnl/ledger', [Report2Controller::class, 'pnlLedgerDetail'])
+            ->name('reports.pnl.ledger');
     });
 
     // routes/web.php
