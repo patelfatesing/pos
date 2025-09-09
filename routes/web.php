@@ -498,6 +498,8 @@ Route::middleware('auth')->group(function () {
 
         Route::get('pnl/ledger', [Report2Controller::class, 'pnlLedgerDetail'])
             ->name('reports.pnl.ledger');
+
+            
     });
 
     // routes/web.php

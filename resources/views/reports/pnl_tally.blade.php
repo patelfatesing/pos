@@ -95,7 +95,6 @@
             flex: 0 0 auto
         }
 
-        /* nested (group) rows */
         .pnl .child-row td {
             padding-top: 2px;
             padding-bottom: 2px
@@ -119,7 +118,6 @@
             font-size: 12px
         }
 
-        /* second level (ledger) */
         .pnl .grand-child-row td {
             padding-top: 2px;
             padding-bottom: 2px
@@ -138,7 +136,6 @@
             color: #cbd5e1
         }
 
-        /* group subtotal line */
         .pnl .grand-child-total td {
             font-weight: 700;
             border-top: 1px solid #e5e7eb
@@ -156,29 +153,24 @@
         }
 
         .filters {
-            overflow: visible;
+            overflow: visible
         }
 
-        .grand-child-row td {
-            padding-top: 2px;
-            padding-bottom: 2px;
+        /* links look like normal text */
+        .pnl a {
+            color: inherit;
+            text-decoration: none;
+            font: inherit
         }
 
-        .grand-child-label {
-            padding-left: 38px;
-            position: relative;
+        .pnl a:hover {
+            text-decoration: none
         }
 
-        .grand-child-label:before {
-            content: "·";
-            position: absolute;
-            left: 26px;
-            color: #9ca3af;
-        }
-
-        .grand-child-total td {
-            font-weight: 600;
-            border-top: 1px solid #ddd;
+        .pnl .child-label a,
+        .pnl .grand-child-label a {
+            display: inline;
+            cursor: pointer
         }
     </style>
 @endsection
@@ -209,9 +201,8 @@
                         <button id="pnl_apply" type="button" class="btn btn-primary btn-sm">Apply</button>
                     </div>
 
-                    <a id="pnl_pdf_link" class="btn btn-sm btn-outline-primary" href="#" target="_blank">
-                        Download PDF
-                    </a>
+                    <a id="pnl_pdf_link" class="btn btn-sm btn-outline-primary" href="#" target="_blank">Download
+                        PDF</a>
 
                     {{-- Trading Account --}}
                     <div class="two-col mt-2">
@@ -306,6 +297,7 @@
     <script>
         const GROUP_URL = @json(route('reports.pnl.group'));
         const LEDGER_URL = @json(route('reports.pnl.ledger'));
+
         (function() {
             const $ = (id) => document.getElementById(id);
 
@@ -358,36 +350,45 @@
                 $('pnl_pdf_link').href = `${PDF_BASE}?${params.toString()}`;
             }
 
-            function clearTbody(tbody) {
-                while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
-            }
-
-            function appendRow(tbody, label, amount, extraHtml = '') {
+            // SECTION header row (optionally clickable to group)
+            function appendSectionRow(tbody, r) {
                 const tr = document.createElement('tr');
                 const td1 = document.createElement('td');
                 const td2 = document.createElement('td');
-                td1.innerHTML = label + (extraHtml || '');
                 td2.className = 'amount';
-                td2.textContent = (amount ?? '0.00');
+                td2.textContent = r.amount ?? '0.00';
+
+                if (r.section_group_id) {
+                    const a = document.createElement('a');
+                    a.textContent = r.label ?? 'Section';
+                    a.href =
+                        `${GROUP_URL}?section=${encodeURIComponent(r.section || '')}&group_id=${encodeURIComponent(r.section_group_id)}&start_date=${encodeURIComponent($('pnl_start').value)}&end_date=${encodeURIComponent($('pnl_end').value)}&branch_id=${encodeURIComponent($('pnl_branch').value)}`;
+                    a.target = '_blank';
+                    td1.appendChild(a);
+                } else {
+                    td1.textContent = r.label ?? 'Section';
+                }
+
                 tr.appendChild(td1);
                 tr.appendChild(td2);
                 tbody.appendChild(tr);
             }
 
-            // Render Section → Groups → Ledgers (+ group subtotal)
+            // Render Section → Groups/ledgers
             function renderSide(tbodySelector, rows) {
                 const tbody = document.querySelector(tbodySelector);
                 while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
 
                 (rows || []).forEach(r => {
-                    appendRow(tbody, r.label, r.amount);
+                    // Always draw section header first (clickable if section_group_id exists)
+                    appendSectionRow(tbody, r);
 
                     if (!Array.isArray(r.children)) return;
 
-                    const section = r.section || ''; // purchase|direct|indirect|income|sales
+                    const section = r.section || '';
 
                     if (r.flatten) {
-                        // children are LEDGERS directly
+                        // Children are LEDGERS directly (single-group case)
                         r.children.forEach(led => {
                             const tr = document.createElement('tr');
                             const td1 = document.createElement('td');
@@ -401,21 +402,20 @@
                                 tr.className = 'grand-child-row';
                                 td1.className = 'grand-child-label';
 
-                                // clickable ledger
                                 if (led.ledger_id) {
                                     const a = document.createElement('a');
                                     a.textContent = led.label ?? 'Ledger';
                                     a.href =
-                                        `${LEDGER_URL}?ledger_id=${encodeURIComponent(led.ledger_id)}&section=${encodeURIComponent(section)}&start_date=${encodeURIComponent($('#pnl_start').value)}&end_date=${encodeURIComponent($('#pnl_end').value)}&branch_id=${encodeURIComponent($('#pnl_branch').value)}`;
+                                        `${LEDGER_URL}?ledger_id=${encodeURIComponent(led.ledger_id)}&section=${encodeURIComponent(section)}&start_date=${encodeURIComponent($('pnl_start').value)}&end_date=${encodeURIComponent($('pnl_end').value)}&branch_id=${encodeURIComponent($('pnl_branch').value)}`;
                                     a.target = '_blank';
                                     td1.appendChild(a);
                                 } else {
                                     td1.textContent = led.label ?? 'Ledger';
                                 }
-
-                                const bills = (typeof led.bills !== 'undefined') ?
-                                    ` <span class="child-meta">(Bills: ${led.bills})</span>` : '';
-                                td1.insertAdjacentHTML('beforeend', bills);
+                                if (typeof led.bills !== 'undefined') {
+                                    td1.insertAdjacentHTML('beforeend',
+                                        ` <span class="child-meta">(Bills: ${led.bills})</span>`);
+                                }
                             }
 
                             td2.textContent = led.amount ?? '0.00';
@@ -423,8 +423,9 @@
                             tr.appendChild(td2);
                             tbody.appendChild(tr);
                         });
+
                     } else {
-                        // children are GROUPS; each group has LEDGERS + subtotal
+                        // Children are GROUPS
                         r.children.forEach(ch => {
                             const tr = document.createElement('tr');
                             tr.className = 'child-row';
@@ -433,21 +434,20 @@
                             const td2 = document.createElement('td');
                             td2.className = 'amount';
 
-                            // clickable group
                             if (ch.group_id) {
                                 const a = document.createElement('a');
                                 a.textContent = ch.label ?? 'Group';
                                 a.href =
-                                    `${GROUP_URL}?section=${encodeURIComponent(section)}&group_id=${encodeURIComponent(ch.group_id)}&start_date=${encodeURIComponent($('#pnl_start').value)}&end_date=${encodeURIComponent($('#pnl_end').value)}&branch_id=${encodeURIComponent($('#pnl_branch').value)}`;
+                                    `${GROUP_URL}?section=${encodeURIComponent(section)}&group_id=${encodeURIComponent(ch.group_id)}&start_date=${encodeURIComponent($('pnl_start').value)}&end_date=${encodeURIComponent($('pnl_end').value)}&branch_id=${encodeURIComponent($('pnl_branch').value)}`;
                                 a.target = '_blank';
                                 td1.appendChild(a);
                             } else {
                                 td1.textContent = ch.label ?? 'Group';
                             }
-
-                            const bills = (typeof ch.bills !== 'undefined') ?
-                                ` <span class="child-meta">(Bills: ${ch.bills})</span>` : '';
-                            td1.insertAdjacentHTML('beforeend', bills);
+                            if (typeof ch.bills !== 'undefined') {
+                                td1.insertAdjacentHTML('beforeend',
+                                    ` <span class="child-meta">(Bills: ${ch.bills})</span>`);
+                            }
 
                             td2.textContent = ch.amount ?? '0.00';
                             tr.appendChild(td1);
@@ -468,22 +468,22 @@
                                         tr2.className = 'grand-child-row';
                                         td1g.className = 'grand-child-label';
 
-                                        // clickable ledger
                                         if (led.ledger_id) {
                                             const a = document.createElement('a');
                                             a.textContent = led.label ?? 'Ledger';
                                             a.href =
-                                                `${LEDGER_URL}?ledger_id=${encodeURIComponent(led.ledger_id)}&section=${encodeURIComponent(section)}&start_date=${encodeURIComponent($('#pnl_start').value)}&end_date=${encodeURIComponent($('#pnl_end').value)}&branch_id=${encodeURIComponent($('#pnl_branch').value)}`;
+                                                `${LEDGER_URL}?ledger_id=${encodeURIComponent(led.ledger_id)}&section=${encodeURIComponent(section)}&start_date=${encodeURIComponent($('pnl_start').value)}&end_date=${encodeURIComponent($('pnl_end').value)}&branch_id=${encodeURIComponent($('pnl_branch').value)}`;
                                             a.target = '_blank';
                                             td1g.appendChild(a);
                                         } else {
                                             td1g.textContent = led.label ?? 'Ledger';
                                         }
 
-                                        const bills2 = (typeof led.bills !== 'undefined') ?
-                                            ` <span class="child-meta">(Bills: ${led.bills})</span>` :
-                                            '';
-                                        td1g.insertAdjacentHTML('beforeend', bills2);
+                                        if (typeof led.bills !== 'undefined') {
+                                            td1g.insertAdjacentHTML('beforeend',
+                                                ` <span class="child-meta">(Bills: ${led.bills})</span>`
+                                                );
+                                        }
                                     }
 
                                     td2g.textContent = led.amount ?? '0.00';
@@ -497,7 +497,7 @@
                 });
             }
 
-            // Init inputs from localStorage or last 30 days
+            // Init inputs
             (function initInputs() {
                 const saved = loadSaved();
                 if (saved.start_date) $('pnl_start').value = saved.start_date;
@@ -516,7 +516,7 @@
                 updatePdfLink();
             })();
 
-            $('pnl_filters')?.addEventListener('keydown', (e) => {
+            $('pnl_filters')?.addEventListener('keydown', e => {
                 if (e.key === 'Enter') e.preventDefault();
             });
 
@@ -552,19 +552,16 @@
                     })
                     .then(r => r.json())
                     .then(json => {
-                        // Titles
                         $('lbl_tr_dr').textContent = json?.trading?.dr?.title ?? 'Trading Account (Dr)';
                         $('lbl_tr_cr').textContent = json?.trading?.cr?.title ?? 'Trading Account (Cr)';
                         $('lbl_pl_dr').textContent = json?.pl?.dr?.title ?? 'Profit & Loss A/c (Dr)';
                         $('lbl_pl_cr').textContent = json?.pl?.cr?.title ?? 'Profit & Loss A/c (Cr)';
 
-                        // Tables (support Section → Group → Ledger + subtotal)
                         renderSide('#tbl_trading_dr tbody', json?.trading?.dr?.rows ?? json?.trading?.dr ?? []);
                         renderSide('#tbl_trading_cr tbody', json?.trading?.cr?.rows ?? json?.trading?.cr ?? []);
                         renderSide('#tbl_pl_dr tbody', json?.pl?.dr?.rows ?? json?.pl?.dr ?? []);
                         renderSide('#tbl_pl_cr tbody', json?.pl?.cr?.rows ?? json?.pl?.cr ?? []);
 
-                        // Totals mirrored
                         const trTot = json?.trading?.table_total ?? json?.trading?.total ?? '0.00';
                         const plTot = json?.pl?.table_total ?? json?.pl?.total ?? '0.00';
                         $('trading_total_dr').textContent = trTot;
@@ -588,7 +585,7 @@
 
             $('pnl_apply').addEventListener('click', refresh);
 
-            // First render
+            // First load
             refresh();
         })();
     </script>
