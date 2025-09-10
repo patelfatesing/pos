@@ -390,64 +390,37 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="row">
 
                         <div class="col-lg-6">
-                            <div class="card card-block card-stretch card-height-helf">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-top justify-content-between">
-                                        <div class="">
-                                            <p class="mb-0">Sales Trend</p>
-                                            <h5></h5>
-                                        </div>
-                                        <div class="card-header-toolbar d-flex align-items-center">
-                                            <div class="dropdown">
-                                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton003"
-                                                    data-toggle="dropdown">
-                                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
-                                                </span>
-                                                <div class="dropdown-menu dropdown-menu-right shadow-none"
-                                                    aria-labelledby="dropdownMenuButton003">
-                                                    <a class="dropdown-item" href="#">Year</a>
-                                                    <a class="dropdown-item" href="#">Month</a>
-                                                    <a class="dropdown-item" href="#">Week</a>
-                                                </div>
-                                            </div>
-                                        </div>
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between">
+                                    <div class="header-title">
+                                        <h4 class="card-title">Sales Trend</h4>
                                     </div>
+                                </div>
+                                <div class="card-body">
                                     <div id="apex-basic1"></div>
-                                    {{-- <div id="layout1-chart-3" class="layout-chart-1"></div> --}}
-
                                 </div>
                             </div>
+
                         </div>
                         <div class="col-lg-6">
-                            <div class="card card-block card-stretch card-height-helf">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-top justify-content-between">
-                                        <div class="">
-                                            <p class="mb-0">Purchase Trend</p>
-                                            <h5></h5>
-                                        </div>
-                                        <div class="card-header-toolbar d-flex align-items-center">
-                                            <div class="dropdown">
-                                                <span class="dropdown-toggle dropdown-bg btn" id="dropdownMenuButton004"
-                                                    data-toggle="dropdown">
-                                                    This Month<i class="ri-arrow-down-s-line ml-1"></i>
-                                                </span>
-                                                <div class="dropdown-menu dropdown-menu-right shadow-none"
-                                                    aria-labelledby="dropdownMenuButton004">
-                                                    <a class="dropdown-item" href="#">Year</a>
-                                                    <a class="dropdown-item" href="#">Month</a>
-                                                    <a class="dropdown-item" href="#">Week</a>
-                                                </div>
-                                            </div>
-                                        </div>
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between">
+                                    <div class="header-title">
+                                        <h4 class="card-title">Purchase Trend</h4>
                                     </div>
+                                </div>
+                                <div class="card-body">
                                     <div id="apex-basic2"></div>
-                                    {{-- <div id="layout1-chart-4" class="layout-chart-2"></div> --}}
                                 </div>
                             </div>
+
                         </div>
+                     
                         <div class="col-lg-6">
                             <div class="card card-block card-stretch card-height">
                                 <div class="card-header d-flex justify-content-between">
@@ -753,6 +726,9 @@
     @endsection
 
     <script defer>
+        const seriesData = @json($data['data_sales']); // 12 numbers
+        const categories = @json($data['categories']);
+
         document.addEventListener('DOMContentLoaded', function() {
             const el = document.getElementById('apex-basic1');
             if (!el) return; // Chart container not on this page
@@ -773,7 +749,7 @@
                 colors: ['#4788ff'],
                 series: [{
                     name: 'Desktops',
-                    data: @json($data['data_sales'])
+                    data: seriesData
                 }],
                 dataLabels: {
                     enabled: false
@@ -792,7 +768,10 @@
                     }
                 },
                 xaxis: {
-                    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep']
+                    categories: categories,
+                    labels: {
+                        rotate: -45
+                    } // helps avoid overlap
                 }
             };
 
@@ -850,7 +829,7 @@
                     }
                 },
                 xaxis: {
-                    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep']
+                    categories: categories
                 }
             };
 

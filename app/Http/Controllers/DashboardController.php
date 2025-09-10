@@ -498,6 +498,13 @@ class DashboardController extends Controller
         // Return on Investment (%) ~ Nett Profit / (Capital + Reserves)
         $roi = ($equity > 0) ? (($nettProfit / $equity) * 100.0) : null;
 
+        $months = range(1, 12);
+
+        // exactly 12 values, missing months become 0
+        // $series = array_map(fn($m) => (float)($raw[$m] ?? 0), $months);
+
+        // ["Jan","Feb",...,"Dec"]
+        $categories = array_map(fn($m) => date('M', mktime(0, 0, 0, $m, 1)), $months);
 
 
 
@@ -505,6 +512,7 @@ class DashboardController extends Controller
 
         $data = [
             'store'         => "Selete Store",
+            'categories'   => $categories,
             'sales'         => $totalSales + $total_creditpay,
             'products'        => $totalProducts,
             'total_cost_price'     => $inventorySummary->total_cost_price,
