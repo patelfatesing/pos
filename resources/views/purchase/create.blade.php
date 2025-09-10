@@ -471,7 +471,7 @@
                 <tr>
                     <td>${srNo}</td>
                     <input type="hidden" name="products[${srNo - 1}][product_id]" value="${brand}">
-                    <td style="width:30%"><input type="text" name="products[${srNo - 1}][brand_name]" class="form-control" value="${brandVal}" readonly></td>
+                    <td style="width:25%"><input type="text" name="products[${srNo - 1}][brand_name]" class="form-control" value="${brandVal}" readonly></td>
                     <td><input type="text" name="products[${srNo - 1}][batch]" class="form-control" value="${batch}"></td>
                     <td><input type="date" name="products[${srNo - 1}][mfg_date]" class="form-control" value="${mfg}"></td>
                     <td><input type="hidden" name="products[${srNo - 1}][mrp]" value="${mrp}"><input type="number" class="form-control" value="${mrp}" disabled></td>
