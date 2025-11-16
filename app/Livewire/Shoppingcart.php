@@ -31,6 +31,9 @@ use App\Models\ExpenseCategory;
 use Illuminate\Support\Facades\Storage;
 use App\Models\SubCategory;
 use App\Models\Accounting\AccountLedger;
+use App\Models\Accounting\Voucher;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\QueryException;
 
 class Shoppingcart extends Component
 {
@@ -85,7 +88,7 @@ class Shoppingcart extends Component
     public $showModal = false;
     public $availableNotes = "";
     public $selectedUser = 0;
-    protected $listeners = ['updateProductList' => 'loadCartData', 'loadHoldTransactions', 'updateNewProductDetails', "updateCustomerDetailHold", 'resetData', 'hideSuggestions', 'openModalYesterdayShift' => 'openModalYesterdayShift', 'setNotes', 'calculateCommission', 'calculateParty'];
+    protected $listeners = ['updateProductList' => 'loadCartData', 'loadHoldTransactions', 'updateNewProductDetails', "updateCustomerDetailHold", 'resetData', 'hideSuggestions', 'openModalYesterdayShift' => 'openModalYesterdayShift', 'setNotes', 'calculateCommission', 'calculateParty', 'one_time_transaction' => 'handleOneTimeUpdated'];
     public $noteDenominations = [10, 20, 50, 100, 200, 500];
     public $remainingAmount = 0;
     public $totalBreakdown = [];
@@ -138,6 +141,10 @@ class Shoppingcart extends Component
     public $selectedSubCategory = null;
     public $selectedProduct = null;
     public $items = [];
+    public $one_time_transaction = false;
+    public $select_product_id = null;
+    public $sellProductStock = [];
+
 
     // This method is triggered whenever the checkbox is checked or unchecked
     public function updatedUseCredit($value)
@@ -766,6 +773,27 @@ class Shoppingcart extends Component
         }
     }
 
+    public function stockStatus($id)
+    {
+
+        $this->select_product_id = $id;
+
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
+
+        $lastShift = UserShift::getYesterdayShift(auth()->user()->id, $branch_id);
+        $this->sellProductStock = DailyProductStock::with('product')
+            ->where([
+                ['branch_id', '=', $branch_id],
+                ['product_id', '=', $id],
+                ['shift_id', '=', $this->shift->id],
+            ])
+            ->first();
+
+
+        $this->dispatch('stock-status-modal');
+    }
+
     public function onlinePayment()
     {
         $this->resetModalData();
@@ -1275,6 +1303,12 @@ class Shoppingcart extends Component
         if (!empty($yesterDayShift)) {
             $this->dispatch('openModalYesterdayShift');
         }
+    }
+
+    public function handleOneTimeUpdated()
+    {
+        $this->one_time_transaction = !$this->one_time_transaction;
+        // Optional: run any logic you need here
     }
 
     public function mount()
@@ -2055,6 +2089,7 @@ class Shoppingcart extends Component
                 ->first();
 
             $curtDiscount = $item->discount / $item->quantity;
+
             $totalQuantity = collect(@$this->selectedSalesReturn->items)
                 ->where('product_id', $item->product_id)
                 ->sum('quantity');
@@ -2492,7 +2527,9 @@ class Shoppingcart extends Component
             'searchSalesResults' => $this->searchSalesResults,
             'getNotification' => $getNotification,
             'totals' => $totals,
-            'branch_id' => $branch_id
+            'branch_id' => $branch_id,
+            'one_time_transaction' => $this->one_time_transaction,
+            'sellProductStock' => $this->sellProductStock
         ]);
     }
 
@@ -2571,8 +2608,23 @@ class Shoppingcart extends Component
                 $item->amount = $product->sell_price - $myCart;
                 $item->discount = $myCart ?? 0;
                 $item->net_amount = $product->sell_price - $myCart;
+                if ($this->one_time_transaction == true) {
+
+                    $stocksQuery = DailyProductStock::with('product')
+                        ->where('branch_id', auth()->user()->userinfo->branch->id);
+
+                    // Match with shift_id
+                    $stocksQuery->where('shift_id', $this->shift->id);
+                    $stocksQuery->where('product_id', $id);
+                    $stock_data = $stocksQuery->first();
+                    $item->sold_stock = $stock_data->sold_stock;
+
+                    // $currentQty = $stock_data->opening_stock - $stock_data->sold_stock;
+                }
                 $item->save();
             }
+
+
 
             $this->finalDiscountParty();
             if ($this->selectedCommissionUser) {
@@ -2662,6 +2714,7 @@ class Shoppingcart extends Component
                 }
                 $groupedProducts[$productId] += $cartitem->quantity;
             }
+
             $arr_low_stock = [];
             // Loop through each product group and deduct from inventories
             foreach ($groupedProducts as $productId => $totalQuantity) {
@@ -2714,7 +2767,6 @@ class Shoppingcart extends Component
             }
 
             if ($this->paymentType == "cash") {
-
                 $cashNotes = json_encode($this->cashNotes) ?? [];
             } else {
                 $cashNotes = json_encode($this->cashupiNotes) ?? [];
@@ -2747,6 +2799,12 @@ class Shoppingcart extends Component
             // If found, use its invoice number; otherwise, use the default/new invoice number
             $invoice_number_to_use = $resumedInvoice->invoice_number ?? $invoice_number;
 
+            $saleType = 'normal';
+
+            if ($this->one_time_transaction) {
+                $saleType = 'one_time';
+            }
+
             $invoice = Invoice::updateOrCreate(
                 [
                     'invoice_number' => $invoice_number_to_use,
@@ -2778,7 +2836,6 @@ class Shoppingcart extends Component
                     'cash_amount' => $this->cash,
                     // 'sub_total' => $this->cashAmount,
                     'sub_total' => $this->sub_total,
-
                     'tax' => $this->tax,
                     'status' => "Paid",
                     'invoice_status' => ($this->creditPay == 0) ? "paid" : "unpaid",
@@ -2786,8 +2843,141 @@ class Shoppingcart extends Component
                     'party_amount' => $this->partyAmount,
                     'total' => $this->cashAmount,
                     'cash_break_id' => $cashBreakdown->id,
+                    'sales_type' => $saleType
                 ]
             );
+
+            $credit_ledger_id = null;
+
+            // --- Build lines: one Dr per tender, one Cr for sales ---
+            $lines = [];
+
+            if ($this->paymentType == "cash") {
+                $tender_ledger = AccountLedger::where('name', 'Cash Payments')->first();
+
+                $tender_ledger_id = $tender_ledger->id;
+                // cash part
+                if ($this->cash > 0) {
+                    $lines[] = [
+                        'ledger_id'      => (int)$tender_ledger_id,
+                        'dc'             => 'Dr',
+                        'amount'         => round($this->cash, 2),
+                        'line_narration' => 'Cash received',
+                    ];
+                }
+
+                $totalTender = round($this->cash, 2);
+            } else {
+                $tender_ledger = AccountLedger::where('name', 'Cash Payments')->first();
+                $tender_ledger_id = $tender_ledger->id;
+
+                // cash part
+                if ($this->cash > 0) {
+                    $lines[] = [
+                        'ledger_id'      => (int)$tender_ledger_id,
+                        'dc'             => 'Dr',
+                        'amount'         => round($this->cash, 2),
+                        'line_narration' => 'Cash received',
+                    ];
+                }
+
+                // upi part
+                if ($this->upi > 0) {
+
+                    $tender_ledger1 = AccountLedger::where('name', 'UPI Payments')->first();
+                    $tender_ledger_id1 = $tender_ledger1->id;
+
+                    $lines[] = [
+                        'ledger_id'      => (int)$tender_ledger_id1,
+                        'dc'             => 'Dr',
+                        'amount'         => round($this->upi, 2),
+                        'line_narration' => 'UPI received',
+                    ];
+                }
+
+                $totalTender = round($this->cash + $this->upi, 2);
+            }
+
+            if ($branch_id == 1) {
+
+                $commison_ledger = AccountLedger::where('name', $partyUser->first_name)->first();
+                $credit_ledger_id = $commison_ledger->id; // Headquarters Credit Ledger
+                $sales_ledger = AccountLedger::where('name', 'WAREHOUSE')->first();
+                $sales_ledger_id = $sales_ledger->id;
+
+                $tender_ledger = AccountLedger::where('name', 'Cash Payments')->first();
+
+                $tender_ledger_id = $tender_ledger->id;
+                // cash part
+                if ($this->creditPay > 0) {
+                    $lines[] = [
+                        'ledger_id'      => (int)$credit_ledger_id,
+                        'dc'             => 'Dr',
+                        'amount'         => round($this->creditPay, 2),
+                        'line_narration' => 'Cash received',
+                    ];
+                }
+
+                $totalTender = round($this->creditPay, 2);
+            } else {
+                $commison_ledger = AccountLedger::where('name', 'Discount Allowed')->first();
+                $credit_ledger_id = $commison_ledger->id; //
+                $branch_name = Branch::where('id', $branch_id)->first();
+                $sales_ledger = AccountLedger::where('name', $branch_name->name)->first();
+                $sales_ledger_id = $sales_ledger->id;
+            }
+
+            $nv = function ($v) {
+                return ($v === '' || $v === null) ? null : $v;
+            };
+
+            // sales credit (single line)
+            $lines[] = [
+                'ledger_id'      => (int)$sales_ledger_id, // your sales ledger id
+                'dc'             => 'Cr',
+                'amount'         => round($this->sub_total, 2),
+                'line_narration' => 'Sales: items',
+            ];
+
+            $salesLedger = $nv($sales_ledger_id ?? null);
+            $lastRef = Voucher::orderBy('id', 'desc')->value('ref_no');
+
+            if (!$lastRef) {
+                $nextRef = 'POS-0001';
+            } else {
+                $num = (int) str_replace('POS-', '', $lastRef);
+                $nextRef = 'POS-' . str_pad($num + 1, 4, '0', STR_PAD_LEFT);
+            }
+
+            // Optional: verify dr/cr balance before calling posTransaction
+            $dr = collect($lines)->where('dc', 'Dr')->sum('amount');
+            $cr = collect($lines)->where('dc', 'Cr')->sum('amount');
+            // if (round($dr, 2) !== round($cr, 2)) {
+            //     throw new \Exception("Dr/Cr mismatch: Dr={$dr} Cr={$cr}");
+            // }
+
+            $payload = [
+                'voucher_date'  => Carbon::now()->format('Y-m-d'),
+                'voucher_type'  => 'Sales',
+                'branch_id'     => $branch_id,
+                'ref_no'        => $nextRef,
+                'narration'     => 'Counter sale',
+                'party_ledger_id' => null, // customer ledger (if credit), or null for cash walk-in
+                'mode'          => 'cash', // 'cash'/'bank'/'upi'/'card' or null
+                'cash_ledger_id' => $salesLedger,     // required if mode == 'cash'
+                'sub_total'     =>  $this->sub_total,
+                'discount'      => 0,
+                'tax'           => 0,
+                'grand_total'   =>  $this->cashAmount,
+                'lines' => $lines,
+                // 'lines' => [
+                //     // usually at least 2 lines so Dr/Cr balance; e.g. sales (Cr) + cash (Dr)
+                //     ['ledger_id' => $salesLedger, 'dc' => 'Cr', 'amount' => $this->cashAmount, 'line_narration' => 'Sales: items'],
+                //     ['ledger_id' => $tenderLedgerId, 'dc' => 'Dr', 'amount' => $this->cashAmount, 'line_narration' => 'Cash received'],
+                // ],
+            ];
+// dd($payload);
+            $voucher = $this->posTransaction($payload);
 
             \Log::info('Invoice Created: ' . json_encode($invoice, true));
             InvoiceHistory::logFromInvoice($invoice, 'created', auth()->id());
@@ -3466,6 +3656,91 @@ class Shoppingcart extends Component
                 ]
             );
 
+
+            // --- Build lines: one Dr per tender, one Cr for sales ---
+            $lines = [];
+
+            // upi part
+            if ($this->upi > 0) {
+
+                $tender_ledger1 = AccountLedger::where('name', 'UPI Payments')->first();
+                $tender_ledger_id1 = $tender_ledger1->id;
+
+                $lines[] = [
+                    'ledger_id'      => (int)$tender_ledger_id1,
+                    'dc'             => 'Dr',
+                    'amount'         => round($this->upi, 2),
+                    'line_narration' => 'UPI received',
+                ];
+            }
+
+            $totalTender = round($this->upi, 2);
+
+            $credit_ledger_id = null;
+            if ($branch_id == 1) {
+
+                $commison_ledger = AccountLedger::where('name', $partyUser->first_name)->first();
+                $credit_ledger_id = $commison_ledger->id; // Headquarters Credit Ledger
+                $sales_ledger = AccountLedger::where('name', 'WAREHOUSE')->first();
+                $sales_ledger_id = $sales_ledger->id;
+                // cash part
+                if ($this->creditPay > 0) {
+                    $lines[] = [
+                        'ledger_id'      => (int)$credit_ledger_id,
+                        'dc'             => 'Dr',
+                        'amount'         => round($this->creditPay, 2),
+                        'line_narration' => 'Cash received',
+                    ];
+                }
+            } else {
+                $commison_ledger = AccountLedger::where('name', 'Discount Allowed')->first();
+                $credit_ledger_id = $commison_ledger->id; //
+                $branch_name = Branch::where('id', $branch_id)->first();
+                $sales_ledger = AccountLedger::where('name', $branch_name->name)->first();
+                $sales_ledger_id = $sales_ledger->id;
+            }
+
+            $nv = function ($v) {
+                return ($v === '' || $v === null) ? null : $v;
+            };
+
+            $tender_ledger = AccountLedger::where('name', 'UPI Payments')->first();
+            $tender_ledger_id = $tender_ledger->id;
+
+            $salesLedger = $nv($sales_ledger_id ?? null);
+            $tenderLedgerId = $nv($tender_ledger_id ?? null);
+
+            $lastRef = Voucher::orderBy('id', 'desc')->value('ref_no');
+
+            if (!$lastRef) {
+                $nextRef = 'POS-0001';
+            } else {
+                $num = (int) str_replace('POS-', '', $lastRef);
+                $nextRef = 'POS-' . str_pad($num + 1, 4, '0', STR_PAD_LEFT);
+            }
+
+            $payload = [
+                'voucher_date'  => Carbon::now()->format('Y-m-d'),
+                'voucher_type'  => 'Sales',
+                'branch_id'     => $branch_id,
+                'ref_no'        => $nextRef,
+                'narration'     => 'Counter sale',
+                'party_ledger_id' => null, // customer ledger (if credit), or null for cash walk-in
+                'mode'          => 'cash', // 'cash'/'bank'/'upi'/'card' or null
+                'cash_ledger_id' => $salesLedger,     // required if mode == 'cash'
+                'sub_total'     =>  $this->sub_total,
+                'discount'      => 0,
+                'tax'           => 0,
+                'grand_total'   =>  $this->cashAmount,
+                'lines' => [
+                    // usually at least 2 lines so Dr/Cr balance; e.g. sales (Cr) + cash (Dr)
+                    ['ledger_id' => $salesLedger, 'dc' => 'Cr', 'amount' => $this->cashAmount, 'line_narration' => 'Sales: items'],
+                    ['ledger_id' => $tenderLedgerId, 'dc' => 'Dr', 'amount' => $this->cashAmount, 'line_narration' => 'Cash received'],
+                ],
+            ];
+
+            $voucher = $this->posTransaction($payload);
+
             InvoiceHistory::logFromInvoice($invoice, 'created', auth()->id());
 
             if ($this->selectedPartyUser) {
@@ -3732,6 +4007,149 @@ class Shoppingcart extends Component
             ->get();
     }
 
+    public function posTransaction(array $arr_data)
+    {
+
+        $nv = function ($v) {
+            return ($v === '' || $v === null) ? null : $v;
+        };
+
+        $type = $nv($arr_data['voucher_type'] ?? null);
+        $mode = $nv($arr_data['mode'] ?? null);
+
+        // Party normalization
+        $partyFromPR = $nv($arr_data['party_ledger_id'] ?? null) ?: $nv($arr_data['pr_party_ledger'] ?? null);
+        $partyFromTR = $nv($arr_data['party_ledger_id'] ?? null) ?: $nv($arr_data['tr_party_ledger'] ?? null);
+
+        if (in_array($type, ['Payment', 'Receipt'])) {
+            $party = $partyFromPR ?: $partyFromTR;
+        } elseif (in_array($type, ['Sales', 'Purchase', 'DebitNote', 'CreditNote'])) {
+            $party = $partyFromTR ?: $partyFromPR;
+        } else {
+            $party = null;
+        }
+
+        // Mode: cash / bank / upi / card
+        $cashLedger = $nv($arr_data['cash_ledger_id'] ?? null) ?: $nv($arr_data['pr_cash_ledger'] ?? null);
+        $bankLedger = $nv($arr_data['bank_ledger_id'] ?? null) ?: $nv($arr_data['pr_bank_ledger'] ?? null);
+
+        if ($mode === 'cash') {
+            $bankLedger = null;
+        } elseif (in_array($mode, ['bank', 'upi', 'card'])) {
+            $cashLedger = null;
+        } else {
+            $cashLedger = $bankLedger = null;
+        }
+
+        // Totals
+        $subTotal   = $nv($arr_data['sub_total'] ?? $arr_data['tr_subtotal'] ?? null);
+        $discount   = $nv($arr_data['discount'] ?? $arr_data['tr_discount'] ?? null);
+        $tax        = $nv($arr_data['tax'] ?? $arr_data['tr_tax'] ?? null);
+        $grandTotal = $nv($arr_data['grand_total'] ?? $arr_data['tr_grand'] ?? null);
+
+        if (!$grandTotal && ($subTotal || $discount || $tax)) {
+            $grandTotal = round(($subTotal ?? 0) - ($discount ?? 0) + ($tax ?? 0), 2);
+        }
+
+        $fromLedger = $nv($arr_data['from_ledger_id'] ?? $arr_data['ct_from'] ?? null);
+        $toLedger   = $nv($arr_data['to_ledger_id'] ?? $arr_data['ct_to'] ?? null);
+        $branchId   = $nv($arr_data['branch_id'] ?? null);
+        $refNo      = $nv($arr_data['ref_no'] ?? null);
+
+        // Lines array
+        $lines = $arr_data['lines'] ?? [];
+        if (count($lines) < 2) {
+            throw new \Exception('At least two lines (Dr/Cr) are required.');
+        }
+
+        // --- Check Debit/Credit Balance ---
+        $dr = 0;
+        $cr = 0;
+        foreach ($lines as $line) {
+            if (($line['dc'] ?? '') === 'Dr') {
+                $dr += (float)($line['amount'] ?? 0);
+            } elseif (($line['dc'] ?? '') === 'Cr') {
+                $cr += (float)($line['amount'] ?? 0);
+            }
+        }
+
+        if (round($dr, 2) !== round($cr, 2)) {
+            // throw new \Exception('Debit and Credit total mismatch.');
+        }
+
+        try {
+            return DB::transaction(function () use (
+                $arr_data,
+                $type,
+                $party,
+                $mode,
+                $cashLedger,
+                $bankLedger,
+                $fromLedger,
+                $toLedger,
+                $branchId,
+                $refNo,
+                $subTotal,
+                $discount,
+                $tax,
+                $grandTotal,
+                $lines
+            ) {
+                // ... existing create code ...
+
+                $voucher = \App\Models\Accounting\Voucher::create([
+                    'voucher_date'    => $arr_data['voucher_date'] ?? now(),
+                    'voucher_type'    => $type,
+                    'ref_no'          => $refNo,
+                    'branch_id'       => $branchId,
+                    'narration'       => $arr_data['narration'] ?? null,
+                    'created_by'      => 1,
+                    'party_ledger_id' => $party,
+                    'mode'            => $mode,
+                    'instrument_no'   => $arr_data['instrument_no'] ?? null,
+                    'instrument_date' => $arr_data['instrument_date'] ?? null,
+                    'cash_ledger_id'  => $cashLedger,
+                    'bank_ledger_id'  => $bankLedger,
+                    'from_ledger_id'  => $fromLedger,
+                    'to_ledger_id'    => $toLedger,
+                    'sub_total'       => $subTotal ?? 0,
+                    'discount'        => $discount ?? 0,
+                    'tax'             => $tax ?? 0,
+                    'grand_total'     => $grandTotal ?? 0,
+                ]);
+
+
+                foreach ($lines as $line) {
+                    $voucher->lines()->create([
+                        'ledger_id'      => $line['ledger_id'],
+                        'dc'             => $line['dc'],
+                        'amount'         => round((float)$line['amount'], 2),
+                        'line_narration' => $line['line_narration'] ?? null,
+                    ]);
+                }
+                // dd($voucher);
+                return $voucher;
+            });
+        } catch (QueryException $qe) {
+            // DB-level error: show SQL + bindings + error info
+            Log::error('posTransaction QueryException', [
+                'message' => $qe->getMessage(),
+                'sql'     => $qe->sql ?? null,
+                'bindings' => $qe->bindings ?? null,
+                'errorInfo' => $qe->errorInfo ?? null,
+                'payload' => $arr_data,
+            ]);
+            throw $qe; // rethrow so Livewire / caller gets exception (or return/handle)
+        } catch (\Throwable $e) {
+            Log::error('posTransaction Exception', [
+                'class' => get_class($e),
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'payload' => $arr_data,
+            ]);
+            throw $e;
+        }
+    }
 
     // public function checkout()
     // {
