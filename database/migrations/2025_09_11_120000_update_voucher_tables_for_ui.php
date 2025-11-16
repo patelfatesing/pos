@@ -1,101 +1,141 @@
 <?php
 
-// database/migrations/2025_09_11_120000_update_voucher_tables_for_ui.php
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
-return new class extends Migration {
+return new class extends Migration
+{
+    /** ---- helpers ---- */
+    private function indexExists(string $table, string $index): bool
+    {
+        return collect(DB::select(
+            "SELECT 1 FROM INFORMATION_SCHEMA.STATISTICS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ? LIMIT 1",
+            [$table, $index]
+        ))->isNotEmpty();
+    }
+
+    private function fkExists(string $table, string $fkName): bool
+    {
+        return collect(DB::select(
+            "SELECT 1 FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND CONSTRAINT_NAME = ? AND CONSTRAINT_TYPE='FOREIGN KEY' LIMIT 1",
+            [$table, $fkName]
+        ))->isNotEmpty();
+    }
+
     public function up(): void
     {
-        // --- vouchers
+        // ------- vouchers: add columns first (as you already do) -------
         Schema::table('vouchers', function (Blueprint $table) {
-            // party/counter ledgers (nullable helpers for UX/reporting)
-            if (!Schema::hasColumn('vouchers', 'party_ledger_id'))  $table->unsignedBigInteger('party_ledger_id')->nullable()->after('branch_id');
-            if (!Schema::hasColumn('vouchers', 'mode'))             $table->enum('mode', ['cash','bank','upi','card'])->nullable()->after('party_ledger_id');
-            if (!Schema::hasColumn('vouchers', 'instrument_no'))    $table->string('instrument_no', 50)->nullable()->after('mode');
-            if (!Schema::hasColumn('vouchers', 'instrument_date'))  $table->date('instrument_date')->nullable()->after('instrument_no');
-            if (!Schema::hasColumn('vouchers', 'cash_ledger_id'))   $table->unsignedBigInteger('cash_ledger_id')->nullable()->after('instrument_date');
-            if (!Schema::hasColumn('vouchers', 'bank_ledger_id'))   $table->unsignedBigInteger('bank_ledger_id')->nullable()->after('cash_ledger_id');
-
-            // contra helpers
-            if (!Schema::hasColumn('vouchers', 'from_ledger_id'))   $table->unsignedBigInteger('from_ledger_id')->nullable()->after('bank_ledger_id');
-            if (!Schema::hasColumn('vouchers', 'to_ledger_id'))     $table->unsignedBigInteger('to_ledger_id')->nullable()->after('from_ledger_id');
-
-            // trade totals
-            if (!Schema::hasColumn('vouchers', 'sub_total'))        $table->decimal('sub_total', 15, 2)->default(0)->after('to_ledger_id');
-            if (!Schema::hasColumn('vouchers', 'discount'))         $table->decimal('discount', 15, 2)->default(0)->after('sub_total');
-            if (!Schema::hasColumn('vouchers', 'tax'))              $table->decimal('tax', 15, 2)->default(0)->after('discount');
-            if (!Schema::hasColumn('vouchers', 'grand_total'))      $table->decimal('grand_total', 15, 2)->default(0)->after('tax');
-
-            // indexes that help common filters
-            $table->index(['voucher_date']);
-            $table->index(['voucher_type']);
-            $table->index(['branch_id', 'voucher_type', 'voucher_date'], 'vouchers_branch_type_date_idx');
-
-            // optional: avoid duplicate ref_no inside branch+type (NULLs allowed)
-            $table->unique(['branch_id', 'voucher_type', 'ref_no'], 'vouchers_branch_type_ref_unique');
+            // (keep your addColumn logic with Schema::hasColumn checks)
+            // ...
         });
 
-        // --- voucher_lines
-        Schema::table('voucher_lines', function (Blueprint $table) {
-            $table->index(['voucher_id']);
-            $table->index(['ledger_id']);
-            $table->index(['dc']);
-        });
-
-        // --- Foreign keys (adjust table names to your actual ledgers/users/branches tables)
+        // ------- vouchers: indexes / uniques (guarded) -------
         Schema::table('vouchers', function (Blueprint $table) {
-            // Assuming: account_ledgers(id), branches(id), users(id)
-            $table->foreign('created_by')->references('id')->on('users')->onUpdate('cascade')->onDelete('restrict');
-            if (Schema::hasColumn('vouchers', 'branch_id'))       $table->foreign('branch_id')->references('id')->on('branches')->onUpdate('cascade')->onDelete('set null');
-            if (Schema::hasColumn('vouchers', 'party_ledger_id')) $table->foreign('party_ledger_id')->references('id')->on('account_ledgers')->onUpdate('cascade')->onDelete('set null');
-            if (Schema::hasColumn('vouchers', 'cash_ledger_id'))  $table->foreign('cash_ledger_id')->references('id')->on('account_ledgers')->onUpdate('cascade')->onDelete('set null');
-            if (Schema::hasColumn('vouchers', 'bank_ledger_id'))  $table->foreign('bank_ledger_id')->references('id')->on('account_ledgers')->onUpdate('cascade')->onDelete('set null');
-            if (Schema::hasColumn('vouchers', 'from_ledger_id'))  $table->foreign('from_ledger_id')->references('id')->on('account_ledgers')->onUpdate('cascade')->onDelete('set null');
-            if (Schema::hasColumn('vouchers', 'to_ledger_id'))    $table->foreign('to_ledger_id')->references('id')->on('account_ledgers')->onUpdate('cascade')->onDelete('set null');
+            // name your indexes explicitly so you can check them:
+            if (!$this->indexExists('vouchers', 'vouchers_voucher_date_index')) {
+                $table->index('voucher_date', 'vouchers_voucher_date_index');
+            }
+            if (!$this->indexExists('vouchers', 'vouchers_voucher_type_index')) {
+                $table->index('voucher_type', 'vouchers_voucher_type_index');
+            }
+            if (!$this->indexExists('vouchers', 'vouchers_branch_type_date_idx')) {
+                $table->index(['branch_id','voucher_type','voucher_date'], 'vouchers_branch_type_date_idx');
+            }
+            if (!$this->indexExists('vouchers', 'vouchers_branch_type_ref_unique')) {
+                $table->unique(['branch_id','voucher_type','ref_no'], 'vouchers_branch_type_ref_unique');
+            }
+        });
+
+        // ------- voucher_lines: indexes (guarded) -------
+        Schema::table('voucher_lines', function (Blueprint $table) {
+            if (!$this->indexExists('voucher_lines', 'voucher_lines_voucher_id_index')) {
+                $table->index('voucher_id', 'voucher_lines_voucher_id_index');
+            }
+            if (!$this->indexExists('voucher_lines', 'voucher_lines_ledger_id_index')) {
+                $table->index('ledger_id', 'voucher_lines_ledger_id_index');
+            }
+            if (!$this->indexExists('voucher_lines', 'voucher_lines_dc_index')) {
+                $table->index('dc', 'voucher_lines_dc_index');
+            }
+        });
+
+        // ------- foreign keys (guarded) -------
+        Schema::table('vouchers', function (Blueprint $table) {
+            if (!$this->fkExists('vouchers', 'vouchers_created_by_foreign')) {
+                $table->foreign('created_by', 'vouchers_created_by_foreign')
+                      ->references('id')->on('users')->onUpdate('cascade')->onDelete('restrict');
+            }
+            if (Schema::hasColumn('vouchers','branch_id') && !$this->fkExists('vouchers','vouchers_branch_id_foreign')) {
+                $table->foreign('branch_id', 'vouchers_branch_id_foreign')
+                      ->references('id')->on('branches')->onUpdate('cascade')->onDelete('set null');
+            }
+            foreach ([
+                'party_ledger_id' => 'vouchers_party_ledger_id_foreign',
+                'cash_ledger_id'  => 'vouchers_cash_ledger_id_foreign',
+                'bank_ledger_id'  => 'vouchers_bank_ledger_id_foreign',
+                'from_ledger_id'  => 'vouchers_from_ledger_id_foreign',
+                'to_ledger_id'    => 'vouchers_to_ledger_id_foreign',
+            ] as $col => $fkName) {
+                if (Schema::hasColumn('vouchers',$col) && !$this->fkExists('vouchers', $fkName)) {
+                    $table->foreign($col, $fkName)
+                          ->references('id')->on('account_ledgers')->onUpdate('cascade')->onDelete('set null');
+                }
+            }
         });
 
         Schema::table('voucher_lines', function (Blueprint $table) {
-            $table->foreign('voucher_id')->references('id')->on('vouchers')->onUpdate('cascade')->onDelete('cascade');
-            $table->foreign('ledger_id')->references('id')->on('account_ledgers')->onUpdate('cascade')->onDelete('restrict');
+            if (!$this->fkExists('voucher_lines','voucher_lines_voucher_id_foreign')) {
+                $table->foreign('voucher_id', 'voucher_lines_voucher_id_foreign')
+                      ->references('id')->on('vouchers')->onUpdate('cascade')->onDelete('cascade');
+            }
+            if (!$this->fkExists('voucher_lines','voucher_lines_ledger_id_foreign')) {
+                $table->foreign('ledger_id', 'voucher_lines_ledger_id_foreign')
+                      ->references('id')->on('account_ledgers')->onUpdate('cascade')->onDelete('restrict');
+            }
         });
 
-        // --- Optional CHECKs (MySQL 8+). Comment out if your MySQL doesn't enforce CHECK.
+        // Optional CHECK
         try {
-            \DB::statement("ALTER TABLE voucher_lines ADD CONSTRAINT chk_vl_amount_pos CHECK (amount > 0)");
-        } catch (\Throwable $e) { /* ignore if unsupported */ }
+            DB::statement("ALTER TABLE voucher_lines ADD CONSTRAINT chk_vl_amount_pos CHECK (amount > 0)");
+        } catch (\Throwable $e) { /* ignore if exists/unsupported */ }
     }
 
     public function down(): void
     {
-        // rollback: drop FKs and columns (keep it minimal)
+        // drop FKs if exist
         Schema::table('voucher_lines', function (Blueprint $table) {
-            $table->dropForeign(['voucher_id']);
-            $table->dropForeign(['ledger_id']);
-            $table->dropIndex(['voucher_id']);
-            $table->dropIndex(['ledger_id']);
-            $table->dropIndex(['dc']);
-            // cannot reliably drop CHECK in all envs; ignore
+            foreach (['voucher_lines_voucher_id_foreign','voucher_lines_ledger_id_foreign'] as $fk) {
+                try { $table->dropForeign($fk); } catch (\Throwable $e) {}
+            }
+            foreach (['voucher_lines_voucher_id_index','voucher_lines_ledger_id_index','voucher_lines_dc_index'] as $idx) {
+                try { $table->dropIndex($idx); } catch (\Throwable $e) {}
+            }
         });
 
         Schema::table('vouchers', function (Blueprint $table) {
-            $table->dropUnique('vouchers_branch_type_ref_unique');
-            $table->dropIndex('vouchers_branch_type_date_idx');
-            $table->dropIndex(['voucher_date']);
-            $table->dropIndex(['voucher_type']);
+            foreach ([
+                'vouchers_created_by_foreign',
+                'vouchers_branch_id_foreign',
+                'vouchers_party_ledger_id_foreign',
+                'vouchers_cash_ledger_id_foreign',
+                'vouchers_bank_ledger_id_foreign',
+                'vouchers_from_ledger_id_foreign',
+                'vouchers_to_ledger_id_foreign',
+            ] as $fk) { try { $table->dropForeign($fk); } catch (\Throwable $e) {} }
 
-            $drops = [
-                'party_ledger_id','mode','instrument_no','instrument_date',
-                'cash_ledger_id','bank_ledger_id','from_ledger_id','to_ledger_id',
-                'sub_total','discount','tax','grand_total'
-            ];
-            foreach ($drops as $col) { if (Schema::hasColumn('vouchers', $col)) $table->dropColumn($col); }
+            foreach ([
+                'vouchers_branch_type_ref_unique',
+                'vouchers_branch_type_date_idx',
+                'vouchers_voucher_date_index',
+                'vouchers_voucher_type_index',
+            ] as $idx) { try { $table->dropIndex($idx); } catch (\Throwable $e) {} }
 
-            // created_by / branch_id FKs (created_by existed before—keep if you want)
-            if (Schema::hasColumn('vouchers','created_by')) $table->dropForeign(['created_by']);
-            if (Schema::hasColumn('vouchers','branch_id'))  $table->dropForeign(['branch_id']);
+            // (drop added columns if you want; keep your existing hasColumn checks)
         });
     }
 };
-

@@ -143,33 +143,23 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                 }
             });
 
-            // If already present (back nav), reset it
-            if ($.fn.DataTable.isDataTable('#groups_table')) {
-                $('#groups_table').DataTable().clear().destroy();
-            }
-
-            const table = $('#groups_table').DataTable({
+            // Initialize DataTable
+            var table = $('#products_table').DataTable({
                 pageLength: 10,
                 responsive: true,
                 processing: true,
                 ordering: true,
                 bLengthChange: true,
                 serverSide: true,
-
-                ajax: {
-                    url: "{{ route('accounting.groups.data') }}", // POST endpoint returning JSON
-                    type: "POST",
+                "ajax": {
+                    "url": '{{ url('products/get-data') }}',
+                    "type": "POST",
                     data: function(d) {
-                        // Send filters (if you have these inputs in your toolbar)
-                        d.parent_id = $('#parentSearch').val() || '';
-                        d.nature = $('#natureSearch').val() || '';
-                        d.affects = $('#affectsSearch').val() || ''; // yes/no/blank
-                        // Add more if needed
+                        // Send subcategory id with the request
+                        d.sub_category_id = $('#subCategorySearch').val();
                     }
                 },
-
-                // columns MUST match controller response keys
-                aoColumns: [{ // Sr No like your pattern
+                aoColumns: [{
                         data: null,
                         name: 'sr_no',
                         orderable: false,
@@ -179,92 +169,99 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                         }
                     },
                     {
-                        data: 'name',
-                        name: 'name'
+                        data: 'name'
                     },
                     {
-                        data: 'nature',
-                        name: 'nature'
+                        data: 'category',
+                        orderable: false
                     },
                     {
-                        data: 'affects_gross',
-                        name: 'affects_gross',
-                        orderable: false,
-                        searchable: false
+                        data: 'sub_category',
+                        orderable: false
                     },
                     {
-                        data: 'parent_name',
-                        name: 'parent_name'
+                        data: 'size'
                     },
                     {
-                        data: 'sort_order',
-                        name: 'sort_order'
+                        data: 'brand',
+                        orderable: false
                     },
                     {
-                        data: 'created_at',
-                        name: 'created_at'
+                        data: 'mrp',
+                        orderable: false
+                    },
+                    {
+                        data: 'sell_price',
+                        orderable: false
+                    },
+                    {
+                        data: 'is_active',
+                        orderable: false
+                    },
+                    {
+                        data: 'created_at'
+                    },
+                    {
+                        data: 'updated_at'
                     },
                     {
                         data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false
+                        orderable: false
                     }
                 ],
-
-                // widths (optional)
                 columnDefs: [{
-                        width: "5%",
+                        width: "20%",
                         targets: 0
                     },
                     {
-                        width: "20%",
+                        width: "7%",
                         targets: 1
                     },
                     {
-                        width: "12%",
+                        width: "5%",
                         targets: 2
                     },
                     {
-                        width: "12%",
+                        width: "5%",
                         targets: 3
                     },
                     {
-                        width: "18%",
+                        width: "5%",
                         targets: 4
                     },
                     {
-                        width: "8%",
+                        width: "7%",
                         targets: 5
                     },
                     {
-                        width: "15%",
+                        width: "7%",
                         targets: 6
                     },
                     {
                         width: "10%",
                         targets: 7
+                    },
+                    {
+                        width: "5%",
+                        targets: 8
                     }
                 ],
-
                 autoWidth: false,
                 order: [
-                    [6, 'desc']
-                ], // default sort by created_at DESC
-
-                // same toolbar layout you like
-                dom: "<'custom-toolbar-row'lfB>t<'row mt-2'<'col-md-6'i><'col-md-6'p>>",
-
+                    [8, 'desc']
+                ],
+                dom: "Bfrtip",
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
-                    ['10 rows', '25 rows', '50 rows', '100 rows', 'All']
+                    [10, 25, 50, 100, "All"]
                 ],
-
+                pageLength: 10,
+                dom: "<'custom-toolbar-row'lfB>t<'row mt-2'<'col-md-6'i><'col-md-6'p>>",
                 buttons: [{
                         extend: 'excelHtml5',
                         className: 'btn btn-outline-success btn-sm me-2',
-                        title: 'Account Groups',
-                        filename: 'account_groups_excel',
+                        title: 'Commission Customer',
+                        filename: 'commission_customer_excel',
                         exportOptions: {
                             columns: ':visible'
                         }
@@ -272,8 +269,8 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                     {
                         extend: 'pdfHtml5',
                         className: 'btn btn-outline-danger btn-sm',
-                        title: 'Account Groups',
-                        filename: 'account_groups_pdf',
+                        title: 'Commission Customer',
+                        filename: 'commission_customer_pdf',
                         orientation: 'landscape',
                         pageSize: 'A4',
                         exportOptions: {
@@ -283,91 +280,119 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                 ]
             });
 
-            // Filter listeners -> reload table (no paging reset)
-            $(document).on('change', '#parentSearch, #natureSearch, #affectsSearch', function() {
+            // Listen for changes in subCategorySearch dropdown
+            $('#subCategorySearch').on('change', function() {
+                // Reload DataTable with the new filter value
                 table.ajax.reload(null, false);
             });
-
-            // DELETE (SweetAlert2 + AJAX) — expects your actions to render a .btn-delete with data-id
-            $(document).on('click', '.btn-delete', function(e) {
-                e.preventDefault();
-                const id = $(this).data('id');
-
-                Swal.fire({
-                    title: "Are you sure?",
-                    text: "This group will be permanently deleted.",
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonText: "Yes, delete it!"
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            type: "DELETE",
-                            url: "{{ url('/accounting/groups/delete') }}/" + id,
-                            success: function(response) {
-                                Swal.fire("Deleted!", "The group has been deleted.",
-                                    "success").then(() => {
-                                    table.ajax.reload(null, false);
-                                });
-                            },
-                            error: function(xhr) {
-                                Swal.fire("Error!", xhr.responseJSON?.message ||
-                                    "Something went wrong.", "error");
-                            }
-                        });
-                    }
-                });
-            });
-
-            // Optional: inline update modal (example) — adapt fields to your use-case
-            $('#groupUpdateForm').on('submit', function(e) {
-                e.preventDefault();
-
-                // clear errors (if any)
-                $('#name_error').text('');
-                $('#sort_error').text('');
-
-                const payload = {
-                    _token: $('input[name="_token"]').val(),
-                    id: $('#edit_group_id').val(),
-                    name: $('#edit_group_name').val(),
-                    sort_order: $('#edit_sort_order').val(),
-                };
-
-                $.ajax({
-                    type: "POST",
-                    url: "{{ route('accounting.groups.update.inline') }}", // create this route if you want inline updates
-                    data: payload,
-                    success: function(res) {
-                        Swal.fire('Saved', res.message || 'Group updated', 'success');
-                        $('#groupEditModal').modal('hide');
-                        $('#groupUpdateForm')[0].reset();
-                        table.ajax.reload(null, false);
-                    },
-                    error: function(xhr) {
-                        if (xhr.status === 422) {
-                            const errs = xhr.responseJSON.errors || {};
-                            if (errs.name) $('#name_error').text(errs.name[0]);
-                            if (errs.sort_order) $('#sort_error').text(errs.sort_order[0]);
-                        } else {
-                            Swal.fire('Error', 'Unexpected error', 'error');
-                        }
-                    }
-                });
-            });
-
         });
 
-        // Also allow action buttons to call directly
-        function delete_group(id) {
-            $('.btn-delete[data-id="' + id + '"]').trigger('click');
+        $('#priceUpdateForm').on('submit', function(e) {
+            e.preventDefault();
+
+            // Clear previous validation errors
+            $('#old_price_error').text('');
+            $('#new_price_error').text('');
+            $('#changed_at_error').text('');
+
+            let formData = {
+                _token: $('input[name="_token"]').val(),
+                product_id: $('#product_id').val(),
+                old_price: $('#old_price').val(),
+                new_price: $('#new_price').val(),
+                changed_at: $('#changed_at').val()
+            };
+
+            $.ajax({
+                type: "POST",
+                url: "{{ route('products.updatePrice') }}", // Adjust to match your route name
+                data: formData,
+                success: function(response) {
+                    // Show success message
+                    alert(response.message); // or use toastr.success()
+
+                    // Close and reset modal
+                    $('#priceChangeModal').modal('hide');
+                    $('#priceUpdateForm')[0].reset();
+
+                    // Reload DataTable
+                    $('#products_table').DataTable().ajax.reload(null, false);
+                },
+                error: function(xhr) {
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        if (errors.old_price) {
+                            $('#old_price_error').text(errors.old_price[0]);
+                        }
+                        if (errors.new_price) {
+                            $('#new_price_error').text(errors.new_price[0]);
+                        }
+                        if (errors.changed_at) {
+                            $('#changed_at_error').text(errors.changed_at[0]);
+                        }
+                    } else {
+                        alert("An unexpected error occurred.");
+                    }
+                }
+            });
+        });
+
+        function delete_product(id) {
+
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, delete it!",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "post", // "method" also works
+                        url: "{{ url('products/delete') }}", // Ensure correct Laravel URL
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        data: {
+                            id: id
+                        },
+                        success: function(response) {
+                            if (response.status === 'error') {
+                                // If the response contains error status, show the message in Swal
+                                Swal.fire("Error!", response.message, "error");
+                            } else {
+                                // If deletion is successful, show success message
+                                Swal.fire("Deleted!", "The product has been deleted.", "success").then(
+                                () => {
+                                    $('#products_table').DataTable().ajax.reload(null,
+                                    false); // ✅ Only reload DataTable
+                                });
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            // Handle any other errors that happen during the AJAX request (network issues, etc.)
+                            Swal.fire("Error!", "Something went wrong. Please try again later.",
+                                "error");
+                        }
+                    });
+                }
+            });
+
         }
 
-        function open_group_edit(id, name, sort) {
-            $('#edit_group_id').val(id);
-            $('#edit_group_name').val(name);
-            $('#edit_sort_order').val(sort);
-            $('#groupEditModal').modal('show');
+        function product_price_change(id, sell_price) {
+
+            $('#old_price_hidden').val(sell_price);
+            $('#old_price').val(sell_price);
+            $('#product_id').val(id);
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                var myModal = new bootstrap.Modal(document.getElementById('priceChangeModal'));
+                myModal.show();
+            } else {
+                // For Bootstrap 4 (with jQuery)
+                $('#priceChangeModal').modal('show');
+            }
+            // $('#priceChangeModal').modal('show');
         }
     </script>
 @endsection
