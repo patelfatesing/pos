@@ -35,7 +35,8 @@ class Invoice extends Model
         'hold_date',
         'paid_credit',
         'invoice_status',
-        'edit_in'
+        'edit_in',
+        'sales_type'
     ];
 
     protected $casts = [
