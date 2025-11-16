@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\CommissionUserImage;
 use App\Models\Invoice;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Accounting\AccountLedger;
 
 class PartyUserController extends Controller
 {
@@ -155,6 +156,16 @@ class PartyUserController extends Controller
             $PartyUser->photo = $photoPath;
             $PartyUser->save();
         }
+
+        $data = [];
+        $data['name'] = $request->first_name;
+        $data['opening_balance'] = $request->credit_points;
+        $data['opening_type'] = 'Dr';
+        $data['is_active'] = 1;
+        $data['group_id'] = 19; // Assuming 15 is the group ID for Party Users
+
+        AccountLedger::create($data);
+
 
         return redirect()->route('party-users.list')->with('success', 'Party User Created');
     }
@@ -637,9 +648,9 @@ class PartyUserController extends Controller
         $product->due_date = $request->due_date;
         $product->save();
 
-       
-            // sendNotification('price_change', $product->name . ' Product price is changed.', $store->id, Auth::id(), json_encode(['id' => (string)$his_data->id]), 0);
-        
+
+        // sendNotification('price_change', $product->name . ' Product price is changed.', $store->id, Auth::id(), json_encode(['id' => (string)$his_data->id]), 0);
+
 
         return response()->json([
             'status' => 'success',

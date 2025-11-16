@@ -1967,7 +1967,7 @@ class Report2Controller extends Controller
         $branchId = $request->integer('branch_id');
         $tz  = config('app.timezone', 'Asia/Kolkata');
         $now = Carbon::now($tz);
-
+        
         $start = $request->filled('start_date')
             ? Carbon::parse($request->input('start_date'), $tz)->startOfDay()
             : $now->copy()->subDays(29)->startOfDay();

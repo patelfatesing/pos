@@ -293,39 +293,66 @@
                             </div>
 
                             <div class="col-12 col-md-3 party-customer">
-                                <div class="position-relative ">
-                                    <img class="down-arrow" src="{{ asset('external/vector4471-t8to.svg') }}"
-                                        alt="Icon">
+                                @if (!$one_time_transaction)
+                                    <div class="position-relative ">
+                                        <img class="down-arrow" src="{{ asset('external/vector4471-t8to.svg') }}"
+                                            alt="Icon">
 
-                                    @if (auth()->user()->hasRole('cashier'))
-                                        <select id="commissionUser"
-                                            class="form-control rounded-pill pe-5 custom-border"
-                                            wire:model="selectedCommissionUser" wire:change="calculateCommission"
-                                            @if ($removeCrossHold || $this->selectedSalesReturn == true) disabled @endif>
-                                            <option value="">Select Commission Customer</option>
-                                            @foreach ($commissionUsers as $user)
-                                                <option value="{{ $user->id }}">{{ $user->first_name }}</option>
-                                            @endforeach
-                                        </select>
-                                    @endif
+                                        @if (auth()->user()->hasRole('cashier'))
+                                            <select id="commissionUser"
+                                                class="form-control rounded-pill pe-5 custom-border"
+                                                wire:model="selectedCommissionUser" wire:change="calculateCommission"
+                                                @if ($removeCrossHold || $this->selectedSalesReturn == true) disabled @endif>
+                                                <option value="">Select Commission Customer</option>
+                                                @foreach ($commissionUsers as $user)
+                                                    <option value="{{ $user->id }}">{{ $user->first_name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        @endif
 
-                                    @if (auth()->user()->hasRole('warehouse'))
-                                        <select id="partyUser" class="form-control rounded-pill pe-5 custom-border"
-                                            wire:model="selectedPartyUser" wire:change="calculateParty"
-                                            @if ($removeCrossHold || $this->selectedSalesReturn == true) disabled @endif>
-                                            <option value="">{{ __('messages.select_party_customer') }}</option>
-                                            @foreach ($partyUsers as $user)
-                                                <option value="{{ $user->id }}">{{ $user->first_name }}</option>
-                                            @endforeach
-                                        </select>
-                                    @endif
-                                </div>
+                                        @if (auth()->user()->hasRole('warehouse'))
+                                            <select id="partyUser"
+                                                class="form-control rounded-pill pe-5 custom-border"
+                                                wire:model="selectedPartyUser" wire:change="calculateParty"
+                                                @if ($removeCrossHold || $this->selectedSalesReturn == true) disabled @endif>
+                                                <option value="">{{ __('messages.select_party_customer') }}
+                                                </option>
+                                                @foreach ($partyUsers as $user)
+                                                    <option value="{{ $user->id }}">{{ $user->first_name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
                             <div class="col-12 col-md-3 capture-eve-block">
-                                <div class="position-relative capture-eve">
-                                    <livewire:take-two-pictures />
-                                </div>
+                                @if (!$one_time_transaction)
+                                    <div class="position-relative capture-eve">
+                                        <livewire:take-two-pictures />
+                                    </div>
+                                @endif
                             </div>
+                            @if (auth()->user()->hasRole('cashier'))
+                                <div class="col-12 col-md-3 capture-eve-block">
+                                    <div class="position-relative capture-eve">
+                                        <div class="form-check d-flex align-items-center gap-2">
+                                            <input type="checkbox" class="form-check-input"
+                                                id="one_time_transaction1" wire:click="handleOneTimeUpdated"
+                                                @checked($one_time_transaction)>
+                                            <label for="one_time_transaction1" class="form-check-label mb-0">
+                                                One Time Transaction
+                                            </label>
+                                        </div>
+
+                                        {{-- <p class="mt-2">
+                                        Status:
+                                        <strong>{{ $one_time_transaction ? 'Checked' : 'Unchecked' }}</strong>
+                                    </p> --}}
+                                    </div>
+                                </div>
+                            @endif
                             @if (auth()->user()->hasRole('warehouse'))
                                 <div class="col-12 col-md-3">
                                     <div class="position-relative">
@@ -421,6 +448,7 @@
                                                                 wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})">
 
                                                                 {{ $this->quantities[$item->id] }}
+                                                                {{ $one_time_transaction && $item->sold_stock > 0 ? ' Sold(' . $item->sold_stock . ')' : '' }}
                                                             </td>
                                                             <td
                                                                 wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})">
@@ -488,6 +516,13 @@
                                                                         title="Remove item">
                                                                         <i class="fa fa-trash-o"></i>
                                                                     </button>
+                                                                    @if ($one_time_transaction)
+                                                                        <button class="btn btn-sm btn-default"
+                                                                            wire:click="stockStatus({{ $item->product_id }})"
+                                                                            title="Remove item">
+                                                                            <i class="fa fa-eye"></i>
+                                                                        </button>
+                                                                    @endif
                                                                 </td>
                                                             @else
                                                                 <td>
@@ -498,7 +533,13 @@
                                                                             alt="Delete"
                                                                             class="main-screen-delete24dp1f1f1ffill0wght400grad0opsz24110">
                                                                     </button>
-
+                                                                    @if ($one_time_transaction)
+                                                                        <button class="btn btn-sm btn-default"
+                                                                            wire:click="stockStatus({{ $item->product_id }})"
+                                                                            title="Remove item">
+                                                                            <i class="fa fa-eye"></i>
+                                                                        </button>
+                                                                    @endif
                                                                 </td>
                                                             @endif
                                                         </tr>
@@ -932,26 +973,27 @@
                         <div class="col-md-12">
                             <div class="card">
                                 <div class="card-body stock-request-form">
-                                <form method="POST" action="{{ route('stock.store') }}">
-                                    @csrf
+                                    <form method="POST" action="{{ route('stock.store') }}">
+                                        @csrf
                                         {{-- filepath: d:\xampp\htdocs\pos\resources\views\stocks\create.blade.php --}}
                                         <div class="store_id_block">
                                             <input class="mb-3" type="hidden" name="store_id"
                                                 value="{{ @$branch_id }}">
                                         </div>
-                                    {{-- SubCategory Dropdown --}}
+                                        {{-- SubCategory Dropdown --}}
                                         <div class="mb-3">
-                                        <h5>Sub Category</h5>
+                                            <h5>Sub Category</h5>
                                             <select wire:model="selectedSubCategory"
-                                            wire:change="selectedSubCategory2($event.target.value)"
-                                            class="form-control d-inline w-50 product-select-sh frame-stock-request-searchbar6 Specificity: (0,1,0)">
-                                            <option value="">-- Select Sub Category --</option>
-                                            @foreach ($subCategories as $sub)
-                                                <option value="{{ $sub->id }}">{{ $sub->name }}</option>
-                                            @endforeach
-                                        </select>
+                                                wire:change="selectedSubCategory2($event.target.value)"
+                                                class="form-control d-inline w-50 product-select-sh frame-stock-request-searchbar6 Specificity: (0,1,0)">
+                                                <option value="">-- Select Sub Category --</option>
+                                                @foreach ($subCategories as $sub)
+                                                    <option value="{{ $sub->id }}">{{ $sub->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
                                         </div>
-                                     <div id="product-items">
+                                        <div id="product-items">
                                             <h5>Products</h5>
                                             <div class="item-row mb-3">
 
@@ -980,7 +1022,7 @@
                                             </div>
                                         </div>
 
-                                     <button type="button" id="add-item" class="btn btn-primary btn-sm mb-3">+
+                                        <button type="button" id="add-item" class="btn btn-primary btn-sm mb-3">+
                                             {{ __('messages.add_another_product') }}</button>
                                         <button type="button" id="clear-items"
                                             class="btn btn-warning btn-sm mb-3 ms-2">
@@ -996,8 +1038,8 @@
                                             <button type="submit"
                                                 class="frame-stock-request-group223 btn-submit">{{ __('messages.submit_request') }}</button>
                                         </div>
-                                </form>
-                            </div>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1170,7 +1212,7 @@
                                     </tr>
                                 </tfoot>
                             </table>
-                               <!-- ✅ Start with 0 checkbox -->
+                            <!-- ✅ Start with 0 checkbox -->
                             <div class="form-check mt-1">
                                 <input class="form-check-input start-zero-checkbox" type="checkbox" id="startZero"
                                     name="startZero" value="1">
@@ -1952,6 +1994,49 @@
             </div>
         </div>
     </div>
+
+    <div wire:ignore.self class="modal fade" id="stockDetailsModal" tabindex="-1"
+        aria-labelledby="stockDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+
+                <div class="modal-header custom-modal-header">
+                    <span class="cash-summary-text61 modal-title">{{ $this->headertitle }}
+                        {{ __('messages.summary') }}</span>
+                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="cashupi-payment">
+                        <div class="table-responsive">
+                            <table class="table table-bordered physical-table">
+                                <thead class="table-info">
+                                    <tr>
+
+
+                                        <th>Opening Stock</th>
+                                        <th>Transferred IN</th>
+                                        <th>Transferred OUT</th>
+                                        <th>Sold Qty</th>
+                                        <th>Closing Stock</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>{{ $this->sellProductStock['opening_stock'] ?? 0 }}</td>
+                                        <td>{{ $this->sellProductStock['added_stock'] ?? 0 }}</td>
+                                        <td>{{ $this->sellProductStock['transferred_stock'] ?? 0 }}</td>
+                                        <td>{{ $this->sellProductStock['sold_stock'] ?? 0 }}</td>
+                                        <td>{{ $this->sellProductStock['closing_stock'] ?? 0 }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -2169,6 +2254,11 @@
 
     window.addEventListener('online-cash-upi-modal', event => {
         const modal = new bootstrap.Modal(document.getElementById('caseUpiModal'));
+        modal.show();
+    });
+
+    window.addEventListener('stock-status-modal', event => {
+        const modal = new bootstrap.Modal(document.getElementById('stockDetailsModal'));
         modal.show();
     });
 
@@ -2915,7 +3005,7 @@
         });
     });
 
-     let itemIndex = 1;
+    let itemIndex = 1;
     document.getElementById('add-item').addEventListener('click', function() {
         const row = document.querySelector('.item-row').cloneNode(true);
         row.querySelectorAll('select, input').forEach(el => {

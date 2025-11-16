@@ -185,8 +185,8 @@
                     </ul>
                 </li>
 
-                <li class=" ">
-                    <a href="#otherpage" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                <li class="">
+                    <a href="{{ route('accounting.groups.list') }}" class="svg-icon">
                         <svg class="svg-icon" id="p-dash9" width="20" height="20"
                             xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -194,31 +194,33 @@
                             <rect x="7" y="7" width="3" height="9"></rect>
                             <rect x="14" y="7" width="3" height="5"></rect>
                         </svg>
-                        <span class="ml-4">Accounting</span>
-                        <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20"
+                        <span class="ml-4">Groups</span>
+                    </a>
+                </li>
+
+                <li class="">
+                    <a href="{{ route('accounting.ledgers.list') }}" class="svg-icon">
+                        <svg class="svg-icon" id="p-dash9" width="20" height="20"
                             xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="10 15 15 20 20 15"></polyline>
-                            <path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <rect x="7" y="7" width="3" height="9"></rect>
+                            <rect x="14" y="7" width="3" height="5"></rect>
                         </svg>
+                        <span class="ml-4">Ledgers</span>
                     </a>
-                    <ul id="otherpage" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
-                        <li class="">
-                            <a href="{{ route('accounting.groups.list') }}">
-                                <i class="las la-minus"></i><span>Groups</span>
-                            </a>
-                        </li>
-                        <li class="">
-                            <a href="{{ route('accounting.ledgers.list') }}">
-                                <i class="las la-minus"></i><span>Ledgers</span>
-                            </a>
-                        </li>
-                        <li class="">
-                            <a href="{{ route('accounting.vouchers.index') }}">
-                                <i class="las la-minus"></i><span>Vouchers</span>
-                            </a>
-                        </li>
-                    </ul>
+                </li>
+                <li class="">
+                    <a href="{{ route('accounting.vouchers.index') }}" class="svg-icon">
+                        <svg class="svg-icon" id="p-dash9" width="20" height="20"
+                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <rect x="7" y="7" width="3" height="9"></rect>
+                            <rect x="14" y="7" width="3" height="5"></rect>
+                        </svg>
+                        <span class="ml-4">Vouchers</span>
+                    </a>
                 </li>
 
                 <li class=" ">
