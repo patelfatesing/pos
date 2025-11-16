@@ -47,6 +47,7 @@ use App\Http\Controllers\PurchaseLedgerController;
 use App\Http\Controllers\Accounting\GroupController;
 use App\Http\Controllers\Accounting\LedgerController;
 use App\Http\Controllers\Accounting\VoucherController;
+use App\Http\Controllers\RolePermissionController;
 
 // Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
 // Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
@@ -498,8 +499,6 @@ Route::middleware('auth')->group(function () {
 
         Route::get('pnl/ledger', [Report2Controller::class, 'pnlLedgerDetail'])
             ->name('reports.pnl.ledger');
-
-            
     });
 
     // routes/web.php
@@ -529,6 +528,11 @@ Route::middleware('auth')->group(function () {
         Route::post('vouchers/store',       [VoucherController::class, 'store'])->name('vouchers.store');
         Route::delete('vouchers/{voucher}', [VoucherController::class, 'destroy'])->name('vouchers.destroy'); // optional
         Route::post('vouchers/get-data', [VoucherController::class, 'getData'])->name('vouchers.getData');
+    });
+
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('roles/{role}/permissions',  [RolePermissionController::class, 'edit'])->name('roles.permissions.edit');
+        Route::post('roles/{role}/permissions', [RolePermissionController::class, 'update'])->name('roles.permissions.update');
     });
 });
 
