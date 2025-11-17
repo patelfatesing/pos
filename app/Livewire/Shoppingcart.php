@@ -2679,6 +2679,7 @@ class Shoppingcart extends Component
                     if (!empty($this->selectedCommissionUser)) {
                         $custImg = CommissionUserImage::where('commission_user_id', $this->selectedCommissionUser)->where('type', 'hold')->first(["image_path", "product_image_path"]);
                     }
+
                     $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
                     $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
                     if (empty($custImg->image_path) && empty($custImg->product_image_path) && $this->removeCrossHold == true) {
@@ -2898,6 +2899,7 @@ class Shoppingcart extends Component
                 $totalTender = round($this->cash + $this->upi, 2);
             }
 
+
             if ($branch_id == 1) {
 
                 $commison_ledger = AccountLedger::where('name', $partyUser->first_name)->first();
@@ -2917,6 +2919,27 @@ class Shoppingcart extends Component
                         'line_narration' => 'Cash received',
                     ];
                 }
+                if (!empty($this->partyAmount) && (float)$this->commissionApartyAmountmount > 0) {
+                    $discountAmt = round((float)$this->partyAmount, 2);
+
+                    $commison_ledger2 = AccountLedger::where('name', 'Discount Allowed')->first();
+                    $credit_ledger_id2 = $commison_ledger2->id; //
+                    // Debit -> Discount Allowed (expense)
+                    $lines[] = [
+                        'ledger_id'      => (int) $credit_ledger_id2,     // Discount Allowed ledger id
+                        'dc'             => 'Dr',
+                        'amount'         => $discountAmt,
+                        'line_narration' => 'Discount allowed',
+                    ];
+
+                    // Credit -> Sales (reduce revenue) — use $salesLedger (your sales ledger id)
+                    $lines[] = [
+                        'ledger_id'      => (int) $sales_ledger_id,         // Sales ledger id (same one you used for the sale Cr)
+                        'dc'             => 'Cr',
+                        'amount'         => $discountAmt,
+                        'line_narration' => 'Discount adjustment',
+                    ];
+                }
 
                 $totalTender = round($this->creditPay, 2);
             } else {
@@ -2925,6 +2948,26 @@ class Shoppingcart extends Component
                 $branch_name = Branch::where('id', $branch_id)->first();
                 $sales_ledger = AccountLedger::where('name', $branch_name->name)->first();
                 $sales_ledger_id = $sales_ledger->id;
+
+                if (!empty($this->commissionAmount) && (float)$this->commissionAmount > 0) {
+                    $discountAmt = round((float)$this->commissionAmount, 2);
+
+                    // Debit -> Discount Allowed (expense)
+                    $lines[] = [
+                        'ledger_id'      => (int) $credit_ledger_id,     // Discount Allowed ledger id
+                        'dc'             => 'Dr',
+                        'amount'         => $discountAmt,
+                        'line_narration' => 'Discount allowed',
+                    ];
+
+                    // Credit -> Sales (reduce revenue) — use $salesLedger (your sales ledger id)
+                    $lines[] = [
+                        'ledger_id'      => (int) $sales_ledger_id,         // Sales ledger id (same one you used for the sale Cr)
+                        'dc'             => 'Cr',
+                        'amount'         => $discountAmt,
+                        'line_narration' => 'Discount adjustment',
+                    ];
+                }
             }
 
             $nv = function ($v) {
@@ -2976,7 +3019,7 @@ class Shoppingcart extends Component
                 //     ['ledger_id' => $tenderLedgerId, 'dc' => 'Dr', 'amount' => $this->cashAmount, 'line_narration' => 'Cash received'],
                 // ],
             ];
-// dd($payload);
+            // dd($payload);
             $voucher = $this->posTransaction($payload);
 
             \Log::info('Invoice Created: ' . json_encode($invoice, true));
