@@ -210,7 +210,7 @@
                         <span class="ml-4">Ledgers</span>
                     </a>
                 </li>
-                <li class="">
+                {{-- <li class="">
                     <a href="{{ route('accounting.vouchers.create') }}" class="svg-icon">
                         <svg class="svg-icon" id="p-dash9" width="20" height="20"
                             xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
@@ -245,13 +245,8 @@
                                 <i class="las la-minus"></i><span>List Sale</span>
                             </a>
                         </li>
-                        {{-- <li class="">
-                            <a href="#">
-                                <i class="las la-minus"></i><span>Add Sale</span>
-                            </a>
-                        </li> --}}
                     </ul>
-                </li>
+                </li> --}}
 
                 <li class=" ">
                     <a href="#customer" class="collapsed" data-toggle="collapse" aria-expanded="false">
