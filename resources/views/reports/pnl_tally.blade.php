@@ -84,13 +84,6 @@
             min-width: 120px
         }
 
-        #branch_id {
-            flex: 0 1 230px;
-            min-width: 160px;
-            text-overflow: ellipsis;
-            overflow: hidden
-        }
-
         #btn_refresh {
             flex: 0 0 auto
         }
@@ -156,7 +149,6 @@
             overflow: visible
         }
 
-        /* links look like normal text */
         .pnl a {
             color: inherit;
             text-decoration: none;
@@ -187,22 +179,18 @@
                     </div>
 
                     <div class="filters" id="pnl_filters">
-                        <label for="pnl_branch">Branch</label>
-                        <select id="pnl_branch" class="form-control form-control-sm" autocomplete="off">
-                            <option value="" selected>All</option>
-                            @foreach ($branches as $b)
-                                <option value="{{ $b->id }}">{{ $b->name }}</option>
-                            @endforeach
-                        </select>
 
+                        {{-- Removed Branch Completely --}}
+                        
                         <input type="date" id="pnl_start" class="form-control form-control-sm" autocomplete="off">
                         <input type="date" id="pnl_end" class="form-control form-control-sm" autocomplete="off">
 
                         <button id="pnl_apply" type="button" class="btn btn-primary btn-sm">Apply</button>
                     </div>
 
-                    <a id="pnl_pdf_link" class="btn btn-sm btn-outline-primary" href="#" target="_blank">Download
-                        PDF</a>
+                    <a id="pnl_pdf_link" class="btn btn-sm btn-outline-primary" href="#" target="_blank">
+                        Download PDF
+                    </a>
 
                     {{-- Trading Account --}}
                     <div class="two-col mt-2">
@@ -293,300 +281,100 @@
     </div>
 @endsection
 
+
 @section('scripts')
-    <script>
-        const GROUP_URL = @json(route('reports.pnl.group'));
-        const LEDGER_URL = @json(route('reports.pnl.ledger'));
+<script>
+    const GROUP_URL = @json(route('reports.pnl.group'));
+    const LEDGER_URL = @json(route('reports.pnl.ledger'));
+    const PDF_BASE = @json(route('reports.profit-loss.pdf'));
 
-        (function() {
-            const $ = (id) => document.getElementById(id);
+    (function() {
+        const $ = id => document.getElementById(id);
+        const CSRF = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-            const fmtDate = (d) => {
-                const dt = (d instanceof Date) ? d : new Date(d);
-                const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000);
-                return local.toISOString().slice(0, 10);
+        const fmtDate = d => {
+            const dt = new Date(d);
+            const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000);
+            return local.toISOString().slice(0, 10);
+        };
+
+        const today = fmtDate(new Date());
+        const last30 = fmtDate(new Date(Date.now() - 29 * 86400000));
+
+        $('pnl_start').value = last30;
+        $('pnl_end').value = today;
+
+        function updateHeader() {
+            $('pnl_period').textContent = `${$('pnl_start').value} to ${$('pnl_end').value}`;
+        }
+
+        function updatePdfLink() {
+            const params = new URLSearchParams({
+                start_date: $('pnl_start').value,
+                end_date: $('pnl_end').value
+            });
+            $('pnl_pdf_link').href = `${PDF_BASE}?${params.toString()}`;
+        }
+
+        updateHeader();
+        updatePdfLink();
+
+        function refresh() {
+            let payload = {
+                start_date: $('pnl_start').value,
+                end_date: $('pnl_end').value
             };
-            const todayStr = () => fmtDate(new Date());
-            const daysAgoStr = (n) => {
-                const d = new Date();
-                d.setDate(d.getDate() - n);
-                return fmtDate(d);
-            };
 
-            const CSRF = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-            const PDF_BASE = @json(route('reports.profit-loss.pdf'));
+            fetch(@json(route('reports.pnl_tally.data')), {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "X-CSRF-TOKEN": CSRF
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .then(json => {
+                renderSide('#tbl_trading_dr tbody', json.trading.dr.rows);
+                renderSide('#tbl_trading_cr tbody', json.trading.cr.rows);
+                renderSide('#tbl_pl_dr tbody', json.pl.dr.rows);
+                renderSide('#tbl_pl_cr tbody', json.pl.cr.rows);
 
-            const LS_KEY = 'pnl_tally_filters_v2';
-            const loadSaved = () => {
-                try {
-                    return JSON.parse(localStorage.getItem(LS_KEY) || '{}');
-                } catch {
-                    return {};
-                }
-            };
-            const saveCurrent = () => localStorage.setItem(LS_KEY, JSON.stringify({
-                branch_id: $('pnl_branch').value || '',
-                start_date: $('pnl_start').value || '',
-                end_date: $('pnl_end').value || '',
-            }));
+                $('trading_total_dr').textContent = json.trading.table_total;
+                $('trading_total_cr').textContent = json.trading.table_total;
+                $('pl_total_dr').textContent = json.pl.table_total;
+                $('pl_total_cr').textContent = json.pl.table_total;
+            });
+        }
 
-            function selectedBranchText() {
-                const sel = $('pnl_branch');
-                return sel?.selectedOptions?.[0]?.textContent?.trim() || 'All';
-            }
+        // Render reusable
+        function renderSide(selector, rows) {
+            const tbody = document.querySelector(selector);
+            tbody.innerHTML = "";
 
-            function updateHeader() {
-                const s = $('pnl_start').value || '';
-                const e = $('pnl_end').value || '';
-                $('pnl_period').textContent = `${selectedBranchText()} • ${s} to ${e}`;
-            }
-
-            function updatePdfLink() {
-                const params = new URLSearchParams({
-                    start_date: $('pnl_start').value || '',
-                    end_date: $('pnl_end').value || '',
-                    branch_id: $('pnl_branch').value || ''
-                });
-                $('pnl_pdf_link').href = `${PDF_BASE}?${params.toString()}`;
-            }
-
-            // SECTION header row (optionally clickable to group)
-            function appendSectionRow(tbody, r) {
-                const tr = document.createElement('tr');
-                const td1 = document.createElement('td');
-                const td2 = document.createElement('td');
-                td2.className = 'amount';
-                td2.textContent = r.amount ?? '0.00';
-
-                if (r.section_group_id) {
-                    const a = document.createElement('a');
-                    a.textContent = r.label ?? 'Section';
-                    a.href =
-                        `${GROUP_URL}?section=${encodeURIComponent(r.section || '')}&group_id=${encodeURIComponent(r.section_group_id)}&start_date=${encodeURIComponent($('pnl_start').value)}&end_date=${encodeURIComponent($('pnl_end').value)}&branch_id=${encodeURIComponent($('pnl_branch').value)}`;
-                    a.target = '_blank';
-                    td1.appendChild(a);
-                } else {
-                    td1.textContent = r.label ?? 'Section';
-                }
-
-                tr.appendChild(td1);
-                tr.appendChild(td2);
+            rows.forEach(r => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td>${r.label}</td><td class="amount">${r.amount}</td>`;
                 tbody.appendChild(tr);
-            }
 
-            // Render Section → Groups/ledgers
-            function renderSide(tbodySelector, rows) {
-                const tbody = document.querySelector(tbodySelector);
-                while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
-
-                (rows || []).forEach(r => {
-                    // Always draw section header first (clickable if section_group_id exists)
-                    appendSectionRow(tbody, r);
-
-                    if (!Array.isArray(r.children)) return;
-
-                    const section = r.section || '';
-
-                    if (r.flatten) {
-                        // Children are LEDGERS directly (single-group case)
-                        r.children.forEach(led => {
-                            const tr = document.createElement('tr');
-                            const td1 = document.createElement('td');
-                            const td2 = document.createElement('td');
-                            td2.className = 'amount';
-
-                            if (led.is_total) {
-                                tr.className = 'grand-child-total';
-                                td1.textContent = led.label ?? 'Total';
-                            } else {
-                                tr.className = 'grand-child-row';
-                                td1.className = 'grand-child-label';
-
-                                if (led.ledger_id) {
-                                    const a = document.createElement('a');
-                                    a.textContent = led.label ?? 'Ledger';
-                                    a.href =
-                                        `${LEDGER_URL}?ledger_id=${encodeURIComponent(led.ledger_id)}&section=${encodeURIComponent(section)}&start_date=${encodeURIComponent($('pnl_start').value)}&end_date=${encodeURIComponent($('pnl_end').value)}&branch_id=${encodeURIComponent($('pnl_branch').value)}`;
-                                    a.target = '_blank';
-                                    td1.appendChild(a);
-                                } else {
-                                    td1.textContent = led.label ?? 'Ledger';
-                                }
-                                if (typeof led.bills !== 'undefined') {
-                                    td1.insertAdjacentHTML('beforeend',
-                                        ` <span class="child-meta">(Bills: ${led.bills})</span>`);
-                                }
-                            }
-
-                            td2.textContent = led.amount ?? '0.00';
-                            tr.appendChild(td1);
-                            tr.appendChild(td2);
-                            tbody.appendChild(tr);
-                        });
-
-                    } else {
-                        // Children are GROUPS
-                        r.children.forEach(ch => {
-                            const tr = document.createElement('tr');
-                            tr.className = 'child-row';
-                            const td1 = document.createElement('td');
-                            td1.className = 'child-label';
-                            const td2 = document.createElement('td');
-                            td2.className = 'amount';
-
-                            if (ch.group_id) {
-                                const a = document.createElement('a');
-                                a.textContent = ch.label ?? 'Group';
-                                a.href =
-                                    `${GROUP_URL}?section=${encodeURIComponent(section)}&group_id=${encodeURIComponent(ch.group_id)}&start_date=${encodeURIComponent($('pnl_start').value)}&end_date=${encodeURIComponent($('pnl_end').value)}&branch_id=${encodeURIComponent($('pnl_branch').value)}`;
-                                a.target = '_blank';
-                                td1.appendChild(a);
-                            } else {
-                                td1.textContent = ch.label ?? 'Group';
-                            }
-                            if (typeof ch.bills !== 'undefined') {
-                                td1.insertAdjacentHTML('beforeend',
-                                    ` <span class="child-meta">(Bills: ${ch.bills})</span>`);
-                            }
-
-                            td2.textContent = ch.amount ?? '0.00';
-                            tr.appendChild(td1);
-                            tr.appendChild(td2);
-                            tbody.appendChild(tr);
-
-                            if (Array.isArray(ch.children)) {
-                                ch.children.forEach(led => {
-                                    const tr2 = document.createElement('tr');
-                                    const td1g = document.createElement('td');
-                                    const td2g = document.createElement('td');
-                                    td2g.className = 'amount';
-
-                                    if (led.is_total) {
-                                        tr2.className = 'grand-child-total';
-                                        td1g.textContent = led.label ?? 'Total';
-                                    } else {
-                                        tr2.className = 'grand-child-row';
-                                        td1g.className = 'grand-child-label';
-
-                                        if (led.ledger_id) {
-                                            const a = document.createElement('a');
-                                            a.textContent = led.label ?? 'Ledger';
-                                            a.href =
-                                                `${LEDGER_URL}?ledger_id=${encodeURIComponent(led.ledger_id)}&section=${encodeURIComponent(section)}&start_date=${encodeURIComponent($('pnl_start').value)}&end_date=${encodeURIComponent($('pnl_end').value)}&branch_id=${encodeURIComponent($('pnl_branch').value)}`;
-                                            a.target = '_blank';
-                                            td1g.appendChild(a);
-                                        } else {
-                                            td1g.textContent = led.label ?? 'Ledger';
-                                        }
-
-                                        if (typeof led.bills !== 'undefined') {
-                                            td1g.insertAdjacentHTML('beforeend',
-                                                ` <span class="child-meta">(Bills: ${led.bills})</span>`
-                                                );
-                                        }
-                                    }
-
-                                    td2g.textContent = led.amount ?? '0.00';
-                                    tr2.appendChild(td1g);
-                                    tr2.appendChild(td2g);
-                                    tbody.appendChild(tr2);
-                                });
-                            }
-                        });
-                    }
-                });
-            }
-
-            // Init inputs
-            (function initInputs() {
-                const saved = loadSaved();
-                if (saved.start_date) $('pnl_start').value = saved.start_date;
-                if (saved.end_date) $('pnl_end').value = saved.end_date;
-                if (saved.branch_id !== undefined) $('pnl_branch').value = saved.branch_id;
-
-                if (!$('pnl_start').value) $('pnl_start').value = daysAgoStr(29);
-                if (!$('pnl_end').value) $('pnl_end').value = todayStr();
-
-                ['pnl_start', 'pnl_end'].forEach(id => {
-                    $(id).removeAttribute('readonly');
-                    $(id).disabled = false;
-                });
-
-                updateHeader();
-                updatePdfLink();
-            })();
-
-            $('pnl_filters')?.addEventListener('keydown', e => {
-                if (e.key === 'Enter') e.preventDefault();
-            });
-
-            function refresh(e) {
-                if (e?.preventDefault) e.preventDefault();
-
-                const payload = {
-                    branch_id: $('pnl_branch').value || '',
-                    start_date: $('pnl_start').value || '',
-                    end_date: $('pnl_end').value || '',
-                    _ts: Date.now()
-                };
-                if (payload.start_date && payload.end_date && payload.start_date > payload.end_date) {
-                    alert('Start date cannot be after End date.');
-                    return;
-                }
-
-                updateHeader();
-                updatePdfLink();
-                saveCurrent();
-
-                fetch(@json(route('reports.pnl_tally.data')), {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': CSRF,
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Cache-Control': 'no-store'
-                        },
-                        body: JSON.stringify(payload),
-                        cache: 'no-store',
-                    })
-                    .then(r => r.json())
-                    .then(json => {
-                        $('lbl_tr_dr').textContent = json?.trading?.dr?.title ?? 'Trading Account (Dr)';
-                        $('lbl_tr_cr').textContent = json?.trading?.cr?.title ?? 'Trading Account (Cr)';
-                        $('lbl_pl_dr').textContent = json?.pl?.dr?.title ?? 'Profit & Loss A/c (Dr)';
-                        $('lbl_pl_cr').textContent = json?.pl?.cr?.title ?? 'Profit & Loss A/c (Cr)';
-
-                        renderSide('#tbl_trading_dr tbody', json?.trading?.dr?.rows ?? json?.trading?.dr ?? []);
-                        renderSide('#tbl_trading_cr tbody', json?.trading?.cr?.rows ?? json?.trading?.cr ?? []);
-                        renderSide('#tbl_pl_dr tbody', json?.pl?.dr?.rows ?? json?.pl?.dr ?? []);
-                        renderSide('#tbl_pl_cr tbody', json?.pl?.cr?.rows ?? json?.pl?.cr ?? []);
-
-                        const trTot = json?.trading?.table_total ?? json?.trading?.total ?? '0.00';
-                        const plTot = json?.pl?.table_total ?? json?.pl?.total ?? '0.00';
-                        $('trading_total_dr').textContent = trTot;
-                        $('trading_total_cr').textContent = trTot;
-                        $('pl_total_dr').textContent = plTot;
-                        $('pl_total_cr').textContent = plTot;
-                    })
-                    .catch(err => {
-                        console.error('P&L fetch error', err);
-                        alert('Failed to load P&L.');
+                if (r.children) {
+                    r.children.forEach(c => {
+                        const tr2 = document.createElement("tr");
+                        tr2.innerHTML = `<td class="child-label">${c.label}</td><td class="amount">${c.amount}</td>`;
+                        tbody.appendChild(tr2);
                     });
-            }
-
-            ['pnl_branch', 'pnl_start', 'pnl_end'].forEach(id => {
-                $(id).addEventListener('change', () => {
-                    updateHeader();
-                    updatePdfLink();
-                    saveCurrent();
-                });
+                }
             });
+        }
 
-            $('pnl_apply').addEventListener('click', refresh);
-
-            // First load
+        $('pnl_apply').addEventListener("click", () => {
+            updateHeader();
+            updatePdfLink();
             refresh();
-        })();
-    </script>
+        });
+
+        refresh();
+    })();
+</script>
 @endsection

@@ -115,6 +115,15 @@ class VoucherController extends Controller
     public function create()
     {
         $branches = \App\Models\Branch::select('name', 'id')->get();
+
+
+        Rule::unique('vouchers')
+            ->where(
+                fn($q) => $q
+                    ->where('voucher_type', $r->input('voucher_type'))
+                    
+            );
+
         return view('accounting.vouchers.create', [
             'ledgers' => AccountLedger::where('is_active', 1)->orderBy('name')->get(),
             'branches' => $branches
