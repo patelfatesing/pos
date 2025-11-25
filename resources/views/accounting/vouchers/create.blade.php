@@ -65,7 +65,6 @@
         .type-pills-vertical {
             position: sticky;
             top: 1.25rem;
-            /* keeps it visible when scrolling inside card */
             right: 1rem;
             z-index: 50;
             display: flex;
@@ -80,20 +79,16 @@
             min-width: 150px;
         }
 
-        /* make buttons block-level and Tally-like */
         .type-pills-vertical .btn {
             width: 100%;
-            /* display: flex; */
             align-items: center;
             justify-content: flex-start;
             gap: .5rem;
             padding: .45rem .6rem;
-            /* border-radius: 999px; */
             font-weight: 600;
             text-transform: none;
         }
 
-        /* active style */
         .type-pills-vertical .btn.active {
             background: #0d6efd;
             color: #fff;
@@ -101,7 +96,6 @@
             border: 1px solid rgba(0, 0, 0, 0.06);
         }
 
-        /* smaller screens: float under header instead of right-side */
         @media (max-width: 992px) {
             .type-pills-vertical {
                 position: static;
@@ -133,7 +127,7 @@
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center gap-2">
-                                    <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-secondary">Back</a>
+                                    <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-secondary">Go To List</a>
                                 </div>
                             </div>
 
@@ -148,11 +142,6 @@
                                     <input type="hidden" name="party_ledger_id" id="party_ledger_id"
                                         value="{{ old('party_ledger_id') }}">
 
-
-                                    <!-- Tally-style vertical voucher type panel (right side) -->
-
-
-                                    {{-- Header row --}}
                                     <div class="row g-3 mb-3">
                                         <div class="col-lg-10">
                                             <div class="row">
@@ -162,18 +151,8 @@
                                                         value="{{ old('voucher_date', now()->toDateString()) }}" required>
                                                 </div>
 
-                                                {{-- <div class="col-lg-3 col-md-4"> --}}
-                                                {{-- <label class="form-label">Type</label> --}}
-
                                                 <input type="hidden" name="voucher_type" id="voucher_type"
                                                     value="{{ old('voucher_type', 'Journal') }}">
-                                                {{-- <select name="voucher_type" id="voucher_type" class="form-control" required>
-                                                @foreach (['Journal', 'Payment', 'Receipt', 'Contra', 'Sales', 'Purchase', 'DebitNote', 'CreditNote'] as $t)
-                                                    <option value="{{ $t }}" @selected(old('voucher_type', 'Journal') === $t)>
-                                                        {{ $t }}</option>
-                                                @endforeach
-                                            </select> --}}
-                                                {{-- </div> --}}
 
                                                 <div class="col-lg-4 col-md-4">
                                                     <label class="form-label">Ref No</label>
@@ -192,6 +171,7 @@
                                                         @endforeach
                                                     </select>
                                                 </div>
+
                                                 <div class="col-lg-12 col-md-12">
                                                     <div class="mb-3">
                                                         <label class="form-label">Narration</label>
@@ -206,18 +186,19 @@
                                                     style="display:none;">
                                                     <div class="section-title">
                                                         <span class="badge bg-info">Payment / Receipt</span> Fill the
-                                                        instrument & party
-                                                        details
+                                                        instrument & party details
                                                     </div>
                                                     <div class="row g-3">
                                                         <div class="col-lg-4 col-md-6">
                                                             <label class="form-label">Party Ledger</label>
-                                                            <select id="pr_party_ledger" class="form-control">
+                                                            <select id="pr_party_ledger" class="form-control ledger">
                                                                 <option value="">Select</option>
                                                                 @foreach ($ledgers as $l)
                                                                     <option value="{{ $l->id }}"
+                                                                        data-group-id="{{ $l->group_id }}"
                                                                         @selected(old('party_ledger_id') == $l->id)>
-                                                                        {{ $l->name }}</option>
+                                                                        {{ $l->name }}
+                                                                    </option>
                                                                 @endforeach
                                                             </select>
                                                         </div>
@@ -241,12 +222,14 @@
                                                             style="display:none;">
                                                             <label class="form-label">Cash Ledger</label>
                                                             <select id="pr_cash_ledger" name="cash_ledger_id"
-                                                                class="form-control">
+                                                                class="form-control ledger">
                                                                 <option value="">Select</option>
                                                                 @foreach ($ledgers as $l)
                                                                     <option value="{{ $l->id }}"
+                                                                        data-group-id="{{ $l->group_id }}"
                                                                         @selected(old('cash_ledger_id') == $l->id)>
-                                                                        {{ $l->name }}</option>
+                                                                        {{ $l->name }}
+                                                                    </option>
                                                                 @endforeach
                                                             </select>
                                                         </div>
@@ -255,12 +238,14 @@
                                                             style="display:none;">
                                                             <label class="form-label">Bank Ledger</label>
                                                             <select id="pr_bank_ledger" name="bank_ledger_id"
-                                                                class="form-control">
+                                                                class="form-control ledger">
                                                                 <option value="">Select</option>
                                                                 @foreach ($ledgers as $l)
                                                                     <option value="{{ $l->id }}"
+                                                                        data-group-id="{{ $l->group_id }}"
                                                                         @selected(old('bank_ledger_id') == $l->id)>
-                                                                        {{ $l->name }}</option>
+                                                                        {{ $l->name }}
+                                                                    </option>
                                                                 @endforeach
                                                             </select>
                                                         </div>
@@ -300,32 +285,35 @@
                                                 {{-- Contra --}}
                                                 <div id="section-contra" class="section-card mb-3" style="display:none;">
                                                     <div class="section-title">
-                                                        <span class="badge bg-warning text-dark">Contra</span> Move amount
-                                                        between
-                                                        ledgers
+                                                        <span class="badge bg-warning text-dark">Contra</span>
+                                                        Move amount between ledgers
                                                     </div>
                                                     <div class="row g-3">
                                                         <div class="col-md-5">
                                                             <label class="form-label">From Ledger</label>
                                                             <select id="ct_from" name="from_ledger_id"
-                                                                class="form-control">
+                                                                class="form-control ledger">
                                                                 <option value="">Select</option>
                                                                 @foreach ($ledgers as $l)
                                                                     <option value="{{ $l->id }}"
+                                                                        data-group-id="{{ $l->group_id }}"
                                                                         @selected(old('from_ledger_id') == $l->id)>
-                                                                        {{ $l->name }}</option>
+                                                                        {{ $l->name }}
+                                                                    </option>
                                                                 @endforeach
                                                             </select>
                                                         </div>
                                                         <div class="col-md-5">
                                                             <label class="form-label">To Ledger</label>
                                                             <select id="ct_to" name="to_ledger_id"
-                                                                class="form-control">
+                                                                class="form-control ledger">
                                                                 <option value="">Select</option>
                                                                 @foreach ($ledgers as $l)
                                                                     <option value="{{ $l->id }}"
+                                                                        data-group-id="{{ $l->group_id }}"
                                                                         @selected(old('to_ledger_id') == $l->id)>
-                                                                        {{ $l->name }}</option>
+                                                                        {{ $l->name }}
+                                                                    </option>
                                                                 @endforeach
                                                             </select>
                                                         </div>
@@ -340,8 +328,7 @@
                                                                 <input class="form-check-input" type="checkbox"
                                                                     id="ct_autobuild" checked>
                                                                 <label class="form-check-label"
-                                                                    for="ct_autobuild">Auto-build
-                                                                    lines</label>
+                                                                    for="ct_autobuild">Auto-build lines</label>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -351,18 +338,19 @@
                                                 <div id="section-trade" class="section-card mb-3" style="display:none;">
                                                     <div class="section-title">
                                                         <span class="badge bg-primary">Sales / Purchase / Notes</span>
-                                                        Totals with live
-                                                        calculation
+                                                        Totals with live calculation
                                                     </div>
                                                     <div class="grid-2">
                                                         <div>
                                                             <label class="form-label">Party Ledger</label>
-                                                            <select id="tr_party_ledger" class="form-control">
+                                                            <select id="tr_party_ledger" class="form-control ledger">
                                                                 <option value="">Select</option>
                                                                 @foreach ($ledgers as $l)
                                                                     <option value="{{ $l->id }}"
+                                                                        data-group-id="{{ $l->group_id }}"
                                                                         @selected(old('party_ledger_id') == $l->id)>
-                                                                        {{ $l->name }}</option>
+                                                                        {{ $l->name }}
+                                                                    </option>
                                                                 @endforeach
                                                             </select>
                                                         </div>
@@ -396,17 +384,17 @@
                                                     <div class="form-check mt-2">
                                                         <input class="form-check-input" type="checkbox" id="tr_autobuild"
                                                             checked>
-                                                        <label class="form-check-label" for="tr_autobuild">Auto-build
-                                                            lines from
-                                                            totals</label>
+                                                        <label class="form-check-label" for="tr_autobuild">
+                                                            Auto-build lines from totals
+                                                        </label>
                                                     </div>
                                                 </div>
 
                                                 {{-- Journal lines --}}
-                                                <div class="section-card">
+                                                <div class="section-card ml-3">
                                                     <div class="section-title">
-                                                        <span class="badge bg-secondary">Journal</span> Add line items
-                                                        (Dr/Cr)
+                                                        <span class="badge bg-secondary">Journal</span>
+                                                        Add line items (Dr/Cr)
                                                     </div>
                                                     <div class="table-responsive">
                                                         <table class="table table-bordered align-middle mb-0"
@@ -432,8 +420,10 @@
                                                                                     @foreach ($ledgers as $l)
                                                                                         <option
                                                                                             value="{{ $l->id }}"
+                                                                                            data-group-id="{{ $l->group_id }}"
                                                                                             @selected(($ln['ledger_id'] ?? null) == $l->id)>
-                                                                                            {{ $l->name }}</option>
+                                                                                            {{ $l->name }}
+                                                                                        </option>
                                                                                     @endforeach
                                                                                 </select>
                                                                             </td>
@@ -447,18 +437,21 @@
                                                                                     </option>
                                                                                 </select>
                                                                             </td>
-                                                                            <td><input
+                                                                            <td>
+                                                                                <input
                                                                                     name="lines[{{ $i }}][amount]"
                                                                                     class="form-control amount"
                                                                                     type="number" step="0.01"
                                                                                     value="{{ $ln['amount'] ?? '' }}">
                                                                             </td>
-                                                                            <td><input
+                                                                            <td>
+                                                                                <input
                                                                                     name="lines[{{ $i }}][line_narration]"
                                                                                     class="form-control"
                                                                                     value="{{ $ln['line_narration'] ?? '' }}">
                                                                             </td>
-                                                                            <td><button type="button"
+                                                                            <td>
+                                                                                <button type="button"
                                                                                     class="btn btn-sm btn-danger remove">×</button>
                                                                             </td>
                                                                         </tr>
@@ -469,8 +462,10 @@
                                                                             <select name="lines[0][ledger_id]"
                                                                                 class="form-control ledger">
                                                                                 @foreach ($ledgers as $l)
-                                                                                    <option value="{{ $l->id }}">
-                                                                                        {{ $l->name }}</option>
+                                                                                    <option value="{{ $l->id }}"
+                                                                                        data-group-id="{{ $l->group_id }}">
+                                                                                        {{ $l->name }}
+                                                                                    </option>
                                                                                 @endforeach
                                                                             </select>
                                                                         </td>
@@ -481,12 +476,17 @@
                                                                                 <option>Cr</option>
                                                                             </select>
                                                                         </td>
-                                                                        <td><input name="lines[0][amount]"
+                                                                        <td>
+                                                                            <input name="lines[0][amount]"
                                                                                 class="form-control amount" type="number"
-                                                                                step="0.01"></td>
-                                                                        <td><input name="lines[0][line_narration]"
-                                                                                class="form-control"></td>
-                                                                        <td><button type="button"
+                                                                                step="0.01">
+                                                                        </td>
+                                                                        <td>
+                                                                            <input name="lines[0][line_narration]"
+                                                                                class="form-control">
+                                                                        </td>
+                                                                        <td>
+                                                                            <button type="button"
                                                                                 class="btn btn-sm btn-danger remove">×</button>
                                                                         </td>
                                                                     </tr>
@@ -494,10 +494,8 @@
                                                             </tbody>
                                                         </table>
                                                     </div>
-                                                    <div class="d-flex justify-content-between align-items-center mt-2">
-                                                        <button type="button" id="addLine"
-                                                            class="btn btn-outline-primary">+ Add
-                                                            Line</button>
+
+                                                    <div class="d-flex justify-content-end align-items-center mt-2">
                                                         <div class="d-flex align-items-center gap-2">
                                                             <button type="button"
                                                                 class="btn btn-outline-secondary btn-sm"
@@ -539,11 +537,8 @@
                                             </div>
                                         </div>
                                     </div>
-
-
-
-
                                 </form>
+
                             </div>
                         </div>
 
@@ -555,9 +550,7 @@
 
     <script>
         (function() {
-            // ---------- Helpers ----------
             const $type = $('#voucher_type');
-            const typePillClass = 'active';
 
             const $secPR = $('#section-payment-receipt');
             const $secCT = $('#section-contra');
@@ -583,8 +576,11 @@
                     ok: 'bg-success',
                     bad: 'bg-danger'
                 };
+
                 [$badgeTop, $badgeSticky].forEach($b => {
-                    $b.removeClass('bg-secondary bg-success bg-danger').addClass(cls[state]).text(texts[state]);
+                    $b.removeClass('bg-secondary bg-success bg-danger')
+                        .addClass(cls[state])
+                        .text(texts[state]);
                 });
             }
 
@@ -605,33 +601,57 @@
                 $prBankWrap.toggle(m === 'bank' || m === 'upi' || m === 'card');
             }
 
-            // ---------- Lines handling ----------
             let i = $('#linesTable tbody tr').length ? $('#linesTable tbody tr').length : 1;
-            const ledgerOptions =
-                `@foreach ($ledgers as $l)<option value="{{ $l->id }}">{{ $l->name }}</option>@endforeach`;
 
-            // ==== AUTO DC BY TYPE ====
-            // Adjust defaults here if you want a different pattern per type.
+            const ledgerOptions =
+                `@foreach ($ledgers as $l)<option value="{{ $l->id }}" data-group-id="{{ $l->group_id }}">{{ $l->name }}</option>@endforeach`;
+
+            // account_groups:
+            // 17=Bank Accounts, 18=Cash-in-Hand, 19=Sundry Debtors, 20=Sundry Creditors,
+            // 9=Sales Accounts, 12=Purchase Accounts, 21=Duties & Taxes,
+            // 13=Direct Expenses, 14=Indirect Expenses, 10=Direct Incomes, 11=Indirect Incomes
+            const VOUCHER_GROUP_MAP = {
+                Journal: [],
+
+                Payment: [
+                    17, 18, 20, 21, 13, 14
+                ],
+
+                Receipt: [
+                    17, 18, 19, 10, 11
+                ],
+
+                Contra: [
+                    17, 18
+                ],
+
+                Sales: [
+                    19, 9, 21
+                ],
+
+                Purchase: [
+                    12, 21, 20
+                ],
+
+                DebitNote: [
+                    20, 12, 21
+                ],
+
+                CreditNote: [
+                    19, 9, 21
+                ],
+            };
+
             const DC_MAP = {
-                Journal: ['Cr', 'Dr'], // row0 -> Cr, row1 -> Dr
+                Journal: ['Cr', 'Dr'],
                 Contra: ['Cr', 'Dr'],
                 Receipt: ['Cr', 'Dr'],
-                default: ['Dr', 'Cr'], // most types
+                default: ['Dr', 'Cr'],
             };
 
             function defaultDC(type, index) {
                 const arr = DC_MAP[type] || DC_MAP.default;
                 return arr[index] || 'Dr';
-            }
-            // Set DC on existing rows; skip rows that already have an amount (unless force = true)
-            function setDCForAllRowsByType(force = false) {
-                const type = $type.val();
-                $('#linesTable tbody tr').each(function(idx) {
-                    const $tr = $(this);
-                    const hasAmt = parseFloat($tr.find('.amount').val() || 0) > 0;
-                    if (hasAmt && !force) return;
-                    $tr.find('.dc').val(defaultDC(type, idx));
-                });
             }
 
             function rowTpl(idx, dcDefault) {
@@ -639,7 +659,11 @@
                 const crSel = (dcDefault === 'Cr') ? 'selected' : '';
                 return `
                 <tr class="line">
-                    <td><select name="lines[${idx}][ledger_id]" class="form-control ledger">${ledgerOptions}</select></td>
+                    <td>
+                        <select name="lines[${idx}][ledger_id]" class="form-control ledger">
+                            ${ledgerOptions}
+                        </select>
+                    </td>
                     <td>
                         <select name="lines[${idx}][dc]" class="form-control dc">
                             <option ${drSel}>Dr</option>
@@ -650,6 +674,101 @@
                     <td><input name="lines[${idx}][line_narration]" class="form-control"></td>
                     <td><button type="button" class="btn btn-sm btn-danger remove">×</button></td>
                 </tr>`;
+            }
+
+            function rowHasAnyValue($tr) {
+                const ledger = $tr.find('.ledger').val();
+                const dc = $tr.find('.dc').val();
+                const amt = parseFloat($tr.find('.amount').val() || 0);
+                const narration = $tr.find('input[name*="[line_narration]"]').val();
+                return !!(ledger || dc || amt || narration);
+            }
+
+            function addLineRow(dcDefault) {
+                const idx = i;
+                const type = $type.val();
+                const dc = dcDefault || defaultDC(type, idx);
+                $('#linesTable tbody').append(rowTpl(idx, dc));
+                i++;
+
+                filterLedgerDropdownsByVoucherType();
+            }
+
+            function setDCForAllRowsByType(force = false) {
+                const type = $type.val();
+                $('#linesTable tbody tr').each(function(idx) {
+                    const $tr = $(this);
+                    const hasAmt = parseFloat($tr.find('.amount').val() || 0) > 0;
+                    if (hasAmt && !force) return;
+                    $tr.find('.dc').val(defaultDC(type, idx));
+                });
+            }
+
+            // auto-select first allowed ledger in lines[0][ledger_id]
+            function setDefaultLedgerForFirstLine() {
+                const t = $type.val();
+                const allowedGroups = VOUCHER_GROUP_MAP[t] || [];
+
+                if (!allowedGroups.length) return;
+
+                const $firstRow = $('#linesTable tbody tr').first();
+                if (!$firstRow.length) return;
+
+                const $ledger = $firstRow.find('.ledger');
+                if (!$ledger.length) return;
+
+                if ($ledger.val()) return; // don't override old/user selection
+
+                let selectedVal = null;
+
+                $ledger.find('option').each(function() {
+                    const $opt = $(this);
+                    const id = $opt.val();
+                    if (!id) return;
+
+                    const groupId = parseInt($opt.data('group-id')) || null;
+                    if (groupId && allowedGroups.includes(groupId) && !$opt.prop('disabled')) {
+                        selectedVal = id;
+                        return false;
+                    }
+                });
+
+                if (selectedVal) {
+                    $ledger.val(selectedVal);
+                }
+            }
+
+            const LEDGERS = @json($ledgers);
+
+            function filterLedgerDropdownsByVoucherType() {
+                const t = $type.val();
+                const allowedGroups = VOUCHER_GROUP_MAP[t] || [];
+
+                $('.ledger').each(function() {
+                    const $select = $(this);
+                    const current = $select.val();
+
+                    // Build new options list
+                    let html = `<option value="">Select</option>`;
+
+                    LEDGERS.forEach(l => {
+                        if (!allowedGroups.length || allowedGroups.includes(l.group_id)) {
+                            html +=
+                                `<option value="${l.id}" data-group-id="${l.group_id}">${l.name}</option>`;
+                        }
+                    });
+
+                    // Replace entire dropdown list
+                    $select.html(html);
+
+                    // Restore current selected value if still allowed
+                    if (current && $select.find(`option[value="${current}"]`).length) {
+                        $select.val(current);
+                    }
+                });
+
+                // Auto-select ledger for first line
+                setDefaultLedgerForFirstLine();
             }
 
             function recalc() {
@@ -668,20 +787,13 @@
                 else setBadge('bad');
             }
 
-            $('#addLine').on('click', function() {
-                const t = $type.val();
-                const dcDefault = defaultDC(t, i);
-                $('#linesTable tbody').append(rowTpl(i, dcDefault));
-                i++;
-                recalc();
-            });
             $(document).on('click', '.remove', function() {
                 $(this).closest('tr').remove();
                 recalc();
             });
+
             $(document).on('input change', '.amount, .dc', recalc);
 
-            // Copy helpers
             $('#copyDrToCr').on('click', function() {
                 const dr = parseFloat($totalDr.val() || 0);
                 if (dr <= 0) return;
@@ -689,9 +801,8 @@
                     return $(this).find('.dc').val() === 'Cr';
                 }).first();
                 if (!$row.length) {
-                    $('#addLine').click();
+                    addLineRow('Cr');
                     $row = $('#linesTable tbody tr').last();
-                    $row.find('.dc').val('Cr');
                 }
                 $row.find('.amount').val(dr.toFixed(2));
                 recalc();
@@ -704,28 +815,25 @@
                     return $(this).find('.dc').val() === 'Dr';
                 }).first();
                 if (!$row.length) {
-                    $('#addLine').click();
+                    addLineRow('Dr');
                     $row = $('#linesTable tbody tr').last();
-                    $row.find('.dc').val('Dr');
                 }
                 $row.find('.amount').val(cr.toFixed(2));
                 recalc();
             });
 
-            // Guard: don't autobuild if lines already have values
             function linesHaveAnyAmount() {
                 return $('#linesTable tbody tr .amount').filter(function() {
                     return $(this).val();
                 }).length > 0;
             }
 
-            // ----- Auto-build helpers -----
             function ensureRow(idx, dc) {
                 while ($('#linesTable tbody tr').length <= idx) {
-                    $('#addLine').click();
+                    addLineRow();
                 }
                 const $row = $('#linesTable tbody tr').eq(idx);
-                $row.find('.dc').val(dc);
+                if (dc) $row.find('.dc').val(dc);
                 return $row;
             }
 
@@ -751,6 +859,7 @@
                     const $r0 = ensureRow(0, 'Dr');
                     $r0.find('.ledger').val(counter);
                     $r0.find('.amount').val(amt.toFixed(2));
+
                     const $r1 = ensureRow(1, 'Cr');
                     $r1.find('.ledger').val(party);
                     $r1.find('.amount').val(amt.toFixed(2));
@@ -758,6 +867,7 @@
                     const $r0 = ensureRow(0, 'Dr');
                     $r0.find('.ledger').val(party);
                     $r0.find('.amount').val(amt.toFixed(2));
+
                     const $r1 = ensureRow(1, 'Cr');
                     $r1.find('.ledger').val(counter);
                     $r1.find('.amount').val(amt.toFixed(2));
@@ -776,12 +886,15 @@
                 if (!from || !to || !amt) return;
 
                 $('#linesTable tbody tr').find('.amount').val('');
+
                 const $r0 = ensureRow(0, 'Cr');
                 $r0.find('.ledger').val(from);
                 $r0.find('.amount').val(amt.toFixed(2));
+
                 const $r1 = ensureRow(1, 'Dr');
                 $r1.find('.ledger').val(to);
                 $r1.find('.amount').val(amt.toFixed(2));
+
                 recalc();
             }
 
@@ -808,11 +921,13 @@
                     const $r0 = ensureRow(0, 'Dr');
                     $r0.find('.ledger').val(pl);
                     $r0.find('.amount').val(amt.toFixed(2));
+
                     const $r1 = ensureRow(1, 'Cr');
-                    $r1.find('.amount').val(amt.toFixed(2)); // user picks Sales ledger
+                    $r1.find('.amount').val(amt.toFixed(2));
                 } else if (t === 'Purchase' || t === 'DebitNote') {
                     const $r0 = ensureRow(0, 'Dr');
-                    $r0.find('.amount').val(amt.toFixed(2)); // user picks Purchase ledger
+                    $r0.find('.amount').val(amt.toFixed(2));
+
                     const $r1 = ensureRow(1, 'Cr');
                     $r1.find('.ledger').val(pl);
                     $r1.find('.amount').val(amt.toFixed(2));
@@ -820,7 +935,6 @@
                 recalc();
             }
 
-            // Party hidden sync
             function activeType() {
                 return $type.val();
             }
@@ -842,7 +956,6 @@
                 $('#party_ledger_id').val(val);
             }
 
-            // Events
             $('.type-pill').on('click', function() {
                 $type.val($(this).data('type')).trigger('change');
             });
@@ -852,6 +965,9 @@
                 $('.type-pill').removeClass('active').each(function() {
                     if ($(this).data('type') === t) $(this).addClass('active');
                 });
+
+                $('.type-pill').attr('aria-pressed', 'false');
+                $('.type-pill.active').attr('aria-pressed', 'true');
             }
 
             $type.on('change', function() {
@@ -860,10 +976,10 @@
                 togglePRMode();
                 syncPartyHidden();
 
-                // apply Dr/Cr defaults for current type (won't overwrite rows with amounts)
                 setDCForAllRowsByType(false);
 
-                // existing logic
+                filterLedgerDropdownsByVoucherType();
+
                 autobuildPR();
                 autobuildCT();
                 calcTradeGrand();
@@ -874,6 +990,7 @@
                 togglePRMode();
                 autobuildPR();
             });
+
             $('#pr_party_ledger,#tr_party_ledger').on('change', syncPartyHidden);
             $('#pr_party_ledger,#pr_cash_ledger,#pr_bank_ledger,#pr_amount').on('input change', autobuildPR);
             $('#ct_from,#ct_to,#ct_amount').on('input change', autobuildCT);
@@ -882,7 +999,19 @@
                 autobuildTR();
             });
 
-            // Submit guard
+            $(document).on('input change',
+                '#linesTable tbody tr .ledger, #linesTable tbody tr .dc, #linesTable tbody tr .amount, #linesTable tbody tr input[name*="[line_narration]"]',
+                function() {
+                    const $tr = $(this).closest('tr');
+                    if (!$tr.is(':last-child')) return;
+
+                    if (rowHasAnyValue($tr)) {
+                        addLineRow();
+                        recalc();
+                    }
+                }
+            );
+
             $('#btnSubmit').on('click', function(e) {
                 syncPartyHidden();
                 const dr = parseFloat($totalDr.val() || 0);
@@ -894,31 +1023,16 @@
                 }
             });
 
-            // Initial paint
             showSections();
             syncPills();
             togglePRMode();
             syncPartyHidden();
             recalc();
             calcTradeGrand();
-
-            // set initial Dr/Cr defaults once (won't overwrite any old() amounts)
             setDCForAllRowsByType(false);
+            filterLedgerDropdownsByVoucherType();
         })();
 
-        // ensure syncPills uses .type-pill anywhere (horizontal or vertical)
-        function syncPills() {
-            const t = $type.val();
-            $('.type-pill').removeClass('active').each(function() {
-                if ($(this).data('type') === t) $(this).addClass('active');
-            });
-
-            // Also update aria-pressed for accessibility
-            $('.type-pill').attr('aria-pressed', 'false');
-            $('.type-pill.active').attr('aria-pressed', 'true');
-        }
-
-        // allow keyboard activation on Enter/Space for accessibility
         $(document).on('keydown', '.type-pill', function(e) {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
