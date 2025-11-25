@@ -48,6 +48,7 @@ use App\Http\Controllers\Accounting\GroupController;
 use App\Http\Controllers\Accounting\LedgerController;
 use App\Http\Controllers\Accounting\VoucherController;
 use App\Http\Controllers\RolePermissionController;
+use App\Http\Controllers\DayBookController;
 
 // Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
 // Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
@@ -461,6 +462,13 @@ Route::middleware('auth')->group(function () {
         Route::get('profit-loss',  [Report2Controller::class, 'profitLoss'])->name('reports.pnl_tally.view');
         Route::post('getProfitLossData', [Report2Controller::class, 'getProfitLossData'])->name('reports.pnl_tally.data');
         Route::get('/reports/profit-loss/pdf', [Report2Controller::class, 'profitLossPdf'])->name('reports.profit-loss.pdf');
+        Route::get('day-book', [DayBookController::class, 'index'])
+            ->name('reports.day-book');
+        // / NEW: voucher details (AJAX)
+        Route::get(
+            '/day-book/voucher/{type}/{id}',
+            [DayBookController::class, 'showVoucher']
+        )->name('reports.day-book.voucher.show');
 
         Route::get('product-wise',  [Report2Controller::class, 'productWise'])->name('reports.discount.product.view');
         Route::post('product-wise-data', [Report2Controller::class, 'getProductWiseData'])->name('reports.discount.product.data');
