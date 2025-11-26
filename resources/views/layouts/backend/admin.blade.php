@@ -177,11 +177,11 @@
                                 <i class="las la-minus"></i><span>Demand Order</span>
                             </a>
                         </li>
-                        <li class="">
+                        {{-- <li class="">
                             <a href="{{ route('purchase_ledger.list') }}">
                                 <i class="las la-minus"></i><span>Purchase Ledger</span>
                             </a>
-                        </li>
+                        </li> --}}
                     </ul>
                 </li>
 
@@ -210,7 +210,7 @@
                         <span class="ml-4">Ledgers</span>
                     </a>
                 </li>
-                {{-- <li class="">
+                <li class="">
                     <a href="{{ route('accounting.vouchers.create') }}" class="svg-icon">
                         <svg class="svg-icon" id="p-dash9" width="20" height="20"
                             xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
@@ -223,7 +223,7 @@
                     </a>
                 </li>
 
-                <li class=" ">
+                {{-- <li class=" ">
                     <a href="#sale" class="collapsed" data-toggle="collapse" aria-expanded="false">
                         <svg class="svg-icon" id="p-dash4" width="20" height="20"
                             xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
