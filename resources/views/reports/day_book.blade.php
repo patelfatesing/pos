@@ -103,78 +103,69 @@
                     </div>
 
                     <div class="card-body p-2">
-                        <div class="table-responsive">
-                            <table class="table table-sm table-striped table-bordered mb-0 align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th style="width: 120px">Date</th>
-                                        <th style="width: 90px">Voucher No</th>
-                                        <th style="width: 120px">Voucher Type</th>
-                                        <th>Ledger</th>
-                                        <th class="text-end" style="width: 120px">Debit</th>
-                                        <th class="text-end" style="width: 120px">Credit</th>
-                                        <th>Remarks</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse($entries as $row)
-                                        <tr class="daybook-voucher-row" data-type="{{ $row['voucher_type'] ?? '' }}"
-                                            data-id="{{ $row['id'] ?? '' }}" style="cursor:pointer">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Voucher Type</th>
+                                    <th>Ref No</th>
+                                    <th>Ledger</th>
+                                    <th class="text-end">Dr</th>
+                                    <th class="text-end">Cr</th>
+                                </tr>
+                            </thead>
 
-                                            <td>
-                                                {{ \Carbon\Carbon::parse($row['date'])->format('d-m-Y H:i') }}
-                                            </td>
-                                            <td>{{ $row['voucher_no'] }}</td>
-                                            <td>{{ $row['voucher_type'] }}</td>
-                                            <td>{{ $row['ledger'] }}</td>
-                                            <td class="text-end">
-                                                {{ $row['debit'] ? number_format($row['debit'], 2) : '' }}
-                                            </td>
-                                            <td class="text-end">
-                                                {{ $row['credit'] ? number_format($row['credit'], 2) : '' }}
-                                            </td>
-                                            <td>{{ $row['remarks'] }}</td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="7" class="text-center text-muted py-3">
-                                                No transactions found for selected period.
-                                            </td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                                <tfoot class="table-light">
-                                    <tr>
-                                        <th colspan="4" class="text-end">Total</th>
-                                        <th class="text-end">{{ number_format($totalDebit, 2) }}</th>
-                                        <th class="text-end">{{ number_format($totalCredit, 2) }}</th>
-                                        <th></th>
+                            <tbody>
+                                @foreach ($entries as $e)
+                                    <tr class="open-voucher" data-id="{{ $e['voucher_id'] }}" style="cursor:pointer;">
+
+                                        <td>{{ date('d-m-Y', strtotime($e['date'])) }}</td>
+                                        <td>{{ $e['voucher_type'] }}</td>
+                                        <td>{{ $e['ref_no'] }}</td>
+                                        <td>{{ $e['ledger'] }}</td>
+                                        <td class="text-end">{{ $e['dc'] === 'Dr' ? number_format($e['debit'], 2) : '' }}
+                                        </td>
+                                        <td class="text-end">{{ $e['dc'] === 'Cr' ? number_format($e['credit'], 2) : '' }}
+                                        </td>
                                     </tr>
-                                </tfoot>
-                            </table>
-                        </div>
+                                @endforeach
+                            </tbody>
+
+                            <tfoot>
+                                <tr>
+                                    <th colspan="4">Total</th>
+                                    <th class="text-end">{{ number_format($totalDebit, 2) }}</th>
+                                    <th class="text-end">{{ number_format($totalCredit, 2) }}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+
                     </div>
                 </div>
             </div>
 
             {{-- VOUCHER DETAIL MODAL --}}
-            <div class="modal fade" id="voucherModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-xl modal-dialog-scrollable">
+
+            <div class="modal fade" id="voucherModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
                     <div class="modal-content">
-                        <div class="modal-header py-2">
-                            <h5 class="modal-title" id="voucherModalLabel">Voucher Details</h5>
+
+                        <div class="modal-header">
+                            <h5 class="modal-title">Voucher Details</h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">×</span>
                             </button>
+
                         </div>
-                        <div class="modal-body p-2" id="voucherModalBody">
-                            <div class="text-center text-muted py-5">
-                                Loading...
-                            </div>
+
+                        <div class="modal-body">
+                            Loading...
                         </div>
+
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 @endsection
@@ -183,40 +174,55 @@
 @section('scripts')
     <script>
         // When you click any row, load voucher details via AJAX
-        $(document).on('click', '.daybook-voucher-row', function() {
+        // $(document).on('click', '.daybook-voucher-row', function() {
 
-            var type = $(this).data('type');
-            var id = $(this).data('id');
+        //     var type = $(this).data('type');
+        //     var id = $(this).data('id');
 
-            if (!type || !id) {
-                // If not mapped (e.g., opening balance row), do nothing
-                return;
-            }
+        //     if (!type || !id) {
+        //         // If not mapped (e.g., opening balance row), do nothing
+        //         return;
+        //     }
 
-            // Show loading and open modal
-            $('#voucherModalLabel').text('Voucher Details');
-            $('#voucherModalBody').html(
-                '<div class="text-center text-muted py-5">Loading...</div>'
-            );
+        //     // Show loading and open modal
+        //     $('#voucherModalLabel').text('Voucher Details');
+        //     $('#voucherModalBody').html(
+        //         '<div class="text-center text-muted py-5">Loading...</div>'
+        //     );
 
-            var modalEl = document.getElementById('voucherModal');
-            var modal = new bootstrap.Modal(modalEl);
-            modal.show();
+        //     var modalEl = document.getElementById('voucherModal');
+        //     var modal = new bootstrap.Modal(modalEl);
+        //     modal.show();
 
-            $.ajax({
-                url: "{{ url('/reports/day-book/voucher') }}/" + type + "/" + id,
-                type: 'GET',
-                success: function(res) {
-                    if (res.title) {
-                        $('#voucherModalLabel').text(res.title);
-                    }
-                    $('#voucherModalBody').html(res.html);
-                },
-                error: function() {
-                    $('#voucherModalBody').html(
-                        '<div class="text-danger text-center py-5">Error loading voucher.</div>'
-                    );
-                }
+        //     $.ajax({
+        //         url: "{{ url('/reports/day-book/voucher') }}/" + type + "/" + id,
+        //         type: 'GET',
+        //         success: function(res) {
+        //             if (res.title) {
+        //                 $('#voucherModalLabel').text(res.title);
+        //             }
+        //             $('#voucherModalBody').html(res.html);
+        //         },
+        //         error: function() {
+        //             $('#voucherModalBody').html(
+        //                 '<div class="text-danger text-center py-5">Error loading voucher.</div>'
+        //             );
+        //         }
+        //     });
+        // });
+
+
+        $(document).on("click", ".open-voucher", function() {
+            let id = $(this).data("id");
+
+            $.get("/reports/day-book/voucher/" + id, function(res) {
+
+                $("#voucherModal .modal-title").text(res.title);
+                $("#voucherModal .modal-body").html(res.html);
+
+                var modalEl = document.getElementById('voucherModal');
+                var modal = new bootstrap.Modal(modalEl);
+                modal.show();
             });
         });
     </script>

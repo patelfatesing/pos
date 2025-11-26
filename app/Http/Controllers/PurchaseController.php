@@ -17,6 +17,7 @@ use App\Models\ShiftClosing;
 use App\Models\ExpenseCategory;
 use App\Models\Expense;
 use App\Models\PurchaseLedger;
+use App\Models\Accounting\{Voucher, VoucherLine, AccountLedger};
 
 class PurchaseController extends Controller
 {
@@ -60,7 +61,7 @@ class PurchaseController extends Controller
         // ->orderBy('inventories.id', 'asc')
         // ->get();
 
-        return view('purchase.create', compact('vendors', 'products', 'expMainCategory', 'purchaseLedger','ledgers'));
+        return view('purchase.create', compact('vendors', 'products', 'expMainCategory', 'purchaseLedger', 'ledgers'));
     }
 
     /**
@@ -202,6 +203,57 @@ class PurchaseController extends Controller
                     $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $product['qnt'], 'add_stock');
                 }
             }
+
+            // ----------------- 3) CREATE ACCOUNTING VOUCHER (Purchase) -----------------
+            // 3.1 Get vendor ledger
+            $vendor = VendorList::findOrFail($request->vendor_id);
+
+            if (!$request->parchase_ledger) {
+                throw new \Exception('Vendor ledger is not mapped for this vendor.');
+            }
+
+            $vendorLedgerId   = $request->parchase_ledger;           // Sundry Creditor
+            $purchaseLedgerId = $request->parchase_ledger;    // Purchase account ledger
+            $amount           = (float) $request->total_amount; // accounting amount, adjust if needed
+
+            // Ensure >0 amount
+            if ($amount <= 0) {
+                throw new \Exception('Invalid purchase total amount for voucher posting.');
+            }
+
+            // Create Voucher header
+            $voucher = Voucher::create([
+                'voucher_date'    => $request->date,
+                'voucher_type'    => 'Purchase',
+                'ref_no'          => $request->bill_no,
+                'branch_id'       => $running_shift->branch_id ?? null,
+                'narration'       => 'Purchase bill no ' . $request->bill_no,
+                'created_by'      => Auth::id(),
+
+                'party_ledger_id' => $vendorLedgerId,
+                'sub_total'       => $request->total ?? 0,
+                'discount'        => 0, // if you have discount field, set here
+                'tax'             => 0, // or set from VAT-related fields if needed
+                'grand_total'     => $amount,
+            ]);
+
+            // Debit Purchase Ledger
+            VoucherLine::create([
+                'voucher_id'     => $voucher->id,
+                'ledger_id'      => $purchaseLedgerId,
+                'dc'             => 'Dr',
+                'amount'         => $amount,
+                'line_narration' => 'Purchase - ' . $request->bill_no,
+            ]);
+
+            // Credit Vendor Ledger
+            VoucherLine::create([
+                'voucher_id'     => $voucher->id,
+                'ledger_id'      => $vendorLedgerId,
+                'dc'             => 'Cr',
+                'amount'         => $amount,
+                'line_narration' => 'Vendor: ' . $vendor->name,
+            ]);
 
             // $expense = new Expense();
             // $expense->user_id = auth()->id();
