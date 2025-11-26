@@ -466,7 +466,7 @@ Route::middleware('auth')->group(function () {
             ->name('reports.day-book');
         // / NEW: voucher details (AJAX)
         Route::get(
-            '/day-book/voucher/{type}/{id}',
+            '/day-book/voucher/{id}',
             [DayBookController::class, 'showVoucher']
         )->name('reports.day-book.voucher.show');
 
