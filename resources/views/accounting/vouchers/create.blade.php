@@ -154,11 +154,11 @@
                                                 <input type="hidden" name="voucher_type" id="voucher_type"
                                                     value="{{ old('voucher_type', 'Journal') }}">
 
-                                                <div class="col-lg-4 col-md-4">
+                                                {{-- <div class="col-lg-4 col-md-4">
                                                     <label class="form-label">Ref No</label>
                                                     <input type="text" class="form-control" name="ref_no"
                                                         value="{{ old('ref_no') }}">
-                                                </div>
+                                                </div> --}}
 
                                                 <div class="col-lg-4 col-md-4">
                                                     <label class="form-label">Branch</label>
@@ -172,7 +172,7 @@
                                                     </select>
                                                 </div>
 
-                                                <div class="col-lg-12 col-md-12">
+                                                <div class="col-lg-4 col-md-4">
                                                     <div class="mb-3">
                                                         <label class="form-label">Narration</label>
                                                         <textarea name="narration" class="form-control" rows="2">{{ old('narration') }}</textarea>
@@ -401,11 +401,11 @@
                                                             id="linesTable">
                                                             <thead class="table-light">
                                                                 <tr>
-                                                                    <th style="width:35%">Ledger</th>
-                                                                    <th style="width:10%">Dr/Cr</th>
-                                                                    <th style="width:20%">Amount</th>
-                                                                    <th>Narration</th>
-                                                                    <th style="width:5%"></th>
+                                                                    <th style="width:40%">Ledger</th>
+                                                                    <th style="width:15%">Dr/Cr</th>
+                                                                    <th style="width:25%">Amount</th>
+                                                                    <th style="width:10%">Narration</th>
+                                                                    <th style="width:10%"></th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -1040,4 +1040,5 @@
             }
         });
     </script>
+    
 @endsection
