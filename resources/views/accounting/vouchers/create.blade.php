@@ -127,7 +127,8 @@
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center gap-2">
-                                    <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-secondary">Go To List</a>
+                                    <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-secondary">Go To
+                                        List</a>
                                 </div>
                             </div>
 
@@ -182,7 +183,7 @@
                                                 {{-- ===== TYPE-SPECIFIC SECTIONS ===== --}}
 
                                                 {{-- Payment / Receipt --}}
-                                                <div id="section-payment-receipt" class="section-card mb-3"
+                                                {{-- <div id="section-payment-receipt" class="section-card mb-3"
                                                     style="display:none;">
                                                     <div class="section-title">
                                                         <span class="badge bg-info">Payment / Receipt</span> Fill the
@@ -280,10 +281,10 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                </div> --}}
 
                                                 {{-- Contra --}}
-                                                <div id="section-contra" class="section-card mb-3" style="display:none;">
+                                                {{-- <div id="section-contra" class="section-card mb-3" style="display:none;">
                                                     <div class="section-title">
                                                         <span class="badge bg-warning text-dark">Contra</span>
                                                         Move amount between ledgers
@@ -332,10 +333,10 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                </div> --}}
 
                                                 {{-- Sales / Purchase / Notes --}}
-                                                <div id="section-trade" class="section-card mb-3" style="display:none;">
+                                                {{-- <div id="section-trade" class="section-card mb-3" style="display:none;">
                                                     <div class="section-title">
                                                         <span class="badge bg-primary">Sales / Purchase / Notes</span>
                                                         Totals with live calculation
@@ -388,12 +389,25 @@
                                                             Auto-build lines from totals
                                                         </label>
                                                     </div>
-                                                </div>
+                                                </div> --}}
 
                                                 {{-- Journal lines --}}
                                                 <div class="section-card ml-3">
                                                     <div class="section-title">
-                                                        <span class="badge bg-secondary">Journal</span>
+                                                        <div id="section-trade" style="display:none;">
+                                                            <span class="badge bg-secondary">Sales / Purchase / Notes</span>
+                                                        </div>
+                                                        <div id="section-contra" style="display:none;">
+                                                            <span class="badge bg-secondary">Contra</span>
+                                                        </div>
+                                                        <div id="section-payment-receipt" style="display:none;">
+                                                            <span class="badge bg-secondary">Payment/Receipt</span>
+                                                        </div>
+
+                                                        <div id="section-journal" style="display:block;">
+                                                            <span class="badge bg-secondary">Journal</span>
+                                                        </div>
+
                                                         Add line items (Dr/Cr)
                                                     </div>
                                                     <div class="table-responsive">
@@ -401,8 +415,8 @@
                                                             id="linesTable">
                                                             <thead class="table-light">
                                                                 <tr>
-                                                                    <th style="width:40%">Ledger</th>
                                                                     <th style="width:15%">Dr/Cr</th>
+                                                                    <th style="width:40%">Ledger</th>
                                                                     <th style="width:25%">Amount</th>
                                                                     <th style="width:10%">Narration</th>
                                                                     <th style="width:10%"></th>
@@ -415,20 +429,6 @@
                                                                         <tr class="line">
                                                                             <td>
                                                                                 <select
-                                                                                    name="lines[{{ $i }}][ledger_id]"
-                                                                                    class="form-control ledger">
-                                                                                    @foreach ($ledgers as $l)
-                                                                                        <option
-                                                                                            value="{{ $l->id }}"
-                                                                                            data-group-id="{{ $l->group_id }}"
-                                                                                            @selected(($ln['ledger_id'] ?? null) == $l->id)>
-                                                                                            {{ $l->name }}
-                                                                                        </option>
-                                                                                    @endforeach
-                                                                                </select>
-                                                                            </td>
-                                                                            <td>
-                                                                                <select
                                                                                     name="lines[{{ $i }}][dc]"
                                                                                     class="form-control dc">
                                                                                     <option @selected(($ln['dc'] ?? 'Dr') === 'Dr')>Dr
@@ -437,6 +437,24 @@
                                                                                     </option>
                                                                                 </select>
                                                                             </td>
+                                                                            <td>
+                                                                                <select
+                                                                                    name="lines[{{ $i }}][ledger_id]"
+                                                                                    class="form-control ledger">
+                                                                                    @foreach ($ledgers as $l)
+                                                                                        <option value="{{ $l->id }}"
+                                                                                            data-group-id="{{ $l->group_id }}"
+                                                                                            @selected(($ln['ledger_id'] ?? null) == $l->id)>
+                                                                                            {{ $l->name }}
+                                                                                        </option>
+                                                                                    @endforeach
+                                                                                </select>
+                                                                                <a href="{{ route('accounting.ledgers.create') }}"
+                                                                                    class="btn btn-outline-secondary btn-sm">Create
+                                                                                    Ledger
+                                                                                </a>
+                                                                            </td>
+
                                                                             <td>
                                                                                 <input
                                                                                     name="lines[{{ $i }}][amount]"
@@ -459,6 +477,13 @@
                                                                 @else
                                                                     <tr class="line">
                                                                         <td>
+                                                                            <select name="lines[0][dc]"
+                                                                                class="form-control dc">
+                                                                                <option>Dr</option>
+                                                                                <option>Cr</option>
+                                                                            </select>
+                                                                        </td>
+                                                                        <td>
                                                                             <select name="lines[0][ledger_id]"
                                                                                 class="form-control ledger">
                                                                                 @foreach ($ledgers as $l)
@@ -468,14 +493,13 @@
                                                                                     </option>
                                                                                 @endforeach
                                                                             </select>
+
+                                                                            <a href="{{ route('accounting.ledgers.create') }}"
+                                                                                class="btn btn-outline-secondary btn-sm">Create
+                                                                                Ledger
+                                                                            </a>
                                                                         </td>
-                                                                        <td>
-                                                                            <select name="lines[0][dc]"
-                                                                                class="form-control dc">
-                                                                                <option>Dr</option>
-                                                                                <option>Cr</option>
-                                                                            </select>
-                                                                        </td>
+
                                                                         <td>
                                                                             <input name="lines[0][amount]"
                                                                                 class="form-control amount" type="number"
@@ -521,7 +545,8 @@
                                                         <span id="stickyBadge" class="badge bg-secondary">Not
                                                             Calculated</span>
                                                     </div>
-                                                    <button class="btn btn-success" id="btnSubmit">Create Voucher</button>
+                                                    <button class="btn btn-success" id="btnSubmit">Create
+                                                        Voucher</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -555,6 +580,7 @@
             const $secPR = $('#section-payment-receipt');
             const $secCT = $('#section-contra');
             const $secTR = $('#section-trade');
+            const $secJR = $('#section-journal');
 
             const $prMode = $('#pr_mode');
             const $prCashWrap = $('#pr_cash_wrap');
@@ -564,6 +590,7 @@
             const $totalCr = $('#totalCr');
             const $badgeTop = $('#balanceBadge .badge');
             const $badgeSticky = $('#stickyBadge');
+            const createLedgerUrl = "{{ route('accounting.ledgers.create') }}";
 
             function setBadge(state) {
                 const texts = {
@@ -589,9 +616,11 @@
                 const isPR = (t === 'Payment' || t === 'Receipt');
                 const isCT = (t === 'Contra');
                 const isTR = (t === 'Sales' || t === 'Purchase' || t === 'DebitNote' || t === 'CreditNote');
+                const isJR = (t === 'Journal');
                 $secPR.toggle(isPR);
                 $secCT.toggle(isCT);
                 $secTR.toggle(isTR);
+                $secJR.toggle(isJR);
                 togglePRMode();
             }
 
@@ -660,16 +689,20 @@
                 return `
                 <tr class="line">
                     <td>
-                        <select name="lines[${idx}][ledger_id]" class="form-control ledger">
-                            ${ledgerOptions}
-                        </select>
-                    </td>
-                    <td>
                         <select name="lines[${idx}][dc]" class="form-control dc">
                             <option ${drSel}>Dr</option>
                             <option ${crSel}>Cr</option>
                         </select>
                     </td>
+                    <td>
+                        <select name="lines[${idx}][ledger_id]" class="form-control ledger">
+                            ${ledgerOptions}
+                        </select>
+                         <a href="${createLedgerUrl}" target="_blank"
+                        class="btn btn-outline-secondary btn-sm">
+                        Create Ledger
+                    </a></td>
+                    
                     <td><input name="lines[${idx}][amount]" class="form-control amount" type="number" step="0.01"></td>
                     <td><input name="lines[${idx}][line_narration]" class="form-control"></td>
                     <td><button type="button" class="btn btn-sm btn-danger remove">×</button></td>
@@ -1040,5 +1073,5 @@
             }
         });
     </script>
-    
+
 @endsection
