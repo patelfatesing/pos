@@ -536,7 +536,7 @@
                                                     <div class="d-flex flex-wrap align-items-center gap-3">
                                                         <div class="input-group input-group-sm" style="width:180px;">
                                                             <span class="input-group-text">Total Dr</span>
-                                                            <input id="totalDr" class="form-control" readonly>
+                                                            <input id="totalDr" class="form-control mr-2" readonly>
                                                         </div>
                                                         <div class="input-group input-group-sm" style="width:180px;">
                                                             <span class="input-group-text">Total Cr</span>

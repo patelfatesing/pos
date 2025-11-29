@@ -231,6 +231,7 @@ class Shoppingcart extends Component
         if (!$this->selectedProduct) {
             // Show not found message if no product selected (barcode not matched)
             $this->notFoundMessage = __('Barcode  not found');
+            $this->reset('search');
             return;
         }
         //if (!$this->selectedProduct) return;
@@ -2848,178 +2849,207 @@ class Shoppingcart extends Component
                 ]
             );
 
-            $credit_ledger_id = null;
+            // ------------------- POS VOUCHER BUILD -------------------
 
-            // --- Build lines: one Dr per tender, one Cr for sales ---
-            $lines = [];
+            $branchId = $branch_id;
 
-            if ($this->paymentType == "cash") {
-                $tender_ledger = AccountLedger::where('name', 'Cash Payments')->first();
+            // 0) Init
+            $lines              = [];
+            $cashLedgerId       = null;
+            $customer_ledger_id = null;
 
-                $tender_ledger_id = $tender_ledger->id;
-                // cash part
-                if ($this->cash > 0) {
-                    $lines[] = [
-                        'ledger_id'      => (int)$tender_ledger_id,
-                        'dc'             => 'Dr',
-                        'amount'         => round($this->cash, 2),
-                        'line_narration' => 'Cash received',
-                    ];
-                }
+            // ============= 1) Tenders (Cash + UPI) =============
 
-                $totalTender = round($this->cash, 2);
-            } else {
-                $tender_ledger = AccountLedger::where('name', 'Cash Payments')->first();
-                $tender_ledger_id = $tender_ledger->id;
+            $cashPaid = round((float) $this->cash, 2);       // from your POS screen
+            $upiPaid  = round((float) $this->upi, 2);        // from your POS screen
 
-                // cash part
-                if ($this->cash > 0) {
-                    $lines[] = [
-                        'ledger_id'      => (int)$tender_ledger_id,
-                        'dc'             => 'Dr',
-                        'amount'         => round($this->cash, 2),
-                        'line_narration' => 'Cash received',
-                    ];
-                }
+            // cash
+            if ($cashPaid > 0) {
+                $cashLedger = AccountLedger::where('name', 'Cash Payments')->firstOrFail();
+                $cashLedgerId = $cashLedger->id;
 
-                // upi part
-                if ($this->upi > 0) {
-
-                    $tender_ledger1 = AccountLedger::where('name', 'UPI Payments')->first();
-                    $tender_ledger_id1 = $tender_ledger1->id;
-
-                    $lines[] = [
-                        'ledger_id'      => (int)$tender_ledger_id1,
-                        'dc'             => 'Dr',
-                        'amount'         => round($this->upi, 2),
-                        'line_narration' => 'UPI received',
-                    ];
-                }
-
-                $totalTender = round($this->cash + $this->upi, 2);
+                $lines[] = [
+                    'ledger_id'      => (int) $cashLedgerId,
+                    'dc'             => 'Dr',
+                    'amount'         => $cashPaid,
+                    'line_narration' => 'Cash received',
+                ];
             }
 
+            // upi
+            if ($upiPaid > 0) {
+                $upiLedger = AccountLedger::where('name', 'UPI Payments')->firstOrFail();
 
-            if ($branch_id == 1) {
+                $lines[] = [
+                    'ledger_id'      => (int) $upiLedger->id,
+                    'dc'             => 'Dr',
+                    'amount'         => $upiPaid,
+                    'line_narration' => 'UPI received',
+                ];
+            }
 
-                $commison_ledger = AccountLedger::where('name', $partyUser->first_name)->first();
-                $credit_ledger_id = $commison_ledger->id; // Headquarters Credit Ledger
-                $sales_ledger = AccountLedger::where('name', 'WAREHOUSE')->first();
-                $sales_ledger_id = $sales_ledger->id;
+            // HQ-only credit (branch 1 only)
+            $creditUsed = ($branchId == 1) ? round((float) $this->creditPay, 2) : 0;
 
-                $tender_ledger = AccountLedger::where('name', 'Cash Payments')->first();
+            // ============= 2) Customer Ledger Resolution =============
+            // Party may exist for ANY branch, but creditPay only used for branch 1
 
-                $tender_ledger_id = $tender_ledger->id;
-                // cash part
-                if ($this->creditPay > 0) {
-                    $lines[] = [
-                        'ledger_id'      => (int)$credit_ledger_id,
-                        'dc'             => 'Dr',
-                        'amount'         => round($this->creditPay, 2),
-                        'line_narration' => 'Cash received',
-                    ];
-                }
-                if (!empty($this->partyAmount) && (float)$this->commissionApartyAmountmount > 0) {
-                    $discountAmt = round((float)$this->partyAmount, 2);
-
-                    $commison_ledger2 = AccountLedger::where('name', 'Discount Allowed')->first();
-                    $credit_ledger_id2 = $commison_ledger2->id; //
-                    // Debit -> Discount Allowed (expense)
-                    $lines[] = [
-                        'ledger_id'      => (int) $credit_ledger_id2,     // Discount Allowed ledger id
-                        'dc'             => 'Dr',
-                        'amount'         => $discountAmt,
-                        'line_narration' => 'Discount allowed',
-                    ];
-
-                    // Credit -> Sales (reduce revenue) — use $salesLedger (your sales ledger id)
-                    $lines[] = [
-                        'ledger_id'      => (int) $sales_ledger_id,         // Sales ledger id (same one you used for the sale Cr)
-                        'dc'             => 'Cr',
-                        'amount'         => $discountAmt,
-                        'line_narration' => 'Discount adjustment',
-                    ];
-                }
-
-                $totalTender = round($this->creditPay, 2);
-            } else {
-                $commison_ledger = AccountLedger::where('name', 'Discount Allowed')->first();
-                $credit_ledger_id = $commison_ledger->id; //
-                $branch_name = Branch::where('id', $branch_id)->first();
-                $sales_ledger = AccountLedger::where('name', $branch_name->name)->first();
-                $sales_ledger_id = $sales_ledger->id;
-
-                if (!empty($this->commissionAmount) && (float)$this->commissionAmount > 0) {
-                    $discountAmt = round((float)$this->commissionAmount, 2);
-
-                    // Debit -> Discount Allowed (expense)
-                    $lines[] = [
-                        'ledger_id'      => (int) $credit_ledger_id,     // Discount Allowed ledger id
-                        'dc'             => 'Dr',
-                        'amount'         => $discountAmt,
-                        'line_narration' => 'Discount allowed',
-                    ];
-
-                    // Credit -> Sales (reduce revenue) — use $salesLedger (your sales ledger id)
-                    $lines[] = [
-                        'ledger_id'      => (int) $sales_ledger_id,         // Sales ledger id (same one you used for the sale Cr)
-                        'dc'             => 'Cr',
-                        'amount'         => $discountAmt,
-                        'line_narration' => 'Discount adjustment',
-                    ];
+            if (!empty($partyUser)) {
+                $customerLedger = AccountLedger::where('name', $partyUser->first_name)->first();
+                if ($customerLedger) {
+                    $customer_ledger_id = $customerLedger->id;
                 }
             }
 
-            $nv = function ($v) {
-                return ($v === '' || $v === null) ? null : $v;
-            };
+            // Dr Customer only when branch 1 + credit used + ledger exists
+            if ($branchId == 1 && $creditUsed > 0 && $customer_ledger_id) {
+                $lines[] = [
+                    'ledger_id'      => (int) $customer_ledger_id,
+                    'dc'             => 'Dr',
+                    'amount'         => $creditUsed,
+                    'line_narration' => 'Credit to customer',
+                ];
+            }
 
-            // sales credit (single line)
+            // Total tender = cash + upi + HQ credit
+            $totalTender = $cashPaid + $upiPaid + $creditUsed;
+
+            // ============= 3) Discount =============
+
+            if ($branchId == 1) {
+                // HO – party discount
+                $discountAmt = round((float) $this->partyAmount, 2);
+            } else {
+                // Other branches – commission discount
+                $discountAmt = round((float) $this->commissionAmount, 2);
+            }
+
+            if ($discountAmt > 0) {
+                $discountLedger = AccountLedger::where('name', 'Discount Allowed')->firstOrFail();
+
+                $lines[] = [
+                    'ledger_id'      => (int) $discountLedger->id,
+                    'dc'             => 'Dr',
+                    'amount'         => $discountAmt,
+                    'line_narration' => 'Discount allowed',
+                ];
+            }
+
+            // ============= 4) Sales Ledger (HO vs Branch) =============
+
+            $totalSale = round((float) $this->sub_total, 2);         // e.g. 600
+            $netAmount = $totalSale - $discountAmt;                  // e.g. 600 - 95 = 505
+
+            if ($branchId == 1) {
+                $salesLedger = AccountLedger::where('name', 'WAREHOUSE')->firstOrFail();
+            } else {
+                $branch      = Branch::findOrFail($branchId);
+                $salesLedger = AccountLedger::where('name', $branch->name)->firstOrFail();
+            }
+            $sales_ledger_id = $salesLedger->id;
+
+            // ============= 5) Round Off =============
+
+            // how much actually collected (cash + upi + HQ credit) vs net bill
+            $roundOff = round($totalTender - $netAmount, 2);    // e.g. 510 - 505 = +5
+
+            $roundLedger = AccountLedger::where('name', 'Round Off')->first();
+
+            // Round Off Dr (we got LESS than net → expense)
+            if ($roundOff < 0 && $roundLedger) {
+                $lines[] = [
+                    'ledger_id'      => (int) $roundLedger->id,
+                    'dc'             => 'Dr',
+                    'amount'         => abs($roundOff),
+                    'line_narration' => 'Round Off (-)',
+                ];
+            }
+
+            // Round Off Cr (we got MORE than net → income)
+            if ($roundOff > 0 && $roundLedger) {
+                $lines[] = [
+                    'ledger_id'      => (int) $roundLedger->id,
+                    'dc'             => 'Cr',
+                    'amount'         => $roundOff,
+                    'line_narration' => 'Round Off (+)',
+                ];
+            }
+
+            // ============= 6) Sales Cr =============
+
             $lines[] = [
-                'ledger_id'      => (int)$sales_ledger_id, // your sales ledger id
+                'ledger_id'      => (int) $sales_ledger_id,
                 'dc'             => 'Cr',
-                'amount'         => round($this->sub_total, 2),
+                'amount'         => $totalSale,
                 'line_narration' => 'Sales: items',
             ];
 
-            $salesLedger = $nv($sales_ledger_id ?? null);
-            $lastRef = Voucher::orderBy('id', 'desc')->value('ref_no');
+            // ============= 7) Dr / Cr Check =============
 
-            if (!$lastRef) {
-                $nextRef = 'POS-0001';
-            } else {
-                $num = (int) str_replace('POS-', '', $lastRef);
-                $nextRef = 'POS-' . str_pad($num + 1, 4, '0', STR_PAD_LEFT);
-            }
-
-            // Optional: verify dr/cr balance before calling posTransaction
             $dr = collect($lines)->where('dc', 'Dr')->sum('amount');
             $cr = collect($lines)->where('dc', 'Cr')->sum('amount');
-            // if (round($dr, 2) !== round($cr, 2)) {
-            //     throw new \Exception("Dr/Cr mismatch: Dr={$dr} Cr={$cr}");
-            // }
+
+            if (round($dr, 2) !== round($cr, 2)) {
+                throw new \Exception("Voucher not balanced: Dr={$dr} Cr={$cr}");
+            }
+
+            // ============= 8) Ref No: POS-{branch}-{0001} =============
+
+            $prefix = "POS-" . $branchId . "-";
+
+            $lastRef = Voucher::where('voucher_type', 'Sales')
+                ->where('branch_id', $branchId)
+                ->where('ref_no', 'like', $prefix . '%')
+                ->orderBy('id', 'desc')
+                ->value('ref_no');
+
+            if (!$lastRef) {
+                $nextNumber = 1;
+            } else {
+                $num        = (int) str_replace($prefix, '', $lastRef);
+                $nextNumber = $num + 1;
+            }
+
+            $nextRef = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+            // ============= 9) Mode for header (for info only) =============
+
+            $mode = null;
+            if ($cashPaid > 0 && $upiPaid > 0) {
+                $mode = 'cashupi';
+            } elseif ($cashPaid > 0) {
+                $mode = 'cash';
+            } elseif ($upiPaid > 0) {
+                $mode = 'upi';
+            }
+
+            // party_ledger_id: if partyUser selected (any branch), link it
+            $partyLedgerId = $customer_ledger_id ?: null;
+
+            // ============= 10) Payload =============
 
             $payload = [
-                'voucher_date'  => Carbon::now()->format('Y-m-d'),
-                'voucher_type'  => 'Sales',
-                'branch_id'     => $branch_id,
-                'ref_no'        => $nextRef,
-                'narration'     => 'Counter sale',
-                'party_ledger_id' => null, // customer ledger (if credit), or null for cash walk-in
-                'mode'          => 'cash', // 'cash'/'bank'/'upi'/'card' or null
-                'cash_ledger_id' => $salesLedger,     // required if mode == 'cash'
-                'sub_total'     =>  $this->sub_total,
-                'discount'      => 0,
-                'tax'           => 0,
-                'grand_total'   =>  $this->cashAmount,
-                'lines' => $lines,
-                // 'lines' => [
-                //     // usually at least 2 lines so Dr/Cr balance; e.g. sales (Cr) + cash (Dr)
-                //     ['ledger_id' => $salesLedger, 'dc' => 'Cr', 'amount' => $this->cashAmount, 'line_narration' => 'Sales: items'],
-                //     ['ledger_id' => $tenderLedgerId, 'dc' => 'Dr', 'amount' => $this->cashAmount, 'line_narration' => 'Cash received'],
-                // ],
+                'voucher_date'    => Carbon::now()->format('Y-m-d'),
+                'voucher_type'    => 'Sales',
+                'branch_id'       => $branchId,
+                'ref_no'          => $nextRef,
+                'narration'       => 'Counter sale',
+
+                // party can exist for any branch, but credit only branch 1
+                'party_ledger_id' => $partyLedgerId,
+
+                'mode'            => $mode,
+                'cash_ledger_id'  => $cashLedgerId,      // null if no cash
+
+                'sub_total'       => $totalSale,
+                'discount'        => $discountAmt,
+                'tax'             => 0,
+                'grand_total'     => $netAmount + max(0, $roundOff),
+
+                'lines'           => $lines,
             ];
-            // dd($payload);
+
+            // finally:
             $voucher = $this->posTransaction($payload);
 
             \Log::info('Invoice Created: ' . json_encode($invoice, true));
@@ -3705,41 +3735,47 @@ class Shoppingcart extends Component
 
             // upi part
             if ($this->upi > 0) {
-
-                $tender_ledger1 = AccountLedger::where('name', 'UPI Payments')->first();
+                $tender_ledger1 = AccountLedger::where('name', 'UPI Payments')->firstOrFail();
                 $tender_ledger_id1 = $tender_ledger1->id;
 
                 $lines[] = [
-                    'ledger_id'      => (int)$tender_ledger_id1,
+                    'ledger_id'      => (int) $tender_ledger_id1,
                     'dc'             => 'Dr',
                     'amount'         => round($this->upi, 2),
                     'line_narration' => 'UPI received',
                 ];
             }
 
+            // keep this, but we’ll recalc totalTender below including creditPay
             $totalTender = round($this->upi, 2);
 
             $credit_ledger_id = null;
-            if ($branch_id == 1) {
 
-                $commison_ledger = AccountLedger::where('name', $partyUser->first_name)->first();
-                $credit_ledger_id = $commison_ledger->id; // Headquarters Credit Ledger
-                $sales_ledger = AccountLedger::where('name', 'WAREHOUSE')->first();
+            if ($branch_id == 1) {
+                // Customer / Party ledger (commission user)
+                $commison_ledger = AccountLedger::where('name', $partyUser->first_name)->firstOrFail();
+                $credit_ledger_id = $commison_ledger->id;
+
+                // Sales ledger for HO
+                $sales_ledger = AccountLedger::where('name', 'WAREHOUSE')->firstOrFail();
                 $sales_ledger_id = $sales_ledger->id;
-                // cash part
+
+                // creditPay part (customer receivable)
                 if ($this->creditPay > 0) {
                     $lines[] = [
-                        'ledger_id'      => (int)$credit_ledger_id,
+                        'ledger_id'      => (int) $credit_ledger_id,
                         'dc'             => 'Dr',
                         'amount'         => round($this->creditPay, 2),
-                        'line_narration' => 'Cash received',
+                        'line_narration' => 'Credit to customer',
                     ];
                 }
             } else {
-                $commison_ledger = AccountLedger::where('name', 'Discount Allowed')->first();
-                $credit_ledger_id = $commison_ledger->id; //
-                $branch_name = Branch::where('id', $branch_id)->first();
-                $sales_ledger = AccountLedger::where('name', $branch_name->name)->first();
+                // For branch: discount allowed ledger was used elsewhere (not for credit)
+                $commison_ledger = AccountLedger::where('name', 'Discount Allowed')->firstOrFail();
+                $credit_ledger_id = $commison_ledger->id;
+
+                $branch_name = Branch::findOrFail($branch_id);
+                $sales_ledger = AccountLedger::where('name', $branch_name->name)->firstOrFail();
                 $sales_ledger_id = $sales_ledger->id;
             }
 
@@ -3747,39 +3783,100 @@ class Shoppingcart extends Component
                 return ($v === '' || $v === null) ? null : $v;
             };
 
-            $tender_ledger = AccountLedger::where('name', 'UPI Payments')->first();
+            $tender_ledger = AccountLedger::where('name', 'UPI Payments')->firstOrFail();
             $tender_ledger_id = $tender_ledger->id;
 
-            $salesLedger = $nv($sales_ledger_id ?? null);
-            $tenderLedgerId = $nv($tender_ledger_id ?? null);
+            $salesLedger     = $nv($sales_ledger_id ?? null);
+            $tenderLedgerId  = $nv($tender_ledger_id ?? null);
 
-            $lastRef = Voucher::orderBy('id', 'desc')->value('ref_no');
+            // ----------------- ROUND OFF LOGIC -----------------
 
-            if (!$lastRef) {
-                $nextRef = 'POS-0001';
-            } else {
-                $num = (int) str_replace('POS-', '', $lastRef);
-                $nextRef = 'POS-' . str_pad($num + 1, 4, '0', STR_PAD_LEFT);
+            // total tender = UPI + credit (you can also add cash if you have it)
+            $totalTender = round($this->upi + $this->creditPay, 2);
+
+            // sale amount (what you consider final invoice amount)
+            $saleAmount = round($this->cashAmount, 2); // you are already using cashAmount as grand_total
+
+            // round difference: if +ve -> we gave round-off discount; if -ve -> customer paid extra
+            $roundDiff = $saleAmount - $totalTender;
+
+            // Find Round Off ledger (create it in Account Ledgers if not exists)
+            $roundLedger = AccountLedger::where('name', 'Round Off')->first();
+
+            // Only add line if non-zero and ledger exists
+            if ($roundLedger && abs($roundDiff) >= 0.01) {
+                if ($roundDiff > 0) {
+                    // Sale > tender → we reduced amount → Round Off (expense) Dr
+                    $lines[] = [
+                        'ledger_id'      => (int) $roundLedger->id,
+                        'dc'             => 'Dr',
+                        'amount'         => round($roundDiff, 2),
+                        'line_narration' => 'Round Off (-)',
+                    ];
+                } else {
+                    // Tender > sale → customer paid more → Round Off (income) Cr
+                    $lines[] = [
+                        'ledger_id'      => (int) $roundLedger->id,
+                        'dc'             => 'Cr',
+                        'amount'         => round(abs($roundDiff), 2),
+                        'line_narration' => 'Round Off (+)',
+                    ];
+                }
             }
 
+            // ----------------- SALES LINE (CREDIT) -----------------
+            $lines[] = [
+                'ledger_id'      => (int) $sales_ledger_id,
+                'dc'             => 'Cr',
+                'amount'         => $saleAmount,
+                'line_narration' => 'Sales: items',
+            ];
+
+            // (optional) check Dr/Cr balance before save
+            $dr = collect($lines)->where('dc', 'Dr')->sum('amount');
+            $cr = collect($lines)->where('dc', 'Cr')->sum('amount');
+            // if (round($dr, 2) !== round($cr, 2)) {
+            //     throw new \Exception("Dr/Cr mismatch: Dr={$dr} Cr={$cr}");
+            // }
+
+            // ----------------- REF NO GENERATION -----------------
+            $voucherType = 'Sales';
+            $branchId    = $branch_id;
+
+            $prefix = 'POS-' . $branchId . '-';
+
+            $lastRef = Voucher::where('voucher_type', $voucherType)
+                ->where('branch_id', $branchId)
+                ->where('ref_no', 'like', $prefix . '%')
+                ->orderBy('id', 'desc')
+                ->value('ref_no');
+
+            if (!$lastRef) {
+                $nextNumber = 1;
+            } else {
+                $num = (int) str_replace($prefix, '', $lastRef);
+                $nextNumber = $num + 1;
+            }
+
+            $nextRef = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+            // ----------------- PAYLOAD -----------------
             $payload = [
-                'voucher_date'  => Carbon::now()->format('Y-m-d'),
-                'voucher_type'  => 'Sales',
-                'branch_id'     => $branch_id,
-                'ref_no'        => $nextRef,
-                'narration'     => 'Counter sale',
-                'party_ledger_id' => null, // customer ledger (if credit), or null for cash walk-in
-                'mode'          => 'cash', // 'cash'/'bank'/'upi'/'card' or null
-                'cash_ledger_id' => $salesLedger,     // required if mode == 'cash'
-                'sub_total'     =>  $this->sub_total,
-                'discount'      => 0,
-                'tax'           => 0,
-                'grand_total'   =>  $this->cashAmount,
-                'lines' => [
-                    // usually at least 2 lines so Dr/Cr balance; e.g. sales (Cr) + cash (Dr)
-                    ['ledger_id' => $salesLedger, 'dc' => 'Cr', 'amount' => $this->cashAmount, 'line_narration' => 'Sales: items'],
-                    ['ledger_id' => $tenderLedgerId, 'dc' => 'Dr', 'amount' => $this->cashAmount, 'line_narration' => 'Cash received'],
-                ],
+                'voucher_date'    => Carbon::now()->format('Y-m-d'),
+                'voucher_type'    => 'Sales',
+                'branch_id'       => $branch_id,
+                'ref_no'          => $nextRef,
+                'narration'       => 'Counter sale',
+                'party_ledger_id' => null,            // or $credit_ledger_id if you want to link customer
+                'mode'            => 'upi',           // since you're using UPI here; adjust if needed
+                'cash_ledger_id'  => null,            // not using cash here
+                'sub_total'       => $this->sub_total,
+                'discount'        => 0,               // or your real discount
+                'tax'             => 0,
+                'grand_total'     => $saleAmount,     // final sale amount (after round-off)
+
+                // use the lines we built (tenders + roundoff + sales)
+                'lines'           => $lines,
             ];
 
             $voucher = $this->posTransaction($payload);
