@@ -62,6 +62,23 @@
                                                 </div>
                                                 <div class="col-md-4">
                                                     <div class="form-group">
+                                                        <label for="vendor_id">Ledger Name</label>
+                                                        <select name="vendor_new_id" id="vendor_new_id" class="form-control">
+                                                            <option value="">-- Select Ledger Name --</option>
+                                                            @foreach ($ledgersAll as $vendor)
+                                                                <option value="{{ $vendor->id }}"
+                                                                    {{ old('vendor_id') == $vendor->id ? 'selected' : '' }}>
+                                                                    {{ $vendor->name }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('vendor_new_id')
+                                                            <span class="text-danger">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
                                                         <label for="parchase_ledger">Purchase Ledger</label>
                                                         <select name="parchase_ledger" id="parchase_ledger"
                                                             class="form-control">
@@ -270,7 +287,8 @@
                                                                     <label>Guarantee Fulfilled</label>
                                                                     <input type="tel" class="form-control"
                                                                         value="{{ old('guarantee_fulfilled') }}"
-                                                                        name="guarantee_fulfilled" id="guarantee_fulfilled" />
+                                                                        name="guarantee_fulfilled"
+                                                                        id="guarantee_fulfilled" />
                                                                 </div>
                                                             </div>
 
@@ -301,12 +319,12 @@
                                                                         value="{{ old('permit_fee') }}" name="permit_fee"
                                                                         id="permit_fee" />
                                                                 </div>
-                                                                <div class="form-group">
+                                                                {{-- <div class="form-group">
                                                                     <label>RSGSM Purchase</label>
                                                                     <input type="tel" class="form-control"
                                                                         value="{{ old('rsgsm_purchase') }}"
                                                                         name="rsgsm_purchase" id="rsgsm_purchase" />
-                                                                </div>
+                                                                </div> --}}
                                                             </div>
                                                             <div class="vendor-common">
                                                                 <div class="form-group">
