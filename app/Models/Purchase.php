@@ -11,6 +11,7 @@ class Purchase extends Model
     protected $fillable = [
         'bill_no',
         'vendor_id',
+        'vendor_new_id',
         'parchase_ledger',
         'total',
         'date',

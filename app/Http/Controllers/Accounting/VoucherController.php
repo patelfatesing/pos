@@ -121,7 +121,7 @@ class VoucherController extends Controller
             ->where(
                 fn($q) => $q
                     ->where('voucher_type', $r->input('voucher_type'))
-                    
+
             );
 
         return view('accounting.vouchers.create', [
@@ -320,5 +320,26 @@ class VoucherController extends Controller
 
         return redirect()->route('accounting.vouchers.index')
             ->with('success', 'Voucher posted successfully.');
+    }
+
+    public function destroy(Request $request)
+    {
+        $voucher = Voucher::with('lines')->findOrFail($request->id);
+
+        DB::transaction(function () use ($voucher) {
+
+            // Delete all voucher lines
+            foreach ($voucher->lines as $line) {
+                $line->delete();   // hard delete
+            }
+
+            // Delete voucher
+            $voucher->delete();    // hard delete
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Voucher and all lines deleted successfully.',
+        ]);
     }
 }

@@ -54,6 +54,19 @@ class PurchaseController extends Controller
             ->orderBy('l.name')
             ->get(['l.id', 'l.name']);
 
+        $ledgersAll = \DB::table('account_ledgers as l')
+            ->join('account_groups as g', 'g.id', '=', 'l.group_id')
+            // ->whereIn('g.name', $purchaseGroupNames)
+            ->where(function ($q) {
+                $q->where('l.is_deleted', 'No')->orWhereNull('l.is_deleted');
+            })
+            ->where(function ($q) {
+                // handle boolean or enum
+                $q->where('l.is_active', 1)->orWhere('l.is_active', 'Yes');
+            })
+            ->orderBy('l.name')
+            ->get(['l.id', 'l.name']);
+
         // $products = Product::select('products.id', 'products.name', DB::raw('SUM(inventories.quantity) as total_quantity'))
         // ->join('inventories', 'products.id', '=', 'inventories.product_id')
         // ->where('products.is_deleted', 'no')
@@ -61,7 +74,7 @@ class PurchaseController extends Controller
         // ->orderBy('inventories.id', 'asc')
         // ->get();
 
-        return view('purchase.create', compact('vendors', 'products', 'expMainCategory', 'purchaseLedger', 'ledgers'));
+        return view('purchase.create', compact('vendors', 'products', 'expMainCategory', 'purchaseLedger', 'ledgers', 'ledgersAll'));
     }
 
     /**
@@ -69,9 +82,9 @@ class PurchaseController extends Controller
      */
     public function store(Request $request)
     {
-
         $request->validate([
-            'vendor_id' => 'required|exists:vendor_lists,id',
+            'vendor_id' => 'required',
+            'vendor_new_id' =>'required',
             'bill_no' => 'required|string|max:255|unique:purchases,bill_no',
             'date' => 'required|date',
             'parchase_ledger' => 'required',
@@ -90,7 +103,7 @@ class PurchaseController extends Controller
             ->where('status', 'pending')
             ->first();
 
-        if (!$running_shift) {            // null  ➔ destination store not open
+        if (!$running_shift) {
             return back()
                 ->withErrors(['to_store_id' => 'The Warehouse is not open.'])
                 ->withInput();
@@ -99,9 +112,11 @@ class PurchaseController extends Controller
         DB::beginTransaction();
 
         try {
+            // ----------------- 1) SAVE PURCHASE MASTER -----------------
             $purchase = Purchase::create([
                 'bill_no' => $request->bill_no,
                 'vendor_id' => $request->vendor_id,
+                'vendor_new_id' => $request->vendor_new_id,
                 'parchase_ledger' => $request->parchase_ledger,
                 'total' => $request->total,
                 'date' => $request->date,
@@ -124,6 +139,7 @@ class PurchaseController extends Controller
                 'created_by' => Auth::id(),
             ]);
 
+            // ----------------- 2) SAVE PRODUCTS + INVENTORY -----------------
             foreach ($request->products as $product) {
                 PurchaseProduct::create([
                     'brand_name' => $product['brand_name'],
@@ -136,67 +152,62 @@ class PurchaseController extends Controller
                     'purchase_id' => $purchase->id
                 ]);
 
-                // $user_id = Auth::id();
-
-                // $user_details = UserInfo::select('branch_id')
-                // ->where('user_id', $user_id)
-                // ->firstOrFail();
-
                 $product_id = $product['product_id'];
                 $batch = $product['batch'];
                 $expiryDatePlusOneYear = Carbon::parse($product['mfg_date'])->addYear();
 
-                $store_id = 1; // Assuming store_id is always 1 for this example, adjust as needed
+                $store_id = 1; // Warehouse
                 $record = Product::with(['inventorieUnfiltered' => function ($query) use ($store_id) {
                     $query->where('store_id', $store_id);
-                }])->where('id', $product_id)->where('is_deleted', 'no')->firstOrFail();
+                }])
+                    ->where('id', $product_id)
+                    ->where('is_deleted', 'no')
+                    ->firstOrFail();
 
                 $inventoryService = new \App\Services\InventoryService();
 
                 if (!empty($record->inventorieUnfiltered)) {
 
-                    // $product['qnt'] = $product['qnt'] + $record->inventorie[0]->quantity;
-
                     $batchNumber = strtoupper($request->sku) . '-' . now()->format('Ymd') . '-' . Str::upper(Str::random(4));
+
                     if ($record->inventorieUnfiltered->batch_no == $batch) {
 
                         $inventory = Inventory::findOrFail($record->inventorieUnfiltered->id);
 
-                        $qnt =  $product['qnt'] + $inventory->quantity;
+                        $qnt = $product['qnt'] + $inventory->quantity;
                         $inventory->updated_at = now();
                         $inventory->quantity = $qnt;
-                        // $inventory->quantity = $qnt;
                         $inventory->save();
 
                         stockStatusChange($product_id, 1, $product['qnt'], 'add_stock');
                         $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $qnt, 'add_stock');
                     } else {
-
                         $inventory = Inventory::firstOrCreate([
                             'product_id'  => $product_id,
                             'store_id'    => 1,
-                            'location_id'    => 1,
+                            'location_id' => 1,
                             'batch_no'    => $batch,
                             'expiry_date' => $expiryDatePlusOneYear,
-                            'quantity' => $product['qnt'],
-                            'added_by' => Auth::id(),
+                            'quantity'    => $product['qnt'],
+                            'added_by'    => Auth::id(),
                         ]);
+
                         stockStatusChange($product_id, 1, $product['qnt'], 'add_stock');
                         $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $product['qnt'], 'add_stock');
                     }
 
+                    // This second transfer looks redundant but keeping as per your original logic
                     $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $product['qnt'], 'add_stock');
                 } else {
-
 
                     $inventory = Inventory::firstOrCreate([
                         'product_id'  => $product_id,
                         'store_id'    => 1,
-                        'location_id'    => 1,
+                        'location_id' => 1,
                         'batch_no'    => $batch,
                         'expiry_date' => $expiryDatePlusOneYear,
-                        'added_by' => Auth::id(),
-                        'quantity' => $product['qnt']
+                        'added_by'    => Auth::id(),
+                        'quantity'    => $product['qnt']
                     ]);
 
                     stockStatusChange($product_id, 1, $product['qnt'], 'add_stock');
@@ -205,23 +216,38 @@ class PurchaseController extends Controller
             }
 
             // ----------------- 3) CREATE ACCOUNTING VOUCHER (Purchase) -----------------
-            // 3.1 Get vendor ledger
+
+            // 3.1 Vendor info
             $vendor = VendorList::findOrFail($request->vendor_id);
 
             if (!$request->parchase_ledger) {
-                throw new \Exception('Vendor ledger is not mapped for this vendor.');
+                throw new \Exception('Vendor/Purchase ledger is not selected.');
             }
 
-            $vendorLedgerId   = $request->parchase_ledger;           // Sundry Creditor
-            $purchaseLedgerId = $request->parchase_ledger;    // Purchase account ledger
-            $amount           = (float) $request->total_amount; // accounting amount, adjust if needed
+            // In your current design, same ledger id used for Purchase & Vendor.
+            // Later you can split them if needed.
+            $purchaseLedgerId = (int) $request->parchase_ledger; // Purchase A/c (Dr)
+            $vendorLedgerId   = (int) $request->parchase_ledger; // Vendor (Cr)
 
-            // Ensure >0 amount
-            if ($amount <= 0) {
+            // Base & grand total
+            $baseAmount  = (float) ($request->total ?? 0);          // goods value
+            $grandAmount = (float) ($request->total_amount ?? 0);   // final bill
+
+            if ($grandAmount <= 0) {
                 throw new \Exception('Invalid purchase total amount for voucher posting.');
             }
 
-            // Create Voucher header
+            // Extra components (will post separate Dr lines)
+            $aed         = (float) ($request->aed_to_be_paid ?? 0);
+            $gFull       = (float) ($request->guarantee_fulfilled ?? 0);
+            $tcs         = (float) ($request->tcs ?? 0);
+            $vat         = (float) ($request->vat ?? 0);
+            $surVat      = (float) ($request->surcharge_on_vat ?? 0);
+            $blf         = (float) ($request->blf ?? 0);
+            $permit      = (float) ($request->permit_fee ?? 0);
+            $rsgsm       = (float) ($request->rsgsm_purchase ?? 0);
+
+            // 3.2 Voucher header (like Tally Purchase)
             $voucher = Voucher::create([
                 'voucher_date'    => $request->date,
                 'voucher_type'    => 'Purchase',
@@ -229,50 +255,142 @@ class PurchaseController extends Controller
                 'branch_id'       => $running_shift->branch_id ?? null,
                 'narration'       => 'Purchase bill no ' . $request->bill_no,
                 'created_by'      => Auth::id(),
-
                 'party_ledger_id' => $vendorLedgerId,
-                'sub_total'       => $request->total ?? 0,
-                'discount'        => 0, // if you have discount field, set here
-                'tax'             => 0, // or set from VAT-related fields if needed
-                'grand_total'     => $amount,
+                'sub_total'       => $baseAmount,
+                'discount'        => 0,
+                'tax'             => $vat + $surVat,
+                'grand_total'     => $grandAmount,
             ]);
 
-            // Debit Purchase Ledger
+            // 3.3 Dr Purchase (basic goods)
             VoucherLine::create([
                 'voucher_id'     => $voucher->id,
                 'ledger_id'      => $purchaseLedgerId,
                 'dc'             => 'Dr',
-                'amount'         => $amount,
+                'amount'         => $baseAmount,
                 'line_narration' => 'Purchase - ' . $request->bill_no,
             ]);
 
-            // Credit Vendor Ledger
+            // 3.4 Dr charges/Taxes – only when amount > 0
+
+            if ($aed > 0) {
+                $l = AccountLedger::where('name', 'AED TO BE PAID')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $aed,
+                        'line_narration' => 'AED TO BE PAID - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            if ($gFull > 0) {
+                $l = AccountLedger::where('name', 'Guarantee Fulfilled')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $gFull,
+                        'line_narration' => 'Guarantee Fulfilled - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            if ($tcs > 0) {
+                $l = AccountLedger::where('name', 'TCS')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $tcs,
+                        'line_narration' => 'TCS - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            if ($vat > 0) {
+                $l = AccountLedger::where('name', 'VAT')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $vat,
+                        'line_narration' => 'VAT - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            if ($surVat > 0) {
+                $l = AccountLedger::where('name', 'SURCHARGE ON VAT')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $surVat,
+                        'line_narration' => 'SURCHARGE ON VAT - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            if ($blf > 0) {
+                $l = AccountLedger::where('name', 'BLF')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $blf,
+                        'line_narration' => 'BLF - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            if ($permit > 0) {
+                $l = AccountLedger::where('name', 'Permit Fee')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $permit,
+                        'line_narration' => 'Permit Fee - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            if ($rsgsm > 0) {
+                $l = AccountLedger::where('name', 'RSGSM Purchase')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $rsgsm,
+                        'line_narration' => 'RSGSM Purchase - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            // 3.5 Cr Vendor (full bill amount)
             VoucherLine::create([
                 'voucher_id'     => $voucher->id,
                 'ledger_id'      => $vendorLedgerId,
                 'dc'             => 'Cr',
-                'amount'         => $amount,
+                'amount'         => $grandAmount,
                 'line_narration' => 'Vendor: ' . $vendor->name,
             ]);
 
-            // $expense = new Expense();
-            // $expense->user_id = auth()->id();
-            // // $expense->branch_id = '';
-            // $expense->amount = $request->total;
-            // $expense->description = 'purchase by bill no '.$request->bill_no;
-            // $expense->expense_category_id  = $request->parchase_ledger;
-            // $expense->title = $exp_cate->name ?? 'Withdrawal';
-            // $expense->expense_date = date('Y-m-d');
-            // $expense->save();
-
             DB::commit();
 
-            return redirect()->route('purchase.list')->with('success', 'Delivery has been successfully added.');
-            // return response()->json([
-            //     'message' => 'Purchase order created successfully.',
-            //     'purchase' => $purchase->load('products')
-            // ], 201);
-
+            return redirect()
+                ->route('purchase.list')
+                ->with('success', 'Delivery has been successfully added.');
         } catch (\Exception $e) {
             DB::rollBack();
 

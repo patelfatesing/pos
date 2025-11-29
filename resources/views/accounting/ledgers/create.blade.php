@@ -22,6 +22,8 @@
                                 <form action="{{ route('accounting.ledgers.store') }}" method="POST">
                                     @csrf
                                     <div class="row g-3">
+                                         <input type="hidden" name="type" id="type" value="{{ $type }}"/>
+                                   
                                         <div class="col-md-6">
                                             <label class="form-label">Ledger Name</label>
                                             <input type="text" name="name" class="form-control"
