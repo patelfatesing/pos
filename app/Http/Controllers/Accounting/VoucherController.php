@@ -214,40 +214,40 @@ class VoucherController extends Controller
             'lines.*.line_narration' => ['nullable', 'string', 'max:1000'],
 
             // helpers (nullable by default)
-            'party_ledger_id'  => ['nullable', 'integer', 'exists:account_ledgers,id'],
-            'mode'             => ['nullable', Rule::in(['cash', 'bank', 'upi', 'card'])],
-            'instrument_no'    => ['nullable', 'string', 'max:50'],
-            'instrument_date'  => ['nullable', 'date'],
-            'cash_ledger_id'   => ['nullable', 'integer', 'exists:account_ledgers,id'],
-            'bank_ledger_id'   => ['nullable', 'integer', 'exists:account_ledgers,id'],
-            'from_ledger_id'   => ['nullable', 'integer', 'exists:account_ledgers,id'],
-            'to_ledger_id'     => ['nullable', 'integer', 'exists:account_ledgers,id'],
+            // 'party_ledger_id'  => ['nullable', 'integer', 'exists:account_ledgers,id'],
+            // 'mode'             => ['nullable', Rule::in(['cash', 'bank', 'upi', 'card'])],
+            // 'instrument_no'    => ['nullable', 'string', 'max:50'],
+            // 'instrument_date'  => ['nullable', 'date'],
+            // 'cash_ledger_id'   => ['nullable', 'integer', 'exists:account_ledgers,id'],
+            // 'bank_ledger_id'   => ['nullable', 'integer', 'exists:account_ledgers,id'],
+            // 'from_ledger_id'   => ['nullable', 'integer', 'exists:account_ledgers,id'],
+            // 'to_ledger_id'     => ['nullable', 'integer', 'exists:account_ledgers,id'],
 
-            'sub_total'        => ['nullable', 'numeric', 'gte:0'],
-            'discount'         => ['nullable', 'numeric', 'gte:0'],
-            'tax'              => ['nullable', 'numeric', 'gte:0'],
-            'grand_total'      => ['nullable', 'numeric', 'gte:0'],
+            // 'sub_total'        => ['nullable', 'numeric', 'gte:0'],
+            // 'discount'         => ['nullable', 'numeric', 'gte:0'],
+            // 'tax'              => ['nullable', 'numeric', 'gte:0'],
+            // 'grand_total'      => ['nullable', 'numeric', 'gte:0'],
         ];
 
         // Conditional requirements
-        if (in_array($type, ['Payment', 'Receipt'])) {
-            $rules['mode'][0] = 'required';
-            $rules['party_ledger_id'][0] = 'required';
-            if ($r->input('mode') === 'cash') {
-                $rules['cash_ledger_id'][0] = 'required';
-            } elseif (in_array($r->input('mode'), ['bank', 'upi', 'card'])) {
-                $rules['bank_ledger_id'][0] = 'required';
-            }
-        } elseif ($type === 'Contra') {
-            $rules['from_ledger_id'][0] = 'required';
-            $rules['to_ledger_id'][0]   = 'required';
-            $rules['to_ledger_id'][]    = 'different:from_ledger_id';
-        } elseif (in_array($type, ['Sales', 'Purchase', 'DebitNote', 'CreditNote'])) {
-            $rules['party_ledger_id'][0] = 'required';
-            if ($r->filled(['sub_total']) || $r->filled(['discount']) || $r->filled(['tax'])) {
-                $rules['grand_total'][0] = 'required';
-            }
-        }
+        // if (in_array($type, ['Payment', 'Receipt'])) {
+        //     $rules['mode'][0] = 'required';
+        //     $rules['party_ledger_id'][0] = 'required';
+        //     if ($r->input('mode') === 'cash') {
+        //         $rules['cash_ledger_id'][0] = 'required';
+        //     } elseif (in_array($r->input('mode'), ['bank', 'upi', 'card'])) {
+        //         $rules['bank_ledger_id'][0] = 'required';
+        //     }
+        // } elseif ($type === 'Contra') {
+        //     $rules['from_ledger_id'][0] = 'required';
+        //     $rules['to_ledger_id'][0]   = 'required';
+        //     $rules['to_ledger_id'][]    = 'different:from_ledger_id';
+        // } elseif (in_array($type, ['Sales', 'Purchase', 'DebitNote', 'CreditNote'])) {
+        //     $rules['party_ledger_id'][0] = 'required';
+        //     if ($r->filled(['sub_total']) || $r->filled(['discount']) || $r->filled(['tax'])) {
+        //         $rules['grand_total'][0] = 'required';
+        //     }
+        // }
 
         // Unique ref_no within (branch_id, voucher_type) when present
         if ($r->filled('ref_no')) {
