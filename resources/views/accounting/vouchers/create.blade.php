@@ -139,7 +139,6 @@
 
                                 <form action="{{ route('accounting.vouchers.store') }}" method="POST" id="voucherForm">
                                     @csrf
-
                                     <input type="hidden" name="party_ledger_id" id="party_ledger_id"
                                         value="{{ old('party_ledger_id') }}">
 
@@ -494,9 +493,9 @@
                                                                                 @endforeach
                                                                             </select>
 
-                                                                            <a href="{{ route('accounting.ledgers.create') }}"
-                                                                                class="btn btn-outline-secondary btn-sm">Create
-                                                                                Ledger
+                                                                            <a href="{{ route('accounting.ledgers.create', 'voucher') }}"
+                                                                                class="btn btn-outline-secondary btn-sm">
+                                                                                Create Voucher
                                                                             </a>
                                                                         </td>
 
@@ -590,7 +589,7 @@
             const $totalCr = $('#totalCr');
             const $badgeTop = $('#balanceBadge .badge');
             const $badgeSticky = $('#stickyBadge');
-            const createLedgerUrl = "{{ route('accounting.ledgers.create') }}";
+            const createLedgerUrl = "{{ route('accounting.ledgers.create', 'voucher') }}";
 
             function setBadge(state) {
                 const texts = {

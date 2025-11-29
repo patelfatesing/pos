@@ -525,7 +525,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/ledgers/list', [LedgerController::class, 'index'])->name('ledgers.list');
         Route::post('/ledgers/get-data', [LedgerController::class, 'getData'])->name('ledgers.getData');
-        Route::get('/ledgers/create', [LedgerController::class, 'create'])->name('ledgers.create');
+        Route::get('/ledgers/create/{type?}', [LedgerController::class, 'create'])->name('ledgers.create');
         Route::post('/ledgers/store', [LedgerController::class, 'store'])->name('ledgers.store');
         Route::get('/ledgers/edit/{id}', [LedgerController::class, 'edit'])->name('ledgers.edit');
         Route::put('/ledgers/update', [LedgerController::class, 'update'])->name('ledgers.update');
@@ -536,6 +536,7 @@ Route::middleware('auth')->group(function () {
         Route::post('vouchers/store',       [VoucherController::class, 'store'])->name('vouchers.store');
         Route::delete('vouchers/{voucher}', [VoucherController::class, 'destroy'])->name('vouchers.destroy'); // optional
         Route::post('vouchers/get-data', [VoucherController::class, 'getData'])->name('vouchers.getData');
+        Route::delete('/vouchers/delete/{id}', [VoucherController::class, 'destroy'])->name('vouchers.destroy');
     });
 
     Route::prefix('admin')->name('admin.')->group(function () {

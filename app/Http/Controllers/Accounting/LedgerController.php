@@ -116,13 +116,13 @@ class LedgerController extends Controller
         ]);
     }
 
-    public function create()
+    public function create($type = null)
     {
         $groups = AccountGroup::orderBy('name')->get();
         $ledgers = AccountLedger::with('group')->orderBy('name')->get();
         $branches = \App\Models\Branch::select('name', 'id')->get();
 
-        return view('accounting.ledgers.create', compact('groups', 'ledgers', 'branches'));
+        return view('accounting.ledgers.create', compact('groups', 'ledgers', 'branches', 'type'));
     }
 
     public function store(Request $request)
@@ -138,6 +138,12 @@ class LedgerController extends Controller
         ]);
 
         AccountLedger::create($data);
+
+        if($request->type == 'voucher') {
+            return redirect()->route('accounting.vouchers.create')
+                ->with('success', 'Party Ledger created successfully.');
+
+        }
 
         return redirect()->route('accounting.ledgers.list')
             ->with('success', 'Ledger created successfully.');

@@ -179,14 +179,15 @@
                 const form = $(this).closest('form');
                 const url = form.attr('action');
 
-                swal({
+                Swal.fire({
                     title: "Are you sure?",
                     text: "This voucher will be permanently deleted.",
                     icon: "warning",
-                    buttons: true,
-                    dangerMode: true,
-                }).then((will) => {
-                    if (!will) return;
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, delete it!"
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
                     $.ajax({
                         url: url,
                         type: 'DELETE',
@@ -194,8 +195,8 @@
                             table.ajax.reload(null, false);
                         },
                         error: function(xhr) {
-                            alert('Delete failed: ' + (xhr.responseJSON?.message ||
-                                'Server error'));
+                            Swal.fire("Error", xhr.responseJSON?.message ||
+                                'Server error', "error");
                         }
                     });
                 });
