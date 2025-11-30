@@ -3016,7 +3016,8 @@ class Shoppingcart extends Component
 
             $mode = null;
             if ($cashPaid > 0 && $upiPaid > 0) {
-                $mode = 'cashupi';
+                // $mode = 'cashupi';
+                $mode = 'cash';
             } elseif ($cashPaid > 0) {
                 $mode = 'cash';
             } elseif ($upiPaid > 0) {
@@ -3048,7 +3049,7 @@ class Shoppingcart extends Component
 
                 'lines'           => $lines,
             ];
-
+// dd($payload);
             // finally:
             $voucher = $this->posTransaction($payload);
 
