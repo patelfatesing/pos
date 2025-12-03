@@ -495,7 +495,7 @@
 
                                                                             <a href="{{ route('accounting.ledgers.create', 'voucher') }}"
                                                                                 class="btn btn-outline-secondary btn-sm">
-                                                                                Create Voucher
+                                                                                Create Ledger
                                                                             </a>
                                                                         </td>
 
