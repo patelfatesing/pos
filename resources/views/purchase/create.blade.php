@@ -63,7 +63,8 @@
                                                 <div class="col-md-4">
                                                     <div class="form-group">
                                                         <label for="vendor_id">Ledger Name</label>
-                                                        <select name="vendor_new_id" id="vendor_new_id" class="form-control">
+                                                        <select name="vendor_new_id" id="vendor_new_id"
+                                                            class="form-control">
                                                             <option value="">-- Select Ledger Name --</option>
                                                             @foreach ($ledgersAll as $vendor)
                                                                 <option value="{{ $vendor->id }}"
@@ -76,6 +77,10 @@
                                                             <span class="text-danger">{{ $message }}</span>
                                                         @enderror
                                                     </div>
+                                                    <a href="{{ route('accounting.ledgers.create', 'purchase') }}"
+                                                        class="btn btn-outline-secondary btn-sm">
+                                                        Create Ledger
+                                                    </a>
                                                 </div>
                                                 <div class="col-md-4">
                                                     <div class="form-group">

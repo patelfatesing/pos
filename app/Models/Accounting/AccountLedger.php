@@ -38,6 +38,11 @@ class AccountLedger extends Model
         return $this->hasMany(VoucherLine::class, 'ledger_id');
     }
 
+    public function vouchers()
+    {
+        return $this->hasMany(Voucher::class, 'party_ledger_id'); // change FK if needed
+    }
+
     /** ---------------- Helpers ---------------- */
 
     public function openingValue(): float
