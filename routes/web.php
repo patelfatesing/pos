@@ -537,6 +537,23 @@ Route::middleware('auth')->group(function () {
         Route::delete('vouchers/{voucher}', [VoucherController::class, 'destroy'])->name('vouchers.destroy'); // optional
         Route::post('vouchers/get-data', [VoucherController::class, 'getData'])->name('vouchers.getData');
         Route::delete('/vouchers/delete/{id}', [VoucherController::class, 'destroy'])->name('vouchers.destroy');
+
+
+        // Ledger vouchers view
+        Route::get('/ledgers/{ledger}/vouchers', [LedgerController::class, 'vouchers'])
+            ->name('ledgers.vouchers');
+
+        // Server-side AJAX data for vouchers
+        Route::get('/ledgers/{ledger}/vouchers/data', [LedgerController::class, 'vouchersData'])
+            ->name('ledgers.vouchers.data');
+
+        // Delete voucher (hard delete)
+        Route::delete('/vouchers/{id}', [VoucherController::class, 'destroyVoucher'])
+            ->name('vouchers.destroy');
+
+        // Delete single voucher line
+        Route::delete('/voucher-lines/{id}', [VoucherController::class, 'destroyVoucherLine'])
+            ->name('voucherLines.destroy');
     });
 
     Route::prefix('admin')->name('admin.')->group(function () {

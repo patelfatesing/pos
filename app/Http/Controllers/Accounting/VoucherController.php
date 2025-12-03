@@ -342,4 +342,25 @@ class VoucherController extends Controller
             'message' => 'Voucher and all lines deleted successfully.',
         ]);
     }
+
+    public function destroyVoucher($id)
+    {
+        $voucher = \App\Models\Accounting\Voucher::with('lines')->findOrFail($id);
+
+        DB::transaction(function () use ($voucher) {
+            foreach ($voucher->lines as $line) {
+                $line->delete();
+            }
+            $voucher->delete();
+        });
+
+        return response()->json(['success' => true, 'message' => 'Voucher deleted permanently.']);
+    }
+
+    public function destroyVoucherLine($id)
+    {
+        $line = \App\Models\Accounting\VoucherLine::findOrFail($id);
+        $line->delete();
+        return response()->json(['success' => true, 'message' => 'Voucher line deleted permanently.']);
+    }
 }
