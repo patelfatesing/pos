@@ -43,8 +43,8 @@
                     <div class="controls">
                         <a href="{{ route('accounting.vouchers.create') }}" class="btn btn-outline-light btn-sm">Add
                             Voucher</a>
-                        {{-- <button id="alterBtn" class="btn btn-outline-light btn-sm">Alter</button>
-                        <button id="deleteBtn" class="btn btn-danger btn-sm">Delete</button> --}}
+                        <button id="alterBtn" class="btn btn-outline-light btn-sm">Alter</button>
+                        <button id="deleteBtn" class="btn btn-danger btn-sm">Delete</button>
                         <button id="printBtn" class="btn btn-outline-warning btn-sm">Print</button>
 
                         <input type="text" id="daterange" class="form-control d-inline-block" style="width:220px" />
@@ -92,7 +92,7 @@
                             <th>Vch No</th>
                             <th>Debit</th>
                             <th>Credit</th>
-                            {{-- <th style="width:120px">Actions</th> --}}
+                            <th style="width:120px">Actions</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -229,19 +229,19 @@
                             data: 'credit',
                             render: $.fn.DataTable ? $.fn.dataTable.render.number(',', '.', 2, '') : null
                         },
-                        // {
-                        //     data: null,
-                        //     orderable: false,
-                        //     render: function(row) {
-                        //         return `
-                    //             <div class="btn-group">
-                    //                 <a href="/accounting/vouchers/${row.voucher_id}/edit" class="btn btn-sm btn-outline-secondary">Alter</a>
-                    //                 <button class="btn btn-sm btn-outline-danger btn-delete-voucher" data-id="${row.voucher_id}">Delete Vch</button>
-                    //                 <button class="btn btn-sm btn-outline-danger btn-delete-line" data-id="${row.line_id}">Delete Line</button>
-                    //             </div>
-                    //         `;
-                        //     }
-                        // }
+                        {
+                            data: null,
+                            orderable: false,
+                            render: function(row) {
+                                return `
+                                <div class="btn-group">
+                                    <a href="/accounting/vouchers/edit/${row.voucher_id}" class="btn btn-sm btn-outline-secondary">Alter</a>
+                                    <button class="btn btn-sm btn-outline-danger btn-delete-voucher" data-id="${row.voucher_id}">Delete Vch</button>
+                                    <button class="btn btn-sm btn-outline-danger btn-delete-line" data-id="${row.line_id}">Delete Line</button>
+                                </div>
+                            `;
+                            }
+                        }
                     ],
                     pageLength: 25
                 });

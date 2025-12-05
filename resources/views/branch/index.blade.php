@@ -9,6 +9,10 @@
         border-color: #dc3545;
     }
 </style>
+
+@php
+    $minTime = '19:00'; // 7 PM
+@endphp
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Wrapper Start -->
@@ -147,6 +151,43 @@
         </div>
     </div>
 
+    <!-- Modal -->
+    <div class="modal fade bd-example-modal-lg" id="AddOneTimeModal" tabindex="-1"
+        aria-labelledby="AddOneTimeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form id="addOneTimeForm" method="POST" action="{{ route('branch.add.one.time.store') }}">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="AddOneTimeModalLabel">
+                            <i class="ri-calendar-event-line"></i> Set Time One Time sales
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <!-- Hidden branch_id -->
+                        <input type="hidden" name="branch_id" id="ots_branch_id"
+                            value="{{ $currentBranch->id ?? 1 }}">
+
+                        <!-- Holiday Date -->
+                        @php
+                            $today = \Carbon\Carbon::now('Asia/Kolkata')->toDateString();
+                        @endphp
+                        <label for="one_time_sales">Time <span class="text-danger">*</span></label>
+                        <input type="time" class="form-control" id="one_time_sales" name="one_time_sales"
+                            value="{{ old('one_time_sales') }}" min="{{ $minTime }}">
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" id="addOneTimeSaveBtn">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <style>
         .scrollable-content {
             max-height: 450px;
@@ -187,7 +228,7 @@
                                 'content') // CSRF token for security
                         },
                         success: function(response) {
-                           
+
                             // Show success message
                             Swal.fire({
                                 title: "Success!",
@@ -441,6 +482,11 @@
 
         }
 
+        function add_one_time_sales(storeId) {
+            $('#ots_branch_id').val(storeId);
+            $('#AddOneTimeModal').modal('show');
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
             const offset = today.getTimezoneOffset();
@@ -489,6 +535,55 @@
                     $submitBtn.prop('disabled', false);
                 }
             });
+        });
+
+        $('#addOneTimeForm').on('submit', function(e) {
+            e.preventDefault();
+            let $form = $(this);
+            let $submitBtn = $('#addOneTimeSaveBtn');
+            $submitBtn.prop('disabled', true);
+
+            let formData = $form.serialize();
+
+            $.ajax({
+                url: $form.attr('action'),
+                method: 'POST',
+                data: formData,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(res) {
+                    $('#AddHolidayModal').modal('hide');
+                    alert('Holiday added successfully.');
+                    location.reload();
+                },
+                error: function(xhr) {
+                    $('#holidayErrors').empty();
+                    $('.is-invalid').removeClass('is-invalid');
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        $.each(errors, function(key, messages) {
+                            let input = $('[name="' + key + '"]');
+                            input.addClass('is-invalid');
+                            input.after('<div class="invalid-feedback d-block">' + messages[0] +
+                                '</div>');
+                        });
+                    } else {
+                        alert('Something went wrong.');
+                        console.log(xhr.responseText);
+                    }
+                },
+                complete: function() {
+                    $submitBtn.prop('disabled', false);
+                }
+            });
+        });
+
+        document.getElementById('one_time_sales').addEventListener('change', function() {
+            if (this.value < "19:00") {
+                alert("You cannot select time before 7:00 PM");
+                this.value = "19:00";
+            }
         });
     </script>
 @endsection

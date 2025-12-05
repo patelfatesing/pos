@@ -286,18 +286,18 @@ class PurchaseController extends Controller
                 }
             }
 
-            if ($gFull > 0) {
-                $l = AccountLedger::where('name', 'Guarantee Fulfilled')->first();
-                if ($l) {
-                    VoucherLine::create([
-                        'voucher_id'     => $voucher->id,
-                        'ledger_id'      => $l->id,
-                        'dc'             => 'Dr',
-                        'amount'         => $gFull,
-                        'line_narration' => 'Guarantee Fulfilled - ' . $request->bill_no,
-                    ]);
-                }
-            }
+            // if ($gFull > 0) {
+            //     $l = AccountLedger::where('name', 'Guarantee Fulfilled')->first();
+            //     if ($l) {
+            //         VoucherLine::create([
+            //             'voucher_id'     => $voucher->id,
+            //             'ledger_id'      => $l->id,
+            //             'dc'             => 'Dr',
+            //             'amount'         => $gFull,
+            //             'line_narration' => 'Guarantee Fulfilled - ' . $request->bill_no,
+            //         ]);
+            //     }
+            // }
 
             if ($tcs > 0) {
                 $l = AccountLedger::where('name', 'TCS')->first();
@@ -364,18 +364,18 @@ class PurchaseController extends Controller
                 }
             }
 
-            if ($rsgsm > 0) {
-                $l = AccountLedger::where('name', 'RSGSM Purchase')->first();
-                if ($l) {
-                    VoucherLine::create([
-                        'voucher_id'     => $voucher->id,
-                        'ledger_id'      => $l->id,
-                        'dc'             => 'Dr',
-                        'amount'         => $rsgsm,
-                        'line_narration' => 'RSGSM Purchase - ' . $request->bill_no,
-                    ]);
-                }
-            }
+            // if ($rsgsm > 0) {
+            //     $l = AccountLedger::where('name', 'RSGSM Purchase')->first();
+            //     if ($l) {
+            //         VoucherLine::create([
+            //             'voucher_id'     => $voucher->id,
+            //             'ledger_id'      => $l->id,
+            //             'dc'             => 'Dr',
+            //             'amount'         => $rsgsm,
+            //             'line_narration' => 'RSGSM Purchase - ' . $request->bill_no,
+            //         ]);
+            //     }
+            // }
 
             // 3.5 Cr Vendor (full bill amount)
             VoucherLine::create([

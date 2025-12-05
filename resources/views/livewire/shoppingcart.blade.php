@@ -334,7 +334,8 @@
                                     </div>
                                 @endif
                             </div>
-                            @if (auth()->user()->hasRole('cashier'))
+                            
+                            @if ($this->showOneTimeBlock && auth()->user()->hasRole('cashier'))
                                 <div class="col-12 col-md-3 capture-eve-block">
                                     <div class="position-relative capture-eve">
                                         <div class="form-check d-flex align-items-center gap-2">

@@ -150,6 +150,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/store/status-change', [BranchController::class, 'statusChange'])->name('store.status-change');
     Route::post('/store/update-status', [BranchController::class, 'updateStatus'])->name('branch.update.status');
     Route::get('/get-available-notes', [BranchController::class, 'getAvailableNotes']);
+    Route::post('/store/add-one-time-store', [BranchController::class, 'addOneTimeStore'])->name('branch.add.one.time.store');
 
     Route::get('/products/list', [ProductController::class, 'index'])->name('products.list');
     Route::post('/products/get-data', [ProductController::class, 'getData'])->name('products.getData');
@@ -536,6 +537,10 @@ Route::middleware('auth')->group(function () {
         Route::post('vouchers/store',       [VoucherController::class, 'store'])->name('vouchers.store');
         Route::delete('vouchers/{voucher}', [VoucherController::class, 'destroy'])->name('vouchers.destroy'); // optional
         Route::post('vouchers/get-data', [VoucherController::class, 'getData'])->name('vouchers.getData');
+        Route::get('vouchers/edit/{id}', [VoucherController::class, 'edit'])->name('vouchers.edit');
+        Route::put('/vouchers/update', [VoucherController::class, 'update'])->name('vouchers.update');
+        // Route::get('vouchers/{voucher}/edit', [VoucherController::class, 'edit'])
+        //     ->name('vouchers.edit');
         Route::delete('/vouchers/delete/{id}', [VoucherController::class, 'destroy'])->name('vouchers.destroy');
 
 

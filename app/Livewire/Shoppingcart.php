@@ -144,6 +144,7 @@ class Shoppingcart extends Component
     public $one_time_transaction = false;
     public $select_product_id = null;
     public $sellProductStock = [];
+    public $one_time_sales_time = '';
 
 
     // This method is triggered whenever the checkbox is checked or unchecked
@@ -1334,8 +1335,9 @@ class Shoppingcart extends Component
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
 
-        $store = Branch::select('in_out_enable')->findOrFail($branch_id);
+        $store = Branch::select('in_out_enable', 'one_time_sales')->findOrFail($branch_id);
         $this->inOutStatus = $store->in_out_enable;
+        $this->one_time_sales_time = $store->one_time_sales;
         $current_party_id = session('current_party_id');
 
         if (!empty($current_party_id)) {
@@ -3049,7 +3051,7 @@ class Shoppingcart extends Component
 
                 'lines'           => $lines,
             ];
-// dd($payload);
+            // dd($payload);
             // finally:
             $voucher = $this->posTransaction($payload);
 
@@ -4290,6 +4292,16 @@ class Shoppingcart extends Component
             ]);
             throw $e;
         }
+    }
+
+    public function getShowOneTimeBlockProperty()
+    {
+        // Convert strings → Carbon (time-only)
+        $savedTime = \Carbon\Carbon::createFromFormat('H:i:s', $this->one_time_sales_time);
+        $currentTime = now();
+
+        // Compare ONLY time part
+        return $currentTime->format('H:i:s') >= $savedTime->format('H:i:s');
     }
 
     // public function checkout()
