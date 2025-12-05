@@ -4,11 +4,12 @@
 namespace App\Http\Controllers\Accounting;
 
 use App\Http\Controllers\Controller;
-use App\Models\Accounting\{Voucher, VoucherLine, AccountLedger};
+use App\Models\Accounting\{Voucher, VoucherLine, AccountLedger, AccountGroup};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use App\Models\Branch;
 
 class VoucherController extends Controller
 {
@@ -320,6 +321,226 @@ class VoucherController extends Controller
 
         return redirect()->route('accounting.vouchers.index')
             ->with('success', 'Voucher posted successfully.');
+    }
+
+    // public function edit(Voucher $voucher) // or: public function edit($id)
+    // {
+    //     // If not using route-model-binding, do:
+    //     // $voucher = Voucher::with(['lines.ledger'])->findOrFail($id);
+
+    //     // load branches and ledgers for dropdowns (same as create)
+    //     $branches = Branch::select('id', 'name')->orderBy('name')->get();
+    //     $ledgers  = AccountLedger::where('is_active', 1)->orderBy('name')->get();
+
+    //     // eager-load voucher lines and their ledger relation to pre-populate form
+    //     $voucher->load(['lines.ledger']);
+
+    //     // Pass any other helper data your view expects (example: account group map)
+    //     // $voucherGroupMap = config('accounting.voucher_group_map', []);
+
+    //     return view('accounting.vouchers.edit', [
+    //         'voucher'  => $voucher,
+    //         'ledgers'  => $ledgers,
+    //         'branches' => $branches,
+    //         // 'voucherGroupMap' => $voucherGroupMap,
+    //     ]);
+    // }
+
+
+    public function edit($id)
+    {
+        // load voucher with lines and ledger relation
+        $voucher = Voucher::with(['lines.ledger'])->findOrFail($id);
+
+        // dropdown lists (same as create)
+        $branches = Branch::select('id', 'name')->orderBy('name')->get();
+        $ledgers  = AccountLedger::where('is_active', 1)->orderBy('name')->get();
+
+        // optional: groups if any ledger partial expects this
+        $groups = AccountGroup::orderBy('name')->get();
+
+        // If your voucher has a "party_ledger_id" (or similar) use it as $ledger for partials
+        $ledger = null;
+        if (!empty($voucher->party_ledger_id)) {
+            $ledger = AccountLedger::find($voucher->party_ledger_id);
+        }
+
+        // JS-friendly maps used by your create JS (adjust group ids if yours differ)
+        $voucherGroupMap = [
+            'Journal'    => [],
+            'Payment'    => [17, 18, 20, 21, 13, 14],
+            'Receipt'    => [17, 18, 19, 10, 11],
+            'Contra'     => [17, 18],
+            'Sales'      => [19, 9, 21],
+            'Purchase'   => [12, 21, 20],
+            'DebitNote'  => [20, 12, 21],
+            'CreditNote' => [19, 9, 21],
+        ];
+
+        $dcMap = [
+            'Journal' => ['Cr', 'Dr'],
+            'Contra'  => ['Cr', 'Dr'],
+            'Receipt' => ['Cr', 'Dr'],
+            'default' => ['Dr', 'Cr'],
+        ];
+
+        return view('accounting.vouchers.edit', [
+            'voucher'  => $voucher,
+            'ledgers'  => $ledgers,
+            'branches' => $branches,
+            'groups'   => $groups,
+            'ledger'   => $ledger,              // <<< prevents "Undefined variable $ledger"
+            'VOUCHER_GROUP_MAP' => $voucherGroupMap,
+            'DC_MAP'            => $dcMap,
+        ]);
+    }
+
+    public function update(Request $r, $id)
+    {
+        $voucher = Voucher::with('lines')->findOrFail($id);
+
+        // ---------- 0) Normalize inputs (same logic as store) ----------
+        $nv = function ($v) {
+            return ($v === '' || $v === null) ? null : $v;
+        };
+
+        $type = $r->input('voucher_type');
+
+        $partyFromPR = $nv($r->input('party_ledger_id')) ?: $nv($r->input('pr_party_ledger'));
+        $partyFromTR = $nv($r->input('party_ledger_id')) ?: $nv($r->input('tr_party_ledger'));
+
+        $party = null;
+        if (in_array($type, ['Payment', 'Receipt'])) {
+            $party = $partyFromPR ?: $partyFromTR;
+        } elseif (in_array($type, ['Sales', 'Purchase', 'DebitNote', 'CreditNote'])) {
+            $party = $partyFromTR ?: $partyFromPR;
+        }
+
+        $mode = $nv($r->input('mode'));
+        $cashLedger = $nv($r->input('cash_ledger_id')) ?: $nv($r->input('pr_cash_ledger'));
+        $bankLedger = $nv($r->input('bank_ledger_id')) ?: $nv($r->input('pr_bank_ledger'));
+
+        if ($mode === 'cash') {
+            $bankLedger = null;
+        } elseif (in_array($mode, ['bank', 'upi', 'card'])) {
+            $cashLedger = null;
+        } else {
+            $cashLedger = null;
+            $bankLedger = null;
+        }
+
+        $subTotal   = $nv($r->input('sub_total'))   ?? $nv($r->input('tr_subtotal'));
+        $discount   = $nv($r->input('discount'))    ?? $nv($r->input('tr_discount'));
+        $tax        = $nv($r->input('tax'))         ?? $nv($r->input('tr_tax'));
+        $grandTotal = $nv($r->input('grand_total')) ?? $nv($r->input('tr_grand'));
+
+        $fromLedger = $nv($r->input('from_ledger_id')) ?? $nv($r->input('ct_from'));
+        $toLedger   = $nv($r->input('to_ledger_id'))   ?? $nv($r->input('ct_to'));
+
+        $prAmount = $nv($r->input('amount')) ?? $nv($r->input('pr_amount'));
+
+        $r->merge([
+            'party_ledger_id' => $party,
+            'mode'            => $mode,
+            'cash_ledger_id'  => $cashLedger,
+            'bank_ledger_id'  => $bankLedger,
+            'sub_total'       => $subTotal,
+            'discount'        => $discount,
+            'tax'             => $tax,
+            'grand_total'     => $grandTotal,
+            'from_ledger_id'  => $fromLedger,
+            'to_ledger_id'    => $toLedger,
+            'amount'          => $prAmount,
+            'branch_id'       => $nv($r->input('branch_id')),
+            'ref_no'          => $nv($r->input('ref_no')),
+        ]);
+
+        // ---------- 1) Validation (same as store, but ref_no unique ignores current voucher) ----------
+        $rules = [
+            'voucher_date' => ['required', 'date'],
+            'voucher_type' => ['required', Rule::in(['Journal', 'Payment', 'Receipt', 'Contra', 'Sales', 'Purchase', 'DebitNote', 'CreditNote'])],
+            'ref_no'       => ['nullable', 'string', 'max:50'],
+            'branch_id'    => ['nullable', 'integer', 'exists:branches,id'],
+            'narration'    => ['nullable', 'string', 'max:2000'],
+
+            'lines'                 => ['required', 'array', 'min:2'],
+            'lines.*.ledger_id'     => ['required', 'exists:account_ledgers,id'],
+            'lines.*.dc'            => ['required', Rule::in(['Dr', 'Cr'])],
+            'lines.*.amount'        => ['required', 'numeric', 'gt:0'],
+            'lines.*.line_narration' => ['nullable', 'string', 'max:1000'],
+        ];
+
+        // unique ref_no within (branch_id, voucher_type) when present — ignore current voucher id
+        if ($r->filled('ref_no')) {
+            $rules['ref_no'][] = Rule::unique('vouchers')
+                ->where(
+                    fn($q) => $q
+                        ->where('voucher_type', $r->input('voucher_type'))
+                        ->where('branch_id', $r->input('branch_id'))
+                )->ignore($voucher->id);
+        }
+
+        $data = $r->validate($rules);
+
+        // Compute grand_total if header totals provided but grand_total missing
+        if (!$r->filled('grand_total') && ($r->filled('sub_total') || $r->filled('discount') || $r->filled('tax'))) {
+            $data['grand_total'] = round(
+                (float)($r->input('sub_total', 0)) - (float)($r->input('discount', 0)) + (float)($r->input('tax', 0)),
+                2
+            );
+        }
+
+        // ---------- 2) Check Dr/Cr balance ----------
+        $dr = 0;
+        $cr = 0;
+        foreach ($data['lines'] as $line) {
+            if ($line['dc'] === 'Dr') $dr += (float)$line['amount'];
+            else $cr += (float)$line['amount'];
+        }
+        if (round($dr, 2) !== round($cr, 2)) {
+            return back()->withErrors(['lines' => 'Total Debit and Credit must be equal.'])->withInput();
+        }
+
+        // ---------- 3) Persist (transaction) ----------
+        DB::transaction(function () use ($voucher, $data) {
+            // update voucher header
+            $voucher->update([
+                'voucher_date'    => $data['voucher_date'],
+                'voucher_type'    => $data['voucher_type'],
+                'ref_no'          => $data['ref_no'] ?? null,
+                'branch_id'       => $data['branch_id'] ?? null,
+                'narration'       => $data['narration'] ?? null,
+                'updated_by'      => Auth::id(),
+
+                'party_ledger_id' => $data['party_ledger_id'] ?? null,
+                'mode'            => $data['mode'] ?? null,
+                'instrument_no'   => $data['instrument_no'] ?? null,
+                'instrument_date' => $data['instrument_date'] ?? null,
+                'cash_ledger_id'  => $data['cash_ledger_id'] ?? null,
+                'bank_ledger_id'  => $data['bank_ledger_id'] ?? null,
+                'from_ledger_id'  => $data['from_ledger_id'] ?? null,
+                'to_ledger_id'    => $data['to_ledger_id'] ?? null,
+
+                'sub_total'       => $data['sub_total']   ?? 0,
+                'discount'        => $data['discount']    ?? 0,
+                'tax'             => $data['tax']         ?? 0,
+                'grand_total'     => $data['grand_total'] ?? 0,
+            ]);
+
+            // delete old lines and recreate (simple and safe)
+            $voucher->lines()->delete();
+
+            foreach ($data['lines'] as $line) {
+                $voucher->lines()->create([
+                    'ledger_id'      => $line['ledger_id'],
+                    'dc'             => $line['dc'],
+                    'amount'         => round((float)$line['amount'], 2),
+                    'line_narration' => $line['line_narration'] ?? null,
+                ]);
+            }
+        });
+
+        return redirect()->route('accounting.vouchers.index')->with('success', 'Voucher updated successfully.');
     }
 
     public function destroy(Request $request)

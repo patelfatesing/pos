@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Branch;
 use Illuminate\Http\Request;
 use App\Models\CashBreakdown;
+use Illuminate\Support\Carbon;
 
 class BranchController extends Controller
 {
@@ -131,6 +132,8 @@ class BranchController extends Controller
 
             $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="#" onclick="add_store_holiday(' . $store->id . ')"><i class="ri-calendar-event-line"></i></a>';
+            $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
+                    href="#" onclick="add_one_time_sales(' . $store->id . ')"><i class="ri-price-tag-line"></i></a>';
             $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="#" onclick="low_level_stock(' . $store->id . ')"><i class="ri-battery-low-line"></i></a>';
             $action .= '<a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit"
@@ -277,5 +280,29 @@ class BranchController extends Controller
         $user->save();
 
         return response()->json(['message' => 'Status updated successfully']);
+    }
+
+    public function addOneTimeStore(Request $request)
+    {
+        $validated = $request->validate([
+            'branch_id'      => ['required', 'exists:branches,id'],
+            'one_time_sales' => ['required', 'date_format:H:i'], // only time format allowed
+        ]);
+
+        // Enforce minimum 19:00
+        if ($validated['one_time_sales'] < "19:00") {
+            return response()->json([
+                'message' => 'Time must be 19:00 (7:00 PM) or later.'
+            ], 422);
+        }
+
+        $branch = Branch::findOrFail($validated['branch_id']);
+        $branch->one_time_sales = $validated['one_time_sales']; // saves only TIME
+        $branch->save();
+
+        return response()->json([
+            'message' => 'One time sales saved.',
+            'time'    => $branch->one_time_sales,
+        ]);
     }
 }
