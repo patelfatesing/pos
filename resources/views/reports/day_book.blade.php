@@ -123,10 +123,10 @@
                                         <td>{{ $e['voucher_type'] }}</td>
                                         <td>{{ $e['ref_no'] }}</td>
                                         <td>{{ $e['ledger'] }}</td>
-                                        <td class="text-end">{{ $e['dc'] === 'Dr' ? number_format($e['debit'], 2) : '' }}
-                                        </td>
-                                        <td class="text-end">{{ $e['dc'] === 'Cr' ? number_format($e['credit'], 2) : '' }}
-                                        </td>
+
+                                        {{-- show totals (one row per voucher) --}}
+                                        <td class="text-end">{{ number_format($e['debit'] ?? 0, 2) }}</td>
+                                        <td class="text-end">{{ number_format($e['credit'] ?? 0, 2) }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -145,7 +145,6 @@
             </div>
 
             {{-- VOUCHER DETAIL MODAL --}}
-
             <div class="modal fade" id="voucherModal" tabindex="-1">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
@@ -155,7 +154,6 @@
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">×</span>
                             </button>
-
                         </div>
 
                         <div class="modal-body">
@@ -173,53 +171,19 @@
 
 @section('scripts')
     <script>
-        // When you click any row, load voucher details via AJAX
-        // $(document).on('click', '.daybook-voucher-row', function() {
-
-        //     var type = $(this).data('type');
-        //     var id = $(this).data('id');
-
-        //     if (!type || !id) {
-        //         // If not mapped (e.g., opening balance row), do nothing
-        //         return;
-        //     }
-
-        //     // Show loading and open modal
-        //     $('#voucherModalLabel').text('Voucher Details');
-        //     $('#voucherModalBody').html(
-        //         '<div class="text-center text-muted py-5">Loading...</div>'
-        //     );
-
-        //     var modalEl = document.getElementById('voucherModal');
-        //     var modal = new bootstrap.Modal(modalEl);
-        //     modal.show();
-
-        //     $.ajax({
-        //         url: "{{ url('/reports/day-book/voucher') }}/" + type + "/" + id,
-        //         type: 'GET',
-        //         success: function(res) {
-        //             if (res.title) {
-        //                 $('#voucherModalLabel').text(res.title);
-        //             }
-        //             $('#voucherModalBody').html(res.html);
-        //         },
-        //         error: function() {
-        //             $('#voucherModalBody').html(
-        //                 '<div class="text-danger text-center py-5">Error loading voucher.</div>'
-        //             );
-        //         }
-        //     });
-        // });
-
-
         $(document).on("click", ".open-voucher", function() {
             let id = $(this).data("id");
 
             $.get("/reports/day-book/voucher/" + id, function(res) {
-
                 $("#voucherModal .modal-title").text(res.title);
                 $("#voucherModal .modal-body").html(res.html);
 
+                var modalEl = document.getElementById('voucherModal');
+                var modal = new bootstrap.Modal(modalEl);
+                modal.show();
+            }).fail(function() {
+                $("#voucherModal .modal-title").text('Error');
+                $("#voucherModal .modal-body").html('<div class="text-danger p-3">Error loading voucher.</div>');
                 var modalEl = document.getElementById('voucherModal');
                 var modal = new bootstrap.Modal(modalEl);
                 modal.show();

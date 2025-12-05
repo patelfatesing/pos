@@ -240,13 +240,13 @@
                                                                 class="vendor-fields d-none vendor-1">
                                                                 <div class="form-group">
                                                                     <label>AED TO BE PAID</label>
-                                                                    <input type="tel" class="form-control"
+                                                                    <input type="number" class="form-control"
                                                                         value="{{ old('aed_to_be_paid') }}"
                                                                         name="aed_to_be_paid" id="aed_to_be_paid" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>Guarantee Fulfilled</label>
-                                                                    <input type="tel" class="form-control"
+                                                                    <input type="number" class="form-control"
                                                                         value="{{ old('guarantee_fulfilled') }}"
                                                                         name="guarantee_fulfilled"
                                                                         id="guarantee_fulfilled" />
@@ -266,35 +266,35 @@
                                                                 class="vendor-fields d-none vendor-1">
                                                                 <div class="form-group">
                                                                     <label>EXCISE FEE</label>
-                                                                    <input type="tel" class="form-control"
+                                                                    <input type="number" class="form-control"
                                                                         value="{{ old('excise_fee') }}" name="excise_fee"
                                                                         id="excise_fee" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>COMPOSITION VAT</label>
-                                                                    <input type="tel" class="form-control"
+                                                                    <input type="number" class="form-control"
                                                                         value="{{ old('composition_vat') }}"
                                                                         name="composition_vat" id="composition_vat" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>SURCHARGE ON CA</label>
-                                                                    <input type="tel" class="form-control"
+                                                                    <input type="number" class="form-control"
                                                                         value="{{ old('surcharge_on_ca') }}"
                                                                         name="surcharge_on_ca" id="surcharge_on_ca" />
                                                                 </div>
-                                                                <div class="form-group">
-                                                                    <label>AED TO BE PAID</label>
-                                                                    <input type="tel" class="form-control"
-                                                                        value="{{ old('aed_to_be_paid') }}"
-                                                                        name="aed_to_be_paid" id="aed_to_be_paid" />
+                                                                {{-- <div class="form-group">
+                                                                    <input type="number" 
+                                                                        class="form-control" name="aed_to_be_paid"
+                                                                        id="aed_to_be_paid"
+                                                                        value="{{ old('aed_to_be_paid') }}">
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>Guarantee Fulfilled</label>
-                                                                    <input type="tel" class="form-control"
+                                                                    <input type="number" class="form-control"
                                                                         value="{{ old('guarantee_fulfilled') }}"
                                                                         name="guarantee_fulfilled"
                                                                         id="guarantee_fulfilled" />
-                                                                </div>
+                                                                </div> --}}
                                                             </div>
 
                                                             <!-- Vendor 2 and Others Fields -->
@@ -302,31 +302,31 @@
                                                                 class="vendor-fields d-none vendor-2">
                                                                 <div class="form-group">
                                                                     <label>VAT</label>
-                                                                    <input type="tel" id="vat"
+                                                                    <input type="number" id="vat"
                                                                         value="{{ old('vat') }}" class="form-control"
                                                                         name="vat" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>SURCHARGE ON VAT</label>
-                                                                    <input type="tel" id="surcharge_on_vat"
+                                                                    <input type="number" id="surcharge_on_vat"
                                                                         value="{{ old('surcharge_on_vat') }}"
                                                                         class="form-control" name="surcharge_on_vat" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>BLF</label>
-                                                                    <input type="tel" id="blf"
+                                                                    <input type="number" id="blf"
                                                                         value="{{ old('blf') }}" class="form-control"
                                                                         name="blf" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>Permit Fee</label>
-                                                                    <input type="tel" class="form-control"
+                                                                    <input type="number" class="form-control"
                                                                         value="{{ old('permit_fee') }}" name="permit_fee"
                                                                         id="permit_fee" />
                                                                 </div>
                                                                 {{-- <div class="form-group">
                                                                     <label>RSGSM Purchase</label>
-                                                                    <input type="tel" class="form-control"
+                                                                    <input type="number" class="form-control"
                                                                         value="{{ old('rsgsm_purchase') }}"
                                                                         name="rsgsm_purchase" id="rsgsm_purchase" />
                                                                 </div> --}}
@@ -334,7 +334,7 @@
                                                             <div class="vendor-common">
                                                                 <div class="form-group">
                                                                     <label>TCS</label>
-                                                                    <input type="tel" id="tcs"
+                                                                    <input type="number" id="tcs"
                                                                         value="{{ old('tcs') }}" class="form-control"
                                                                         name="tcs" />
                                                                 </div>

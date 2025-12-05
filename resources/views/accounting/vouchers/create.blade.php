@@ -1071,6 +1071,27 @@
                 $(this).trigger('click');
             }
         });
+
+
+         $(document).on('click', '.type-pill', function() {
+            let type = $(this).data('type');
+
+            // Redirect based on voucher type
+            switch (type) {
+                case 'Sales':
+                    window.location.href = "{{ url('shift-manage/list') }}";
+                    break;
+
+                case 'Purchase':
+                    window.location.href = "{{ url('purchase/create') }}";
+                    break;
+
+                default:
+                    console.log("Selected type:", type);
+                    // for now do nothing for Journal, Payment, etc.
+                    break;
+            }
+        });
     </script>
 
 @endsection
