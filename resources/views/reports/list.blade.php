@@ -42,7 +42,7 @@
                                                 <a href="{{ route('sales.sales.list') }}">
                                                     <div class="d-flex align-items-center mb-4 card-total-sale">
                                                         <div class="icon iq-icon-box-2 bg-info-light">
-                                                            <i class="fas fa-chart-line text-info fa-2x"></i>
+                                                            <i class="fas fa-list-ul text-warning fa-2x"></i>
                                                         </div>
                                                         <div>
                                                             <p class="mb-2">Sales List</p>
@@ -130,7 +130,7 @@
                                                 <a href="{{ route('reports.day-book') }}">
                                                     <div class="d-flex align-items-center mb-4 card-total-sale">
                                                         <div class="icon iq-icon-box-2 bg-success-light">
-                                                            <i class="fas fa-balance-scale text-success fa-2x"></i>
+                                                            <i class="fas fa-file-alt text-success fa-2x"></i>
                                                         </div>
                                                         <div>
                                                             <p class="mb-2">Day Book</p>

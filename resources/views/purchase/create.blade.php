@@ -82,6 +82,7 @@
                                                         Create Ledger
                                                     </a>
                                                 </div>
+
                                                 <div class="col-md-4">
                                                     <div class="form-group">
                                                         <label for="parchase_ledger">Purchase Ledger</label>
@@ -96,6 +97,24 @@
                                                             @endforeach
                                                         </select>
                                                         @error('parchase_ledger')
+                                                            <span class="text-danger">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="subcategories">Sub Category</label>
+                                                        <select name="subcategories" id="subcategories"
+                                                            class="form-control">
+                                                            <option value="">-- Select Ledger --</option>
+                                                            @foreach ($subcategories as $subcat)
+                                                                <option value="{{ $subcat->id }}"
+                                                                    {{ old('subcategories') == $subcat->id ? 'selected' : '' }}>
+                                                                    {{ $subcat->name }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('subcategories')
                                                             <span class="text-danger">{{ $message }}</span>
                                                         @enderror
                                                     </div>
@@ -607,6 +626,7 @@
                 // updateFromAmount();
             });
 
+
         function updateBillingTotal() {
             const baseTotal = parseFloat($('#total').text()) || 0;
 
@@ -807,6 +827,62 @@
 
         $('.pur_dis').on('input', updateFromPercentage);
         $('.pur_amt').on('input', updateFromAmount);
+
+        // when subcategory changes, fetch products belonging to it
+        $('#subcategories').on('change', function() {
+            const subcatId = $(this).val();
+            const $productSelect = $('#product_select');
+
+            // clear current options and show loading option
+            $productSelect.empty().append('<option value="">Loading...</option>');
+
+            if (!subcatId) {
+                // no subcategory chosen -> reset select
+                $productSelect.empty().append('<option value="">-- Select Product --</option>');
+                return;
+            }
+
+            $.ajax({
+                url: "/subcategory/" + subcatId + "/products",
+                type: "GET",
+                dataType: "json",
+                success: function(products) {
+                    $productSelect.empty().append(
+                        '<option value="">-- Select Product --</option>');
+                    if (!products || products.length === 0) {
+                        $productSelect.append(
+                        '<option value="">No products found</option>');
+                        return;
+                    }
+
+                    // append options
+                    products.forEach(function(p) {
+                        // You may want to include additional attributes (data-mrp, data-cost, etc.)
+                        $productSelect.append(
+                            $('<option>', {
+                                value: p.id,
+                                text: p.name,
+                                'data-mrp': p.mrp ?? '',
+                                'data-cost_price': p.cost_price ?? '',
+                                'data-sell_price': p.sell_price ?? ''
+                            })
+                        );
+                    });
+
+                    // if there was an old selected product (after validation error), reselect it
+                    const oldProduct = "{{ old('product_select') }}";
+                    if (oldProduct) {
+                        $productSelect.val(oldProduct);
+                    }
+                },
+                error: function(xhr) {
+                    $productSelect.empty().append(
+                        '<option value="">-- Select Product --</option>');
+                    alert('Failed to fetch products for selected subcategory. Try again.');
+                    console.error(xhr);
+                }
+            });
+        });
 
     });
 
