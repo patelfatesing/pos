@@ -21,3 +21,15 @@
         @endforeach
     </tbody>
 </table>
+
+<div class="d-flex gap-2 mt-3">
+    <a href="{{ url('/accounting/vouchers/edit/'.$voucher->id) }}"
+        class="btn btn-outline-primary btn-sm">
+        Edit Voucher
+    </a>
+
+    <button type="button" data-id="{{$voucher->id}} }}"
+        class="btn btn-outline-danger btn-sm ml-2" id="deleteVoucherBtn">
+        Delete Voucher
+    </button>
+</div>
