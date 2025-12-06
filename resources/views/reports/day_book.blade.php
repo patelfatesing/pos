@@ -183,10 +183,34 @@
                 modal.show();
             }).fail(function() {
                 $("#voucherModal .modal-title").text('Error');
-                $("#voucherModal .modal-body").html('<div class="text-danger p-3">Error loading voucher.</div>');
+                $("#voucherModal .modal-body").html(
+                    '<div class="text-danger p-3">Error loading voucher.</div>');
                 var modalEl = document.getElementById('voucherModal');
                 var modal = new bootstrap.Modal(modalEl);
                 modal.show();
+            });
+        });
+
+        $(document).on('click', '#deleteVoucherBtn', function() {
+            if (!confirm('Delete voucher and all its lines? This cannot be undone.')) return;
+            const id = $(this).data('id');
+            $.ajax({
+                url: '/accounting/vouchers/' + id,
+                type: 'DELETE',
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(res) {
+                    alert(res.message || 'Voucher deleted');
+                    var modalEl = document.getElementById('voucherModal');
+                    var modal = bootstrap.Modal.getInstance(modalEl);
+                    modal.hide();
+                },
+                error: function(xhr) {
+                    const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON
+                        .message : 'Error deleting voucher';
+                    alert(msg);
+                }
             });
         });
     </script>
