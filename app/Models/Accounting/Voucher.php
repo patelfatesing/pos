@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Voucher extends Model
 {
     protected $fillable = [
+        'gen_id',
         'voucher_date',
         'voucher_type',
         'ref_no',
