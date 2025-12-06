@@ -43,8 +43,8 @@
                     <div class="controls">
                         <a href="{{ route('accounting.vouchers.create') }}" class="btn btn-outline-light btn-sm">Add
                             Voucher</a>
-                        <button id="alterBtn" class="btn btn-outline-light btn-sm">Alter</button>
-                        <button id="deleteBtn" class="btn btn-danger btn-sm">Delete</button>
+                        {{-- <button id="alterBtn" class="btn btn-outline-light btn-sm">Alter</button>
+                        <button id="deleteBtn" class="btn btn-danger btn-sm">Delete</button> --}}
                         <button id="printBtn" class="btn btn-outline-warning btn-sm">Print</button>
 
                         <input type="text" id="daterange" class="form-control d-inline-block" style="width:220px" />

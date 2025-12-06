@@ -543,9 +543,9 @@ class VoucherController extends Controller
         return redirect()->route('accounting.vouchers.index')->with('success', 'Voucher updated successfully.');
     }
 
-    public function destroy(Request $request)
+    public function destroy(Request $request,$id)
     {
-        $voucher = Voucher::with('lines')->findOrFail($request->id);
+        $voucher = Voucher::with('lines')->findOrFail($id);
 
         DB::transaction(function () use ($voucher) {
 
@@ -566,7 +566,7 @@ class VoucherController extends Controller
 
     public function destroyVoucher($id)
     {
-        $voucher = \App\Models\Accounting\Voucher::with('lines')->findOrFail($id);
+        $voucher = Voucher::with('lines')->findOrFail($id);
 
         DB::transaction(function () use ($voucher) {
             foreach ($voucher->lines as $line) {

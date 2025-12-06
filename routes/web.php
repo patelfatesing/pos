@@ -337,6 +337,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/vendor/get-product-details/{id}', [PurchaseController::class, 'getProductDetails'])->name('vendor.get-product-details');
     Route::get('/vendor-products/{vendor}', [PurchaseController::class, 'getVendorProducts'])
         ->name('vendor.products');
+    Route::get('/subcategory/{id}/products', [PurchaseController::class, 'productsBySubcategory'])
+        ->name('subcategory.products');
+    // routes/web.php
+    Route::get('/purchase/{purchase}/edit', [PurchaseController::class, 'edit'])->name('purchase.edit');
+    Route::put('/purchase/{purchase}', [PurchaseController::class, 'update'])->name('purchase.update');
+
 
     Route::get('/popup/form/{type}', [NotificationController::class, 'loadForm']);
     Route::get('/notifications/index', [NotificationController::class, 'index'])->name('notifications.index');
