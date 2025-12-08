@@ -31,7 +31,12 @@ class Purchase extends Model
         'rsgsm_purchase',
         'case_purchase',
         'case_purchase_per',
-        'case_purchase_amt'
+        'case_purchase_amt',
+        'permit_fee_excise',
+        'vend_fee_excise',
+        'composite_fee_excise',
+        'excise_total_amount',
+        'loading_charges'
 
     ];
 

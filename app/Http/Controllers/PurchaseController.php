@@ -115,6 +115,13 @@ class PurchaseController extends Controller
 
         DB::beginTransaction();
 
+        $permitExcise   = (float) ($request->permit_fee_excise ?? 0);
+        $vendExcise     = (float) ($request->vend_fee_excise ?? 0);
+        $compositeExcise = (float) ($request->composite_fee_excise ?? 0);
+        $exciseTotal    = (float) ($request->excise_total_amount ?? 0);
+        $loading = (float) ($request->loading_charges ?? 0);
+
+
         try {
             // ----------------- 1) SAVE PURCHASE MASTER -----------------
             $purchase = Purchase::create([
@@ -141,6 +148,11 @@ class PurchaseController extends Controller
                 'case_purchase_amt' => $request->case_purchase_amt,
                 'status' => $request->status ?? 'pending',
                 'created_by' => Auth::id(),
+                'permit_fee_excise'     => $permitExcise,
+                'vend_fee_excise'       => $vendExcise,
+                'composite_fee_excise'  => $compositeExcise,
+                'excise_total_amount'   => $exciseTotal,
+                'loading_charges' => $loading
             ]);
 
             // ----------------- 2) SAVE PRODUCTS + INVENTORY -----------------
@@ -410,9 +422,9 @@ class PurchaseController extends Controller
     {
         // Load main purchase + its items + related products
         $purchase = Purchase::with(['purchaseProducts'])->findOrFail($id);
-        
+
         $purchaseProducts = $purchase->purchaseProducts;
-        
+
         // SAME DATA AS create()
         $vendors = VendorList::where('is_active', 1)->get();
         $products = Product::select('id', 'name')->where('is_deleted', 'no')->get();

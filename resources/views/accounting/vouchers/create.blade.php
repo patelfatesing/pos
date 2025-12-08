@@ -44,7 +44,8 @@
             border-top: 1px solid #eef0f3;
             padding: .75rem;
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
+            /* changed from space-between */
             align-items: center;
             gap: 1rem
         }
@@ -144,416 +145,158 @@
 
                                     <div class="row g-3 mb-3">
                                         <div class="col-lg-10">
-                                            <div class="row">
-                                                <div class="col-lg-4 col-md-4">
-                                                    <label class="form-label">Date</label>
-                                                    <input type="date" class="form-control" name="voucher_date"
+
+                                            {{-- Top bar with Date aligned to right --}}
+                                            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
+                                                <div></div>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <label class="form-label mb-0">Date</label>
+                                                    <input type="date" class="form-control" style="max-width: 180px"
+                                                        name="voucher_date"
                                                         value="{{ old('voucher_date', now()->toDateString()) }}" required>
                                                 </div>
+                                            </div>
 
-                                                <input type="hidden" name="voucher_type" id="voucher_type"
-                                                    value="{{ old('voucher_type', 'Journal') }}">
+                                            <input type="hidden" name="voucher_type" id="voucher_type"
+                                                value="{{ old('voucher_type', 'Journal') }}">
 
-                                                {{-- <div class="col-lg-4 col-md-4">
-                                                    <label class="form-label">Ref No</label>
-                                                    <input type="text" class="form-control" name="ref_no"
-                                                        value="{{ old('ref_no') }}">
-                                                </div> --}}
+                                            {{-- Journal lines --}}
+                                            <div class="section-card">
+                                                <div class="section-title">
+                                                    <div id="section-trade" style="display:none;">
+                                                        <span class="badge bg-secondary">Sales / Purchase / Notes</span>
+                                                    </div>
+                                                    <div id="section-contra" style="display:none;">
+                                                        <span class="badge bg-secondary">Contra</span>
+                                                    </div>
+                                                    <div id="section-payment-receipt" style="display:none;">
+                                                        <span class="badge bg-secondary">Payment/Receipt</span>
+                                                    </div>
 
-                                                <div class="col-lg-4 col-md-4">
-                                                    <label class="form-label">Branch</label>
-                                                    <select name="branch_id" class="form-control">
-                                                        <option value="">All / None</option>
-                                                        @foreach ($branches ?? [] as $b)
-                                                            <option value="{{ $b->id }}"
-                                                                @selected(old('branch_id') == $b->id)>
-                                                                {{ $b->name }}</option>
-                                                        @endforeach
-                                                    </select>
+                                                    <div id="section-journal" style="display:block;">
+                                                        <span class="badge bg-secondary">Journal</span>
+                                                    </div>
+
+                                                    Add line items (Dr/Cr)
                                                 </div>
-
-                                                <div class="col-lg-4 col-md-4">
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Narration</label>
-                                                        <textarea name="narration" class="form-control" rows="2">{{ old('narration') }}</textarea>
-                                                    </div>
-                                                </div>
-
-                                                {{-- ===== TYPE-SPECIFIC SECTIONS ===== --}}
-
-                                                {{-- Payment / Receipt --}}
-                                                {{-- <div id="section-payment-receipt" class="section-card mb-3"
-                                                    style="display:none;">
-                                                    <div class="section-title">
-                                                        <span class="badge bg-info">Payment / Receipt</span> Fill the
-                                                        instrument & party details
-                                                    </div>
-                                                    <div class="row g-3">
-                                                        <div class="col-lg-4 col-md-6">
-                                                            <label class="form-label">Party Ledger</label>
-                                                            <select id="pr_party_ledger" class="form-control ledger">
-                                                                <option value="">Select</option>
-                                                                @foreach ($ledgers as $l)
-                                                                    <option value="{{ $l->id }}"
-                                                                        data-group-id="{{ $l->group_id }}"
-                                                                        @selected(old('party_ledger_id') == $l->id)>
-                                                                        {{ $l->name }}
-                                                                    </option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-
-                                                        <div class="col-lg-2 col-md-4">
-                                                            <label class="form-label">Mode</label>
-                                                            <select id="pr_mode" name="mode" class="form-control">
-                                                                <option value="">Select</option>
-                                                                <option value="cash" @selected(old('mode') === 'cash')>Cash
-                                                                </option>
-                                                                <option value="bank" @selected(old('mode') === 'bank')>Bank
-                                                                </option>
-                                                                <option value="upi" @selected(old('mode') === 'upi')>UPI
-                                                                </option>
-                                                                <option value="card" @selected(old('mode') === 'card')>Card
-                                                                </option>
-                                                            </select>
-                                                        </div>
-
-                                                        <div class="col-lg-3 col-md-6" id="pr_cash_wrap"
-                                                            style="display:none;">
-                                                            <label class="form-label">Cash Ledger</label>
-                                                            <select id="pr_cash_ledger" name="cash_ledger_id"
-                                                                class="form-control ledger">
-                                                                <option value="">Select</option>
-                                                                @foreach ($ledgers as $l)
-                                                                    <option value="{{ $l->id }}"
-                                                                        data-group-id="{{ $l->group_id }}"
-                                                                        @selected(old('cash_ledger_id') == $l->id)>
-                                                                        {{ $l->name }}
-                                                                    </option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-
-                                                        <div class="col-lg-3 col-md-6" id="pr_bank_wrap"
-                                                            style="display:none;">
-                                                            <label class="form-label">Bank Ledger</label>
-                                                            <select id="pr_bank_ledger" name="bank_ledger_id"
-                                                                class="form-control ledger">
-                                                                <option value="">Select</option>
-                                                                @foreach ($ledgers as $l)
-                                                                    <option value="{{ $l->id }}"
-                                                                        data-group-id="{{ $l->group_id }}"
-                                                                        @selected(old('bank_ledger_id') == $l->id)>
-                                                                        {{ $l->name }}
-                                                                    </option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-
-                                                        <div class="col-lg-2 col-md-4">
-                                                            <label class="form-label">Amount</label>
-                                                            <input id="pr_amount" name="amount" type="number"
-                                                                step="0.01" class="form-control"
-                                                                value="{{ old('amount') }}">
-                                                        </div>
-
-                                                        <div class="col-lg-2 col-md-4">
-                                                            <label class="form-label">Instrument No</label>
-                                                            <input id="pr_inst_no" name="instrument_no"
-                                                                class="form-control" value="{{ old('instrument_no') }}">
-                                                        </div>
-
-                                                        <div class="col-lg-2 col-md-4">
-                                                            <label class="form-label">Instrument Date</label>
-                                                            <input id="pr_inst_date" name="instrument_date"
-                                                                type="date" class="form-control"
-                                                                value="{{ old('instrument_date') }}">
-                                                        </div>
-
-                                                        <div class="col-12">
-                                                            <div class="form-check mt-2">
-                                                                <input class="form-check-input" type="checkbox"
-                                                                    id="pr_autobuild" checked>
-                                                                <label class="form-check-label"
-                                                                    for="pr_autobuild">Auto-build balanced
-                                                                    lines from these fields</label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div> --}}
-
-                                                {{-- Contra --}}
-                                                {{-- <div id="section-contra" class="section-card mb-3" style="display:none;">
-                                                    <div class="section-title">
-                                                        <span class="badge bg-warning text-dark">Contra</span>
-                                                        Move amount between ledgers
-                                                    </div>
-                                                    <div class="row g-3">
-                                                        <div class="col-md-5">
-                                                            <label class="form-label">From Ledger</label>
-                                                            <select id="ct_from" name="from_ledger_id"
-                                                                class="form-control ledger">
-                                                                <option value="">Select</option>
-                                                                @foreach ($ledgers as $l)
-                                                                    <option value="{{ $l->id }}"
-                                                                        data-group-id="{{ $l->group_id }}"
-                                                                        @selected(old('from_ledger_id') == $l->id)>
-                                                                        {{ $l->name }}
-                                                                    </option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-                                                        <div class="col-md-5">
-                                                            <label class="form-label">To Ledger</label>
-                                                            <select id="ct_to" name="to_ledger_id"
-                                                                class="form-control ledger">
-                                                                <option value="">Select</option>
-                                                                @foreach ($ledgers as $l)
-                                                                    <option value="{{ $l->id }}"
-                                                                        data-group-id="{{ $l->group_id }}"
-                                                                        @selected(old('to_ledger_id') == $l->id)>
-                                                                        {{ $l->name }}
-                                                                    </option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-                                                        <div class="col-md-2">
-                                                            <label class="form-label">Amount</label>
-                                                            <input id="ct_amount" name="contra_amount" type="number"
-                                                                step="0.01" class="form-control"
-                                                                value="{{ old('contra_amount') }}">
-                                                        </div>
-                                                        <div class="col-12">
-                                                            <div class="form-check mt-2">
-                                                                <input class="form-check-input" type="checkbox"
-                                                                    id="ct_autobuild" checked>
-                                                                <label class="form-check-label"
-                                                                    for="ct_autobuild">Auto-build lines</label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div> --}}
-
-                                                {{-- Sales / Purchase / Notes --}}
-                                                {{-- <div id="section-trade" class="section-card mb-3" style="display:none;">
-                                                    <div class="section-title">
-                                                        <span class="badge bg-primary">Sales / Purchase / Notes</span>
-                                                        Totals with live calculation
-                                                    </div>
-                                                    <div class="grid-2">
-                                                        <div>
-                                                            <label class="form-label">Party Ledger</label>
-                                                            <select id="tr_party_ledger" class="form-control ledger">
-                                                                <option value="">Select</option>
-                                                                @foreach ($ledgers as $l)
-                                                                    <option value="{{ $l->id }}"
-                                                                        data-group-id="{{ $l->group_id }}"
-                                                                        @selected(old('party_ledger_id') == $l->id)>
-                                                                        {{ $l->name }}
-                                                                    </option>
-                                                                @endforeach
-                                                            </select>
-                                                        </div>
-                                                        <div class="grid-2">
-                                                            <div>
-                                                                <label class="form-label">Sub Total</label>
-                                                                <input id="tr_subtotal" name="sub_total" type="number"
-                                                                    step="0.01" class="form-control"
-                                                                    value="{{ old('sub_total', 0) }}">
-                                                            </div>
-                                                            <div>
-                                                                <label class="form-label">Discount</label>
-                                                                <input id="tr_discount" name="discount" type="number"
-                                                                    step="0.01" class="form-control"
-                                                                    value="{{ old('discount', 0) }}">
-                                                            </div>
-                                                        </div>
-                                                        <div>
-                                                            <label class="form-label">Tax</label>
-                                                            <input id="tr_tax" name="tax" type="number"
-                                                                step="0.01" class="form-control"
-                                                                value="{{ old('tax', 0) }}">
-                                                        </div>
-                                                        <div>
-                                                            <label class="form-label">Grand Total</label>
-                                                            <input id="tr_grand" name="grand_total" type="number"
-                                                                step="0.01" class="form-control"
-                                                                value="{{ old('grand_total', 0) }}" readonly>
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-check mt-2">
-                                                        <input class="form-check-input" type="checkbox" id="tr_autobuild"
-                                                            checked>
-                                                        <label class="form-check-label" for="tr_autobuild">
-                                                            Auto-build lines from totals
-                                                        </label>
-                                                    </div>
-                                                </div> --}}
-
-                                                {{-- Journal lines --}}
-                                                <div class="section-card ml-3">
-                                                    <div class="section-title">
-                                                        <div id="section-trade" style="display:none;">
-                                                            <span class="badge bg-secondary">Sales / Purchase / Notes</span>
-                                                        </div>
-                                                        <div id="section-contra" style="display:none;">
-                                                            <span class="badge bg-secondary">Contra</span>
-                                                        </div>
-                                                        <div id="section-payment-receipt" style="display:none;">
-                                                            <span class="badge bg-secondary">Payment/Receipt</span>
-                                                        </div>
-
-                                                        <div id="section-journal" style="display:block;">
-                                                            <span class="badge bg-secondary">Journal</span>
-                                                        </div>
-
-                                                        Add line items (Dr/Cr)
-                                                    </div>
-                                                    <div class="table-responsive">
-                                                        <table class="table table-bordered align-middle mb-0"
-                                                            id="linesTable">
-                                                            <thead class="table-light">
-                                                                <tr>
-                                                                    <th style="width:15%">Dr/Cr</th>
-                                                                    <th style="width:40%">Ledger</th>
-                                                                    <th style="width:25%">Amount</th>
-                                                                    <th style="width:10%">Narration</th>
-                                                                    <th style="width:10%"></th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                @php $oldLines = old('lines', []); @endphp
-                                                                @if ($oldLines)
-                                                                    @foreach ($oldLines as $i => $ln)
-                                                                        <tr class="line">
-                                                                            <td>
-                                                                                <select
-                                                                                    name="lines[{{ $i }}][dc]"
-                                                                                    class="form-control dc">
-                                                                                    <option @selected(($ln['dc'] ?? 'Dr') === 'Dr')>Dr
-                                                                                    </option>
-                                                                                    <option @selected(($ln['dc'] ?? 'Dr') === 'Cr')>Cr
-                                                                                    </option>
-                                                                                </select>
-                                                                            </td>
-                                                                            <td>
-                                                                                <select
-                                                                                    name="lines[{{ $i }}][ledger_id]"
-                                                                                    class="form-control ledger">
-                                                                                    @foreach ($ledgers as $l)
-                                                                                        <option value="{{ $l->id }}"
-                                                                                            data-group-id="{{ $l->group_id }}"
-                                                                                            @selected(($ln['ledger_id'] ?? null) == $l->id)>
-                                                                                            {{ $l->name }}
-                                                                                        </option>
-                                                                                    @endforeach
-                                                                                </select>
-                                                                                <a href="{{ route('accounting.ledgers.create') }}"
-                                                                                    class="btn btn-outline-secondary btn-sm">Create
-                                                                                    Ledger
-                                                                                </a>
-                                                                            </td>
-
-                                                                            <td>
-                                                                                <input
-                                                                                    name="lines[{{ $i }}][amount]"
-                                                                                    class="form-control amount"
-                                                                                    type="number" step="0.01"
-                                                                                    value="{{ $ln['amount'] ?? '' }}">
-                                                                            </td>
-                                                                            <td>
-                                                                                <input
-                                                                                    name="lines[{{ $i }}][line_narration]"
-                                                                                    class="form-control"
-                                                                                    value="{{ $ln['line_narration'] ?? '' }}">
-                                                                            </td>
-                                                                            <td>
-                                                                                <button type="button"
-                                                                                    class="btn btn-sm btn-danger remove">×</button>
-                                                                            </td>
-                                                                        </tr>
-                                                                    @endforeach
-                                                                @else
+                                                <div class="table-responsive">
+                                                    <table class="table table-bordered align-middle mb-0" id="linesTable">
+                                                        <thead class="table-light">
+                                                            <tr>
+                                                                <th style="width:15%">Dr/Cr</th>
+                                                                <th style="width:40%">Ledger</th>
+                                                                <th style="width:25%">Amount</th>
+                                                                <th style="width:10%">Narration</th>
+                                                                <th style="width:10%"></th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @php $oldLines = old('lines', []); @endphp
+                                                            @if ($oldLines)
+                                                                @foreach ($oldLines as $i => $ln)
                                                                     <tr class="line">
                                                                         <td>
-                                                                            <select name="lines[0][dc]"
+                                                                            <select name="lines[{{ $i }}][dc]"
                                                                                 class="form-control dc">
-                                                                                <option>Dr</option>
-                                                                                <option>Cr</option>
+                                                                                <option @selected(($ln['dc'] ?? 'Dr') === 'Dr')>Dr
+                                                                                </option>
+                                                                                <option @selected(($ln['dc'] ?? 'Dr') === 'Cr')>Cr
+                                                                                </option>
                                                                             </select>
                                                                         </td>
                                                                         <td>
-                                                                            <select name="lines[0][ledger_id]"
+                                                                            <select
+                                                                                name="lines[{{ $i }}][ledger_id]"
                                                                                 class="form-control ledger">
                                                                                 @foreach ($ledgers as $l)
                                                                                     <option value="{{ $l->id }}"
-                                                                                        data-group-id="{{ $l->group_id }}">
+                                                                                        data-group-id="{{ $l->group_id }}"
+                                                                                        @selected(($ln['ledger_id'] ?? null) == $l->id)>
                                                                                         {{ $l->name }}
                                                                                     </option>
                                                                                 @endforeach
                                                                             </select>
-
-                                                                            <a href="{{ route('accounting.ledgers.create', 'voucher') }}"
-                                                                                class="btn btn-outline-secondary btn-sm">
-                                                                                Create Ledger
+                                                                            <a href="{{ route('accounting.ledgers.create') }}"
+                                                                                class="btn btn-outline-secondary btn-sm">Create
+                                                                                Ledger
                                                                             </a>
                                                                         </td>
 
                                                                         <td>
-                                                                            <input name="lines[0][amount]"
+                                                                            <input
+                                                                                name="lines[{{ $i }}][amount]"
                                                                                 class="form-control amount" type="number"
-                                                                                step="0.01">
+                                                                                step="0.01"
+                                                                                value="{{ $ln['amount'] ?? '' }}">
                                                                         </td>
                                                                         <td>
-                                                                            <input name="lines[0][line_narration]"
-                                                                                class="form-control">
+                                                                            <input
+                                                                                name="lines[{{ $i }}][line_narration]"
+                                                                                class="form-control"
+                                                                                value="{{ $ln['line_narration'] ?? '' }}">
                                                                         </td>
                                                                         <td>
                                                                             <button type="button"
                                                                                 class="btn btn-sm btn-danger remove">×</button>
                                                                         </td>
                                                                     </tr>
-                                                                @endif
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
+                                                                @endforeach
+                                                            @else
+                                                                <tr class="line">
+                                                                    <td>
+                                                                        <select name="lines[0][dc]" class="form-control dc">
+                                                                            <option>Dr</option>
+                                                                            <option>Cr</option>
+                                                                        </select>
+                                                                    </td>
+                                                                    <td>
+                                                                        <select name="lines[0][ledger_id]"
+                                                                            class="form-control ledger">
+                                                                            @foreach ($ledgers as $l)
+                                                                                <option value="{{ $l->id }}"
+                                                                                    data-group-id="{{ $l->group_id }}">
+                                                                                    {{ $l->name }}
+                                                                                </option>
+                                                                            @endforeach
+                                                                        </select>
 
-                                                    <div class="d-flex justify-content-end align-items-center mt-2">
-                                                        <div class="d-flex align-items-center gap-2">
-                                                            <button type="button"
-                                                                class="btn btn-outline-secondary btn-sm"
-                                                                id="copyDrToCr">Copy Dr→Cr</button>
-                                                            <button type="button"
-                                                                class="btn btn-outline-secondary btn-sm"
-                                                                id="copyCrToDr">Copy Cr→Dr</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                                        <a href="{{ route('accounting.ledgers.create', 'voucher') }}"
+                                                                            class="btn btn-outline-secondary btn-sm">
+                                                                            Create Ledger
+                                                                        </a>
+                                                                    </td>
 
-                                                {{-- Sticky footer --}}
-                                                <div class="sticky-actions mt-3">
-                                                    <div class="d-flex flex-wrap align-items-center gap-3">
-                                                        <div class="input-group input-group-sm" style="width:180px;">
-                                                            <span class="input-group-text">Total Dr</span>
-                                                            <input id="totalDr" class="form-control mr-2" readonly>
-                                                        </div>
-                                                        <div class="input-group input-group-sm" style="width:180px;">
-                                                            <span class="input-group-text">Total Cr</span>
-                                                            <input id="totalCr" class="form-control" readonly>
-                                                        </div>
-                                                        <span id="stickyBadge" class="badge bg-secondary">Not
-                                                            Calculated</span>
-                                                    </div>
-                                                    <button class="btn btn-success" id="btnSubmit">Create
-                                                        Voucher</button>
+                                                                    <td>
+                                                                        <input name="lines[0][amount]"
+                                                                            class="form-control amount" type="number"
+                                                                            step="0.01">
+                                                                    </td>
+                                                                    <td>
+                                                                        <input name="lines[0][line_narration]"
+                                                                            class="form-control">
+                                                                    </td>
+                                                                    <td>
+                                                                        <button type="button"
+                                                                            class="btn btn-sm btn-danger remove">×</button>
+                                                                    </td>
+                                                                </tr>
+                                                            @endif
+                                                        </tbody>
+                                                    </table>
                                                 </div>
+                                            </div>
+
+                                            {{-- Sticky footer (Create button aligned right) --}}
+                                            <div class="sticky-actions mt-3">
+                                                <button class="btn btn-success" id="btnSubmit">Create
+                                                    Voucher</button>
                                             </div>
                                         </div>
 
                                         <div class="col-lg-2 col-md-4">
                                             <div class="type-pills-vertical" id="voucherTypePanel"
                                                 aria-label="Voucher Type">
-                                                @foreach (['Journal', 'Payment', 'Receipt', 'Contra', 'Sales', 'Purchase', 'DebitNote', 'CreditNote'] as $t)
+                                                @foreach (['Journal', 'Payment', 'Receipt', 'Contra', 'Purchase'] as $t)
                                                     <button type="button"
                                                         class="btn btn-outline-primary me-1 mb-1 type-pill"
                                                         data-type="{{ $t }}">{{ $t }}</button>
@@ -590,6 +333,7 @@
             const $badgeTop = $('#balanceBadge .badge');
             const $badgeSticky = $('#stickyBadge');
             const createLedgerUrl = "{{ route('accounting.ledgers.create', 'voucher') }}";
+            const $btnSubmit = $('#btnSubmit'); // <-- submit button
 
             function setBadge(state) {
                 const texts = {
@@ -634,10 +378,6 @@
             const ledgerOptions =
                 `@foreach ($ledgers as $l)<option value="{{ $l->id }}" data-group-id="{{ $l->group_id }}">{{ $l->name }}</option>@endforeach`;
 
-            // account_groups:
-            // 17=Bank Accounts, 18=Cash-in-Hand, 19=Sundry Debtors, 20=Sundry Creditors,
-            // 9=Sales Accounts, 12=Purchase Accounts, 21=Duties & Taxes,
-            // 13=Direct Expenses, 14=Indirect Expenses, 10=Direct Incomes, 11=Indirect Incomes
             const VOUCHER_GROUP_MAP = {
                 Journal: [],
 
@@ -686,26 +426,26 @@
                 const drSel = (dcDefault === 'Dr') ? 'selected' : '';
                 const crSel = (dcDefault === 'Cr') ? 'selected' : '';
                 return `
-                <tr class="line">
-                    <td>
-                        <select name="lines[${idx}][dc]" class="form-control dc">
-                            <option ${drSel}>Dr</option>
-                            <option ${crSel}>Cr</option>
-                        </select>
-                    </td>
-                    <td>
-                        <select name="lines[${idx}][ledger_id]" class="form-control ledger">
-                            ${ledgerOptions}
-                        </select>
-                         <a href="${createLedgerUrl}" target="_blank"
-                        class="btn btn-outline-secondary btn-sm">
-                        Create Ledger
-                    </a></td>
-                    
-                    <td><input name="lines[${idx}][amount]" class="form-control amount" type="number" step="0.01"></td>
-                    <td><input name="lines[${idx}][line_narration]" class="form-control"></td>
-                    <td><button type="button" class="btn btn-sm btn-danger remove">×</button></td>
-                </tr>`;
+            <tr class="line">
+                <td>
+                    <select name="lines[${idx}][dc]" class="form-control dc">
+                        <option ${drSel}>Dr</option>
+                        <option ${crSel}>Cr</option>
+                    </select>
+                </td>
+                <td>
+                    <select name="lines[${idx}][ledger_id]" class="form-control ledger">
+                        ${ledgerOptions}
+                    </select>
+                     <a href="${createLedgerUrl}" target="_blank"
+                    class="btn btn-outline-secondary btn-sm">
+                    Create Ledger
+                </a></td>
+                
+                <td><input name="lines[${idx}][amount]" class="form-control amount" type="number" step="0.01"></td>
+                <td><input name="lines[${idx}][line_narration]" class="form-control"></td>
+                <td><button type="button" class="btn btn-sm btn-danger remove">×</button></td>
+            </tr>`;
             }
 
             function rowHasAnyValue($tr) {
@@ -716,6 +456,27 @@
                 return !!(ledger || dc || amt || narration);
             }
 
+            // NEW: check if any row has value
+            function anyLineHasValue() {
+                let found = false;
+                $('#linesTable tbody tr').each(function() {
+                    if (rowHasAnyValue($(this))) {
+                        found = true;
+                        return false; // break
+                    }
+                });
+                return found;
+            }
+
+            // NEW: show/hide Create button
+            function updateSubmitVisibility() {
+                if (anyLineHasValue()) {
+                    $btnSubmit.show();
+                } else {
+                    $btnSubmit.hide();
+                }
+            }
+
             function addLineRow(dcDefault) {
                 const idx = i;
                 const type = $type.val();
@@ -724,6 +485,7 @@
                 i++;
 
                 filterLedgerDropdownsByVoucherType();
+                updateSubmitVisibility(); // NEW
             }
 
             function setDCForAllRowsByType(force = false) {
@@ -736,7 +498,6 @@
                 });
             }
 
-            // auto-select first allowed ledger in lines[0][ledger_id]
             function setDefaultLedgerForFirstLine() {
                 const t = $type.val();
                 const allowedGroups = VOUCHER_GROUP_MAP[t] || [];
@@ -749,7 +510,7 @@
                 const $ledger = $firstRow.find('.ledger');
                 if (!$ledger.length) return;
 
-                if ($ledger.val()) return; // don't override old/user selection
+                if ($ledger.val()) return;
 
                 let selectedVal = null;
 
@@ -780,7 +541,6 @@
                     const $select = $(this);
                     const current = $select.val();
 
-                    // Build new options list
                     let html = `<option value="">Select</option>`;
 
                     LEDGERS.forEach(l => {
@@ -790,16 +550,13 @@
                         }
                     });
 
-                    // Replace entire dropdown list
                     $select.html(html);
 
-                    // Restore current selected value if still allowed
                     if (current && $select.find(`option[value="${current}"]`).length) {
                         $select.val(current);
                     }
                 });
 
-                // Auto-select ledger for first line
                 setDefaultLedgerForFirstLine();
             }
 
@@ -812,11 +569,14 @@
                     if (dc === 'Dr') dr += amt;
                     else cr += amt;
                 });
-                $totalDr.val(dr.toFixed(2));
-                $totalCr.val(cr.toFixed(2));
+                if ($totalDr && $totalDr.val) $totalDr.val(dr.toFixed(2));
+                if ($totalCr && $totalCr.val) $totalCr.val(cr.toFixed(2));
+
                 if (dr === 0 && cr === 0) setBadge('none');
                 else if (Math.abs(dr - cr) < 0.005) setBadge('ok');
                 else setBadge('bad');
+
+                updateSubmitVisibility(); // NEW
             }
 
             $(document).on('click', '.remove', function() {
@@ -1016,6 +776,7 @@
                 autobuildCT();
                 calcTradeGrand();
                 autobuildTR();
+                updateSubmitVisibility(); // NEW
             });
 
             $prMode.on('change', function() {
@@ -1035,31 +796,31 @@
                 '#linesTable tbody tr .ledger, #linesTable tbody tr .dc, #linesTable tbody tr .amount, #linesTable tbody tr input[name*="[line_narration]"]',
                 function() {
                     const $tr = $(this).closest('tr');
-                    if (!$tr.is(':last-child')) return;
-
-                    if (rowHasAnyValue($tr)) {
+                    if ($tr.is(':last-child') && rowHasAnyValue($tr)) {
                         addLineRow();
-                        recalc();
                     }
+                    recalc(); // recalc also updates button visibility
                 }
             );
 
             $('#btnSubmit').on('click', function(e) {
                 syncPartyHidden();
-                const dr = parseFloat($totalDr.val() || 0);
-                const cr = parseFloat($totalCr.val() || 0);
-                if (Math.round(dr * 100) !== Math.round(cr * 100)) {
+                const dr = parseFloat($totalDr ? ($totalDr.val() || 0) : 0);
+                const cr = parseFloat($totalCr ? ($totalCr.val() || 0) : 0);
+                if (!isNaN(dr) && !isNaN(cr) && Math.round(dr * 100) !== Math.round(cr * 100)) {
                     e.preventDefault();
                     alert('Total Debit and Credit must be equal before posting.');
                     return false;
                 }
             });
 
+            // Initial state: hide button until some line has value
+            $btnSubmit.hide();
             showSections();
             syncPills();
             togglePRMode();
             syncPartyHidden();
-            recalc();
+            recalc(); // will call updateSubmitVisibility()
             calcTradeGrand();
             setDCForAllRowsByType(false);
             filterLedgerDropdownsByVoucherType();
@@ -1072,11 +833,9 @@
             }
         });
 
-
-         $(document).on('click', '.type-pill', function() {
+        $(document).on('click', '.type-pill', function() {
             let type = $(this).data('type');
 
-            // Redirect based on voucher type
             switch (type) {
                 case 'Sales':
                     window.location.href = "{{ url('shift-manage/list') }}";
@@ -1088,10 +847,10 @@
 
                 default:
                     console.log("Selected type:", type);
-                    // for now do nothing for Journal, Payment, etc.
                     break;
             }
         });
     </script>
+
 
 @endsection
