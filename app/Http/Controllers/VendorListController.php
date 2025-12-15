@@ -86,10 +86,10 @@ class VendorListController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255|unique:vendor_lists,name',
-            'email' => 'required|email|max:255|unique:vendor_lists,email',
+             'email' => 'nullable|email|max:255|unique:vendor_lists,email',
             'phone' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:255',
-            'gst_number' => 'required'
+            // 'gst_number' => 'required'
         ]);
 
         $vendor = VendorList::create($data);
@@ -132,10 +132,10 @@ class VendorListController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255|unique:vendor_lists,name,' . $request->id,
-            'email' => 'required|email|max:255|unique:vendor_lists,email,' . $request->id,
+            'email' => 'nullable|email|max:255|unique:vendor_lists,email,' . $request->id,
             'phone' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:255',
-            'gst_number' => 'required|string|max:255',
+            // 'gst_number' => 'required|string|max:255',
         ]);
 
         $VendorList = VendorList::findOrFail($request->id);

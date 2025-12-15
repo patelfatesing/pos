@@ -28,7 +28,7 @@
                                     <th>Name</th>
                                     <th>Email</th>
                                     <th>Phone</th>
-                                    <th>GST Number</th>
+                                    {{-- <th>GST Number</th> --}}
                                     <th>Status</th>
                                     <th>Created At</th>
                                     <th>Updated At</th>
@@ -71,9 +71,9 @@
                     {
                         data: 'phone'
                     },
-                    {
-                        data: 'gst_number'
-                    },
+                    // {
+                    //     data: 'gst_number'
+                    // },
                     {
                         data: 'status'
                     },
@@ -91,7 +91,7 @@
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [2, 3, 4, 7] // make "action" column unsortable
+                    aTargets: [1,2,3, 6] // make "action" column unsortable
                 }],
                 order: [
                     [5, 'asc']

@@ -61,6 +61,7 @@ class InventoryController extends Controller
             'products.name as product_name',
             'products.reorder_level',
             'products.cost_price',
+            'products.discount_price',
             'branches.name as branch_name'
         )
             ->join('products', 'products.id', '=', 'inventories.product_id')
@@ -136,6 +137,7 @@ class InventoryController extends Controller
                 'location' => $inventory->branch_name ?? '—',
                 'quantity' => $inventory->quantity,
                 'cost_price' => $inventory->cost_price,
+                'discount_price' => $inventory->discount_price,
                 'batch_no' => $inventory->batch_no,
                 'expiry_date' => $inventory->expiry_date ? $inventory->expiry_date->format('d-m-Y') : '—',
                 'reorder_level' => $reorder_level,

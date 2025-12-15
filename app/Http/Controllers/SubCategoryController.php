@@ -5,13 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\SubCategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class SubCategoryController extends Controller
 {
     public function index()
     {
         $subCategories = SubCategory::with('category')->get();
-        return view('subcategories.index', compact('subCategories'));
+        $categories = Category::all();
+        return view('subcategories.index', compact('subCategories', 'categories'));
     }
 
     public function getData(Request $request)
@@ -60,14 +62,16 @@ class SubCategoryController extends Controller
         foreach ($data as $row) {
 
             $action = '<div class="d-flex align-items-center list-action">   
-                        <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                                        href="' . url('/subcategories/edit/' . $row->id) . '"><i class="ri-pencil-line mr-0"></i></a>
-                                    </div>';
+                        <button class="badge bg-success mr-2 border-0" onclick="editSubCategory(' . $row->id . ')" title="Edit">
+                        <i class="ri-pencil-line"></i>
+                    </button>';
 
             $records[] = [
                 'name' => $row->name,
                 'category_name' => $row->category_name,
-                'is_active' => $row->is_active,
+                'is_active' => $row->is_active == 'yes'
+                    ? '<span onclick=\'statusChange("' . $row->id . '", "no")\'><div class="badge badge-success" style="cursor:pointer">Active</div></span>'
+                    : '<span onclick=\'statusChange("' . $row->id . '", "yes")\'><div class="badge badge-danger" style="cursor:pointer">Inactive</div></span>',
                 'created_at' => \Carbon\Carbon::parse($row->created_at)->format('d-m-Y H:i'),
                 'updated_at' => \Carbon\Carbon::parse($row->updated_at)->format('d-m-Y H:i'),
                 'action' => $action
@@ -90,21 +94,40 @@ class SubCategoryController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validator = \Validator::make($request->all(), [
             'category_id' => 'required|exists:categories,id',
             'name' => 'required|string|max:255'
         ]);
 
-        SubCategory::create($request->all());
-        return redirect()->route('subcategories.list')->with('success', 'SubCategory created!');
+        // If validation fails, return JSON errors
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Create record
+        SubCategory::create([
+            'category_id' => $request->category_id,
+            'name' => $request->name,
+            'is_active' => 1
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sub Category created successfully!'
+        ]);
     }
 
     public function edit($id)
     {
-        $categories = Category::all();
+        // $categories = Category::all();
 
-        $record = SubCategory::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
-        return view('subcategories.edit', compact('record', 'categories'));
+        // $record = SubCategory::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
+        // return view('subcategories.edit', compact('record', 'categories'));
+        $sub = SubCategory::findOrFail($id);
+        return response()->json($sub);
     }
 
     public function update(Request $request)
@@ -136,5 +159,14 @@ class SubCategoryController extends Controller
         $record->update(['is_deleted' => 'yes']);
 
         return redirect()->route('users.list')->with('success', 'Sub Category has been deleted successfully.');
+    }
+
+    public function statusChange(Request $request)
+    {
+        $user = SubCategory::findOrFail($request->id);
+        $user->is_active = $request->status;
+        $user->save();
+
+        return response()->json(['message' => 'Status updated successfully']);
     }
 }

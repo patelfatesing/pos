@@ -129,7 +129,7 @@ class CommissionUserController extends Controller
             'first_name' => 'required|string|max:255|unique:commission_users,first_name',
             'email' => 'nullable|email|max:255|unique:commission_users,email',
             'commission_type' => 'required|in:fixed,percentage',
-            'applies_to' => 'required|in:all,category,product',
+            // 'applies_to' => 'required|in:all,category,product',
             'reference_id' => 'nullable|string',
             'is_active' => 'required|boolean',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg'
@@ -280,7 +280,7 @@ class CommissionUserController extends Controller
 
             'first_name' => 'required|string|max:255|unique:commission_users,first_name,' . $Commissionuser->id,
             'commission_type' => 'required|in:fixed,percentage',
-            'applies_to' => 'required|in:all,category,product',
+            // 'applies_to' => 'required|in:all,category,product',
             'reference_id' => 'nullable|string',
             'is_active' => 'required|boolean',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg',
