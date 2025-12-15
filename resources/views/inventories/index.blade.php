@@ -46,8 +46,9 @@
                                         <th>Sr No</th>
                                         <th>Product</th>
                                         <th>Store</th>
-                                        <th>Quantity</th>
+                                        <th>In-Stock</th>
                                         <th>Cost Price</th>
+                                        <th>Discount Price</th>
                                         <th>Batch No</th>
                                         <th>Expiry Date</th>
                                         <th>Stock Low Level</th>
@@ -154,6 +155,10 @@
                     },
                     {
                         data: 'cost_price',
+                        orderable: false
+                    },
+                    {
+                        data: 'discount_price',
                         orderable: false
                     },
                     {

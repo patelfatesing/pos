@@ -31,7 +31,7 @@
                                 </th>
                                 <th>Status</th>
                                 <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
-                                <th>Action</th>
+                                {{-- <th>Action</th> --}}
                             </tr>
                         </thead>
                         <tbody>
@@ -77,14 +77,14 @@
                     {
                         data: 'created_at'
                     },
-                    {
-                        data: 'action'
-                    }
+                    // {
+                    //     data: 'action'
+                    // }
                     // Define more columns as per your table structure
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [1, 3] // make "action" column unsortable
+                    aTargets: [1] // make "action" column unsortable
                 }],
                 order: [
                     [2, 'desc']

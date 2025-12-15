@@ -83,7 +83,7 @@
                                         <th>Sr No</th> <!-- Added this line -->
                                         <th>Customer Name</th>
                                         <th>Commission Type</th>
-                                        <th>Applies To</th>
+                                        {{-- <th>Applies To</th> --}}
                                         <th>Status</th>
                                         <th>Created Date</th>
                                         <th>Updated Date</th>
@@ -136,9 +136,9 @@
                     {
                         data: 'commission_type', orderable: false
                     },
-                    {
-                        data: 'applies_to', orderable: false
-                    },
+                    // {
+                    //     data: 'applies_to', orderable: false
+                    // },
                     {
                         data: 'is_active'
                     },
@@ -153,12 +153,16 @@
                     }
                 ],
                 order: [
-                    [6, 'desc']
+                    [5, 'desc']
                 ],
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, "All"]
                 ],
+                 aoColumnDefs: [{
+                    bSortable: false,
+                    aTargets: [1, 2, 3] // make "action" column unsortable
+                }],
                 pageLength: 10,
 
                 dom: "<'custom-toolbar-row'lfB>t<'row mt-2'<'col-md-6'i><'col-md-6'p>>",

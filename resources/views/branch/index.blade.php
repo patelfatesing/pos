@@ -152,9 +152,9 @@
     </div>
 
     <!-- Modal -->
-    <div class="modal fade bd-example-modal-lg" id="AddOneTimeModal" tabindex="-1"
+    <div class="modal fade bd-example-modal-sm" id="AddOneTimeModal" tabindex="-1"
         aria-labelledby="AddOneTimeModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <form id="addOneTimeForm" method="POST" action="{{ route('branch.add.one.time.store') }}">
                     @csrf
@@ -511,8 +511,8 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(res) {
-                    $('#AddHolidayModal').modal('hide');
-                    alert('Holiday added successfully.');
+                    $('#AddOneTimeModal').modal('hide');
+                    alert('Onetime sales time set added successfully.');
                     location.reload();
                 },
                 error: function(xhr) {
