@@ -47,12 +47,12 @@
                                         <th>
                                             <b>N</b>ame
                                         </th>
-                                        <th>Cotegory</th>
-                                        <th>Sub Cotegory</th>
-                                        <th>Pack Size</th>
-                                        <th>Brand</th>
+                                        <th>Category</th>
+                                        {{-- <th>Pack Size</th>
+                                        <th>Brand</th> --}}
                                         <th>MRP</th>
                                         <th>Sale Price</th>
+                                        <th>Cost Price</th>
                                         <th>Status</th>
                                         <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
                                         <th data-type="date" data-format="YYYY/DD/MM">Updated Date</th>
@@ -132,6 +132,98 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
         </div>
     </div>
 
+    <!-- View Product Modal -->
+    <div class="modal fade bd-example-modal-lg" id="productViewModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Product Details</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>×</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+                            <strong>Name:</strong>
+                            <div id="view_name" class="text-muted"></div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <strong>Category:</strong>
+                            <div id="view_category" class="text-muted"></div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <strong>Subcategory:</strong>
+                            <div id="view_subcategory" class="text-muted"></div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <strong>Pack Size:</strong>
+                            <div id="view_size" class="text-muted"></div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <strong>Barcode:</strong>
+                            <div id="view_barcode" class="text-muted"></div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <strong>MRP:</strong>
+                            <div id="view_mrp" class="text-muted"></div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <strong>Sell Price:</strong>
+                            <div id="view_sell_price" class="text-muted"></div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <strong>Cost Price:</strong>
+                            <div id="view_cost_price" class="text-muted"></div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <strong>Discount Price:</strong>
+                            <div id="view_discount_price" class="text-muted"></div>
+                        </div>
+
+                        <div class="col-md-12 mb-3">
+                            <strong>Description:</strong>
+                            <div id="view_description" class="text-muted"></div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <strong>Status:</strong>
+                            <div id="view_status" class="text-muted"></div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <strong>Created At:</strong>
+                            <div id="view_created_at" class="text-muted"></div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <strong>Updated At:</strong>
+                            <div id="view_updated_at" class="text-muted"></div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
     <!-- Wrapper End-->
 
     <script>
@@ -175,23 +267,23 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                         data: 'category',
                         orderable: false
                     },
-                    {
-                        data: 'sub_category',
-                        orderable: false
-                    },
-                    {
-                        data: 'size'
-                    },
-                    {
-                        data: 'brand',
-                        orderable: false
-                    },
+                    // {
+                    //     data: 'size'
+                    // },
+                    // {
+                    //     data: 'brand',
+                    //     orderable: false
+                    // },
                     {
                         data: 'mrp',
                         orderable: false
                     },
                     {
                         data: 'sell_price',
+                        orderable: false
+                    },
+                    {
+                        data: 'cost_price',
                         orderable: false
                     },
                     {
@@ -217,18 +309,18 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                         width: "7%",
                         targets: 1
                     },
-                    {
-                        width: "5%",
-                        targets: 2
-                    },
-                    {
-                        width: "5%",
-                        targets: 3
-                    },
-                    {
-                        width: "5%",
-                        targets: 4
-                    },
+                    // {
+                    //     width: "5%",
+                    //     targets: 2
+                    // },
+                    // {
+                    //     width: "5%",
+                    //     targets: 3
+                    // },
+                    // {
+                    //     width: "5%",
+                    //     targets: 4
+                    // },
                     {
                         width: "7%",
                         targets: 5
@@ -248,7 +340,7 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                 ],
                 autoWidth: false,
                 order: [
-                    [8, 'desc']
+                    [5, 'desc']
                 ],
                 dom: "Bfrtip",
                 lengthMenu: [
@@ -363,10 +455,10 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                             } else {
                                 // If deletion is successful, show success message
                                 Swal.fire("Deleted!", "The product has been deleted.", "success").then(
-                                () => {
-                                    $('#products_table').DataTable().ajax.reload(null,
-                                    false); // ✅ Only reload DataTable
-                                });
+                                    () => {
+                                        $('#products_table').DataTable().ajax.reload(null,
+                                            false); // ✅ Only reload DataTable
+                                    });
                             }
                         },
                         error: function(xhr, status, error) {
@@ -393,6 +485,68 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                 $('#priceChangeModal').modal('show');
             }
             // $('#priceChangeModal').modal('show');
+        }
+
+        function statusChange(id, newStatus) {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "Do you want to change the status?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, change it!",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ url('products/status-change') }}", // Update this to your route
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        data: {
+                            id: id,
+                            status: newStatus
+                        },
+                        success: function(response) {
+                            Swal.fire("Success!", "Status has been changed.", "success").then(() => {
+                                $('#products_table').DataTable().ajax.reload(null,
+                                    false); // ✅ Only reload DataTable
+                            });
+                        },
+                        error: function(xhr) {
+                            Swal.fire("Error!", "Something went wrong.", "error");
+                        }
+                    });
+                }
+            });
+        }
+
+        function viewProduct(id) {
+
+            $.ajax({
+                url: "/products/view/" + id,
+                type: "GET",
+                success: function(product) {
+
+                    $("#view_name").text(product.name);
+                    $("#view_category").text(product.category ? product.category.name : '-');
+                    $("#view_subcategory").text(product.subcategory ? product.subcategory.name : '-');
+                    $("#view_size").text(product.size ?? '-');
+                    $("#view_barcode").text(product.barcode ?? '-');
+                    $("#view_mrp").text(product.mrp);
+                    $("#view_sell_price").text(product.sell_price);
+                    $("#view_cost_price").text(product.cost_price);
+                    $("#view_discount_price").text(product.discount_price ?? '-');
+                    $("#view_description").text(product.description ?? '-');
+                    $("#view_status").text(product.is_active == 1 ? "Active" : "Inactive");
+                    $("#view_created_at").text(product.created_at);
+                    $("#view_updated_at").text(product.updated_at);
+
+                    new bootstrap.Modal(document.getElementById('productViewModal')).show();
+
+
+                }
+            });
+
         }
     </script>
 @endsection

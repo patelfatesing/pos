@@ -24,7 +24,7 @@
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>Name</label>
-                                                <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
+                                                <input type="text" name="name" class="form-control" value="{{ old('name') }}">
                                                 @error('name')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -34,7 +34,7 @@
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>Email</label>
-                                                <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
+                                                <input type="email" name="email" class="form-control" value="{{ old('email') }}">
                                                 @error('email')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror

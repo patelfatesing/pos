@@ -10,7 +10,7 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between">
                                 <div class="header-title">
-                                    <h4 class="card-title">Delivery Invoice</h4>
+                                    <h4 class="card-title">Purchase Invoice</h4>
                                     @error('to_store_id')
                                         <span class="text-danger">{{ $message }}</span>
                                     @enderror
@@ -109,9 +109,10 @@
                                                         <label for="subcategories">Sub Category</label>
                                                         <select name="subcategories" id="subcategories"
                                                             class="form-control">
-                                                            <option value="">-- Select Ledger --</option>
+                                                            <option value="">-- Select Sub Category --</option>
                                                             @foreach ($subcategories as $subcat)
                                                                 <option value="{{ $subcat->id }}"
+                                                                    data-id="{{ $subcat->id }}"
                                                                     {{ old('subcategories') == $subcat->id ? 'selected' : '' }}>
                                                                     {{ $subcat->name }}
                                                                 </option>
@@ -265,7 +266,7 @@
                                             <div class="row mt-4 mb-3">
                                                 {{-- LEFT: LICENSE LEDGER --}}
                                                 <div class="col-lg-4">
-                                                    <div class="or-detail rounded">
+                                                    <div class="or-detail rounded" id="license-ledger-box">
                                                         <div class="p-3">
                                                             <h5 class="mb-3">Details For License Ledger</h5>
                                                             <div>
@@ -564,6 +565,37 @@
         $('.total_amount').val(grandTotal.toFixed(2));
     }
 
+    function filterSubcategoriesByVendor(vendorId) {
+
+        const vendor1Subs = ['1', '2']; // vendor_id = 1
+        const vendor2Subs = ['3', '4']; // vendor_id = 2
+
+        $('#subcategories option').each(function() {
+
+            const subId = $(this).data('id');
+
+            // Always show default option
+            if (!subId) {
+                $(this).show();
+                return;
+            }
+
+            if (vendorId === '1') {
+                $(this).toggle(vendor1Subs.includes(String(subId)));
+            } else if (vendorId === '2') {
+                $(this).toggle(vendor2Subs.includes(String(subId)));
+            } else {
+                // Other vendors → show all
+                $(this).show();
+            }
+        });
+
+        // Reset if selected option becomes hidden
+        if ($('#subcategories option:selected').is(':hidden')) {
+            $('#subcategories').val('');
+        }
+    }
+
     function onVendorChange(vendorId) {
         $('.vendor-fields').addClass('d-none');
         $('.vendor-common').hide();
@@ -602,6 +634,14 @@
 
             tcs: '{{ old('tcs') }}'
         };
+
+        // SHOW LICENSE LEDGER ONLY FOR VENDOR 1 & 2
+        if (vendorId === '1' || vendorId === '2') {
+            $('#license-ledger-box').removeClass('d-none');
+        } else {
+            $('#license-ledger-box').addClass('d-none');
+        }
+
 
         if (vendorId === '1') {
             // Vendor 1: three columns -> Billing no offset, excise visible
@@ -911,19 +951,29 @@
         // vendor change -> onVendorChange + auto sync ledger
         $('#vendor_id').on('change', function() {
             const vendorId = $(this).val();
-            onVendorChange(vendorId);
 
-            let ledgerSelect = $('#parchase_ledger');
-            ledgerSelect.val(vendorId);
+            onVendorChange(vendorId); // your existing logic
+            filterSubcategoriesByVendor(vendorId); // ✅ subcategory logic
+
+            // Auto-sync purchase ledger
+            $('#parchase_ledger').val(vendorId);
         });
+
     });
 
     // Initial on page load (after validation error)
     document.addEventListener('DOMContentLoaded', function() {
+
         calculateProductTotals();
         updateBillingTotal();
 
         const oldVendorId = '{{ old('vendor_id') }}';
-        onVendorChange(oldVendorId ? oldVendorId : '');
+
+        if (oldVendorId) {
+            onVendorChange(oldVendorId);
+            filterSubcategoriesByVendor(oldVendorId);
+        } else {
+            $('#license-ledger-box').addClass('d-none');
+        }
     });
 </script>

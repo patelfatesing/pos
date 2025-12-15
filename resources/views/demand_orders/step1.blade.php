@@ -9,9 +9,15 @@
                 <div class="row">
                     <div class="col-sm-12 col-lg-12">
                         <div class="iq-card">
-                            <div class="iq-card-header d-flex justify-content-between">
-                                <div class="iq-header-title">
-                                    <h4 class="card-title">Create Demand Order</h4>
+                            <div class="row align-items-center mb-3">
+                                <div class="col-lg-12">
+                                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+                                        <div>
+                                            <h4 class="mb-3">Create Demand Order</h4>
+                                        </div>
+                                        <a href="{{ route('demand-order.list') }}" class="btn btn-secondary">Back</a>
+                                
+                                    </div>
                                 </div>
                             </div>
                             <div class="iq-card-body">
@@ -68,41 +74,41 @@
                                                     @enderror
                                                 </div>
 
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label>Category *</label>
-                                                <select name="category_id" id="category_id"
-                                                    class="selectpicker form-control" data-style="py-0">
-                                                    <option value="">All Categories</option>
-                                                    @foreach ($categories as $category)
-                                                        <option value="{{ $category->id }}"
-                                                            {{ old('category_id') == $category->id ? 'selected' : '' }}>
-                                                            {{ $category->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                @error('category_id')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Category *</label>
+                                                        <select name="category_id" id="category_id"
+                                                            class="selectpicker form-control" data-style="py-0">
+                                                            <option value="">All Categories</option>
+                                                            @foreach ($categories as $category)
+                                                                <option value="{{ $category->id }}"
+                                                                    {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                                                    {{ $category->name }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('category_id')
+                                                            <span class="text-danger">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
 
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label>Sub Category *</label>
-                                                <select id="sub_category_ids" name="subcategory_id" class="form-control"
-                                                    data-style="py-0">
-                                                    <option value="">All Sub Categories</option>
-                                                    @if (old('subcategory_id'))
-                                                        <option value="{{ old('subcategory_id') }}" selected>
-                                                            {{ old('subcategory_id') }}</option>
-                                                    @endif
-                                                </select>
-                                                @error('subcategory_id')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
-                                            </div>
-                                        </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Sub Category *</label>
+                                                        <select id="sub_category_ids" name="subcategory_id"
+                                                            class="form-control" data-style="py-0">
+                                                            <option value="">All Sub Categories</option>
+                                                            @if (old('subcategory_id'))
+                                                                <option value="{{ old('subcategory_id') }}" selected>
+                                                                    {{ old('subcategory_id') }}</option>
+                                                            @endif
+                                                        </select>
+                                                        @error('subcategory_id')
+                                                            <span class="text-danger">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
                                                 <div class="col-md-4">
                                                     <label for="purchase_date" class="form-label">Date</label>
                                                     <input type="date" class="form-control" id="purchase_date"
@@ -155,16 +161,16 @@
                                                         @enderror
                                                     </div>
                                                 </div>
-                                                <div class="col-md-4 custom-date-range d-none" >
+                                                <div class="col-md-4 custom-date-range d-none">
                                                     <div class="form-group">
                                                         <label for="start_date">Start Date</label>
                                                         <input type="date" name="start_date" id="start_date"
                                                             class="form-control">
                                                     </div>
                                                 </div>
-                                                <div class="col-md-4 custom-date-range d-none" >
+                                                <div class="col-md-4 custom-date-range d-none">
                                                     <div class="form-group">
-                                                        <label for="end_date" >End Date</label>
+                                                        <label for="end_date">End Date</label>
                                                         <input type="date" name="end_date" id="end_date"
                                                             class="form-control">
                                                     </div>
@@ -191,23 +197,23 @@
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
-   $(document).ready(function () {
-        $(document).ready(function () {
-        $('#avg_sales').on('change', function () {
-            if ($(this).val() === '0') {
-                $('.custom-date-range').removeClass('d-none');
-                $('.custom-date-range input').prop('disabled', false);
-            } else {
-                $('.custom-date-range').addClass('d-none');
+    $(document).ready(function() {
+        $(document).ready(function() {
+            $('#avg_sales').on('change', function() {
+                if ($(this).val() === '0') {
+                    $('.custom-date-range').removeClass('d-none');
+                    $('.custom-date-range input').prop('disabled', false);
+                } else {
+                    $('.custom-date-range').addClass('d-none');
+                    $('.custom-date-range input').prop('disabled', true);
+                }
+            });
+
+            // Initial check (in case of old value retained on edit)
+            if ($('#avg_sales').val() !== '0') {
                 $('.custom-date-range input').prop('disabled', true);
             }
         });
-
-        // Initial check (in case of old value retained on edit)
-        if ($('#avg_sales').val() !== '0') {
-            $('.custom-date-range input').prop('disabled', true);
-        }
-    });
     });
     $(document).ready(function() {
 
@@ -338,37 +344,37 @@
         }
     });
 </script>
- <script>
-        $(document).ready(function() {
-            $('#category_id').on('change', function() {
+<script>
+    $(document).ready(function() {
+        $('#category_id').on('change', function() {
 
-                var categoryId = $(this).val();
-                if (categoryId) {
-                    $.ajax({
-                        url: "{{ url('/products/subcategory') }}/" + categoryId,
-                        type: "GET",
-                        dataType: "json",
-                        success: function(data) {
-                            $('#sub_category_ids').empty();
-                            $('#sub_category_ids').append(
-                                '<option value="" disabled selected>Select Sub Category</option>'
-                            );
-                            $.each(data, function(key, value) {
-                                $("#fate").text(value.name);
-                                $('#sub_category_ids').append('<option value="' + value
-                                    .id + '">' + value.name + '</option>');
-                            });
-                        },
-                        error: function() {
-                            alert('Failed to fetch subcategories. Please try again.');
-                        }
-                    });
-                } else {
-                    $('#sub_category_ids').empty();
-                    $('#sub_category_ids').append(
-                        '<option value="" disabled selected>Select Sub Category</option>');
-                }
-            });
-
+            var categoryId = $(this).val();
+            if (categoryId) {
+                $.ajax({
+                    url: "{{ url('/products/subcategory') }}/" + categoryId,
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data) {
+                        $('#sub_category_ids').empty();
+                        $('#sub_category_ids').append(
+                            '<option value="" disabled selected>Select Sub Category</option>'
+                        );
+                        $.each(data, function(key, value) {
+                            $("#fate").text(value.name);
+                            $('#sub_category_ids').append('<option value="' + value
+                                .id + '">' + value.name + '</option>');
+                        });
+                    },
+                    error: function() {
+                        alert('Failed to fetch subcategories. Please try again.');
+                    }
+                });
+            } else {
+                $('#sub_category_ids').empty();
+                $('#sub_category_ids').append(
+                    '<option value="" disabled selected>Select Sub Category</option>');
+            }
         });
-    </script>
+
+    });
+</script>

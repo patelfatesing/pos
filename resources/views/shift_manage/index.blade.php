@@ -272,7 +272,7 @@
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [1, 3, 4, 5, 6, 7] // make "action" column unsortable
+                    aTargets: [1, 2, 3, 4, 5, 6, 7] // make "action" column unsortable
                 }],
                 order: [
                     [2, 'desc']
@@ -515,8 +515,16 @@
         }
 
         function showImage(imageUrl) {
-            $('#modalImage').attr('src', imageUrl); // Set the image src
-            $('#imageModal').modal('show'); // Show the modal
+            let defaultImg = "{{ asset('assets/images/no_img.jpg') }}"; // Your thumbnail image
+
+            // Set image with fallback
+            $('#modalImage')
+                .attr('src', imageUrl ? imageUrl : defaultImg)
+                .on('error', function() {
+                    $(this).attr('src', defaultImg);
+                });
+
+            $('#imageModal').modal('show');
         }
     </script>
 @endsection

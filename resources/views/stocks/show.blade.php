@@ -324,7 +324,7 @@
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [2, 3, 5]
+                    aTargets: [0, 2, 3, 5]
                 }],
                 order: [
                     [1, 'desc']

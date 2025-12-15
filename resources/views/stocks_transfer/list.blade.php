@@ -140,6 +140,10 @@
                         searchable: false
                     }
                 ],
+                aoColumnDefs: [{
+                    bSortable: false,
+                    aTargets: [0, 3, 4, 5,6]
+                }],
                 order: [
                     [5, 'desc']
                 ], // Order by transfer date descending

@@ -20,6 +20,9 @@ use App\Models\Refund;
 use Illuminate\Support\Facades\Auth;
 use App\Models\DailyProductStock;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ShiftCloseMail;
+
 
 class ShiftCloseModal extends Component
 {
@@ -625,6 +628,31 @@ class ShiftCloseModal extends Component
             //         $stock->save();
             //     }
             // }
+
+            // --------------------------------------
+            // PREPARE SUMMARY DATA FOR EMAIL
+            // --------------------------------------
+            $summary = [
+                'OPENING CASH'                           => $this->categoryTotals['summary']['OPENING CASH'] ?? '₹0',
+                'CASH ADDED'                             => $this->categoryTotals['summary']['CASH ADDED'] ?? '₹0',
+                'TOTAL SALES'                            => $this->categoryTotals['summary']['TOTAL SALES'] ?? '₹0',
+                'DISCOUNT'                               => $this->categoryTotals['summary']['DISCOUNT'] ?? '₹0',
+                'WITHDRAWAL PAYMENT'                     => $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] ?? '₹0',
+                'UPI PAYMENT'                            => $this->categoryTotals['payment']['UPI PAYMENT'] ?? '₹0',
+                'ROUND OFF'                              => $this->categoryTotals['summary']['ROUND OFF'] ?? '₹0',
+                'CREDIT (Excluded from Cash)'            => $this->categoryTotals['summary']['CREDIT'] ?? '₹0',
+                'REFUND CREDIT (Excluded from Cash)'     => $this->categoryTotals['summary']['REFUND CREDIT'] ?? '₹0',
+                'TOTAL'                                  => $this->categoryTotals['summary']['TOTAL'] ?? '₹0',
+                'REFUND'                                 => $this->categoryTotals['summary']['REFUND'] ?? '₹0',
+            ];
+
+            // --------------------------------------
+            // SEND EMAIL TO ADMIN
+            // --------------------------------------
+            Mail::to('patel.fatesing36@gmail.com')->send(
+                new ShiftCloseMail($shift, $summary)
+            );
+
 
             session()->forget(auth()->id() . '_warehouse_product_photo_path', []);
             session()->forget(auth()->id() . '_warehouse_customer_photo_path', []);
