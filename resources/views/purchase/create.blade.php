@@ -10,7 +10,7 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between">
                                 <div class="header-title">
-                                    <h4 class="card-title">Delivery Invoice</h4>
+                                    <h4 class="card-title">Purchase Invoice</h4>
                                     @error('to_store_id')
                                         <span class="text-danger">{{ $message }}</span>
                                     @enderror
@@ -43,6 +43,7 @@
                                                         <span class="text-danger">{{ $message }}</span>
                                                     @enderror
                                                 </div>
+
                                                 <div class="col-md-4">
                                                     <div class="form-group">
                                                         <label for="vendor_id">Vendor Name</label>
@@ -60,6 +61,30 @@
                                                         @enderror
                                                     </div>
                                                 </div>
+
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="vendor_new_id">Ledger Name</label>
+                                                        <select name="vendor_new_id" id="vendor_new_id"
+                                                            class="form-control">
+                                                            <option value="">-- Select Ledger Name --</option>
+                                                            @foreach ($ledgersAll as $vendor)
+                                                                <option value="{{ $vendor->id }}"
+                                                                    {{ old('vendor_new_id') == $vendor->id ? 'selected' : '' }}>
+                                                                    {{ $vendor->name }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('vendor_new_id')
+                                                            <span class="text-danger">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
+                                                    <a href="{{ route('accounting.ledgers.create', 'purchase') }}"
+                                                        class="btn btn-outline-secondary btn-sm">
+                                                        Create Ledger
+                                                    </a>
+                                                </div>
+
                                                 <div class="col-md-4">
                                                     <div class="form-group">
                                                         <label for="parchase_ledger">Purchase Ledger</label>
@@ -78,6 +103,27 @@
                                                         @enderror
                                                     </div>
                                                 </div>
+
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="subcategories">Sub Category</label>
+                                                        <select name="subcategories" id="subcategories"
+                                                            class="form-control">
+                                                            <option value="">-- Select Sub Category --</option>
+                                                            @foreach ($subcategories as $subcat)
+                                                                <option value="{{ $subcat->id }}"
+                                                                    data-id="{{ $subcat->id }}"
+                                                                    {{ old('subcategories') == $subcat->id ? 'selected' : '' }}>
+                                                                    {{ $subcat->name }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('subcategories')
+                                                            <span class="text-danger">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+
                                                 <div class="col-md-4">
                                                     <div class="form-group">
                                                         <label for="product_select">Product</label>
@@ -96,7 +142,10 @@
                                                     </div>
                                                 </div>
                                             </div>
+
                                             <hr />
+
+                                            {{-- PRODUCTS TABLE --}}
                                             <div class="table-responsive mb-3">
                                                 <table class="table table-bordered" id="product_table">
                                                     <thead class="table-light">
@@ -107,7 +156,7 @@
                                                             <th>MFG Date</th>
                                                             <th>MRP Rate</th>
                                                             <th>Qty</th>
-                                                            <th> Cost Price</th>
+                                                            <th>Cost Price</th>
                                                             <th>Amount</th>
                                                             <th>Action</th>
                                                         </tr>
@@ -184,23 +233,26 @@
                                                                                 class="text-danger">{{ $message }}</span>
                                                                         @enderror
                                                                     </td>
-                                                                    <td><button type="button"
-                                                                            class="btn btn-sm btn-danger remove">Remove</button>
+                                                                    <td>
+                                                                        <button type="button"
+                                                                            class="btn btn-sm btn-danger remove">
+                                                                            Remove
+                                                                        </button>
                                                                     </td>
                                                                 </tr>
                                                             @endforeach
                                                         @endif
                                                     </tbody>
-
                                                 </table>
                                             </div>
+
                                             <input type="hidden" name="total" class="total_val" value="" />
 
                                             <div class="row mt-4 mb-3">
                                                 <div class="offset-lg-8 col-lg-4">
                                                     <div class="or-detail rounded">
                                                         <div class="p-3">
-                                                            <span colspan="8">Sub Total: </span>
+                                                            <span>Sub Total: </span>
                                                             <input hidden class="total_amt">
                                                             <span id="total"></span>
                                                         </div>
@@ -209,114 +261,160 @@
                                             </div>
 
                                             <hr />
+
+                                            {{-- BOTTOM THREE COLUMNS --}}
                                             <div class="row mt-4 mb-3">
+                                                {{-- LEFT: LICENSE LEDGER --}}
                                                 <div class="col-lg-4">
-                                                    <div class="or-detail rounded">
+                                                    <div class="or-detail rounded" id="license-ledger-box">
                                                         <div class="p-3">
-                                                            <h5 class="mb-3"></h5>
-                                                            <div id="vendor-1-fields"
-                                                                class="vendor-fields d-none vendor-1">
+                                                            <h5 class="mb-3">Details For License Ledger</h5>
+                                                            <div>
                                                                 <div class="form-group">
                                                                     <label>AED TO BE PAID</label>
-                                                                    <input type="tel" class="form-control"
+                                                                    <input type="number" class="form-control"
                                                                         value="{{ old('aed_to_be_paid') }}"
                                                                         name="aed_to_be_paid" id="aed_to_be_paid" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>Guarantee Fulfilled</label>
-                                                                    <input type="tel" class="form-control"
+                                                                    <input type="number" class="form-control"
                                                                         value="{{ old('guarantee_fulfilled') }}"
                                                                         name="guarantee_fulfilled"
                                                                         id="guarantee_fulfilled" />
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>Loading Charges (Including Tax)</label>
+                                                                    <input type="number" class="form-control"
+                                                                        value="{{ old('loading_charges') }}"
+                                                                        name="loading_charges" id="loading_charges" />
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
 
-                                                <div class="offset-lg-8 col-lg-4">
+                                                {{-- MIDDLE: EXCISE FEE BOX (vendor 1) --}}
+                                                <div class="col-lg-4 excise-section d-none">
+                                                    <div class="or-detail rounded">
+                                                        <div class="p-3">
+                                                            <h5 class="mb-3">Excise Fee</h5>
+                                                            <div>
+                                                                <div class="form-group">
+                                                                    <label>Permit Fee</label>
+                                                                    <input type="number" class="form-control"
+                                                                        name="permit_fee_excise" id="permit_fee_excise"
+                                                                        value="{{ old('permit_fee_excise') }}" />
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>Vend Fee</label>
+                                                                    <input type="number" class="form-control"
+                                                                        name="vend_fee_excise" id="vend_fee_excise"
+                                                                        value="{{ old('vend_fee_excise') }}" />
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>Composite Fee (For RTDC Shop)</label>
+                                                                    <input type="number" class="form-control"
+                                                                        name="composite_fee_excise"
+                                                                        id="composite_fee_excise"
+                                                                        value="{{ old('composite_fee_excise') }}" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div
+                                                            class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center border-top">
+                                                            <h6>Total</h6>
+                                                            <div>
+                                                                <input type="hidden" name="excise_total_amount"
+                                                                    class="excise_total_amount"
+                                                                    value="{{ old('excise_total_amount') }}" />
+                                                                <h3 class="text-primary font-weight-700"
+                                                                    id="excise_total_amount">
+                                                                    @if (old('excise_total_amount'))
+                                                                        ₹{{ number_format(old('excise_total_amount'), 2) }}
+                                                                    @endif
+                                                                </h3>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {{-- RIGHT: BILLING DETAILS (must be right side) --}}
+                                                <div class="col-lg-4 offset-lg-4" id="billing-column">
                                                     <div class="or-detail rounded">
                                                         <div class="p-3">
                                                             <h5 class="mb-3">Billing Details</h5>
 
-                                                            <!-- Vendor 1 Fields -->
+                                                            {{-- Vendor 1 --}}
                                                             <div id="vendor-1-fields"
                                                                 class="vendor-fields d-none vendor-1">
                                                                 <div class="form-group">
                                                                     <label>EXCISE FEE</label>
-                                                                    <input type="tel" class="form-control"
+                                                                    <input type="number" class="form-control"
                                                                         value="{{ old('excise_fee') }}" name="excise_fee"
                                                                         id="excise_fee" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>COMPOSITION VAT</label>
-                                                                    <input type="tel" class="form-control"
+                                                                    <input type="number" class="form-control"
                                                                         value="{{ old('composition_vat') }}"
                                                                         name="composition_vat" id="composition_vat" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>SURCHARGE ON CA</label>
-                                                                    <input type="tel" class="form-control"
+                                                                    <input type="number" class="form-control"
                                                                         value="{{ old('surcharge_on_ca') }}"
                                                                         name="surcharge_on_ca" id="surcharge_on_ca" />
                                                                 </div>
-                                                                <div class="form-group">
-                                                                    <label>AED TO BE PAID</label>
-                                                                    <input type="tel" class="form-control"
-                                                                        value="{{ old('aed_to_be_paid') }}"
-                                                                        name="aed_to_be_paid" id="aed_to_be_paid" />
-                                                                </div>
-                                                                <div class="form-group">
-                                                                    <label>Guarantee Fulfilled</label>
-                                                                    <input type="tel" class="form-control"
-                                                                        value="{{ old('guarantee_fulfilled') }}"
-                                                                        name="guarantee_fulfilled" id="guarantee_fulfilled" />
-                                                                </div>
                                                             </div>
 
-                                                            <!-- Vendor 2 and Others Fields -->
+                                                            {{-- Vendor 2 --}}
                                                             <div id="vendor-2-fields"
                                                                 class="vendor-fields d-none vendor-2">
                                                                 <div class="form-group">
                                                                     <label>VAT</label>
-                                                                    <input type="tel" id="vat"
+                                                                    <input type="number" id="vat"
                                                                         value="{{ old('vat') }}" class="form-control"
                                                                         name="vat" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>SURCHARGE ON VAT</label>
-                                                                    <input type="tel" id="surcharge_on_vat"
+                                                                    <input type="number" id="surcharge_on_vat"
                                                                         value="{{ old('surcharge_on_vat') }}"
                                                                         class="form-control" name="surcharge_on_vat" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>BLF</label>
-                                                                    <input type="tel" id="blf"
+                                                                    <input type="number" id="blf"
                                                                         value="{{ old('blf') }}" class="form-control"
                                                                         name="blf" />
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>Permit Fee</label>
-                                                                    <input type="tel" class="form-control"
+                                                                    <input type="number" class="form-control"
                                                                         value="{{ old('permit_fee') }}" name="permit_fee"
                                                                         id="permit_fee" />
                                                                 </div>
-                                                                <div class="form-group">
+                                                                {{-- <div class="form-group">
                                                                     <label>RSGSM Purchase</label>
-                                                                    <input type="tel" class="form-control"
+                                                                    <input type="number" class="form-control"
                                                                         value="{{ old('rsgsm_purchase') }}"
                                                                         name="rsgsm_purchase" id="rsgsm_purchase" />
-                                                                </div>
+                                                                </div> --}}
                                                             </div>
+
+                                                            {{-- Common for vendor 1 & 2 --}}
                                                             <div class="vendor-common">
                                                                 <div class="form-group">
                                                                     <label>TCS</label>
-                                                                    <input type="tel" id="tcs"
+                                                                    <input type="number" id="tcs"
                                                                         value="{{ old('tcs') }}" class="form-control"
                                                                         name="tcs" />
                                                                 </div>
                                                             </div>
                                                         </div>
+
+                                                        {{-- Other vendors: cash purchase --}}
                                                         <div id="vendor-others-fields" class="vendor-fields d-none">
                                                             <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center border border-danger"
                                                                 style="background-color: #fdf1f7;">
@@ -328,7 +426,8 @@
                                                                             class="form-control form-control-sm pur_dis"
                                                                             placeholder="%" name="case_purchase_per"
                                                                             style="width: 80px;" min="0"
-                                                                            max="100">
+                                                                            max="100"
+                                                                            value="{{ old('case_purchase_per') }}">
                                                                         <span class="ml-1">%</span>
                                                                     </div>
                                                                 </div>
@@ -337,26 +436,27 @@
                                                                     <input type="float" name="case_purchase_amt"
                                                                         class="form-control form-control-sm pur_amt text-danger font-weight-bold"
                                                                         placeholder="Amount" style="width: 120px;"
-                                                                        min="0">
+                                                                        min="0"
+                                                                        value="{{ old('case_purchase_amt') }}">
                                                                 </div>
                                                             </div>
                                                         </div>
-
-                                                        <!-- Total after deduction -->
-
 
                                                         <div
                                                             class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center border-top">
                                                             <h6>Total Amount</h6>
                                                             <div>
                                                                 <input type="hidden" name="total_amount"
-                                                                    class="total_amount" value="" />
+                                                                    class="total_amount"
+                                                                    value="{{ old('total_amount') }}" />
                                                                 <h3 class="text-primary font-weight-700"
                                                                     id="total_amount">
+                                                                    @if (old('total_amount'))
+                                                                        ₹{{ number_format(old('total_amount'), 2) }}
+                                                                    @endif
                                                                 </h3>
                                                             </div>
                                                         </div>
-
                                                     </div>
                                                 </div>
                                             </div>
@@ -376,57 +476,253 @@
             </div>
         </div>
     </div>
-
-
     <!-- Wrapper End -->
 @endsection
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
-    $(document).ready(function() {
+    // ---------- HELPERS (GLOBAL) ----------
 
-        let srNo = 1;
+    function calculateProductTotals() {
+        let total = 0;
+        $('input[name*="[rate]"]').each(function() {
+            const $row = $(this).closest('tr');
+            const rate = parseFloat($(this).val()) || 0;
+            const qty = parseFloat($row.find('input[name*="[qnt]"]').val()) || 0;
+            const amount = (rate * qty).toFixed(2);
+            $row.find('input[name*="[amount]"]').val(amount);
+            total += parseFloat(amount);
+        });
+
+        $('#total').text(total.toFixed(2));
+        $(".total_amt").val(total.toFixed(2));
+        $('.total_val').val(total.toFixed(2));
+
+        return total;
+    }
+
+    function updateExciseSection() {
+        const permit = parseFloat($('#permit_fee_excise').val()) || 0;
+        const vend = parseFloat($('#vend_fee_excise').val()) || 0;
+        const composite = parseFloat($('#composite_fee_excise').val()) || 0;
+
+        const totalExcise = permit + vend + composite;
+
+        $('#excise_total_amount').text('₹' + totalExcise.toFixed(2));
+        $('.excise_total_amount').val(totalExcise.toFixed(2));
+
+        // Push to Billing Details -> EXCISE FEE
+        $('#excise_fee').val(totalExcise.toFixed(2));
+
+        updateBillingTotal();
+    }
+
+    function updateBillingTotal() {
+        const baseTotal = parseFloat($(".total_amt").val()) || 0;
+
+        const excise = parseFloat($('#excise_fee').val()) || 0;
+        const compVat = parseFloat($('#composition_vat').val()) || 0;
+        const surcharge = parseFloat($('#surcharge_on_ca').val()) || 0;
+        const tcs = parseFloat($('#tcs').val()) || 0;
+        const vat = parseFloat($('#vat').val()) || 0;
+        const surcharge_on_vat = parseFloat($('#surcharge_on_vat').val()) || 0;
+        const blf = parseFloat($('#blf').val()) || 0;
+        const permit_fee = parseFloat($('#permit_fee').val()) || 0;
+        const rsgsm_purchase = parseFloat($('#rsgsm_purchase').val()) || 0;
+        const aed = parseFloat($('#aed_to_be_paid').val()) || 0;
+        const loading = parseFloat($('#loading_charges').val()) || 0; // ✅ NEW
+
+        let additionalCharges =
+            excise +
+            compVat +
+            surcharge +
+            tcs +
+            aed +
+            loading + // ✅ include loading charges
+            vat +
+            surcharge_on_vat +
+            blf +
+            permit_fee +
+            rsgsm_purchase;
+
+        let grandTotal = baseTotal + additionalCharges;
+
+        const discountPercent = parseFloat($('.pur_dis').val()) || 0;
+        const discountAmount = parseFloat($('.pur_amt').val()) || 0;
+
+        if (discountPercent > 0) {
+            const discount = (grandTotal * discountPercent) / 100;
+            grandTotal -= discount;
+            $('.pur_amt').val(discount.toFixed(2));
+        } else if (discountAmount > 0) {
+            grandTotal -= discountAmount;
+            if (grandTotal > 0) {
+                $('.pur_dis').val(((discountAmount / (grandTotal + discountAmount)) * 100).toFixed(2));
+            }
+        }
+
+        $('#total_amount').text('₹' + grandTotal.toFixed(2));
+        $('.total_amount').val(grandTotal.toFixed(2));
+    }
+
+    function filterSubcategoriesByVendor(vendorId) {
+
+        const vendor1Subs = ['1', '2']; // vendor_id = 1
+        const vendor2Subs = ['3', '4']; // vendor_id = 2
+
+        $('#subcategories option').each(function() {
+
+            const subId = $(this).data('id');
+
+            // Always show default option
+            if (!subId) {
+                $(this).show();
+                return;
+            }
+
+            if (vendorId === '1') {
+                $(this).toggle(vendor1Subs.includes(String(subId)));
+            } else if (vendorId === '2') {
+                $(this).toggle(vendor2Subs.includes(String(subId)));
+            } else {
+                // Other vendors → show all
+                $(this).show();
+            }
+        });
+
+        // Reset if selected option becomes hidden
+        if ($('#subcategories option:selected').is(':hidden')) {
+            $('#subcategories').val('');
+        }
+    }
+
+    function onVendorChange(vendorId) {
+        $('.vendor-fields').addClass('d-none');
         $('.vendor-common').hide();
-        // Pre-fill product fields on select
+        $('.excise-section').addClass('d-none');
+
+        $('#excise_fee, #composition_vat, #surcharge_on_ca, #aed_to_be_paid').val(0);
+        $('#vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase').val(0);
+        $('.pur_dis, .pur_amt').val(0);
+
+        $('#permit_fee_excise, #vend_fee_excise, #composite_fee_excise').val(0);
+        $('#excise_total_amount').text('₹0.00');
+        $('.excise_total_amount').val('0');
+
+        const $billingCol = $('#billing-column');
+
+        const oldValues = {
+            excise_fee: '{{ old('excise_fee') }}',
+            composition_vat: '{{ old('composition_vat') }}',
+            surcharge_on_ca: '{{ old('surcharge_on_ca') }}',
+            aed_to_be_paid: '{{ old('aed_to_be_paid') }}',
+            guarantee_fulfilled: '{{ old('guarantee_fulfilled') }}',
+
+            vat: '{{ old('vat') }}',
+            surcharge_on_vat: '{{ old('surcharge_on_vat') }}',
+            blf: '{{ old('blf') }}',
+            permit_fee: '{{ old('permit_fee') }}',
+            rsgsm_purchase: '{{ old('rsgsm_purchase') }}',
+
+            permit_fee_excise: '{{ old('permit_fee_excise') }}',
+            vend_fee_excise: '{{ old('vend_fee_excise') }}',
+            composite_fee_excise: '{{ old('composite_fee_excise') }}',
+            excise_total_amount: '{{ old('excise_total_amount') }}',
+
+            case_purchase_per: '{{ old('case_purchase_per') }}',
+            case_purchase_amt: '{{ old('case_purchase_amt') }}',
+
+            tcs: '{{ old('tcs') }}'
+        };
+
+        // SHOW LICENSE LEDGER ONLY FOR VENDOR 1 & 2
+        if (vendorId === '1' || vendorId === '2') {
+            $('#license-ledger-box').removeClass('d-none');
+        } else {
+            $('#license-ledger-box').addClass('d-none');
+        }
+
+
+        if (vendorId === '1') {
+            // Vendor 1: three columns -> Billing no offset, excise visible
+            $billingCol.removeClass('offset-lg-4').addClass('offset-lg-0');
+
+            $('.excise-section').removeClass('d-none');
+            $('#vendor-1-fields').removeClass('d-none');
+            $('.vendor-common').show();
+
+            if (oldValues.permit_fee_excise) $('#permit_fee_excise').val(oldValues.permit_fee_excise);
+            if (oldValues.vend_fee_excise) $('#vend_fee_excise').val(oldValues.vend_fee_excise);
+            if (oldValues.composite_fee_excise) $('#composite_fee_excise').val(oldValues.composite_fee_excise);
+
+            if (oldValues.excise_fee) $('#excise_fee').val(oldValues.excise_fee);
+            if (oldValues.composition_vat) $('#composition_vat').val(oldValues.composition_vat);
+            if (oldValues.surcharge_on_ca) $('#surcharge_on_ca').val(oldValues.surcharge_on_ca);
+            if (oldValues.aed_to_be_paid) $('#aed_to_be_paid').val(oldValues.aed_to_be_paid);
+            if (oldValues.guarantee_fulfilled) $('#guarantee_fulfilled').val(oldValues.guarantee_fulfilled);
+
+            if (oldValues.excise_total_amount) {
+                $('#excise_total_amount').text('₹' + parseFloat(oldValues.excise_total_amount).toFixed(2));
+                $('.excise_total_amount').val(parseFloat(oldValues.excise_total_amount).toFixed(2));
+            }
+
+            updateExciseSection(); // also sets excise_fee
+
+        } else if (vendorId === '2') {
+            // Vendor 2: excise hidden, Billing right side
+            $billingCol.removeClass('offset-lg-0').addClass('offset-lg-4');
+
+            $('#vendor-2-fields').removeClass('d-none');
+
+            if (oldValues.vat) $('#vat').val(oldValues.vat);
+            if (oldValues.surcharge_on_vat) $('#surcharge_on_vat').val(oldValues.surcharge_on_vat);
+            if (oldValues.blf) $('#blf').val(oldValues.blf);
+            if (oldValues.permit_fee) $('#permit_fee').val(oldValues.permit_fee);
+            if (oldValues.rsgsm_purchase) $('#rsgsm_purchase').val(oldValues.rsgsm_purchase);
+
+            $('.vendor-common').show();
+        } else if (vendorId) {
+            // Other vendors: excise hidden, show cash purchase, Billing right
+            $billingCol.removeClass('offset-lg-0').addClass('offset-lg-4');
+
+            $('#vendor-others-fields').removeClass('d-none');
+            if (oldValues.case_purchase_per) $('.pur_dis').val(oldValues.case_purchase_per);
+            if (oldValues.case_purchase_amt) $('.pur_amt').val(oldValues.case_purchase_amt);
+        } else {
+            // No vendor selected -> Billing right, excise hidden
+            $billingCol.removeClass('offset-lg-0').addClass('offset-lg-4');
+        }
+
+        if (oldValues.tcs) $('#tcs').val(oldValues.tcs);
+
+        calculateProductTotals();
+        updateBillingTotal();
+    }
+
+    // ---------- MAIN READY ----------
+
+    $(document).ready(function() {
+        let srNo = $('#productBody tr').length ? $('#productBody tr').length + 1 : 1;
+        $('.vendor-common').hide();
+
+        // Product select -> fetch details
         $('#product_select').change(function() {
-            const data = $(this).val();
             const product_id = $(this).val();
+            if (!product_id) return;
+
             $.ajax({
                 url: "{{ url('/vendor/get-product-details/') }}/" + product_id,
                 type: "GET",
                 dataType: "json",
                 success: function(data) {
-                    console.log(data);
-                    $('#batch').val(data.batch_no);
-                    $('#mfg_date').val(data.mfg_date);
-                    $('#mrp').val(data.cost_price);
-                    $('#rate').val(data.sell_price);
-                    $('#qty').val(1);
-                    updateAmount();
                     addProduct(data);
-
                 },
                 error: function() {
-                    alert('Failed to fetch subcategories. Please try again.');
+                    alert('Failed to fetch product details. Please try again.');
                 }
             });
-            if (!data) return;
         });
 
-        // Auto-calculate amount on qty/rate change
-        $('#qty, #rate').on('input', function() {
-            updateAmount();
-        });
-
-        function updateAmount() {
-
-            const rate = parseFloat($('#rate').val()) || 0;
-            const qty = parseInt($('#qty').val()) || 0;
-            const get_total = (rate * qty);
-            $('#amount').val((rate * qty).toFixed(2));
-        }
-
-        // Add product row
         function addProduct(data) {
             const brand = data.id;
             const brandVal = data.name;
@@ -439,21 +735,17 @@
 
             let existingRow = null;
 
-            // Check if product already exists in the table
             $('#product_table tbody tr').each(function() {
                 const rowBrand = $(this).find('input[name*="[brand_name]"]').val();
                 const rowBatch = $(this).find('input[name*="[batch]"]').val();
-
                 if (rowBrand === brandVal && rowBatch === batch) {
                     existingRow = $(this);
-                    return false; // break loop
+                    return false;
                 }
             });
 
             if (existingRow) {
-                // Update quantity and amount
                 const qtyInput = existingRow.find('input[name*="[qnt]"]');
-                const rateInput = existingRow.find('input[name*="[rate]"]');
                 const amountInput = existingRow.find('input[name*="[amount]"]');
 
                 let existingQty = parseInt(qtyInput.val()) || 0;
@@ -462,498 +754,226 @@
 
                 qtyInput.val(newQty);
                 amountInput.val(newAmount);
-                qtyInput.data('prev', newQty); // update previous value
+                qtyInput.data('prev', newQty);
 
-                updateTotal();
+                calculateProductTotals();
+                updateBillingTotal();
             } else {
-                // New row
                 const row = `
                 <tr>
                     <td>${srNo}</td>
                     <input type="hidden" name="products[${srNo - 1}][product_id]" value="${brand}">
-                    <td style="width:25%"><input type="text" name="products[${srNo - 1}][brand_name]" class="form-control" value="${brandVal}" readonly></td>
-                    <td><input type="text" name="products[${srNo - 1}][batch]" class="form-control" value="${batch}"></td>
-                    <td><input type="date" name="products[${srNo - 1}][mfg_date]" class="form-control" value="${mfg}"></td>
-                    <td><input type="hidden" name="products[${srNo - 1}][mrp]" value="${mrp}"><input type="number" class="form-control" value="${mrp}" disabled></td>
-                    <td><input type="number" name="products[${srNo - 1}][qnt]" class="form-control" value="${qty}" min="1" data-prev="${qty}"></td>
-                    <td><input type="number" step="0.01" name="products[${srNo - 1}][rate]" class="form-control" value="${rate}"></td>
-                    <td><input type="number" step="0.01" name="products[${srNo - 1}][amount]" class="form-control" value="${amount}"></td>
-                    <td><button type="button" class="btn btn-sm btn-danger remove">Remove</button></td>
+                    <td style="width:25%">
+                        <input type="text" name="products[${srNo - 1}][brand_name]" class="form-control" value="${brandVal}" readonly>
+                    </td>
+                    <td>
+                        <input type="text" name="products[${srNo - 1}][batch]" class="form-control" value="${batch}">
+                    </td>
+                    <td>
+                        <input type="date" name="products[${srNo - 1}][mfg_date]" class="form-control" value="${mfg ?? ''}">
+                    </td>
+                    <td>
+                        <input type="hidden" name="products[${srNo - 1}][mrp]" value="${mrp}">
+                        <input type="number" class="form-control" value="${mrp}" disabled>
+                    </td>
+                    <td>
+                        <input type="number" name="products[${srNo - 1}][qnt]" class="form-control" value="${qty}" min="1" data-prev="${qty}">
+                    </td>
+                    <td>
+                        <input type="number" step="0.01" name="products[${srNo - 1}][rate]" class="form-control" value="${rate}">
+                    </td>
+                    <td>
+                        <input type="number" step="0.01" name="products[${srNo - 1}][amount]" class="form-control" value="${amount.toFixed(2)}">
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-danger remove">Remove</button>
+                    </td>
                 </tr>
                 `;
 
                 $('#product_table tbody').append(row);
                 srNo++;
-                updateTotal();
+
+                calculateProductTotals();
+                updateBillingTotal();
             }
 
-            resetFields();
+            $('#product_select').val('');
         }
 
         // Remove row
         $(document).on('click', '.remove', function() {
             $(this).closest('tr').remove();
+            calculateProductTotals();
+            updateBillingTotal();
 
-            // Recalculate total after row removal
-            let newTotal = 0;
-            $('input[name*="[amount]"]').each(function() {
-                newTotal += parseFloat($(this).val()) || 0;
-            });
-
-            $('#total').text(newTotal.toFixed(2));
-            $(".total_amt").val(newTotal.toFixed(2));
-            $('.total_val').val(newTotal.toFixed(2));
-
-            // Check if all products are removed
             if ($('#productBody tr').length === 0) {
-                // Clear all billing details textboxes
-                $('#excise_fee, #composition_vat, #surcharge_on_ca, #aed_to_be_paid').val(
-                    ''); // Vendor 1 fields
-                $('#vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase').val(
-                    ''); // Vendor 2 fields
-                $('.pur_dis, .pur_amt').val(''); // Other vendor fields
-                $('#tcs').val(''); // Common field
+                $('#excise_fee, #composition_vat, #surcharge_on_ca, #aed_to_be_paid').val('');
+                $('#vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase').val('');
+                $('.pur_dis, .pur_amt').val('');
+                $('#tcs').val('');
                 $('#total_amount').text('₹0.00');
                 $('.total_amount').val('0.00');
+                $('#excise_total_amount').text('₹0.00');
+                $('.excise_total_amount').val('0.00');
             }
-
-            updateBillingTotal();
         });
 
-        function resetFields() {
-            $('#product_select').val('');
-            $('#batch').val('');
-            $('#mfg_date').val('');
-            $('#mrp').val('');
-            $('#qty').val(1);
-            $('#rate').val('');
-            $('#amount').val('');
-        }
-
+        // qty / rate change
         $(document).on('input', 'input[name*="[qnt]"], input[name*="[rate]"]', function() {
             const $input = $(this);
-            const $row = $(this).closest('tr');
+            const $row = $input.closest('tr');
 
-            let am = parseFloat($row.find('input[name*="[amount]"]').val()) || 0;
             const qty = parseFloat($row.find('input[name*="[qnt]"]').val()) || 0;
             const rate = parseFloat($row.find('input[name*="[rate]"]').val()) || 0;
-
             const amount = (qty * rate).toFixed(2);
+
             $row.find('input[name*="[amount]"]').val(amount);
-            const prevQty = parseFloat($input.data('prev')) || 0;
-            const newQty = parseFloat($input.val()) || 0;
+            $input.data('prev', qty);
 
-            const amountInput = $row.find('input[name*="[amount]"]');
-
-            // const newAmount = (newQty * rate).toFixed(2);
-            // amountInput.val(newAmount);
-
-            // Compare
-            if (newQty > prevQty) {
-                // console.log(`Quantity increas
-                // ed from ${prevQty} to ${newQty}`);
-            } else if (newQty < prevQty) {
-                // console.log(`Quantity decreased from ${prevQty} to ${newQty}`);
-            } else {
-                // console.log(`Quantity unchanged`);
-            }
-
-            // Update the prev value
-            $input.data('prev', newQty);
-
-            // Recalculate total
-            let total = 0;
-            $('input[name*="[amount]"]').each(function() {
-                total += parseFloat($(this).val()) || 0;
-            });
-            $('#total').text(total.toFixed(2));
-            $(".total_amt").val(total.toFixed(2));
-            $('#total_amount').text(total.toFixed(2));
-            $(".total_amount").val(total);
-
-            calculation(total, '', '', '', '', '', total);
+            calculateProductTotals();
             updateBillingTotal();
-            updateFromPercentage();
-            updateFromAmount();
         });
 
-        $('#excise_fee, #composition_vat, #surcharge_on_ca, #tcs, #vat,#surcharge_on_vat,#blf,#permit_fee,#rsgsm_purchase')
-            .on('input', function() {
-                updateBillingTotal();
-                // updateFromPercentage();
-                // updateFromAmount();
-            });
-
-        function updateBillingTotal() {
-            const baseTotal = parseFloat($('#total').text()) || 0;
-
-            const excise = parseFloat($('#excise_fee').val()) || 0;
-            const compVat = parseFloat($('#composition_vat').val()) || 0;
-            const surcharge = parseFloat($('#surcharge_on_ca').val()) || 0;
-            const tcs = parseFloat($('#tcs').val()) || 0;
-            const vat = parseFloat($('#vat').val()) || 0;
-            const surcharge_on_vat = parseFloat($('#surcharge_on_vat').val()) || 0;
-            const blf = parseFloat($('#blf').val()) || 0;
-            const permit_fee = parseFloat($('#permit_fee').val()) || 0;
-            const rsgsm_purchase = parseFloat($('#rsgsm_purchase').val()) || 0;
-            // const case_purchase = parseFloat($('#case_purchase').val()) || 0;
-
-            const aed = parseFloat($('#aed_to_be_paid').val()) || 0;
-
-            const grandTotal = baseTotal + excise + compVat + surcharge + tcs + aed + vat + surcharge_on_vat +
-                blf + permit_fee + rsgsm_purchase;
-
-            // $('#total_amount').text(grandTotal.toFixed(2));
-            $('#total_amount').text('₹' + grandTotal.toFixed(2));
-            $('.total_amount').val(grandTotal.toFixed(2));
-        }
-
-        function calculation(total, excise_fee, composition_vat, surcharge_on_ca, tcs, aed_to_be_paid,
-            total_amount) {
-
-            $('#total').text((total).toFixed(2));
-            $(".total_amt").val(total.toFixed(2));
-            $("#total_amount").text('Rs. ' + total_amount);
-
-            $('.total_val').val((total).toFixed(2));
-            $(".total_amount").val(total_amount);
-        }
-
-        function updateTotal() {
-            let total = 0;
-            $('input[name*="[amount]"]').each(function() {
-                total += parseFloat($(this).val()) || 0;
-            });
-
-            // $('#total').text(total.toFixed(2));
-            // $('#total_amount').text(total.toFixed(2));
-            $('#total').text(total.toFixed(2));
-
-            $(".total_amt").val(total.toFixed(2));
-            $('.total_val').val(total.toFixed(2));
-
-            $('#total_amount').text('₹' + total.toFixed(2));
-            $('.total_amount').val(total.toFixed(2));
-        }
-
+        // Amount change -> recalc rate
         $(document).on('input', 'input[name*="[amount]"]', function() {
             const $row = $(this).closest('tr');
             const amount = parseFloat($(this).val()) || 0;
             const qty = parseFloat($row.find('input[name*="[qnt]"]').val()) || 1;
-
-            // Recalculate rate
             const rate = amount / qty;
             $row.find('input[name*="[rate]"]').val(rate.toFixed(2));
 
-            // Update total
-            updateTotal();
-            updateBillingTotal();
-            updateFromPercentage();
-            updateFromAmount();
-        });
-
-        function onVendorChange(vendorId) {
-            // Hide all vendor-specific fields first
-            $('.vendor-fields').addClass('d-none');
-
-            // Reset all billing fields to 0 first
-            $('#excise_fee, #composition_vat, #surcharge_on_ca, #aed_to_be_paid').val(0); // Vendor 1 fields
-            $('#vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase').val(0); // Vendor 2 fields
-            $('.pur_dis, .pur_amt').val(0); // Other vendor fields
-
-            // Get old values from Laravel
-            const oldValues = {
-                // Vendor 1 fields
-                excise_fee: '{{ old('excise_fee') }}',
-                composition_vat: '{{ old('composition_vat') }}',
-                surcharge_on_ca: '{{ old('surcharge_on_ca') }}',
-                aed_to_be_paid: '{{ old('aed_to_be_paid') }}',
-
-                // Vendor 2 fields
-                vat: '{{ old('vat') }}',
-                surcharge_on_vat: '{{ old('surcharge_on_vat') }}',
-                blf: '{{ old('blf') }}',
-                permit_fee: '{{ old('permit_fee') }}',
-                rsgsm_purchase: '{{ old('rsgsm_purchase') }}',
-
-                // Other vendor fields
-                case_purchase_per: '{{ old('case_purchase_per') }}',
-                case_purchase_amt: '{{ old('case_purchase_amt') }}',
-
-                // Common field
-                tcs: '{{ old('tcs') }}'
-            };
-
-            // Show relevant fields based on vendor and restore their values
-            if (vendorId === '1') {
-                $('#vendor-1-fields').removeClass('d-none');
-                // Restore vendor 1 fields
-                if (oldValues.excise_fee) $('#excise_fee').val(oldValues.excise_fee);
-                if (oldValues.composition_vat) $('#composition_vat').val(oldValues.composition_vat);
-                if (oldValues.surcharge_on_ca) $('#surcharge_on_ca').val(oldValues.surcharge_on_ca);
-                if (oldValues.aed_to_be_paid) $('#aed_to_be_paid').val(oldValues.aed_to_be_paid);
-                if (oldValues.guarantee_fulfilled) $('#guarantee_fulfilled').val(oldValues.guarantee_fulfilled);
-                $('.vendor-common').show();
-            } else if (vendorId === '2') {
-                $('.vendor-common').hide();
-                $('#vendor-2-fields').removeClass('d-none');
-                // Restore vendor 2 fields
-                if (oldValues.vat) $('#vat').val(oldValues.vat);
-                if (oldValues.surcharge_on_vat) $('#surcharge_on_vat').val(oldValues.surcharge_on_vat);
-                if (oldValues.blf) $('#blf').val(oldValues.blf);
-                if (oldValues.permit_fee) $('#permit_fee').val(oldValues.permit_fee);
-                if (oldValues.rsgsm_purchase) $('#rsgsm_purchase').val(oldValues.rsgsm_purchase);
-            } else {
-                $('.vendor-common').hide();
-                $('#vendor-others-fields').removeClass('d-none');
-                // Restore other vendor fields
-                if (oldValues.case_purchase_per) $('.pur_dis').val(oldValues.case_purchase_per);
-                if (oldValues.case_purchase_amt) $('.pur_amt').val(oldValues.case_purchase_amt);
-            }
-
-            // Always restore TCS value if it exists
-            if (oldValues.tcs) $('#tcs').val(oldValues.tcs);
-
-            // Recalculate totals after changing vendor
             calculateProductTotals();
             updateBillingTotal();
-        }
-
-        // Initialize vendor fields on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            const oldVendorId = '{{ old('vendor_id') }}';
-            if (oldVendorId) {
-                onVendorChange(oldVendorId);
-            }
         });
 
-        // Handle vendor change
-        $('#vendor_id').on('change', function() {
-            onVendorChange($(this).val());
-            let vendorId = $(this).val();
-            let ledgerSelect = $('#parchase_ledger');
-            let productSelect = $('#product_select');
+        // Billing fields
+        // Billing fields
+        $('#excise_fee, #composition_vat, #surcharge_on_ca, #tcs, #vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase, #aed_to_be_paid, #loading_charges')
+            .on('input', function() {
+                updateBillingTotal();
+            });
 
-            // Auto sync ledger
-            ledgerSelect.val(vendorId);
-
-            // Reset products
-            // productSelect.empty().append('<option value="">-- Select Product --</option>');
-
-            // if (vendorId) {
-            //     $.ajax({
-            //         url: "/vendor-products/" + vendorId,
-            //         type: "GET",
-            //         success: function(res) {
-            //             $.each(res, function(i, product) {
-            //                 productSelect.append('<option value="' + product.id +
-            //                     '">' + product
-            //                     .name + '</option>');
-            //             });
-            //         }
-            //     });
-            // }
+        // Excise box fields
+        $(document).on('input', '#permit_fee_excise, #vend_fee_excise, #composite_fee_excise', function() {
+            updateExciseSection();
         });
 
-        // Replace this with dynamic value if needed
-
+        // Discount fields
         function updateFromPercentage() {
-            let originalAmount = $(".total_val").val();
+            let originalAmount = $(".total_val").val() || 0;
+            originalAmount = parseFloat(originalAmount) || 0;
 
             let percent = parseFloat($('.pur_dis').val()) || 0;
             let discount = (originalAmount * percent) / 100;
+
             $('.pur_amt').val(discount.toFixed(2));
 
             let ta = originalAmount - discount;
             $('#total_amount').text('₹' + ta.toFixed(2));
             $('.total_amount').val(ta.toFixed(2));
-
         }
 
         function updateFromAmount() {
-            let originalAmount = $(".total_val").val();
+            let originalAmount = $(".total_val").val() || 0;
+            originalAmount = parseFloat(originalAmount) || 0;
+
             let amount = parseFloat($('.pur_amt').val()) || 0;
-            let percent = (amount / originalAmount) * 100;
+            let percent = originalAmount > 0 ? (amount / originalAmount) * 100 : 0;
+
             $('.pur_dis').val(percent.toFixed(2));
 
             let ta = originalAmount - amount;
             $('#total_amount').text('₹' + ta.toFixed(2));
             $('.total_amount').val(ta.toFixed(2));
-
         }
 
-        $('.pur_dis').on('input', updateFromPercentage);
-        $('.pur_amt').on('input', updateFromAmount);
+        $('.pur_dis').on('input', function() {
+            updateFromPercentage();
+            updateBillingTotal();
+        });
+        $('.pur_amt').on('input', function() {
+            updateFromAmount();
+            updateBillingTotal();
+        });
+
+        // Subcategory -> products
+        $('#subcategories').on('change', function() {
+            const subcatId = $(this).val();
+            const $productSelect = $('#product_select');
+
+            $productSelect.empty().append('<option value="">Loading...</option>');
+
+            if (!subcatId) {
+                $productSelect.empty().append('<option value="">-- Select Product --</option>');
+                return;
+            }
+
+            $.ajax({
+                url: "/subcategory/" + subcatId + "/products",
+                type: "GET",
+                dataType: "json",
+                success: function(products) {
+                    $productSelect.empty().append(
+                        '<option value="">-- Select Product --</option>');
+                    if (!products || products.length === 0) {
+                        $productSelect.append(
+                            '<option value="">No products found</option>');
+                        return;
+                    }
+
+                    products.forEach(function(p) {
+                        $productSelect.append(
+                            $('<option>', {
+                                value: p.id,
+                                text: p.name,
+                                'data-mrp': p.mrp ?? '',
+                                'data-cost_price': p.cost_price ?? '',
+                                'data-sell_price': p.sell_price ?? ''
+                            })
+                        );
+                    });
+
+                    const oldProduct = "{{ old('product_select') }}";
+                    if (oldProduct) {
+                        $productSelect.val(oldProduct);
+                    }
+                },
+                error: function(xhr) {
+                    $productSelect.empty().append(
+                        '<option value="">-- Select Product --</option>');
+                    alert('Failed to fetch products for selected subcategory. Try again.');
+                    console.error(xhr);
+                }
+            });
+        });
+
+        // vendor change -> onVendorChange + auto sync ledger
+        $('#vendor_id').on('change', function() {
+            const vendorId = $(this).val();
+
+            onVendorChange(vendorId); // your existing logic
+            filterSubcategoriesByVendor(vendorId); // ✅ subcategory logic
+
+            // Auto-sync purchase ledger
+            $('#parchase_ledger').val(vendorId);
+        });
 
     });
 
+    // Initial on page load (after validation error)
     document.addEventListener('DOMContentLoaded', function() {
-        // Initial calculations when page loads (especially important after validation errors)
+
         calculateProductTotals();
         updateBillingTotal();
 
         const oldVendorId = '{{ old('vendor_id') }}';
+
         if (oldVendorId) {
             onVendorChange(oldVendorId);
-        }
-    });
-
-    function calculateProductTotals() {
-        // Calculate totals for all products
-        let total = 0;
-        $('input[name*="[rate]"]').each(function() {
-            const $row = $(this).closest('tr');
-            const rate = parseFloat($(this).val()) || 0;
-            const qty = parseFloat($row.find('input[name*="[qnt]"]').val()) || 0;
-            const amount = (rate * qty).toFixed(2);
-
-            // Update amount field
-            $row.find('input[name*="[amount]"]').val(amount);
-            total += parseFloat(amount);
-        });
-
-        // Update all total fields
-        $('#total').text(total.toFixed(2));
-        $(".total_amt").val(total.toFixed(2));
-        $('.total_val').val(total.toFixed(2));
-
-        return total;
-    }
-
-    function updateBillingTotal() {
-        const baseTotal = parseFloat($(".total_amt").val()) || 0;
-
-        // Get all billing details values
-        const excise = parseFloat($('#excise_fee').val()) || 0;
-        const compVat = parseFloat($('#composition_vat').val()) || 0;
-        const surcharge = parseFloat($('#surcharge_on_ca').val()) || 0;
-        const tcs = parseFloat($('#tcs').val()) || 0;
-        const vat = parseFloat($('#vat').val()) || 0;
-        const surcharge_on_vat = parseFloat($('#surcharge_on_vat').val()) || 0;
-        const blf = parseFloat($('#blf').val()) || 0;
-        const permit_fee = parseFloat($('#permit_fee').val()) || 0;
-        const rsgsm_purchase = parseFloat($('#rsgsm_purchase').val()) || 0;
-        const aed = parseFloat($('#aed_to_be_paid').val()) || 0;
-
-        // Sum all billing details
-        const additionalCharges = excise + compVat + surcharge + tcs + aed + vat +
-            surcharge_on_vat + blf + permit_fee + rsgsm_purchase;
-
-        // Calculate grand total
-        let grandTotal = baseTotal + additionalCharges;
-
-        // Apply discount if any
-        const discountPercent = parseFloat($('.pur_dis').val()) || 0;
-        const discountAmount = parseFloat($('.pur_amt').val()) || 0;
-
-        if (discountPercent > 0) {
-            const discount = (grandTotal * discountPercent) / 100;
-            grandTotal -= discount;
-            $('.pur_amt').val(discount.toFixed(2));
-        } else if (discountAmount > 0) {
-            grandTotal -= discountAmount;
-            $('.pur_dis').val(((discountAmount / grandTotal) * 100).toFixed(2));
-        }
-
-        // Update total amount displays
-        $('#total_amount').text('₹' + grandTotal.toFixed(2));
-        $('.total_amount').val(grandTotal.toFixed(2));
-    }
-
-    function onVendorChange(vendorId) {
-        // Hide all vendor-specific fields first
-        $('.vendor-fields').addClass('d-none');
-
-        // Reset all billing fields to 0 first
-        $('#excise_fee, #composition_vat, #surcharge_on_ca, #aed_to_be_paid').val(0); // Vendor 1 fields
-        $('#vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase').val(0); // Vendor 2 fields
-        $('.pur_dis, .pur_amt').val(0); // Other vendor fields
-
-        // Get old values from Laravel
-        const oldValues = {
-            // Vendor 1 fields
-            excise_fee: '{{ old('excise_fee') }}',
-            composition_vat: '{{ old('composition_vat') }}',
-            surcharge_on_ca: '{{ old('surcharge_on_ca') }}',
-            aed_to_be_paid: '{{ old('aed_to_be_paid') }}',
-
-            // Vendor 2 fields
-            vat: '{{ old('vat') }}',
-            surcharge_on_vat: '{{ old('surcharge_on_vat') }}',
-            blf: '{{ old('blf') }}',
-            permit_fee: '{{ old('permit_fee') }}',
-            rsgsm_purchase: '{{ old('rsgsm_purchase') }}',
-
-            // Other vendor fields
-            case_purchase_per: '{{ old('case_purchase_per') }}',
-            case_purchase_amt: '{{ old('case_purchase_amt') }}',
-
-            // Common field
-            tcs: '{{ old('tcs') }}'
-        };
-
-        // Show relevant fields based on vendor and restore their values
-        if (vendorId === '1') {
-            $('#vendor-1-fields').removeClass('d-none');
-            // Restore vendor 1 fields
-            if (oldValues.excise_fee) $('#excise_fee').val(oldValues.excise_fee);
-            if (oldValues.composition_vat) $('#composition_vat').val(oldValues.composition_vat);
-            if (oldValues.surcharge_on_ca) $('#surcharge_on_ca').val(oldValues.surcharge_on_ca);
-            if (oldValues.aed_to_be_paid) $('#aed_to_be_paid').val(oldValues.aed_to_be_paid);
-            if (oldValues.guarantee_fulfilled) $('#guarantee_fulfilled').val(oldValues.guarantee_fulfilled);
-
-        } else if (vendorId === '2') {
-            $('#vendor-2-fields').removeClass('d-none');
-            // Restore vendor 2 fields
-            if (oldValues.vat) $('#vat').val(oldValues.vat);
-            if (oldValues.surcharge_on_vat) $('#surcharge_on_vat').val(oldValues.surcharge_on_vat);
-            if (oldValues.blf) $('#blf').val(oldValues.blf);
-            if (oldValues.permit_fee) $('#permit_fee').val(oldValues.permit_fee);
-            if (oldValues.rsgsm_purchase) $('#rsgsm_purchase').val(oldValues.rsgsm_purchase);
+            filterSubcategoriesByVendor(oldVendorId);
         } else {
-            $('#vendor-others-fields').removeClass('d-none');
-            // Restore other vendor fields
-            $('.vendor-common').hide();
-            if (oldValues.case_purchase_per) $('.pur_dis').val(oldValues.case_purchase_per);
-            if (oldValues.case_purchase_amt) $('.pur_amt').val(oldValues.case_purchase_amt);
-        }
-
-        // Always restore TCS value if it exists
-        if (oldValues.tcs) $('#tcs').val(oldValues.tcs);
-
-        // Recalculate totals after changing vendor
-        calculateProductTotals();
-        updateBillingTotal();
-    }
-
-    // Event handlers for rate and quantity changes
-    $(document).on('input', 'input[name*="[qnt]"], input[name*="[rate]"]', function() {
-        calculateProductTotals();
-        updateBillingTotal();
-    });
-
-    // Event handlers for billing details changes
-    $('#excise_fee, #composition_vat, #surcharge_on_ca, #tcs,  #vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase')
-        .on('input', function() {
-            updateBillingTotal();
-        });
-
-    // Event handlers for discount changes
-    $('.pur_dis, .pur_amt').on('input', function() {
-        updateBillingTotal();
-    });
-
-    document.addEventListener("DOMContentLoaded", function() {
-        const vendorSelect = document.getElementById("vendor_id");
-        const ledgerSelect = document.getElementById("parchase_ledger");
-
-        vendorSelect.addEventListener("change", function() {
-            ledgerSelect.value = this.value; // auto select the same vendor in ledger
-        });
-
-        // If vendor is already selected (old value), sync on page load
-        if (vendorSelect.value) {
-            ledgerSelect.value = vendorSelect.value;
+            $('#license-ledger-box').addClass('d-none');
         }
     });
 </script>

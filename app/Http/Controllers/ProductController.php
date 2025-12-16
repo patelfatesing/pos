@@ -97,10 +97,12 @@ class ProductController extends Controller
             $action = '<div class="d-flex align-items-center list-action">
             <a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="#" onclick="product_price_change(' . $product->id . ',' . $product->sell_price . ')"><i class="ri-currency-line"></i></a>
-                       <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                                        href="' . url('/products/edit/' . $product->id) . '"><i class="ri-pencil-line mr-0"></i></a>
-                    <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                    href="' . url('/inventories/add-stock/' . $product->id) . '"><i class="ri-eye-line mr-0"></i></a>
+                     <a class="badge badge-info mr-2" onclick="viewProduct(' . $product->id . ')">
+        <i class="las la-eye"></i>
+    </a>
+            <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
+                    href="' . url('/products/edit/' . $product->id) . '"><i class="ri-pencil-line mr-0"></i></a>
+   
                                     <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
                                         href="#" onclick="delete_product(' . $product->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
             </div>';
@@ -113,8 +115,13 @@ class ProductController extends Controller
                 'size' => $product->size,
                 'brand' => $product->brand,
                 'sell_price' => "₹" . $product->sell_price,
+                'cost_price' => "₹" . $product->cost_price,
                 'mrp' => "₹" . $product->mrp,
-                'is_active' => $status,
+                // 'is_active' => $status,
+                'is_active' => $product->is_active == 'yes'
+                    ? '<span onclick=\'statusChange("' . $product->id . '", "no")\'><div class="badge badge-success" style="cursor:pointer">Active</div></span>'
+                    : '<span onclick=\'statusChange("' . $product->id . '", "yes")\'><div class="badge badge-danger" style="cursor:pointer">Inactive</div></span>',
+
                 'created_at' => date('d-m-Y h:i', strtotime($product->created_at)),
                 'updated_at' => date('d-m-Y h:i', strtotime($product->updated_at)),
                 'action' => $action
@@ -446,7 +453,7 @@ class ProductController extends Controller
             'discount_price'   => 'nullable|numeric|min:0|lte:sell_price',
             'reorder_level'    => 'nullable|numeric|min:0',
             'description'      => 'nullable|string',
-          ]);
+        ]);
 
         $image = $product->image;
         // Handle image upload
@@ -608,5 +615,21 @@ class ProductController extends Controller
         }
 
         return Storage::disk('public')->download($filePath, $fileName);
+    }
+
+    public function statusChange(Request $request)
+    {
+        $user = Product::findOrFail($request->id);
+        $user->is_active = $request->status;
+        $user->save();
+
+        return response()->json(['message' => 'Status updated successfully']);
+    }
+
+    public function view($id)
+    {
+        $product = Product::with(['category', 'subcategory'])->findOrFail($id);
+
+        return response()->json($product);
     }
 }

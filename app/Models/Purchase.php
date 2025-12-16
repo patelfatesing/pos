@@ -11,6 +11,7 @@ class Purchase extends Model
     protected $fillable = [
         'bill_no',
         'vendor_id',
+        'vendor_new_id',
         'parchase_ledger',
         'total',
         'date',
@@ -30,7 +31,12 @@ class Purchase extends Model
         'rsgsm_purchase',
         'case_purchase',
         'case_purchase_per',
-        'case_purchase_amt'
+        'case_purchase_amt',
+        'permit_fee_excise',
+        'vend_fee_excise',
+        'composite_fee_excise',
+        'excise_total_amount',
+        'loading_charges'
 
     ];
 
@@ -40,6 +46,11 @@ class Purchase extends Model
     }
 
     public function productsItems(): HasMany
+    {
+        return $this->hasMany(PurchaseProduct::class);
+    }
+
+    public function purchaseProducts(): HasMany
     {
         return $this->hasMany(PurchaseProduct::class);
     }

@@ -1964,7 +1964,6 @@ class Report2Controller extends Controller
 
     public function getProfitLossData(Request $request)
     {
-        $branchId = $request->integer('branch_id');
         $tz  = config('app.timezone', 'Asia/Kolkata');
         $now = Carbon::now($tz);
 
@@ -1975,9 +1974,8 @@ class Report2Controller extends Controller
             ? Carbon::parse($request->input('end_date'), $tz)->endOfDay()
             : $now->copy()->endOfDay();
 
-        /* ---------- Sales (net), then less refunds ---------- */
+        /* ---------- Sales from INVOICES (net), then less refunds (fallback source) ---------- */
         $salesAgg = DB::table('invoices as i')
-            ->when($branchId, fn($q, $v) => $q->where('i.branch_id', $v))
             ->whereBetween('i.created_at', [$start, $end])
             ->when(Schema::hasColumn('invoices', 'status'), fn($q) => $q->where('i.status', '!=', 'Hold'))
             ->selectRaw('
@@ -1994,12 +1992,15 @@ class Report2Controller extends Controller
 
         $refunds = (float) DB::table('credit_histories as ch')
             ->where('ch.transaction_kind', 'refund')
-            ->when($branchId, fn($q, $v) => $q->where('ch.store_id', $v))
             ->whereBetween('ch.created_at', [$start, $end])
             ->selectRaw('COALESCE(SUM(CASE WHEN ch.type="debit" THEN ch.debit_amount ELSE 0 END),0) as rf')
             ->value('rf');
 
-        $salesAccounts = $salesNetBeforeRefunds - $refunds; // Trading Cr
+        // Invoice-side sales (used as fallback when vouchers are not available)
+        $salesFromInvoices = $salesNetBeforeRefunds - $refunds;
+
+        // Default Sales Accounts figure (may be overridden by vouchers below)
+        $salesAccounts = $salesFromInvoices;
 
         /* ---------- Availability ---------- */
         $hasV  = Schema::hasTable('vouchers');
@@ -2017,8 +2018,20 @@ class Report2Controller extends Controller
                 ->join('account_ledgers as l', 'l.id', '=', 'vl.ledger_id')
                 ->join('account_groups as g', 'g.id', '=', 'l.group_id')
                 ->whereBetween('v.voucher_date', [$start->toDateString(), $end->toDateString()])
-                ->when($branchId, fn($q, $v) => $q->where('v.branch_id', $v))
                 ->when(Schema::hasColumn('account_ledgers', 'is_deleted'), fn($q) => $q->where('l.is_deleted', 0));
+        }
+
+        /* ---------- Sales from VOUCHERS (Income groups affecting gross) ---------- */
+        $salesFromVouchers = 0.0;
+        if ($linesBase) {
+            $salesFromVouchers = (float) (clone $linesBase)
+                ->where('g.nature', 'Income')
+                ->where('g.affects_gross', 1)
+                ->selectRaw("\n                COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0)\n              - COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0) as amt\n            ")
+                ->value('amt');
+
+            // When vouchers exist, we take Sales from vouchers as the accounting truth
+            $salesAccounts = $salesFromVouchers;
         }
 
         // EXPENSES: expense_category_id IS the ledger_id
@@ -2028,7 +2041,6 @@ class Report2Controller extends Controller
                 ->join('account_ledgers as l', 'l.id', '=', 'e.expense_category_id')
                 ->join('account_groups as g', 'g.id', '=', 'l.group_id')
                 ->whereBetween('e.expense_date', [$start->toDateString(), $end->toDateString()])
-                ->when($branchId, fn($q, $v) => $q->where('e.branch_id', $v))
                 ->when(Schema::hasColumn('expenses', 'verify'), fn($q) => $q->where('e.verify', 'Yes'))
                 ->when(Schema::hasColumn('account_ledgers', 'is_deleted'), fn($q) => $q->where('l.is_deleted', 0));
         }
@@ -2042,6 +2054,7 @@ class Report2Controller extends Controller
         foreach ($allGroups as $g) {
             $byParent[$g->parent_id ?? 0][] = $g;
         }
+
         $descendantsOf = function (array $rootIds) use ($byParent) {
             $set = [];
             $queue = $rootIds;
@@ -2081,12 +2094,7 @@ class Report2Controller extends Controller
                     ->whereIn('g.id', $purchaseGroupIds)
                     ->whereNotNull('l.id');
 
-                $puRows = $puBase->selectRaw("
-                g.id as gid, g.name as gname,
-                l.id as lid, l.name as lname,
-                COUNT(*)                                                as bills_inv,
-                COALESCE(SUM(COALESCE(pu.total_amount, pu.total, 0)),0) as amt_inv
-            ")
+                $puRows = $puBase->selectRaw("\n                g.id as gid, g.name as gname,\n                l.id as lid, l.name as lname,\n                COUNT(*)                                                as bills_inv,\n                COALESCE(SUM(COALESCE(pu.total_amount, pu.total, 0)),0) as amt_inv\n            ")
                     ->groupBy('g.id', 'g.name', 'l.id', 'l.name')
                     ->get();
 
@@ -2101,13 +2109,7 @@ class Report2Controller extends Controller
             // From voucher_lines (net Dr-Cr)
             if ($linesBase) {
                 $vl = (clone $linesBase)->whereIn('g.id', $purchaseGroupIds);
-                $vlRows = $vl->selectRaw("
-                g.id as gid, g.name as gname,
-                l.id as lid, l.name as lname,
-                COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0) -
-                COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0) as amt_vch,
-                COUNT(DISTINCT v.id) as bills_vch
-            ")
+                $vlRows = $vl->selectRaw("\n                g.id as gid, g.name as gname,\n                l.id as lid, l.name as lname,\n                COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0) -\n                COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0) as amt_vch,\n                COUNT(DISTINCT v.id) as bills_vch\n            ")
                     ->groupBy('g.id', 'g.name', 'l.id', 'l.name')
                     ->havingRaw('amt_vch <> 0')
                     ->get();
@@ -2149,7 +2151,7 @@ class Report2Controller extends Controller
                 if (abs($groupTotal) < 0.00001) continue;
 
                 $total += $groupTotal;
-                $rows[] = ['label' => 'Total', 'amount' => number_format($groupTotal, 2), 'is_total' => true];
+                // NOTE: Removed the children-level "Total" row here as requested.
 
                 $children[] = [
                     'label'     => $gdata['name'],
@@ -2169,10 +2171,8 @@ class Report2Controller extends Controller
 
             $base = $scope(clone $linesBase);
             $expr = $sign === 'expense'
-                ? "COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0) -
-               COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0)"
-                : "COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0) -
-               COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0)";
+                ? "COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0) -\n               COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0)"
+                : "COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0) -\n               COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0)";
 
             $groups = (clone $base)
                 ->selectRaw("g.id as gid, g.name as gname")
@@ -2206,7 +2206,7 @@ class Report2Controller extends Controller
                     return $row;
                 })->all();
 
-                $mapped[] = ['label' => 'Total', 'amount' => number_format($ledgerTotal, 2), 'is_total' => true];
+                // $mapped[] = ['label' => 'Total', 'amount' => number_format($ledgerTotal, 2), 'is_total' => true];
 
                 $children[] = [
                     'label'     => $g->gname,
@@ -2239,11 +2239,7 @@ class Report2Controller extends Controller
                 if ($vl) {
                     $vlLedgers = (clone $vl)
                         ->where('g.id', $g->gid)
-                        ->selectRaw("
-                        l.id as lid, l.name as lname,
-                        COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0) -
-                        COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0) as amt_vl
-                    ")
+                        ->selectRaw("\n                        l.id as lid, l.name as lname,\n                        COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0) -\n                        COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0) as amt_vl\n                    ")
                         ->groupBy('l.id', 'l.name')
                         ->havingRaw('amt_vl <> 0')
                         ->get();
@@ -2282,7 +2278,7 @@ class Report2Controller extends Controller
                 if (abs($groupTotal) < 0.00001) continue;
                 $total += $groupTotal;
 
-                $ledgerRows[] = ['label' => 'Total', 'amount' => number_format($groupTotal, 2), 'is_total' => true];
+                // NOTE: Removed the children-level "Total" row here as requested.
 
                 $children[] = [
                     'label'     => $g->gname,
@@ -2321,17 +2317,12 @@ class Report2Controller extends Controller
             'income'
         );
 
-        // Sales children (gross-affecting Income) — groups clickable
+        // Sales children (gross-affecting Income) — groups clickable (from vouchers)
         $salesChildren = [];
         if ($linesBase) {
             $salesChildren = (clone $linesBase)
                 ->where('g.nature', 'Income')->where('g.affects_gross', 1)
-                ->selectRaw("
-                g.id as gid,
-                g.name as gname,
-                COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0) -
-                COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0) as amt
-            ")
+                ->selectRaw("\n                g.id as gid,\n                g.name as gname,\n                COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0) -\n                COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0) as amt\n            ")
                 ->groupBy('g.id', 'g.name')->havingRaw('amt <> 0')->orderBy('g.name')->get()
                 ->map(fn($r) => [
                     'label'    => $r->gname,
@@ -2341,9 +2332,8 @@ class Report2Controller extends Controller
         }
 
         /* ---------- Stock valuation ---------- */
-        $valueStock = function (Carbon $targetDate, bool $useOpening) use ($branchId): float {
+        $valueStock = function (Carbon $targetDate, bool $useOpening): float {
             $rows = DB::table('daily_product_stocks as dps')
-                ->when($branchId, fn($q, $v) => $q->where('dps.branch_id', $v))
                 ->whereDate('dps.date', $targetDate->toDateString())
                 ->select('dps.product_id', $useOpening
                     ? DB::raw('SUM(dps.opening_stock) as qty')
@@ -2352,14 +2342,12 @@ class Report2Controller extends Controller
 
             if ($rows->isEmpty()) {
                 $lastDates = DB::table('daily_product_stocks as d1')
-                    ->when($branchId, fn($q, $v) => $q->where('d1.branch_id', $v))
                     ->whereDate('d1.date', '<=', $targetDate->toDateString())
                     ->select('d1.product_id', DB::raw('MAX(d1.date) as last_date'))
                     ->groupBy('d1.product_id');
 
                 $rows = DB::table('daily_product_stocks as d2')
                     ->joinSub($lastDates, 'ld', fn($j) => $j->on('d2.product_id', '=', 'ld.product_id')->on('d2.date', '=', 'ld.last_date'))
-                    ->when($branchId, fn($q, $v) => $q->where('d2.branch_id', $v))
                     ->select('d2.product_id', DB::raw('SUM(d2.closing_stock) as qty'))
                     ->groupBy('d2.product_id')->pluck('qty', 'product_id');
             }
@@ -2452,9 +2440,7 @@ class Report2Controller extends Controller
         ];
         if ($nettLoss > 0) $plCrRows[] = ['label' => 'Nett Loss', 'amount' => number_format($nettLoss, 2)];
 
-        $branchName = $branchId
-            ? (DB::table('branches')->where('id', $branchId)->value('name') ?? ('Branch #' . $branchId))
-            : 'All Branches';
+        $branchName = 'All Branches';
 
         return response()->json([
             'header' => [
@@ -2510,11 +2496,10 @@ class Report2Controller extends Controller
 
     public function getBalanceSheetData(Request $request)
     {
-        $branchId = $request->integer('branch_id');
         $tz   = config('app.timezone', 'Asia/Kolkata');
         $now  = Carbon::now($tz);
 
-        // Current period context (for "Current Period" P&L piece). "end" is the snapshot date.
+        // Period
         $start = $request->filled('start_date')
             ? Carbon::parse($request->input('start_date'), $tz)->startOfDay()
             : $now->copy()->firstOfMonth()->startOfDay();
@@ -2528,7 +2513,7 @@ class Report2Controller extends Controller
         $hasL  = Schema::hasTable('account_ledgers');
         $hasG  = Schema::hasTable('account_groups');
 
-        // -------- helper to safely pick a column from a table --------
+        // helper to pick a column
         $pickCol = function (string $table, array $candidates, ?string $fallback = null): ?string {
             foreach ($candidates as $c) {
                 if (Schema::hasColumn($table, $c)) return $c;
@@ -2536,12 +2521,9 @@ class Report2Controller extends Controller
             return $fallback;
         };
 
-        /* -------------------------------------------------------
-     |  Voucher lines base up to END (closing snapshot)
-     * -----------------------------------------------------*/
+        // Voucher lines base up to END
         $vlBaseToEnd = null;
         if ($hasV && $hasVL && $hasL && $hasG) {
-            // pick a valid date column on vouchers (fallback to created_at)
             $vDateCol = $pickCol('vouchers', ['voucher_date', 'date', 'txn_date', 'trans_date', 'posted_on', 'created_at'], 'created_at');
 
             $vlBaseToEnd = DB::table('voucher_lines as vl')
@@ -2549,18 +2531,16 @@ class Report2Controller extends Controller
                 ->join('account_ledgers as l', 'l.id', '=', 'vl.ledger_id')
                 ->join('account_groups as g', 'g.id', '=', 'l.group_id')
                 ->whereDate("v.$vDateCol", '<=', $end->toDateString())
-                ->when($branchId, fn($q, $v) => Schema::hasColumn('vouchers', 'branch_id') ? $q->where('v.branch_id', $v) : $q)
                 ->when(Schema::hasColumn('account_ledgers', 'is_deleted'), fn($q) => $q->where('l.is_deleted', 0));
         }
 
-        /* -------------------------------------------------------
-     |  Ledger opening (if schema has it)
-     * -----------------------------------------------------*/
+        // Ledger openings
         $ledgersOpening = [];
         if ($hasL) {
             $cols = Schema::getColumnListing('account_ledgers');
             $hasOpAmt  = in_array('opening_balance', $cols, true);
-            $hasOpType = in_array('opening_type',    $cols, true); // 'Dr' or 'Cr'
+            $hasOpType = in_array('opening_type',    $cols, true);
+
             if ($hasOpAmt) {
                 $rows = DB::table('account_ledgers')->select('id', 'opening_balance')
                     ->when($hasOpType, fn($q) => $q->addSelect('opening_type'))
@@ -2568,25 +2548,21 @@ class Report2Controller extends Controller
                 foreach ($rows as $r) {
                     $amt = (float) ($r->opening_balance ?? 0);
                     if (!empty($r->opening_type) && strtoupper($r->opening_type) === 'CR') {
-                        $amt = -1 * $amt; // Cr as negative, Dr as positive
+                        $amt = -$amt;
                     }
                     $ledgersOpening[$r->id] = $amt;
                 }
             }
         }
 
-        // -------- Closing stock (asset) --------
-        $closingStock = $this->valueStock($end, false, $branchId); // uses your existing helper
-
-        // -------- P&L for current period (to place on Balance Sheet) --------
-        $pl = $this->computePLForPeriod($start, $end, $branchId);  // uses your existing helper
+        // Closing stock and P&L (helpers)
+        $closingStock = $this->valueStock($end, false, null);
+        $pl = $this->computePLForPeriod($start, $end, null);
         $nettProfit = $pl['nett_profit'] ?? 0.0;
-        $nettLoss   = $pl['nett_loss']   ?? 0.0;
+        $nettLoss   = $pl['nett_loss'] ?? 0.0;
 
-        /* -------------------------------------------------------
-     |  Compute ledger closing balances (Dr - Cr + opening)
-     * -----------------------------------------------------*/
-        $ledgerBalances = []; // +ve => Dr (Asset), -ve => Cr (Liability)
+        // Compute ledger closing balances (Dr - Cr + opening)
+        $ledgerBalances = [];
         if ($vlBaseToEnd) {
             $sums = (clone $vlBaseToEnd)
                 ->selectRaw(
@@ -2599,132 +2575,217 @@ class Report2Controller extends Controller
                 ->get();
 
             foreach ($sums as $r) {
-                $opening = $ledgersOpening[$r->lid] ?? 0.0; // Dr positive, Cr negative
+                $opening = $ledgersOpening[$r->lid] ?? 0.0;
                 $net     = $opening + (float)$r->dr_sum - (float)$r->cr_sum;
                 $ledgerBalances[$r->lid] = [
                     'name'         => $r->lname,
                     'group_id'     => $r->gid,
                     'group_name'   => $r->gname,
-                    'group_nature' => $r->nature, // 'Asset' | 'Liability' | 'Income' | 'Expense'
+                    'group_nature' => $r->nature,
                     'net'          => $net,
                 ];
             }
         }
 
-        /* -------------------------------------------------------
-     |  Build sides
-     * -----------------------------------------------------*/
-        $assetsTree      = [];  // group_id => ['label'=>..., 'children'=>[], 'total'=>...]
+        /* --------------------------
+       Predefine the exact sections you asked for
+       Keys are internal IDs (strings to avoid numeric conflict)
+    ---------------------------*/
+        $assetSections = [
+            'fixed_asset'     => 'Fixed Asset',
+            'investment'      => 'Investment',
+            'sundry_debtors'  => 'Sundry Debtors',
+            'loan_advance'    => 'Loan & Advance',
+            'closing_stock'   => 'Closing Stock',
+            'cash_in_hand'    => 'Cash In Hand',
+            'bank_ac'         => 'Bank A/C',
+        ];
+
+        $liabilitySections = [
+            'capital_ac'      => 'Capital A/c',
+            'secured_loan'    => 'Secured Loan',
+            'unsecured_loan'  => 'Unsecured Loan',
+            'bank_od'         => 'Bank O/D',
+            'provision'       => 'Provision',
+            'duties_taxes'    => 'Duties and Taxes',
+            'sundry_creditors' => 'Sundry Creditors',
+        ];
+
+        // Initialize trees with those groups so they always appear
+        $assetsTree = [];
         $liabilitiesTree = [];
 
-        $pushLedger = function (array &$tree, $gid, $gname, $lidName, $amount) {
-            if (!isset($tree[$gid])) {
-                $tree[$gid] = ['label' => $gname, 'children' => [], 'total' => 0.0];
+        foreach ($assetSections as $key => $label) {
+            $assetsTree[$key] = ['label' => $label, 'children' => [], 'total' => 0.0];
+        }
+        foreach ($liabilitySections as $key => $label) {
+            $liabilitiesTree[$key] = ['label' => $label, 'children' => [], 'total' => 0.0];
+        }
+
+        // Helper to push a ledger row into a chosen tree section
+        $pushToSection = function (array &$tree, $sectionKey, $ledgerLabel, $amount) {
+            if (!isset($tree[$sectionKey])) {
+                // fallback - create a generic container
+                $tree[$sectionKey] = ['label' => $sectionKey, 'children' => [], 'total' => 0.0];
             }
-            $tree[$gid]['children'][] = ['label' => $lidName, 'amount' => number_format($amount, 2)];
-            $tree[$gid]['total'] += $amount;
+            $tree[$sectionKey]['children'][] = ['label' => $ledgerLabel, 'amount' => number_format($amount, 2)];
+            $tree[$sectionKey]['total'] += $amount;
         };
 
+        // Matching rules (lowercase checks). You can tweak keywords to match your group's naming.
+        $assetMatchers = [
+            'fixed_asset'     => ['fixed asset', 'fixed assets', 'plant', 'property', 'building', 'asset'],
+            'investment'      => ['investment', 'investments'],
+            'sundry_debtors'  => ['sundry debt', 'sundry debtors', 'debtors', 'accounts receivable'],
+            'loan_advance'    => ['loan', 'advance', 'loan & advance', 'loan & advances', 'advance to'],
+            'cash_in_hand'    => ['cash in hand', 'cash'],
+            'bank_ac'         => ['bank', 'bank a/c', 'bank account', 'bank ac'],
+        ];
+
+        $liabilityMatchers = [
+            'capital_ac'      => ['capital', 'capital a/c', 'capital account'],
+            'secured_loan'    => ['secured loan', 'secured loans'],
+            'unsecured_loan'  => ['unsecured loan', 'unsecured loans'],
+            'bank_od'         => ['overdraft', 'bank od', 'bank o/d', 'bank overdraft'],
+            'provision'       => ['provision', 'provisions'],
+            'duties_taxes'    => ['duty', 'tax', 'duties', 'taxes', 'duties and taxes'],
+            'sundry_creditors' => ['sundry creditor', 'sundry creditors', 'creditors', 'accounts payable'],
+        ];
+
+        // Helper to find a matching section by group name or ledger name
+        $findSection = function (string $groupName, string $ledgerName, array $matchMap) {
+            $hay = strtolower($groupName . ' ' . $ledgerName);
+            foreach ($matchMap as $sectionKey => $keywords) {
+                foreach ($keywords as $kw) {
+                    if ($kw === '') continue;
+                    if (strpos($hay, strtolower($kw)) !== false) return $sectionKey;
+                }
+            }
+            return null;
+        };
+
+        // Place ledgers into the pre-defined sections when possible. If not matched, fallback to grouping by group_nature:
         foreach ($ledgerBalances as $lid => $row) {
-            $amt = (float)$row['net'];
+            $gname = $row['group_name'] ?? '';
+            $lname = $row['name'] ?? '';
+            $amt   = (float)$row['net'];
+
+            // skip insignificants
             if (abs($amt) < 0.00001) continue;
 
-            if ($amt > 0) {
-                // Dr => Asset
-                $pushLedger($assetsTree, $row['group_id'], $row['group_name'], $row['name'], $amt);
+            // try match asset sections
+            $matched = $findSection($gname, $lname, $assetMatchers);
+            if ($matched) {
+                // positive net means Dr (asset); negative means Cr (liability) - assign accordingly
+                if ($amt >= 0) {
+                    $pushToSection($assetsTree, $matched, $lname . ' (' . $gname . ')', $amt);
+                } else {
+                    $pushToSection($liabilitiesTree, $matched, $lname . ' (' . $gname . ')', abs($amt));
+                }
+                continue;
+            }
+
+            // try liability match
+            $matched = $findSection($gname, $lname, $liabilityMatchers);
+            if ($matched) {
+                if ($amt >= 0) {
+                    $pushToSection($assetsTree, $matched, $lname . ' (' . $gname . ')', $amt);
+                } else {
+                    $pushToSection($liabilitiesTree, $matched, $lname . ' (' . $gname . ')', abs($amt));
+                }
+                continue;
+            }
+
+            // fallback by group nature (if provided)
+            $nature = strtolower(trim($row['group_nature'] ?? ''));
+            if (in_array($nature, ['asset', 'assets'])) {
+                // push to a generic 'Fixed Asset' if nothing matched
+                $pushToSection($assetsTree, 'fixed_asset', $lname . ' (' . $gname . ')', $amt > 0 ? $amt : 0 + $amt);
+            } elseif (in_array($nature, ['liability', 'liabilities'])) {
+                $pushToSection($liabilitiesTree, 'capital_ac', $lname . ' (' . $gname . ')', abs($amt));
             } else {
-                // Cr => Liability
-                $pushLedger($liabilitiesTree, $row['group_id'], $row['group_name'], $row['name'], abs($amt));
+                // if income/expense, keep them out (they'll be in P&L). But if you want them shown, you can push them under P&L section.
+                // leave them for P&L handling below
             }
         }
 
-        // -------- Add Closing Stock into "Current Assets" --------
+        // Add Closing Stock explicitly into 'closing_stock' asset section
         if ($closingStock > 0) {
-            $curAssetsGroup = DB::table('account_groups')
-                ->whereIn(DB::raw('LOWER(name)'), ['current assets', 'current asset', 'current a/c'])
-                ->first();
+            $pushToSection($assetsTree, 'closing_stock', 'Closing Stock', $closingStock);
+        }
 
-            $gid = $curAssetsGroup->id   ?? -9999;
-            $gname = $curAssetsGroup->name ?? 'Current Assets';
-            if (!isset($assetsTree[$gid])) {
-                $assetsTree[$gid] = ['label' => $gname, 'children' => [], 'total' => 0.0];
+        // Ensure Cash in Hand and Bank A/C totals include obvious ledgers (again, a fallback scan in case naming didn't match earlier)
+        // If your account_ledgers table contains ledger names 'Cash' or 'Bank', include their closing balances (if not already included)
+        if ($hasL) {
+            $cashLedgers = DB::table('account_ledgers')->whereRaw("LOWER(name) LIKE '%cash%'")->get(['id', 'name']);
+            foreach ($cashLedgers as $cl) {
+                // if this ledger wasn't part of ledgerBalances (maybe zero), attempt to compute its closing value from voucher_lines
+                if (!isset($ledgerBalances[$cl->id]) && $vlBaseToEnd) {
+                    $row = (clone $vlBaseToEnd)
+                        ->where('l.id', $cl->id)
+                        ->selectRaw('COALESCE(SUM(CASE WHEN vl.dc="Dr" THEN vl.amount ELSE 0 END),0) as dr_sum, COALESCE(SUM(CASE WHEN vl.dc="Cr" THEN vl.amount ELSE 0 END),0) as cr_sum')
+                        ->first();
+                    $open = $ledgersOpening[$cl->id] ?? 0.0;
+                    $val  = $open + (float)($row->dr_sum ?? 0) - (float)($row->cr_sum ?? 0);
+                    if (abs($val) > 0.00001) {
+                        if ($val >= 0) $pushToSection($assetsTree, 'cash_in_hand', $cl->name, $val);
+                        else $pushToSection($liabilitiesTree, 'cash_in_hand', $cl->name, abs($val));
+                    }
+                }
             }
-            $assetsTree[$gid]['children'][] = ['label' => 'Closing Stock', 'amount' => number_format($closingStock, 2)];
-            $assetsTree[$gid]['total'] += $closingStock;
-        }
 
-        // -------- Profit & Loss A/c bucket (Opening + Current Period) --------
-        $plLedger = DB::table('account_ledgers')->where(DB::raw('LOWER(name)'), 'profit & loss a/c')->first();
-        $plOpening = 0.0;
-        if ($plLedger) {
-            $openAmt = (float)($plLedger->opening_balance ?? 0);
-            $openTyp = property_exists($plLedger, 'opening_type') ? strtoupper($plLedger->opening_type) : 'DR';
-            $plOpening = ($openTyp === 'CR') ? -1 * $openAmt : $openAmt; // Dr=+, Cr=-
-        }
-
-        $plNodeLabel = 'Profit & Loss A/c';
-
-        // Opening balance piece
-        if (abs($plOpening) > 0.00001) {
-            if ($plOpening > 0) {
-                // Dr -> Asset
-                if (!isset($assetsTree[-7777])) $assetsTree[-7777] = ['label' => $plNodeLabel, 'children' => [], 'total' => 0.0];
-                $assetsTree[-7777]['children'][] = ['label' => 'Opening Balance', 'amount' => number_format($plOpening, 2)];
-                $assetsTree[-7777]['total'] += $plOpening;
-            } else {
-                // Cr -> Liability
-                if (!isset($liabilitiesTree[-7777])) $liabilitiesTree[-7777] = ['label' => $plNodeLabel, 'children' => [], 'total' => 0.0];
-                $liabilitiesTree[-7777]['children'][] = ['label' => 'Opening Balance', 'amount' => number_format(abs($plOpening), 2)];
-                $liabilitiesTree[-7777]['total'] += abs($plOpening);
+            $bankLedgers = DB::table('account_ledgers')->whereRaw("LOWER(name) LIKE '%bank%'")->get(['id', 'name']);
+            foreach ($bankLedgers as $bl) {
+                if (!isset($ledgerBalances[$bl->id]) && $vlBaseToEnd) {
+                    $row = (clone $vlBaseToEnd)
+                        ->where('l.id', $bl->id)
+                        ->selectRaw('COALESCE(SUM(CASE WHEN vl.dc="Dr" THEN vl.amount ELSE 0 END),0) as dr_sum, COALESCE(SUM(CASE WHEN vl.dc="Cr" THEN vl.amount ELSE 0 END),0) as cr_sum')
+                        ->first();
+                    $open = $ledgersOpening[$bl->id] ?? 0.0;
+                    $val  = $open + (float)($row->dr_sum ?? 0) - (float)($row->cr_sum ?? 0);
+                    if (abs($val) > 0.00001) {
+                        if ($val >= 0) $pushToSection($assetsTree, 'bank_ac', $bl->name, $val);
+                        else $pushToSection($liabilitiesTree, 'bank_ac', $bl->name, abs($val));
+                    }
+                }
             }
         }
 
-        // Current period piece
+        // Profit & Loss aggregation: place net P&L under liabilities (Profit => Liability), and Loss under assets
+        $plLabel = 'Profit & Loss A/c';
         if ($nettProfit > 0) {
-            // Profit increases Liability
-            if (!isset($liabilitiesTree[-7777])) $liabilitiesTree[-7777] = ['label' => $plNodeLabel, 'children' => [], 'total' => 0.0];
-            $liabilitiesTree[-7777]['children'][] = ['label' => 'Current Period', 'amount' => number_format($nettProfit, 2)];
-            $liabilitiesTree[-7777]['total'] += $nettProfit;
+            // profit -> liability side
+            $pushToSection($liabilitiesTree, 'capital_ac', $plLabel . ' (Current Period Profit)', $nettProfit);
         } elseif ($nettLoss > 0) {
-            // Loss increases Asset
-            if (!isset($assetsTree[-7777])) $assetsTree[-7777] = ['label' => $plNodeLabel, 'children' => [], 'total' => 0.0];
-            $assetsTree[-7777]['children'][] = ['label' => 'Current Period', 'amount' => number_format($nettLoss, 2)];
-            $assetsTree[-7777]['total'] += $nettLoss;
+            $pushToSection($assetsTree, 'fixed_asset', $plLabel . ' (Current Period Loss)', $nettLoss);
         }
 
-        // -------- Normalize trees to rows (uses your helper) --------
-        $assetsRows = $this->treeToRows($assetsTree);      // expect [['label'=>g, 'amount'=>'...', 'children'=>[...]], ...]
+        // Convert trees to rows using your helper
+        $assetsRows = $this->treeToRows($assetsTree);
         $liabRows   = $this->treeToRows($liabilitiesTree);
 
         $assetsTotal = array_reduce($assetsRows, fn($c, $r) => $c + (float)str_replace(',', '', $r['amount']), 0.0);
         $liabTotal   = array_reduce($liabRows,   fn($c, $r) => $c + (float)str_replace(',', '', $r['amount']), 0.0);
-
-        $dispAssetsTotal = number_format($assetsTotal, 2);
-        $dispLiabTotal   = number_format($liabTotal,   2);
-
-        $branchName = $branchId
-            ? (DB::table('branches')->where('id', $branchId)->value('name') ?? ('Branch #' . $branchId))
-            : 'All Branches';
 
         return response()->json([
             'header' => [
                 'title'  => 'Balance Sheet',
                 'as_of'  => $end->toDateString(),
                 'period' => $start->toDateString() . ' to ' . $end->toDateString(),
-                'branch' => $branchName,
+                'branch' => 'All Branches',
             ],
             'liabilities' => [
                 'title' => 'Liabilities',
                 'rows'  => $liabRows,
-                'total' => $dispLiabTotal,
+                'total' => number_format($liabTotal, 2),
             ],
             'assets' => [
                 'title' => 'Assets',
                 'rows'  => $assetsRows,
-                'total' => $dispAssetsTotal,
+                'total' => number_format($assetsTotal, 2),
             ],
         ]);
-    }
+    }   
 
     /* ===== Stock value helper (used above) ===== */
     private function valueStock(Carbon $targetDate, bool $useOpening, ?int $branchId): float
@@ -3341,5 +3402,539 @@ class Report2Controller extends Controller
             default:
                 return 'bg-secondary';
         }
+    }
+
+    public function getProfitLossData_old(Request $request)
+    {
+        $branchId = $request->integer('branch_id');
+        $tz  = config('app.timezone', 'Asia/Kolkata');
+        $now = Carbon::now($tz);
+
+        $start = $request->filled('start_date')
+            ? Carbon::parse($request->input('start_date'), $tz)->startOfDay()
+            : $now->copy()->subDays(29)->startOfDay();
+        $end   = $request->filled('end_date')
+            ? Carbon::parse($request->input('end_date'), $tz)->endOfDay()
+            : $now->copy()->endOfDay();
+
+        /* ---------- Sales from INVOICES (net), then less refunds (fallback source) ---------- */
+        $salesAgg = DB::table('invoices as i')
+            ->when($branchId, fn($q, $v) => $q->where('i.branch_id', $v))
+            ->whereBetween('i.created_at', [$start, $end])
+            ->when(Schema::hasColumn('invoices', 'status'), fn($q) => $q->where('i.status', '!=', 'Hold'))
+            ->selectRaw('
+            COALESCE(SUM(i.sub_total),0)         as sum_sub_total,
+            COALESCE(SUM(i.commission_amount),0) as sum_commission,
+            COALESCE(SUM(i.party_amount),0)      as sum_party
+        ')->first();
+
+        $salesNetBeforeRefunds = max(
+            0,
+            (float)($salesAgg->sum_sub_total ?? 0)
+                - ((float)($salesAgg->sum_commission ?? 0) + (float)($salesAgg->sum_party ?? 0))
+        );
+
+        $refunds = (float) DB::table('credit_histories as ch')
+            ->where('ch.transaction_kind', 'refund')
+            ->when($branchId, fn($q, $v) => $q->where('ch.store_id', $v))
+            ->whereBetween('ch.created_at', [$start, $end])
+            ->selectRaw('COALESCE(SUM(CASE WHEN ch.type="debit" THEN ch.debit_amount ELSE 0 END),0) as rf')
+            ->value('rf');
+
+        // Invoice-side sales (used as fallback when vouchers are not available)
+        $salesFromInvoices = $salesNetBeforeRefunds - $refunds;
+
+        // Default Sales Accounts figure (may be overridden by vouchers below)
+        $salesAccounts = $salesFromInvoices;
+
+        /* ---------- Availability ---------- */
+        $hasV  = Schema::hasTable('vouchers');
+        $hasVL = Schema::hasTable('voucher_lines');
+        $hasL  = Schema::hasTable('account_ledgers');
+        $hasG  = Schema::hasTable('account_groups');
+        $hasE  = Schema::hasTable('expenses');
+        $hasP  = Schema::hasTable('purchases');
+
+        /* ---------- Common bases ---------- */
+        $linesBase = null;
+        if ($hasV && $hasVL && $hasL && $hasG) {
+            $linesBase = DB::table('voucher_lines as vl')
+                ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
+                ->join('account_ledgers as l', 'l.id', '=', 'vl.ledger_id')
+                ->join('account_groups as g', 'g.id', '=', 'l.group_id')
+                ->whereBetween('v.voucher_date', [$start->toDateString(), $end->toDateString()])
+                ->when($branchId, fn($q, $v) => $q->where('v.branch_id', $v))
+                ->when(Schema::hasColumn('account_ledgers', 'is_deleted'), fn($q) => $q->where('l.is_deleted', 0));
+        }
+
+        /* ---------- Sales from VOUCHERS (Income groups affecting gross) ---------- */
+        $salesFromVouchers = 0.0;
+        if ($linesBase) {
+            $salesFromVouchers = (float) (clone $linesBase)
+                ->where('g.nature', 'Income')
+                ->where('g.affects_gross', 1)
+                ->selectRaw("
+                COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0)
+              - COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0) as amt
+            ")
+                ->value('amt');
+
+            // When vouchers exist, we take Sales from vouchers as the accounting truth
+            $salesAccounts = $salesFromVouchers;
+        }
+
+        // EXPENSES: expense_category_id IS the ledger_id
+        $expensesBase = null;
+        if ($hasE && $hasL && $hasG) {
+            $expensesBase = DB::table('expenses as e')
+                ->join('account_ledgers as l', 'l.id', '=', 'e.expense_category_id')
+                ->join('account_groups as g', 'g.id', '=', 'l.group_id')
+                ->whereBetween('e.expense_date', [$start->toDateString(), $end->toDateString()])
+                ->when($branchId, fn($q, $v) => $q->where('e.branch_id', $v))
+                ->when(Schema::hasColumn('expenses', 'verify'), fn($q) => $q->where('e.verify', 'Yes'))
+                ->when(Schema::hasColumn('account_ledgers', 'is_deleted'), fn($q) => $q->where('l.is_deleted', 0));
+        }
+
+        /* ---------- Group helpers ---------- */
+        $allGroups = DB::table('account_groups')
+            ->select('id', 'parent_id', 'name', 'nature', 'affects_gross')
+            ->get();
+
+        $byParent  = [];
+        foreach ($allGroups as $g) {
+            $byParent[$g->parent_id ?? 0][] = $g;
+        }
+
+        $descendantsOf = function (array $rootIds) use ($byParent) {
+            $set = [];
+            $queue = $rootIds;
+            foreach ($rootIds as $id) $set[$id] = true;
+            while ($queue) {
+                $pid = array_shift($queue);
+                foreach (($byParent[$pid] ?? []) as $child) {
+                    if (!isset($set[$child->id])) {
+                        $set[$child->id] = true;
+                        $queue[] = $child->id;
+                    }
+                }
+            }
+            return array_keys($set);
+        };
+
+        /* ---------- Purchase root(s) ---------- */
+        $purchaseRootIds = DB::table('account_groups')
+            ->whereIn(DB::raw('LOWER(name)'), ['purchase accounts', 'purchase account', 'purchases', 'purchase a/c', 'purchase'])
+            ->pluck('id')->all();
+        $purchaseGroupIds = $purchaseRootIds ? $descendantsOf($purchaseRootIds) : [];
+
+        /* ---------- Purchase Accounts (purchases + vouchers) → group → ledger ---------- */
+        $purchaseFromPurchasesAndVouchers = function () use ($hasP, $hasL, $hasG, $start, $end, $purchaseGroupIds, $linesBase) {
+            if (!$hasL || !$hasG || empty($purchaseGroupIds)) {
+                return ['total' => 0.0, 'children' => []];
+            }
+
+            $acc = [];
+
+            // From purchases table
+            if ($hasP) {
+                $puBase = DB::table('purchases as pu')
+                    ->whereBetween('pu.date', [$start->toDateString(), $end->toDateString()])
+                    ->leftJoin('account_ledgers as l', 'l.id', '=', DB::raw('CAST(pu.parchase_ledger AS UNSIGNED)'))
+                    ->leftJoin('account_groups as g', 'g.id', '=', 'l.group_id')
+                    ->whereIn('g.id', $purchaseGroupIds)
+                    ->whereNotNull('l.id');
+
+                $puRows = $puBase->selectRaw("
+                g.id as gid, g.name as gname,
+                l.id as lid, l.name as lname,
+                COUNT(*)                                                as bills_inv,
+                COALESCE(SUM(COALESCE(pu.total_amount, pu.total, 0)),0) as amt_inv
+            ")
+                    ->groupBy('g.id', 'g.name', 'l.id', 'l.name')
+                    ->get();
+
+                foreach ($puRows as $r) {
+                    $acc[$r->gid]['name'] = $r->gname;
+                    $acc[$r->gid]['ledgers'][$r->lid]['name']  = $r->lname;
+                    $acc[$r->gid]['ledgers'][$r->lid]['amt']   = ($acc[$r->gid]['ledgers'][$r->lid]['amt'] ?? 0) + (float)$r->amt_inv;
+                    $acc[$r->gid]['ledgers'][$r->lid]['bills'] = ($acc[$r->gid]['ledgers'][$r->lid]['bills'] ?? 0) + (int)$r->bills_inv;
+                }
+            }
+
+            // From voucher_lines (net Dr-Cr)
+            if ($linesBase) {
+                $vl = (clone $linesBase)->whereIn('g.id', $purchaseGroupIds);
+                $vlRows = $vl->selectRaw("
+                g.id as gid, g.name as gname,
+                l.id as lid, l.name as lname,
+                COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0) -
+                COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0) as amt_vch,
+                COUNT(DISTINCT v.id) as bills_vch
+            ")
+                    ->groupBy('g.id', 'g.name', 'l.id', 'l.name')
+                    ->havingRaw('amt_vch <> 0')
+                    ->get();
+
+                foreach ($vlRows as $r) {
+                    $acc[$r->gid]['name'] = $r->gname;
+                    $acc[$r->gid]['ledgers'][$r->lid]['name']  = $r->lname;
+                    $acc[$r->gid]['ledgers'][$r->lid]['amt']   = ($acc[$r->gid]['ledgers'][$r->lid]['amt'] ?? 0) + (float)$r->amt_vch;
+                    $acc[$r->gid]['ledgers'][$r->lid]['bills'] = ($acc[$r->gid]['ledgers'][$r->lid]['bills'] ?? 0) + (int)$r->bills_vch;
+                }
+            }
+
+            // Build rows
+            $total = 0.0;
+            $children = [];
+            foreach ($acc as $gid => $gdata) {
+                $ledgers = $gdata['ledgers'] ?? [];
+                if (!$ledgers) continue;
+
+                uasort($ledgers, fn($a, $b) => strcmp($a['name'], $b['name']));
+
+                $rows = [];
+                $groupTotal = 0.0;
+
+                foreach ($ledgers as $lid => $ld) {
+                    $amt = (float)($ld['amt'] ?? 0);
+                    if (abs($amt) < 0.00001) continue;
+                    $groupTotal += $amt;
+
+                    $row = [
+                        'label'     => $ld['name'],
+                        'amount'    => number_format($amt, 2),
+                        'ledger_id' => (int)$lid,
+                    ];
+                    if (!empty($ld['bills'])) $row['bills'] = (int)$ld['bills'];
+                    $rows[] = $row;
+                }
+
+                if (abs($groupTotal) < 0.00001) continue;
+
+                $total += $groupTotal;
+                $rows[] = ['label' => 'Total', 'amount' => number_format($groupTotal, 2), 'is_total' => true];
+
+                $children[] = [
+                    'label'     => $gdata['name'],
+                    'amount'    => number_format($groupTotal, 2),
+                    'group_id'  => (int)$gid,
+                    'children'  => $rows,
+                ];
+            }
+
+            usort($children, fn($a, $b) => strcmp($a['label'], $b['label']));
+            return ['total' => $total, 'children' => $children];
+        };
+
+        /* ---------- Generic group→ledger ---------- */
+        $groupWithLedgerChildren = function (callable $scope, string $sign) use ($linesBase) {
+            if (!$linesBase) return ['total' => 0.0, 'children' => []];
+
+            $base = $scope(clone $linesBase);
+            $expr = $sign === 'expense'
+                ? "COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0) -
+               COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0)"
+                : "COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0) -
+               COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0)";
+
+            $groups = (clone $base)
+                ->selectRaw("g.id as gid, g.name as gname")
+                ->groupBy('g.id', 'g.name')
+                ->orderBy('g.name')
+                ->get();
+
+            $total = 0.0;
+            $children = [];
+
+            foreach ($groups as $g) {
+                $ledgerRows = (clone $base)
+                    ->where('g.id', $g->gid)
+                    ->selectRaw("l.id as lid, l.name as lname, {$expr} as amt, COUNT(DISTINCT v.id) as bills")
+                    ->groupBy('l.id', 'l.name')
+                    ->havingRaw('amt <> 0')
+                    ->orderBy('l.name')
+                    ->get();
+
+                $ledgerTotal = (float)$ledgerRows->sum('amt');
+                if (abs($ledgerTotal) < 0.00001) continue;
+                $total += $ledgerTotal;
+
+                $mapped = $ledgerRows->map(function ($r) {
+                    $row = [
+                        'label'     => $r->lname,
+                        'amount'    => number_format((float)$r->amt, 2),
+                        'ledger_id' => (int)$r->lid,
+                    ];
+                    if ((int)$r->bills > 0) $row['bills'] = (int)$r->bills;
+                    return $row;
+                })->all();
+
+                $mapped[] = ['label' => 'Total', 'amount' => number_format($ledgerTotal, 2), 'is_total' => true];
+
+                $children[] = [
+                    'label'     => $g->gname,
+                    'amount'    => number_format($ledgerTotal, 2),
+                    'group_id'  => (int)$g->gid,
+                    'children'  => $mapped
+                ];
+            }
+
+            return ['total' => $total, 'children' => $children];
+        };
+
+        /* ---------- EXPENSE sections: merge voucher_lines + expenses ---------- */
+        $expenseGroupsWithLedgers = function (callable $vlScope, callable $expScope) use ($linesBase, $expensesBase) {
+            if (!$linesBase && !$expensesBase) return ['total' => 0.0, 'children' => []];
+
+            $vl = $linesBase    ? $vlScope(clone $linesBase)    : null;
+            $ex = $expensesBase ? $expScope(clone $expensesBase) : null;
+
+            $groupRows = collect();
+            if ($vl) $groupRows = $groupRows->merge((clone $vl)->selectRaw('g.id as gid, g.name as gname')->groupBy('g.id', 'g.name')->get());
+            if ($ex) $groupRows = $groupRows->merge((clone $ex)->selectRaw('g.id as gid, g.name as gname')->groupBy('g.id', 'g.name')->get());
+            $groups = $groupRows->unique('gid')->sortBy('gname')->values();
+
+            $total = 0.0;
+            $children = [];
+
+            foreach ($groups as $g) {
+                $vlLedgers = collect();
+                if ($vl) {
+                    $vlLedgers = (clone $vl)
+                        ->where('g.id', $g->gid)
+                        ->selectRaw("
+                        l.id as lid, l.name as lname,
+                        COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0) -
+                        COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0) as amt_vl
+                    ")
+                        ->groupBy('l.id', 'l.name')
+                        ->havingRaw('amt_vl <> 0')
+                        ->get();
+                }
+
+                $exLedgers = collect();
+                if ($ex) {
+                    $exLedgers = (clone $ex)
+                        ->where('g.id', $g->gid)
+                        ->selectRaw("l.id as lid, l.name as lname, COALESCE(SUM(e.amount),0) as amt_ex")
+                        ->groupBy('l.id', 'l.name')
+                        ->havingRaw('amt_ex <> 0')
+                        ->get();
+                }
+
+                $byId = [];
+                foreach ($vlLedgers as $r) $byId[$r->lid] = ['name' => $r->lname, 'vl' => (float)$r->amt_vl, 'ex' => 0.0];
+                foreach ($exLedgers as $r) {
+                    if (!isset($byId[$r->lid])) $byId[$r->lid] = ['name' => $r->lname, 'vl' => 0.0, 'ex' => 0.0];
+                    $byId[$r->lid]['ex'] += (float)$r->amt_ex;
+                }
+
+                $ledgerRows = [];
+                $groupTotal = 0.0;
+                foreach ($byId as $lid => $row) {
+                    $amt = $row['vl'] + $row['ex']; // Dr total
+                    if (abs($amt) < 0.00001) continue;
+                    $groupTotal += $amt;
+                    $ledgerRows[] = [
+                        'label'     => $row['name'],
+                        'amount'    => number_format($amt, 2),
+                        'ledger_id' => (int)$lid,
+                    ];
+                }
+
+                if (abs($groupTotal) < 0.00001) continue;
+                $total += $groupTotal;
+
+                $ledgerRows[] = ['label' => 'Total', 'amount' => number_format($groupTotal, 2), 'is_total' => true];
+
+                $children[] = [
+                    'label'     => $g->gname,
+                    'amount'    => number_format($groupTotal, 2),
+                    'group_id'  => (int)$g->gid,
+                    'children'  => $ledgerRows,
+                ];
+            }
+
+            return ['total' => $total, 'children' => $children];
+        };
+
+        /* ---------- Sections ---------- */
+        $purchase = $purchaseFromPurchasesAndVouchers();
+
+        $direct = $expenseGroupsWithLedgers(
+            function ($q) use ($purchaseGroupIds) {
+                $q = $q->where('g.nature', 'Expense')->where('g.affects_gross', 1);
+                if (!empty($purchaseGroupIds)) $q->whereNotIn('g.id', $purchaseGroupIds);
+                return $q;
+            },
+            function ($q) use ($purchaseGroupIds) {
+                $q = $q->where('g.nature', 'Expense')->where('g.affects_gross', 1);
+                if (!empty($purchaseGroupIds)) $q->whereNotIn('g.id', $purchaseGroupIds);
+                return $q;
+            }
+        );
+
+        $indirect = $expenseGroupsWithLedgers(
+            fn($q) => $q->where('g.nature', 'Expense')->where(fn($w) => $w->where('g.affects_gross', 0)->orWhereNull('g.affects_gross')),
+            fn($q) => $q->where('g.nature', 'Expense')->where(fn($w) => $w->where('g.affects_gross', 0)->orWhereNull('g.affects_gross'))
+        );
+
+        $indIncomes = $groupWithLedgerChildren(
+            fn($q) => $q->where('g.nature', 'Income')->where(fn($w) => $w->where('g.affects_gross', 0)->orWhereNull('g.affects_gross')),
+            'income'
+        );
+
+        // Sales children (gross-affecting Income) — groups clickable (from vouchers)
+        $salesChildren = [];
+        if ($linesBase) {
+            $salesChildren = (clone $linesBase)
+                ->where('g.nature', 'Income')->where('g.affects_gross', 1)
+                ->selectRaw("
+                g.id as gid,
+                g.name as gname,
+                COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0) -
+                COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0) as amt
+            ")
+                ->groupBy('g.id', 'g.name')->havingRaw('amt <> 0')->orderBy('g.name')->get()
+                ->map(fn($r) => [
+                    'label'    => $r->gname,
+                    'amount'   => number_format((float)$r->amt, 2),
+                    'group_id' => (int)$r->gid,
+                ])->all();
+        }
+
+        /* ---------- Stock valuation ---------- */
+        $valueStock = function (Carbon $targetDate, bool $useOpening) use ($branchId): float {
+            $rows = DB::table('daily_product_stocks as dps')
+                ->when($branchId, fn($q, $v) => $q->where('dps.branch_id', $v))
+                ->whereDate('dps.date', $targetDate->toDateString())
+                ->select('dps.product_id', $useOpening
+                    ? DB::raw('SUM(dps.opening_stock) as qty')
+                    : DB::raw('SUM(dps.closing_stock) as qty'))
+                ->groupBy('dps.product_id')->pluck('qty', 'product_id');
+
+            if ($rows->isEmpty()) {
+                $lastDates = DB::table('daily_product_stocks as d1')
+                    ->when($branchId, fn($q, $v) => $q->where('d1.branch_id', $v))
+                    ->whereDate('d1.date', '<=', $targetDate->toDateString())
+                    ->select('d1.product_id', DB::raw('MAX(d1.date) as last_date'))
+                    ->groupBy('d1.product_id');
+
+                $rows = DB::table('daily_product_stocks as d2')
+                    ->joinSub($lastDates, 'ld', fn($j) => $j->on('d2.product_id', '=', 'ld.product_id')->on('d2.date', '=', 'ld.last_date'))
+                    ->when($branchId, fn($q, $v) => $q->where('d2.branch_id', $v))
+                    ->select('d2.product_id', DB::raw('SUM(d2.closing_stock) as qty'))
+                    ->groupBy('d2.product_id')->pluck('qty', 'product_id');
+            }
+
+            if ($rows->isEmpty()) return 0.0;
+
+            $ids   = $rows->keys()->all();
+            $costs = DB::table('products')->whereIn('id', $ids)->pluck('cost_price', 'id');
+
+            $total = 0.0;
+            foreach ($rows as $pid => $qty) $total += ((float)$qty) * (float)($costs[$pid] ?? 0);
+            return $total;
+        };
+
+        $openingStock = $valueStock($start, true);
+        $closingStock = $valueStock($end, false);
+
+        /* ---------- Smart normalize: single-group==section -> link header + show ledgers ---------- */
+        $normalizeSection = function (string $sectionLabel, array $data) {
+            $children = $data['children'] ?? [];
+
+            if (
+                count($children) === 1 &&
+                strcasecmp(trim($children[0]['label'] ?? ''), trim($sectionLabel)) === 0
+            ) {
+                $one = $children[0];
+                return [
+                    'total'             => (float)($data['total'] ?? 0),
+                    'children'          => $one['children'] ?? [],  // render ledgers directly
+                    'flatten'           => true,                     // treat children as ledgers
+                    'section_group_id'  => $one['group_id'] ?? null // make section header clickable
+                ];
+            }
+
+            return [
+                'total'    => (float)($data['total'] ?? 0),
+                'children' => $children,
+                'flatten'  => false,
+            ];
+        };
+
+        $purchaseFx = $normalizeSection('Purchase Accounts', $purchase);
+        $directFx   = $normalizeSection('Direct Expenses',   $direct);
+        $indirectFx = $normalizeSection('Indirect Expenses', $indirect);
+        $indInFx    = $normalizeSection('Indirect Incomes',  $indIncomes);
+
+        /* ---------- Totals & balancing ---------- */
+        $purchasesTotal = $purchaseFx['total'];
+        $directExp      = $directFx['total'];
+        $indirectExp    = $indirectFx['total'];
+        $indirectIncTot = $indInFx['total'];
+
+        $tradingDr = $openingStock + $purchasesTotal + $directExp;
+        $tradingCr = $salesAccounts + $closingStock;
+
+        $grossProfit = $tradingCr >= $tradingDr ? $tradingCr - $tradingDr : 0.0;
+        $grossLoss   = $tradingDr >  $tradingCr ? $tradingDr - $tradingCr : 0.0;
+        $tradingTableTotal = max($tradingDr + $grossProfit, $tradingCr + $grossLoss);
+
+        $plDrBase = $indirectExp + $grossLoss;
+        $plCrBase = $grossProfit + $indirectIncTot;
+
+        $nettProfit = $plCrBase >= $plDrBase ? $plCrBase - $plDrBase : 0.0;
+        $nettLoss   = $plDrBase >  $plCrBase ? $plDrBase - $plCrBase : 0.0;
+        $plTableTotal = max($plDrBase + $nettProfit, $plCrBase + $nettLoss);
+
+        /* ---------- Build rows (with section + ids) ---------- */
+        $tradingDrRows = [
+            ['label' => 'Opening Stock', 'amount' => number_format($openingStock, 2)],
+            ['label' => 'Purchase Accounts', 'amount' => number_format($purchasesTotal, 2), 'children' => $purchaseFx['children'], 'flatten' => $purchaseFx['flatten'], 'section' => 'purchase', 'section_group_id' => $purchaseFx['section_group_id'] ?? null],
+            ['label' => 'Direct Expenses',  'amount' => number_format($directExp, 2),       'children' => $directFx['children'],  'flatten' => $directFx['flatten'],   'section' => 'direct',   'section_group_id' => $directFx['section_group_id'] ?? null],
+            ['label' => 'Gross Profit c/o', 'amount' => number_format($grossProfit, 2)],
+        ];
+
+        $tradingCrRows = [
+            ['label' => 'Sales Accounts', 'amount' => number_format($salesAccounts, 2), 'children' => $salesChildren, 'section' => 'sales'],
+            ['label' => 'Closing Stock',  'amount' => number_format($closingStock, 2)],
+            ['label' => 'Gross Loss c/o', 'amount' => number_format($grossLoss, 2)],
+        ];
+
+        $plDrRows = [
+            ['label' => 'Gross Loss b/f',     'amount' => number_format($grossLoss, 2)],
+            ['label' => 'Indirect Expenses',  'amount' => number_format($indirectExp, 2), 'children' => $indirectFx['children'], 'flatten' => $indirectFx['flatten'], 'section' => 'indirect', 'section_group_id' => $indirectFx['section_group_id'] ?? null],
+        ];
+        if ($nettProfit > 0) $plDrRows[] = ['label' => 'Nett Profit', 'amount' => number_format($nettProfit, 2)];
+
+        $plCrRows = [
+            ['label' => 'Gross Profit b/f',  'amount' => number_format($grossProfit, 2)],
+            ['label' => 'Indirect Incomes',  'amount' => number_format($indirectIncTot, 2), 'children' => $indInFx['children'], 'flatten' => $indInFx['flatten'], 'section' => 'income',  'section_group_id' => $indInFx['section_group_id'] ?? null],
+        ];
+        if ($nettLoss > 0) $plCrRows[] = ['label' => 'Nett Loss', 'amount' => number_format($nettLoss, 2)];
+
+        $branchName = $branchId
+            ? (DB::table('branches')->where('id', $branchId)->value('name') ?? ('Branch #' . $branchId))
+            : 'All Branches';
+
+        return response()->json([
+            'header' => [
+                'title'  => 'Profit & Loss',
+                'period' => $start->toDateString() . ' to ' . $end->toDateString(),
+                'branch' => $branchName,
+            ],
+            'trading' => [
+                'dr' => ['title' => 'Trading Account (Dr)', 'rows' => $tradingDrRows],
+                'cr' => ['title' => 'Trading Account (Cr)', 'rows' => $tradingCrRows],
+                'table_total' => number_format($tradingTableTotal, 2),
+            ],
+            'pl' => [
+                'dr' => ['title' => 'Profit & Loss (Dr)', 'rows' => $plDrRows],
+                'cr' => ['title' => 'Profit & Loss (Cr)', 'rows' => $plCrRows],
+                'table_total' => number_format($plTableTotal, 2),
+            ],
+        ]);
     }
 }

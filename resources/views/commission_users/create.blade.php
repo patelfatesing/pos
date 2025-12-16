@@ -58,7 +58,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-lg-6">
+                                        {{-- <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>Applies To</label>
                                                 <select name="applies_to" class="form-control">
@@ -70,7 +70,7 @@
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
-                                        </div>
+                                        </div> --}}
 
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">

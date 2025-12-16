@@ -95,14 +95,6 @@
                     </div>
 
                     <div class="d-flex align-items-center gap-2 mb-2" id="bs_filters">
-                        <label class="mb-0 mr-2">Branch</label>
-                        <select id="bs_branch" class="form-control form-control-sm" style="max-width:230px">
-                            <option value="">All</option>
-                            @foreach ($branches as $b)
-                                <option value="{{ $b->id }}">{{ $b->name }}</option>
-                            @endforeach
-                        </select>
-
                         <input type="date" id="bs_start" class="form-control form-control-sm" style="max-width:170px">
                         <input type="date" id="bs_end" class="form-control form-control-sm mr-2" style="max-width:170px">
                         <button id="bs_apply" class="btn btn-primary btn-sm">Apply</button>
@@ -127,6 +119,7 @@
                                 </tfoot>
                             </table>
                         </div>
+
                         <div>
                             <div class="text-muted mb-1" id="lbl_assets">Assets</div>
                             <table class="bs" id="tbl_assets">
@@ -162,6 +155,7 @@
                 const z = new Date(t.getTime() - t.getTimezoneOffset() * 60000);
                 return z.toISOString().slice(0, 10);
             };
+
             const today = fmtDate(new Date());
             const firstOfMonth = (() => {
                 const d = new Date();
@@ -174,8 +168,8 @@
             $('bs_start').value = firstOfMonth;
             $('bs_end').value = today;
 
-            function setHeader(asOf, period, branch) {
-                $('bs_asof').textContent = `${branch} • as at ${asOf} (Period: ${period})`;
+            function setHeader(asOf, period) {
+                $('bs_asof').textContent = `As at ${asOf} (Period: ${period})`;
             }
 
             function clearTbody(tbody) {
@@ -184,18 +178,15 @@
 
             function appendRow(tbody, label, amount) {
                 const tr = document.createElement('tr');
-                const td1 = document.createElement('td');
-                td1.textContent = label;
-                const td2 = document.createElement('td');
-                td2.className = 'amount';
-                td2.textContent = amount ?? '0.00';
-                tr.appendChild(td1);
-                tr.appendChild(td2);
+                tr.innerHTML = `
+                    <td>${label}</td>
+                    <td class="amount">${amount ?? '0.00'}</td>
+                `;
                 tbody.appendChild(tr);
             }
 
-            function renderSide(tbodySelector, rows) {
-                const tbody = document.querySelector(tbodySelector);
+            function renderSide(selector, rows) {
+                const tbody = document.querySelector(selector);
                 clearTbody(tbody);
 
                 (rows || []).forEach(r => {
@@ -204,14 +195,10 @@
                     (r.children || []).forEach(ch => {
                         const tr = document.createElement('tr');
                         tr.className = 'child-row';
-                        const td1 = document.createElement('td');
-                        td1.className = 'child-label';
-                        td1.textContent = ch.label ?? '—';
-                        const td2 = document.createElement('td');
-                        td2.className = 'amount';
-                        td2.textContent = ch.amount ?? '0.00';
-                        tr.appendChild(td1);
-                        tr.appendChild(td2);
+                        tr.innerHTML = `
+                            <td class="child-label">${ch.label ?? '—'}</td>
+                            <td class="amount">${ch.amount ?? '0.00'}</td>
+                        `;
                         tbody.appendChild(tr);
                     });
                 });
@@ -219,9 +206,8 @@
 
             function refresh() {
                 const payload = {
-                    branch_id: $('bs_branch').value || '',
-                    start_date: $('bs_start').value || '',
-                    end_date: $('bs_end').value || '',
+                    start_date: $('bs_start').value,
+                    end_date: $('bs_end').value,
                     _ts: Date.now()
                 };
 
@@ -236,16 +222,16 @@
                     })
                     .then(r => r.json())
                     .then(j => {
-                        setHeader(j?.header?.as_of ?? '', j?.header?.period ?? '', j?.header?.branch ?? 'All');
+                        setHeader(j.header.as_of, j.header.period);
 
-                        $('lbl_liab').textContent = j?.liabilities?.title ?? 'Liabilities';
-                        $('lbl_assets').textContent = j?.assets?.title ?? 'Assets';
+                        $('lbl_liab').textContent = j.liabilities.title;
+                        $('lbl_assets').textContent = j.assets.title;
 
-                        renderSide('#tbl_liabilities tbody', j?.liabilities?.rows ?? []);
-                        renderSide('#tbl_assets tbody', j?.assets?.rows ?? []);
+                        renderSide('#tbl_liabilities tbody', j.liabilities.rows);
+                        renderSide('#tbl_assets tbody', j.assets.rows);
 
-                        $('liab_total').textContent = j?.liabilities?.total ?? '0.00';
-                        $('asset_total').textContent = j?.assets?.total ?? '0.00';
+                        $('liab_total').textContent = j.liabilities.total;
+                        $('asset_total').textContent = j.assets.total;
                     })
                     .catch(err => {
                         console.error(err);

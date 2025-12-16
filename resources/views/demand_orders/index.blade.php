@@ -33,7 +33,7 @@
                                         <th>Purchase Date</th>
                                         <th>Shipping Date</th>
                                         <th>Total Quantity</th>
-                                        <th>Total Sell Price</th>
+                                        <th>Total Cost Price</th>
                                         <th>Sub Category</th>
                                         <th>Status</th>
                                         <th>Action</th>

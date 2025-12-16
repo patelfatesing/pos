@@ -137,7 +137,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                        
                         <!-- Date Filter End -->
                         <li class="nav-item nav-icon dropdown">
-                            <a href="#" class="search-toggle dropdown-toggle btn border add-btn"
+                            {{-- <a href="#" class="search-toggle dropdown-toggle btn border add-btn"
                                 id="dropdownMenuButton02" data-toggle="dropdown" aria-haspopup="true"
                                 aria-expanded="false">
                                 @if (session('locale') == 'hi')
@@ -147,7 +147,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                     <img src="{{ asset('assets/images/small/flag-01.png') }}" alt="img-flag"
                                         class="img-fluid image-flag mr-2" />English
                                 @endif
-                            </a>
+                            </a> --}}
                             <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton2">
                                 <div class="card shadow-none m-0">
                                     <div class="card-body p-3">

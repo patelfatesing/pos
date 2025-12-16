@@ -36,7 +36,22 @@
                                             </div>
                                         </div>
                                     </div>
-
+                                    <div class="col-lg-3 col-md-3">
+                                        <div class="card card-block card-stretch card-height">
+                                            <div class="card-body">
+                                                <a href="{{ route('sales.sales.list') }}">
+                                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                                        <div class="icon iq-icon-box-2 bg-info-light">
+                                                            <i class="fas fa-list-ul text-warning fa-2x"></i>
+                                                        </div>
+                                                        <div>
+                                                            <p class="mb-2">Sales List</p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
                                     {{-- Stock Summary --}}
                                     <div class="col-lg-3 col-md-3">
                                         <div class="card card-block card-stretch card-height">
@@ -102,6 +117,23 @@
                                                         </div>
                                                         <div>
                                                             <p class="mb-2">Profit Loss</p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3 col-md-3">
+                                        <div class="card card-block card-stretch card-height">
+                                            <div class="card-body">
+                                                <a href="{{ route('reports.day-book') }}">
+                                                    <div class="d-flex align-items-center mb-4 card-total-sale">
+                                                        <div class="icon iq-icon-box-2 bg-success-light">
+                                                            <i class="fas fa-file-alt text-success fa-2x"></i>
+                                                        </div>
+                                                        <div>
+                                                            <p class="mb-2">Day Book</p>
                                                         </div>
                                                     </div>
                                                 </a>

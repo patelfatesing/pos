@@ -79,12 +79,12 @@
                                 <thead class="bg-white">
                                     <tr class="ligth ligth-data">
                                         <th>Sr No</th> <!-- Added this line -->
-                                        <th>
+                                        {{-- <th>
                                             <b>N</b>ame
-                                        </th>
+                                        </th> --}}
                                         <th>Username</th>
-                                        <th>Email</th>
-                                        <th>Phone Number</th>
+                                        {{-- <th>Email</th>
+                                        <th>Phone Number</th> --}}
                                         <th>Role</th>
                                         <th>Branch</th>
                                         <th>Status</th>
@@ -176,18 +176,18 @@
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
-                    {
-                        data: 'name'
-                    },
+                    // {
+                    //     data: 'name'
+                    // },
                     {
                         data: 'username'
                     },
-                    {
-                        data: 'email'
-                    },
-                    {
-                        data: 'phone_number'
-                    },
+                    // {
+                    //     data: 'email'
+                    // },
+                    // {
+                    //     data: 'phone_number'
+                    // },
                     {
                         data: 'role_name'
                     },
@@ -211,9 +211,12 @@
                     }
                 ],
                 order: [
-                    [9, 'desc']
+                    [6, 'desc']
                 ],
-
+                aoColumnDefs: [{
+                    bSortable: false,
+                    aTargets: [2, 3,4, 6]
+                }],
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, "All"]

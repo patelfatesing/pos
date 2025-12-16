@@ -47,6 +47,8 @@ use App\Http\Controllers\PurchaseLedgerController;
 use App\Http\Controllers\Accounting\GroupController;
 use App\Http\Controllers\Accounting\LedgerController;
 use App\Http\Controllers\Accounting\VoucherController;
+use App\Http\Controllers\RolePermissionController;
+use App\Http\Controllers\DayBookController;
 
 // Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
 // Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
@@ -148,6 +150,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/store/status-change', [BranchController::class, 'statusChange'])->name('store.status-change');
     Route::post('/store/update-status', [BranchController::class, 'updateStatus'])->name('branch.update.status');
     Route::get('/get-available-notes', [BranchController::class, 'getAvailableNotes']);
+    Route::post('/store/add-one-time-store', [BranchController::class, 'addOneTimeStore'])->name('branch.add.one.time.store');
 
     Route::get('/products/list', [ProductController::class, 'index'])->name('products.list');
     Route::post('/products/get-data', [ProductController::class, 'getData'])->name('products.getData');
@@ -198,7 +201,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/products/subcategory/{category_id}', [ProductController::class, 'getSubcategories'])->name('get.subcategories');
     Route::get('/products/getpacksize/{category_id}', [ProductController::class, 'getPackSize'])->name('get.getpacksize');
     Route::get('/products/get-products/{category_id}', [ProductController::class, 'getProducts'])->name('get.products');
-
+    Route::post('/products/status-change', [ProductController::class, 'statusChange'])->name('products.status-change');
+    Route::get('products/view/{id}', [ProductController::class, 'view'])->name('products.view');
     Route::get('/barcode/{productCode}', [ProductController::class, 'generateBarcode'])->name('barcode.generate');
     Route::post('/products/barcode/check', [ProductController::class, 'barcodeCheck'])->name('products.check');
     Route::get('/products/barcode-print/{id}', [ProductController::class, 'barcodePrint'])->name('products.barcode-print');
@@ -240,7 +244,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');
     Route::post('/categories/store', [CategoryController::class, 'store'])->name('categories.store');
     Route::get('/categories/edit/{id}', [CategoryController::class, 'edit'])->name('categories.edit');
-    Route::post('/categories/update', [CategoryController::class, 'update'])->name('categories.update');
+    // Route::post('/categories/update', [CategoryController::class, 'update'])->name('categories.update');
+    Route::post('categories/update/{id}', [CategoryController::class, 'update']);
     Route::delete('/categories/delete/{id}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
     Route::get('/subcategories/list', [SubCategoryController::class, 'index'])->name('subcategories.list');
@@ -250,7 +255,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/subcategories/edit/{id}', [SubCategoryController::class, 'edit'])->name('subcategories.edit');
     Route::post('/subcategories/update', [SubCategoryController::class, 'update'])->name('subcategories.update');
     Route::delete('/subcategories/delete/{id}', [SubCategoryController::class, 'destroy'])->name('subcategories.destroy');
-
+    Route::post('/subcategories/status-change', [SubCategoryController::class, 'statusChange'])->name('subcategories.status-change');
+   
     Route::get('/invoice/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show');
     Route::get('/invoice/{invoice}/download', [InvoiceController::class, 'download'])->name('invoice.download');
     Route::get('/view-invoice/{invoice}/{shift_id?}', [InvoiceController::class, 'viewInvoice'])->name('invoice.view-invoice');
@@ -334,6 +340,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/vendor/get-product-details/{id}', [PurchaseController::class, 'getProductDetails'])->name('vendor.get-product-details');
     Route::get('/vendor-products/{vendor}', [PurchaseController::class, 'getVendorProducts'])
         ->name('vendor.products');
+    Route::get('/subcategory/{id}/products', [PurchaseController::class, 'productsBySubcategory'])
+        ->name('subcategory.products');
+    // routes/web.php
+    Route::get('/purchase/{purchase}/edit', [PurchaseController::class, 'edit'])->name('purchase.edit');
+    Route::put('/purchase/{purchase}', [PurchaseController::class, 'update'])->name('purchase.update');
+
 
     Route::get('/popup/form/{type}', [NotificationController::class, 'loadForm']);
     Route::get('/notifications/index', [NotificationController::class, 'index'])->name('notifications.index');
@@ -460,6 +472,13 @@ Route::middleware('auth')->group(function () {
         Route::get('profit-loss',  [Report2Controller::class, 'profitLoss'])->name('reports.pnl_tally.view');
         Route::post('getProfitLossData', [Report2Controller::class, 'getProfitLossData'])->name('reports.pnl_tally.data');
         Route::get('/reports/profit-loss/pdf', [Report2Controller::class, 'profitLossPdf'])->name('reports.profit-loss.pdf');
+        Route::get('day-book', [DayBookController::class, 'index'])
+            ->name('reports.day-book');
+        // / NEW: voucher details (AJAX)
+        Route::get(
+            '/day-book/voucher/{id}',
+            [DayBookController::class, 'showVoucher']
+        )->name('reports.day-book.voucher.show');
 
         Route::get('product-wise',  [Report2Controller::class, 'productWise'])->name('reports.discount.product.view');
         Route::post('product-wise-data', [Report2Controller::class, 'getProductWiseData'])->name('reports.discount.product.data');
@@ -498,8 +517,6 @@ Route::middleware('auth')->group(function () {
 
         Route::get('pnl/ledger', [Report2Controller::class, 'pnlLedgerDetail'])
             ->name('reports.pnl.ledger');
-
-            
     });
 
     // routes/web.php
@@ -518,7 +535,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/ledgers/list', [LedgerController::class, 'index'])->name('ledgers.list');
         Route::post('/ledgers/get-data', [LedgerController::class, 'getData'])->name('ledgers.getData');
-        Route::get('/ledgers/create', [LedgerController::class, 'create'])->name('ledgers.create');
+        Route::get('/ledgers/create/{type?}', [LedgerController::class, 'create'])->name('ledgers.create');
         Route::post('/ledgers/store', [LedgerController::class, 'store'])->name('ledgers.store');
         Route::get('/ledgers/edit/{id}', [LedgerController::class, 'edit'])->name('ledgers.edit');
         Route::put('/ledgers/update', [LedgerController::class, 'update'])->name('ledgers.update');
@@ -529,6 +546,33 @@ Route::middleware('auth')->group(function () {
         Route::post('vouchers/store',       [VoucherController::class, 'store'])->name('vouchers.store');
         Route::delete('vouchers/{voucher}', [VoucherController::class, 'destroy'])->name('vouchers.destroy'); // optional
         Route::post('vouchers/get-data', [VoucherController::class, 'getData'])->name('vouchers.getData');
+        Route::get('vouchers/edit/{id}', [VoucherController::class, 'edit'])->name('vouchers.edit');
+        Route::put('/vouchers/update', [VoucherController::class, 'update'])->name('vouchers.update');
+        // Route::get('vouchers/{voucher}/edit', [VoucherController::class, 'edit'])
+        //     ->name('vouchers.edit');
+        Route::delete('/vouchers/delete/{id}', [VoucherController::class, 'destroy'])->name('vouchers.destroy');
+
+
+        // Ledger vouchers view
+        Route::get('/ledgers/{ledger}/vouchers', [LedgerController::class, 'vouchers'])
+            ->name('ledgers.vouchers');
+
+        // Server-side AJAX data for vouchers
+        Route::get('/ledgers/{ledger}/vouchers/data', [LedgerController::class, 'vouchersData'])
+            ->name('ledgers.vouchers.data');
+
+        // Delete voucher (hard delete)
+        Route::delete('/vouchers/{id}', [VoucherController::class, 'destroyVoucher'])
+            ->name('vouchers.destroy');
+
+        // Delete single voucher line
+        Route::delete('/voucher-lines/{id}', [VoucherController::class, 'destroyVoucherLine'])
+            ->name('voucherLines.destroy');
+    });
+
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('roles/{role}/permissions',  [RolePermissionController::class, 'edit'])->name('roles.permissions.edit');
+        Route::post('roles/{role}/permissions', [RolePermissionController::class, 'update'])->name('roles.permissions.update');
     });
 });
 

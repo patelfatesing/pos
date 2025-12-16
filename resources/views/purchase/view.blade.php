@@ -89,10 +89,34 @@
                                                     </tr>
 
                                                     @if ($purchase->vendor_id == 1)
-                                                        <tr>
+                                                        @if ($purchase->permit_fee_excise > 0)
+                                                            <tr>
+                                                                <th>Permit Fee Excise</th>
+                                                                <td>₹{{ number_format($purchase->permit_fee_excise, 2) }}
+                                                                </td>
+                                                            </tr>
+                                                        @endif
+
+                                                        @if ($purchase->vend_fee_excise > 0)
+                                                            <tr>
+                                                                <th>Vend Fee Excise</th>
+                                                                <td>₹{{ number_format($purchase->vend_fee_excise, 2) }}
+                                                                </td>
+                                                            </tr>
+                                                        @endif
+
+                                                        @if ($purchase->composite_fee_excise > 0)
+                                                            <tr>
+                                                                <th>Composite Fee Excise</th>
+                                                                <td>₹{{ number_format($purchase->composite_fee_excise, 2) }}
+                                                                </td>
+                                                            </tr>
+                                                        @endif
+
+                                                        {{-- <tr>
                                                             <th>Excise Fee</th>
                                                             <td>₹{{ number_format($purchase->excise_fee, 2) }}</td>
-                                                        </tr>
+                                                        </tr> --}}
                                                         <tr>
                                                             <th>Composition VAT</th>
                                                             <td>₹{{ number_format($purchase->composition_vat, 2) }}</td>
@@ -131,15 +155,16 @@
                                                             <th>Permit Fee</th>
                                                             <td>₹{{ number_format($purchase->permit_fee ?? 0, 2) }}</td>
                                                         </tr>
-                                                        <tr>
+                                                        {{-- <tr>
                                                             <th>RSGSM Purchase</th>
                                                             <td>₹{{ number_format($purchase->rsgsm_purchase ?? 0, 2) }}
                                                             </td>
-                                                        </tr>
+                                                        </tr> --}}
                                                     @else
                                                         <tr>
                                                             <th>Case Purchase %</th>
-                                                            <td>₹{{ number_format($purchase->case_purchase_per ?? 0, 2) }}</td>
+                                                            <td>₹{{ number_format($purchase->case_purchase_per ?? 0, 2) }}
+                                                            </td>
                                                         </tr>
                                                         <tr>
                                                             <th>Case Purchase Amount</th>
@@ -147,6 +172,14 @@
                                                             </td>
                                                         </tr>
                                                     @endif
+
+                                                    @if ($purchase->loading_charges > 0)
+                                                        <tr>
+                                                            <th>Loading Charges</th>
+                                                            <td>₹{{ number_format($purchase->loading_charges, 2) }}</td>
+                                                        </tr>
+                                                    @endif
+
 
                                                     <tr class="table-primary">
                                                         <th><strong>Total With Tax</strong></th>

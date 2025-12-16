@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
 {
@@ -47,14 +48,23 @@ class CategoryController extends Controller
 
         foreach ($data as $role) {
 
-            $action ='<div class="d-flex align-items-center list-action">
-                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                                        href="' . url('/categories/edit/' . $role->id) . '"><i class="ri-pencil-line mr-0"></i></a>
-                               </div>';
-            
+            $action = '
+                <div class="d-flex align-items-center list-action">
+
+                    <button type="button" 
+                        class="badge bg-success mr-2 border-0 edit-btn" 
+                        data-toggle="tooltip" 
+                        title="Edit" 
+                        onclick="editCategory(' . $role->id . ')">
+                        <i class="ri-pencil-line mr-0"></i>
+                    </button>
+
+                </div>';
+
+
             $records[] = [
                 'name' => $role->name,
-                'is_active' => ($role->is_active ? '<div class="badge badge-success">Active</div>':'<div class="badge badge-success">Inactive</div>'),
+                'is_active' => ($role->is_active ? '<div class="badge badge-success">Active</div>' : '<div class="badge badge-success">Inactive</div>'),
                 'created_at' => \Carbon\Carbon::parse($role->created_at)->format('d-m-Y H:i'),
                 'updated_at' => \Carbon\Carbon::parse($role->updated_at)->format('d-m-Y H:i'),
                 'action' => $action
@@ -76,38 +86,75 @@ class CategoryController extends Controller
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'name' => 'required|string|unique:categories'
+        $validator = \Validator::make($request->all(), [
+            'name' => 'required|string|unique:categories,name'
         ]);
-        
 
-        Category::create($request->only('name'));
-        return redirect()->route('categories.list')->with('success', 'Category created!');
+        // If validation fails → return JSON errors
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        // Create category
+        Category::create([
+            'name' => $request->name,
+            'is_active' => 1
+        ]);
+
+        // Return success JSON (handled in JS)
+        return response()->json([
+            'success' => true,
+            'message' => 'Category created successfully!'
+        ]);
     }
+
+    // public function edit($id)
+    // {
+    //     $record = Category::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
+
+    //     return view('categories.edit', compact('record'));
+    // }
 
     public function edit($id)
     {
-        $record = Category::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
-        
-        return view('categories.edit', compact('record'));
+        $category = Category::findOrFail($id);
+        return response()->json($category);
     }
 
     public function update(Request $request)
     {
         $id = $request->id;
-        
+
         $record = Category::findOrFail($id);
 
-        $validated = $request->validate([
-            'name' => 'sometimes|string|unique:categories,name,' . $id . '|max:255'
+        // Manual validator so we can return JSON errors
+        $validator = \Validator::make($request->all(), [
+            'name' => 'required|string|max:255|unique:categories,name,' . $id,
         ], [
-            'name.unique' => 'This role name already exists.'
+            'name.unique' => 'This category name already exists.'
         ]);
 
-        $record->update($validated);
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
-        return redirect()->route('categories.list')->with('success', 'Category updated!');
+        // Update record
+        $record->update([
+            'name' => $request->name
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Category updated successfully!'
+        ]);
     }
+
 
     public function destroy(Request $request)
     {

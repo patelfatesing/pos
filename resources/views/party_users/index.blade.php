@@ -81,7 +81,7 @@
                                     <tr class="ligth ligth-data">
                                         <th>Sr No</th> <!-- Added this line -->
                                         <th>Customer Name</th>
-                                        <th>Email</th>
+                                        {{-- <th>Email</th> --}}
                                         <th>Phone</th>
                                         <th>Credit</th>
                                         <th>Status</th>
@@ -185,9 +185,9 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                     }, {
                         data: 'first_name'
                     },
-                    {
-                        data: 'email'
-                    },
+                    // {
+                    //     data: 'email'
+                    // },
                     {
                         data: 'phone'
                     },
@@ -213,9 +213,12 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                     }
                 ],
                 order: [
-                    [7, 'desc']
+                    [6, 'desc']
                 ],
-
+                aoColumnDefs: [{
+                    bSortable: false,
+                    aTargets: [1, 2, 3, 4, 5,6] // make "action" column unsortable
+                }],
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, "All"]

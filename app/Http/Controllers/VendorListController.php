@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\VendorList;
+use App\Models\Accounting\AccountLedger;
 use Illuminate\Support\Facades\Auth;
 
 class VendorListController extends Controller
@@ -85,13 +86,38 @@ class VendorListController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255|unique:vendor_lists,name',
-            'email' => 'required|email|max:255|unique:vendor_lists,email',
+             'email' => 'nullable|email|max:255|unique:vendor_lists,email',
             'phone' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:255',
-            'gst_number' => 'required'
+            // 'gst_number' => 'required'
         ]);
 
-        VendorList::create($data);
+        $vendor = VendorList::create($data);
+
+        // Ledger validation (same as your code)
+        $ledgerData = [
+            'name'            => $vendor->name,   // ledger name = vendor name
+            'group_id'        => 5,               // example: Sundry Creditors group
+            'branch_id'       => null,
+            'opening_balance' => 0,
+            'opening_type'    => 'Dr',
+            'is_active'       => 1,
+            'contact_details' => $vendor->phone
+        ];
+
+        // validate ledger fields
+        $validatedLedger = validator($ledgerData, [
+            'name'            => 'required|string|max:191|unique:account_ledgers,name',
+            'group_id'        => 'required|exists:account_groups,id',
+            'branch_id'       => 'nullable|integer|exists:branches,id',
+            'opening_balance' => 'nullable|numeric|min:0',
+            'opening_type'    => 'required|in:Dr,Cr',
+            'is_active'       => 'nullable|boolean',
+            'contact_details' => 'nullable|string',
+        ])->validate();
+
+        // Create ledger
+        AccountLedger::create($validatedLedger);
 
         return redirect()->route('vendor.list')->with('success', 'Vendor has been succesfully created.');
     }
@@ -106,10 +132,10 @@ class VendorListController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255|unique:vendor_lists,name,' . $request->id,
-            'email' => 'required|email|max:255|unique:vendor_lists,email,' . $request->id,
+            'email' => 'nullable|email|max:255|unique:vendor_lists,email,' . $request->id,
             'phone' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:255',
-            'gst_number' => 'required|string|max:255',
+            // 'gst_number' => 'required|string|max:255',
         ]);
 
         $VendorList = VendorList::findOrFail($request->id);
