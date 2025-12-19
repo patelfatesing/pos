@@ -4296,11 +4296,13 @@ class Shoppingcart extends Component
 
     public function getShowOneTimeBlockProperty()
     {
-        // Convert strings → Carbon (time-only)
+        if (empty($this->one_time_sales_time)) {
+            return false;
+        }
+
         $savedTime = \Carbon\Carbon::createFromFormat('H:i:s', $this->one_time_sales_time);
         $currentTime = now();
 
-        // Compare ONLY time part
         return $currentTime->format('H:i:s') >= $savedTime->format('H:i:s');
     }
 
