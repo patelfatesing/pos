@@ -97,6 +97,15 @@
             border: 1px solid rgba(0, 0, 0, 0.06);
         }
 
+        .btn-outline-primary {
+            color: #000;
+            background-color: #fff;
+            border-color: #000;
+            text-align: center;
+            border-radius: 0;
+            box-shadow: 2px 2px 4px #ccc;
+        }
+
         @media (max-width: 992px) {
             .type-pills-vertical {
                 position: static;
@@ -113,13 +122,20 @@
         }
     </style>
 
+
+    <!-- 19-12 -->
+
+
+
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid add-form-list">
                 <div class="row">
                     <div class="col-sm-12">
 
+
                         <div class="card">
+                            
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <div class="header-title">
                                     <h4 class="card-title mb-1">New Voucher</h4>
@@ -146,6 +162,101 @@
                                     <div class="row g-3 mb-3">
                                         <div class="col-lg-10">
 
+                                        <!-- ----- -->
+                        <div class="title-row">
+                            <table class="w-100">
+                                <tbody>
+                                    <tr>
+                                        <td
+                                            style="width: 33.33%;background: #32bdea;color: #fff;font-weight: bold;padding:5px;">
+                                            Accounting
+                                            vouchers</td>
+                                        <td
+                                            style="width: 33.33%;background: #32bdea;text-align: center;color: #fff;font-weight: bold;padding:5px;">
+                                            mama shree 25-26</td>
+                                        <td style="width: 33.33%; background: #32bdea;padding:5px;"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+
+                        <div class="number-date">
+                            <table class="w-100">
+                                <tbody>
+                                    <tr>
+                                        <td style="
+                                            width: 50%;
+                                            text-align: left;
+                                            font-weight: bold;
+                                        "><span
+                                                                                        style="
+                                            background: #32bdea;
+                                            color: #fff;
+                                            padding: 10px 40px;
+                                            margin-right: 10px;
+                                        ">Journal</span>
+                                                                                    NO. 01</td>
+                                                                                <td style="
+                                            width: 50%;
+                                            text-align: right;
+                                            font-weight: bold;
+                                        ">
+                                            23/02/2026 <br> Friday</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="particular">
+                            <table class="w-100">
+                                <thead style="
+                                            border: 1px solid #ccc;
+                                            border-left: 0;
+                                            border-right: 0;
+                                        ">
+                                    <tr>
+                                        <th>Particular</th>
+                                        <th style="text-align: right;">debit</th>
+                                        <th style="
+    text-align: right;
+">credit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="
+                                        font-weight: bold;
+                                        color: #000;
+                                    ">by police wine</td>
+                                        <td style="text-align: right;" rowspan="2">10,0000</td>
+                                        <td style="
+    text-align: right;
+" rowspan="2">6777</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="
+    padding-left: 50px;
+    font-style: italic;
+">Cur Bal: 16000</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="
+    color: #000;
+    font-weight: bold;
+" colspan="2">Narration</td>
+                                        <td style="
+    border: 1px solid #ccc;
+    border-left: 0;
+    border-right: 0;
+     text-align: right;
+">
+                                            20000</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- ----- -->
                                             {{-- Top bar with Date aligned to right --}}
                                             <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
                                                 <div></div>
@@ -244,7 +355,8 @@
                                                             @else
                                                                 <tr class="line">
                                                                     <td>
-                                                                        <select name="lines[0][dc]" class="form-control dc">
+                                                                        <select name="lines[0][dc]"
+                                                                            class="form-control dc">
                                                                             <option>Dr</option>
                                                                             <option>Cr</option>
                                                                         </select>
@@ -314,6 +426,8 @@
             </div>
         </div>
     </div>
+
+
 
     <script>
         (function() {
