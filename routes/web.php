@@ -49,6 +49,8 @@ use App\Http\Controllers\Accounting\LedgerController;
 use App\Http\Controllers\Accounting\VoucherController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\DayBookController;
+use App\Http\Controllers\CashBankReportController;
+
 
 // Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
 // Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
@@ -256,7 +258,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/subcategories/update', [SubCategoryController::class, 'update'])->name('subcategories.update');
     Route::delete('/subcategories/delete/{id}', [SubCategoryController::class, 'destroy'])->name('subcategories.destroy');
     Route::post('/subcategories/status-change', [SubCategoryController::class, 'statusChange'])->name('subcategories.status-change');
-   
+
     Route::get('/invoice/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show');
     Route::get('/invoice/{invoice}/download', [InvoiceController::class, 'download'])->name('invoice.download');
     Route::get('/view-invoice/{invoice}/{shift_id?}', [InvoiceController::class, 'viewInvoice'])->name('invoice.view-invoice');
@@ -517,6 +519,12 @@ Route::middleware('auth')->group(function () {
 
         Route::get('pnl/ledger', [Report2Controller::class, 'pnlLedgerDetail'])
             ->name('reports.pnl.ledger');
+
+        Route::get('cash-bank', [CashBankReportController::class, 'index'])
+            ->name('reports.cash-bank');
+
+        Route::get('cash-bank/{ledger}', [CashBankReportController::class, 'ledger'])
+            ->name('reports.cash-bank.ledger');
     });
 
     // routes/web.php
