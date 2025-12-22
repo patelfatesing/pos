@@ -32,6 +32,16 @@
                                                 @enderror
                                             </div>
                                         </div>
+                                        <div class="col-lg-6">
+                                            <div class="floating-label form-group">
+                                                <label>Mobile Number</label>
+                                                <input type="text" name="mobile_number" class="form-control"
+                                                    value="{{ old('mobile_number') }}">
+                                                @error('mobile_number')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
 
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">

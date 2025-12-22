@@ -21,7 +21,7 @@
 
         #linesTable tfoot td {
             /* border-top: 1px solid #ccc;
-                                                                                                                                                    border-bottom: 1px solid #ccc; */
+                                                                                                                                                                border-bottom: 1px solid #ccc; */
             font-weight: bold;
         }
 
@@ -295,33 +295,33 @@
                                                                 {{ $line['cur_balance_text'] }}
                                                             </td>
                                                         </tr>
-                                                        @endif
-                                                    @endforeach
-                                                @else
-                                                    <tr class="line">
-                                                        <input name="lines[0][dc]" type="hidden">
-                                                        <td width="85%">
-                                                            <select name="lines[0][ledger_id]" class="ledger">
-                                                                {{-- <option value="">Select Ledger</option> --}}
-                                                                @foreach ($ledgers as $l)
-                                                                    <option value="{{ $l->id }}"
-                                                                        data-group-id="{{ $l->group_id }}">
-                                                                        {{ $l->name }}
-                                                                    </option>
-                                                                @endforeach
-                                                            </select>
-                                                        </td>
+                                                    @endif
+                                                @endforeach
+                                            @else
+                                                <tr class="line">
+                                                    <input name="lines[0][dc]" type="hidden">
+                                                    <td width="85%">
+                                                        <select name="lines[0][ledger_id]" class="ledger">
+                                                            {{-- <option value="">Select Ledger</option> --}}
+                                                            @foreach ($ledgers as $l)
+                                                                <option value="{{ $l->id }}"
+                                                                    data-group-id="{{ $l->group_id }}">
+                                                                    {{ $l->name }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                    </td>
 
-                                                        <td class="text-end" width="10%">
-                                                            <input name="lines[0][amount]" class="amount text-end"
-                                                                type="number" step="0.01">
-                                                        </td>
+                                                    <td class="text-end" width="10%">
+                                                        <input name="lines[0][amount]" class="amount text-end"
+                                                            type="number" step="0.01">
+                                                    </td>
 
-                                                        <td class="text-center" width="5%">
-                                                            <span class="remove" style="display:none;">✕</span>
-                                                        </td>
-                                                    </tr>
-                                                @endif
+                                                    <td class="text-center" width="5%">
+                                                        <span class="remove" style="display:none;">✕</span>
+                                                    </td>
+                                                </tr>
+                                            @endif
 
                                         </tbody>
 
@@ -857,7 +857,7 @@
                 setDCForAllRowsByType(false);
 
                 filterLedgerDropdownsByVoucherType();
-
+                applyJournalPrefix();
                 autobuildPR();
                 autobuildCT();
                 calcTradeGrand();
@@ -995,7 +995,7 @@
 
                     // 1️⃣ SET opening_type (IMPORTANT)
                     $lineRow.find('input[name*="[dc]"]').val(res.type);
-
+                    applyJournalPrefix();
                     // 2️⃣ Show Cur Balance row (existing logic)
                     const balanceText = `Cur Bal: ${res.balance} ${res.type}`;
 
@@ -1107,5 +1107,48 @@
                 }
             });
         });
+
+        function applyJournalPrefix() {
+            const type = $('#voucher_type').val();
+
+            // Only apply for Journal
+            if (type !== 'Journal') {
+                // Restore original ledger names
+                $('.ledger').each(function() {
+                    $(this).find('option').each(function() {
+                        const original = $(this).data('original-name');
+                        if (original) {
+                            $(this).text(original);
+                        }
+                    });
+                });
+                return;
+            }
+
+            $('.ledger').each(function() {
+                const $ledger = $(this);
+
+                // Get Dr / Cr from hidden input
+                const dc = $ledger.closest('tr').find('input[name*="[dc]"]').val();
+
+                // Map Dr/Cr → By/To
+                let prefix = '';
+                if (dc === 'Dr') prefix = 'By';
+                if (dc === 'Cr') prefix = 'To';
+
+                $ledger.find('option').each(function() {
+                    const $opt = $(this);
+                    if (!$opt.val()) return;
+
+                    // Store original text once
+                    if (!$opt.data('original-name')) {
+                        $opt.data('original-name', $opt.text());
+                    }
+
+                    // Apply Tally-style text
+                    $opt.text(prefix + ' ' + $opt.data('original-name'));
+                });
+            });
+        }
     </script>
 @endsection
