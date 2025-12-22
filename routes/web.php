@@ -548,6 +548,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/ledgers/edit/{id}', [LedgerController::class, 'edit'])->name('ledgers.edit');
         Route::put('/ledgers/update', [LedgerController::class, 'update'])->name('ledgers.update');
         Route::delete('/ledgers/delete/{id}', [LedgerController::class, 'destroy'])->name('ledgers.destroy');
+        Route::get('/ledger/current-balance/{ledger}',[LedgerController::class, 'currentBalance'])->name('ledger.current.balance');
 
         Route::get('vouchers',        [VoucherController::class, 'index'])->name('vouchers.index');
         Route::get('vouchers/create', [VoucherController::class, 'create'])->name('vouchers.create');
@@ -559,6 +560,9 @@ Route::middleware('auth')->group(function () {
         // Route::get('vouchers/{voucher}/edit', [VoucherController::class, 'edit'])
         //     ->name('vouchers.edit');
         Route::delete('/vouchers/delete/{id}', [VoucherController::class, 'destroy'])->name('vouchers.destroy');
+        // routes/web.php
+        Route::get('/vouchers/last-ref', [VoucherController::class, 'getLastRef'])->name('vouchers.last-ref');
+
 
 
         // Ledger vouchers view
