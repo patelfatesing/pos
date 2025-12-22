@@ -66,6 +66,17 @@
                         </thead>
                         <tbody>
                         </tbody>
+                        <tfoot>
+                            <tr style="font-weight:bold;background:#f8f9fa;">
+                                <th colspan="5" class="text-end">Total :</th>
+                                <th id="ft_opening_cash">₹0.00</th>
+                                <th id="ft_closing_cash">₹0.00</th>
+                                <th></th>
+                                <th id="ft_total_sales">₹0.00</th>
+                                <th id="ft_difference">₹0.00</th>
+                                <th></th>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
                 <!-- Page end  -->
@@ -270,12 +281,45 @@
                         searchable: false
                     },
                 ],
+                drawCallback: function(settings) {
+                    let api = this.api();
+
+                    // helper
+                    let intVal = v => typeof v === 'string' ?
+                        parseFloat(v.replace(/[₹,]/g, '')) || 0 :
+                        typeof v === 'number' ? v : 0;
+
+                    let openingTotal = api.column(5, {
+                            page: 'current'
+                        })
+                        .data().reduce((a, b) => intVal(a) + intVal(b), 0);
+
+                    let closingTotal = api.column(6, {
+                            page: 'current'
+                        })
+                        .data().reduce((a, b) => intVal(a) + intVal(b), 0);
+
+                    let salesTotal = api.column(8, {
+                            page: 'current'
+                        })
+                        .data().reduce((a, b) => intVal(a) + intVal(b), 0);
+
+                    let diffTotal = api.column(9, {
+                            page: 'current'
+                        })
+                        .data().reduce((a, b) => intVal(a) + intVal(b), 0);
+
+                    $('#ft_opening_cash').html('₹' + openingTotal.toFixed(2));
+                    $('#ft_closing_cash').html('₹' + closingTotal.toFixed(2));
+                    $('#ft_total_sales').html('₹' + salesTotal.toFixed(2));
+                    $('#ft_difference').html('₹' + diffTotal.toFixed(2));
+                },
                 aoColumnDefs: [{
                     bSortable: false,
                     aTargets: [1, 2, 3, 4, 5, 6, 7] // make "action" column unsortable
                 }],
                 order: [
-                    [2, 'desc']
+                    [3, 'desc']
                 ], // Default order on shift_start DESC
                 dom: "Bfrtip",
                 lengthMenu: [
