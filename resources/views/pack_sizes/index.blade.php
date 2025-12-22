@@ -16,9 +16,9 @@
                         <div>
                             <h4 class="mb-3">Pack Size List</h4>
                         </div>
-                        <a href="{{ route('packsize.create') }}" class="btn btn-primary add-list">
+                        <button class="btn btn-primary add-list" data-toggle="modal" data-target="#packSizeModal">
                             <i class="las la-plus mr-3"></i>Create New Pack Size
-                        </a>
+                        </button>
                     </div>
                 </div>
 
@@ -43,6 +43,44 @@
         </div>
     </div>
     <!-- Wrapper End-->
+    <!-- Add Pack Size Modal -->
+    <div class="modal fade" id="packSizeModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Pack Size</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+
+                <form id="packSizeForm">
+                    @csrf
+                    <div class="modal-body">
+
+                        <div class="form-group">
+                            <label>Size <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="size" placeholder="Enter Size">
+                                <div class="input-group-append">
+                                    <span class="input-group-text">ML</span>
+                                </div>
+                            </div>
+                            <span class="text-danger error-size"></span>
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Add Pack Size</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
 
     <script>
         $(document).ready(function() {
@@ -131,5 +169,40 @@
             });
 
         }
+
+        $(document).on('submit', '#packSizeForm', function(e) {
+            e.preventDefault();
+
+            $('.error-size').text('');
+
+            $.ajax({
+                url: "{{ route('packsize.store') }}",
+                method: "POST",
+                data: $(this).serialize(),
+                success: function(res) {
+
+                    $('#packSizeModal').modal('hide');
+                    $('#packSizeForm')[0].reset();
+
+                    $('#pack_size_tbl').DataTable().ajax.reload(null, false);
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: 'Pack Size added successfully',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                },
+                error: function(xhr) {
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        if (errors.size) {
+                            $('.error-size').text(errors.size[0]);
+                        }
+                    }
+                }
+            });
+        });
     </script>
 @endsection

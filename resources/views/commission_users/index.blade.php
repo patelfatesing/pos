@@ -82,6 +82,7 @@
                                     <tr class="ligth ligth-data">
                                         <th>Sr No</th> <!-- Added this line -->
                                         <th>Customer Name</th>
+                                        <th>Mobile Number</th>
                                         <th>Commission Type</th>
                                         {{-- <th>Applies To</th> --}}
                                         <th>Status</th>
@@ -132,6 +133,9 @@
                     },
                     {
                         data: 'first_name'
+                    },
+                    {
+                        data: 'mobile_number'
                     },
                     {
                         data: 'commission_type', orderable: false
