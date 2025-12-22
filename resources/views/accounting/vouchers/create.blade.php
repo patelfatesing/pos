@@ -8,18 +8,20 @@
         #linesTable {
             width: 100%;
             font-family: monospace;
+            table-layout: fixed;
         }
 
-        #linesTable thead th{
+        #linesTable thead th {
             border-top: 1px solid #ccc;
             border-bottom: 1px solid #ccc;
             font-weight: bold;
+            margin-left: 10px;
         }
 
-        
+
         #linesTable tfoot td {
             /* border-top: 1px solid #ccc;
-            border-bottom: 1px solid #ccc; */
+                                                                                                                                                    border-bottom: 1px solid #ccc; */
             font-weight: bold;
         }
 
@@ -89,6 +91,87 @@
             background: #32bdea;
             color: #fff;
         }
+
+
+        .btn-outline-primary {
+            color: #000;
+            background-color: #fff;
+            border-color: #000;
+            text-align: center;
+            border-radius: 0;
+            box-shadow: 2px 2px 4px #ccc;
+        }
+
+        /* ================= REMOVE DROPDOWN ICON (TALLY STYLE) ================= */
+
+        /* Chrome, Edge, Safari */
+        #linesTable select,
+        #linesTable select:focus {
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: none !important;
+            padding-right: 4px;
+            padding-left: 5px;
+            /* small spacing like Tally */
+        }
+
+        /* Firefox */
+        #linesTable select {
+            -moz-appearance: none;
+        }
+
+        /* IE / old Edge */
+        #linesTable select::-ms-expand {
+            display: none;
+        }
+
+        /* ================= REMOVE DATE ICON (TALLY STYLE) ================= */
+
+        /* Chrome, Edge, Safari */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            display: none;
+            -webkit-appearance: none;
+        }
+
+        /* Firefox */
+        input[type="date"] {
+            appearance: none;
+            -moz-appearance: textfield;
+        }
+
+        /* Prevent extra padding caused by hidden icon */
+        input[type="date"] {
+            padding-right: 0;
+        }
+
+        /* ================= VOUCHER DATE (IMAGE STYLE) ================= */
+
+        .voucher-date-box {
+            text-align: right;
+            line-height: 1.2;
+        }
+
+        .voucher-date-input {
+            border: none;
+            background: transparent;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: right;
+            padding: 0;
+        }
+
+        /* remove calendar icon (already discussed, safe to repeat) */
+        .voucher-date-input::-webkit-calendar-picker-indicator {
+            display: none;
+        }
+
+        .voucher-day {
+            font-size: 14px;
+            color: #5a5a8a;
+            /* bluish-grey like image */
+            font-weight: normal;
+            margin-top: 2px;
+        }
     </style>
 
     <div class="wrapper">
@@ -134,19 +217,29 @@
                                     {{-- ================= TYPE + REF + DATE ================= --}}
                                     <table class="w-100 mb-3">
                                         <tr>
-                                            <td width="70%">
+                                            <td width="80%">
                                                 <span class="voucher-type-label" id="voucherTypeLabel">
                                                     {{ old('voucher_type', 'Journal') }}
                                                 </span>
 
                                                 {{-- enable if needed --}}
-                                                {{-- <strong class="ms-2">NO.</strong> {{ $voucherNo ?? '01' }} --}}
+                                                <strong class="ms-2">NO.</strong>
+                                                <span id="voucher_no">{{ $lastVoucher ?? 'JN-0001' }}</span>
+                                                <input name="ref_no" type="hidden"
+                                                    value="{{ $lastVoucher ?? 'JN-0001' }}">
                                             </td>
 
-                                            <td width="30%" class="text-end fw-bold">
-                                                <input type="date" name="voucher_date"
-                                                    value="{{ old('voucher_date', now()->toDateString()) }}"
-                                                    style="border:none;font-weight:bold">
+                                            <td width="20%" class="text-end fw-bold">
+
+                                                <div class="voucher-date-box">
+                                                    <input type="date" name="voucher_date"
+                                                        value="{{ old('voucher_date', now()->toDateString()) }}"
+                                                        class="voucher-date-input">
+
+                                                    <div class="voucher-day">
+                                                        {{ \Carbon\Carbon::parse(old('voucher_date', now()->toDateString()))->format('l') }}
+                                                    </div>
+                                                </div>
                                             </td>
                                         </tr>
                                     </table>
@@ -155,43 +248,81 @@
                                     <table id="linesTable">
                                         <thead>
                                             <tr>
-                                                <th width="10%">Dr / Cr</th>
-                                                <th width="55%">Particulars</th>
-                                                <th class="text-end" width="25%">Amount</th>
-                                                <th width="5%"></th>
+                                                {{-- <th width="10%">Dr / Cr</th> --}}
+                                                <th width="70%">Particulars</th>
+                                                <th class="text-end" width="15%">Amount</th>
+                                                <th width="15%"></th>
                                             </tr>
                                         </thead>
 
                                         <tbody>
-                                            <tr class="line">
-                                                <td>
-                                                    <select name="lines[0][dc]" class="dc">
-                                                        <option>Dr</option>
-                                                        <option>Cr</option>
-                                                    </select>
-                                                </td>
+                                            @php $oldLines = old('lines', []); @endphp
+                                            @if ($oldLines)
+                                                @foreach ($oldLines as $i => $line)
+                                                    <tr class="line">
+                                                        <input type="hidden" name="lines[{{ $i }}][dc]"
+                                                            value="{{ $line['dc'] ?? '' }}">
 
-                                                <td>
-                                                    <select name="lines[0][ledger_id]" class="ledger">
-                                                        <option value="">Select Ledger</option>
-                                                        @foreach ($ledgers as $l)
-                                                            <option value="{{ $l->id }}"
-                                                                data-group-id="{{ $l->group_id }}">
-                                                                {{ $l->name }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </td>
+                                                        <td width="85%">
+                                                            <select name="lines[{{ $i }}][ledger_id]"
+                                                                class="ledger">
+                                                                {{-- <option value="">Select Ledger</option> --}}
+                                                                @foreach ($ledgers as $l)
+                                                                    <option value="{{ $l->id }}"
+                                                                        data-group-id="{{ $l->group_id }}"
+                                                                        {{ ($line['ledger_id'] ?? '') == $l->id ? 'selected' : '' }}>
+                                                                        {{ $l->name }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                        </td>
 
-                                                <td class="text-end">
-                                                    <input name="lines[0][amount]" class="amount text-end" type="number"
-                                                        step="0.01">
-                                                </td>
+                                                        <td class="text-end" width="10%">
+                                                            <input name="lines[{{ $i }}][amount]"
+                                                                class="amount text-end" type="number" step="0.01"
+                                                                value="{{ $line['amount'] ?? '' }}">
+                                                        </td>
 
-                                                <td class="text-center">
-                                                    <span class="remove">✕</span>
-                                                </td>
-                                            </tr>
+                                                        <td class="text-center" width="5%">
+                                                            <span class="remove"
+                                                                {{ $loop->count == 1 ? 'style=display:none' : '' }}>✕</span>
+                                                        </td>
+                                                    </tr>
+
+                                                    @if (!empty($line['ledger_id']) && !empty($line['cur_balance_text']))
+                                                        <tr class="cur-bal-row">
+                                                            <td colspan="3" style="padding-left:50px;font-style:italic;">
+                                                                {{ $line['cur_balance_text'] }}
+                                                            </td>
+                                                        </tr>
+                                                        @endif
+                                                    @endforeach
+                                                @else
+                                                    <tr class="line">
+                                                        <input name="lines[0][dc]" type="hidden">
+                                                        <td width="85%">
+                                                            <select name="lines[0][ledger_id]" class="ledger">
+                                                                {{-- <option value="">Select Ledger</option> --}}
+                                                                @foreach ($ledgers as $l)
+                                                                    <option value="{{ $l->id }}"
+                                                                        data-group-id="{{ $l->group_id }}">
+                                                                        {{ $l->name }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                        </td>
+
+                                                        <td class="text-end" width="10%">
+                                                            <input name="lines[0][amount]" class="amount text-end"
+                                                                type="number" step="0.01">
+                                                        </td>
+
+                                                        <td class="text-center" width="5%">
+                                                            <span class="remove" style="display:none;">✕</span>
+                                                        </td>
+                                                    </tr>
+                                                @endif
+
                                         </tbody>
 
                                         <tfoot>
@@ -199,7 +330,8 @@
                                                 <td></td>
                                                 <td class="text-end"></td>
 
-                                                <td class="text-end" style="border-top:1px solid #ccc;border-bottom: 1px solid #ccc;font-weight:bold">
+                                                <td class="text-end"
+                                                    style="border-top:1px solid #ccc;border-bottom: 1px solid #ccc;font-weight:bold">
                                                     <input type="text" id="grandTotal" readonly class="text-end"
                                                         value="0.00">
                                                 </td>
@@ -231,21 +363,15 @@
 
                                 {{-- ================= RIGHT SIDE TYPE PANEL ================= --}}
                                 <div class="col-lg-2 col-md-4">
-                                    <div class="type-pills-vertical" id="voucherTypePanel">
+                                    <div class="type-pills-vertical" id="voucherTypePanel" aria-label="Voucher Type">
                                         @foreach (['Journal', 'Payment', 'Receipt', 'Contra', 'Purchase'] as $t)
-                                            <button type="button"
-                                                class="btn mb-1 type-pill
-                {{ old('voucher_type', 'Journal') === $t ? 'active' : '' }}"
-                                                data-type="{{ $t }}">
-                                                {{ $t }}
-                                            </button>
+                                            <button type="button" class="btn btn-outline-primary me-1 mb-1 type-pill"
+                                                data-type="{{ $t }}">{{ $t }}</button>
                                         @endforeach
                                     </div>
                                 </div>
-
                             </div>
                         </form>
-
                     </div>
                 </div>
             </div>
@@ -369,25 +495,20 @@
                 const crSel = (dcDefault === 'Cr') ? 'selected' : '';
                 return `
             <tr class="line">
-                <td>
-                    <select name="lines[${idx}][dc]" class="form-control dc">
-                        <option ${drSel}>Dr</option>
-                        <option ${crSel}>Cr</option>
-                    </select>
-                </td>
+               
                 <td>
                     <select name="lines[${idx}][ledger_id]" class="form-control ledger">
-                        <option value="" data-group-id="">Select Ledger</option>
+                        
                         ${ledgerOptions}
                     </select>
                      <a href="${createLedgerUrl}" target="_blank"
                     class="btn btn-outline-secondary btn-sm">
                     Create Ledger
                 </a></td>
-                
+                <input name="lines[${idx}][dc]" type="hidden">
+
                 <td><input name="lines[${idx}][amount]" class="form-control amount" type="number" step="0.01"></td>
-                <td><input name="lines[${idx}][line_narration]" class="form-control"></td>
-                <td><button type="button" class="btn btn-sm btn-danger remove">×</button></td>
+                <td class="text-center"><span class="remove" style="display:none;">✕</span></td>
             </tr>`;
             }
 
@@ -424,12 +545,22 @@
                 const idx = i;
                 const type = $type.val();
                 const dc = dcDefault || defaultDC(type, idx);
+
                 $('#linesTable tbody').append(rowTpl(idx, dc));
                 i++;
 
                 filterLedgerDropdownsByVoucherType();
-                updateSubmitVisibility(); // NEW
+                updateSubmitVisibility();
+                toggleRemoveButtons(); // ✅ REQUIRED
             }
+
+
+            // ✅ expose globally (FINAL FIX)
+            window._addLineRow = function() {
+                return addLineRow.apply(this, arguments);
+            };
+
+
 
             function setDCForAllRowsByType(force = false) {
                 const type = $type.val();
@@ -525,7 +656,17 @@
             }
 
             $(document).on('click', '.remove', function() {
-                $(this).closest('tr').remove();
+                const $lineRow = $(this).closest('tr');
+
+                // If Cur Bal row is immediately after this line, remove it
+                if ($lineRow.next().hasClass('cur-bal-row')) {
+                    $lineRow.next().remove();
+                }
+
+                // Remove the actual line row
+                $lineRow.remove();
+
+                toggleRemoveButtons();
                 recalc();
             });
 
@@ -737,26 +878,55 @@
                 autobuildTR();
             });
 
-            $(document).on('input change',
-                '#linesTable tbody tr .ledger, #linesTable tbody tr .dc, #linesTable tbody tr .amount, #linesTable tbody tr input[name*="[line_narration]"]',
-                function() {
-                    const $tr = $(this).closest('tr');
-                    if ($tr.is(':last-child') && rowHasAnyValue($tr)) {
-                        addLineRow();
-                    }
-                    recalc(); // recalc also updates button visibility
+            // $(document).on('input change',
+            //     '#linesTable tbody tr .ledger, #linesTable tbody tr .dc, #linesTable tbody tr .amount, #linesTable tbody tr input[name*="[line_narration]"]',
+            //     function() {
+            //         const $tr = $(this).closest('tr');
+            //         if ($tr.is(':last-child') && rowHasAnyValue($tr)) {
+            //             addLineRow();
+            //         }
+            //         recalc(); // recalc also updates button visibility
+            //     }
+            // );
+            // LEDGER CHANGE → SHOW CUR BAL ONLY
+            $(document).on('change', '#linesTable tbody tr .ledger', function() {
+
+                const $tr = $(this).closest('tr');
+
+                // Reset auto-add flag if ledger changes
+                $tr.removeData('row-added');
+
+                if ($(this).val()) {
+                    showCurBalanceRow($tr);
                 }
-            );
+            });
+
+
+
+            // AMOUNT INPUT → ADD NEW ROW AFTER CUR BAL
+            $(document).on('input', '#linesTable tbody tr .amount', function() {
+
+                const $tr = $(this).closest('tr');
+                const amount = parseFloat($(this).val() || 0);
+
+                if (amount > 0 && $tr.is('#linesTable tbody tr.line:last')) {
+                    addLineRowAfterRow($tr);
+                    if ($totalDr && $totalDr.val) $totalDr.val(amount.toFixed(2));
+                    if ($totalCr && $totalCr.val) $totalCr.val(amount.toFixed(2));
+
+                }
+            });
+
 
             $('#btnSubmit').on('click', function(e) {
                 syncPartyHidden();
                 const dr = parseFloat($totalDr ? ($totalDr.val() || 0) : 0);
                 const cr = parseFloat($totalCr ? ($totalCr.val() || 0) : 0);
-                if (!isNaN(dr) && !isNaN(cr) && Math.round(dr * 100) !== Math.round(cr * 100)) {
-                    e.preventDefault();
-                    alert('Total Debit and Credit must be equal before posting.');
-                    return false;
-                }
+                // if (!isNaN(dr) && !isNaN(cr) && Math.round(dr * 100) !== Math.round(cr * 100)) {
+                //     e.preventDefault();
+                //     alert('Total Debit and Credit must be equal before posting.');
+                //     return false;
+                // }
             });
 
             // Initial state: hide button until some line has value
@@ -794,6 +964,148 @@
                     console.log("Selected type:", type);
                     break;
             }
+        });
+
+        function showCurBalanceRow($lineRow) {
+
+            const ledgerId = $lineRow.find('.ledger').val();
+            if (!ledgerId) return;
+
+            // Remove existing Cur Bal row
+            if ($lineRow.next().hasClass('cur-bal-row')) {
+                $lineRow.next().remove();
+            }
+
+            // Temporary loading row
+            const loadingHtml = `
+                <tr class="cur-bal-row">
+                    <td style="padding-left:50px;font-style:italic;">
+                        Loading current balance...
+                    </td>
+                </tr>
+            `;
+            $lineRow.after(loadingHtml);
+
+            // AJAX call
+            $.ajax({
+                url: "{{ url('/accounting/ledger/current-balance') }}/" + ledgerId,
+                type: "GET",
+                dataType: "json",
+                success: function(res) {
+
+                    // 1️⃣ SET opening_type (IMPORTANT)
+                    $lineRow.find('input[name*="[dc]"]').val(res.type);
+
+                    // 2️⃣ Show Cur Balance row (existing logic)
+                    const balanceText = `Cur Bal: ${res.balance} ${res.type}`;
+
+                    const curBalHtml = `
+                        <tr class="cur-bal-row">
+                            <td style="padding-left:50px;font-style:italic;">
+                                ${balanceText}
+                            </td>
+                        </tr>
+                    `;
+
+                    $lineRow.next('.cur-bal-row').replaceWith(curBalHtml);
+                },
+                error: function() {
+                    $lineRow.next('.cur-bal-row').html(`
+                        <td style="padding-left:50px;color:red;">
+                            Failed to load balance
+                        </td>
+                    `);
+                }
+            });
+        }
+
+
+        /**
+         * Add new voucher row AFTER Cur Bal if exists
+         * ✔ Does not break existing addLineRow logic
+         */
+        function addLineRowAfterCurrent($currentRow) {
+
+            // Do NOT add if already added once
+            if ($currentRow.data('row-added')) {
+                return;
+            }
+
+            $currentRow.data('row-added', true);
+
+            // If Cur Bal exists, insert AFTER it
+            if ($currentRow.next().hasClass('cur-bal-row')) {
+                addLineRow($currentRow.next());
+            } else {
+                addLineRow($currentRow);
+            }
+        }
+
+        function addLineRowAfterRow($afterRow) {
+
+            // Prevent duplicate row creation
+            if ($afterRow.data('row-added')) return;
+
+            $afterRow.data('row-added', true);
+
+            // Call original addLineRow safely
+            window._addLineRow();
+
+            const $newRow = $('#linesTable tbody tr.line:last');
+
+            // Move new row AFTER Cur Bal if exists
+            if ($afterRow.next().hasClass('cur-bal-row')) {
+                $afterRow.next().after($newRow);
+            } else {
+                $afterRow.after($newRow);
+            }
+        }
+
+        function toggleRemoveButtons() {
+            const $rows = $('#linesTable tbody tr.line');
+            const count = $rows.length;
+
+            if (count === 1) {
+                // only one row → hide remove
+                $rows.find('.remove').hide();
+            } else {
+                // more than one row → show remove on ALL rows (including first)
+                $rows.find('.remove').show();
+            }
+        }
+
+        $(document).on('change', '#voucher_type', function() {
+
+            let voucherType = $(this).val();
+            // let branchId = $('#branch_id').val(); // hidden or select
+
+            if (!voucherType) {
+                $('#ref_no').val('');
+                return;
+            }
+
+            $.ajax({
+                url: "{{ route('accounting.vouchers.last-ref') }}",
+                type: "GET",
+                data: {
+                    voucher_type: voucherType,
+                    // branch_id: branchId
+                },
+                success: function(res) {
+                    $('#voucher_no').text(res.next_ref_no);
+                },
+                error: function() {
+                    alert('Unable to fetch voucher number');
+                }
+            });
+        });
+
+        $(document).ready(function() {
+            $('#linesTable tbody tr.line').each(function() {
+                if ($(this).find('.ledger').val()) {
+                    showCurBalanceRow($(this));
+                }
+            });
         });
     </script>
 @endsection
