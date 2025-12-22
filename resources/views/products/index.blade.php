@@ -264,7 +264,7 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                         data: 'name'
                     },
                     {
-                        data: 'category',
+                        data: 'sub_category',
                         orderable: false
                     },
                     // {
