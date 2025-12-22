@@ -325,4 +325,21 @@ class LedgerController extends Controller
             'data'            => $data,
         ]);
     }
+
+    
+    // LedgerController.php
+    public function currentBalance($ledgerId)
+    {
+        $ledger = AccountLedger::findOrFail($ledgerId);
+
+        // Example calculation (adjust as per your logic)
+        $balance = $ledger->opening_balance ?? 0;
+        // $type = $balance >= 0 ? 'Dr' : 'Cr';
+        $type = $ledger->opening_type;
+
+        return response()->json([
+            'balance' => number_format(abs($balance), 2),
+            'type'    => $type
+        ]);
+    }
 }
