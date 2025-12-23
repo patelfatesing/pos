@@ -21,7 +21,7 @@
 
         #linesTable tfoot td {
             /* border-top: 1px solid #ccc;
-                                                                                                                                                                border-bottom: 1px solid #ccc; */
+                                                                                                                                                                        border-bottom: 1px solid #ccc; */
             font-weight: bold;
         }
 
@@ -224,9 +224,12 @@
 
                                                 {{-- enable if needed --}}
                                                 <strong class="ms-2">NO.</strong>
-                                                <span id="voucher_no">{{ $lastVoucher ?? 'JN-0001' }}</span>
-                                                <input name="ref_no" type="hidden"
-                                                    value="{{ $lastVoucher ?? 'JN-0001' }}">
+                                                <span id="voucher_no">
+                                                    {{ old('ref_no', $lastVoucher ?? 'JN-0001') }}
+                                                </span>
+
+                                                <input type="hidden" name="ref_no" id="ref_no"
+                                                    value="{{ old('ref_no', $lastVoucher ?? 'JN-0001') }}">
                                             </td>
 
                                             <td width="20%" class="text-end fw-bold">
@@ -327,7 +330,12 @@
 
                                         <tfoot>
                                             <tr>
-                                                <td></td>
+                                                <td>
+                                                    <div class="mt-2">
+                                                        Narration :
+                                                        <input type="text" name="narration" class="">
+                                                    </div>
+                                                </td>
                                                 <td class="text-end"></td>
 
                                                 <td class="text-end"
@@ -347,10 +355,7 @@
                                     </table>
 
                                     {{-- ================= NARRATION ================= --}}
-                                    <div class="mt-2">
-                                        <strong>Narration :</strong>
-                                        <input type="text" name="narration" class="form-control">
-                                    </div>
+
 
                                     {{-- ================= SUBMIT ================= --}}
                                     <div class="sticky-actions mt-3">
@@ -1093,6 +1098,7 @@
                 },
                 success: function(res) {
                     $('#voucher_no').text(res.next_ref_no);
+                    $('#ref_no').val(res.next_ref_no);
                 },
                 error: function() {
                     alert('Unable to fetch voucher number');
