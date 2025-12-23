@@ -118,16 +118,24 @@ class VoucherController extends Controller
         $branches = \App\Models\Branch::select('name', 'id')->get();
 
 
-        Rule::unique('vouchers')
-            ->where(
-                fn($q) => $q
-                    ->where('voucher_type', $r->input('voucher_type'))
+        $lastVoucher = Voucher::where('voucher_type', 'Journal')
+            // ->where('branch_id', $r->branch_id) // optional
+            ->orderBy('id', 'desc')
+            ->value('ref_no');
 
-            );
+        if ($lastVoucher !== null) {
+            $num = (int) str_replace('JN-', '', $lastVoucher);
+            $num++;
+            $lastVoucher = 'JN-' . str_pad($num, 4, '0', STR_PAD_LEFT);
+        } else {
+            $lastVoucher = "JN-0001";
+        }
+
 
         return view('accounting.vouchers.create', [
             'ledgers' => AccountLedger::where('is_active', 1)->orderBy('name')->get(),
-            'branches' => $branches
+            'branches' => $branches,
+            'lastVoucher' => $lastVoucher,
         ]);
     }
 
@@ -256,10 +264,10 @@ class VoucherController extends Controller
                 ->where(
                     fn($q) => $q
                         ->where('voucher_type', $r->input('voucher_type'))
-                        ->where('branch_id', $r->input('branch_id'))
+                        // ->where('branch_id', $r->input('branch_id'))
                 );
         }
-
+        
         $data = $r->validate($rules);
 
         // Compute grand_total if header totals provided but grand_total missing
@@ -321,6 +329,46 @@ class VoucherController extends Controller
 
         return redirect()->route('accounting.vouchers.index')
             ->with('success', 'Voucher posted successfully.');
+    }
+
+    public function getLastRef(Request $request)
+    {
+        $voucherType = $request->voucher_type;
+        // $branchId    = $request->branch_id;
+
+        $voucherType = $request->voucher_type;
+
+        // Prefix
+        $prefixMap = [
+            'Journal'  => 'JN',
+            'Payment'  => 'PM',
+            'Receipt'  => 'RC',
+            'Contra'   => 'CT',
+            'Purchase' => 'PU',
+        ];
+
+        $prefix = $prefixMap[$voucherType] ?? 'VN';
+
+        // Get last voucher ref_no
+        $lastVoucher = Voucher::where('voucher_type', $voucherType)
+            // ->where('branch_id', $request->branch_id) // enable if needed
+            ->orderBy('id', 'desc')
+            ->value('ref_no');
+
+        if ($lastVoucher) {
+            // Remove prefix safely (JN-, PM-, etc.)
+            $num = (int) preg_replace('/[^0-9]/', '', $lastVoucher);
+            $num++;
+        } else {
+            $num = 1;
+        }
+
+        // Generate next voucher no
+        $nextRefNo = $prefix . '-' . str_pad($num, 4, '0', STR_PAD_LEFT);
+
+        return response()->json([
+            'next_ref_no' => $nextRefNo
+        ]);
     }
 
     // public function edit(Voucher $voucher) // or: public function edit($id)
@@ -543,7 +591,7 @@ class VoucherController extends Controller
         return redirect()->route('accounting.vouchers.index')->with('success', 'Voucher updated successfully.');
     }
 
-    public function destroy(Request $request,$id)
+    public function destroy(Request $request, $id)
     {
         $voucher = Voucher::with('lines')->findOrFail($id);
 

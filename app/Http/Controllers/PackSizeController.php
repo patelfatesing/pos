@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\PackSize;
 use App\Http\Requests\StorePackSizeRequest;
 use App\Http\Requests\UpdatePackSizeRequest;
@@ -53,7 +54,7 @@ class PackSizeController extends Controller
 
             $records[] = [
                 'size' => $role->size,
-                'is_active' => ($role->is_active ? '<div class="badge badge-success">Active</div>':'<div class="badge badge-success">Inactive</div>'),
+                'is_active' => ($role->is_active ? '<div class="badge badge-success">Active</div>' : '<div class="badge badge-success">Inactive</div>'),
                 'created_at' => \Carbon\Carbon::parse($role->created_at)->format('d-m-Y H:i'),
                 'action' => $action
             ];
@@ -80,27 +81,50 @@ class PackSizeController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'size' => 'required|numeric|unique:pack_sizes,size',
-        ], [
-            'size.required' => 'The size is required.'
-        ]);
+        // Step 1: Validate input (numeric only, required)
+        $validator = \Validator::make(
+            $request->all(),
+            [
+                'size' => 'required|numeric',
+            ],
+            [
+                'size.required' => 'The size is required.',
+                'size.numeric'  => 'Size must be a number.',
+            ]
+        );
 
-            // Step 2: Add " ML" suffix
-        $sizeWithML = $validated['size'] . ' ML';
-
-        // Step 3: Check for uniqueness manually
-        $exists = \App\Models\PackSize::where('size', $sizeWithML)->exists();
-        if ($exists) {
-            return back()->withErrors(['size' => 'This size already exists.'])->withInput();
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
-        // Step 4: Save to database
+        // Step 2: Append " ML"
+        $sizeWithML = $request->size . ' ML';
+
+        // Step 3: Check uniqueness AFTER adding ML
+        $exists = \App\Models\PackSize::where('size', $sizeWithML)->exists();
+
+        if ($exists) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => [
+                    'size' => ['This size already exists.']
+                ]
+            ], 422);
+        }
+
+        // Step 4: Save
         \App\Models\PackSize::create([
             'size' => $sizeWithML,
         ]);
 
-        return redirect()->route('packsize.list')->with('success', 'Record created successfully.');
+        // Step 5: Success response
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Pack size added successfully'
+        ]);
     }
 
     public function show(PackSize $packSize)

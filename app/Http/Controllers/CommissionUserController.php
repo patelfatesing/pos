@@ -93,6 +93,7 @@ class CommissionUserController extends Controller
                 'first_name' => $commissionUser->first_name,
                 'commission_type' => $commissionUser->commission_type,
                 'commission_value' => $commissionUser->commission_value,
+                'mobile_number' => $commissionUser->mobile_number,
                 'applies_to' => $commissionUser->applies_to,
                 'is_active' => $commissionUser->is_active,
                 'start_date' => $commissionUser->start_date,
@@ -128,6 +129,7 @@ class CommissionUserController extends Controller
         $data = $request->validate([
             'first_name' => 'required|string|max:255|unique:commission_users,first_name',
             'email' => 'nullable|email|max:255|unique:commission_users,email',
+            'mobile_number' => 'nullable|digits:10|regex:/^[0-9]+$/|unique:commission_users,mobile_number',
             'commission_type' => 'required|in:fixed,percentage',
             // 'applies_to' => 'required|in:all,category,product',
             'reference_id' => 'nullable|string',
@@ -201,7 +203,8 @@ class CommissionUserController extends Controller
             'commission_value',
             'applies_to',
             'start_date',
-            'end_date'
+            'end_date',
+            
         ];
 
         $orderColumn = $columns[$orderColumnIndex] ?? 'invoice_date';
@@ -279,6 +282,7 @@ class CommissionUserController extends Controller
         $data = $request->validate([
 
             'first_name' => 'required|string|max:255|unique:commission_users,first_name,' . $Commissionuser->id,
+             'mobile_number' => 'nullable|digits:10|regex:/^[0-9]+$/|unique:commission_users,mobile_number,' . $Commissionuser->id,
             'commission_type' => 'required|in:fixed,percentage',
             // 'applies_to' => 'required|in:all,category,product',
             'reference_id' => 'nullable|string',
