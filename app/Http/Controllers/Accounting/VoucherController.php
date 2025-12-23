@@ -267,7 +267,7 @@ class VoucherController extends Controller
                         // ->where('branch_id', $r->input('branch_id'))
                 );
         }
-
+        
         $data = $r->validate($rules);
 
         // Compute grand_total if header totals provided but grand_total missing
