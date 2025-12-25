@@ -21,7 +21,7 @@
 
         #linesTable tfoot td {
             /* border-top: 1px solid #ccc;
-                                                                                                                                                                        border-bottom: 1px solid #ccc; */
+                                                                                                                                                                                                                                border-bottom: 1px solid #ccc; */
             font-weight: bold;
         }
 
@@ -42,7 +42,7 @@
         }
 
         #linesTable tr:hover {
-            background: #f7f7f7;
+            background: #e1ce5bbf;
         }
 
         .voucher-header {
@@ -172,6 +172,57 @@
             font-weight: normal;
             margin-top: 2px;
         }
+
+        #linesTable tfoot tr:first-child td {
+            padding-top: 12px;
+            border-top: 1px solid #ccc;
+        }
+
+        /* ================= TALLY ACCOUNT HEADER ================= */
+
+        .tally-account-box {
+            font-family: monospace;
+            font-size: 15px;
+        }
+
+        .tally-account-box td {
+            padding: 2px 4px;
+            vertical-align: middle;
+        }
+
+        .tally-particulars-header {
+            font-family: monospace;
+            font-weight: bold;
+            padding: 4px 6px;
+            border-top: 1px solid #999;
+            border-bottom: 1px solid #999;
+            margin-bottom: 4px;
+        }
+
+        /* ================= TALLY STYLE SELECT (NO ARROW) ================= */
+
+        /* Chrome, Edge, Safari */
+        .account-ledger,
+        .account-ledger:focus {
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: none !important;
+            border: none;
+            padding-left: 5px;
+            padding-right: 0;
+            font-family: monospace;
+            font-weight: bold;
+        }
+
+        /* Firefox */
+        .account-ledger {
+            -moz-appearance: none;
+        }
+
+        /* Old Edge / IE */
+        .account-ledger::-ms-expand {
+            display: none;
+        }
     </style>
 
     <div class="wrapper">
@@ -204,13 +255,41 @@
                                 <div class="col-lg-10">
 
                                     {{-- ================= TOP BLUE HEADER ================= --}}
-                                    <table class="w-100 mb-2">
+                                    {{-- <table class="w-100 mb-2">
                                         <tr>
                                             <td class="voucher-header" width="33%">Accounting Vouchers</td>
                                             <td class="voucher-header text-center" width="33%">
                                                 {{ config('app.name') }} 2025-26
                                             </td>
                                             <td class="voucher-header" width="33%"></td>
+                                        </tr>
+                                    </table> --}}
+
+                                    <table class="tally-account-box mb-2" width="100%">
+                                        <tr>
+                                            <td width="15%">Account</td>
+                                            <td width="2%">:</td>
+                                            <td width="83%" class="fw-bold">
+                                                <span id="accountName">
+                                                    <select name="party_ledger_id" class="ledger account-ledger">
+                                                        <option value="">Select Ledger</option>
+                                                        @foreach ($ledgers as $l)
+                                                            <option value="{{ $l->id }}"
+                                                                data-group-id="{{ $l->group_id }}"
+                                                                {{ (old('party_ledger_id ') ?? '') == $l->id ? 'selected' : '' }}>
+                                                                {{ $l->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            {{-- <td class="text-muted">Current balance</td>
+                                            <td>:</td>
+                                            <td class="fw-bold text-danger">
+                                                <span id="accountBalance"></span>
+                                            </td> --}}
                                         </tr>
                                     </table>
 
@@ -253,8 +332,8 @@
                                             <tr>
                                                 {{-- <th width="10%">Dr / Cr</th> --}}
                                                 <th width="70%">Particulars</th>
-                                                <th class="text-end" width="15%">Amount</th>
-                                                <th width="15%"></th>
+                                                <th class="text-end" width="15%"></th>
+                                                <th width="15%">Amount</th>
                                             </tr>
                                         </thead>
 
@@ -269,7 +348,7 @@
                                                         <td width="85%">
                                                             <select name="lines[{{ $i }}][ledger_id]"
                                                                 class="ledger">
-                                                                {{-- <option value="">Select Ledger</option> --}}
+                                                                <option value="">Select Ledger</option>
                                                                 @foreach ($ledgers as $l)
                                                                     <option value="{{ $l->id }}"
                                                                         data-group-id="{{ $l->group_id }}"
@@ -305,7 +384,7 @@
                                                     <input name="lines[0][dc]" type="hidden">
                                                     <td width="85%">
                                                         <select name="lines[0][ledger_id]" class="ledger">
-                                                            {{-- <option value="">Select Ledger</option> --}}
+                                                            <option value="">Select Ledger</option>
                                                             @foreach ($ledgers as $l)
                                                                 <option value="{{ $l->id }}"
                                                                     data-group-id="{{ $l->group_id }}">
@@ -329,9 +408,9 @@
                                         </tbody>
 
                                         <tfoot>
-                                            <tr>
+                                            <tr class="">
                                                 <td>
-                                                    <div class="mt-2">
+                                                    <div class="">
                                                         Narration :
                                                         <input type="text" name="narration" class="">
                                                     </div>
@@ -354,6 +433,12 @@
 
                                     </table>
 
+                                    <div class="mt-3">
+                                        <a href="${createLedgerUrl}" target="_blank"
+                                            class="btn btn-outline-secondary btn-sm">
+                                            Create Ledger
+                                        </a>
+                                    </div>
                                     {{-- ================= NARRATION ================= --}}
 
 
@@ -501,25 +586,22 @@
                 return `
             <tr class="line">
                
-                <td>
-                    <select name="lines[${idx}][ledger_id]" class="form-control ledger">
-                        
+                <td width="85%">
+                    <select name="lines[${idx}][ledger_id]" class="ledger">
+                        <option value="">Select Ledger</option>
                         ${ledgerOptions}
                     </select>
-                     <a href="${createLedgerUrl}" target="_blank"
-                    class="btn btn-outline-secondary btn-sm">
-                    Create Ledger
-                </a></td>
+                </td>
                 <input name="lines[${idx}][dc]" type="hidden">
 
-                <td><input name="lines[${idx}][amount]" class="form-control amount" type="number" step="0.01"></td>
+                <td><input name="lines[${idx}][amount]" class="amount" type="number" step="0.01"></td>
                 <td class="text-center"><span class="remove" style="display:none;">✕</span></td>
             </tr>`;
             }
 
             function rowHasAnyValue($tr) {
                 const ledger = $tr.find('.ledger').val();
-                const dc = $tr.find('.dc').val();
+                const dc = $tr.find('input[name*="[dc]"]').val();
                 const amt = parseFloat($tr.find('.amount').val() || 0);
                 const narration = $tr.find('input[name*="[line_narration]"]').val();
                 return !!(ledger || dc || amt || narration);
@@ -902,11 +984,18 @@
                 $tr.removeData('row-added');
 
                 if ($(this).val()) {
-                    showCurBalanceRow($tr);
+                    showCurBalanceRow($tr, "lines");
                 }
             });
 
 
+            $(document).on('change', '.account-ledger', function() {
+
+                const p_id = $(this).closest('tr');
+
+                showCurBalanceRow(p_id, "account-ledger");
+
+            });
 
             // AMOUNT INPUT → ADD NEW ROW AFTER CUR BAL
             $(document).on('input', '#linesTable tbody tr .amount', function() {
@@ -971,7 +1060,7 @@
             }
         });
 
-        function showCurBalanceRow($lineRow) {
+        function showCurBalanceRow($lineRow, type) {
 
             const ledgerId = $lineRow.find('.ledger').val();
             if (!ledgerId) return;
@@ -1002,16 +1091,15 @@
                     $lineRow.find('input[name*="[dc]"]').val(res.type);
                     applyJournalPrefix();
                     // 2️⃣ Show Cur Balance row (existing logic)
-                    const balanceText = `Cur Bal: ${res.balance} ${res.type}`;
+                    const balanceText = `Current Bal: ${res.balance} ${res.type}`;
 
                     const curBalHtml = `
                         <tr class="cur-bal-row">
-                            <td style="padding-left:50px;font-style:italic;">
+                            <td style="font-style:italic;"  colspan="3">
                                 ${balanceText}
                             </td>
                         </tr>
                     `;
-
                     $lineRow.next('.cur-bal-row').replaceWith(curBalHtml);
                 },
                 error: function() {
@@ -1155,6 +1243,14 @@
                     $opt.text(prefix + ' ' + $opt.data('original-name'));
                 });
             });
+        }
+
+        function updateAccountHeader(name, balance, type) {
+            $('#accountName').text(name);
+            $('#accountBalance')
+                .text(balance + ' ' + type)
+                .removeClass('text-danger text-dark')
+                .addClass(type === 'Cr' ? 'text-danger' : 'text-dark');
         }
     </script>
 @endsection
