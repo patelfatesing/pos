@@ -338,7 +338,7 @@ class LedgerController extends Controller
         $type = $ledger->opening_type;
 
         return response()->json([
-            'balance' => number_format(abs($balance), 2),
+            'balance' => number_format($balance),
             'type'    => $type
         ]);
     }

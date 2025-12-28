@@ -556,7 +556,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-4">
+                        <div class="col-lg-6">
                             <div class="card card-transparent card-block card-stretch mb-4">
                                 <div class="card-header d-flex align-items-center justify-content-between p-0">
                                     <div class="header-title">
@@ -600,7 +600,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-4">
+                        <div class="col-lg-6">
                             <div class="card card-block card-stretch card-height-helf">
                                 <div class="card-body">
                                     <div class="d-flex align-items-top justify-content-between">
@@ -652,7 +652,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-8">
+                        {{-- <div class="col-lg-8">
                             <div class="card card-block card-stretch card-height">
                                 <div class="card-header d-flex justify-content-between">
                                     <div class="header-title">
@@ -713,7 +713,7 @@
                                     <div id="layout1-chart-5"></div>
                                 </div>
                             </div>
-                        </div>
+                        </div> --}}
                     </div>
                     <!-- Page end  -->
                 </div>
