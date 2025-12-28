@@ -41,7 +41,7 @@
                 outline: none;
             }
 
-            #linesTable tr:hover {
+            #linesTable tbody tr:hover {
                 background: #F3E6A1;
             }
 
