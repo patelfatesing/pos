@@ -143,14 +143,9 @@ class VoucherController extends Controller
     {
         $type = $r->input('voucher_type');
 
-        // ---------- 0) Normalize inputs BEFORE validation ----------
-        // helper to treat '' as null
-        $nv = function ($v) {
-            return ($v === '' || $v === null) ? null : $v;
-        };
+        // dd($r->all());
+        $nv = fn($v) => ($v === '' || $v === null) ? null : $v;
 
-        // Prefer the correct party field depending on voucher type, but also
-        // gracefully accept any of these names if your Blade still posts them.
         $partyFromPR = $nv($r->input('party_ledger_id')) ?: $nv($r->input('pr_party_ledger'));
         $partyFromTR = $nv($r->input('party_ledger_id')) ?: $nv($r->input('tr_party_ledger'));
 
@@ -159,9 +154,8 @@ class VoucherController extends Controller
             $party = $partyFromPR ?: $partyFromTR;
         } elseif (in_array($type, ['Sales', 'Purchase', 'DebitNote', 'CreditNote'])) {
             $party = $partyFromTR ?: $partyFromPR;
-        } // Journal/Contra keep null
+        }
 
-        // Normalize cash/bank per mode (and drop the irrelevant one)
         $mode = $nv($r->input('mode'));
         $cashLedger = $nv($r->input('cash_ledger_id')) ?: $nv($r->input('pr_cash_ledger'));
         $bankLedger = $nv($r->input('bank_ledger_id')) ?: $nv($r->input('pr_bank_ledger'));
@@ -171,25 +165,18 @@ class VoucherController extends Controller
         } elseif (in_array($mode, ['bank', 'upi', 'card'])) {
             $cashLedger = null;
         } else {
-            // unknown/blank mode → clear both so validation can catch it if required
             $cashLedger = null;
             $bankLedger = null;
         }
 
-        // Trade totals: accept either names, and coalesce
         $subTotal   = $nv($r->input('sub_total'))   ?? $nv($r->input('tr_subtotal'));
         $discount   = $nv($r->input('discount'))    ?? $nv($r->input('tr_discount'));
         $tax        = $nv($r->input('tax'))         ?? $nv($r->input('tr_tax'));
         $grandTotal = $nv($r->input('grand_total')) ?? $nv($r->input('tr_grand'));
 
-        // Contra fields: accept either names
         $fromLedger = $nv($r->input('from_ledger_id')) ?? $nv($r->input('ct_from'));
         $toLedger   = $nv($r->input('to_ledger_id'))   ?? $nv($r->input('ct_to'));
 
-        // PR amount (optional helper): accept either name
-        $prAmount = $nv($r->input('amount')) ?? $nv($r->input('pr_amount'));
-
-        // Merge normalized values into the Request so validation sees the right keys
         $r->merge([
             'party_ledger_id' => $party,
             'mode'            => $mode,
@@ -201,134 +188,160 @@ class VoucherController extends Controller
             'grand_total'     => $grandTotal,
             'from_ledger_id'  => $fromLedger,
             'to_ledger_id'    => $toLedger,
-            'amount'          => $prAmount,
-            // also normalize: branch_id '', ref_no '' → null
             'branch_id'       => $nv($r->input('branch_id')),
             'ref_no'          => $nv($r->input('ref_no')),
         ]);
 
-        // ---------- 1) Validation rules ----------
+        /*
+    |--------------------------------------------------------------------------
+    | 2. REMOVE EMPTY ROWS (IMPORTANT)
+    |--------------------------------------------------------------------------
+    */
+        $lines = collect($r->input('lines', []))
+            ->filter(
+                fn($l) =>
+                !empty($l['ledger_id']) &&
+                    !empty($l['dc']) &&
+                    floatval($l['amount'] ?? 0) > 0
+            )
+            ->values()
+            ->toArray();
+
+        $r->merge(['lines' => $lines]);
+
+        /*
+    |--------------------------------------------------------------------------
+    | 3. VALIDATION
+    |--------------------------------------------------------------------------
+    */
         $rules = [
             'voucher_date' => ['required', 'date'],
-            'voucher_type' => ['required', Rule::in(['Journal', 'Payment', 'Receipt', 'Contra', 'Sales', 'Purchase', 'DebitNote', 'CreditNote'])],
+            'voucher_type' => ['required', Rule::in([
+                'Journal',
+                'Payment',
+                'Receipt',
+                'Contra',
+                'Sales',
+                'Purchase',
+                'DebitNote',
+                'CreditNote'
+            ])],
             'ref_no'       => ['nullable', 'string', 'max:50'],
             'branch_id'    => ['nullable', 'integer', 'exists:branches,id'],
             'narration'    => ['nullable', 'string', 'max:2000'],
 
-            // lines (accounting truth)
-            'lines'                 => ['required', 'array', 'min:2'],
-            'lines.*.ledger_id'     => ['required', 'exists:account_ledgers,id'],
-            'lines.*.dc'            => ['required', Rule::in(['Dr', 'Cr'])],
-            'lines.*.amount'        => ['required', 'numeric', 'gt:0'],
-            'lines.*.line_narration' => ['nullable', 'string', 'max:1000'],
-
-            // helpers (nullable by default)
-            // 'party_ledger_id'  => ['nullable', 'integer', 'exists:account_ledgers,id'],
-            // 'mode'             => ['nullable', Rule::in(['cash', 'bank', 'upi', 'card'])],
-            // 'instrument_no'    => ['nullable', 'string', 'max:50'],
-            // 'instrument_date'  => ['nullable', 'date'],
-            // 'cash_ledger_id'   => ['nullable', 'integer', 'exists:account_ledgers,id'],
-            // 'bank_ledger_id'   => ['nullable', 'integer', 'exists:account_ledgers,id'],
-            // 'from_ledger_id'   => ['nullable', 'integer', 'exists:account_ledgers,id'],
-            // 'to_ledger_id'     => ['nullable', 'integer', 'exists:account_ledgers,id'],
-
-            // 'sub_total'        => ['nullable', 'numeric', 'gte:0'],
-            // 'discount'         => ['nullable', 'numeric', 'gte:0'],
-            // 'tax'              => ['nullable', 'numeric', 'gte:0'],
-            // 'grand_total'      => ['nullable', 'numeric', 'gte:0'],
+            'lines'             => ['required', 'array', 'min:2'],
+            'lines.*.ledger_id' => ['required', 'exists:account_ledgers,id'],
+            'lines.*.dc'        => ['required', Rule::in(['Dr', 'Cr'])],
+            'lines.*.amount'    => ['required', 'numeric', 'gt:0'],
         ];
 
-        // Conditional requirements
-        // if (in_array($type, ['Payment', 'Receipt'])) {
-        //     $rules['mode'][0] = 'required';
-        //     $rules['party_ledger_id'][0] = 'required';
-        //     if ($r->input('mode') === 'cash') {
-        //         $rules['cash_ledger_id'][0] = 'required';
-        //     } elseif (in_array($r->input('mode'), ['bank', 'upi', 'card'])) {
-        //         $rules['bank_ledger_id'][0] = 'required';
-        //     }
-        // } elseif ($type === 'Contra') {
-        //     $rules['from_ledger_id'][0] = 'required';
-        //     $rules['to_ledger_id'][0]   = 'required';
-        //     $rules['to_ledger_id'][]    = 'different:from_ledger_id';
-        // } elseif (in_array($type, ['Sales', 'Purchase', 'DebitNote', 'CreditNote'])) {
-        //     $rules['party_ledger_id'][0] = 'required';
-        //     if ($r->filled(['sub_total']) || $r->filled(['discount']) || $r->filled(['tax'])) {
-        //         $rules['grand_total'][0] = 'required';
-        //     }
-        // }
-
-        // Unique ref_no within (branch_id, voucher_type) when present
         if ($r->filled('ref_no')) {
-            $rules['ref_no'][] = Rule::unique('vouchers')
-                ->where(
-                    fn($q) => $q
-                        ->where('voucher_type', $r->input('voucher_type'))
-                        // ->where('branch_id', $r->input('branch_id'))
-                );
-        }
-        
-        $data = $r->validate($rules);
-
-        // Compute grand_total if header totals provided but grand_total missing
-        if (!$r->filled('grand_total') && ($r->filled('sub_total') || $r->filled('discount') || $r->filled('tax'))) {
-            $data['grand_total'] = round(
-                (float)($r->input('sub_total', 0)) - (float)($r->input('discount', 0)) + (float)($r->input('tax', 0)),
-                2
+            $rules['ref_no'][] = Rule::unique('vouchers')->where(
+                fn($q) => $q->where('voucher_type', $r->voucher_type)
             );
         }
 
-        // ---------- 2) Check Dr/Cr balance ----------
+        $data = $r->validate($rules);
+
+        /*
+    |--------------------------------------------------------------------------
+    | 4. DR / CR BALANCE CHECK
+    |--------------------------------------------------------------------------
+    */
         $dr = 0;
         $cr = 0;
+
         foreach ($data['lines'] as $line) {
-            if ($line['dc'] === 'Dr') {
-                $dr += (float)$line['amount'];
-            } else {
-                $cr += (float)$line['amount'];
-            }
-        }
-        if (round($dr, 2) !== round($cr, 2)) {
-            return back()->withErrors(['lines' => 'Total Debit and Credit must be equal.'])->withInput();
+            if ($line['dc'] === 'Dr') $dr += $line['amount'];
+            if ($line['dc'] === 'Cr') $cr += $line['amount'];
         }
 
-        // ---------- 3) Persist ----------
+        if (round($dr, 2) !== round($cr, 2)) {
+            return back()
+                ->withErrors(['lines' => 'Debit and Credit totals must be equal.'])
+                ->withInput();
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | 5. SAVE DATA
+    |--------------------------------------------------------------------------
+    */
         DB::transaction(function () use ($data) {
+
             $voucher = \App\Models\Accounting\Voucher::create([
-                'voucher_date'    => $data['voucher_date'],
-                'voucher_type'    => $data['voucher_type'],
-                'ref_no'          => $data['ref_no'] ?? null,
-                'branch_id'       => $data['branch_id'] ?? null,
-                'narration'       => $data['narration'] ?? null,
-                'created_by'      => Auth::id(),
+                'voucher_date' => $data['voucher_date'],
+                'voucher_type' => $data['voucher_type'],
+                'ref_no'       => $data['ref_no'] ?? null,
+                'branch_id'    => $data['branch_id'] ?? null,
+                'narration'    => $data['narration'] ?? null,
+                'created_by'   => auth()->id(),
 
                 'party_ledger_id' => $data['party_ledger_id'] ?? null,
                 'mode'            => $data['mode'] ?? null,
-                'instrument_no'   => $data['instrument_no'] ?? null,
-                'instrument_date' => $data['instrument_date'] ?? null,
                 'cash_ledger_id'  => $data['cash_ledger_id'] ?? null,
                 'bank_ledger_id'  => $data['bank_ledger_id'] ?? null,
                 'from_ledger_id'  => $data['from_ledger_id'] ?? null,
                 'to_ledger_id'    => $data['to_ledger_id'] ?? null,
 
-                'sub_total'       => $data['sub_total']   ?? 0,
-                'discount'        => $data['discount']    ?? 0,
-                'tax'             => $data['tax']         ?? 0,
-                'grand_total'     => $data['grand_total'] ?? 0,
+                'sub_total'   => $data['sub_total'] ?? 0,
+                'discount'    => $data['discount'] ?? 0,
+                'tax'         => $data['tax'] ?? 0,
+                'grand_total' => $data['grand_total'] ?? 0,
             ]);
 
             foreach ($data['lines'] as $line) {
+
+
                 $voucher->lines()->create([
                     'ledger_id'      => $line['ledger_id'],
                     'dc'             => $line['dc'],
-                    'amount'         => round((float)$line['amount'], 2),
+                    'amount'         => round($line['amount'], 2),
                     'line_narration' => $line['line_narration'] ?? null,
+                ]);
+
+
+                $ledger = AccountLedger::lockForUpdate()->findOrFail($line['ledger_id']);
+
+                // Calculate updated balance
+                $result = $this->calculateLedgerBalance(
+                    $ledger,
+                    $line['dc'],
+                    $line['amount']
+                );
+
+                // Update ledger balance
+                $ledger->update([
+                    'opening_balance' => $result['balance'],
+                    'opening_type'    => $result['type'],
                 ]);
             }
         });
 
-        return redirect()->route('accounting.vouchers.index')
+        return redirect()
+            ->route('accounting.vouchers.index')
             ->with('success', 'Voucher posted successfully.');
+    }
+
+    private function calculateLedgerBalance(AccountLedger $ledger, string $dc, float $amount)
+    {
+        // Convert opening balance to signed number
+        $current = $ledger->opening_type === 'Dr'
+            ? $ledger->opening_balance
+            : -$ledger->opening_balance;
+
+        // Apply transaction
+        if ($dc === 'Dr') {
+            $current += $amount;
+        } else {
+            $current -= $amount;
+        }
+
+        return [
+            'balance' => $current >= 0 ? $current : -$current,
+            'type'    => $current >= 0 ? 'Dr' : 'Cr',
+        ];
     }
 
     public function getLastRef(Request $request)
