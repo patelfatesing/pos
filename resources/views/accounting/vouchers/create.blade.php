@@ -21,7 +21,7 @@
 
             #linesTable tfoot td {
                 /* border-top: 1px solid #ccc;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                border-bottom: 1px solid #ccc; */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    border-bottom: 1px solid #ccc; */
                 font-weight: bold;
             }
 
@@ -62,8 +62,16 @@
 
             .remove {
                 cursor: pointer;
-                color: red;
+                color: #c0392b;
                 font-weight: bold;
+                font-size: 18px;
+                padding: 4px 8px;
+                border-radius: 4px;
+            }
+
+            .remove:hover {
+                background-color: #ffe6e6;
+                color: #ff0000;
             }
 
             .sticky-actions {
@@ -318,7 +326,7 @@
 
                         {{-- ================= CARD HEADER ================= --}}
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="mb-0">New Voucher</h4>
+                            <h4 class="mb-0">Accounting Voucher Creation</h4>
                             <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-secondary">
                                 Go To List
                             </a>
@@ -472,7 +480,7 @@
 
                                                             <td class="text-center" width="5%">
                                                                 <span class="remove"
-                                                                    {{ $loop->count == 1 ? 'style=display:none' : '' }}>✕</span>
+                                                                    {{ $loop->count == 1 ? 'style=display:none' : '' }}><i class="fa-solid fa-xmark"></i></span>
                                                             </td>
                                                         </tr>
 
@@ -522,7 +530,7 @@
 
 
                                                         <td class="text-center" width="5%">
-                                                            <span class="remove" style="display:none;">✕</span>
+                                                            <span class="remove" style="display:none;"><i class="fa-solid fa-xmark"></i></span>
                                                         </td>
                                                     </tr>
                                                 @endif
@@ -802,7 +810,7 @@
                     if (hasValue) {
                         $('#btnSubmit').show();
                     } else {
-                        $('#btnSubmit').hide();
+                        $('#btnSubmit').show();
                     }
                 }
 
@@ -1253,7 +1261,7 @@
 
                         const curBalHtml = `
                             <tr class="cur-bal-row">
-                                <td colspan="3" style="padding-left:60px;font-style:italic;">
+                                <td colspan="3" style="padding-left:115px;font-style:italic;">
                                     Current Bal: ${displayBalance} ${openingType}
                                 </td>
                             </tr>
