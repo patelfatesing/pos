@@ -143,7 +143,6 @@ class VoucherController extends Controller
     {
         $type = $r->input('voucher_type');
 
-        // dd($r->all());
         $nv = fn($v) => ($v === '' || $v === null) ? null : $v;
 
         $partyFromPR = $nv($r->input('party_ledger_id')) ?: $nv($r->input('pr_party_ledger'));
@@ -327,9 +326,11 @@ class VoucherController extends Controller
     private function calculateLedgerBalance(AccountLedger $ledger, string $dc, float $amount)
     {
         // Convert opening balance to signed number
-        $current = $ledger->opening_type === 'Dr'
-            ? $ledger->opening_balance
-            : -$ledger->opening_balance;
+        // $current = $ledger->opening_type === 'Dr'
+        //     ? $ledger->opening_balance
+        //     : -$ledger->opening_balance;
+        $current = $ledger->opening_balance;
+            
 
         // Apply transaction
         if ($dc === 'Dr') {
@@ -340,7 +341,7 @@ class VoucherController extends Controller
 
         return [
             'balance' => $current >= 0 ? $current : -$current,
-            'type'    => $current >= 0 ? 'Dr' : 'Cr',
+            'type'    => $dc,
         ];
     }
 

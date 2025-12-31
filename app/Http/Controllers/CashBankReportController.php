@@ -1,13 +1,12 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Accounting\{Voucher, VoucherLine, AccountLedger};
-
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
-
 
 class CashBankReportController extends Controller
 {
@@ -77,6 +76,123 @@ class CashBankReportController extends Controller
         return view('reports.cash_bank', compact('rows', 'from', 'to'));
     }
 
+    public function cashBankSummary(Request $request)
+    {
+        $date = $request->date ?? now()->format('Y-m-d');
+
+        // Define groups
+        $groups = [
+            'Cash-in-Hand' => 1,
+            'Bank Accounts' => 2,
+        ];
+
+        $result = [];
+
+        foreach ($groups as $groupName => $groupId) {
+
+            $ledgers = DB::table('account_ledgers')
+                ->where('group_id', $groupId)
+                ->where('is_active', 1)
+                ->where('is_deleted', 0)
+                ->get();
+
+            $groupDebit = 0;
+            $groupCredit = 0;
+            $ledgerRows = [];
+
+            foreach ($ledgers as $ledger) {
+
+                // Opening balance
+                $opening = $ledger->opening_balance;
+                if ($ledger->opening_type === 'Cr') {
+                    $opening *= -1;
+                }
+
+                // Voucher effect
+                $movement = DB::table('voucher_lines')
+                    ->join('vouchers', 'vouchers.id', '=', 'voucher_lines.voucher_id')
+                    ->where('voucher_lines.ledger_id', $ledger->id)
+                    ->whereDate('vouchers.voucher_date', '<=', $date)
+                    ->selectRaw("
+                    SUM(CASE WHEN dc = 'Dr' THEN amount ELSE 0 END) as dr,
+                    SUM(CASE WHEN dc = 'Cr' THEN amount ELSE 0 END) as cr
+                ")
+                    ->first();
+
+                $balance = $opening
+                    + ($movement->dr ?? 0)
+                    - ($movement->cr ?? 0);
+
+                $debit = $balance > 0 ? $balance : 0;
+                $credit = $balance < 0 ? abs($balance) : 0;
+
+                $groupDebit += $debit;
+                $groupCredit += $credit;
+
+                $ledgerRows[] = [
+                    'id' => $ledger->id,
+                    'name' => $ledger->name,
+                    'debit' => $debit,
+                    'credit' => $credit,
+                ];
+            }
+
+            $result[] = [
+                'group' => $groupName,
+                'debit' => $groupDebit,
+                'credit' => $groupCredit,
+                'ledgers' => $ledgerRows,
+            ];
+        }
+
+        return view('reports.cash_bank_summary', compact('result', 'date'));
+    }
+
+    public function ledgerMonthly($ledgerId)
+    {
+        $ledger = DB::table('account_ledgers')->find($ledgerId);
+
+        $start = Carbon::create(now()->year, 4, 1); // Financial year start (Apr)
+        $months = collect();
+
+        // Opening Balance
+        $opening = $ledger->opening_type == 'Cr'
+            ? -$ledger->opening_balance
+            : $ledger->opening_balance;
+
+        for ($i = 0; $i < 12; $i++) {
+
+            $from = $start->copy()->addMonths($i)->startOfMonth();
+            $to   = $start->copy()->addMonths($i)->endOfMonth();
+
+            $txn = DB::table('voucher_lines')
+                ->join('vouchers', 'vouchers.id', '=', 'voucher_lines.voucher_id')
+                ->where('voucher_lines.ledger_id', $ledgerId)
+                ->whereBetween('vouchers.voucher_date', [$from, $to])
+                ->selectRaw("
+                SUM(CASE WHEN dc='Dr' THEN amount ELSE 0 END) as dr,
+                SUM(CASE WHEN dc='Cr' THEN amount ELSE 0 END) as cr
+            ")
+                ->first();
+
+            $dr = $txn->dr ?? 0;
+            $cr = $txn->cr ?? 0;
+
+            $closing = $opening + $dr - $cr;
+
+            $months->push([
+                'month' => $from->format('F'),
+                'dr' => $dr,
+                'cr' => $cr,
+                'closing' => $closing
+            ]);
+
+            $opening = $closing;
+        }
+
+        return view('reports.ledger_monthly', compact('ledger', 'months','ledgerId'));
+    }
+
     // =============================
     // LEDGER DRILL-DOWN (Tally Enter)
     // =============================
@@ -91,7 +207,9 @@ class CashBankReportController extends Controller
             :  $ledger->opening_balance;
 
         $before = VoucherLine::where('ledger_id', $ledger->id)
-            ->whereHas('voucher', fn($q) =>
+            ->whereHas(
+                'voucher',
+                fn($q) =>
                 $q->whereDate('voucher_date', '<', $from)
             )
             ->select(
@@ -103,14 +221,20 @@ class CashBankReportController extends Controller
 
         $entries = VoucherLine::with('voucher')
             ->where('ledger_id', $ledger->id)
-            ->whereHas('voucher', fn($q) =>
+            ->whereHas(
+                'voucher',
+                fn($q) =>
                 $q->whereBetween('voucher_date', [$from, $to])
             )
             ->orderBy('voucher_id')
             ->get();
 
         return view('reports.ledger', compact(
-            'ledger', 'entries', 'balance', 'from', 'to'
+            'ledger',
+            'entries',
+            'balance',
+            'from',
+            'to'
         ));
     }
 }
