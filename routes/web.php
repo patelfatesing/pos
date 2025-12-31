@@ -525,6 +525,12 @@ Route::middleware('auth')->group(function () {
 
         Route::get('cash-bank/{ledger}', [CashBankReportController::class, 'ledger'])
             ->name('reports.cash-bank.ledger');
+
+        Route::get('cash-bank-summary', [CashBankReportController::class, 'cashBankSummary'])
+            ->name('reports.cash-bank.summary');
+
+        Route::get('monthly/{ledger}', [CashBankReportController::class, 'ledgerMonthly'])
+            ->name('reports.monthly');
     });
 
     // routes/web.php
@@ -548,7 +554,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/ledgers/edit/{id}', [LedgerController::class, 'edit'])->name('ledgers.edit');
         Route::put('/ledgers/update', [LedgerController::class, 'update'])->name('ledgers.update');
         Route::delete('/ledgers/delete/{id}', [LedgerController::class, 'destroy'])->name('ledgers.destroy');
-        Route::get('/ledger/current-balance/{ledger}',[LedgerController::class, 'currentBalance'])->name('ledger.current.balance');
+        Route::get('/ledger/current-balance/{ledger}', [LedgerController::class, 'currentBalance'])->name('ledger.current.balance');
 
         Route::get('vouchers',        [VoucherController::class, 'index'])->name('vouchers.index');
         Route::get('vouchers/create', [VoucherController::class, 'create'])->name('vouchers.create');

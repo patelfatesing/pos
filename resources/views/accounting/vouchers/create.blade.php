@@ -12,8 +12,8 @@
             }
 
             #linesTable thead th {
-                border-top: 1px solid #ccc;
-                border-bottom: 1px solid #ccc;
+                border-top: 4px solid #a7a3a3;
+                border-bottom: 3px solid #bbb8b8;
                 font-weight: bold;
                 margin-left: 10px;
             }
@@ -21,7 +21,7 @@
 
             #linesTable tfoot td {
                 /* border-top: 1px solid #ccc;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    border-bottom: 1px solid #ccc; */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            border-bottom: 1px solid #ccc; */
                 font-weight: bold;
             }
 
@@ -41,7 +41,7 @@
                 outline: none;
             }
 
-            #linesTable tbody tr:hover {
+            #linesTable tbody tr.line:hover {
                 background: #F3E6A1;
             }
 
@@ -309,14 +309,6 @@
             .cr-input {
                 width: 100px !important;
             }
-
-            /* Sticky footer */
-            #linesTable tfoot {
-                position: sticky;
-                bottom: 0;
-                background: #fff;
-                z-index: 10;
-            }
         </style>
 
         <div class="wrapper">
@@ -347,45 +339,6 @@
 
                                 <div class="row g-3">
                                     <div class="col-lg-10">
-
-                                        {{-- ================= TOP BLUE HEADER ================= --}}
-                                        {{-- <table class="w-100 mb-2">
-                                            <tr>
-                                                <td class="voucher-header" width="33%">Accounting Vouchers</td>
-                                                <td class="voucher-header text-center" width="33%">
-                                                    {{ config('app.name') }} 2025-26
-                                                </td>
-                                                <td class="voucher-header" width="33%"></td>
-                                            </tr>
-                                        </table> --}}
-
-                                        {{-- <table class="tally-account-box mb-2" width="100%">
-                                            <tr>
-                                                <td width="15%">Account</td>
-                                                <td width="2%">:</td>
-                                                <td width="83%" class="fw-bold">
-                                                    <span id="accountName">
-                                                        <select name="party_ledger_id" class="ledger account-ledger">
-                                                            <option value="">Select Ledger</option>
-                                                            @foreach ($ledgers as $l)
-                                                                <option value="{{ $l->id }}"
-                                                                    data-group-id="{{ $l->group_id }}"
-                                                                    {{ (old('party_ledger_id ') ?? '') == $l->id ? 'selected' : '' }}>
-                                                                    {{ $l->name }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td class="text-muted">Current balance</td>
-                                                <td>:</td>
-                                                <td class="fw-bold text-danger">
-                                                    <span id="accountBalance"></span>
-                                                </td>
-                                            </tr>
-                                        </table> --}}
 
                                         {{-- ================= TYPE + REF + DATE ================= --}}
                                         <table class="w-100 mb-3">
@@ -420,30 +373,87 @@
                                         </table>
 
                                         {{-- ================= ENTRY TABLE ================= --}}
-                                        <table id="linesTable">
-                                            <thead>
-                                                <tr>
-                                                    <th width="5%"></th>
-                                                    <th width="80%">Particulars</th>
-                                                    {{-- <th class="text-end" width="15%"></th> --}}
-                                                    {{-- <th width="15%">Amount</th> --}}
-                                                    <th class="text-end" width="10%">Debit</th>
-                                                    <th class="text-end" width="10%">Credit</th>
-                                                    <th></th>
-                                                </tr>
-                                            </thead>
+                                        <div class="table-wrapper">
+                                            <table id="linesTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th width="5%"></th>
+                                                        <th width="80%">Particulars</th>
+                                                        {{-- <th class="text-end" width="15%"></th> --}}
+                                                        {{-- <th width="15%">Amount</th> --}}
+                                                        <th class="text-end" width="10%">Debit</th>
+                                                        <th class="text-end" width="10%">Credit</th>
+                                                        <th></th>
+                                                    </tr>
+                                                </thead>
 
-                                            <tbody>
-                                                @php $oldLines = old('lines', []); @endphp
-                                                @if ($oldLines)
-                                                    @foreach ($oldLines as $i => $line)
+                                                <tbody>
+                                                    @php $oldLines = old('lines', []); @endphp
+                                                    @if ($oldLines)
+                                                        @foreach ($oldLines as $i => $line)
+                                                            <tr class="line">
+                                                                <td width="5%">
+                                                                    <input type="hidden"
+                                                                        name="lines[{{ $i }}][amount]"
+                                                                        class="amount">
+                                                                    <select name="lines[{{ $i }}][dc]"
+                                                                        class="dc-select">
+                                                                        <option value="Dr"
+                                                                            {{ ($line['dc'] ?? '') == 'Dr' ? 'selected' : '' }}>
+                                                                            To
+                                                                        </option>
+                                                                        <option value="Cr"
+                                                                            {{ ($line['dc'] ?? '') == 'Cr' ? 'selected' : '' }}>
+                                                                            By
+                                                                        </option>
+                                                                    </select>
+                                                                </td>
+
+                                                                <td width="80%">
+                                                                    <select name="lines[{{ $i }}][ledger_id]"
+                                                                        class="ledger">
+                                                                        <option value="">Select Ledger</option>
+                                                                        @foreach ($ledgers as $l)
+                                                                            <option value="{{ $l->id }}"
+                                                                                data-group-id="{{ $l->group_id }}"
+                                                                                {{ ($line['ledger_id'] ?? '') == $l->id ? 'selected' : '' }}>
+                                                                                {{ $l->name }}
+                                                                            </option>
+                                                                        @endforeach
+                                                                    </select>
+                                                                </td>
+                                                                <td width="5%" class="text-end">
+                                                                    <input type="number" class="dr-input text-end"
+                                                                        value="{{ ($line['dc'] ?? '') === 'Dr' ? $line['amount'] : '' }}">
+                                                                </td>
+
+                                                                <td width="5%" class="text-end">
+                                                                    <input type="number" class="cr-input text-end"
+                                                                        value="{{ ($line['dc'] ?? '') === 'Cr' ? $line['amount'] : '' }}">
+                                                                </td>
+
+                                                                <td class="text-center" width="5%">
+                                                                    <span class="remove"
+                                                                        {{ $loop->count == 1 ? 'style=display:none' : '' }}><i
+                                                                            class="fa-solid fa-xmark"></i></span>
+                                                                </td>
+                                                            </tr>
+
+                                                            @if (!empty($line['ledger_id']) && !empty($line['cur_balance_text']))
+                                                                <tr class="cur-bal-row ml-4">
+                                                                    <td colspan="3"
+                                                                        style="padding-left:50px;font-style:italic;">
+                                                                        {{ $line['cur_balance_text'] }}
+                                                                    </td>
+                                                                </tr>
+                                                            @endif
+                                                        @endforeach
+                                                    @else
                                                         <tr class="line">
                                                             <td width="5%">
-                                                                <input type="hidden"
-                                                                    name="lines[{{ $i }}][amount]"
+                                                                <input type="hidden" name="lines[0][amount]"
                                                                     class="amount">
-                                                                <select name="lines[{{ $i }}][dc]"
-                                                                    class="dc-select">
+                                                                <select name="lines[0][dc]" class="dc-select">
                                                                     <option value="Dr"
                                                                         {{ ($line['dc'] ?? '') == 'Dr' ? 'selected' : '' }}>
                                                                         To
@@ -454,20 +464,18 @@
                                                                     </option>
                                                                 </select>
                                                             </td>
-
                                                             <td width="80%">
-                                                                <select name="lines[{{ $i }}][ledger_id]"
-                                                                    class="ledger">
+                                                                <select name="lines[0][ledger_id]" class="ledger">
                                                                     <option value="">Select Ledger</option>
                                                                     @foreach ($ledgers as $l)
                                                                         <option value="{{ $l->id }}"
-                                                                            data-group-id="{{ $l->group_id }}"
-                                                                            {{ ($line['ledger_id'] ?? '') == $l->id ? 'selected' : '' }}>
+                                                                            data-group-id="{{ $l->group_id }}">
                                                                             {{ $l->name }}
                                                                         </option>
                                                                     @endforeach
                                                                 </select>
                                                             </td>
+
                                                             <td width="5%" class="text-end">
                                                                 <input type="number" class="dr-input text-end"
                                                                     value="{{ ($line['dc'] ?? '') === 'Dr' ? $line['amount'] : '' }}">
@@ -478,95 +486,47 @@
                                                                     value="{{ ($line['dc'] ?? '') === 'Cr' ? $line['amount'] : '' }}">
                                                             </td>
 
+
                                                             <td class="text-center" width="5%">
-                                                                <span class="remove"
-                                                                    {{ $loop->count == 1 ? 'style=display:none' : '' }}><i class="fa-solid fa-xmark"></i></span>
+                                                                <span class="remove" style="display:none;"><i
+                                                                        class="fa-solid fa-xmark"></i></span>
                                                             </td>
                                                         </tr>
+                                                    @endif
 
-                                                        @if (!empty($line['ledger_id']) && !empty($line['cur_balance_text']))
-                                                            <tr class="cur-bal-row ml-4">
-                                                                <td colspan="3"
-                                                                    style="padding-left:50px;font-style:italic;">
-                                                                    {{ $line['cur_balance_text'] }}
-                                                                </td>
-                                                            </tr>
-                                                        @endif
-                                                    @endforeach
-                                                @else
-                                                    <tr class="line">
-                                                        <td width="5%">
-                                                            <input type="hidden" name="lines[0][amount]" class="amount">
-                                                            <select name="lines[0][dc]" class="dc-select">
-                                                                <option value="Dr"
-                                                                    {{ ($line['dc'] ?? '') == 'Dr' ? 'selected' : '' }}>To
-                                                                </option>
-                                                                <option value="Cr"
-                                                                    {{ ($line['dc'] ?? '') == 'Cr' ? 'selected' : '' }}>By
-                                                                </option>
-                                                            </select>
-                                                        </td>
-                                                        <td width="80%">
-                                                            <select name="lines[0][ledger_id]" class="ledger">
-                                                                <option value="">Select Ledger</option>
-                                                                @foreach ($ledgers as $l)
-                                                                    <option value="{{ $l->id }}"
-                                                                        data-group-id="{{ $l->group_id }}">
-                                                                        {{ $l->name }}
-                                                                    </option>
-                                                                @endforeach
-                                                            </select>
+                                                </tbody>
+
+                                                <tfoot>
+                                                    <tr class="">
+                                                        <td></td>
+                                                        <td>
+                                                            <div class="">
+                                                                Narration :
+                                                                <input type="text" name="narration" class="">
+                                                            </div>
                                                         </td>
 
-                                                        <td width="5%" class="text-end">
-                                                            <input type="number" class="dr-input text-end"
-                                                                value="{{ ($line['dc'] ?? '') === 'Dr' ? $line['amount'] : '' }}">
+                                                        <td class="text-end"
+                                                            style="border-top:1px solid #ccc;font-weight:bold">
+                                                            <div><span id="totalDrText">0.00</span></div>
                                                         </td>
 
-                                                        <td width="5%" class="text-end">
-                                                            <input type="number" class="cr-input text-end"
-                                                                value="{{ ($line['dc'] ?? '') === 'Cr' ? $line['amount'] : '' }}">
+                                                        <td class="text-end"
+                                                            style="border-top:1px solid #ccc;font-weight:bold">
+                                                            <div><span id="totalCrText">0.00</span></div>
                                                         </td>
 
-
-                                                        <td class="text-center" width="5%">
-                                                            <span class="remove" style="display:none;"><i class="fa-solid fa-xmark"></i></span>
+                                                        <td></td>
+                                                        {{-- keep hidden for logic --}}
+                                                        <td style="display:none">
+                                                            <input type="text" id="totalDr" readonly>
+                                                            <input type="text" id="totalCr" readonly>
                                                         </td>
                                                     </tr>
-                                                @endif
+                                                </tfoot>
 
-                                            </tbody>
-
-                                            <tfoot>
-                                                <tr class="">
-                                                    <td></td>
-                                                    <td>
-                                                        <div class="">
-                                                            Narration :
-                                                            <input type="text" name="narration" class="">
-                                                        </div>
-                                                    </td>
-
-                                                    <td class="text-end"
-                                                        style="border-top:1px solid #ccc;font-weight:bold">
-                                                        <div><span id="totalDrText">0.00</span></div>
-                                                    </td>
-
-                                                    <td class="text-end"
-                                                        style="border-top:1px solid #ccc;font-weight:bold">
-                                                        <div><span id="totalCrText">0.00</span></div>
-                                                    </td>
-
-                                                    <td></td>
-                                                    {{-- keep hidden for logic --}}
-                                                    <td style="display:none">
-                                                        <input type="text" id="totalDr" readonly>
-                                                        <input type="text" id="totalCr" readonly>
-                                                    </td>
-                                                </tr>
-                                            </tfoot>
-
-                                        </table>
+                                            </table>
+                                        </div>
 
                                         <div class="mt-3">
                                             <a href="${createLedgerUrl}" target="_blank"
@@ -789,28 +749,21 @@
 
                 // NEW: show/hide Create button
                 function updateSubmitVisibility() {
-                    if (HAS_OLD_VALUES) {
-                        $('#btnSubmit').show();
-                        return;
-                    }
-
-                    let hasValue = false;
+                    let hasDr = false;
+                    let hasCr = false;
 
                     $('#linesTable tbody tr').each(function() {
-                        const dc = $(this).find('.dc').val();
-                        const amount = parseFloat($(this).find('.amount').val() || 0);
-                        const ledger = $(this).find('.ledger').val();
+                        const dc = $(this).find('.dc-select').val();
+                        const amount = parseFloat($(this).find('.amount').val()) || 0;
 
-                        if (dc && amount > 0 && ledger) {
-                            hasValue = true;
-                            return false;
-                        }
+                        if (dc === 'Dr' && amount > 0) hasDr = true;
+                        if (dc === 'Cr' && amount > 0) hasCr = true;
                     });
 
-                    if (hasValue) {
+                    if (hasDr && hasCr) {
                         $('#btnSubmit').show();
                     } else {
-                        $('#btnSubmit').show();
+                        $('#btnSubmit').hide();
                     }
                 }
 
@@ -842,7 +795,6 @@
                         if (hasUserAmount && !force) return;
                     });
                 }
-
 
                 function setDefaultLedgerForFirstLine() {
                     const t = $type.val();
@@ -912,17 +864,18 @@
 
                     $('#linesTable tbody tr').each(function() {
                         const dc = $(this).find('.dc').val();
+                        // alert(dc);
                         const amt = parseFloat($(this).find('.amount').val() || 0);
 
                         if (dc === 'Dr') dr += amt;
                         if (dc === 'Cr') cr += amt;
                     });
 
-                    $('#totalDr').val(dr);
-                    $('#totalCr').val(cr);
+                    // $('#totalDr').val(dr);
+                    // $('#totalCr').val(cr);
 
-                    $('#totalDrText').text(dr);
-                    $('#totalCrText').text(cr);
+                    // $('#totalDrText').text(dr);
+                    // $('#totalCrText').text(cr);
                 };
 
                 $(document).on('click', '.remove', function() {
@@ -1126,18 +1079,44 @@
 
                     const $row = $(this).closest('tr');
 
-                    // ❌ DO NOT clear amounts
-                    // ❌ DO NOT add new row
+                    const dr = parseFloat($row.find('.dr-input').val()) || 0;
+                    const cr = parseFloat($row.find('.cr-input').val()) || 0;
 
-                    // Just update DC visibility
-                    syncAmountInputs($row);
+                    // Keep input visibility correct
+                    if (dr > 0) {
+                        $row.find('.dr-input').removeClass('hidden-amount');
+                        $row.find('.cr-input').addClass('hidden-amount');
+                        $row.find('.amount').val(dr);
+                        $row.find('.dc-select').val('Dr');
+                    } else if (cr > 0) {
+                        $row.find('.cr-input').removeClass('hidden-amount');
+                        $row.find('.dr-input').addClass('hidden-amount');
+                        $row.find('.amount').val(cr);
+                        $row.find('.dc-select').val('Cr');
+                    }
 
-                    // Show balance if ledger selected
+                    // Show current balance
                     if ($(this).val()) {
                         showCurBalanceRow($row);
                     }
-                });
 
+                    // ✅ FIX: total will not become 0
+                    updateDrCrTotals();
+                    updateSubmitVisibility();
+                    const dc = $row.find('.dc-select').val();
+
+                    let $targetInput = dc === 'Cr' ?
+                        $row.find('.cr-input') :
+                        $row.find('.dr-input');
+
+                    // Focus + highlight
+                    setTimeout(() => {
+                        $targetInput
+                            .removeClass('hidden-amount')
+                            .focus()
+                            .select();
+                    }, 50);
+                });
 
                 $(document).on('change', '.account-ledger', function() {
 
@@ -1283,7 +1262,6 @@
                 });
             }
 
-
             function toNumber(val) {
                 return parseFloat(String(val).replace(/,/g, '')) || 0;
             }
@@ -1359,10 +1337,9 @@
                     }
                 });
 
-
                 applyDcRules();
                 lockFirstRowDC();
-                updateDrCrTotals();
+                // updateDrCrTotals();
 
                 if (HAS_OLD_VALUES) {
                     restoreDrCrFromAmount();
@@ -1499,7 +1476,6 @@
                 return $row.index() === 0;
             }
 
-
             function restoreDrCrFromAmount() {
                 $('#linesTable tbody tr').each(function() {
                     const $row = $(this);
@@ -1628,6 +1604,7 @@
                 } else if (dc === 'Cr') {
                     $row.find('.cr-input').removeClass('hidden-amount');
                 }
+                updateDrCrTotals();
             }
 
             $(document).on('change', '.dc-select', function() {
