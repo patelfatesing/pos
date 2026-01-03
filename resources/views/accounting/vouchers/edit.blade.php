@@ -4,620 +4,534 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
     <style>
-        .badge-balance {
-            font-size: 12px
-        }
-
-        .type-pills .btn {
-            border-radius: 999px;
-            padding: .35rem .9rem
-        }
-
-        .type-pills .btn.active {
-            box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .08)
-        }
-
-        .section-card {
-            border: 1px solid #eef0f3;
-            border-radius: 10px;
-            padding: 14px;
-            background: #fff
-        }
-
-        .section-title {
-            font-weight: 600;
-            margin-bottom: .5rem;
-            display: flex;
-            align-items: center;
-            gap: .5rem
-        }
-
-        .table tfoot input[readonly] {
-            background: #f8f9fa
-        }
-
-        .sticky-actions {
-            position: sticky;
-            bottom: 0;
-            z-index: 10;
-            background: #fff;
-            border-top: 1px solid #eef0f3;
-            padding: .75rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1rem
-        }
-
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: .75rem
-        }
-
-        @media (max-width:992px) {
-            .grid-2 {
-                grid-template-columns: 1fr
-            }
-        }
-
-        .type-pills-vertical {
-            position: sticky;
-            top: 1.25rem;
-            right: 1rem;
-            z-index: 50;
-            display: flex;
-            flex-direction: column;
-            gap: .4rem;
-            align-items: flex-start;
-            padding: .5rem;
-            border-radius: 8px;
-            background: #fff;
-            border: 1px solid #eef0f3;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
-            min-width: 150px;
-        }
-
-        .type-pills-vertical .btn {
+        /* ===== SAME CSS FROM CREATE PAGE (UNCHANGED) ===== */
+        #linesTable {
             width: 100%;
-            align-items: center;
-            justify-content: flex-start;
-            gap: .5rem;
-            padding: .45rem .6rem;
-            font-weight: 600;
-            text-transform: none;
+            font-family: monospace;
+            table-layout: fixed;
         }
 
-        .type-pills-vertical .btn.active {
-            background: #0d6efd;
-            color: #fff;
-            box-shadow: none;
-            border: 1px solid rgba(0, 0, 0, .06);
+        #linesTable thead th {
+            border-top: 4px solid #a7a3a3;
+            border-bottom: 3px solid #bbb8b8;
+            font-weight: bold;
         }
 
-        @media (max-width:992px) {
-            .type-pills-vertical {
-                position: static;
-                flex-direction: row;
-                flex-wrap: wrap;
-                gap: .5rem;
+        #linesTable td {
+            vertical-align: middle;
+        }
+
+        #linesTable select,
+        #linesTable input {
+            border: none;
+            background: transparent;
+        }
+
+        #linesTable tbody tr.line:hover {
+            background: #F3E6A1;
+        }
+
+        .hidden-amount {
+            display: none;
+        }
+
+        .dr-input,
+        .cr-input {
+            width: 100px;
+        }
+
+        .dc-select {
+            font-weight: bold;
+            width: 55px;
+        }
+
+        .remove {
+            cursor: pointer;
+            color: red;
+        }
+
+            #linesTable {
                 width: 100%;
+                font-family: monospace;
+                table-layout: fixed;
             }
 
-            .type-pills-vertical .btn {
-                width: auto;
-                border-radius: 999px;
+            #linesTable thead th {
+                border-top: 4px solid #a7a3a3;
+                border-bottom: 3px solid #bbb8b8;
+                font-weight: bold;
+                margin-left: 10px;
             }
-        }
+
+
+            #linesTable tfoot td {
+                /* border-top: 1px solid #ccc;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    border-bottom: 1px solid #ccc; */
+                font-weight: bold;
+            }
+
+            #linesTable td {
+                vertical-align: middle;
+            }
+
+            #linesTable select,
+            #linesTable input {
+                border: none;
+                background: transparent;
+                box-shadow: none;
+            }
+
+            #linesTable select:focus,
+            #linesTable input:focus {
+                outline: none;
+            }
+
+            #linesTable tbody tr.line:hover {
+                background: #F3E6A1;
+            }
+
+            .voucher-header {
+                background: #32bdea;
+                color: #fff;
+                font-weight: bold;
+                padding: 6px;
+            }
+
+            .voucher-type-label {
+                background: #32bdea;
+                color: #fff;
+                font-weight: bold;
+                padding: 6px 20px;
+                display: inline-block;
+            }
+
+            .remove {
+                cursor: pointer;
+                color: #c0392b;
+                font-weight: bold;
+                font-size: 18px;
+                padding: 4px 8px;
+                border-radius: 4px;
+            }
+
+            .remove:hover {
+                background-color: #ffe6e6;
+                color: #ff0000;
+            }
+
+            .sticky-actions {
+                position: sticky;
+                bottom: 0;
+                background: #fff;
+                padding: 10px;
+                border-top: 1px solid #ddd;
+                text-align: right;
+            }
+
+            /* Right-side voucher type panel */
+            .type-pills-vertical {
+                position: sticky;
+                top: 1.25rem;
+                display: flex;
+                flex-direction: column;
+                gap: .4rem;
+                background: #fff;
+                border: 1px solid #ddd;
+                padding: .5rem;
+            }
+
+            .type-pills-vertical .btn.active {
+                background: #32bdea;
+                color: #fff;
+            }
+
+
+            .btn-outline-primary {
+                color: #000;
+                background-color: #fff;
+                border-color: #000;
+                text-align: center;
+                border-radius: 0;
+                box-shadow: 2px 2px 4px #ccc;
+            }
+
+            /* ================= REMOVE DROPDOWN ICON (TALLY STYLE) ================= */
+
+            /* Chrome, Edge, Safari */
+            #linesTable select,
+            #linesTable select:focus {
+                -webkit-appearance: none;
+                appearance: none;
+                background-image: none !important;
+                padding-right: 4px;
+                padding-left: 5px;
+                /* small spacing like Tally */
+            }
+
+            /* Firefox */
+            #linesTable select {
+                -moz-appearance: none;
+            }
+
+            /* IE / old Edge */
+            #linesTable select::-ms-expand {
+                display: none;
+            }
+
+            /* ================= REMOVE DATE ICON (TALLY STYLE) ================= */
+
+            /* Chrome, Edge, Safari */
+            input[type="date"]::-webkit-calendar-picker-indicator {
+                display: none;
+                -webkit-appearance: none;
+            }
+
+            /* Firefox */
+            input[type="date"] {
+                appearance: none;
+                -moz-appearance: textfield;
+            }
+
+            /* Prevent extra padding caused by hidden icon */
+            input[type="date"] {
+                padding-right: 0;
+            }
+
+            /* ================= VOUCHER DATE (IMAGE STYLE) ================= */
+
+            .voucher-date-box {
+                text-align: right;
+                line-height: 1.2;
+            }
+
+            .voucher-date-input {
+                border: none;
+                background: transparent;
+                font-weight: bold;
+                font-size: 16px;
+                text-align: right;
+                padding: 0;
+            }
+
+            /* remove calendar icon (already discussed, safe to repeat) */
+            .voucher-date-input::-webkit-calendar-picker-indicator {
+                display: none;
+            }
+
+            .voucher-day {
+                font-size: 14px;
+                color: #5a5a8a;
+                /* bluish-grey like image */
+                font-weight: normal;
+                margin-top: 2px;
+            }
+
+            #linesTable tfoot tr:first-child td {
+                padding-top: 12px;
+                border-top: 1px solid #ccc;
+            }
+
+            /* ================= TALLY ACCOUNT HEADER ================= */
+
+            .tally-account-box {
+                font-family: monospace;
+                font-size: 15px;
+            }
+
+            .tally-account-box td {
+                padding: 2px 4px;
+                vertical-align: middle;
+            }
+
+            .tally-particulars-header {
+                font-family: monospace;
+                font-weight: bold;
+                padding: 4px 6px;
+                border-top: 1px solid #999;
+                border-bottom: 1px solid #999;
+                margin-bottom: 4px;
+            }
+
+            /* ================= TALLY STYLE SELECT (NO ARROW) ================= */
+
+            /* Chrome, Edge, Safari */
+            .account-ledger,
+            .account-ledger:focus {
+                -webkit-appearance: none;
+                appearance: none;
+                background-image: none !important;
+                border: none;
+                padding-left: 5px;
+                padding-right: 0;
+                font-family: monospace;
+                font-weight: bold;
+            }
+
+            /* Firefox */
+            .account-ledger {
+                -moz-appearance: none;
+            }
+
+            /* Old Edge / IE */
+            .account-ledger::-ms-expand {
+                display: none;
+            }
+
+            /* Tally-style disabled amount box */
+            .dr-input:disabled,
+            .cr-input:disabled {
+                color: #999;
+                cursor: not-allowed;
+            }
+
+            .hidden-amount {
+                display: none !important;
+            }
+
+            /* Remove number input arrows - Chrome, Edge, Safari */
+            input[type=number]::-webkit-inner-spin-button,
+            input[type=number]::-webkit-outer-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+
+            /* Remove number input arrows - Firefox */
+            input[type=number] {
+                -moz-appearance: textfield;
+            }
+
+            .cur-bal-row {
+                color: #444;
+                font-style: italic;
+            }
+
+            .dc-select {
+                border: none;
+                background: transparent;
+                font-family: monospace;
+                font-weight: bold;
+                width: 55px;
+                appearance: none;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                cursor: pointer;
+            }
+
+            .dc-select:disabled {
+                color: #555;
+                cursor: not-allowed;
+            }
+
+            /* ================= DR / CR INPUT HIGHLIGHT ================= */
+
+            /* Hover effect */
+            .dr-input:hover,
+            .cr-input:hover {
+                background-color: #fff6cc !important;
+                border: 1px solid #010101 !important;
+                cursor: text !important;
+            }
+
+            /* Focus (cursor inside) */
+            .dr-input:focus,
+            .cr-input:focus {
+                background-color: #fff1a8 !important;
+                border: 1px solid #010101 !important;
+                outline: none !important;
+                box-shadow: 0 0 2px rgba(201, 168, 0, 0.6) !important;
+            }
+
+            /* Smooth transition */
+            .dr-input,
+            .cr-input {
+                transition: background-color 0.15s ease, border 0.15s ease, box-shadow 0.15s ease !important;
+            }
+
+            .dr-input {
+                width: 100px !important;
+            }
+
+            .cr-input {
+                width: 100px !important;
+            }
     </style>
 
     <div class="wrapper">
         <div class="content-page">
-            <div class="container-fluid add-form-list">
-                <div class="row">
-                    <div class="col-sm-12">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <div class="header-title">
-                                    <h4 class="card-title mb-1">Edit Voucher</h4>
-                                    <div id="balanceBadge" class="mt-1">
-                                        <span class="badge badge-balance bg-secondary">Not Calculated</span>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-center gap-2">
-                                    <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-secondary">Go To
-                                        List</a>
-                                </div>
+            <div class="container-fluid">
+                <div class="card">
+
+                    <div class="card-header d-flex justify-content-between">
+                        <h4>Edit Accounting Voucher</h4>
+                        <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-secondary">Back</a>
+                    </div>
+
+                    <div class="card-body">
+
+                        <form action="{{ route('accounting.vouchers.update', $voucher->id) }}" method="POST"
+                            id="voucherForm">
+                            @csrf
+                            @method('PUT')
+
+                            <input type="hidden" name="voucher_type" id="voucher_type"
+                                value="{{ $voucher->voucher_type }}">
+
+                            {{-- HEADER --}}
+                            <table width="100%" class="mb-3">
+                                <tr>
+                                    <td width="80%">
+                                        <span class="voucher-type-label" id="voucherTypeLabel">
+                                            {{ $voucher->voucher_type }}
+                                        </span>
+                                        <strong class="ms-2">NO.</strong>
+                                        <span>{{ $voucher->ref_no }}</span>
+                                        <input type="hidden" name="ref_no" value="{{ $voucher->ref_no }}">
+                                    </td>
+                                    <td width="20%" class="text-end">
+                                        <input type="date" name="voucher_date"
+                                            value="{{ $voucher->voucher_date->format('Y-m-d') }}"
+                                            class="voucher-date-input">
+                                    </td>
+                                </tr>
+                            </table>
+
+                            {{-- ================= TABLE ================= --}}
+                            <table id="linesTable">
+                                <thead>
+                                    <tr>
+                                        <th width="5%"></th>
+                                        <th width="75%">Particulars</th>
+                                        <th width="10%" class="text-end">Debit</th>
+                                        <th width="10%" class="text-end">Credit</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+
+                                    @foreach ($voucher->lines as $i => $line)
+                                        <tr class="line">
+                                            <td>
+                                                <input type="hidden" name="lines[{{ $i }}][amount]"
+                                                    class="amount" value="{{ $line->amount }}">
+                                                <select name="lines[{{ $i }}][dc]" class="dc-select">
+                                                    <option value="Dr" {{ $line->dc == 'Dr' ? 'selected' : '' }}>By
+                                                    </option>
+                                                    <option value="Cr" {{ $line->dc == 'Cr' ? 'selected' : '' }}>To
+                                                    </option>
+                                                </select>
+                                            </td>
+
+                                            <td>
+                                                <select name="lines[{{ $i }}][ledger_id]" class="ledger">
+                                                    <option value="">Select Ledger</option>
+                                                    @foreach ($ledgers as $l)
+                                                        <option value="{{ $l->id }}"
+                                                            {{ $l->id == $line->ledger_id ? 'selected' : '' }}>
+                                                            {{ $l->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </td>
+
+                                            <td>
+                                                <input type="number" class="dr-input"
+                                                    value="{{ $line->dc == 'Dr' ? $line->amount : '' }}">
+                                            </td>
+
+                                            <td>
+                                                <input type="number" class="cr-input"
+                                                    value="{{ $line->dc == 'Cr' ? $line->amount : '' }}">
+                                            </td>
+
+                                            <td>
+                                                <span class="remove"><i class="fa fa-times"></i></span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+
+                                </tbody>
+
+                                <tfoot>
+                                    <tr>
+                                        <td></td>
+                                        <td><b>Narration</b></td>
+                                        <td><span id="totalDrText">0.00</span></td>
+                                        <td><span id="totalCrText">0.00</span></td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+
+                            <div class="mt-3">
+                                <button class="btn btn-success" id="btnSubmit">Update Voucher</button>
                             </div>
 
-                            <div class="card-body">
-                                @if ($errors->any())
-                                    <div class="alert alert-danger">{{ $errors->first() }}</div>
-                                @endif
-
-                                {{-- Update route: PUT to accounting.vouchers.update --}}
-                                <form action="{{ route('accounting.vouchers.update', $voucher->id) }}" method="POST"
-                                    id="voucherForm">
-                                    @csrf
-                                    @method('PUT')
-
-                                    {{-- hidden party ledger used by scripts --}}
-                                    <input type="hidden" name="party_ledger_id" id="party_ledger_id"
-                                        value="{{ old('party_ledger_id', $voucher->party_ledger_id) }}">
-
-                                    <div class="row g-3 mb-3">
-                                        <div class="col-lg-10">
-                                            <div class="row">
-                                                <div class="col-lg-4 col-md-4">
-                                                    <label class="form-label">Date</label>
-                                                    <input type="date" class="form-control" name="voucher_date"
-                                                        value="{{ old('voucher_date', optional($voucher->voucher_date)->toDateString() ?? $voucher->voucher_date) }}"
-                                                        required>
-                                                </div>
-
-                                                <input type="hidden" name="voucher_type" id="voucher_type"
-                                                    value="{{ old('voucher_type', $voucher->voucher_type ?? 'Journal') }}">
-
-                                                <div class="col-lg-4 col-md-4">
-                                                    <label class="form-label">Branch</label>
-                                                    <select name="branch_id" class="form-control">
-                                                        <option value="">All / None</option>
-                                                        @foreach ($branches ?? [] as $b)
-                                                            <option value="{{ $b->id }}"
-                                                                @selected(old('branch_id', $voucher->branch_id) == $b->id)>{{ $b->name }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-
-                                                <div class="col-lg-4 col-md-4">
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Narration</label>
-                                                        <textarea name="narration" class="form-control" rows="2">{{ old('narration', $voucher->narration) }}</textarea>
-                                                    </div>
-                                                </div>
-
-                                                {{-- TYPE-SPECIFIC sections are available but hidden/shown by JS (same as create) --}}
-                                                {{-- (Payment/Receipt/Contra/Trade blocks omitted for brevity — copy from create if needed) --}}
-
-                                                {{-- Journal lines (prefilled from $voucher->lines) --}}
-                                                <div class="section-card ml-3">
-                                                    <div class="section-title">
-                                                        <div id="section-trade" style="display:none;">
-                                                            <span class="badge bg-secondary">Sales / Purchase / Notes</span>
-                                                        </div>
-                                                        <div id="section-contra" style="display:none;">
-                                                            <span class="badge bg-secondary">Contra</span>
-                                                        </div>
-                                                        <div id="section-payment-receipt" style="display:none;">
-                                                            <span class="badge bg-secondary">Payment/Receipt</span>
-                                                        </div>
-
-                                                        <div id="section-journal" style="display:block;">
-                                                            <span class="badge bg-secondary">Journal</span>
-                                                        </div>
-
-                                                        Add line items (Dr/Cr)
-                                                    </div>
-
-                                                    <div class="table-responsive">
-                                                        <table class="table table-bordered align-middle mb-0"
-                                                            id="linesTable">
-                                                            <thead class="table-light">
-                                                                <tr>
-                                                                    <th style="width:15%">Dr/Cr</th>
-                                                                    <th style="width:40%">Ledger</th>
-                                                                    <th style="width:25%">Amount</th>
-                                                                    <th style="width:10%">Narration</th>
-                                                                    <th style="width:10%"></th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                @php
-                                                                    $oldLines = old('lines');
-                                                                    $lines =
-                                                                        $oldLines !== null
-                                                                            ? $oldLines
-                                                                            : ($voucher->lines->count()
-                                                                                ? $voucher->lines
-                                                                                : null);
-                                                                @endphp
-
-                                                                @if ($lines)
-                                                                    @foreach ($lines as $i => $ln)
-                                                                        {{-- $ln may be array (old) or model (voucher->lines) --}}
-                                                                        @php
-                                                                            $dc = is_array($ln)
-                                                                                ? $ln['dc'] ?? 'Dr'
-                                                                                : $ln->dc ?? 'Dr';
-                                                                            $ledger_id = is_array($ln)
-                                                                                ? $ln['ledger_id'] ?? ''
-                                                                                : $ln->ledger_id ?? '';
-                                                                            $amount = is_array($ln)
-                                                                                ? $ln['amount'] ?? ''
-                                                                                : $ln->amount ?? '';
-                                                                            $line_narration = is_array($ln)
-                                                                                ? $ln['line_narration'] ?? ''
-                                                                                : $ln->line_narration ?? '';
-                                                                        @endphp
-                                                                        <tr class="line">
-                                                                            <td>
-                                                                                <select
-                                                                                    name="lines[{{ $i }}][dc]"
-                                                                                    class="form-control dc">
-                                                                                    <option @selected($dc === 'Dr')>Dr
-                                                                                    </option>
-                                                                                    <option @selected($dc === 'Cr')>Cr
-                                                                                    </option>
-                                                                                </select>
-                                                                            </td>
-                                                                            <td>
-                                                                                <select
-                                                                                    name="lines[{{ $i }}][ledger_id]"
-                                                                                    class="form-control ledger">
-                                                                                    <option value="">Select</option>
-                                                                                    @foreach ($ledgers as $l)
-                                                                                        <option value="{{ $l->id }}"
-                                                                                            data-group-id="{{ $l->group_id }}"
-                                                                                            @selected($ledger_id == $l->id)>
-                                                                                            {{ $l->name }}</option>
-                                                                                    @endforeach
-                                                                                </select>
-                                                                                <a href="{{ route('accounting.ledgers.create', 'voucher') }}"
-                                                                                    class="btn btn-outline-secondary btn-sm">Create
-                                                                                    Ledger</a>
-                                                                            </td>
-                                                                            <td>
-                                                                                <input
-                                                                                    name="lines[{{ $i }}][amount]"
-                                                                                    class="form-control amount"
-                                                                                    type="number" step="0.01"
-                                                                                    value="{{ $amount }}">
-                                                                            </td>
-                                                                            <td>
-                                                                                <input
-                                                                                    name="lines[{{ $i }}][line_narration]"
-                                                                                    class="form-control"
-                                                                                    value="{{ $line_narration }}">
-                                                                            </td>
-                                                                            <td>
-                                                                                <button type="button"
-                                                                                    class="btn btn-sm btn-danger remove">×</button>
-                                                                            </td>
-                                                                        </tr>
-                                                                    @endforeach
-                                                                @else
-                                                                    {{-- fallback single empty row --}}
-                                                                    <tr class="line">
-                                                                        <td>
-                                                                            <select name="lines[0][dc]"
-                                                                                class="form-control dc">
-                                                                                <option>Dr</option>
-                                                                                <option>Cr</option>
-                                                                            </select>
-                                                                        </td>
-                                                                        <td>
-                                                                            <select name="lines[0][ledger_id]"
-                                                                                class="form-control ledger">
-                                                                                <option value="">Select</option>
-                                                                                @foreach ($ledgers as $l)
-                                                                                    <option value="{{ $l->id }}"
-                                                                                        data-group-id="{{ $l->group_id }}">
-                                                                                        {{ $l->name }}</option>
-                                                                                @endforeach
-                                                                            </select>
-                                                                            <a href="{{ route('accounting.ledgers.create', 'voucher') }}"
-                                                                                class="btn btn-outline-secondary btn-sm">Create
-                                                                                Ledger</a>
-                                                                        </td>
-                                                                        <td><input name="lines[0][amount]"
-                                                                                class="form-control amount" type="number"
-                                                                                step="0.01"></td>
-                                                                        <td><input name="lines[0][line_narration]"
-                                                                                class="form-control"></td>
-                                                                        <td><button type="button"
-                                                                                class="btn btn-sm btn-danger remove">×</button>
-                                                                        </td>
-                                                                    </tr>
-                                                                @endif
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-
-                                                    <div class="d-flex justify-content-end align-items-center mt-2">
-                                                        <div class="d-flex align-items-center gap-2">
-                                                            <button type="button"
-                                                                class="btn btn-outline-secondary btn-sm"
-                                                                id="copyDrToCr">Copy Dr→Cr</button>
-                                                            <button type="button"
-                                                                class="btn btn-outline-secondary btn-sm"
-                                                                id="copyCrToDr">Copy Cr→Dr</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {{-- Sticky footer --}}
-                                                <div class="sticky-actions mt-3">
-                                                    <div class="d-flex flex-wrap align-items-center gap-3">
-                                                        <div class="input-group input-group-sm" style="width:180px;">
-                                                            <span class="input-group-text">Total Dr</span>
-                                                            <input id="totalDr" class="form-control mr-2" readonly>
-                                                        </div>
-                                                        <div class="input-group input-group-sm" style="width:180px;">
-                                                            <span class="input-group-text">Total Cr</span>
-                                                            <input id="totalCr" class="form-control" readonly>
-                                                        </div>
-                                                        <span id="stickyBadge" class="badge bg-secondary">Not
-                                                            Calculated</span>
-                                                    </div>
-
-                                                    <div>
-                                                        <a href="{{ route('accounting.vouchers.index') }}"
-                                                            class="btn btn-outline-secondary me-2">Cancel</a>
-                                                        <button class="btn btn-success" id="btnSubmit">Update
-                                                            Voucher</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-lg-2 col-md-4">
-                                            <div class="type-pills-vertical" id="voucherTypePanel"
-                                                aria-label="Voucher Type">
-                                                @foreach (['Journal', 'Payment', 'Receipt', 'Contra', 'Sales', 'Purchase', 'DebitNote', 'CreditNote'] as $t)
-                                                    <button type="button"
-                                                        class="btn btn-outline-primary me-1 mb-1 type-pill"
-                                                        data-type="{{ $t }}">{{ $t }}</button>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
-
-                            </div>
-                        </div>
+                        </form>
 
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    {{-- inject JS-data early so the main script can use them --}}
-    <script>
-        const LEDGERS = @json($ledgers);
-        // expose voucher-level values that some JS/autobuild expects
-        const VOUCHER_DATA = {
-            type: @json(old('voucher_type', $voucher->voucher_type ?? 'Journal')),
-            party_ledger_id: @json(old('party_ledger_id', $voucher->party_ledger_id)),
-            mode: @json(old('mode', $voucher->mode ?? null)),
-            cash_ledger_id: @json(old('cash_ledger_id', $voucher->cash_ledger_id ?? null)),
-            bank_ledger_id: @json(old('bank_ledger_id', $voucher->bank_ledger_id ?? null)),
-            amount: @json(old('amount', $voucher->amount ?? null)),
-        };
-    </script>
+        {{-- ================= SCRIPT ================= --}}
+        <script>
+            function syncAmountInputs(row) {
+                const dc = row.find('.dc-select').val();
 
-    {{-- Main script: same as create view but will operate on prefilled fields --}}
-    <script>
-        (function() {
-            const $type = $('#voucher_type');
-            const $prMode = $('#pr_mode');
-            const $prCashWrap = $('#pr_cash_wrap');
-            const $prBankWrap = $('#pr_bank_wrap');
-            const $totalDr = $('#totalDr');
-            const $totalCr = $('#totalCr');
-            const $badgeTop = $('#balanceBadge .badge');
-            const $badgeSticky = $('#stickyBadge');
-            const createLedgerUrl = "{{ route('accounting.ledgers.create', 'voucher') }}";
+                row.find('.dr-input, .cr-input').addClass('hidden-amount');
 
-            // preload voucher type from server var
-            $type.val(VOUCHER_DATA.type || 'Journal');
-
-            const ledgerOptions =
-                `@foreach ($ledgers as $l)<option value="{{ $l->id }}" data-group-id="{{ $l->group_id }}">{{ $l->name }}</option>@endforeach`;
-
-            const VOUCHER_GROUP_MAP = {
-                Journal: [],
-                Payment: [17, 18, 20, 21, 13, 14],
-                Receipt: [17, 18, 19, 10, 11],
-                Contra: [17, 18],
-                Sales: [19, 9, 21],
-                Purchase: [12, 21, 20],
-                DebitNote: [20, 12, 21],
-                CreditNote: [19, 9, 21],
-            };
-
-            const DC_MAP = {
-                Journal: ['Cr', 'Dr'],
-                Contra: ['Cr', 'Dr'],
-                Receipt: ['Cr', 'Dr'],
-                default: ['Dr', 'Cr'],
-            };
-
-            function setBadge(state) {
-                const texts = {
-                    none: 'Not Calculated',
-                    ok: 'Balanced',
-                    bad: 'Out of Balance'
-                };
-                const cls = {
-                    none: 'bg-secondary',
-                    ok: 'bg-success',
-                    bad: 'bg-danger'
-                };
-                [$badgeTop, $badgeSticky].forEach($b => {
-                    $b.removeClass('bg-secondary bg-success bg-danger').addClass(cls[state]).text(texts[state]);
-                });
+                if (dc === 'Dr') row.find('.dr-input').removeClass('hidden-amount');
+                if (dc === 'Cr') row.find('.cr-input').removeClass('hidden-amount');
             }
 
-            function showSections() {
-                const t = $type.val();
-                const isPR = (t === 'Payment' || t === 'Receipt');
-                const isCT = (t === 'Contra');
-                const isTR = (t === 'Sales' || t === 'Purchase' || t === 'DebitNote' || t === 'CreditNote');
-                $('#section-payment-receipt').toggle(isPR);
-                $('#section-contra').toggle(isCT);
-                $('#section-trade').toggle(isTR);
-                $('#section-journal').toggle(t === 'Journal');
-                togglePRMode();
-            }
-
-            function togglePRMode() {
-                const m = $prMode.val();
-                $prCashWrap.toggle(m === 'cash');
-                $prBankWrap.toggle(m === 'bank' || m === 'upi' || m === 'card');
-            }
-
-            let i = $('#linesTable tbody tr').length ? $('#linesTable tbody tr').length : 1;
-
-            function defaultDC(type, index) {
-                const arr = DC_MAP[type] || DC_MAP.default;
-                return arr[index] || 'Dr';
-            }
-
-            function rowTpl(idx, dcDefault) {
-                const drSel = (dcDefault === 'Dr') ? 'selected' : '';
-                const crSel = (dcDefault === 'Cr') ? 'selected' : '';
-                return `
-                <tr class="line">
-                    <td>
-                        <select name="lines[${idx}][dc]" class="form-control dc">
-                            <option ${drSel}>Dr</option>
-                            <option ${crSel}>Cr</option>
-                        </select>
-                    </td>
-                    <td>
-                        <select name="lines[${idx}][ledger_id]" class="form-control ledger">
-                            ${ledgerOptions}
-                        </select>
-                         <a href="${createLedgerUrl}" target="_blank" class="btn btn-outline-secondary btn-sm">Create Ledger</a>
-                    </td>
-                    <td><input name="lines[${idx}][amount]" class="form-control amount" type="number" step="0.01"></td>
-                    <td><input name="lines[${idx}][line_narration]" class="form-control"></td>
-                    <td><button type="button" class="btn btn-sm btn-danger remove">×</button></td>
-                </tr>`;
-            }
-
-            function filterLedgerDropdownsByVoucherType() {
-                const t = $type.val();
-                const allowedGroups = VOUCHER_GROUP_MAP[t] || [];
-
-                $('.ledger').each(function() {
-                    const $select = $(this);
-                    const current = $select.val();
-                    let html = `<option value="">Select</option>`;
-                    LEDGERS.forEach(l => {
-                        if (!allowedGroups.length || allowedGroups.includes(l.group_id)) {
-                            html +=
-                                `<option value="${l.id}" data-group-id="${l.group_id}">${l.name}</option>`;
-                        }
-                    });
-                    $select.html(html);
-                    if (current && $select.find(`option[value="${current}"]`).length) {
-                        $select.val(current);
-                    }
-                });
-            }
-
-            function recalc() {
+            function updateTotals() {
                 let dr = 0,
                     cr = 0;
+
                 $('#linesTable tbody tr').each(function() {
-                    const dc = $(this).find('.dc').val();
-                    const amt = parseFloat($(this).find('.amount').val() || 0);
-                    if (dc === 'Dr') dr += amt;
-                    else cr += amt;
-                });
-                $totalDr.val(dr.toFixed(2));
-                $totalCr.val(cr.toFixed(2));
-                if (dr === 0 && cr === 0) setBadge('none');
-                else if (Math.abs(dr - cr) < 0.005) setBadge('ok');
-                else setBadge('bad');
-            }
-
-            // events (same as create)
-            $(document).on('click', '.remove', function() {
-                $(this).closest('tr').remove();
-                recalc();
-            });
-            $(document).on('input change', '.amount, .dc', recalc);
-
-            $('#copyDrToCr').on('click', function() {
-                const dr = parseFloat($totalDr.val() || 0);
-                if (dr <= 0) return;
-                let $row = $('#linesTable tbody tr').filter(function() {
-                    return $(this).find('.dc').val() === 'Cr';
-                }).first();
-                if (!$row.length) {
-                    $('#linesTable tbody').append(rowTpl(i, 'Cr'));
-                    i++;
-                    $row = $('#linesTable tbody tr').last();
-                }
-                $row.find('.amount').val(dr.toFixed(2));
-                recalc();
-            });
-
-            $('#copyCrToDr').on('click', function() {
-                const cr = parseFloat($totalCr.val() || 0);
-                if (cr <= 0) return;
-                let $row = $('#linesTable tbody tr').filter(function() {
-                    return $(this).find('.dc').val() === 'Dr';
-                }).first();
-                if (!$row.length) {
-                    $('#linesTable tbody').append(rowTpl(i, 'Dr'));
-                    i++;
-                    $row = $('#linesTable tbody tr').last();
-                }
-                $row.find('.amount').val(cr.toFixed(2));
-                recalc();
-            });
-
-            $(document).on('input change',
-                '#linesTable tbody tr .ledger, #linesTable tbody tr .dc, #linesTable tbody tr .amount, #linesTable tbody tr input[name*="[line_narration]"]',
-                function() {
-                    const $tr = $(this).closest('tr');
-                    if (!$tr.is(':last-child')) return;
-                    const ledger = $tr.find('.ledger').val();
-                    const dc = $tr.find('.dc').val();
-                    const amt = parseFloat($tr.find('.amount').val() || 0);
-                    const narr = $tr.find('input[name*="[line_narration]"]').val();
-                    if (ledger || dc || amt || narr) {
-                        $('#linesTable tbody').append(rowTpl(i, defaultDC($type.val(), i)));
-                        i++;
-                        recalc();
-                    }
+                    const d = parseFloat($(this).find('.dr-input').val()) || 0;
+                    const c = parseFloat($(this).find('.cr-input').val()) || 0;
+                    dr += d;
+                    cr += c;
                 });
 
-            $('#btnSubmit').on('click', function(e) {
-                // sync party ledger back to hidden before submit (if PR/TR types used)
-                const party = $('#pr_party_ledger').val() || $('#tr_party_ledger').val() || '';
-                $('#party_ledger_id').val(party);
-                const dr = parseFloat($totalDr.val() || 0);
-                const cr = parseFloat($totalCr.val() || 0);
-                if (Math.round(dr * 100) !== Math.round(cr * 100)) {
-                    e.preventDefault();
-                    alert('Total Debit and Credit must be equal before posting.');
-                    return false;
-                }
-            });
-
-            // initial run: set UI according to voucher values
-            filterLedgerDropdownsByVoucherType();
-            // set type-pill active
-            $('.type-pill').removeClass('active');
-            $('.type-pill').each(function() {
-                if ($(this).data('type') === $type.val()) $(this).addClass('active');
-            });
-
-            showSections();
-            recalc();
-        })();
-
-        $(document).on('keydown', '.type-pill', function(e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                $(this).trigger('click');
+                $('#totalDrText').text(dr.toFixed(2));
+                $('#totalCrText').text(cr.toFixed(2));
             }
-        });
-    </script>
 
-@endsection
+            $(document).ready(function() {
+
+                // Restore UI
+                $('#linesTable tbody tr').each(function() {
+                    syncAmountInputs($(this));
+                });
+
+                updateTotals();
+
+                // Change DC
+                $(document).on('change', '.dc-select', function() {
+                    const row = $(this).closest('tr');
+                    row.find('.dr-input, .cr-input').val('');
+                    syncAmountInputs(row);
+                    updateTotals();
+                });
+
+                // Amount change
+                $(document).on('input', '.dr-input, .cr-input', function() {
+                    const row = $(this).closest('tr');
+                    const dr = parseFloat(row.find('.dr-input').val()) || 0;
+                    const cr = parseFloat(row.find('.cr-input').val()) || 0;
+
+                    row.find('.amount').val(dr > 0 ? dr : cr);
+                    updateTotals();
+                });
+
+                // Remove row
+                $(document).on('click', '.remove', function() {
+                    $(this).closest('tr').remove();
+                    updateTotals();
+                });
+            });
+        </script>
+    @endsection
