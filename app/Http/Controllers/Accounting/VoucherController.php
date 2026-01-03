@@ -320,7 +320,7 @@ class VoucherController extends Controller
 
         return redirect()
             ->route('accounting.vouchers.index')
-            ->with('success', 'Voucher posted successfully.');
+            ->with('success', 'Accounting Voucher created successfully.');
     }
 
     private function calculateLedgerBalance(AccountLedger $ledger, string $dc, float $amount)
@@ -330,7 +330,7 @@ class VoucherController extends Controller
         //     ? $ledger->opening_balance
         //     : -$ledger->opening_balance;
         $current = $ledger->opening_balance;
-            
+
 
         // Apply transaction
         if ($dc === 'Dr') {
@@ -344,6 +344,17 @@ class VoucherController extends Controller
             'type'    => $dc,
         ];
     }
+
+    public function edit($id)
+    {
+        $voucher = Voucher::with('lines')->findOrFail($id);
+
+        return view('accounting.vouchers.edit', [
+            'voucher' => $voucher,
+            'ledgers' => AccountLedger::all(),
+        ]);
+    }
+
 
     public function getLastRef(Request $request)
     {
@@ -409,7 +420,7 @@ class VoucherController extends Controller
     // }
 
 
-    public function edit($id)
+    public function edit1($id)
     {
         // load voucher with lines and ledger relation
         $voucher = Voucher::with(['lines.ledger'])->findOrFail($id);
