@@ -145,9 +145,9 @@
                                             <div class="card-body">
                                                 <a href="{{ route('reports.cash-bank.summary') }}">
                                                     <div class="d-flex align-items-center mb-4 card-total-sale">
-                                                      <div class="icon iq-icon-box-2 bg-success-light">
-    <i class="fas fa-university text-success fa-2x"></i>
-</div>
+                                                        <div class="icon iq-icon-box-2 bg-success-light">
+                                                            <i class="fas fa-university text-success fa-2x"></i>
+                                                        </div>
                                                         <div>
                                                             <p class="mb-2">Cash & Bank Summary</p>
                                                         </div>

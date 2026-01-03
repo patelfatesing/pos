@@ -150,16 +150,8 @@
 
                         <button id="printBtn" class="btn btn-outline-warning btn-sm">Print</button>
 
-                        <input type="text" id="daterange" class="form-control d-inline-block" style="width:210px" />
-
-                        <select id="vchType" class="form-control d-inline-block" style="width:140px">
-                            <option value="">All Types</option>
-                            @foreach ($voucherTypes as $vt)
-                                <option value="{{ $vt }}">{{ $vt }}</option>
-                            @endforeach
-                        </select>
-
-                        <button id="applyFilter" class="btn btn-light btn-sm">Apply</button>
+                        {{-- <input type="text" id="daterange" class="form-control d-inline-block" style="width:210px" />
+                        <button id="applyFilter" class="btn btn-light btn-sm">Apply</button> --}}
                     </div>
                 </div>
 
@@ -221,15 +213,15 @@
                 $('#dateRangeLabel').text(s.format('YYYY-MM-DD') + ' to ' + e.format('YYYY-MM-DD'));
             }
 
-            $('#daterange').daterangepicker({
-                startDate: moment(start),
-                endDate: moment(end),
-                locale: {
-                    format: 'YYYY-MM-DD'
-                }
-            }, cb);
+            // $('#daterange').daterangepicker({
+            //     startDate: moment(start),
+            //     endDate: moment(end),
+            //     locale: {
+            //         format: 'YYYY-MM-DD'
+            //     }
+            // }, cb);
 
-            cb(moment(start), moment(end));
+            // cb(moment(start), moment(end));
 
             let table = $('#vouchersTable').DataTable({
                 processing: true,
@@ -240,9 +232,9 @@
                 ajax: {
                     url: "{{ route('accounting.ledgers.vouchers.data', $ledger->id) }}",
                     data: function(d) {
-                        let dr = $('#daterange').val().split(' - ');
-                        d.start_date = dr[0];
-                        d.end_date = dr[1];
+                        // let dr = $('#datserange').val().split(' - ');
+                        d.start_date = start;
+                        d.end_date = end;
                         d.vch_type = $('#vchType').val();
                     },
                     dataSrc: function(json) {

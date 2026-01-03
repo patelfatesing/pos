@@ -21,7 +21,7 @@
 
             #linesTable tfoot td {
                 /* border-top: 1px solid #ccc;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            border-bottom: 1px solid #ccc; */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    border-bottom: 1px solid #ccc; */
                 font-weight: bold;
             }
 
@@ -400,11 +400,11 @@
                                                                         class="dc-select">
                                                                         <option value="Dr"
                                                                             {{ ($line['dc'] ?? '') == 'Dr' ? 'selected' : '' }}>
-                                                                            To
+                                                                            By
                                                                         </option>
                                                                         <option value="Cr"
                                                                             {{ ($line['dc'] ?? '') == 'Cr' ? 'selected' : '' }}>
-                                                                            By
+                                                                            To
                                                                         </option>
                                                                     </select>
                                                                 </td>
@@ -456,11 +456,11 @@
                                                                 <select name="lines[0][dc]" class="dc-select">
                                                                     <option value="Dr"
                                                                         {{ ($line['dc'] ?? '') == 'Dr' ? 'selected' : '' }}>
-                                                                        To
+                                                                        By
                                                                     </option>
                                                                     <option value="Cr"
                                                                         {{ ($line['dc'] ?? '') == 'Cr' ? 'selected' : '' }}>
-                                                                        By
+                                                                        To
                                                                     </option>
                                                                 </select>
                                                             </td>
@@ -529,7 +529,7 @@
                                         </div>
 
                                         <div class="mt-3">
-                                            <a href="${createLedgerUrl}" target="_blank"
+                                            <a href="{{ route('accounting.ledgers.create', 'voucher') }}" target="_blank"
                                                 class="btn btn-outline-secondary btn-sm">
                                                 Create Ledger
                                             </a>
@@ -700,8 +700,8 @@
                     <tr class="line">
                         <td width="8%">
                                     <select name="lines[${idx}][dc]" class="dc-select">
-                                        <option value="Dr">To</option>
-                                        <option value="Cr">By</option>
+                                        <option value="Dr">By</option>
+                                        <option value="Cr">To</option>
                                     </select>
                                 </td>
                         <input type="hidden" name="lines[${idx}][amount]" class="amount">
@@ -1266,7 +1266,6 @@
                 return parseFloat(String(val).replace(/,/g, '')) || 0;
             }
 
-
             function addLineRowAfterRow($afterRow) {
 
                 // Prevent duplicate row creation
@@ -1574,36 +1573,43 @@
             function applyDcRules() {
                 const type = $('#voucher_type').val();
 
+                // ✅ Correct mapping (as per your requirement)
                 const firstRowMap = {
-                    Payment: 'Cr',
-                    Contra: 'Dr',
-                    Receipt: 'Dr',
-                    Journal: 'Cr'
+                    Payment: 'Dr', // By
+                    Receipt: 'Cr', // To
+                    Contra: 'Cr', // To
+                    Journal: 'Dr' // By
                 };
 
                 const dc = firstRowMap[type] || 'Dr';
 
                 const $firstRow = $('#linesTable tbody tr:first');
 
-                // FORCE value
+                // Force DC
                 $firstRow.find('.dc-select')
                     .val(dc)
-                    .prop('disabled', true); // ❗ LOCK IT
+                    .prop('disabled', true);
 
-                // Show correct input
                 syncAmountInputs($firstRow);
             }
 
             function syncAmountInputs($row) {
                 const dc = $row.find('.dc-select').val();
 
-                $row.find('.dr-input, .cr-input').addClass('hidden-amount');
+                // Hide both first
+                $row.find('.dr-input').addClass('hidden-amount');
+                $row.find('.cr-input').addClass('hidden-amount');
 
                 if (dc === 'Dr') {
+                    // BY → Debit
                     $row.find('.dr-input').removeClass('hidden-amount');
+                    $row.find('.cr-input').val('');
                 } else if (dc === 'Cr') {
+                    // TO → Credit
                     $row.find('.cr-input').removeClass('hidden-amount');
+                    $row.find('.dr-input').val('');
                 }
+
                 updateDrCrTotals();
             }
 
