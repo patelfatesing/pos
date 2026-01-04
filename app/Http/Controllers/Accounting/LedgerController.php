@@ -9,6 +9,7 @@ use App\Models\Accounting\Voucher;
 use App\Models\Branch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class LedgerController extends Controller
 {
@@ -151,7 +152,7 @@ class LedgerController extends Controller
         if ($request->type == 'voucher') {
             return redirect()->route('accounting.vouchers.create')
                 ->with('success', 'Party Ledger created successfully.');
-        }elseif ($request->type == 'purchase') {
+        } elseif ($request->type == 'purchase') {
             return redirect()->route('purchase.create')
                 ->with('success', 'Party Ledger created successfully.');
         }
@@ -217,116 +218,94 @@ class LedgerController extends Controller
         return view('accounting.ledgers.vouchers', compact('ledger', 'start', 'end', 'voucherTypes'));
     }
 
-    public function vouchersData(AccountLedger $ledger, Request $request)
+    public function vouchersData(Request $request, $ledgerId)
     {
-        $start = $request->start_date ?? now()->startOfMonth()->toDateString();
-        $end   = $request->end_date   ?? now()->endOfMonth()->toDateString();
-        $vchType = $request->vch_type;
+        $start = Carbon::parse($request->start_date)->startOfDay();
+        $end   = Carbon::parse($request->end_date)->endOfDay();
 
-        // 1) Opening balance — use vouchers.voucher_date < $start
-        $openingLinesQuery = \App\Models\Accounting\VoucherLine::query()
-            ->join('vouchers', 'vouchers.id', '=', 'voucher_lines.voucher_id')
-            ->where('voucher_lines.ledger_id', $ledger->id)
-            ->whereDate('vouchers.voucher_date', '<', $start);
+        $ledger = AccountLedger::findOrFail($ledgerId);
 
-        if ($vchType) {
-            $openingLinesQuery->where('vouchers.voucher_type', $vchType);
+        /* ================= OPENING BALANCE ================= */
+        $opening = (float) $ledger->opening_balance;
+        if ($ledger->opening_type === 'Cr') {
+            $opening *= -1;
         }
 
-        $openingLines = $openingLinesQuery->get();
+        $vouchers = Voucher::with(['lines.ledger'])
+            ->whereBetween('voucher_date', [$start, $end])
+            ->whereHas('lines', fn($q) => $q->where('ledger_id', $ledgerId))
+            ->orderBy('voucher_date')
+            ->orderBy('id')
+            ->get();
 
-        // dc values in your table are 'Dr' / 'Cr' — adjust if yours differ
-        $openingDebit  = $openingLines->where('dc', 'Dr')->sum('amount');
-        $openingCredit = $openingLines->where('dc', 'Cr')->sum('amount');
-        $openingBalance = $openingDebit - $openingCredit; // positive = Dr balance
+        $rows = [];
+        $totalDebit  = 0.0;
+        $totalCredit = 0.0;
 
-        // 2) Transactions within range — select voucher_date as date
-        $linesQuery = \App\Models\Accounting\VoucherLine::query()
-            ->select(
-                'voucher_lines.id as line_id',
-                'vouchers.voucher_date as date',
-                'voucher_lines.line_narration as particulars',
-                'voucher_lines.dc',
-                'voucher_lines.amount',
-                'vouchers.id as voucher_id',
-                'vouchers.voucher_type as vch_type',
-                'vouchers.ref_no as vch_no'   // use ref_no or vch_no if you have; your schema shows ref_no
-            )
-            ->join('vouchers', 'vouchers.id', '=', 'voucher_lines.voucher_id')
-            ->where('voucher_lines.ledger_id', $ledger->id)
-            ->whereBetween(DB::raw('DATE(vouchers.voucher_date)'), [$start, $end]);
+        foreach ($vouchers as $v) {
 
-        if ($vchType) {
-            $linesQuery->where('vouchers.voucher_type', $vchType);
-        }
+            // This ledger’s own line
+            $self = $v->lines->firstWhere('ledger_id', $ledgerId);
+            if (!$self) continue;
 
-        // ordering and pagination parameters (DataTables)
-        $orderColumn = (int) $request->input('order.0.column', 0);
-        $orderDir = $request->input('order.0.dir', 'asc');
-        $length = (int) $request->input('length', 25);
-        $startOffset = (int) $request->input('start', 0);
+            // Opposite ledgers
+            $others = $v->lines->where('ledger_id', '!=', $ledgerId)->values();
 
-        // map DataTables column index to DB column
-        $columns = [
-            0 => 'vouchers.voucher_date',
-            1 => 'voucher_lines.line_narration',
-            2 => 'vouchers.voucher_type',
-            3 => 'vouchers.ref_no',
-            4 => 'voucher_lines.amount',
-            5 => 'voucher_lines.amount',
-        ];
+            /* ================= DEBIT / CREDIT ================= */
+            $debit  = null;
+            $credit = null;
 
-        $linesQuery->orderBy($columns[$orderColumn] ?? 'vouchers.voucher_date', $orderDir);
+            if ($self->dc === 'Dr') {
+                $debit = (float) $self->amount;
+                $totalDebit += $debit;
+            } elseif ($self->dc === 'Cr') {
+                $credit = (float) $self->amount;
+                $totalCredit += $credit;
+            }
 
-        $totalFiltered = $linesQuery->count();
-        $rows = $linesQuery->skip($startOffset)->take($length)->get();
-
-        // 3) Totals for the displayed period (use vouchers.voucher_date between start/end)
-        $periodLinesQuery = \App\Models\Accounting\VoucherLine::query()
-            ->join('vouchers', 'vouchers.id', '=', 'voucher_lines.voucher_id')
-            ->where('voucher_lines.ledger_id', $ledger->id)
-            ->whereBetween(DB::raw('DATE(vouchers.voucher_date)'), [$start, $end]);
-
-        if ($vchType) {
-            $periodLinesQuery->where('vouchers.voucher_type', $vchType);
-        }
-
-        $periodLines = $periodLinesQuery->get();
-        $periodDebit  = $periodLines->where('dc', 'Dr')->sum('amount');
-        $periodCredit = $periodLines->where('dc', 'Cr')->sum('amount');
-
-        // 4) Build response rows (compute debit/credit from dc + amount)
-        $data = [];
-        foreach ($rows as $row) {
-            $data[] = [
-                'date'        => $row->date,
-                'particulars' => $row->particulars,
-                'vch_type'    => $row->vch_type,
-                'vch_no'      => $row->vch_no,
-                'debit'       => $row->dc === 'Dr' ? (float) $row->amount : 0.0,
-                'credit'      => $row->dc === 'Cr' ? (float) $row->amount : 0.0,
-                'line_id'     => $row->line_id,
-                'voucher_id'  => $row->voucher_id,
+            /* ================= MAIN ROW ================= */
+            $rows[] = [
+                'type'        => 'main',
+                'date'        => $v->voucher_date->format('d-M-y'),
+                'particulars' => $others->count() > 1
+                    ? '(as per details)'
+                    : ($others->first()?->ledger->name ?? ''),
+                'vch_type'    => $v->voucher_type,
+                'vch_no'      => (string) $v->ref_no, // or gen_id if you use it
+                'debit'       => $debit,
+                'credit'      => $credit,
             ];
+
+            /* ================= DETAIL ROWS ================= */
+            if ($others->count() > 1) {
+                foreach ($others as $line) {
+                    $rows[] = [
+                        'type'        => 'detail',
+                        'date'        => '',
+                        'particulars' =>
+                        $line->ledger->name . ' ' .
+                            number_format($line->amount, 2) . ' ' . $line->dc,
+                        'vch_type' => '',
+                        'vch_no'   => '',
+                        'debit'    => null,
+                        'credit'   => null,
+                    ];
+                }
+            }
         }
 
         return response()->json([
+            'data' => $rows,
             'opening' => [
-                'debit'   => (float) $openingDebit,
-                'credit'  => (float) $openingCredit,
-                'balance' => (float) $openingBalance,
+                'balance' => $opening
             ],
             'period' => [
-                'total_debit'  => (float) $periodDebit,
-                'total_credit' => (float) $periodCredit,
-            ],
-            'recordsTotal'    => $totalFiltered,
-            'recordsFiltered' => $totalFiltered,
-            'data'            => $data,
+                'total_debit'  => $totalDebit,
+                'total_credit' => $totalCredit,
+            ]
         ]);
     }
 
-    
     // LedgerController.php
     public function currentBalance($ledgerId)
     {
@@ -338,7 +317,7 @@ class LedgerController extends Controller
         $type = $ledger->opening_type;
 
         return response()->json([
-            'balance' => number_format(abs($balance), 2),
+            'balance' => number_format($balance),
             'type'    => $type
         ]);
     }

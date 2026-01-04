@@ -1,4 +1,4 @@
-    @extends('layouts.backend.layouts')
+    @extends('layouts.backend.layouts_dashboard')
     @section('page-content')
     <!-- Wrapper Start -->
     <div class="wrapper">
@@ -634,7 +634,7 @@
                             <div class="card-body pt-0">
                                 <div id="layout1-chart-5"></div>
                             </div>
-                        </div>
+                        </div> --}}
                     </div>
                 </div>
                 <!-- Page end  -->
