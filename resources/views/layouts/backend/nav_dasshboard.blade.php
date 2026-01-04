@@ -65,7 +65,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                             $currentStoreId = request()->route('store'); // or session('store_id') depending on how you manage it
                         @endphp
 
-                        {{-- <li class="nav-item nav-icon dropdown mr-2">
+                        <li class="nav-item nav-icon dropdown mr-2">
                             <a href="#" class="dropdown-toggle btn border add-btn" id="dropdownMenuButton31"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <img src="{{ asset('assets/images/small/store.png') }}" alt="store-icon"
@@ -94,9 +94,9 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                     </div>
                                 </div>
                             </div>
-                        </li> --}}
+                        </li>
                          <!-- Date Filter Start -->
-                        {{-- <li class="nav-item nav-icon d-flex align-items-center mt-4">
+                        <li class="nav-item nav-icon d-flex align-items-center mt-4">
                             <form id="dateFilterForm" class="d-flex align-items-center" method="GET" action="{{ url()->current() }}" style="gap: 0.5rem;">
                                 <div class="input-group input-group-sm">
                                     <input 
@@ -133,7 +133,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                     </button>
                                 </div>
                             </form>
-                        </li> --}}
+                        </li>
                        
                         <!-- Date Filter End -->
                         <li class="nav-item nav-icon dropdown">

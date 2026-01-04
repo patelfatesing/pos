@@ -631,7 +631,63 @@ class DashboardController extends Controller
 
         $totalQuantity = $totals_qty->total_quantity;
 
+        $sales = \DB::table('invoices')
+            ->selectRaw("DATE_FORMAT(created_at, '%b') as month, SUM(total) as total")
+            ->whereBetween('created_at', [$start_date, $end_date])
+            // ->when($branchId, fn($q, $v) => $q->where('branch_id', $v))
+            ->where(function ($q) {
+                $q->where('status', 'Paid')->orWhere('invoice_status', 'paid');
+            })
+            ->groupBy('month')
+            ->orderByRaw("MIN(created_at)")
+            ->pluck('total', 'month')
+            ->toArray();
+
+        // fill missing months with 0
+        $months = [];
+        $data_sales = [];
+        // $period = \Carbon\CarbonPeriod::create($start_date, '1 month', $end_date);
+        // foreach ($period as $m) {
+        //     $label = $m->format('M');
+        //     $months[] = $label;
+        //     $data_sales[] = isset($sales[$label]) ? (float)$sales[$label] : 0;
+        // }
+
+
+
+        $months = range(1, 12);
+
+        // exactly 12 values, missing months become 0
+        // $series = array_map(fn($m) => (float)($raw[$m] ?? 0), $months);
+
+        // ["Jan","Feb",...,"Dec"]
+        $categories = array_map(fn($m) => date('M', mktime(0, 0, 0, $m, 1)), $months);
+
+        $query = \DB::table('purchases')
+            ->selectRaw("DATE_FORMAT(date, '%b') as month, SUM(total_amount) as total")
+            ->whereBetween('date', [$start_date, $end_date])
+            // ->when($vendorId, fn($q, $v) => $q->where('vendor_id', $v))
+            ->groupBy('month')
+            ->orderByRaw("MIN(date)");
+
+        $purchases = $query->pluck('total', 'month')->toArray();
+
+        // Fill buckets with 0 if missing
+
+        $data_pur = [];
+        // $period = \Carbon\CarbonPeriod::create($start_date, '1 month', $end_date);
+        // foreach ($period as $m) {
+        //     $label = $m->format('M');
+        //     $months[] = $label;
+        //     $data_pur[] = isset($purchases[$label]) ? (float)$purchases[$label] : 0;
+        // }
+
+
+        // dd($data_sales);
         return [
+            'data_pur' => $data_pur,
+            'data_sales' => $data_sales,
+            'categories'   => $categories,
             'store'         => $store->name,
             'sales'         => $totalSales + $total_creditpay,
             'products'        => $totalProducts,
