@@ -47,7 +47,11 @@
                                             @foreach ($entries as $e)
                                                 <tr>
                                                     <td>{{ \Carbon\Carbon::parse($e['date'])->format('d-M-y') }}</td>
-                                                    <td>{{ $e['particulars'] }}</td>
+                                                    <td><a href="{{ route('accounting.vouchers.edit', $e['ledger_id']) }}"
+                                                            class="text-primary text-decoration-none fw-bold">
+                                                            {{ $e['particulars'] }}
+                                                        </a>
+                                                    </td>
                                                     <td>{{ $e['voucher_type'] }}</td>
                                                     <td>{{ $e['voucher_no'] }}</td>
 
@@ -62,13 +66,13 @@
                                             @endforeach
                                         </tbody>
 
-                                        <tfoot>
+                                        {{-- <tfoot>
                                             <tr>
                                                 <th colspan="4" class="text-end">Total</th>
                                                 <th class="text-end">{{ number_format($totalDebit, 2) }}</th>
                                                 <th class="text-end">{{ number_format($totalCredit, 2) }}</th>
                                             </tr>
-                                        </tfoot>
+                                        </tfoot> --}}
                                     </table>
                                 </div>
                             </div>

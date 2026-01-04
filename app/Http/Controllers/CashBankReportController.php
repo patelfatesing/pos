@@ -80,13 +80,15 @@ class CashBankReportController extends Controller
     {
         $date = $request->date ?? now()->format('Y-m-d');
 
-        // Define groups
         $groups = [
-            'Cash-in-Hand' => 1,
-            'Bank Accounts' => 2,
+            'Cash-in-Hand' => 18,
+            'Bank Accounts' => 17,
         ];
 
         $result = [];
+
+        $totalDebit = 0;
+        $totalCredit = 0;
 
         foreach ($groups as $groupName => $groupId) {
 
@@ -102,13 +104,11 @@ class CashBankReportController extends Controller
 
             foreach ($ledgers as $ledger) {
 
-                // Opening balance
                 $opening = $ledger->opening_balance;
                 if ($ledger->opening_type === 'Cr') {
                     $opening *= -1;
                 }
 
-                // Voucher effect
                 $movement = DB::table('voucher_lines')
                     ->join('vouchers', 'vouchers.id', '=', 'voucher_lines.voucher_id')
                     ->where('voucher_lines.ledger_id', $ledger->id)
@@ -137,6 +137,9 @@ class CashBankReportController extends Controller
                 ];
             }
 
+            $totalDebit += $groupDebit;
+            $totalCredit += $groupCredit;
+
             $result[] = [
                 'group' => $groupName,
                 'debit' => $groupDebit,
@@ -145,53 +148,79 @@ class CashBankReportController extends Controller
             ];
         }
 
-        return view('reports.cash_bank_summary', compact('result', 'date'));
+        // NET CLOSING BALANCE (like Tally)
+        $netBalance = $totalDebit - $totalCredit;
+
+        return view('reports.cash_bank_summary', compact(
+            'result',
+            'date',
+            'totalDebit',
+            'totalCredit',
+            'netBalance'
+        ));
     }
 
     public function ledgerMonthly($ledgerId)
     {
         $ledger = DB::table('account_ledgers')->find($ledgerId);
 
-        $start = Carbon::create(now()->year, 4, 1); // Financial year start (Apr)
-        $months = collect();
+        // Financial Year (April–March)
+        $fyYear  = now()->month < 4 ? now()->year - 1 : now()->year;
+        $fyStart = Carbon::create($fyYear, 4, 1);
 
-        // Opening Balance
-        $opening = $ledger->opening_type == 'Cr'
+        // Opening balance sign
+        $opening = $ledger->opening_type === 'Cr'
             ? -$ledger->opening_balance
             : $ledger->opening_balance;
 
-        for ($i = 0; $i < 12; $i++) {
+        $months  = collect();
+        $running = $opening;
 
-            $from = $start->copy()->addMonths($i)->startOfMonth();
-            $to   = $start->copy()->addMonths($i)->endOfMonth();
+        for ($i = 0; $i < 12; $i++) {
+            $from = Carbon::create($fyStart->year, 4, 1)
+                ->addMonths($i)
+                ->startOfMonth();
+
+            $to = Carbon::create($fyStart->year, 4, 1)
+                ->addMonths($i)
+                ->endOfMonth();
+            // dd($from);
 
             $txn = DB::table('voucher_lines')
                 ->join('vouchers', 'vouchers.id', '=', 'voucher_lines.voucher_id')
                 ->where('voucher_lines.ledger_id', $ledgerId)
                 ->whereBetween('vouchers.voucher_date', [$from, $to])
                 ->selectRaw("
-                SUM(CASE WHEN dc='Dr' THEN amount ELSE 0 END) as dr,
-                SUM(CASE WHEN dc='Cr' THEN amount ELSE 0 END) as cr
+                SUM(CASE WHEN LOWER(dc)='dr' THEN amount ELSE 0 END) AS dr,
+                SUM(CASE WHEN LOWER(dc)='cr' THEN amount ELSE 0 END) AS cr
             ")
                 ->first();
 
-            $dr = $txn->dr ?? 0;
-            $cr = $txn->cr ?? 0;
+            $dr = (float) ($txn->dr ?? 0);
+            $cr = (float) ($txn->cr ?? 0);
 
-            $closing = $opening + $dr - $cr;
+            $closing = $running + $dr - $cr;
 
             $months->push([
-                'month' => $from->format('F'),
-                'dr' => $dr,
-                'cr' => $cr,
-                'closing' => $closing
+                'month'   => $from->format('F'),
+                'from'    => $from->format('Y-m-d'),
+                'to'      => $to->format('Y-m-d'),
+                'dr'      => $dr,
+                'cr'      => $cr,
+                'closing' => $closing,
             ]);
 
-            $opening = $closing;
+            $running = $closing;
         }
 
-        return view('reports.ledger_monthly', compact('ledger', 'months','ledgerId'));
+        return view('reports.ledger_monthly', compact(
+            'ledger',
+            'ledgerId',
+            'months',
+            'opening'
+        ));
     }
+
 
     // =============================
     // LEDGER DRILL-DOWN (Tally Enter)

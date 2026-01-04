@@ -1,4 +1,4 @@
-    @extends('layouts.backend.layouts')
+    @extends('layouts.backend.layouts_dashboard')
     @section('page-content')
         <!-- Wrapper Start -->
         <div class="wrapper">
