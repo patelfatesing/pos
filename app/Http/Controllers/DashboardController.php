@@ -7,10 +7,13 @@ use App\Models\Branch;
 use App\Models\Invoice;
 use App\Models\Inventory;
 use App\Models\Product;
+use App\Models\PurchaseProduct;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use App\Http\Controllers\Report2Controller;
+use App\Models\Accounting\VoucherLine;
 
 class DashboardController extends Controller
 {
@@ -19,7 +22,7 @@ class DashboardController extends Controller
         $this->middleware('auth');
     }
 
-    public function index()
+    public function index(Request $request, Report2Controller $report2Controller)
     {
         $start_date = request('start_date');
         $end_date = request('end_date');
@@ -504,15 +507,113 @@ class DashboardController extends Controller
         // $series = array_map(fn($m) => (float)($raw[$m] ?? 0), $months);
 
         // ["Jan","Feb",...,"Dec"]
-        $categories = array_map(fn($m) => date('M', mktime(0, 0, 0, $m, 1)), $months);
+        // $categories = array_map(fn($m) => date('M', mktime(0, 0, 0, $m, 1)), $months);
 
+        [$fyStart, $fyEnd] = $this->getFinancialYearRange();
 
+        $months = collect(range(0, 11))->map(function ($i) use ($fyStart) {
+            return $fyStart->copy()->addMonths($i);
+        });
+
+        $categories = $months->map(fn($m) => $m->format('M-y'))->toArray();
+
+        $salesQuantityByMonth = array_fill(0, 12, 0);
+        $salesAmountTotal = array_fill(0, 12, 0);
+
+        $invoices = Invoice::whereBetween('created_at', [$fyStart, $fyEnd])
+            ->select('total_item_qty', 'total', 'created_at')
+            ->get();
+
+        foreach ($invoices as $invoice) {
+
+            $created = Carbon::parse($invoice->created_at);
+
+            $monthIndex = ($created->year - $fyStart->year) * 12
+                + ($created->month - $fyStart->month);
+
+            if ($monthIndex < 0 || $monthIndex > 11) {
+                continue;
+            }
+
+            $salesQuantityByMonth[$monthIndex] += (int) $invoice->total_item_qty;
+            $salesAmountTotal[$monthIndex] += (int) $invoice->total;
+        }
+
+        $purchaseQuantityByMonth = array_fill(0, 12, 0);
+
+        $purchaseProducts = PurchaseProduct::whereBetween('created_at', [$fyStart, $fyEnd])
+            ->select('qnt', 'created_at')
+            ->get();
+
+        foreach ($purchaseProducts as $purchaseProduct) {
+
+            $created = Carbon::parse($purchaseProduct->created_at);
+
+            $monthIndex = ($created->year - $fyStart->year) * 12
+                + ($created->month - $fyStart->month);
+
+            if ($monthIndex < 0 || $monthIndex > 11) {
+                continue;
+            }
+
+            $purchaseQuantityByMonth[$monthIndex] += (int) $purchaseProduct->qnt;
+        }
+
+        $bestSellingProductResponse = $report2Controller->getBestSellingProductsData($request);
+        $bestSellingProduct = $bestSellingProductResponse->getData(true);
+
+        $financialYearIncomeAmount  = array_fill(0, 12, 0);
+        $financialYearExpenseAmount = array_fill(0, 12, 0);
+
+        $totalFinancialYearIncome   = 0;
+        $totalFinancialYearExpenses = 0;
+
+        $financialYearLines = VoucherLine::with('voucher:id,voucher_type')
+            ->whereBetween('created_at', [$fyStart, $fyEnd])
+            ->select('id', 'voucher_id', 'amount', 'created_at')
+            ->get();
+
+        foreach ($financialYearLines as $line) {
+
+            if (!$line->voucher) {
+                continue;
+            }
+
+            $created = Carbon::parse($line->created_at);
+
+            $monthIndex = ($created->year - $fyStart->year) * 12
+                + ($created->month - $fyStart->month);
+
+            if ($monthIndex < 0 || $monthIndex > 11) {
+                continue;
+            }
+
+            $amount = (float) $line->amount;
+
+            if ($line->voucher->voucher_type === 'Sales') {
+
+                $financialYearIncomeAmount[$monthIndex] += $amount;
+                $totalFinancialYearIncome += $amount;
+            } elseif ($line->voucher->voucher_type === 'Purchase') {
+
+                $financialYearExpenseAmount[$monthIndex] += $amount;
+                $totalFinancialYearExpenses += $amount;
+            }
+        }
 
         // dd($data);
 
         $data = [
             'store'         => "Selete Store",
             'categories'   => $categories,
+            'sales_quantity_by_month'   => $salesQuantityByMonth,
+            'purchase_quantity_by_month'   => $purchaseQuantityByMonth,
+            'sales_amount_total'   => $salesAmountTotal,
+            'best_selling_product'   => $bestSellingProduct['data'],
+            'financial_year_income'   => $financialYearIncomeAmount,
+            'total_financial_year_income'          => $totalFinancialYearIncome,
+            'financial_year_expenses'   => $financialYearExpenseAmount,
+            'total_financial_year_expenses'          => $totalFinancialYearExpenses,
             'sales'         => $totalSales + $total_creditpay,
             'products'        => $totalProducts,
             'total_cost_price'     => $inventorySummary->total_cost_price,
@@ -735,5 +836,20 @@ class DashboardController extends Controller
         //     'total_cost_price'     => $inventorySummary->total_cost_price,
         //     'top_products'  => $totalSales,
         // ];
+    }
+
+    private function getFinancialYearRange()
+    {
+        $date = now();
+
+        if ($date->month >= 4) {
+            $start = Carbon::create($date->year, 4, 1)->startOfDay();
+            $end   = Carbon::create($date->year + 1, 3, 31)->endOfDay();
+        } else {
+            $start = Carbon::create($date->year - 1, 4, 1)->startOfDay();
+            $end   = Carbon::create($date->year, 3, 31)->endOfDay();
+        }
+
+        return [$start, $end];
     }
 }
