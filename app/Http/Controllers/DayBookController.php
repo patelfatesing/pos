@@ -28,58 +28,75 @@ class DayBookController extends Controller
         ]);
     }
 
-    public function index(Request $request)
-    {
-        $fromDate = $request->input('from_date', now()->toDateString());
-        $toDate   = $request->input('to_date', now()->toDateString());
+public function index(Request $request)
+{
+    $fromDate = $request->input('from_date', now()->toDateString());
+    $toDate   = $request->input('to_date', now()->toDateString());
 
-        $from = Carbon::parse($fromDate)->startOfDay();
-        $to   = Carbon::parse($toDate)->endOfDay();
+    $from = Carbon::parse($fromDate)->startOfDay();
+    $to   = Carbon::parse($toDate)->endOfDay();
 
-        $branchId    = $request->input('branch_id');
-        $voucherType = $request->input('voucher_type');
+    $branchId    = $request->input('branch_id');
+    $voucherType = $request->input('voucher_type');
 
-        // Fetch vouchers WITH lines
-        $vouchers = Voucher::with(['lines.ledger'])
-            ->whereBetween('voucher_date', [$from, $to])
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
-            ->when($voucherType, fn($q) => $q->where('voucher_type', $voucherType))
-            ->orderBy('voucher_date')
-            ->orderBy('id')
-            ->get();
+    $vouchers = Voucher::with(['lines.ledger'])
+        ->whereBetween('voucher_date', [$from, $to])
+        ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+        ->when($voucherType, fn($q) => $q->where('voucher_type', $voucherType))
+        ->orderBy('voucher_date')
+        ->orderBy('id')
+        ->get();
 
-        /**
-         * Build DAY BOOK rows (LINE WISE – like Tally)
-         */
-        $entries = collect();
+    $entries = collect();
 
-        foreach ($vouchers as $v) {
-            foreach ($v->lines as $line) {
-                $entries->push([
-                    'date'         => $v->voucher_date,
-                    'particulars'  => $line->ledger->name ?? '---',
-                    'voucher_type' => $v->voucher_type,
-                    'voucher_no'   => $v->ref_no ?? $v->id,
+    foreach ($vouchers as $v) {
 
-                    // Show amount in ONLY one column
-                    'debit'  => $line->dc === 'Dr' ? $line->amount : null,
-                    'credit' => $line->dc === 'Cr' ? $line->amount : null,
-                ]);
-            }
+        $lines = $v->lines;
+
+        // Decide which DC should appear first (Tally logic)
+        $firstDc = match ($v->voucher_type) {
+            'Payment'  => 'Cr',
+            'Receipt'  => 'Dr',
+            'Sales'    => 'Dr',
+            'Purchase' => 'Cr',
+            default    => null,
+        };
+
+        // Pick ONLY the first line
+        $firstLine = $firstDc
+            ? $lines->firstWhere('dc', $firstDc)
+            : $lines->first();
+
+        // Fallback if not found
+        if (!$firstLine) {
+            $firstLine = $lines->first();
         }
 
-        // Totals
-        $totalDebit  = $entries->sum('debit');
-        $totalCredit = $entries->sum('credit');
+        if (!$firstLine) continue;
 
-        return view('reports.day_book', compact(
-            'entries',
-            'fromDate',
-            'toDate',
-            'totalDebit',
-            'totalCredit'
-        ));
+        $entries->push([
+            'ledger_id'    => $v->id,
+            'date'         => $v->voucher_date,
+            'particulars'  => $firstLine->ledger->name ?? '---',
+            'voucher_type' => $v->voucher_type,
+            'voucher_no'   => $v->ref_no ?? $v->id,
+
+            'debit'  => $firstLine->dc === 'Dr' ? $firstLine->amount : null,
+            'credit' => $firstLine->dc === 'Cr' ? $firstLine->amount : null,
+        ]);
     }
+
+    $totalDebit  = $entries->sum('debit');
+    $totalCredit = $entries->sum('credit');
+
+    return view('reports.day_book', compact(
+        'entries',
+        'fromDate',
+        'toDate',
+        'totalDebit',
+        'totalCredit'
+    ));
+}
 
     /**
      * AJAX: return voucher detail HTML for modal.

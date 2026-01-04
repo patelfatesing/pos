@@ -150,6 +150,8 @@
 
                         <button id="printBtn" class="btn btn-outline-warning btn-sm">Print</button>
 
+                        <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
+
                         {{-- <input type="text" id="daterange" class="form-control d-inline-block" style="width:210px" />
                         <button id="applyFilter" class="btn btn-light btn-sm">Apply</button> --}}
                     </div>
@@ -201,27 +203,8 @@
     <script>
         window.onload = function() {
 
-            $('#printBtn').on('click', function() {
-                window.print();
-            });
-
             let start = '{{ $start }}';
             let end = '{{ $end }}';
-
-            function cb(s, e) {
-                $('#daterange').val(s.format('YYYY-MM-DD') + ' - ' + e.format('YYYY-MM-DD'));
-                $('#dateRangeLabel').text(s.format('YYYY-MM-DD') + ' to ' + e.format('YYYY-MM-DD'));
-            }
-
-            // $('#daterange').daterangepicker({
-            //     startDate: moment(start),
-            //     endDate: moment(end),
-            //     locale: {
-            //         format: 'YYYY-MM-DD'
-            //     }
-            // }, cb);
-
-            // cb(moment(start), moment(end));
 
             let table = $('#vouchersTable').DataTable({
                 processing: true,
@@ -232,14 +215,12 @@
                 ajax: {
                     url: "{{ route('accounting.ledgers.vouchers.data', $ledger->id) }}",
                     data: function(d) {
-                        // let dr = $('#datserange').val().split(' - ');
                         d.start_date = start;
                         d.end_date = end;
-                        d.vch_type = $('#vchType').val();
                     },
                     dataSrc: function(json) {
 
-                        // ---- OPENING BALANCE ----
+                        /* ---------- OPENING ---------- */
                         const opening = json.opening || {
                             balance: 0
                         };
@@ -248,20 +229,20 @@
                             Math.abs(opening.balance).toFixed(2)
                         );
 
-                        // ---- PERIOD TOTAL ----
+                        /* ---------- CURRENT ---------- */
                         const period = json.period || {
                             total_debit: 0,
                             total_credit: 0
                         };
                         $('#currentTotal').text(
-                            'Dr ' + (period.total_debit || 0).toFixed(2) +
-                            ' | Cr ' + (period.total_credit || 0).toFixed(2)
+                            'Dr ' + period.total_debit.toFixed(2) +
+                            ' | Cr ' + period.total_credit.toFixed(2)
                         );
 
-                        // ---- CLOSING ----
+                        /* ---------- CLOSING ---------- */
                         const closing =
-                            (opening.balance || 0) +
-                            ((period.total_debit || 0) - (period.total_credit || 0));
+                            opening.balance +
+                            (period.total_debit - period.total_credit);
 
                         $('#closingBalance').text(
                             (closing >= 0 ? 'Dr ' : 'Cr ') +
@@ -274,61 +255,54 @@
 
                 columns: [{
                         data: 'date',
-                        render: function(data, type, row) {
-                            return row.type === 'detail' ? '' : data;
-                        }
+                        render: (d, t, r) => r.type === 'main' ? d : ''
                     },
                     {
                         data: 'particulars',
                         className: 'col-particulars',
-                        render: function(data, type, row) {
-                            if (row.type === 'detail') {
-                                return `<span style="padding-left:25px;">${data}</span>`;
+                        render: function(d, t, r) {
+                            if (r.type === 'detail') {
+                                return `<span style="padding-left:30px;">${d}</span>`;
                             }
-                            return `<strong>${data || ''}</strong>`;
+                            return `<strong>${d}</strong>`;
                         }
                     },
                     {
                         data: 'vch_type',
-                        render: function(data, type, row) {
-                            return row.type === 'detail' ? '' : data;
-                        }
+                        render: (d, t, r) => r.type === 'main' ? d : ''
                     },
                     {
                         data: 'vch_no',
-                        render: function(data, type, row) {
-                            return row.type === 'detail' ? '' : data;
-                        }
+                        render: (d, t, r) => r.type === 'main' ? d : ''
                     },
                     {
                         data: 'debit',
                         className: 'text-end',
-                        render: function(data, type, row) {
-                            return data ? parseFloat(data).toFixed(2) : '';
-                        }
+                        render: (d, t, r) =>
+                            r.type === 'main' && d !== null ?
+                            parseFloat(d).toFixed(2) :
+                            ''
                     },
                     {
                         data: 'credit',
                         className: 'text-end',
-                        render: function(data, type, row) {
-                            return data ? parseFloat(data).toFixed(2) : '';
-                        }
+                        render: (d, t, r) =>
+                            r.type === 'main' && d !== null ?
+                            parseFloat(d).toFixed(2) :
+                            ''
                     }
                 ],
-
                 createdRow: function(row, data) {
-                    if (data.type === 'detail') {
+                    if (data.type === 'details_header') {
                         $(row).css({
-                            'color': '#555',
-                            'background': '#fafafa'
+                            color: '#555',
+                            background: '#f7f7f7'
                         });
                     }
+                    if (data.type === 'detail') {
+                        $(row).css('background', '#fafafa');
+                    }
                 }
-            });
-
-
-            $('#applyFilter').on('click', function() {
-                table.ajax.reload();
             });
         };
     </script>

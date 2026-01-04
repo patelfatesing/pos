@@ -141,6 +141,7 @@ class VoucherController extends Controller
 
     public function store(Request $r)
     {
+        // dd($r->all());
         $type = $r->input('voucher_type');
 
         $nv = fn($v) => ($v === '' || $v === null) ? null : $v;

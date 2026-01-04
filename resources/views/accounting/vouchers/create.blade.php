@@ -21,7 +21,7 @@
 
             #linesTable tfoot td {
                 /* border-top: 1px solid #ccc;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    border-bottom: 1px solid #ccc; */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            border-bottom: 1px solid #ccc; */
                 font-weight: bold;
             }
 
@@ -308,6 +308,11 @@
 
             .cr-input {
                 width: 100px !important;
+            }
+
+            .dc-select.locked {
+                pointer-events: none;
+                background: transparent;
             }
         </style>
 
@@ -1586,9 +1591,13 @@
                 const $firstRow = $('#linesTable tbody tr:first');
 
                 // Force DC
+                // $firstRow.find('.dc-select')
+                //     .val(dc)
+                //     .prop('disabled', true);
                 $firstRow.find('.dc-select')
                     .val(dc)
-                    .prop('disabled', true);
+                    .addClass('locked');
+
 
                 syncAmountInputs($firstRow);
             }
@@ -1615,6 +1624,7 @@
 
             $(document).on('change', '.dc-select', function() {
                 const $row = $(this).closest('tr');
+
                 if ($(this).val() === 'Dr') {
                     $row.find('.cr-input').val('');
                 } else {
