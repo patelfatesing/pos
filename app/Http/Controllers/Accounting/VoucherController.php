@@ -397,30 +397,6 @@ class VoucherController extends Controller
         ]);
     }
 
-    // public function edit(Voucher $voucher) // or: public function edit($id)
-    // {
-    //     // If not using route-model-binding, do:
-    //     // $voucher = Voucher::with(['lines.ledger'])->findOrFail($id);
-
-    //     // load branches and ledgers for dropdowns (same as create)
-    //     $branches = Branch::select('id', 'name')->orderBy('name')->get();
-    //     $ledgers  = AccountLedger::where('is_active', 1)->orderBy('name')->get();
-
-    //     // eager-load voucher lines and their ledger relation to pre-populate form
-    //     $voucher->load(['lines.ledger']);
-
-    //     // Pass any other helper data your view expects (example: account group map)
-    //     // $voucherGroupMap = config('accounting.voucher_group_map', []);
-
-    //     return view('accounting.vouchers.edit', [
-    //         'voucher'  => $voucher,
-    //         'ledgers'  => $ledgers,
-    //         'branches' => $branches,
-    //         // 'voucherGroupMap' => $voucherGroupMap,
-    //     ]);
-    // }
-
-
     public function edit1($id)
     {
         // load voucher with lines and ledger relation
@@ -469,8 +445,9 @@ class VoucherController extends Controller
         ]);
     }
 
-    public function update(Request $r, $id)
+    public function update(Request $r)
     {
+        $id = $r->input('id');
         $voucher = Voucher::with('lines')->findOrFail($id);
 
         // ---------- 0) Normalize inputs (same logic as store) ----------
@@ -658,4 +635,27 @@ class VoucherController extends Controller
         $line->delete();
         return response()->json(['success' => true, 'message' => 'Voucher line deleted permanently.']);
     }
+
+    // public function edit(Voucher $voucher) // or: public function edit($id)
+    // {
+    //     // If not using route-model-binding, do:
+    //     // $voucher = Voucher::with(['lines.ledger'])->findOrFail($id);
+
+    //     // load branches and ledgers for dropdowns (same as create)
+    //     $branches = Branch::select('id', 'name')->orderBy('name')->get();
+    //     $ledgers  = AccountLedger::where('is_active', 1)->orderBy('name')->get();
+
+    //     // eager-load voucher lines and their ledger relation to pre-populate form
+    //     $voucher->load(['lines.ledger']);
+
+    //     // Pass any other helper data your view expects (example: account group map)
+    //     // $voucherGroupMap = config('accounting.voucher_group_map', []);
+
+    //     return view('accounting.vouchers.edit', [
+    //         'voucher'  => $voucher,
+    //         'ledgers'  => $ledgers,
+    //         'branches' => $branches,
+    //         // 'voucherGroupMap' => $voucherGroupMap,
+    //     ]);
+    // }
 }

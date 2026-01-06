@@ -265,6 +265,7 @@ class LedgerController extends Controller
 
             /* ================= MAIN ROW ================= */
             $rows[] = [
+                'id'      => $v->id,
                 'type'        => 'main',
                 'date'        => $v->voucher_date->format('d-M-y'),
                 'particulars' => $others->count() > 1
@@ -280,6 +281,7 @@ class LedgerController extends Controller
             if ($others->count() > 1) {
                 foreach ($others as $line) {
                     $rows[] = [
+                        'id'      => $v->id,
                         'type'        => 'detail',
                         'date'        => '',
                         'particulars' =>
