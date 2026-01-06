@@ -114,9 +114,9 @@ class ProductController extends Controller
                 'sub_category' => $product->subcategory->name ?? 'N/A',
                 'size' => $product->size,
                 'brand' => $product->brand,
-                'sell_price' => "₹" . $product->sell_price,
-                'cost_price' => "₹" . $product->cost_price,
-                'mrp' => "₹" . $product->mrp,
+                'sell_price' => '₹' . rtrim(rtrim($product->sell_price, '0'), '.'),
+                'cost_price' => '₹' . rtrim(rtrim($product->cost_price, '0'), '.'),
+                'mrp'        => '₹' . rtrim(rtrim($product->mrp, '0'), '.'),
                 // 'is_active' => $status,
                 'is_active' => $product->is_active == 'yes'
                     ? '<span onclick=\'statusChange("' . $product->id . '", "no")\'><div class="badge badge-success" style="cursor:pointer">Active</div></span>'
