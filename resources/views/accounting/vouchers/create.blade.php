@@ -21,7 +21,7 @@
 
             #linesTable tfoot td {
                 /* border-top: 1px solid #ccc;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            border-bottom: 1px solid #ccc; */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    border-bottom: 1px solid #ccc; */
                 font-weight: bold;
             }
 
@@ -324,9 +324,15 @@
                         {{-- ================= CARD HEADER ================= --}}
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h4 class="mb-0">Accounting Voucher Creation</h4>
-                            <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-secondary">
-                                Go To List
-                            </a>
+                            <div class="d-flex gap-2">
+                                <button type="button" id="btnResetVoucher" class="btn btn-warning mr-2">
+                                    Reset
+                                </button>
+
+                                <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-secondary">
+                                    Go To List
+                                </a>
+                            </div>
                         </div>
 
                         <div class="card-body">
@@ -1732,5 +1738,88 @@
                 $('#totalDrText').text(dr.toFixed(2));
                 $('#totalCrText').text(cr.toFixed(2));
             }
+
+            $('#btnResetVoucher').on('click', function() {
+
+                if (!confirm('Reset voucher? All entered data will be cleared.')) {
+                    return;
+                }
+
+                /* ================= RESET FORM ================= */
+                const $form = $('#voucherForm')[0];
+                $form.reset();
+
+                /* ================= RESET VOUCHER TYPE ================= */
+                $('#voucher_type').val('Journal').trigger('change');
+                $('#voucherTypeLabel').text('Journal');
+
+                /* ================= RESET TABLE ================= */
+                const $tbody = $('#linesTable tbody');
+                $tbody.empty();
+
+                // Add ONE fresh row
+                $tbody.append(`
+            <tr class="line">
+                <td width="5%">
+                    <input type="hidden" name="lines[0][amount]" class="amount">
+                    <select name="lines[0][dc]" class="dc-select">
+                        <option value="Dr">By</option>
+                        <option value="Cr">To</option>
+                    </select>
+                </td>
+
+                <td width="80%">
+                    <select name="lines[0][ledger_id]" class="ledger">
+                        <option value="">Select Ledger</option>
+                        @foreach ($ledgers as $l)
+                            <option value="{{ $l->id }}" data-group-id="{{ $l->group_id }}">
+                                {{ $l->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </td>
+
+                <td width="5%" class="text-end">
+                    <input type="number" class="dr-input text-end">
+                </td>
+
+                <td width="5%" class="text-end">
+                    <input type="number" class="cr-input text-end">
+                </td>
+
+                <td class="text-center" width="5%">
+                    <span class="remove" style="display:none;">
+                        <i class="fa-solid fa-xmark"></i>
+                    </span>
+                </td>
+            </tr>
+        `);
+
+                /* ================= REMOVE CUR BAL ROWS ================= */
+                $('.cur-bal-row').remove();
+
+                /* ================= RESET TOTALS ================= */
+                $('#totalDr').val('0.00');
+                $('#totalCr').val('0.00');
+                $('#totalDrText').text('0.00');
+                $('#totalCrText').text('0.00');
+
+                /* ================= RESET NARRATION ================= */
+                $('input[name="narration"]').val('');
+
+                /* ================= RESET SUBMIT BUTTON ================= */
+                $('#btnSubmit').hide();
+
+                /* ================= REAPPLY RULES ================= */
+                applyDcRules();
+                lockFirstRowDC();
+                syncAmountInputs($('#linesTable tbody tr:first'));
+                toggleRemoveButtons();
+                updateDrCrTotals();
+
+                /* ================= FETCH NEW VOUCHER NO ================= */
+                $('#voucher_type').trigger('change');
+
+            });
         </script>
     @endsection

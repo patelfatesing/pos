@@ -50,310 +50,310 @@
             color: red;
         }
 
-            #linesTable {
-                width: 100%;
-                font-family: monospace;
-                table-layout: fixed;
-            }
+        #linesTable {
+            width: 100%;
+            font-family: monospace;
+            table-layout: fixed;
+        }
 
-            #linesTable thead th {
-                border-top: 4px solid #a7a3a3;
-                border-bottom: 3px solid #bbb8b8;
-                font-weight: bold;
-                margin-left: 10px;
-            }
-
-
-            #linesTable tfoot td {
-                /* border-top: 1px solid #ccc;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    border-bottom: 1px solid #ccc; */
-                font-weight: bold;
-            }
-
-            #linesTable td {
-                vertical-align: middle;
-            }
-
-            #linesTable select,
-            #linesTable input {
-                border: none;
-                background: transparent;
-                box-shadow: none;
-            }
-
-            #linesTable select:focus,
-            #linesTable input:focus {
-                outline: none;
-            }
-
-            #linesTable tbody tr.line:hover {
-                background: #F3E6A1;
-            }
-
-            .voucher-header {
-                background: #32bdea;
-                color: #fff;
-                font-weight: bold;
-                padding: 6px;
-            }
-
-            .voucher-type-label {
-                background: #32bdea;
-                color: #fff;
-                font-weight: bold;
-                padding: 6px 20px;
-                display: inline-block;
-            }
-
-            .remove {
-                cursor: pointer;
-                color: #c0392b;
-                font-weight: bold;
-                font-size: 18px;
-                padding: 4px 8px;
-                border-radius: 4px;
-            }
-
-            .remove:hover {
-                background-color: #ffe6e6;
-                color: #ff0000;
-            }
-
-            .sticky-actions {
-                position: sticky;
-                bottom: 0;
-                background: #fff;
-                padding: 10px;
-                border-top: 1px solid #ddd;
-                text-align: right;
-            }
-
-            /* Right-side voucher type panel */
-            .type-pills-vertical {
-                position: sticky;
-                top: 1.25rem;
-                display: flex;
-                flex-direction: column;
-                gap: .4rem;
-                background: #fff;
-                border: 1px solid #ddd;
-                padding: .5rem;
-            }
-
-            .type-pills-vertical .btn.active {
-                background: #32bdea;
-                color: #fff;
-            }
+        #linesTable thead th {
+            border-top: 4px solid #a7a3a3;
+            border-bottom: 3px solid #bbb8b8;
+            font-weight: bold;
+            margin-left: 10px;
+        }
 
 
-            .btn-outline-primary {
-                color: #000;
-                background-color: #fff;
-                border-color: #000;
-                text-align: center;
-                border-radius: 0;
-                box-shadow: 2px 2px 4px #ccc;
-            }
+        #linesTable tfoot td {
+            /* border-top: 1px solid #ccc;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        border-bottom: 1px solid #ccc; */
+            font-weight: bold;
+        }
 
-            /* ================= REMOVE DROPDOWN ICON (TALLY STYLE) ================= */
+        #linesTable td {
+            vertical-align: middle;
+        }
 
-            /* Chrome, Edge, Safari */
-            #linesTable select,
-            #linesTable select:focus {
-                -webkit-appearance: none;
-                appearance: none;
-                background-image: none !important;
-                padding-right: 4px;
-                padding-left: 5px;
-                /* small spacing like Tally */
-            }
+        #linesTable select,
+        #linesTable input {
+            border: none;
+            background: transparent;
+            box-shadow: none;
+        }
 
-            /* Firefox */
-            #linesTable select {
-                -moz-appearance: none;
-            }
+        #linesTable select:focus,
+        #linesTable input:focus {
+            outline: none;
+        }
 
-            /* IE / old Edge */
-            #linesTable select::-ms-expand {
-                display: none;
-            }
+        #linesTable tbody tr.line:hover {
+            background: #F3E6A1;
+        }
 
-            /* ================= REMOVE DATE ICON (TALLY STYLE) ================= */
+        .voucher-header {
+            background: #32bdea;
+            color: #fff;
+            font-weight: bold;
+            padding: 6px;
+        }
 
-            /* Chrome, Edge, Safari */
-            input[type="date"]::-webkit-calendar-picker-indicator {
-                display: none;
-                -webkit-appearance: none;
-            }
+        .voucher-type-label {
+            background: #32bdea;
+            color: #fff;
+            font-weight: bold;
+            padding: 6px 20px;
+            display: inline-block;
+        }
 
-            /* Firefox */
-            input[type="date"] {
-                appearance: none;
-                -moz-appearance: textfield;
-            }
+        .remove {
+            cursor: pointer;
+            color: #c0392b;
+            font-weight: bold;
+            font-size: 18px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
 
-            /* Prevent extra padding caused by hidden icon */
-            input[type="date"] {
-                padding-right: 0;
-            }
+        .remove:hover {
+            background-color: #ffe6e6;
+            color: #ff0000;
+        }
 
-            /* ================= VOUCHER DATE (IMAGE STYLE) ================= */
+        .sticky-actions {
+            position: sticky;
+            bottom: 0;
+            background: #fff;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+            text-align: right;
+        }
 
-            .voucher-date-box {
-                text-align: right;
-                line-height: 1.2;
-            }
+        /* Right-side voucher type panel */
+        .type-pills-vertical {
+            position: sticky;
+            top: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: .4rem;
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: .5rem;
+        }
 
-            .voucher-date-input {
-                border: none;
-                background: transparent;
-                font-weight: bold;
-                font-size: 16px;
-                text-align: right;
-                padding: 0;
-            }
+        .type-pills-vertical .btn.active {
+            background: #32bdea;
+            color: #fff;
+        }
 
-            /* remove calendar icon (already discussed, safe to repeat) */
-            .voucher-date-input::-webkit-calendar-picker-indicator {
-                display: none;
-            }
 
-            .voucher-day {
-                font-size: 14px;
-                color: #5a5a8a;
-                /* bluish-grey like image */
-                font-weight: normal;
-                margin-top: 2px;
-            }
+        .btn-outline-primary {
+            color: #000;
+            background-color: #fff;
+            border-color: #000;
+            text-align: center;
+            border-radius: 0;
+            box-shadow: 2px 2px 4px #ccc;
+        }
 
-            #linesTable tfoot tr:first-child td {
-                padding-top: 12px;
-                border-top: 1px solid #ccc;
-            }
+        /* ================= REMOVE DROPDOWN ICON (TALLY STYLE) ================= */
 
-            /* ================= TALLY ACCOUNT HEADER ================= */
+        /* Chrome, Edge, Safari */
+        #linesTable select,
+        #linesTable select:focus {
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: none !important;
+            padding-right: 4px;
+            padding-left: 5px;
+            /* small spacing like Tally */
+        }
 
-            .tally-account-box {
-                font-family: monospace;
-                font-size: 15px;
-            }
+        /* Firefox */
+        #linesTable select {
+            -moz-appearance: none;
+        }
 
-            .tally-account-box td {
-                padding: 2px 4px;
-                vertical-align: middle;
-            }
+        /* IE / old Edge */
+        #linesTable select::-ms-expand {
+            display: none;
+        }
 
-            .tally-particulars-header {
-                font-family: monospace;
-                font-weight: bold;
-                padding: 4px 6px;
-                border-top: 1px solid #999;
-                border-bottom: 1px solid #999;
-                margin-bottom: 4px;
-            }
+        /* ================= REMOVE DATE ICON (TALLY STYLE) ================= */
 
-            /* ================= TALLY STYLE SELECT (NO ARROW) ================= */
+        /* Chrome, Edge, Safari */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            display: none;
+            -webkit-appearance: none;
+        }
 
-            /* Chrome, Edge, Safari */
-            .account-ledger,
-            .account-ledger:focus {
-                -webkit-appearance: none;
-                appearance: none;
-                background-image: none !important;
-                border: none;
-                padding-left: 5px;
-                padding-right: 0;
-                font-family: monospace;
-                font-weight: bold;
-            }
+        /* Firefox */
+        input[type="date"] {
+            appearance: none;
+            -moz-appearance: textfield;
+        }
 
-            /* Firefox */
-            .account-ledger {
-                -moz-appearance: none;
-            }
+        /* Prevent extra padding caused by hidden icon */
+        input[type="date"] {
+            padding-right: 0;
+        }
 
-            /* Old Edge / IE */
-            .account-ledger::-ms-expand {
-                display: none;
-            }
+        /* ================= VOUCHER DATE (IMAGE STYLE) ================= */
 
-            /* Tally-style disabled amount box */
-            .dr-input:disabled,
-            .cr-input:disabled {
-                color: #999;
-                cursor: not-allowed;
-            }
+        .voucher-date-box {
+            text-align: right;
+            line-height: 1.2;
+        }
 
-            .hidden-amount {
-                display: none !important;
-            }
+        .voucher-date-input {
+            border: none;
+            background: transparent;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: right;
+            padding: 0;
+        }
 
-            /* Remove number input arrows - Chrome, Edge, Safari */
-            input[type=number]::-webkit-inner-spin-button,
-            input[type=number]::-webkit-outer-spin-button {
-                -webkit-appearance: none;
-                margin: 0;
-            }
+        /* remove calendar icon (already discussed, safe to repeat) */
+        .voucher-date-input::-webkit-calendar-picker-indicator {
+            display: none;
+        }
 
-            /* Remove number input arrows - Firefox */
-            input[type=number] {
-                -moz-appearance: textfield;
-            }
+        .voucher-day {
+            font-size: 14px;
+            color: #5a5a8a;
+            /* bluish-grey like image */
+            font-weight: normal;
+            margin-top: 2px;
+        }
 
-            .cur-bal-row {
-                color: #444;
-                font-style: italic;
-            }
+        #linesTable tfoot tr:first-child td {
+            padding-top: 12px;
+            border-top: 1px solid #ccc;
+        }
 
-            .dc-select {
-                border: none;
-                background: transparent;
-                font-family: monospace;
-                font-weight: bold;
-                width: 55px;
-                appearance: none;
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                cursor: pointer;
-            }
+        /* ================= TALLY ACCOUNT HEADER ================= */
 
-            .dc-select:disabled {
-                color: #555;
-                cursor: not-allowed;
-            }
+        .tally-account-box {
+            font-family: monospace;
+            font-size: 15px;
+        }
 
-            /* ================= DR / CR INPUT HIGHLIGHT ================= */
+        .tally-account-box td {
+            padding: 2px 4px;
+            vertical-align: middle;
+        }
 
-            /* Hover effect */
-            .dr-input:hover,
-            .cr-input:hover {
-                background-color: #fff6cc !important;
-                border: 1px solid #010101 !important;
-                cursor: text !important;
-            }
+        .tally-particulars-header {
+            font-family: monospace;
+            font-weight: bold;
+            padding: 4px 6px;
+            border-top: 1px solid #999;
+            border-bottom: 1px solid #999;
+            margin-bottom: 4px;
+        }
 
-            /* Focus (cursor inside) */
-            .dr-input:focus,
-            .cr-input:focus {
-                background-color: #fff1a8 !important;
-                border: 1px solid #010101 !important;
-                outline: none !important;
-                box-shadow: 0 0 2px rgba(201, 168, 0, 0.6) !important;
-            }
+        /* ================= TALLY STYLE SELECT (NO ARROW) ================= */
 
-            /* Smooth transition */
-            .dr-input,
-            .cr-input {
-                transition: background-color 0.15s ease, border 0.15s ease, box-shadow 0.15s ease !important;
-            }
+        /* Chrome, Edge, Safari */
+        .account-ledger,
+        .account-ledger:focus {
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: none !important;
+            border: none;
+            padding-left: 5px;
+            padding-right: 0;
+            font-family: monospace;
+            font-weight: bold;
+        }
 
-            .dr-input {
-                width: 100px !important;
-            }
+        /* Firefox */
+        .account-ledger {
+            -moz-appearance: none;
+        }
 
-            .cr-input {
-                width: 100px !important;
-            }
+        /* Old Edge / IE */
+        .account-ledger::-ms-expand {
+            display: none;
+        }
+
+        /* Tally-style disabled amount box */
+        .dr-input:disabled,
+        .cr-input:disabled {
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .hidden-amount {
+            display: none !important;
+        }
+
+        /* Remove number input arrows - Chrome, Edge, Safari */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Remove number input arrows - Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .cur-bal-row {
+            color: #444;
+            font-style: italic;
+        }
+
+        .dc-select {
+            border: none;
+            background: transparent;
+            font-family: monospace;
+            font-weight: bold;
+            width: 55px;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            cursor: pointer;
+        }
+
+        .dc-select:disabled {
+            color: #555;
+            cursor: not-allowed;
+        }
+
+        /* ================= DR / CR INPUT HIGHLIGHT ================= */
+
+        /* Hover effect */
+        .dr-input:hover,
+        .cr-input:hover {
+            background-color: #fff6cc !important;
+            border: 1px solid #010101 !important;
+            cursor: text !important;
+        }
+
+        /* Focus (cursor inside) */
+        .dr-input:focus,
+        .cr-input:focus {
+            background-color: #fff1a8 !important;
+            border: 1px solid #010101 !important;
+            outline: none !important;
+            box-shadow: 0 0 2px rgba(201, 168, 0, 0.6) !important;
+        }
+
+        /* Smooth transition */
+        .dr-input,
+        .cr-input {
+            transition: background-color 0.15s ease, border 0.15s ease, box-shadow 0.15s ease !important;
+        }
+
+        .dr-input {
+            width: 100px !important;
+        }
+
+        .cr-input {
+            width: 100px !important;
+        }
     </style>
 
     <div class="wrapper">
@@ -362,17 +362,16 @@
                 <div class="card">
 
                     <div class="card-header d-flex justify-content-between">
-                        <h4>Edit Accounting Voucher</h4>
+                        <h4>Accounting Voucher Alteration(Secondary)</h4>
                         <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-secondary">Back</a>
                     </div>
 
                     <div class="card-body">
 
-                        <form action="{{ route('accounting.vouchers.update', $voucher->id) }}" method="POST"
-                            id="voucherForm">
+                        <form action="{{ route('accounting.vouchers.update') }}" method="POST" id="voucherForm">
                             @csrf
                             @method('PUT')
-
+                            <input type="hidden" name="id" id="id" value="{{ $voucher->id }}">
                             <input type="hidden" name="voucher_type" id="voucher_type"
                                 value="{{ $voucher->voucher_type }}">
 
@@ -400,7 +399,7 @@
                                 <thead>
                                     <tr>
                                         <th width="5%"></th>
-                                        <th width="75%">Particulars</th>
+                                        <th width="70%">Particulars</th>
                                         <th width="10%" class="text-end">Debit</th>
                                         <th width="10%" class="text-end">Credit</th>
                                         <th></th>
@@ -474,11 +473,11 @@
             </div>
         </div>
 
-        {{-- ================= SCRIPT ================= --}}
         <script>
+            let lineIndex = {{ count($voucher->lines) }};
+
             function syncAmountInputs(row) {
                 const dc = row.find('.dc-select').val();
-
                 row.find('.dr-input, .cr-input').addClass('hidden-amount');
 
                 if (dc === 'Dr') row.find('.dr-input').removeClass('hidden-amount');
@@ -490,44 +489,142 @@
                     cr = 0;
 
                 $('#linesTable tbody tr').each(function() {
-                    const d = parseFloat($(this).find('.dr-input').val()) || 0;
-                    const c = parseFloat($(this).find('.cr-input').val()) || 0;
-                    dr += d;
-                    cr += c;
+                    dr += parseFloat($(this).find('.dr-input').val()) || 0;
+                    cr += parseFloat($(this).find('.cr-input').val()) || 0;
                 });
 
                 $('#totalDrText').text(dr.toFixed(2));
                 $('#totalCrText').text(cr.toFixed(2));
             }
 
+            /* ================= ADD AUTO BALANCING ROW ================= */
+
+            function addAutoRow(dc, amount) {
+                if (amount <= 0) return;
+
+                const row = `
+        <tr class="line auto-row">
+            <td>
+                <input type="hidden" name="lines[${lineIndex}][amount]" class="amount" value="${amount}">
+                <select name="lines[${lineIndex}][dc]" class="dc-select">
+                    <option value="Dr" ${dc === 'Dr' ? 'selected' : ''}>By</option>
+                    <option value="Cr" ${dc === 'Cr' ? 'selected' : ''}>To</option>
+                </select>
+            </td>
+
+            <td>
+                <select name="lines[${lineIndex}][ledger_id]" class="ledger">
+                    <option value="">Select Ledger</option>
+                    @foreach ($ledgers as $l)
+                        <option value="{{ $l->id }}">{{ $l->name }}</option>
+                    @endforeach
+                </select>
+            </td>
+
+            <td>
+                <input type="number" class="dr-input" value="${dc === 'Dr' ? amount : ''}">
+            </td>
+
+            <td>
+                <input type="number" class="cr-input" value="${dc === 'Cr' ? amount : ''}">
+            </td>
+
+            <td>
+                <span class="remove"><i class="fa fa-times"></i></span>
+            </td>
+        </tr>`;
+
+                $('#linesTable tbody').append(row);
+                syncAmountInputs($('#linesTable tbody tr:last'));
+                updateTotals();
+                lineIndex++;
+            }
+
+            /* ================= PREVENT ENTER SUBMIT ================= */
+
+            $('#voucherForm').on('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+            /* ================= DOCUMENT READY ================= */
+
             $(document).ready(function() {
 
-                // Restore UI
+                // Initial sync
                 $('#linesTable tbody tr').each(function() {
                     syncAmountInputs($(this));
                 });
 
                 updateTotals();
 
-                // Change DC
+                $(document).on('focus', '.dr-input, .cr-input', function() {
+                    $(this).data('old', parseFloat(this.value) || 0);
+                });
+
+                $(document).on('blur', '.dr-input, .cr-input', function() {
+
+                    const row = $(this).closest('tr');
+                    if (row.hasClass('auto-row')) return;
+
+                    const isDr = $(this).hasClass('dr-input');
+                    const oldVal = parseFloat($(this).data('old')) || 0;
+                    const newVal = parseFloat(this.value) || 0;
+                    const diff = newVal - oldVal;
+
+                    if (diff === 0) return;
+
+                    // Update own hidden amount
+                    row.find('.amount').val(newVal);
+
+                    // ===== FIND NEXT ROW (TALLY STYLE) =====
+                    let nextRow = row.next('tr.line');
+
+                    const applyDc = isDr ?
+                        (diff > 0 ? 'Cr' : 'Dr') :
+                        (diff > 0 ? 'Dr' : 'Cr');
+
+                    const absDiff = Math.abs(diff);
+
+                    if (nextRow.length) {
+                        // === APPLY TO EXISTING NEXT ROW ===
+
+                        const drInput = nextRow.find('.dr-input');
+                        const crInput = nextRow.find('.cr-input');
+
+                        if (applyDc === 'Dr') {
+                            drInput.val((parseFloat(drInput.val()) || 0) + absDiff);
+                            crInput.val('');
+                        } else {
+                            crInput.val((parseFloat(crInput.val()) || 0) + absDiff);
+                            drInput.val('');
+                        }
+
+                        nextRow.find('.dc-select').val(applyDc);
+                        nextRow.find('.amount').val(absDiff);
+                        syncAmountInputs(nextRow);
+
+                    } else {
+                        // === NO NEXT ROW → CREATE ONE ===
+                        addAutoRow(applyDc, absDiff);
+                    }
+
+                    updateTotals();
+                });
+
+
+                /* DC change */
                 $(document).on('change', '.dc-select', function() {
                     const row = $(this).closest('tr');
                     row.find('.dr-input, .cr-input').val('');
+                    row.find('.amount').val(0);
                     syncAmountInputs(row);
                     updateTotals();
                 });
 
-                // Amount change
-                $(document).on('input', '.dr-input, .cr-input', function() {
-                    const row = $(this).closest('tr');
-                    const dr = parseFloat(row.find('.dr-input').val()) || 0;
-                    const cr = parseFloat(row.find('.cr-input').val()) || 0;
-
-                    row.find('.amount').val(dr > 0 ? dr : cr);
-                    updateTotals();
-                });
-
-                // Remove row
+                /* Remove row */
                 $(document).on('click', '.remove', function() {
                     $(this).closest('tr').remove();
                     updateTotals();

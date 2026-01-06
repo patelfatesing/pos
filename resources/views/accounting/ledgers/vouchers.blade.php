@@ -136,7 +136,7 @@
         <div class="content-page">
             <div class="container-fluid">
 
-                <!-- ================= HEADER ================= -->
+
                 <div class="tally-header d-flex justify-content-between align-items-center">
                     <div>
                         <h5>Ledger Vouchers — {{ $ledger->name }}</h5>
@@ -157,40 +157,37 @@
                     </div>
                 </div>
 
-                <!-- ================= TABLE ================= -->
-                <table id="vouchersTable" class="display" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Particulars</th>
-                            <th>Vch Type</th>
-                            <th>Vch No</th>
-                            <th>Debit</th>
-                            <th>Credit</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-
-                <!-- ================= BALANCE FOOTER ================= -->
-                <div class="tally-footer-right">
-                    <table>
-                        <tr>
-                            <td>Opening :</td>
-                            <td id="openingBalance" class="text-right">-</td>
-                        </tr>
-                        <tr>
-                            <td>Current :</td>
-                            <td id="currentTotal" class="text-right">-</td>
-                        </tr>
-                        <tr class="tally-closing">
-                            <td>Closing :</td>
-                            <td id="closingBalance" class="text-right">-</td>
-                        </tr>
+                <div class="table-responsive rounded mb-3">
+                    <table id="vouchersTable" class="display" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Particulars</th>
+                                <th>Vch Type</th>
+                                <th>Vch No</th>
+                                <th>Debit</th>
+                                <th>Credit</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
                     </table>
+                    <div class="tally-footer-right">
+                        <table>
+                            <tr>
+                                <td>Opening :</td>
+                                <td id="openingBalance" class="text-right">-</td>
+                            </tr>
+                            <tr>
+                                <td>Current :</td>
+                                <td id="currentTotal" class="text-right">-</td>
+                            </tr>
+                            <tr class="tally-closing">
+                                <td>Closing :</td>
+                                <td id="closingBalance" class="text-right">-</td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
-
-
             </div>
         </div>
     </div>
@@ -219,7 +216,7 @@
                         d.end_date = end;
                     },
                     dataSrc: function(json) {
-
+                        console.log(json);
                         /* ---------- OPENING ---------- */
                         const opening = json.opening || {
                             balance: 0
@@ -261,10 +258,22 @@
                         data: 'particulars',
                         className: 'col-particulars',
                         render: function(d, t, r) {
+
+                            // Detail rows → no link
                             if (r.type === 'detail') {
                                 return `<span style="padding-left:30px;">${d}</span>`;
                             }
-                            return `<strong>${d}</strong>`;
+
+                            // Main rows → clickable link
+                            let url = "{{ route('accounting.vouchers.edit', ':id') }}";
+                            url = url.replace(':id', r.id);
+
+                            return `
+                                <a href="${url}"
+                                class="text-decoration-none text-dark fw-bold">
+                                    ${d}
+                                </a>
+                            `;
                         }
                     },
                     {
@@ -280,16 +289,14 @@
                         className: 'text-end',
                         render: (d, t, r) =>
                             r.type === 'main' && d !== null ?
-                            parseFloat(d).toFixed(2) :
-                            ''
+                            parseFloat(d).toFixed(2) : ''
                     },
                     {
                         data: 'credit',
                         className: 'text-end',
                         render: (d, t, r) =>
                             r.type === 'main' && d !== null ?
-                            parseFloat(d).toFixed(2) :
-                            ''
+                            parseFloat(d).toFixed(2) : ''
                     }
                 ],
                 createdRow: function(row, data) {
