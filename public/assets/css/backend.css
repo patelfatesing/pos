@@ -10337,9 +10337,9 @@ i.amber-text {
   margin: 0; }
 
 .iq-footer {
-  padding: 0 15px;
+  padding: 0;
   margin-left: 260px;
-  width: calc(100vw - 264px);
+  width: calc(100vw - 265px);
   background: #fff;
   box-shadow: none;
   -webkit-transition: all 0.3s ease-in-out;
@@ -20177,30 +20177,15 @@ button.close-popup {
 
 .card-item-right .style-text {
   margin-left: 20px; }
-
-.card .card-header.order-detail {
-  padding-top: 30px; }
-
-i {
-  vertical-align: middle; }
-
-.top-product.slick-slider {
-  margin: 0 -10px; }
-  .top-product.slick-slider .slick-slide {
-    padding: 0 10px; }
+.card .card-header.order-detail { padding-top: 30px; } 
+i { vertical-align: middle; }
+.top-product.slick-slider { margin: 0 -10px; }
+.top-product.slick-slider .slick-slide { padding: 0 10px; }
 
 @media (max-width: 533px) {
-  .progress-order-right {
-    margin-left: 10px !important; }
-  .progress-value {
-    padding-right: 10px !important; } }
-
+  .progress-order-right { margin-left: 10px !important; }
+  .progress-value { padding-right: 10px !important; } 
+}
 @media (max-width: 470px) {
-  .progress-order-right {
-    margin-left: 0px !important;
-    margin-top: 20px; }
-  .progress-value {
-    padding-right: 20px !important;
-    border: 0 !important; }
-  .card-item-right .style-text {
-    margin-left: 10px; } }
+  .progress-order-right { margin-left: 0px !important; margin-top: 20px; } .progress-value { padding-right: 20px !important; border: 0 !important; } .card-item-right .style-text { margin-left: 10px; } 
+}
