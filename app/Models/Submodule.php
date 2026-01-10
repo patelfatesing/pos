@@ -4,6 +4,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\RolePermission;
 
 class Submodule extends Model
 {
@@ -12,4 +13,10 @@ class Submodule extends Model
     {
         return $this->belongsTo(Module::class);
     }
+
+     public function permission()
+    {
+        return $this->hasOne(RolePermission::class, 'submodule_id');
+    }
 }
+    

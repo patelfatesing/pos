@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Roles;
 use App\Models\Role;
 use App\Models\Permission;
+use App\Models\Module;
+use App\Models\RolePermission;
 use Illuminate\Http\Request;
 
 class RolesController extends Controller
@@ -51,8 +53,8 @@ class RolesController extends Controller
         $url = url('/');
 
         foreach ($data as $role) {
-            // $action = "<a href='" . $url . "/roles/edit/" . $role->id . "' class='btn btn-info mr-2'>Edit</a>";
-            $action = "<a href='" . $url . "/roles/view/" . $role->id . "' class='btn btn-primary mr-2'>View</a>";
+            $action = "<a href='" . $url . "/roles/edit/" . $role->id . "' class='btn btn-info mr-2'>Edit</a>";
+            $action .= "<a href='" . $url . "/roles/view/" . $role->id . "' class='btn btn-primary mr-2'>View</a>";
             $action .= '<button type="button" onclick="delete_role(' . $role->id . ')" class="btn btn-danger ml-2">Delete</button>';
 
             $records[] = [
@@ -159,10 +161,23 @@ class RolesController extends Controller
     }
 
     // Show edit form
-    public function edit($id)
+    // public function edit($id)
+    // {
+    //     $record = Roles::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
+    //     return view('roles.edit', compact('record'));
+    // }
+
+
+    public function edit($roleId)
     {
-        $record = Roles::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
-        return view('roles.edit', compact('record'));
+        $record = Roles::where('id', $roleId)->where('is_deleted', 'no')->firstOrFail();
+        $modules = Module::with('submodules')->get();
+
+        $permissions = RolePermission::where('role_id', $roleId)
+            ->pluck('access', 'submodule_id')
+            ->toArray();
+
+        return view('roles.edit', compact('modules', 'permissions', 'roleId', 'record'));
     }
 
     // Update a record
@@ -170,20 +185,54 @@ class RolesController extends Controller
     {
         $id = $request->id;
 
-        $record = Roles::findOrFail($id);
-
+        // Validate role basic data
         $validated = $request->validate([
-            'name' => 'sometimes|string|unique:roles,name,' . $id . '|max:255',
-            'is_active' => 'nullable|in:yes,no',
-        ], [
-            'name.unique' => 'This role name already exists.',
-            'name.max' => 'The role name must not exceed 255 characters.',
-            'is_active.in' => 'The is_active field must be either "yes" or "no".',
+            'name' => 'required|string|max:255|unique:roles,name,' . $id,
+            'is_active' => 'required|in:yes,no',
         ]);
 
-        $record->update($validated);
+        // Update role record
+        $role = Roles::findOrFail($id);
+        $role->update($validated);
 
-        return redirect()->route('roles.list')->with('success', 'Record updated successfully.');
+        // =============================
+        //      HANDLE PERMISSIONS
+        // =============================
+
+        // Clear old permissions (optional)
+        RolePermission::where('role_id', $id)->delete();
+
+        if ($request->has('modules')) {
+
+            foreach ($request->modules as $module_id => $value) {
+                $is_active = $value === 'yes' ? 'yes' : 'no';
+
+                Module::where('id', $module_id)
+                    ->update(['is_active' => $is_active]);
+            }
+        }
+
+
+        // If permissions exist in request
+        if ($request->has('permissions')) {
+            foreach ($request->permissions as $submodule_id => $permData) {
+
+                // Ensure valid access value exists
+                $access = $permData['access'] ?? 'no';
+
+                RolePermission::updateOrCreate(
+                    [
+                        'role_id' => $id,
+                        'submodule_id' => $submodule_id
+                    ],
+                    [
+                        'access' => $access
+                    ]
+                );
+            }
+        }
+
+        return redirect()->route('roles.list')->with('success', 'Role updated successfully.');
     }
 
     // Soft delete a record
