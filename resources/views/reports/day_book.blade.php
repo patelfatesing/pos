@@ -3,19 +3,28 @@
 @section('styles')
 @endsection
 
+<style>
+.content-page.daybook-page { padding: 90px 0 0; min-height: calc(100% - 97px); }
+.daybook-page .card-header,
+.daybook-header { display: flex; align-items: center; gap: 15px; justify-content: space-between; }
+.daybook-header h4 { font-size: 18px; line-height: 22px; }
+.daybook-page .card .card-header { background: #528da1; border-top-left-radius: 10px; border-top-right-radius: 10px; color: #fff; }
+.title-table { font-size: 14px; font-weight: bold; margin: 0; }
+.text-end { text-align: right; }
+.daybook-page .table thead th { vertical-align: top; }
+.daybook-page .table thead th span { border-top: 1px solid #000; display: block; margin-top: 3px; }
+.daybook-page .table td { padding: 4.8px !important; }
+
+</style>
 @section('page-content')
     <div class="wrapper">
-        <div class="content-page">
+        <div class="content-page daybook-page">
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-lg-12">
-                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                            <div>
-                                <h4 class="mb-3">Day Book</h4>
-                            </div>
-                            <div>
-                                <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
-                            </div>
+                        <div class="d-flex daybook-header flex-wrap align-items-center justify-content-between mb-2">
+                            <h4 class="mb-0">Day Book</h4>
+                            <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
                         </div>
                     </div>
                     <div class="col-lg-12">
@@ -25,21 +34,22 @@
                             <div class="card">
                                 <div class="card-header py-2">
                                     <strong>Day Book</strong>
+                                    <h5 class="title-table">Liqure HUB</h5>
                                     <span class="float-end small">
                                         For {{ \Carbon\Carbon::parse($fromDate)->format('d-M-y') }}
                                     </span>
                                 </div>
 
                                 <div class="card-body p-0">
-                                    <table class="table table-sm table-bordered mb-0" style="font-family: monospace;">
+                                    <table class="table table-sm mb-0" style="font-family: monospace;">
                                         <thead>
                                             <tr>
                                                 <th style="width:90px">Date</th>
                                                 <th>Particulars</th>
                                                 <th style="width:90px">Vch Type</th>
                                                 <th style="width:70px">Vch No.</th>
-                                                <th class="text-end" style="width:120px">Debit Amount</th>
-                                                <th class="text-end" style="width:120px">Credit Amount</th>
+                                                <th class="text-end" style="width:120px">Debit Amount <span>Inward Qty</span></th>
+                                                <th class="text-end" style="width:120px">Credit Amount <span>Outwards Qty</span></th>
                                             </tr>
                                         </thead>
 

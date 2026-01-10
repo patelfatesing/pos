@@ -681,6 +681,39 @@ if (jQuery("#apex-radialbar-chart").length) {
     apexChartUpdate(chart, e.detail)
   })
 }
+if (jQuery("#apex-pie-chart").length) {
+  options = {
+    chart: {
+      width: 380,
+      type: "pie"
+    },
+    labels: ["Team A", "Team B", "Team C", "Team D", "Team E"],
+    series: [44, 55, 13, 43, 22],
+    colors: ["#4788ff", "#ff4b4b", "#876cfe", "#37e6b0", "#c8c8c8"],
+    responsive: [{
+      breakpoint: 480,
+      options: {
+        chart: {
+          width: 200
+        },
+        legend: {
+          position: "bottom"
+        }
+      }
+    }]
+  };
+  (chart = new ApexCharts(document.querySelector("#apex-pie-chart"), options)).render()
+  const body = document.querySelector('body')
+  if (body.classList.contains('dark')) {
+    apexChartUpdate(chart, {
+      dark: true
+    })
+  }
+
+  document.addEventListener('ChangeColorMode', function (e) {
+    apexChartUpdate(chart, e.detail)
+  })
+}
 if (jQuery("#advanced-chart").length) {
   var options = {
     series: [
@@ -5127,6 +5160,137 @@ if (jQuery("#editor").length) {
       apexChartUpdate(chart, e.detail)
     })
   }
+  if(jQuery('#layout1-chart-2').length){
+    am4core.ready(function() {
+
+    // Themes begin
+    am4core.useTheme(am4themes_animated);
+    // Themes end
+    
+    // Create chart instance
+    var chart = am4core.create("layout1-chart-2", am4charts.XYChart);
+    chart.colors.list = [
+		  am4core.color("#32BDEA"),
+		  am4core.color("#32BDEA"),
+		  am4core.color("#32BDEA"),
+		  am4core.color("#32BDEA"),
+		  am4core.color("#32BDEA"),
+		  am4core.color("#32BDEA"),
+		  am4core.color("#32BDEA"),
+		  am4core.color("#32BDEA"),
+		  am4core.color("#32BDEA")
+		];
+    chart.scrollbarX = new am4core.Scrollbar();
+    
+    // Add data
+    chart.data = [{
+      "country": "Jan",
+      "visits": 3025
+    }, {
+      "country": "Feb",
+      "visits": 1882
+    }, {
+      "country": "Mar",
+      "visits": 1809
+    }, {
+      "country": "Apr",
+      "visits": 1322
+    }, {
+      "country": "May",
+      "visits": 1122
+    }, {
+      "country": "Jun",
+      "visits": 1114
+    }, {
+      "country": "Jul",
+      "visits": 984
+    }, {
+      "country": "Aug",
+      "visits": 711
+    }];
+    
+    prepareParetoData();
+    
+    function prepareParetoData(){
+        var total = 0;
+    
+        for(var i = 0; i < chart.data.length; i++){
+            var value = chart.data[i].visits;
+            total += value;
+        }
+    
+        var sum = 0;
+        for(var i = 0; i < chart.data.length; i++){
+            var value = chart.data[i].visits;
+            sum += value;   
+            chart.data[i].pareto = sum / total * 100;
+        }    
+    }
+    
+    // Create axes
+    var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+    categoryAxis.dataFields.category = "country";
+    categoryAxis.renderer.grid.template.location = 0;
+    categoryAxis.renderer.minGridDistance = 60;
+    categoryAxis.tooltip.disabled = true;
+    
+    var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+    valueAxis.renderer.minWidth = 50;
+    valueAxis.min = 0;
+    valueAxis.cursorTooltipEnabled = false;
+
+    // Create series
+    var series = chart.series.push(new am4charts.ColumnSeries());
+    series.sequencedInterpolation = true;
+    series.dataFields.valueY = "visits";
+    series.dataFields.categoryX = "country";
+    series.tooltipText = "[{categoryX}: bold]{valueY}[/]";
+    series.columns.template.strokeWidth = 0;
+    
+    series.tooltip.pointerOrientation = "vertical";
+    
+    series.columns.template.column.cornerRadiusTopLeft = 10;
+    series.columns.template.column.cornerRadiusTopRight = 10;
+    series.columns.template.column.fillOpacity = 0.8;
+    
+    // on hover, make corner radiuses bigger
+    var hoverState = series.columns.template.column.states.create("hover");
+    hoverState.properties.cornerRadiusTopLeft = 0;
+    hoverState.properties.cornerRadiusTopRight = 0;
+    hoverState.properties.fillOpacity = 1;
+    
+    series.columns.template.adapter.add("fill", function(fill, target) {
+      return chart.colors.getIndex(target.dataItem.index);
+    })
+    
+    
+    var paretoValueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+    paretoValueAxis.renderer.opposite = true;
+    paretoValueAxis.min = 0;
+    paretoValueAxis.max = 100;
+    paretoValueAxis.strictMinMax = true;
+    paretoValueAxis.renderer.grid.template.disabled = true;
+    paretoValueAxis.numberFormatter = new am4core.NumberFormatter();
+    paretoValueAxis.numberFormatter.numberFormat = "#'%'"
+    paretoValueAxis.cursorTooltipEnabled = false;
+    
+    var paretoSeries = chart.series.push(new am4charts.LineSeries())
+    paretoSeries.dataFields.valueY = "pareto";
+    paretoSeries.dataFields.categoryX = "country";
+    paretoSeries.yAxis = paretoValueAxis;
+    paretoSeries.tooltipText = "pareto: {valueY.formatNumber('#.0')}%[/]";
+    paretoSeries.bullets.push(new am4charts.CircleBullet());
+    paretoSeries.strokeWidth = 2;
+    paretoSeries.stroke = new am4core.InterfaceColorSet().getFor("alternativeBackground");
+    paretoSeries.strokeOpacity = 0.5;
+    
+    // Cursor
+    chart.cursor = new am4charts.XYCursor();
+    chart.cursor.behavior = "panX";
+    
+    }); // end am4core.ready()
+  }
+
   if (jQuery("#layout1-chart-5").length) {    
     options = {
       series: [{
