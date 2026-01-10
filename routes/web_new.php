@@ -107,11 +107,11 @@ Route::get('/shift-summary/{shiftId}', [ShiftClosingController::class, 'getShift
 //     return view('dashboard');
 // })->middleware(['auth', 'verified'])->name('dashboard');
 
-
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 Route::get('/dashboard/store/{store}', [DashboardController::class, 'showStore'])->name('dashboard.store');
+
 Route::get('/dashboard/chart/sales-trend', [DashboardController::class, 'salesTrendChart']);
 Route::get('/dashboard/chart/purchase-trend', [DashboardController::class, 'purchaseTrendChart']);
 Route::get('/dashboard/chart/sales-overview', [DashboardController::class, 'salesOverviewChart']);
@@ -125,7 +125,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
 
     Route::get('/users/list', [UserController::class, 'index'])->name('users.list');
     Route::post('/users/get-data', [UserController::class, 'getData'])->name('users.getData');
@@ -533,12 +532,6 @@ Route::middleware('auth')->group(function () {
 
         Route::get('cash-bank/{ledger}', [CashBankReportController::class, 'ledger'])
             ->name('reports.cash-bank.ledger');
-
-        Route::get('cash-bank-summary', [CashBankReportController::class, 'cashBankSummary'])
-            ->name('reports.cash-bank.summary');
-
-        Route::get('monthly/{ledger}', [CashBankReportController::class, 'ledgerMonthly'])
-            ->name('reports.monthly');
     });
 
     // routes/web.php
@@ -562,7 +555,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/ledgers/edit/{id}', [LedgerController::class, 'edit'])->name('ledgers.edit');
         Route::put('/ledgers/update', [LedgerController::class, 'update'])->name('ledgers.update');
         Route::delete('/ledgers/delete/{id}', [LedgerController::class, 'destroy'])->name('ledgers.destroy');
-        Route::get('/ledger/current-balance/{ledger}', [LedgerController::class, 'currentBalance'])->name('ledger.current.balance');
+        Route::get('/ledger/current-balance/{ledger}',[LedgerController::class, 'currentBalance'])->name('ledger.current.balance');
 
         Route::get('vouchers',        [VoucherController::class, 'index'])->name('vouchers.index');
         Route::get('vouchers/create', [VoucherController::class, 'create'])->name('vouchers.create');

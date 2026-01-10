@@ -2,15 +2,19 @@
 @extends('layouts.backend.datatable_layouts')
 
 @section('page-content')
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<style>
 
+
+
+</style>
 
     <div class="wrapper">
-        <div class="content-page">
+        <div class="content-page accounting-ledgers-page">
             <div class="container-fluid">
-
-                <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
-                    <h4 class="mb-3">Account Ledgers</h4>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-3">
+                    <h4 class="mb-0">Account Ledgers</h4>
+                    <h5 class="title-table">Liqure HUB</h5>
                     <a href="{{ route('accounting.ledgers.create') }}" class="btn btn-primary">
                         <i class="las la-plus me-1"></i> Add Ledger
                     </a>

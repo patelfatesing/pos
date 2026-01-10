@@ -3,146 +3,55 @@
 @section('styles')
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 
-    <style>
-        /* ================= TALLY LOOK ================= */
-        body {
-            background: #f2f2f2;
-        }
+<style>
+/* ================= TALLY LOOK ================= */
+body { background: #f2f2f2; } 
+.tally-header { background: #32bdea; color: #fff; padding: 8px 12px; font-family: monospace; margin-bottom: 4px; } 
+.tally-header h5 { margin: 0; font-size: 16px; font-weight: bold; } 
+.tally-header small { font-size: 12px; opacity: 0.9; }
+.controls .btn, .controls select, .controls input { font-size: 12px; height: 26px; padding: 2px 6px; margin-left: 4px; } 
+/* ================= TABLE ================= */
+table.dataTable { font-family: monospace; font-size: 13px; background: #fff; border-collapse: collapse !important; } 
+table.dataTable thead th { border-top: 1px solid #999 !important; border-bottom: 1px solid #999 !important; font-weight: bold; padding: 4px 6px; }
+table.dataTable tbody td { padding: 3px 6px; border: none !important; white-space: nowrap; } 
+table.dataTable tbody tr.odd:hover,
+table.dataTable tbody tr.even:hover { background: #fff3b0 !important; color: #000; }
+table.dataTable tbody tr:hover { background: #fff3b0; color: #000; } 
+.col-particulars { text-align: left; width: 40%; overflow: hidden; text-overflow: ellipsis; }
+.col-center { text-align: center; } 
+.col-right { text-align: right; }
+.content-page.accounting-ledgers-page { padding: 90px 0 0; }
+/* ================= FOOTER BALANCE ================= */
+.tally-balance { font-family: monospace; font-size: 13px; background: #ffffff; border-top: 1px solid #999; padding: 6px 10px; display: flex; justify-content: space-between; }
+/* Hide DataTable UI */
+.dataTables_length, .dataTables_filter, .dataTables_info, .dataTables_paginate { display: none; }
+/* === RIGHT SIDE FIXED TOTAL (TALLY STYLE) === */
+.tally-footer-right { position: sticky; bottom: 0; float: right; background: #fff; border: 1px solid #999; padding: 6px 10px; font-family: monospace; font-size: 13px; min-width: 240px; z-index: 10; }
+.tally-footer-right table { width: 100%; } 
+.tally-footer-right td { padding: 2px 4px; } 
+.tally-footer-right td:last-child { text-align: right; font-weight: bold; } 
+.tally-closing td { border-top: 1px solid #999; padding-top: 6px; }
+.accounting-ledgers-page table.dataTable { margin: 0 !important; }
+.ledger-title { font-size: 0;}
+.ledger-title p { margin: 0; font-size: 14px; line-height: 1.2; }
+.controls .btn { background: #fff; border: 1px solid #ccc; color: #333;}
+.controls .btn-secondary { background: #32BDEA; border: 1px solid #32BDEA; color: #fff;}
 
-        .tally-header {
-            background: #32bdea;
-            color: #fff;
-            padding: 8px 12px;
-            font-family: monospace;
-            margin-bottom: 4px;
-        }
-
-        .tally-header h5 {
-            margin: 0;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .tally-header small {
-            font-size: 12px;
-            opacity: 0.9;
-        }
-
-        .controls .btn,
-        .controls select,
-        .controls input {
-            font-size: 12px;
-            height: 26px;
-            padding: 2px 6px;
-            margin-left: 4px;
-        }
-
-        /* ================= TABLE ================= */
-        table.dataTable {
-            font-family: monospace;
-            font-size: 13px;
-            background: #fff;
-            border-collapse: collapse !important;
-        }
-
-        table.dataTable thead th {
-            border-top: 1px solid #999 !important;
-            border-bottom: 1px solid #999 !important;
-            font-weight: bold;
-            padding: 4px 6px;
-        }
-
-        table.dataTable tbody td {
-            padding: 3px 6px;
-            border: none !important;
-            white-space: nowrap;
-        }
-
-        table.dataTable tbody tr:hover {
-            background: #eef6f6;
-        }
-
-        .col-particulars {
-            text-align: left;
-            width: 40%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .col-center {
-            text-align: center;
-        }
-
-        .col-right {
-            text-align: right;
-        }
-
-        /* ================= FOOTER BALANCE ================= */
-        .tally-balance {
-            font-family: monospace;
-            font-size: 13px;
-            background: #ffffff;
-            border-top: 1px solid #999;
-            padding: 6px 10px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        /* Hide DataTable UI */
-        .dataTables_length,
-        .dataTables_filter,
-        .dataTables_info,
-        .dataTables_paginate {
-            display: none;
-        }
-
-        /* === RIGHT SIDE FIXED TOTAL (TALLY STYLE) === */
-        .tally-footer-right {
-            position: sticky;
-            bottom: 0;
-            float: right;
-            margin-top: 5px;
-            background: #fff;
-            border: 1px solid #999;
-            padding: 6px 10px;
-            font-family: monospace;
-            font-size: 13px;
-            min-width: 240px;
-            z-index: 10;
-        }
-
-        .tally-footer-right table {
-            width: 100%;
-        }
-
-        .tally-footer-right td {
-            padding: 2px 4px;
-        }
-
-        .tally-footer-right td:last-child {
-            text-align: right;
-            font-weight: bold;
-        }
-
-        .tally-closing td {
-            border-top: 1px solid #999;
-            padding-top: 6px;
-        }
-    </style>
+</style>
 @endsection
 
 @section('page-content')
     <div class="wrapper">
-        <div class="content-page">
+        <div class="content-page accounting-ledgers-page">
             <div class="container-fluid">
 
-
-                <div class="tally-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5>Ledger Vouchers — {{ $ledger->name }}</h5>
-                        <small id="dateRangeLabel">{{ $start }} to {{ $end }}</small>
+                <!-- ================= HEADER ================= -->
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="ledger-title">
+                        <h4 class="mb-0">Ledger Vouchers — {{ $ledger->name }}</h4>
+                        <p><small id="dateRangeLabel">{{ $start }} to {{ $end }}</small></p>
                     </div>
-
+                    <h5 class="title-table">Liqure HUB</h5>
                     <div class="controls">
                         <a href="{{ route('accounting.vouchers.create') }}" class="btn btn-outline-light btn-sm">
                             Add Voucher
@@ -157,37 +66,40 @@
                     </div>
                 </div>
 
-                <div class="table-responsive rounded mb-3">
-                    <table id="vouchersTable" class="display" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Particulars</th>
-                                <th>Vch Type</th>
-                                <th>Vch No</th>
-                                <th>Debit</th>
-                                <th>Credit</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
+                <!-- ================= TABLE ================= -->
+                <table id="vouchersTable" class="display border" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Particulars</th>
+                            <th>Vch Type</th>
+                            <th>Vch No</th>
+                            <th>Debit</th>
+                            <th>Credit</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+
+                <!-- ================= BALANCE FOOTER ================= -->
+                <div class="tally-footer-right">
+                    <table>
+                        <tr>
+                            <td>Opening :</td>
+                            <td id="openingBalance" class="text-right">-</td>
+                        </tr>
+                        <tr>
+                            <td>Current :</td>
+                            <td id="currentTotal" class="text-right">-</td>
+                        </tr>
+                        <tr class="tally-closing">
+                            <td>Closing :</td>
+                            <td id="closingBalance" class="text-right">-</td>
+                        </tr>
                     </table>
-                    <div class="tally-footer-right">
-                        <table>
-                            <tr>
-                                <td>Opening :</td>
-                                <td id="openingBalance" class="text-right">-</td>
-                            </tr>
-                            <tr>
-                                <td>Current :</td>
-                                <td id="currentTotal" class="text-right">-</td>
-                            </tr>
-                            <tr class="tally-closing">
-                                <td>Closing :</td>
-                                <td id="closingBalance" class="text-right">-</td>
-                            </tr>
-                        </table>
-                    </div>
                 </div>
+
+
             </div>
         </div>
     </div>
@@ -216,7 +128,7 @@
                         d.end_date = end;
                     },
                     dataSrc: function(json) {
-                        console.log(json);
+
                         /* ---------- OPENING ---------- */
                         const opening = json.opening || {
                             balance: 0
@@ -258,22 +170,10 @@
                         data: 'particulars',
                         className: 'col-particulars',
                         render: function(d, t, r) {
-
-                            // Detail rows → no link
                             if (r.type === 'detail') {
                                 return `<span style="padding-left:30px;">${d}</span>`;
                             }
-
-                            // Main rows → clickable link
-                            let url = "{{ route('accounting.vouchers.edit', ':id') }}";
-                            url = url.replace(':id', r.id);
-
-                            return `
-                                <a href="${url}"
-                                class="text-decoration-none text-dark fw-bold">
-                                    ${d}
-                                </a>
-                            `;
+                            return `<strong>${d}</strong>`;
                         }
                     },
                     {
@@ -289,14 +189,16 @@
                         className: 'text-end',
                         render: (d, t, r) =>
                             r.type === 'main' && d !== null ?
-                            parseFloat(d).toFixed(2) : ''
+                            parseFloat(d).toFixed(2) :
+                            ''
                     },
                     {
                         data: 'credit',
                         className: 'text-end',
                         render: (d, t, r) =>
                             r.type === 'main' && d !== null ?
-                            parseFloat(d).toFixed(2) : ''
+                            parseFloat(d).toFixed(2) :
+                            ''
                     }
                 ],
                 createdRow: function(row, data) {
