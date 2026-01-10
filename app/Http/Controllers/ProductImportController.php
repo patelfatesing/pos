@@ -82,7 +82,7 @@ class ProductImportController extends Controller
             // Define database fields with descriptions
             $dbFields = [
                 'Name' => 'product_name',
-                'Brand' => 'brand',
+                // 'Brand' => 'brand',
                 'Barcode' => 'barcode',
                 'Batch No' => 'batch_no',
                 'Mfg Date' => 'mfg_date',
@@ -120,7 +120,7 @@ class ProductImportController extends Controller
                 'mapping.cost_price' => 'required',
                 'mapping.sale_price' => 'required',
                 'mapping.min_stock_qty_set' => 'required',
-                'mapping.brand' => 'required',
+                // 'mapping.brand' => 'required',
             ], [
                 'mapping.required' => 'Please map all required fields.',
                 'mapping.product_name.required' => 'Product Name field mapping is required.',
@@ -129,7 +129,7 @@ class ProductImportController extends Controller
                 'mapping.cost_price.required' => 'Cost Price field mapping is required.',
                 'mapping.sale_price.required' => 'Sale Price field mapping is required.',
                 'mapping.min_stock_qty_set.required' => 'Stock Low Level field mapping is required.',
-                'mapping.brand.required' => 'Stock Low Level field mapping is required.',
+                // 'mapping.brand.required' => 'Stock Low Level field mapping is required.',
             ]);
 
             $filename = $request->input('file_name');
@@ -174,7 +174,7 @@ class ProductImportController extends Controller
                     $sub_category_name = $row[$mapping['sub_category']] ?? null;
                     $pack_size = $row[$mapping['pack_size']] ?? null;
                     $sale_price = $row[$mapping['sale_price']] ?? null;
-                    $brand = $row[$mapping['brand']] ?? null;
+                    // $brand = $row[$mapping['brand']] ?? null;
 
                     // Validate required fields
                     if (!$name || !$category_name || !$sub_category_name || !$sale_price) {
@@ -217,7 +217,7 @@ class ProductImportController extends Controller
 
                         $product = Product::create([
                             'name' => $name,
-                            'brand' => $row[$mapping['brand']] ?? null,
+                            // 'brand' => $row[$mapping['brand']] ?? null,
                             'barcode' => $barcode,
                             'size' => $pack_size,
                             'sku' => $sku,

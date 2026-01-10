@@ -10,9 +10,9 @@ use App\Models\Product;
 use App\Models\PurchaseProduct;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
-use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use App\Http\Controllers\Report2Controller;
 use App\Models\Accounting\VoucherLine;
 
 class DashboardController extends Controller
@@ -22,13 +22,12 @@ class DashboardController extends Controller
         $this->middleware('auth');
     }
 
-    public function index(Request $request)
+    public function index(Request $request, Report2Controller $report2Controller)
     {
         $start_date = request('start_date');
         $end_date = request('end_date');
         $start = Carbon::parse($start_date)->startOfDay();
         $end   = Carbon::parse($end_date)->endOfDay();
-        $selectedFY = $request->query('fy');
 
         // Get role name from session
         $roleName = strtolower(session('role_name'));
@@ -174,7 +173,7 @@ class DashboardController extends Controller
         // fill missing months with 0
         $months = [];
         $data_sales = [];
-        $period = CarbonPeriod::create($start, '1 month', $end);
+        $period = \Carbon\CarbonPeriod::create($start, '1 month', $end);
         foreach ($period as $m) {
             $label = $m->format('M');
             $months[] = $label;
@@ -196,7 +195,7 @@ class DashboardController extends Controller
         // Fill buckets with 0 if missing
 
         $data_pur = [];
-        $period = CarbonPeriod::create($start, '1 month', $end);
+        $period = \Carbon\CarbonPeriod::create($start, '1 month', $end);
         foreach ($period as $m) {
             $label = $m->format('M');
             $months[] = $label;
@@ -510,11 +509,7 @@ class DashboardController extends Controller
         // ["Jan","Feb",...,"Dec"]
         // $categories = array_map(fn($m) => date('M', mktime(0, 0, 0, $m, 1)), $months);
 
-        [$fyStart, $fyEnd] = $this->getFinancialYearRange($selectedFY);
-        $allDaysOfCurrentMonth = $this->getAllDaysOfCurrentMonth();
-        $salesDataByDay = $this->getSalesDataByDay();
-        $financialYearDropdown = $this->getLatestFiveFinancialYear();
-        $currentFYData = $selectedFY ?? $financialYearDropdown['currentFY'];
+        [$fyStart, $fyEnd] = $this->getFinancialYearRange();
 
         $months = collect(range(0, 11))->map(function ($i) use ($fyStart) {
             return $fyStart->copy()->addMonths($i);
@@ -522,49 +517,103 @@ class DashboardController extends Controller
 
         $categories = $months->map(fn($m) => $m->format('M-y'))->toArray();
 
-        $salesQuantityByMonth = $this->getMonthlyQtyTrend(
-            Invoice::class,
-            'total_item_qty',
-            'Sales Quantity',
-            $currentFYData
-        );
+        $salesQuantityByMonth = array_fill(0, 12, 0);
+        $salesAmountTotal = array_fill(0, 12, 0);
 
-        $purchaseTrendMonthlyQnt = $this->getMonthlyQtyTrend(
-            PurchaseProduct::class,
-            'qnt',
-            'Purchase Quantity',
-            $currentFYData
-        );
+        $invoices = Invoice::whereBetween('created_at', [$fyStart, $fyEnd])
+            ->select('total_item_qty', 'total', 'created_at')
+            ->get();
 
-        $salesAmountTotal = $this->getSalesOverviewChartData($currentFYData);
+        foreach ($invoices as $invoice) {
 
-        $financialYearIncomeAmount = $this->incomeExpenseFinancialChartData('Sales', $currentFYData);
-        $financialYearExpenseAmount = $this->incomeExpenseFinancialChartData('Purchase', $currentFYData);
-        $pieChart = $this->getPieChartData($currentFYData);
-        $topAndWorstProducts = $this->getTopAndWorstProductsByCategory(request('fy'));
+            $created = Carbon::parse($invoice->created_at);
 
-        $revenueAndCost = $this->getRevenueCostByFinancialYear(request('fy'));
+            $monthIndex = ($created->year - $fyStart->year) * 12
+                + ($created->month - $fyStart->month);
+
+            if ($monthIndex < 0 || $monthIndex > 11) {
+                continue;
+            }
+
+            $salesQuantityByMonth[$monthIndex] += (int) $invoice->total_item_qty;
+            $salesAmountTotal[$monthIndex] += (int) $invoice->total;
+        }
+
+        $purchaseQuantityByMonth = array_fill(0, 12, 0);
+
+        $purchaseProducts = PurchaseProduct::whereBetween('created_at', [$fyStart, $fyEnd])
+            ->select('qnt', 'created_at')
+            ->get();
+
+        foreach ($purchaseProducts as $purchaseProduct) {
+
+            $created = Carbon::parse($purchaseProduct->created_at);
+
+            $monthIndex = ($created->year - $fyStart->year) * 12
+                + ($created->month - $fyStart->month);
+
+            if ($monthIndex < 0 || $monthIndex > 11) {
+                continue;
+            }
+
+            $purchaseQuantityByMonth[$monthIndex] += (int) $purchaseProduct->qnt;
+        }
+
+        $bestSellingProductResponse = $report2Controller->getBestSellingProductsData($request);
+        $bestSellingProduct = $bestSellingProductResponse->getData(true);
+
+        $financialYearIncomeAmount  = array_fill(0, 12, 0);
+        $financialYearExpenseAmount = array_fill(0, 12, 0);
+
+        $totalFinancialYearIncome   = 0;
+        $totalFinancialYearExpenses = 0;
+
+        $financialYearLines = VoucherLine::with('voucher:id,voucher_type')
+            ->whereBetween('created_at', [$fyStart, $fyEnd])
+            ->select('id', 'voucher_id', 'amount', 'created_at')
+            ->get();
+
+        foreach ($financialYearLines as $line) {
+
+            if (!$line->voucher) {
+                continue;
+            }
+
+            $created = Carbon::parse($line->created_at);
+
+            $monthIndex = ($created->year - $fyStart->year) * 12
+                + ($created->month - $fyStart->month);
+
+            if ($monthIndex < 0 || $monthIndex > 11) {
+                continue;
+            }
+
+            $amount = (float) $line->amount;
+
+            if ($line->voucher->voucher_type === 'Sales') {
+
+                $financialYearIncomeAmount[$monthIndex] += $amount;
+                $totalFinancialYearIncome += $amount;
+            } elseif ($line->voucher->voucher_type === 'Purchase') {
+
+                $financialYearExpenseAmount[$monthIndex] += $amount;
+                $totalFinancialYearExpenses += $amount;
+            }
+        }
+
+        // dd($data);
 
         $data = [
-            'store'         => "Select Store",
+            'store'         => "Selete Store",
             'categories'   => $categories,
-            'sales_quantity_by_month'   => $salesQuantityByMonth['series'][0]['data'] ?? [],
-            'purchase_quantity_by_month'   => $purchaseTrendMonthlyQnt['series'][0]['data'] ?? [],
-            'sales_amount_total'   => $salesAmountTotal['series'],
-            'financial_year_income'   => $financialYearIncomeAmount['series'],
-            'total_financial_year_income'          => array_sum($financialYearIncomeAmount['series']),
-            'financial_year_expenses'   => $financialYearExpenseAmount['series'],
-            'total_financial_year_expenses'          => array_sum($financialYearExpenseAmount['series']),
-            'all_days_of_current_month'          => $allDaysOfCurrentMonth,
-            'sales_quantity_by_day' => $salesDataByDay['quantity'],
-            'sales_amount_by_day'   => $salesDataByDay['amount'],
-            'financial_year_dropdown'   => $financialYearDropdown['financialYears'],
-            'current_fy'   => $currentFYData,
-            'pie_branch_name'   => $pieChart['labels'],
-            'pie_total_item_qty'   => $pieChart['series'],
-            'top_and_worst_product'   => $topAndWorstProducts,
-            'revenue_value'   => $revenueAndCost['series'][0]['data'],
-            'cost_value'   => $revenueAndCost['series'][1]['data'],
+            'sales_quantity_by_month'   => $salesQuantityByMonth,
+            'purchase_quantity_by_month'   => $purchaseQuantityByMonth,
+            'sales_amount_total'   => $salesAmountTotal,
+            'best_selling_product'   => $bestSellingProduct['data'],
+            'financial_year_income'   => $financialYearIncomeAmount,
+            'total_financial_year_income'          => $totalFinancialYearIncome,
+            'financial_year_expenses'   => $financialYearExpenseAmount,
+            'total_financial_year_expenses'          => $totalFinancialYearExpenses,
             'sales'         => $totalSales + $total_creditpay,
             'products'        => $totalProducts,
             'total_cost_price'     => $inventorySummary->total_cost_price,
@@ -629,16 +678,16 @@ class DashboardController extends Controller
         return view('dashboard', compact('branch', 'data')); // This refers to resources/views/dashboard.blade.php
     }
 
-    public function showStore($storeId, Request $request)
+    public function showStore($storeId)
     {
         $start_date = request('start_date');
         $end_date = request('end_date');
         $store = Branch::findOrFail($storeId); // or Branch if you're using Branch model
-        $data = $this->getDashboardDataForStore($storeId, $request,  $start_date, $end_date); // Your logic here
+        $data = $this->getDashboardDataForStore($storeId, $start_date, $end_date); // Your logic here
         return view('dashboard', compact('store', 'data'));
     }
 
-    protected function getDashboardDataForStore($storeId, $request, $start_date = "", $end_date = "")
+    protected function getDashboardDataForStore($storeId, $start_date = "", $end_date = "")
     {
         // Example: Fetch store
         $store = Branch::findOrFail($storeId);
@@ -683,64 +732,72 @@ class DashboardController extends Controller
 
         $totalQuantity = $totals_qty->total_quantity;
 
-        $selectedFY = $request->query('fy');
-        [$fyStart, $fyEnd] = $this->getFinancialYearRange($selectedFY);
-        $allDaysOfCurrentMonth = $this->getAllDaysOfCurrentMonth();
-        $salesDataByDay = $this->getSalesDataByDay();
-        $financialYearDropdown = $this->getLatestFiveFinancialYear();
-        $currentFYData = $selectedFY ?? $financialYearDropdown['currentFY'];
+        $sales = \DB::table('invoices')
+            ->selectRaw("DATE_FORMAT(created_at, '%b') as month, SUM(total) as total")
+            ->whereBetween('created_at', [$start_date, $end_date])
+            // ->when($branchId, fn($q, $v) => $q->where('branch_id', $v))
+            ->where(function ($q) {
+                $q->where('status', 'Paid')->orWhere('invoice_status', 'paid');
+            })
+            ->groupBy('month')
+            ->orderByRaw("MIN(created_at)")
+            ->pluck('total', 'month')
+            ->toArray();
 
-        $months = collect(range(0, 11))->map(function ($i) use ($fyStart) {
-            return $fyStart->copy()->addMonths($i);
-        });
+        // fill missing months with 0
+        $months = [];
+        $data_sales = [];
+        // $period = \Carbon\CarbonPeriod::create($start_date, '1 month', $end_date);
+        // foreach ($period as $m) {
+        //     $label = $m->format('M');
+        //     $months[] = $label;
+        //     $data_sales[] = isset($sales[$label]) ? (float)$sales[$label] : 0;
+        // }
 
-        $categories = $months->map(fn($m) => $m->format('M-y'))->toArray();
 
-        $salesQuantityByMonth = $this->getMonthlyQtyTrend(
-            Invoice::class,
-            'total_item_qty',
-            'Sales Quantity',
-            $currentFYData
-        );
 
-        $purchaseTrendMonthlyQnt = $this->getMonthlyQtyTrend(
-            PurchaseProduct::class,
-            'qnt',
-            'Purchase Quantity',
-            $currentFYData
-        );
+        $months = range(1, 12);
 
-        $salesAmountTotal = $this->getSalesOverviewChartData($currentFYData);
-        $financialYearIncomeAmount = $this->incomeExpenseFinancialChartData('Sales', $currentFYData);
-        $financialYearExpenseAmount = $this->incomeExpenseFinancialChartData('Purchase', $currentFYData);
-        $pieChart = $this->getPieChartData($currentFYData);
-        $topAndWorstProducts = $this->getTopAndWorstProductsByCategory(request('fy'));
+        // exactly 12 values, missing months become 0
+        // $series = array_map(fn($m) => (float)($raw[$m] ?? 0), $months);
 
+        // ["Jan","Feb",...,"Dec"]
+        $categories = array_map(fn($m) => date('M', mktime(0, 0, 0, $m, 1)), $months);
+
+        $query = \DB::table('purchases')
+            ->selectRaw("DATE_FORMAT(date, '%b') as month, SUM(total_amount) as total")
+            ->whereBetween('date', [$start_date, $end_date])
+            // ->when($vendorId, fn($q, $v) => $q->where('vendor_id', $v))
+            ->groupBy('month')
+            ->orderByRaw("MIN(date)");
+
+        $purchases = $query->pluck('total', 'month')->toArray();
+
+        // Fill buckets with 0 if missing
+
+        $data_pur = [];
+        // $period = \Carbon\CarbonPeriod::create($start_date, '1 month', $end_date);
+        // foreach ($period as $m) {
+        //     $label = $m->format('M');
+        //     $months[] = $label;
+        //     $data_pur[] = isset($purchases[$label]) ? (float)$purchases[$label] : 0;
+        // }
+
+
+        // dd($data_sales);
         return [
+            'data_pur' => $data_pur,
+            'data_sales' => $data_sales,
+            'categories'   => $categories,
             'store'         => $store->name,
             'sales'         => $totalSales + $total_creditpay,
             'products'        => $totalProducts,
             'total_cost_price'     => $inventorySummary->total_cost_price,
             'top_products'  => $totalSales,
             'total_quantity' => $totalQuantity,
-            'invoice_count' => $invoice_count,
-            'categories'   => $categories,
-            'sales_quantity_by_month'   => $salesQuantityByMonth['series'][0]['data'] ?? [],
-            'purchase_quantity_by_month'   => $purchaseTrendMonthlyQnt['series'][0]['data'] ?? [],
-            'sales_amount_total'   => $salesAmountTotal['series'],
-            'financial_year_income'   => $financialYearIncomeAmount['series'],
-            'total_financial_year_income'          => array_sum($financialYearIncomeAmount['series']),
-            'financial_year_expenses'   => $financialYearExpenseAmount['series'],
-            'total_financial_year_expenses'          => array_sum($financialYearExpenseAmount['series']),
-            'all_days_of_current_month'          => $allDaysOfCurrentMonth,
-            'sales_quantity_by_day' => $salesDataByDay['quantity'],
-            'sales_amount_by_day'   => $salesDataByDay['amount'],
-            'financial_year_dropdown'   => $financialYearDropdown['financialYears'],
-            'current_fy'   => $currentFYData,
-            'pie_branch_name'   => $pieChart['labels'],
-            'pie_total_item_qty'   => $pieChart['series'],
-            'top_and_worst_product'   => $topAndWorstProducts,
+            'invoice_count' => $invoice_count
         ];
+
 
         // Example: Fetch orders/sales for this store
         // $totalSales = Invoice::where('branch_id', $storeId)
@@ -781,19 +838,8 @@ class DashboardController extends Controller
         // ];
     }
 
-    private function getFinancialYearRange(?string $fy = null): array
+    private function getFinancialYearRange()
     {
-        if ($fy) {
-            // FY format: 2023-2024
-            [$startYear, $endYear] = explode('-', $fy);
-
-            $start = Carbon::create($startYear, 4, 1)->startOfDay();
-            $end   = Carbon::create($endYear, 3, 31)->endOfDay();
-
-            return [$start, $end];
-        }
-
-        // fallback → current FY
         $date = now();
 
         if ($date->month >= 4) {
@@ -805,449 +851,5 @@ class DashboardController extends Controller
         }
 
         return [$start, $end];
-    }
-
-    private function getAllDaysOfCurrentMonth(): array
-    {
-
-        $start = Carbon::now()->startOfMonth();
-        $end   = Carbon::today();
-
-        $days = [];
-
-        foreach (CarbonPeriod::create($start, $end) as $date) {
-            $days[] = $date->format('j M');
-        }
-
-        return $days;
-    }
-
-    private function getSalesDataByDay(): array
-    {
-        $now = now();
-
-        $startOfMonth = $now->copy()->startOfMonth();
-        $endOfMonth   = $now->copy()->endOfMonth();
-
-        // If current month → only till today, else full month
-        $lastDay = $now->isCurrentMonth()
-            ? $now->day
-            : $now->daysInMonth;
-
-        $salesByDay = Invoice::whereBetween('created_at', [$startOfMonth, $endOfMonth])
-            ->select(
-                DB::raw('DAY(created_at) as day'),
-                DB::raw('SUM(total_item_qty) as qty'),
-                DB::raw('SUM(total) as amount')
-            )
-            ->groupBy('day')
-            ->get()
-            ->keyBy('day');
-
-        $quantity = [];
-        $amount   = [];
-        for ($day = 1; $day <= $lastDay; $day++) {
-            $quantity[] = (int) ($salesByDay[$day]->qty ?? 0);
-            $amount[]   = (float) ($salesByDay[$day]->amount ?? 0);
-        }
-
-        return [
-            'quantity' => $quantity,
-            'amount'   => $amount
-        ];
-    }
-
-    public function getLatestFiveFinancialYear(): array
-    {
-        $currentYear = now()->year;
-        $currentMonth = now()->month;
-
-        // Current Financial Year
-        $currentFY = $currentMonth >= 4
-            ? $currentYear . '-' . ($currentYear + 1)
-            : ($currentYear - 1) . '-' . $currentYear;
-
-        // Last 5 financial years (you can adjust)
-        $financialYears = [];
-        for ($i = 0; $i < 5; $i++) {
-            $start = ($currentMonth >= 4 ? $currentYear : $currentYear - 1) - $i;
-            $financialYears[] = $start . '-' . ($start + 1);
-        }
-
-        return [
-            'currentFY' => $currentFY,
-            'financialYears'   => $financialYears
-        ];
-    }
-
-    private function getMonthlyQtyTrend(
-        string $modelClass,
-        string $qtyColumn,
-        string $seriesName,
-        ?string $fy
-    ): array {
-        [$fyStart, $fyEnd] = $this->getFinancialYearRange($fy);
-
-        // Month labels (Apr → Mar)
-        $months = collect(range(0, 11))->map(fn($i) => $fyStart->copy()->addMonths($i));
-        $categories = $months->map(fn($m) => $m->format('M-y'))->toArray();
-
-        $qtyData = array_fill(0, 12, 0);
-
-        $rows = $modelClass::whereBetween('created_at', [$fyStart, $fyEnd])
-            ->select($qtyColumn, 'created_at')
-            ->get();
-
-        foreach ($rows as $row) {
-            $created = Carbon::parse($row->created_at);
-
-            $index = ($created->year - $fyStart->year) * 12
-                + ($created->month - $fyStart->month);
-
-            if ($index >= 0 && $index < 12) {
-                $qtyData[$index] += (int) $row->{$qtyColumn};
-            }
-        }
-
-        return [
-            'categories' => $categories,
-            'series' => [
-                [
-                    'name' => $seriesName,
-                    'data' => $qtyData
-                ]
-            ]
-        ];
-    }
-
-    public function salesTrendChart(Request $request)
-    {
-        return response()->json(
-            $this->getMonthlyQtyTrend(
-                Invoice::class,
-                'total_item_qty',
-                'Sales Quantity',
-                $request->fy
-            )
-        );
-    }
-
-    public function purchaseTrendChart(Request $request)
-    {
-        return response()->json(
-            $this->getMonthlyQtyTrend(
-                PurchaseProduct::class,
-                'qnt',
-                'Purchase Quantity',
-                $request->fy
-            )
-        );
-    }
-
-    private function getSalesOverviewChartData(
-        ?string $fy
-    ): array {
-        [$fyStart, $fyEnd] = $this->getFinancialYearRange($fy);
-
-        // FY months (Apr → Mar)
-        $months = collect(range(0, 11))->map(fn($i) => $fyStart->copy()->addMonths($i));
-        $categories = $months->map(fn($m) => $m->format('M-y'))->toArray();
-
-        $amountData = array_fill(0, 12, 0);
-
-        $rows = Invoice::whereBetween('created_at', [$fyStart, $fyEnd])
-            ->select('total', 'created_at')
-            ->get();
-
-        foreach ($rows as $row) {
-            $created = Carbon::parse($row->created_at);
-
-            $index = ($created->year - $fyStart->year) * 12
-                + ($created->month - $fyStart->month);
-
-            if ($index >= 0 && $index < 12) {
-                $amountData[$index] += (float) $row->total;
-            }
-        }
-
-        return [
-            'categories' => $categories,
-            'series' => $amountData
-        ];
-    }
-
-    public function salesOverviewChart(Request $request)
-    {
-        return response()->json(
-            $this->getSalesOverviewChartData(
-                $request->fy
-            )
-        );
-    }
-
-    private function incomeExpenseFinancialChartData(
-        string $voucherType,
-        ?string $fy
-    ): array {
-        [$fyStart, $fyEnd] = $this->getFinancialYearRange($fy);
-
-        $months = collect(range(0, 11))->map(fn($i) => $fyStart->copy()->addMonths($i));
-        $categories = $months->map(fn($m) => $m->format('M-y'))->toArray();
-
-        $series = array_fill(0, 12, 0);
-
-        $lines = VoucherLine::whereBetween('created_at', [$fyStart, $fyEnd])
-            ->whereHas('voucher', fn($q) => $q->where('voucher_type', $voucherType))
-            ->select('amount', 'created_at')
-            ->get();
-
-        foreach ($lines as $line) {
-            $created = Carbon::parse($line->created_at);
-
-            $index = ($created->year - $fyStart->year) * 12
-                + ($created->month - $fyStart->month);
-
-            if ($index >= 0 && $index < 12) {
-                $series[$index] += (float) $line->amount;
-            }
-        }
-
-        return [
-            'categories' => $categories,
-            'series'     => $series,
-            'total'      => array_sum($series),
-        ];
-    }
-
-    public function incomeExpenseFinancialChart(Request $request)
-    {
-        $typeMap = [
-            'income'  => 'Sales',
-            'expense' => 'Purchase',
-        ];
-
-        $type = $request->type;
-
-        if (!isset($typeMap[$type])) {
-            return response()->json(['error' => 'Invalid type'], 400);
-        }
-
-        return response()->json(
-            $this->incomeExpenseFinancialChartData(
-                $typeMap[$type],
-                $request->fy
-            )
-        );
-    }
-
-    public function pieChart(Request $request)
-    {
-        return response()->json(
-            $this->getPieChartData($request->fy)
-        );
-    }
-
-    private function getPieChartData(?string $fy)
-    {
-        [$fyStart, $fyEnd] = $this->getFinancialYearRange($fy);
-
-        $data = Invoice::with('branch')
-            ->select('branch_id', DB::raw('SUM(total_item_qty) as total_item_qty'))
-            ->whereBetween('created_at', [$fyStart, $fyEnd])
-            ->groupBy('branch_id')
-            ->get();
-
-        return [
-            'labels' => $data->pluck('branch.name')->toArray(),
-            'series' => $data->pluck('total_item_qty')
-                ->map(fn($val) => (int) $val)
-                ->toArray(),
-        ];
-    }
-
-    private function getTopAndWorstProductsByCategory(?string $fy): array
-    {
-        [$fyStart, $fyEnd] = $this->getFinancialYearRange($fy);
-
-        $subCategories = ['BEER', 'IMFL', 'CL', 'RML'];
-
-        $rows = DB::select("
-    WITH RECURSIVE seq(n) AS (
-        SELECT 0
-        UNION ALL
-        SELECT n + 1 FROM seq
-    )
-    SELECT 
-        JSON_UNQUOTE(JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].subcategory'))) AS subcategory,
-        JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].product_id')) AS product_id,
-        p.name AS product_name,
-        SUM(JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].quantity'))) AS total_qty,
-        SUM(
-            JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].quantity')) *
-            JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].price'))
-        ) AS total_amount
-    FROM invoices i
-    JOIN seq
-        ON seq.n < JSON_LENGTH(i.items)
-    JOIN products p 
-        ON p.id = JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].product_id'))
-    WHERE i.created_at BETWEEN ? AND ?
-    AND seq.n < 500  -- LIMIT OUTSIDE CTE
-    GROUP BY subcategory, product_id, p.name
-", [$fyStart, $fyEnd]);
-
-
-        $collection = collect($rows);
-
-        $top = [];
-        $worst = [];
-
-        foreach ($subCategories as $cat) {
-            $catData = $collection->where('subcategory', $cat);
-
-            $top[$cat] = $catData->sortByDesc('total_qty')->first();
-            $worst[$cat] = $catData->sortBy('total_qty')->first();
-        }
-
-        return [
-            'top' => $top,
-            'worst' => $worst,
-        ];
-    }   
-
-    public function ajaxTopAndWorstProducts(Request $request)
-    {
-        $data = $this->getTopAndWorstProductsByCategory($request->fy);
-
-        $categoryImages = [
-            'BEER' => 'assets/images/subcategory/Beer-Category.jpeg',
-            'CL'   => 'assets/images/subcategory/Country-Liqour-Category.jpeg',
-            'IMFL' => 'assets/images/subcategory/Imfl-Category.jpeg',
-            'RML'  => 'assets/images/subcategory/Rml-Category.jpeg',
-        ];
-
-        $products = $request->type === 'top'
-            ? $data['top']
-            : $data['worst'];
-
-        $bgClass = $request->type === 'top'
-            ? 'bg-warning-light'
-            : 'bg-danger-light';
-
-        $html = '';
-
-        foreach ($products as $category => $product) {
-
-            if (!$product) continue;
-
-            $img = asset($categoryImages[$category] ?? 'assets/images/default.png');
-
-            $html .= '
-        <div class="card card-block card-stretch card-height-helf mb-3">
-            <div class="card-body card-item-right">
-                <div class="d-flex align-items-top">
-                    <div class="' . $bgClass . ' rounded">
-                        <img src="' . $img . '"
-                            class="style-img m-auto"
-                            style="width: 250px; height: 180px;"
-                            alt="' . $category . '">
-                    </div>
-                    <div class="style-text text-left ml-3">
-                        <h5 class="mb-1">' . e($product->product_name) . '</h5>
-                        <small class="text-muted">' . $category . '</small>
-                        <p class="mb-1">Total Sell : ' . number_format($product->total_qty) . '</p>
-                        <p class="mb-0">Total Earned : ₹' . number_format($product->total_amount, 2) . '</p>
-                    </div>
-                </div>
-            </div>
-        </div>';
-        }
-
-        if ($html === '') {
-            $html = '<p class="text-center text-muted">No data found</p>';
-        }
-
-        return response()->json(['html' => $html]);
-    }
-
-    private function getRevenueCostByFinancialYear(?string $fy = null): array
-    {
-        [$fyStart, $fyEnd] = $this->getFinancialYearRange($fy);
-
-        $rows = VoucherLine::query()
-            ->join('account_ledgers as al', 'al.id', '=', 'voucher_lines.ledger_id')
-            ->whereBetween('voucher_lines.created_at', [$fyStart, $fyEnd])
-            ->selectRaw("
-            YEAR(voucher_lines.created_at) as y,
-            MONTH(voucher_lines.created_at) as m,
-
-            SUM(
-                CASE
-                    WHEN al.group_id IN (9,10,11,26) AND voucher_lines.dc = 'Cr'
-                        THEN voucher_lines.amount
-                    WHEN al.group_id IN (9,10,11,26) AND voucher_lines.dc = 'Dr'
-                        THEN -voucher_lines.amount
-                    ELSE 0
-                END
-            ) AS revenue,
-
-            ABS(
-                SUM(
-                    CASE
-                        WHEN al.group_id IN (12,13,14) AND voucher_lines.dc = 'Dr'
-                            THEN voucher_lines.amount
-                        WHEN al.group_id IN (12,13,14) AND voucher_lines.dc = 'Cr'
-                            THEN -voucher_lines.amount
-                        ELSE 0
-                    END
-                )
-            ) AS cost
-        ")
-            ->groupBy('y', 'm')
-            ->get()
-            ->keyBy(fn($row) => sprintf('%04d-%02d', $row->y, $row->m));
-
-        /* 🔹 FY skeleton Apr → Mar */
-        $categories = [];
-        $revenue    = [];
-        $cost       = [];
-
-        $cursor = $fyStart->copy();
-
-        [$fyStart, $fyEnd] = $this->getFinancialYearRange($fy);
-
-        $months = collect(range(0, 11))->map(fn($i) => $fyStart->copy()->addMonths($i));
-        $categories = $months->map(fn($m) => $m->format('M-y'))->toArray();
-
-        for ($i = 0; $i < 12; $i++) {
-            $key = $cursor->format('Y-m');
-
-            $categories[] = $cursor->format('M-y');
-            $revenue[]    = isset($rows[$key]) ? (float) $rows[$key]->revenue : 0;
-            $cost[]       = isset($rows[$key]) ? (float) $rows[$key]->cost : 0;
-
-            $cursor->addMonth();
-        }
-
-        return [
-            'categories' => $categories,
-            'series' => [
-                [
-                    'name' => 'Revenue',
-                    'data' => $revenue
-                ],
-                [
-                    'name' => 'Cost',
-                    'data' => $cost
-                ]
-            ]
-        ];
-    }
-
-    public function revenueVsCostChart(Request $request)
-    {
-        return response()->json(
-            $this->getRevenueCostByFinancialYear($request->fy)
-        );
     }
 }

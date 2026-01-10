@@ -50,6 +50,8 @@
                                         <th>Cost Price</th>
                                         <th>Discount Price</th>
                                         <th>Batch No</th>
+                                        <th>Barcode</th>
+                                        <th>Sales Price</th>
                                         <th>Expiry Date</th>
                                         <th>Stock Low Level</th>
                                         <th>Last updated</th>
@@ -165,6 +167,15 @@
                         data: 'batch_no',
                         orderable: false
                     },
+
+                    {
+                        data: 'barcode',
+                        orderable: false
+                    },
+                    {
+                        data: 'sell_price',
+                        orderable: false
+                    },
                     {
                         data: 'expiry_date',
                         orderable: true
@@ -213,7 +224,7 @@
                 ],
                 autoWidth: false,
                 order: [
-                    [8, 'desc']
+                    [10, 'desc']
                 ], // Order by updated_at
                 dom: "<'custom-toolbar-row'lfB>t<'row mt-2'<'col-md-6'i><'col-md-6'p>>", // Only define dom once
                 lengthMenu: [
@@ -270,10 +281,15 @@
                     url: "{{ route('inventories.update-low-level-qty') }}",
                     data: formData,
                     success: function(response) {
+                        var modalEl = document.getElementById('lowLevelModal');
+                        var modal = modalEl._modalInstance || new bootstrap.Modal(modalEl);
+                        modal.hide();
+                        modalEl._modalInstance = modal;
                         alert(response.message);
-                        $('#lowLevelModal').modal('hide');
+
                         $('#lowLevelStockUpdateForm')[0].reset();
-                        inventoryTable.ajax.reload(null, false);
+                         location.reload();
+                        table.ajax.reload(null, false);
                     },
                     error: function(xhr) {
                         if (xhr.status === 422) {
