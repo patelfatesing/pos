@@ -61,6 +61,8 @@ class InventoryController extends Controller
             'products.name as product_name',
             'products.reorder_level',
             'products.cost_price',
+            'barcode',
+            'sell_price',   
             'products.discount_price',
             'branches.name as branch_name'
         )
@@ -136,9 +138,11 @@ class InventoryController extends Controller
                 'name' => $inventory->product_name ?? 'N/A',
                 'location' => $inventory->branch_name ?? '—',
                 'quantity' => $inventory->quantity,
-                'cost_price' => $inventory->cost_price,
-                'discount_price' => $inventory->discount_price,
+                'cost_price' => '₹' . rtrim(rtrim($inventory->cost_price, '0'), '.'),
+                'discount_price' => '₹' . rtrim(rtrim($inventory->discount_price, '0'), '.'),
                 'batch_no' => $inventory->batch_no,
+                'barcode' => $inventory->barcode,
+                'sell_price' => '₹' . rtrim(rtrim($inventory->sell_price, '0'), '.'),
                 'expiry_date' => $inventory->expiry_date ? $inventory->expiry_date->format('d-m-Y') : '—',
                 'reorder_level' => $reorder_level,
                 'status' => $status,
