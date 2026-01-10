@@ -1072,26 +1072,30 @@ class DashboardController extends Controller
         $subCategories = ['BEER', 'IMFL', 'CL', 'RML'];
 
         $rows = DB::select("
-        SELECT 
-            jt.subcategory,
-            jt.product_id,
-            p.name AS product_name,
-            SUM(jt.quantity) AS total_qty,
-            SUM(jt.quantity * jt.price) AS total_amount
-        FROM invoices i
-        JOIN JSON_TABLE(
-            i.items,
-            '$[*]' COLUMNS (
-                product_id INT PATH '$.product_id',
-                subcategory VARCHAR(20) PATH '$.subcategory',
-                quantity INT PATH '$.quantity',
-                price DECIMAL(10,2) PATH '$.price'
-            )
-        ) jt
-        JOIN products p ON p.id = jt.product_id
-        WHERE i.created_at BETWEEN ? AND ?
-        GROUP BY jt.subcategory, jt.product_id, p.name
-    ", [$fyStart, $fyEnd]);
+    WITH RECURSIVE seq(n) AS (
+        SELECT 0
+        UNION ALL
+        SELECT n + 1 FROM seq
+    )
+    SELECT 
+        JSON_UNQUOTE(JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].subcategory'))) AS subcategory,
+        JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].product_id')) AS product_id,
+        p.name AS product_name,
+        SUM(JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].quantity'))) AS total_qty,
+        SUM(
+            JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].quantity')) *
+            JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].price'))
+        ) AS total_amount
+    FROM invoices i
+    JOIN seq
+        ON seq.n < JSON_LENGTH(i.items)
+    JOIN products p 
+        ON p.id = JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].product_id'))
+    WHERE i.created_at BETWEEN ? AND ?
+    AND seq.n < 500  -- LIMIT OUTSIDE CTE
+    GROUP BY subcategory, product_id, p.name
+", [$fyStart, $fyEnd]);
+
 
         $collection = collect($rows);
 
@@ -1105,8 +1109,11 @@ class DashboardController extends Controller
             $worst[$cat] = $catData->sortBy('total_qty')->first();
         }
 
-        return compact('top', 'worst');
-    }
+        return [
+            'top' => $top,
+            'worst' => $worst,
+        ];
+    }   
 
     public function ajaxTopAndWorstProducts(Request $request)
     {

@@ -98,8 +98,8 @@ class ProductController extends Controller
             <a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="#" onclick="product_price_change(' . $product->id . ',' . $product->sell_price . ')"><i class="ri-currency-line"></i></a>
                      <a class="badge badge-info mr-2" onclick="viewProduct(' . $product->id . ')">
-        <i class="las la-eye"></i>
-    </a>
+                    <i class="las la-eye"></i>
+                </a>
             <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
                     href="' . url('/products/edit/' . $product->id) . '"><i class="ri-pencil-line mr-0"></i></a>
    
@@ -167,7 +167,7 @@ class ProductController extends Controller
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'brand' => 'required|string',
+            // 'brand' => 'required|string',
             'category_id' => 'required|numeric',
             'subcategory_id' => 'required|numeric',
             'size' => 'required|string',
@@ -477,7 +477,7 @@ class ProductController extends Controller
 
         // Update product fields
         $product->name           = $request->name;
-        $product->brand          = $request->name;
+        // $product->brand          = $request->name;
         $product->category_id    = $request->category_id;
         $product->subcategory_id = $request->subcategory_id;
         $product->size           = $request->size;

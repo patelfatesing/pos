@@ -215,9 +215,9 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                     </div>
                 </div>
 
-                <div class="modal-footer">
+                {{-- <div class="modal-footer">
                     <button class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
+                </div> --}}
 
             </div>
         </div>
@@ -538,8 +538,8 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                     $("#view_discount_price").text(product.discount_price ?? '-');
                     $("#view_description").text(product.description ?? '-');
                     $("#view_status").text(product.is_active == 1 ? "Active" : "Inactive");
-                    $("#view_created_at").text(product.created_at);
-                    $("#view_updated_at").text(product.updated_at);
+                    $("#view_created_at").text(formatDate(product.created_at));
+                    $("#view_updated_at").text(formatDate(product.updated_at));
 
                     new bootstrap.Modal(document.getElementById('productViewModal')).show();
 
@@ -547,6 +547,21 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                 }
             });
 
+        }
+
+        function formatDate(dateString) {
+            let date = new Date(dateString);
+
+            let day = String(date.getDate()).padStart(2, '0');
+            let month = String(date.getMonth() + 1).padStart(2, '0');
+            let year = date.getFullYear();
+
+            let hours = date.getHours();
+            let minutes = String(date.getMinutes()).padStart(2, '0');
+            let ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+
+            return `${day}-${month}-${year} ${hours}:${minutes} ${ampm}`;
         }
     </script>
 @endsection

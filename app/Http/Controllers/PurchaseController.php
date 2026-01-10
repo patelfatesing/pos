@@ -861,8 +861,8 @@ class PurchaseController extends Controller
             $records[] = [
                 'bill_no' => $purchase->bill_no,
                 'party_name' => $purchase->vendor_name ?? 'N/A',
-                'total' => number_format($purchase->total, 2),
-                'total_amount' => number_format($purchase->total_amount, 2),
+                'total' => '₹' . rtrim(rtrim($purchase->total, '0'), '.'),
+                'total_amount' => '₹' . rtrim(rtrim($purchase->total_amount, '0'), '.'),
                 'created_at' => date('d-m-Y h:i', strtotime($purchase->created_at)),
                 'action' => ' <div class="d-flex align-items-center list-action">
                             <a class="badge badge-info mr-2" data-toggle="tooltip" title="View"
