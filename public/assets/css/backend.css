@@ -20189,3 +20189,9 @@ i { vertical-align: middle; }
 @media (max-width: 470px) {
   .progress-order-right { margin-left: 0px !important; margin-top: 20px; } .progress-value { padding-right: 20px !important; border: 0 !important; } .card-item-right .style-text { margin-left: 10px; } 
 }
+
+/* Newly Css */
+.card-header { padding: .5rem .9rem; background: #528da1; border-top-left-radius: 10px; border-top-right-radius: 10px; color: #fff; }
+.title-table { font-size: 14px; font-weight: bold; margin: 0; min-width: 30%; }
+.card-header h4 { font-size: 16px; line-height: 20px; }
+.accounting-ledgers-page .add-list.btn { padding: 4px 8px; font-size: 12px; }
