@@ -33,11 +33,11 @@ class DashboardController extends Controller
         // Get role name from session
         $roleName = strtolower(session('role_name'));
         // Redirect non-admin users to items.cart
-        if ($roleName == "warehouse" || $roleName == "cashier") {
-            return redirect()->route('items.cart');
-        } else if ($roleName !== 'admin') {
-            return redirect(route('dashboard'));
-        }
+        // if ($roleName == "warehouse" || $roleName == "cashier") {
+        //     return redirect()->route('items.cart');
+        // } else {
+        //     return redirect(route('dashboard'));
+        // }
 
         // Only admin users will reach this point
         $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
@@ -626,6 +626,7 @@ class DashboardController extends Controller
             ]
             // You can add receivables/payables tiles once you confirm tables for parties & settlements.
         ];
+
         return view('dashboard', compact('branch', 'data')); // This refers to resources/views/dashboard.blade.php
     }
 
@@ -1113,7 +1114,7 @@ class DashboardController extends Controller
             'top' => $top,
             'worst' => $worst,
         ];
-    }   
+    }
 
     public function ajaxTopAndWorstProducts(Request $request)
     {
