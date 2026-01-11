@@ -6,6 +6,7 @@ use App\Models\Roles;
 use App\Models\Role;
 use App\Models\Permission;
 use App\Models\Module;
+use App\Models\Submodule;
 use App\Models\RolePermission;
 use Illuminate\Http\Request;
 
@@ -86,6 +87,7 @@ class RolesController extends Controller
      */
     public function store(Request $request)
     {
+        // Validate role fields
         $validated = $request->validate([
             'name' => 'required|string|unique:roles,name|max:255',
             'is_active' => 'nullable|in:yes,no',
@@ -96,12 +98,50 @@ class RolesController extends Controller
             'is_active.in' => 'The is_active field must be either "yes" or "no".',
         ]);
 
-        Roles::create([
+        // Create the role
+        $role = Roles::create([
             'name' => $validated['name'],
-            'is_active' => $validated['is_active'] ?? 'yes'
+            'is_active' => $validated['is_active'] ?? 'yes',
         ]);
 
-        return redirect()->route('roles.list')->with('success', 'Record created successfully.');
+        // =================================================
+        // COPY DEFAULT MODULES FOR THIS ROLE
+        // =================================================
+
+        // Get only default modules (role_id = null)
+        $defaultModules = Module::whereNull('role_id')->get();
+
+     
+
+        foreach ($defaultModules as $module) {
+ 
+            // Insert new module row for this role
+            $newModule = Module::create([
+                'role_id' => $role->id,
+                'name' => $module->name,
+                'slug' => $module->slug,
+                'is_active' => 'no', // default OFF
+            ]);
+ 
+            // Fetch default submodules for this module
+            $defaultSubmodules = Submodule::whereNull('role_id')
+                ->where('module_id', $module->id)
+                ->get();
+  
+            // Copy each submodule for this role
+            foreach ($defaultSubmodules as $sub) {
+                Submodule::create([
+                    'role_id' => $role->id,
+                    'module_id' => $newModule->id,
+                    'name' => $sub->name,
+                    'slug' => $sub->slug,
+                    'is_active' => 'no', // default permission = no
+                ]);
+            }
+        }
+
+        return redirect()->route('roles.list')
+            ->with('success', 'Role created successfully with default modules and permissions.');
     }
 
     /**
@@ -170,15 +210,26 @@ class RolesController extends Controller
 
     public function edit($roleId)
     {
-        $record = Roles::where('id', $roleId)->where('is_deleted', 'no')->firstOrFail();
-        $modules = Module::with('submodules')->get();
+        // Get role
+        $record = Roles::where('id', $roleId)
+            ->where('is_deleted', 'no')
+            ->firstOrFail();
 
-        $permissions = RolePermission::where('role_id', $roleId)
-            ->pluck('access', 'submodule_id')
+        // Load ONLY modules for this role
+        $modules = Module::where('role_id', $roleId)
+            ->with(['submodules' => function ($query) use ($roleId) {
+                $query->where('role_id', $roleId);
+            }])
+            ->get();
+
+        // Load permissions from submodules (using is_active field)
+        $permissions = Submodule::where('role_id', $roleId)
+            ->pluck('is_active', 'id') // id = submodule_id
             ->toArray();
 
         return view('roles.edit', compact('modules', 'permissions', 'roleId', 'record'));
     }
+
 
     // Update a record
     public function update(Request $request)
