@@ -8,7 +8,7 @@ use App\Models\RolePermission;
 
 class Submodule extends Model
 {
-    protected $fillable = ['module_id', 'name', 'slug', 'is_active'];
+    protected $fillable = ['module_id', 'name', 'slug', 'is_active','role_id'];
     public function module()
     {
         return $this->belongsTo(Module::class);
