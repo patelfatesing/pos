@@ -111,10 +111,10 @@ class RolesController extends Controller
         // Get only default modules (role_id = null)
         $defaultModules = Module::whereNull('role_id')->get();
 
-     
+
 
         foreach ($defaultModules as $module) {
- 
+
             // Insert new module row for this role
             $newModule = Module::create([
                 'role_id' => $role->id,
@@ -122,12 +122,12 @@ class RolesController extends Controller
                 'slug' => $module->slug,
                 'is_active' => 'no', // default OFF
             ]);
- 
+
             // Fetch default submodules for this module
             $defaultSubmodules = Submodule::whereNull('role_id')
                 ->where('module_id', $module->id)
                 ->get();
-  
+
             // Copy each submodule for this role
             foreach ($defaultSubmodules as $sub) {
                 Submodule::create([
@@ -135,6 +135,7 @@ class RolesController extends Controller
                     'module_id' => $newModule->id,
                     'name' => $sub->name,
                     'slug' => $sub->slug,
+                    'type' => $sub->type,
                     'is_active' => 'no', // default permission = no
                 ]);
             }
@@ -280,6 +281,12 @@ class RolesController extends Controller
                         'access' => $access
                     ]
                 );
+
+                Submodule::where('id', $submodule_id)
+                    ->where('role_id', $id)
+                    ->update([
+                        'is_active' => $access
+                    ]);
             }
         }
 

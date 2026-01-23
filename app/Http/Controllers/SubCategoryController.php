@@ -50,6 +50,26 @@ class SubCategoryController extends Controller
 
         $recordsTotal = SubCategory::where('is_deleted', 'no')->count();
         $recordsFiltered = $query->count();
+        $roleId = auth()->user()->role_id;
+
+        $userId = auth()->id();
+
+        $listAccess = getAccess($roleId, 'sub-categories-list');
+
+        // ❌ No permission → return empty table
+        if (in_array($listAccess, ['none', 'no'])) {
+            return response()->json([
+                'draw' => $draw,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => []
+            ]);
+        }
+
+        // 👤 Own permission → only own products
+        if ($listAccess === 'own') {
+            $query->where('created_by', $userId);
+        }
 
         $data = $query->orderBy($orderColumn, $orderDirection)
             ->offset($start)
@@ -60,11 +80,15 @@ class SubCategoryController extends Controller
         $url = url('/');
 
         foreach ($data as $row) {
+            // $ownerId = $role->created_by;  // If available
 
+            // $action = '';
+            // if (canDo($roleId, 'sub-categories-edit', $ownerId)) {
             $action = '<div class="d-flex align-items-center list-action">   
                         <button class="badge bg-success mr-2 border-0" onclick="editSubCategory(' . $row->id . ')" title="Edit">
                         <i class="ri-pencil-line"></i>
                     </button>';
+            // }
 
             $records[] = [
                 'name' => $row->name,

@@ -1,6 +1,8 @@
 @extends('layouts.backend.layouts')
 
-
+<?php
+$roleId = auth()->user()->role_id;
+?>
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Wrapper Start -->
@@ -53,7 +55,7 @@
                     <div class="card-header"><strong>Requested Items</strong></div>
                     <div class="card-body p-0">
                         <form method="POST" id="approveForm" action="">
-                             @csrf
+                            @csrf
                             <input type="hidden" name="request_id" value="{{ $stockRequest->id }}">
                             <input type="hidden" name="from_store_id" value="{{ $sourceId }}">
 
@@ -64,7 +66,7 @@
                                             <th>Product</th>
                                             <th>Requested Qty</th>
                                             <th>Available</th>
-                                            
+
                                             <th>Store Name</th>
                                             <th>Approve Qty</th>
                                             <th>Action</th>
@@ -93,7 +95,7 @@
                                                     @endif
 
                                                     <td>{{ $row['store_ava_quantity'] }}</td>
-                                                   
+
                                                     <td>{{ $row['store_name'] }}</td>
                                                     <td>
                                                         <input type="number"
@@ -115,10 +117,11 @@
                                 </table>
 
                             </div>
-
-                            <div class="card-footer text-end">
-                                <button type="submit" class="btn btn-success">Submit Approval</button>
-                            </div>
+                            @if ($roleId == 1 || getAccess($roleId, 'stock-request-approval') === 'yes')
+                                <div class="card-footer text-end">
+                                    <button type="submit" class="btn btn-success">Submit Approval</button>
+                                </div>
+                            @endif
                         </form>
                     </div>
                 </div>

@@ -15,6 +15,8 @@ class SubCategory extends Model
         'pack_sise',
         'is_active',
         'is_delete',
+        'created_by',
+        'updated_by'
     ];
 
     public function category()

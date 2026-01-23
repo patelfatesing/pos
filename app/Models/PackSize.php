@@ -14,6 +14,8 @@ class PackSize extends Model
         'sub_category_id',
         'is_active',
         'is_deleted',
+        'created_by',
+        'updated_by'
     ];
 
     public function subCategory()

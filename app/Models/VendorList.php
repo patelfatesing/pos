@@ -15,5 +15,7 @@ class VendorList extends Model
         'gst_number',
         'address',
         'is_active',
+        'created_by',
+        'updated_by'
     ];
 }

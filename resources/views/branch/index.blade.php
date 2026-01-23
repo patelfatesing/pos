@@ -25,9 +25,11 @@
                         <div>
                             <h4 class="mb-3">Store List</h4>
                         </div>
-                        <a href="{{ route('branch.create') }}" class="btn btn-primary add-list">
-                            <i class="las la-plus mr-3"></i>Create New Store
-                        </a>
+                        @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'store-manage'))
+                            <a href="{{ route('branch.create') }}" class="btn btn-primary add-list">
+                                <i class="las la-plus mr-3"></i>Create New Store
+                            </a>
+                        @endif
                     </div>
                 </div>
 

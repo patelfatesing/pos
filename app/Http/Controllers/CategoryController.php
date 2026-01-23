@@ -38,6 +38,27 @@ class CategoryController extends Controller
         $recordsTotal = Category::where('is_deleted', 'no')->count();
         $recordsFiltered = $query->count();
 
+        $roleId = auth()->user()->role_id;
+
+        $userId = auth()->id();
+
+        $listAccess = getAccess($roleId, 'categories-list');
+
+        // ❌ No permission → return empty table
+        if (in_array($listAccess, ['none', 'no'])) {
+            return response()->json([
+                'draw' => $draw,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => []
+            ]);
+        }
+
+        // 👤 Own permission → only own products
+        if ($listAccess === 'own') {
+            $query->where('created_by', $userId);
+        }
+
         $data = $query->orderBy($orderColumn, $orderDirection)
             ->offset($start)
             ->limit($length)
@@ -47,8 +68,12 @@ class CategoryController extends Controller
         $url = url('/');
 
         foreach ($data as $role) {
+            // $ownerId = $role->created_by;  // If available
 
-            $action = '
+            // $action = '';
+            // if (canDo($roleId, 'categories-edit', $ownerId)) {
+
+                $action = '
                 <div class="d-flex align-items-center list-action">
 
                     <button type="button" 
@@ -60,6 +85,7 @@ class CategoryController extends Controller
                     </button>
 
                 </div>';
+            // }
 
 
             $records[] = [

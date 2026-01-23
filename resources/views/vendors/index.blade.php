@@ -16,9 +16,11 @@
                             <div>
                                 <h4 class="mb-3">Vendor List</h4>
                             </div>
-                            <a href="{{ route('vendor.create') }}" class="btn btn-primary add-list">
-                                <i class="las la-plus mr-3"></i>Add New Vendor
-                            </a>
+                            @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'vendor-create'))
+                                <a href="{{ route('vendor.create') }}" class="btn btn-primary add-list">
+                                    <i class="las la-plus mr-3"></i>Add New Vendor
+                                </a>
+                            @endif
                         </div>
                     </div>
                     <div class="col-lg-12">
@@ -91,7 +93,7 @@
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [1,2,3, 6] // make "action" column unsortable
+                    aTargets: [1, 2, 3, 6] // make "action" column unsortable
                 }],
                 order: [
                     [5, 'asc']

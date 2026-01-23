@@ -41,6 +41,27 @@ class VendorListController extends Controller
         $recordsTotal = VendorList::count();
         $recordsFiltered = $query->count();
 
+        $roleId = auth()->user()->role_id;
+
+        $userId = auth()->id();
+
+        $listAccess = getAccess($roleId, 'vendor-manage');
+
+        // ❌ No permission → return empty table
+        if (in_array($listAccess, ['none', 'no'])) {
+            return response()->json([
+                'draw' => $draw,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => []
+            ]);
+        }
+
+        // 👤 Own permission → only own products
+        if ($listAccess === 'own') {
+            $query->where('created_by', $userId);
+        }
+
         $data = $query->orderBy($orderColumn, $orderDirection)
             ->offset($start)
             ->limit($length)
@@ -49,6 +70,9 @@ class VendorListController extends Controller
         $records = [];
 
         foreach ($data as $VendorList) {
+            // $ownerId = $product->created_by; 
+            // if (canDo($roleId, 'vendor-edit', $ownerId)) {
+            // }
             $action = '<div class="d-flex align-items-center list-action">
                     <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
                     href="' . url('/vendor/edit/' . $VendorList->id) . '"><i class="ri-pencil-line mr-0"></i></a>
@@ -86,7 +110,7 @@ class VendorListController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255|unique:vendor_lists,name',
-             'email' => 'nullable|email|max:255|unique:vendor_lists,email',
+            'email' => 'nullable|email|max:255|unique:vendor_lists,email',
             'phone' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:255',
             // 'gst_number' => 'required'
