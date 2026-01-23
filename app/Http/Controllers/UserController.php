@@ -70,6 +70,26 @@ class UserController extends Controller
 
         $recordsTotal = User::where('is_deleted', '!=', 'yes')->count();
         $recordsFiltered = $query->count();
+        $roleId = auth()->user()->role_id;
+
+        $userId = auth()->id();
+
+        $listAccess = getAccess($roleId, 'users-manage');
+
+        // ❌ No permission → return empty table
+        if (in_array($listAccess, ['none', 'no'])) {
+            return response()->json([
+                'draw' => $draw,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => []
+            ]);
+        }
+
+        // 👤 Own permission → only own products
+        if ($listAccess === 'own') {
+            $query->where('created_by', $userId);
+        }
 
         $data = $query->orderBy($orderColumn, $orderDirection)
             ->offset($start)
@@ -80,17 +100,19 @@ class UserController extends Controller
 
         $url = url('/');
         foreach ($data as $employee) {
-
+            // $ownerId = $employee->created_by;  
             $action = "";
             // $action .= "<a href='" . $url . "/users/edit/" . $employee->id . "' class='btn btn-info mr_2'>Edit</a>";
             // $action .= '<button type="button" onclick="delete_user(' . $employee->id . ')" class="btn btn-danger ml-2">Delete</button>';
 
-            $action = '<div class="d-flex align-items-center list-action">
-                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                                        href="' . url('/users/edit/' . $employee->id) . '"><i class="ri-pencil-line mr-0"></i></a>
-                                        <button class="btn btn-sm btn-warning" onclick="openChangePasswordModal(' . $employee->id . ')">Change Password</button>
+            $action = '<div class="d-flex align-items-center list-action">';
+            //    if (canDo($roleId, 'users-edit', $ownerId)) {
+            $action .= '<a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
+                                        href="' . url('/users/edit/' . $employee->id) . '"><i class="ri-pencil-line mr-0"></i></a>';
+            // }
+            $action .= ' <button class="btn btn-sm btn-warning" onclick="openChangePasswordModal(' . $employee->id . ')">Change Password</button>';
 
-                                        </div>';
+            $action .= '</div>';
 
             $records[] = [
                 'name' => $employee->first_name . ' ' . $employee->last_name,

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Module extends Model
 {
-    protected $fillable = ['name', 'slug', 'is_active'];
+    protected $fillable = ['name', 'slug', 'is_active','role_id'];
     public function submodules()
     {
         return $this->hasMany(Submodule::class);

@@ -15,9 +15,9 @@
                         <div>
                             <h4 class="mb-3">Role List</h4>
                         </div>
-                        {{-- <a href="{{ route('roles.create') }}" class="btn btn-primary add-list">
+                        <a href="{{ route('roles.create') }}" class="btn btn-primary add-list">
                             <i class="las la-plus mr-3"></i>Create New Role
-                        </a> --}}
+                        </a>
                     </div>
                 </div>
 

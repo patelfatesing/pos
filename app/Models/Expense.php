@@ -17,6 +17,8 @@ class Expense extends Model
         'description',
         'user_id',
         'branch_id',
+        'created_by',
+        'updated_by'
     ];
 
     public function category()

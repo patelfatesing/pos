@@ -64,9 +64,11 @@
                             <div>
                                 <h2 class="mb-3">Users List</h2>
                             </div>
-                            <a href="{{ route('users.create') }}" class="btn btn-primary add-list">
-                                <i class="las la-plus mr-3"></i>Create New User
-                            </a>
+                            @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'users-create'))
+                                <a href="{{ route('users.create') }}" class="btn btn-primary add-list">
+                                    <i class="las la-plus mr-3"></i>Create New User
+                                </a>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -215,7 +217,7 @@
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [2, 3,4, 6]
+                    aTargets: [2, 3, 4, 6]
                 }],
                 lengthMenu: [
                     [10, 25, 50, 100, -1],

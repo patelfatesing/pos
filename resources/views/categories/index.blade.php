@@ -16,9 +16,11 @@
                         <div>
                             <h4 class="mb-3">Categories List</h4>
                         </div>
-                        <button class="btn btn-primary add-list" data-toggle="modal" data-target="#addCategoryModal">
-                            <i class="las la-plus mr-3"></i>Create New Category
-                        </button>
+                        @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'categories-create'))
+                            <button class="btn btn-primary add-list" data-toggle="modal" data-target="#addCategoryModal">
+                                <i class="las la-plus mr-3"></i>Create New Category
+                            </button>
+                        @endif
                     </div>
                 </div>
                 <div class="table-responsive rounded mb-3">
@@ -108,173 +110,173 @@
         </div>
     </div>
 
-<script>
-    $(document).ready(function() {
+    <script>
+        $(document).ready(function() {
 
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
-
-        $('#categories_tbl').DataTable().clear().destroy();
-
-        $('#categories_tbl').DataTable({
-            pagelength: 10,
-            responsive: true,
-            processing: true,
-            ordering: true,
-            bLengthChange: true,
-            serverSide: true,
-
-            "ajax": {
-                "url": '{{ url('categories/get-data') }}',
-                "type": "post",
-                "data": function(d) {},
-            },
-            aoColumns: [
-
-                {
-                    data: 'name'
-                },
-                {
-                    data: 'is_active'
-                },
-                {
-                    data: 'created_at'
-                },
-                {
-                    data: 'updated_at'
-                },
-                {
-                    data: 'action'
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
-                // Define more columns as per your table structure
-            ],
-            aoColumnDefs: [{
-                bSortable: false,
-                aTargets: [0,1,4] // make "action" column unsortable
-            }],
-            order: [
-                [2, 'desc']
-            ], // 🟢 Sort by created_at DESC by default
-            dom: "Bfrtip",
-            lengthMenu: [
-                [10, 25, 50],
-                ['10 rows', '25 rows', '50 rows', 'All']
-            ],
-            buttons: ['pageLength']
+            });
+
+            $('#categories_tbl').DataTable().clear().destroy();
+
+            $('#categories_tbl').DataTable({
+                pagelength: 10,
+                responsive: true,
+                processing: true,
+                ordering: true,
+                bLengthChange: true,
+                serverSide: true,
+
+                "ajax": {
+                    "url": '{{ url('categories/get-data') }}',
+                    "type": "post",
+                    "data": function(d) {},
+                },
+                aoColumns: [
+
+                    {
+                        data: 'name'
+                    },
+                    {
+                        data: 'is_active'
+                    },
+                    {
+                        data: 'created_at'
+                    },
+                    {
+                        data: 'updated_at'
+                    },
+                    {
+                        data: 'action'
+                    }
+                    // Define more columns as per your table structure
+                ],
+                aoColumnDefs: [{
+                    bSortable: false,
+                    aTargets: [0, 1, 4] // make "action" column unsortable
+                }],
+                order: [
+                    [2, 'desc']
+                ], // 🟢 Sort by created_at DESC by default
+                dom: "Bfrtip",
+                lengthMenu: [
+                    [10, 25, 50],
+                    ['10 rows', '25 rows', '50 rows', 'All']
+                ],
+                buttons: ['pageLength']
+
+            });
 
         });
 
-    });
+        function delete_category(id) {
 
-    function delete_category(id) {
-
-        Swal.fire({
-            title: "Are you sure?",
-            text: "You won't be able to revert this!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, delete it!",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    type: "delete", // "method" also works
-                    url: "{{ url('store/delete') }}/" + id, // Ensure correct Laravel URL
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    data: {
-                        id: id
-                    },
-                    success: function(response) {
-                        swal("Deleted!", "The store has been deleted.", "success")
-                            .then(() => location.reload());
-                    },
-                    error: function(xhr) {
-                        swal("Error!", "Something went wrong.", "error");
-                    }
-                });
-            }
-        });
-
-    }
-
-    // Submit add form using AJAX
-    $("#addCategoryForm").on("submit", function(e) {
-        e.preventDefault();
-
-        $(".error-name").text(""); // clear errors
-
-        $.ajax({
-            url: "{{ route('categories.store') }}",
-            method: "POST",
-            data: $(this).serialize(),
-            success: function(res) {
-                Swal.fire("Success!", "Category added successfully!", "success");
-
-                $("#addCategoryModal").modal("hide");
-                $("#addCategoryForm")[0].reset();
-
-                $("#categories_tbl").DataTable().ajax.reload(); // refresh table
-            },
-            error: function(xhr) {
-                if (xhr.status === 422) {
-                    let errors = xhr.responseJSON.errors;
-                    if (errors.name) {
-                        $(".error-name").text(errors.name[0]);
-                    }
-                } else {
-                    Swal.fire("Error", "Something went wrong!", "error");
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, delete it!",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "delete", // "method" also works
+                        url: "{{ url('store/delete') }}/" + id, // Ensure correct Laravel URL
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        data: {
+                            id: id
+                        },
+                        success: function(response) {
+                            swal("Deleted!", "The store has been deleted.", "success")
+                                .then(() => location.reload());
+                        },
+                        error: function(xhr) {
+                            swal("Error!", "Something went wrong.", "error");
+                        }
+                    });
                 }
-            }
-        });
-    });
+            });
 
-    function editCategory(id) {
+        }
 
-        $.ajax({
-            url: "/categories/edit/" + id + "/",
-            method: "GET",
-            success: function(res) {
-                $("#edit_id").val(res.id);
-                $("#edit_name").val(res.name);
+        // Submit add form using AJAX
+        $("#addCategoryForm").on("submit", function(e) {
+            e.preventDefault();
 
-                $(".error-edit-name").text("");
+            $(".error-name").text(""); // clear errors
 
-                $("#editCategoryModal").modal("show");
-            }
-        });
-    }
+            $.ajax({
+                url: "{{ route('categories.store') }}",
+                method: "POST",
+                data: $(this).serialize(),
+                success: function(res) {
+                    Swal.fire("Success!", "Category added successfully!", "success");
 
-    $("#editCategoryForm").on("submit", function(e) {
-        e.preventDefault();
+                    $("#addCategoryModal").modal("hide");
+                    $("#addCategoryForm")[0].reset();
 
-        let id = $("#edit_id").val();
-
-        $(".error-edit-name").text("");
-
-        $.ajax({
-            url: "/categories/update/" + id,
-            method: "POST",
-            data: $(this).serialize(),
-            success: function(res) {
-                Swal.fire("Updated!", "Category updated successfully!", "success");
-
-                $("#editCategoryModal").modal("hide");
-
-                $("#categories_tbl").DataTable().ajax.reload();
-            },
-            error: function(xhr) {
-                if (xhr.status === 422) {
-                    let errors = xhr.responseJSON.errors;
-                    if (errors.name) {
-                        $(".error-edit-name").text(errors.name[0]);
+                    $("#categories_tbl").DataTable().ajax.reload(); // refresh table
+                },
+                error: function(xhr) {
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        if (errors.name) {
+                            $(".error-name").text(errors.name[0]);
+                        }
+                    } else {
+                        Swal.fire("Error", "Something went wrong!", "error");
                     }
                 }
-            }
+            });
         });
-    });
-</script>
+
+        function editCategory(id) {
+
+            $.ajax({
+                url: "/categories/edit/" + id + "/",
+                method: "GET",
+                success: function(res) {
+                    $("#edit_id").val(res.id);
+                    $("#edit_name").val(res.name);
+
+                    $(".error-edit-name").text("");
+
+                    $("#editCategoryModal").modal("show");
+                }
+            });
+        }
+
+        $("#editCategoryForm").on("submit", function(e) {
+            e.preventDefault();
+
+            let id = $("#edit_id").val();
+
+            $(".error-edit-name").text("");
+
+            $.ajax({
+                url: "/categories/update/" + id,
+                method: "POST",
+                data: $(this).serialize(),
+                success: function(res) {
+                    Swal.fire("Updated!", "Category updated successfully!", "success");
+
+                    $("#editCategoryModal").modal("hide");
+
+                    $("#categories_tbl").DataTable().ajax.reload();
+                },
+                error: function(xhr) {
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        if (errors.name) {
+                            $(".error-edit-name").text(errors.name[0]);
+                        }
+                    }
+                }
+            });
+        });
+    </script>
 @endsection

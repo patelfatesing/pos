@@ -54,6 +54,27 @@ class CommissionUserController extends Controller
             $query->skip($start)->take($length);
         }
 
+        $roleId = auth()->user()->role_id;
+
+        $userId = auth()->id();
+
+        $listAccess = getAccess($roleId, 'commission-customer-manage');
+
+        // ❌ No permission → return empty table
+        if (in_array($listAccess, ['none', 'no'])) {
+            return response()->json([
+                'draw' => $draw,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => []
+            ]);
+        }
+
+        // 👤 Own permission → only own products
+        if ($listAccess === 'own') {
+            $query->where('created_by', $userId);
+        }
+
         $data = $query->orderBy($orderColumn, $orderDirection)->get();
         // $data = $query->orderBy($orderColumn, $orderDirection)
         //     ->offset($start)
@@ -63,7 +84,7 @@ class CommissionUserController extends Controller
         $records = [];
 
         foreach ($data as $commissionUser) {
-
+            $ownerId = $commissionUser->created_by;  // If available
             $images = $commissionUser->images->map(function ($image) {
                 return asset('storage/' . $image->image_path);
             })->toArray();
@@ -72,15 +93,18 @@ class CommissionUserController extends Controller
             // $last_name = '<div class="d-flex align-items-center list-action"><a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit" href="' . url('/commission-cust/view/' . $commissionUser->id) . '">' . $commissionUser->last_name . '</a></div>';
 
 
-            $action = '<div class="d-flex align-items-center list-action">
-                                    <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                                        href="' . url('/commission-users/edit/' . $commissionUser->id) . '"><i class="ri-pencil-line mr-0"></i></a>
-           <a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                                        href="' . url('/commission-cust/view/' . $commissionUser->id) . '"><i class="ri-eye-line mr-0"></i></a>
-                                     <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
-                                        href="#" onclick="delete_commission_user(' . $commissionUser->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
-          
-                                        </div>';
+            $action = '<div class="d-flex align-items-center list-action">';
+            // if (canDo($roleId, 'commission-customer-edit', $ownerId)) {
+                $action .= '<a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
+                                        href="' . url('/commission-users/edit/' . $commissionUser->id) . '"><i class="ri-pencil-line mr-0"></i></a>';
+            // }
+            $action .= '<a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
+                                        href="' . url('/commission-cust/view/' . $commissionUser->id) . '"><i class="ri-eye-line mr-0"></i></a>';
+            // if (canDo($roleId, 'commission-customer-delete', $ownerId)) {
+                $action .= '<a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
+                                        href="#" onclick="delete_commission_user(' . $commissionUser->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>';
+            // }
+            $action = '</div>';
 
             // $action = '<div class="d-flex align-items-center list-action">
             //                         <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
@@ -204,7 +228,7 @@ class CommissionUserController extends Controller
             'applies_to',
             'start_date',
             'end_date',
-            
+
         ];
 
         $orderColumn = $columns[$orderColumnIndex] ?? 'invoice_date';
@@ -282,7 +306,7 @@ class CommissionUserController extends Controller
         $data = $request->validate([
 
             'first_name' => 'required|string|max:255|unique:commission_users,first_name,' . $Commissionuser->id,
-             'mobile_number' => 'nullable|digits:10|regex:/^[0-9]+$/|unique:commission_users,mobile_number,' . $Commissionuser->id,
+            'mobile_number' => 'nullable|digits:10|regex:/^[0-9]+$/|unique:commission_users,mobile_number,' . $Commissionuser->id,
             'commission_type' => 'required|in:fixed,percentage',
             // 'applies_to' => 'required|in:all,category,product',
             'reference_id' => 'nullable|string',
@@ -324,7 +348,7 @@ class CommissionUserController extends Controller
     {
         $id =  $request->id;
         $tras = Invoice::where('commission_user_id', $id)->first();
-      
+
         if (!empty($tras)) {
             return response()->json(['status' => 'error', 'message' => "This Party user can'n delete."]);
         }
