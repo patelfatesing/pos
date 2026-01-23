@@ -62,7 +62,7 @@ class InventoryController extends Controller
             'products.reorder_level',
             'products.cost_price',
             'barcode',
-            'sell_price',   
+            'sell_price',
             'products.discount_price',
             'branches.name as branch_name'
         )
@@ -111,6 +111,19 @@ class InventoryController extends Controller
 
         $data = $query->orderBy($orderColumn, $orderDirection)->get();
 
+        $roleId = auth()->user()->role_id;
+      
+        $listAccess = getAccess($roleId, 'inventory');
+
+        // ❌ No permission → return empty table
+        if (in_array($listAccess, ['none', 'no'])) {
+            return response()->json([
+                'draw' => $draw,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => []
+            ]);
+        }
 
         $records = [];
         $url = url('/');
@@ -118,9 +131,18 @@ class InventoryController extends Controller
         foreach ($data as $inventory) {
             $total_qty = Inventory::countQty($inventory->product_id, $inventory->store_id);
 
-            $reorder_level = ($total_qty < $inventory->low_level_qty)
-                ? '<span class="badge bg-danger" onclick="low_level_stock_set(' . $inventory->product_id . ',' . $inventory->store_id . ',' . $inventory->low_level_qty . ')">Low Level (' . $inventory->low_level_qty . ')</span>'
-                : '<span class="badge bg-success" onclick="low_level_stock_set(' . $inventory->product_id . ',' . $inventory->store_id . ',' . $inventory->low_level_qty . ')">' . $inventory->low_level_qty . '</span>';
+            $lowAccess = getAccess($roleId, 'stock-low-level');
+
+            // ❌ No permission → return empty table
+            if ($lowAccess == 'yes') {
+                $reorder_level = ($total_qty < $inventory->low_level_qty)
+                    ? '<span class="badge bg-danger" onclick="low_level_stock_set(' . $inventory->product_id . ',' . $inventory->store_id . ',' . $inventory->low_level_qty . ')">Low Level (' . $inventory->low_level_qty . ')</span>'
+                    : '<span class="badge bg-success" onclick="low_level_stock_set(' . $inventory->product_id . ',' . $inventory->store_id . ',' . $inventory->low_level_qty . ')">' . $inventory->low_level_qty . '</span>';
+            } else {
+                $reorder_level = ($total_qty < $inventory->low_level_qty)
+                    ? '<span class="badge bg-danger">Low Level (' . $inventory->low_level_qty . ')</span>'
+                    : '<span class="badge bg-success">' . $inventory->low_level_qty . '</span>';
+            }
             $status = ($inventory->status == 'Yes')
                 ? '<span class="badge bg-danger">Active</span>'
                 : '<span class="badge bg-success">Inactive</span>';
@@ -498,6 +520,4 @@ class InventoryController extends Controller
             'available' => $availableQty,
         ]);
     }
-
-    
 }

@@ -54,6 +54,26 @@ class GroupController extends Controller
 
         // Total before filtering
         $recordsTotal = (clone $base)->count();
+        $roleId = auth()->user()->role_id;
+
+        $userId = auth()->id();
+
+        $listAccess = getAccess($roleId, 'accounting-groups-manage');
+
+        // ❌ No permission → return empty table
+        if (in_array($listAccess, ['none', 'no'])) {
+            return response()->json([
+                'draw' => $draw,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => []
+            ]);
+        }
+
+        // 👤 Own permission → only own products
+        if ($listAccess === 'own') {
+            $base->where('created_by', $userId);
+        }
 
         // Search
         if (!empty($searchValue)) {
@@ -88,6 +108,9 @@ class GroupController extends Controller
         // Build response rows
         $records = [];
         foreach ($rows as $g) {
+            // $ownerId = $g->created_by;  // If available
+            // if (canDo($roleId, 'product-edit', $ownerId)) {
+            // }
             $affectsBadge = $g->affects_gross
                 ? '<span class="badge bg-success">Yes</span>'
                 : '<span class="badge bg-secondary">No</span>';

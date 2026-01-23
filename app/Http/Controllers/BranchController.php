@@ -113,6 +113,26 @@ class BranchController extends Controller
 
         $recordsTotal = Branch::count();
         $recordsFiltered = $query->count();
+        $roleId = auth()->user()->role_id;
+
+        $userId = auth()->id();
+
+        $listAccess = getAccess($roleId, 'store-manage');
+
+        // ❌ No permission → return empty table
+        if (in_array($listAccess, ['none', 'no'])) {
+            return response()->json([
+                'draw' => $draw,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => []
+            ]);
+        }
+
+        // 👤 Own permission → only own products
+        if ($listAccess === 'own') {
+            $query->where('created_by', $userId);
+        }
 
         $data = $query->orderBy($orderColumn, $orderDirection)
             ->offset($start)
@@ -123,27 +143,37 @@ class BranchController extends Controller
 
         $url = url('/');
         foreach ($data as $store) {
-
+            $ownerId = $store->created_by;
+            // if (canDo($roleId, 'product-edit', $ownerId)) {
+            // }
             $action = '<div class="d-flex align-items-center list-action">';
             if ($store->is_warehouser != 'yes') {
                 // $action .= '<a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete"
                 // href="#" onclick="delete_store(' . $store->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>';
             }
-
-            $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
+            if (canDo($roleId, 'add-holiday', $ownerId)) {
+                $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="#" onclick="add_store_holiday(' . $store->id . ')"><i class="ri-calendar-event-line"></i></a>';
-            $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
+            }
+            if (canDo($roleId, 'one-time-sales', $ownerId)) {
+                $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="#" onclick="add_one_time_sales(' . $store->id . ')"><i class="ri-price-tag-line"></i></a>';
-            $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
+            }
+            if (canDo($roleId, 'product-low-stock-set', $ownerId)) {
+                $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="#" onclick="low_level_stock(' . $store->id . ')"><i class="ri-battery-low-line"></i></a>';
-            $action .= '<a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit"
+            }
+            if (canDo($roleId, 'store-edit', $ownerId)) {
+                $action .= '<a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit"
                     href="' . url('/store/edit/' . $store->id) . '"><i class="ri-pencil-line mr-0"></i></a>';
-            $action .= '<div class="custom-control custom-switch custom-control-inline">
+
+                $action .= '<div class="custom-control custom-switch custom-control-inline">
                         <input type="checkbox" class="custom-control-input" id="customSwitch' . $store->id . '" ' . ($store->in_out_enable ? 'checked' : '') . ' data-store-id="' . $store->id . '">
                         <label class="custom-control-label" for="customSwitch' . $store->id . '">
                             <span class="switch-label">' . ($store->in_out_enable ? 'Enabled' : 'Disabled') . '</span>
                         </label>
                     </div>';
+            }
 
             $action .= '</div>';
 

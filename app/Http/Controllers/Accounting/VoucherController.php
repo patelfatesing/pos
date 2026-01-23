@@ -73,6 +73,27 @@ class VoucherController extends Controller
         ];
         $orderBy = $sortable[$orderColumn] ?? 'v.voucher_date';
 
+         $roleId = auth()->user()->role_id;
+
+        $userId = auth()->id();
+
+        $listAccess = getAccess($roleId, 'accounting-voucher-manage');
+
+        // ❌ No permission → return empty table
+        if (in_array($listAccess, ['none', 'no'])) {
+            return response()->json([
+                'draw' => $draw,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => []
+            ]);
+        }
+
+        // 👤 Own permission → only own products
+        if ($listAccess === 'own') {
+            $base->where('created_by', $userId);
+        }
+
         $rows = $base->orderBy($orderBy, $orderDirection)
             ->offset($start)->limit($length)->get();
 
@@ -83,7 +104,9 @@ class VoucherController extends Controller
                 : '<span class="badge bg-danger">Unbalanced</span>';
 
             $deleteUrl = route('accounting.vouchers.destroy', $r->id);
-
+             // $ownerId = $g->created_by;  // If available
+            // if (canDo($roleId, 'product-edit', $ownerId)) {
+            // }
             $actions = '
               <div class="d-flex align-items-center gap-1">
                 <form method="POST" action="' . e($deleteUrl) . '" class="d-inline-block frm-del">

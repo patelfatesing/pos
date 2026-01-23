@@ -59,15 +59,38 @@ class DemandOrderController extends Controller
             $query->skip($start)->take($length);
         }
 
+         $roleId = auth()->user()->role_id;
+        
+        $userId = auth()->id();
+
+        $listAccess = getAccess($roleId, 'demand-order-manage');
+
+        // ❌ No permission → return empty table
+        if (in_array($listAccess, ['none', 'no'])) {
+            return response()->json([
+                'draw' => $draw,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => []
+            ]);
+        }
+
+        // 👤 Own permission → only own products
+        if ($listAccess === 'own') {
+            $query->where('created_by', $userId);
+        }
+
         // Fetch results
         $data = $query->get();
 
         // Build response data
         $records = [];
         foreach ($data as $order) {
+            // $ownerId = $order->created_by;  
             $vendorName = $order->vendor->name ?? 'N/A';
             $dataTotal = $this->getTotal($order->id); // Assume it returns object with total_quantity, total_sell_price
-
+            //  if (canDo($roleId, 'product-edit', $ownerId)) {
+            //  }
             $action = '<div class="d-flex align-items-center list-action">
             <button class="btn btn-warning btn-sm" onclick="openPDF(\'' . asset('storage/demand/' . $order->file_name) . '\')" data-toggle="modal" data-target="#pdfModal">
                 <i class="las la-file-pdf"></i> View File

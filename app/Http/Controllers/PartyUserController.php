@@ -57,6 +57,27 @@ class PartyUserController extends Controller
             $query->skip($start)->take($length);
         }
 
+        $roleId = auth()->user()->role_id;
+
+        $userId = auth()->id();
+
+        $listAccess = getAccess($roleId, 'party-customer-manage');
+
+        // ❌ No permission → return empty table
+        if (in_array($listAccess, ['none', 'no'])) {
+            return response()->json([
+                'draw' => $draw,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => []
+            ]);
+        }
+
+        // 👤 Own permission → only own products
+        if ($listAccess === 'own') {
+            $query->where('created_by', $userId);
+        }
+
         $data = $query->orderBy($orderColumn, $orderDirection)->get();
         // $data = $query->orderBy($orderColumn, $orderDirection)
         //     ->offset($start)
@@ -66,6 +87,7 @@ class PartyUserController extends Controller
         $records = [];
 
         foreach ($data as $partyUser) {
+            // $ownerId = $partyUser->created_by;  // If available
 
             $images = $partyUser->images->map(function ($image) {
                 return asset('storage/' . $image->image_path);
@@ -80,15 +102,22 @@ class PartyUserController extends Controller
                 $action .= ' <a class="badge bg-primary mr-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Inline Price Change"'
                     . ' href="#" onclick="set_due_date(' . (int)$partyUser->id . ')"><i class="ri-calendar-event-fill"></i></a>';
             }
+            // if (canDo($roleId, 'party-customer-edit', $ownerId)) {
             $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                    href="' . url('/cust-product-price-change/form?id=' . $partyUser->id) . '"><i class="ri-currency-fill"></i></a>
-            <a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                                        href="' . url('/party-users/view/' . $partyUser->id) . '"><i class="ri-eye-line mr-0"></i></a>
-            <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                                        href="' . url('/party-users/edit/' . $partyUser->id) . '"><i class="ri-pencil-line mr-0"></i></a>
-              <a class="badge bg-danger mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
+                    href="' . url('/cust-product-price-change/form?id=' . $partyUser->id) . '"><i class="ri-currency-fill"></i></a>';
+            // }
+            $action .= '<a class="badge bg-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
+                                        href="' . url('/party-users/view/' . $partyUser->id) . '"><i class="ri-eye-line mr-0"></i></a>';
+
+            // if (canDo($roleId, 'party-customer-edit', $ownerId)) {
+            $action .= '<a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
+                                        href="' . url('/party-users/edit/' . $partyUser->id) . '"><i class="ri-pencil-line mr-0"></i></a>';
+            // }
+            // if (canDo($roleId, party-customer-delete', $ownerId)) {
+            $action .= '   <a class="badge bg-danger mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
                                         href="#" onclick="delete_party_user(' . $partyUser->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
              </div>';
+            // }
 
 
             $records[] = [

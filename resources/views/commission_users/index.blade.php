@@ -65,9 +65,11 @@
                             <div>
                                 <h4 class="mb-3">Commission Customer List</h4>
                             </div>
-                            <a href="{{ route('commission-users.create') }}" class="btn btn-primary add-list">
-                                <i class="las la-plus mr-3"></i>Create New Commission Customer
-                            </a>
+                            @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'commission-customer-create'))
+                                <a href="{{ route('commission-users.create') }}" class="btn btn-primary add-list">
+                                    <i class="las la-plus mr-3"></i>Create New Commission Customer
+                                </a>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -138,7 +140,8 @@
                         data: 'mobile_number'
                     },
                     {
-                        data: 'commission_type', orderable: false
+                        data: 'commission_type',
+                        orderable: false
                     },
                     // {
                     //     data: 'applies_to', orderable: false
@@ -153,7 +156,8 @@
                         data: 'updated_at'
                     },
                     {
-                        data: 'action', orderable: false
+                        data: 'action',
+                        orderable: false
                     }
                 ],
                 order: [
@@ -163,7 +167,7 @@
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, "All"]
                 ],
-                 aoColumnDefs: [{
+                aoColumnDefs: [{
                     bSortable: false,
                     aTargets: [1, 2, 3] // make "action" column unsortable
                 }],

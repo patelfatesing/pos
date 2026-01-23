@@ -20,7 +20,13 @@ class StockTransferController extends Controller
 {
     public function index()
     {
-        return view('stocks_transfer.list');
+         if (auth()->user()->role_id == 1 || canDo(auth()->user()->role_id, 'stock-transfer-list')) {
+            return view('stocks_transfer.list');
+        } else {
+            return view('errors.403', [
+                'message' => 'You do not have permission to view this stock request.'
+            ]);
+        }
     }
 
     public function craeteTransfer()

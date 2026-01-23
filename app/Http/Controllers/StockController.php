@@ -269,8 +269,15 @@ class StockController extends Controller
      */
     public function show(StockRequest $stockRequest)
     {
-        $stockRequest->load('branch', 'user', 'items.product');
-        return view('stocks.show', compact('stockRequest'));
+        if (auth()->user()->role_id == 1 || canAccess(auth()->user()->role_id, 'stock-request')) {
+            $stockRequest->load('branch', 'user', 'items.product');
+            return view('stocks.show', compact('stockRequest'));
+        } else {
+
+            return view('errors.403', [
+                'message' => 'You do not have permission to view this stock request.'
+            ]);
+        }
     }
 
     public function getData(Request $request)
@@ -433,6 +440,27 @@ class StockController extends Controller
             });
         }
 
+        $roleId = auth()->user()->role_id;
+
+        $userId = auth()->id();
+
+        $listAccess = getAccess($roleId, 'stock-request-list');
+
+        // ❌ No permission → return empty table
+        if (in_array($listAccess, ['none', 'no'])) {
+            return response()->json([
+                'draw' => $draw,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => []
+            ]);
+        }
+
+        // 👤 Own permission → only own products
+        if ($listAccess === 'own') {
+            $query->where('created_by', $userId);
+        }
+
         $recordsTotal = StockRequest::count();
         $recordsFiltered = $query->count();
 
@@ -445,25 +473,53 @@ class StockController extends Controller
         $url = url('/');
 
         foreach ($data as $requestItem) {
+            $ownerId = $requestItem->created_by;
+            if (canDo($roleId, 'product-edit', $ownerId)) {
+            }
             $action = "";
             $action = '<div class="d-flex align-items-center list-action">
                     <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
                     href="' . url('/stock/view/' . $requestItem->id) . '"><i class="ri-eye-line mr-0"></i></a>';
 
-            if (in_array(session('role_name'), ['admin', 'warehouse'])) {
-                if ($requestItem->status === 'pending') {
-                    // $action .= "<button class='btn btn-warning btn-sm ml-1 open-approve-modal' data-id='{$requestItem->id}'>Pending</button>";
-                    $action .=   '<a class="btn btn-warning btn-sm ml-1 mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                    href="' . url('/stock-requests/popup-details/' . $requestItem->id) . '">Pending</a>';
-                    $action .=   '<span class="badge bg-danger" onclick="stock_reject(' . $requestItem->id . ','. $requestItem->requested_by.')">Reject</span>';
-                } elseif ($requestItem->status === 'approved') {
-                    $action .=   '<a class="btn btn-warning btn-sm ml-1 mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                    href="' . url('/stock/view-request/' . $requestItem->id) . '">Approved</a>';
-                } else {
-                    $action .=   '<a class="btn btn-danger btn-sm ml-1 mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                    href="' . url('/stock/view/' . $requestItem->id) . '">Reject</a>';
+            $roleId = auth()->user()->role_id;
+
+            if ($requestItem->status === 'pending') {
+
+                // View pending request
+                $action .= '<a class="btn btn-warning btn-sm ml-1 mr-2"
+        data-toggle="tooltip" title="View"
+        href="' . url('/stock-requests/popup-details/' . $requestItem->id) . '">
+        Pending
+    </a>';
+
+                // Reject button (permission optional, adjust slug if needed)
+                if ($roleId == 1 || getAccess($roleId, 'stock-request-reject') === 'yes') {
+                    $action .= '<span class="badge bg-danger"
+            style="cursor:pointer"
+            onclick="stock_reject(' . $requestItem->id . ',' . $requestItem->requested_by . ')">
+            Reject
+        </span>';
+                }
+            } elseif ($requestItem->status === 'approved') {
+
+                if ($roleId == 1 || getAccess($roleId, 'stock-request-approval') === 'yes') {
+                    $action .= '<a class="btn btn-success btn-sm ml-1 mr-2"
+            data-toggle="tooltip" title="View"
+            href="' . url('/stock/view-request/' . $requestItem->id) . '">
+            Approved
+        </a>';
+                }
+            } elseif ($requestItem->status === 'rejected') {
+
+                if ($roleId == 1 || getAccess($roleId, 'stock-request-reject') === 'yes') {
+                    $action .= '<a class="btn btn-danger btn-sm ml-1 mr-2"
+            data-toggle="tooltip" title="View"
+            href="' . url('/stock/view/' . $requestItem->id) . '">
+            Rejected
+        </a>';
                 }
             }
+
             $action .= '</div>';
 
             $records[] = [

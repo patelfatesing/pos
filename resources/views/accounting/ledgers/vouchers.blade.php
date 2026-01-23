@@ -20,22 +20,24 @@ table.dataTable tbody tr:hover { background: #fff3b0; color: #000; }
 .col-particulars { text-align: left; width: 40%; overflow: hidden; text-overflow: ellipsis; }
 .col-center { text-align: center; } 
 .col-right { text-align: right; }
-.content-page.accounting-ledgers-page { padding: 90px 0 0; }
+.content-page.accounting-ledgers-page { padding: 90px 0 0; min-height: auto; }
 /* ================= FOOTER BALANCE ================= */
 .tally-balance { font-family: monospace; font-size: 13px; background: #ffffff; border-top: 1px solid #999; padding: 6px 10px; display: flex; justify-content: space-between; }
 /* Hide DataTable UI */
 .dataTables_length, .dataTables_filter, .dataTables_info, .dataTables_paginate { display: none; }
 /* === RIGHT SIDE FIXED TOTAL (TALLY STYLE) === */
-.tally-footer-right { position: sticky; bottom: 0; float: right; background: #fff; border: 1px solid #999; padding: 6px 10px; font-family: monospace; font-size: 13px; min-width: 240px; z-index: 10; }
-.tally-footer-right table { width: 100%; } 
+.tally-footer-right { position: sticky; bottom: 0; float: right; background: #fff; border: 1px solid #999; padding: 6px 10px; font-family: monospace; font-size: 13px; min-width: 240px; z-index: 10; width: 100%; border-width: 1px 0px; }
+.tally-footer-right table { width: 100%; border-collapse: collapse; } 
 .tally-footer-right td { padding: 2px 4px; } 
-.tally-footer-right td:last-child { text-align: right; font-weight: bold; } 
+.tally-footer-right td:first-child { width: 75%; text-align: right; }
+.tally-footer-right td:last-child { text-align: left; font-weight: bold; } 
 .tally-closing td { border-top: 1px solid #999; padding-top: 6px; }
 .accounting-ledgers-page table.dataTable { margin: 0 !important; }
 .ledger-title { font-size: 0;}
 .ledger-title p { margin: 0; font-size: 14px; line-height: 1.2; }
 .controls .btn { background: #fff; border: 1px solid #ccc; color: #333;}
 .controls .btn-secondary { background: #32BDEA; border: 1px solid #32BDEA; color: #fff;}
+div.dataTables_wrapper{ min-height:calc(100vh - 350px);}
 
 </style>
 @endsection
@@ -85,16 +87,16 @@ table.dataTable tbody tr:hover { background: #fff3b0; color: #000; }
                 <div class="tally-footer-right">
                     <table>
                         <tr>
-                            <td>Opening :</td>
-                            <td id="openingBalance" class="text-right">-</td>
+                            <td>Opening Balance:</td>
+                            <td id="openingBalance">-</td>
                         </tr>
                         <tr>
-                            <td>Current :</td>
-                            <td id="currentTotal" class="text-right">-</td>
+                            <td>Current Balance:</td>
+                            <td id="currentTotal">-</td>
                         </tr>
                         <tr class="tally-closing">
-                            <td>Closing :</td>
-                            <td id="closingBalance" class="text-right">-</td>
+                            <td>Closing Balance:</td>
+                            <td id="closingBalance">-</td>
                         </tr>
                     </table>
                 </div>

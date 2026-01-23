@@ -23,7 +23,9 @@ class Commissionuser extends Model
         'mobile_number',
         //'last_name',
         'email',
-        'photo'
+        'photo',
+        'created_by',
+        'updated_by'
     ];
 
     /**
@@ -33,5 +35,4 @@ class Commissionuser extends Model
     {
         return $this->hasMany(CommissionUserImage::class, 'commission_user_id');
     }
-    
 }

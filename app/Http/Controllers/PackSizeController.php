@@ -39,6 +39,27 @@ class PackSizeController extends Controller
         $recordsTotal = PackSize::where('is_deleted', 'no')->count();
         $recordsFiltered = $query->count();
 
+        $roleId = auth()->user()->role_id;
+
+        $userId = auth()->id();
+
+        $listAccess = getAccess($roleId, 'categories-list');
+
+        // ❌ No permission → return empty table
+        if (in_array($listAccess, ['none', 'no'])) {
+            return response()->json([
+                'draw' => $draw,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => []
+            ]);
+        }
+
+        // 👤 Own permission → only own products
+        if ($listAccess === 'own') {
+            $query->where('created_by', $userId);
+        }
+
         $data = $query->orderBy($orderColumn, $orderDirection)
             ->offset($start)
             ->limit($length)
