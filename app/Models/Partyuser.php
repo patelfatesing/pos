@@ -23,7 +23,9 @@ class Partyuser extends Model
         'left_credit',
         'use_credit',
         'photo',
-       
+        'created_by',
+        'updated_by'
+
     ];
     /**
      * Get the images for the party user.
@@ -37,6 +39,4 @@ class Partyuser extends Model
     {
         return $this->hasMany(PartyCustomerProductsPrice::class);
     }
-
-
 }

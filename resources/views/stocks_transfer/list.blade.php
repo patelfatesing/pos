@@ -36,9 +36,11 @@
                                     <h4 class="card-title">Stock Transfers</h4>
                                 </div>
                                 <div>
-                                    <a href="{{ route('stock-transfer.craete-transfer') }}" class="btn btn-primary">
-                                        <i class="fas fa-plus"></i> New Transfer
-                                    </a>
+                                    @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'stock-transfer'))
+                                        <a href="{{ route('stock-transfer.craete-transfer') }}" class="btn btn-primary">
+                                            <i class="fas fa-plus"></i> New Transfer
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
                             <div class="card-body">
@@ -142,7 +144,7 @@
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [0, 3, 4, 5,6]
+                    aTargets: [0, 3, 4, 5, 6]
                 }],
                 order: [
                     [5, 'desc']

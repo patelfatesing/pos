@@ -75,6 +75,27 @@ class ProductController extends Controller
             $query->skip($start)->take($length);
         }
 
+        $roleId = auth()->user()->role_id;
+        
+        $userId = auth()->id();
+
+        $listAccess = getAccess($roleId, 'product-list');
+
+        // ❌ No permission → return empty table
+        if (in_array($listAccess, ['none', 'no'])) {
+            return response()->json([
+                'draw' => $draw,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => []
+            ]);
+        }
+
+        // 👤 Own permission → only own products
+        if ($listAccess === 'own') {
+            $query->where('created_by', $userId);
+        }
+
         $data = $query->orderBy($orderColumn, $orderDirection)->get();
         // $data = $query->orderBy($orderColumn, $orderDirection)
         //     ->offset($start)
@@ -94,18 +115,50 @@ class ProductController extends Controller
         }
 
         foreach ($data as $product) {
-            $action = '<div class="d-flex align-items-center list-action">
-            <a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
-                    href="#" onclick="product_price_change(' . $product->id . ',' . $product->sell_price . ')"><i class="ri-currency-line"></i></a>
-                     <a class="badge badge-info mr-2" onclick="viewProduct(' . $product->id . ')">
-                    <i class="las la-eye"></i>
-                </a>
-            <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
-                    href="' . url('/products/edit/' . $product->id) . '"><i class="ri-pencil-line mr-0"></i></a>
-   
-                                    <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
-                                        href="#" onclick="delete_product(' . $product->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
-            </div>';
+            $ownerId = $product->created_by;  // If available
+            // $action = '<div class="d-flex align-items-center list-action">
+            // <a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
+            //         href="#" onclick="product_price_change(' . $product->id . ',' . $product->sell_price . ')"><i class="ri-currency-line"></i></a>
+            //          <a class="badge badge-info mr-2" onclick="viewProduct(' . $product->id . ')">
+            //         <i class="las la-eye"></i>
+            //     </a>
+            // <a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"
+            //         href="' . url('/products/edit/' . $product->id) . '"><i class="ri-pencil-line mr-0"></i></a>
+
+            //                         <a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="Delete"
+            //                             href="#" onclick="delete_product(' . $product->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
+            // </div>';
+
+            $action = '<div class="d-flex align-items-center list-action">';
+
+            // PRICE CHANGE BUTTON
+            if (canDo($roleId, 'product-price-change', $ownerId)) {
+                $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" title="Price Change"
+                href="#" onclick="product_price_change(' . $product->id . ',' . $product->sell_price . ')">
+                <i class="ri-currency-line"></i></a>';
+            }
+
+            $action .= '<a class="badge badge-info mr-2" title="View"
+                onclick="viewProduct(' . $product->id . ')">
+                <i class="las la-eye"></i></a>';
+
+
+            // EDIT BUTTON
+            if (canDo($roleId, 'product-edit', $ownerId)) {
+                $action .= '<a class="badge bg-success mr-2" title="Edit"
+                href="' . url('/products/edit/' . $product->id) . '">
+                <i class="ri-pencil-line"></i></a>';
+            }
+
+            // DELETE BUTTON
+            if (canDo($roleId, 'product-delete', $ownerId)) {
+                $action .= '<a class="badge bg-warning mr-2" title="Delete"
+                href="#" onclick="delete_product(' . $product->id . ')">
+                <i class="ri-delete-bin-line"></i></a>';
+            }
+
+            $action .= '</div>';
+
 
             $status = ($product->is_active ? '<div class="badge badge-success">Active</div>' : '<div class="badge badge-success">Inactive</div>');
             $records[] = [
@@ -209,6 +262,8 @@ class ProductController extends Controller
         }
 
         $validatedData['sku'] = $sku;
+        $validatedData['created_by'] = auth()->id();
+
         $validatedData['mrp'] = $request->mrp;
 
         // //barcode code
@@ -488,8 +543,8 @@ class ProductController extends Controller
         $product->barcode    = $request->barcode;
         $product->mrp    = $request->mrp;
         $product->description    = $request->description;
+        $product->updated_by    = auth()->id();
         // $product->image    = $image;
-
         $product->save();
 
         return redirect()->route('products.list')->with('success', 'Product updated successfully.');

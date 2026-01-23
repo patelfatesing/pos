@@ -65,6 +65,27 @@ class LedgerController extends Controller
             });
         }
 
+        $roleId = auth()->user()->role_id;
+
+        $userId = auth()->id();
+
+        $listAccess = getAccess($roleId, 'accounting-ledgers-manage');
+
+        // ❌ No permission → return empty table
+        if (in_array($listAccess, ['none', 'no'])) {
+            return response()->json([
+                'draw' => $draw,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => []
+            ]);
+        }
+
+        // 👤 Own permission → only own products
+        if ($listAccess === 'own') {
+            $base->where('created_by', $userId);
+        }
+
         $recordsFiltered = (clone $base)->count();
 
         $sortable = [
@@ -87,6 +108,9 @@ class LedgerController extends Controller
         }
 
         $data = $rows->map(function ($l) {
+             // $ownerId = $g->created_by;  // If available
+            // if (canDo($roleId, 'product-edit', $ownerId)) {
+            // }
             $activeBadge = $l->is_active
                 ? '<span class="badge bg-success">Yes</span>'
                 : '<span class="badge bg-secondary">No</span>';

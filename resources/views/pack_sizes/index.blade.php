@@ -16,9 +16,11 @@
                         <div>
                             <h4 class="mb-3">Pack Size List</h4>
                         </div>
-                        <button class="btn btn-primary add-list" data-toggle="modal" data-target="#packSizeModal">
-                            <i class="las la-plus mr-3"></i>Create New Pack Size
-                        </button>
+                        @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'pack-size-create'))
+                            <button class="btn btn-primary add-list" data-toggle="modal" data-target="#packSizeModal">
+                                <i class="las la-plus mr-3"></i>Create New Pack Size
+                            </button>
+                        @endif
                     </div>
                 </div>
 

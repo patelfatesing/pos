@@ -15,9 +15,11 @@
                         <div>
                             <h4 class="mb-3">Sub Categories List</h4>
                         </div>
-                        <button class="btn btn-primary add-list" data-toggle="modal" data-target="#addSubCategoryModal">
-                            <i class="las la-plus mr-3"></i>Create New Sub Category
-                        </button>
+                        @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'sub-categories-create'))
+                            <button class="btn btn-primary add-list" data-toggle="modal" data-target="#addSubCategoryModal">
+                                <i class="las la-plus mr-3"></i>Create New Sub Category
+                            </button>
+                        @endif
                     </div>
                 </div>
                 <div class="table-responsive rounded mb-3">

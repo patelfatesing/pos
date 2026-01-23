@@ -74,7 +74,26 @@ class ExpenseController extends Controller
         // Totals
         $recordsTotal    = \DB::table('expenses')->count();
         $recordsFiltered = (clone $query)->count();
+        $roleId = auth()->user()->role_id;
 
+        $userId = auth()->id();
+
+        $listAccess = getAccess($roleId, 'expense-manage');
+
+        // ❌ No permission → return empty table
+        if (in_array($listAccess, ['none', 'no'])) {
+            return response()->json([
+                'draw' => $draw,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => []
+            ]);
+        }
+
+        // 👤 Own permission → only own products
+        if ($listAccess === 'own') {
+            $query->where('created_by', $userId);
+        }
         // Page
         $rows = $query->orderBy($orderBy, $orderDirection)
             ->offset($start)
@@ -83,6 +102,9 @@ class ExpenseController extends Controller
 
         // Build response data
         $data = $rows->map(function ($e) {
+            // $ownerId = $g->created_by;  // If available
+            // if (canDo($roleId, 'product-edit', $ownerId)) {
+            // }
             return [
                 'title'        => $e->title,
                 'description'  => \Illuminate\Support\Str::limit(strip_tags($e->description), 50, '...')

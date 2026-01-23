@@ -20,10 +20,16 @@ class ShiftManageController extends Controller
 {
     public function index()
     {
-        $branches = DB::table('branches')->get(); // Adjust if you use a model
-        $users = DB::table('users')->get(); // Adjust if you use a model
+        if (auth()->user()->role_id == 1 || canDo(auth()->user()->role_id, 'Shift-manage')) {
+            $branches = DB::table('branches')->get(); // Adjust if you use a model
+            $users = DB::table('users')->get(); // Adjust if you use a model
 
-        return view('shift_manage.index', ['branches' => $branches, 'users' => $users]);
+            return view('shift_manage.index', ['branches' => $branches, 'users' => $users]);
+        } else {
+            return view('errors.403', [
+                'message' => 'You do not have permission to view this stock request.'
+            ]);
+        }
     }
 
     public function getShiftClosingsData(Request $request)
@@ -91,6 +97,7 @@ class ShiftManageController extends Controller
 
         // Get branch IDs from current page data for invoice counts
         $branchIds = $data->pluck('branch_id')->unique()->toArray();
+        $roleId = auth()->user()->role_id;
 
         // Get total transactions grouped by branch_id
         // $transactions = \DB::table('invoices')
@@ -102,6 +109,7 @@ class ShiftManageController extends Controller
         $records = [];
 
         foreach ($data as $row) {
+            $ownerId = $row->created_by;
             $endTime = $row->end_time ? \Carbon\Carbon::parse($row->end_time) : null;
             $status = "";
             if ($row->status == "pending") {
@@ -146,26 +154,30 @@ class ShiftManageController extends Controller
                             </a>';
             }
             // }
-            $action .= '<a class="badge bg-primary ml-2 view-invoices" 
+            if (canDo($roleId, 'view-transactions', $ownerId)) {
+                $action .= '<a class="badge bg-primary ml-2 view-invoices" 
                 href="' . url('/shift-manage/view/' . $row->branch_id . "/" . $row->id) . '" title="View Transactions">
                 <i class="ri-eye-line"></i>
                 </a>';
+            }
 
             // $action .= '<a class="badge bg-primary ml-2 view-invoices" 
             //     href="' . url('/shift-manage/' . $row->id) . '" title="View Physical Stock Photo">
             //     <i class="ri-image-line"></i>
             //     </a>';
-
-            $action .= '<a class="badge bg-primary ml-2 view-invoices" 
+            if (canDo($roleId, 'view-physical-stock-photo', $ownerId)) {
+                $action .= '<a class="badge bg-primary ml-2 view-invoices" 
                 href="javascript:void(0);" onclick="showImage(getImagePath(\'' . $row->physical_photo . '\'))" title="View Physical Stock Photo">
                 <i class="ri-image-line"></i>
             </a>';
+            }
 
-
-            $action .= '<a class="badge bg-primary ml-2 view-invoices" 
+            if (canDo($roleId, 'print-shift-PDF', $ownerId)) {
+                $action .= '<a class="badge bg-primary ml-2 view-invoices" 
                     href="' . url('/shift-manage/print-shift/' . $row->id) . '" title="Print Shift PDF" target="_blank">
                     <i class="ri-file-pdf-line"></i>
                 </a>';
+            }
 
             $action .= '</div>';
 

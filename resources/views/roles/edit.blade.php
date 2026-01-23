@@ -186,16 +186,33 @@
                                                     <div>
                                                         <select class="form-control"
                                                             name="permissions[{{ $sub->id }}][access]">
-                                                            <option value="all"
-                                                                {{ ($permissions[$sub->id] ?? '') == 'all' ? 'selected' : '' }}>
-                                                                All</option>
-                                                            <option value="yes"
-                                                                {{ ($permissions[$sub->id] ?? '') == 'yes' ? 'selected' : '' }}>
-                                                                Yes</option>
-                                                            <option value="no"
-                                                                {{ ($permissions[$sub->id] ?? '') == 'no' ? 'selected' : '' }}>
-                                                                No</option>
+
+                                                            @if (in_array($sub->type, ['edit', 'delete', 'list']))
+                                                                {{-- New permission set: none, own, all --}}
+                                                                <option value="none"
+                                                                    {{ ($permissions[$sub->id] ?? '') == 'none' ? 'selected' : '' }}>
+                                                                    None</option>
+                                                                <option value="own"
+                                                                    {{ ($permissions[$sub->id] ?? '') == 'own' ? 'selected' : '' }}>
+                                                                    Own</option>
+                                                                <option value="all"
+                                                                    {{ ($permissions[$sub->id] ?? '') == 'all' ? 'selected' : '' }}>
+                                                                    All</option>
+                                                            @else
+                                                                {{-- Old permission set: all, yes, no --}}
+                                                                <option value="all"
+                                                                    {{ ($permissions[$sub->id] ?? '') == 'all' ? 'selected' : '' }}>
+                                                                    All</option>
+                                                                <option value="yes"
+                                                                    {{ ($permissions[$sub->id] ?? '') == 'yes' ? 'selected' : '' }}>
+                                                                    Yes</option>
+                                                                <option value="no"
+                                                                    {{ ($permissions[$sub->id] ?? '') == 'no' ? 'selected' : '' }}>
+                                                                    No</option>
+                                                            @endif
+
                                                         </select>
+
                                                     </div>
 
                                                 </div>

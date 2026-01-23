@@ -55,12 +55,13 @@
                             <i class="las la-sync"></i>
                             <span class="d-none d-sm-inline">Refresh</span>
                         </a>
-
-                        <a href="{{ route('accounting.vouchers.create') }}" class="btn btn-primary btn-icon"
-                            title="Create voucher">
-                            <i class="las la-plus"></i>
-                            <span class="d-none d-sm-inline">Create</span>
-                        </a>
+                        @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'accounting-voucher-create'))
+                            <a href="{{ route('accounting.vouchers.create') }}" class="btn btn-primary btn-icon"
+                                title="Create voucher">
+                                <i class="las la-plus"></i>
+                                <span class="d-none d-sm-inline">Create</span>
+                            </a>
+                        @endif
                     </div>
                 </div>
 
