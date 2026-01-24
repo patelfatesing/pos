@@ -153,15 +153,18 @@ class ExpenseController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'expense_category_id' => 'required|exists:account_ledgers,id',
-            'title' => 'required|string|max:255',
-            'amount' => 'required|numeric|min:0',
-            'expense_date' => 'required|date',
-            'description' => 'nullable|string',
+            'title'              => 'required|string|max:255',
+            'amount'             => 'required|numeric|min:0',
+            'expense_date'       => 'required|date',
+            'description'        => 'nullable|string',
         ]);
 
-        Expense::create($request->all());
+        // add created_by
+        $validated['created_by'] = auth()->id();
+
+        Expense::create($validated);
 
         return redirect()->route('exp.list')
             ->with('success', 'Expense added successfully.');

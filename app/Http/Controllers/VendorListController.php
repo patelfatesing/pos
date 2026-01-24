@@ -116,6 +116,9 @@ class VendorListController extends Controller
             // 'gst_number' => 'required'
         ]);
 
+        // add created_by for vendor
+        $data['created_by'] = auth()->id();
+
         $vendor = VendorList::create($data);
 
         // Ledger validation (same as your code)
@@ -168,6 +171,7 @@ class VendorListController extends Controller
         $VendorList->phone = $request->phone;
         $VendorList->address = $request->address;
         $VendorList->gst_number = $request->gst_number;
+        $VendorList->updated_by = auth()->id();
         $VendorList->save();
 
         return redirect()->route('vendor.list')->with('success', 'Vendor has been succesfully updated');
