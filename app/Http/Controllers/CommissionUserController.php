@@ -179,6 +179,7 @@ class CommissionUserController extends Controller
 
             // Update commissionUser photo field
             $commissionUser->photo = $photoPath;
+            $commissionUser->created_by = auth()->id();
             $commissionUser->save();
         }
         return redirect()->route('commission-users.list')->with('success', 'Commission User Created');
