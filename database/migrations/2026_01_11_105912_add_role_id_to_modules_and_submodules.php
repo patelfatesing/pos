@@ -4,39 +4,30 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class UpdateSlugUniqueOnModulesAndSubmodules extends Migration
+return new class extends Migration
 {
-    public function up()
+    public function up(): void
     {
-        // Remove unique index from modules.slug
-        Schema::table('modules', function (Blueprint $table) {
-            // check if index exists before dropping
-            try {
-                $table->dropUnique('modules_slug_unique');
-            } catch (\Exception $e) {
-                // silent ignore if index doesn't exist
-            }
-        });
-
-        // Remove unique index from submodules.slug
         Schema::table('submodules', function (Blueprint $table) {
-            try {
-                $table->dropUnique('submodules_slug_unique');
-            } catch (\Exception $e) {
-                // silent ignore
-            }
+            // 1. Drop foreign key first
+            $table->dropForeign('submodules_module_id_foreign');
+
+            // 2. Then drop unique index
+            $table->dropUnique('submodules_module_id_slug_unique');
         });
     }
 
-    public function down()
+    public function down(): void
     {
-        // Re-add unique index (optional)
-        Schema::table('modules', function (Blueprint $table) {
-            $table->unique('slug', 'modules_slug_unique');
-        });
-
         Schema::table('submodules', function (Blueprint $table) {
-            $table->unique('slug', 'submodules_slug_unique');
+            // 1. Recreate unique index
+            $table->unique(['module_id', 'slug'], 'submodules_module_id_slug_unique');
+
+            // 2. Recreate foreign key
+            $table->foreign('module_id')
+                  ->references('id')
+                  ->on('modules')
+                  ->onDelete('cascade');
         });
     }
-}
+};
