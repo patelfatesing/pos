@@ -139,6 +139,7 @@ class PackSizeController extends Controller
         // Step 4: Save
         \App\Models\PackSize::create([
             'size' => $sizeWithML,
+            'created_by' => auth()->id(),
         ]);
 
         // Step 5: Success response

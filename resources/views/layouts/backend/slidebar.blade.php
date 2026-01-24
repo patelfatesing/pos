@@ -63,7 +63,7 @@
                             </li>
                         @endif
 
-                        @if (canAccess(auth()->user()->role_id, 'products-manage'))
+                        @if (canAccess(auth()->user()->role_id, 'product-list'))
                             <li>
                                 <a href="{{ route('products.list') }}">
                                     <i class="las la-minus"></i><span>Products Manage</span>
