@@ -227,6 +227,7 @@ class BranchController extends Controller
             'description' => $validated['description'] ?? null,
             'is_active' => $validated['is_active'] ?? 'yes',
             'is_deleted' => 'no',
+            'created_by' => auth()->id(),
         ]);
 
         return redirect()->route('branch.list')->with('success', 'Record created successfully.');
@@ -245,6 +246,7 @@ class BranchController extends Controller
 
         // Update the store's active status
         $store->in_out_enable = $request->in_out_enable;
+        $store->updated_by = auth()->id();
         $store->save(); // Save the updated store
 
         // Return a response indicating success
@@ -280,6 +282,9 @@ class BranchController extends Controller
             'description' => 'nullable|string',
             'is_active' => 'in:yes,no',
         ]);
+
+        // add updated_by
+        $validated['updated_by'] = auth()->id(); // or Auth::id()
 
         $record->update($validated);
 

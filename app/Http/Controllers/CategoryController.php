@@ -127,7 +127,8 @@ class CategoryController extends Controller
         // Create category
         Category::create([
             'name' => $request->name,
-            'is_active' => 1
+            'is_active' => 1,
+            'created_by' => auth()->id()
         ]);
 
         // Return success JSON (handled in JS)
@@ -172,7 +173,8 @@ class CategoryController extends Controller
 
         // Update record
         $record->update([
-            'name' => $request->name
+            'name' => $request->name,
+            'updated_by' => auth()->id()
         ]);
 
         return response()->json([

@@ -135,7 +135,8 @@ class SubCategoryController extends Controller
         SubCategory::create([
             'category_id' => $request->category_id,
             'name' => $request->name,
-            'is_active' => 1
+            'is_active' => 1,
+            'created_by' => auth()->id()
         ]);
 
         return response()->json([
@@ -169,6 +170,7 @@ class SubCategoryController extends Controller
         $sub_category = subCategory::findOrFail($request->id);
         $sub_category->category_id = $request->category_id;
         $sub_category->name = $request->name;
+        $sub_category->updated_by = auth()->id();
         $sub_category->save();
 
 

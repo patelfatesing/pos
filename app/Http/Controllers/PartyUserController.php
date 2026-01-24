@@ -183,6 +183,7 @@ class PartyUserController extends Controller
 
             // Update PartyUser photo field
             $PartyUser->photo = $photoPath;
+            $partyUser->created_by = Auth::id();
             $PartyUser->save();
         }
 
@@ -231,6 +232,7 @@ class PartyUserController extends Controller
             }
             $extension = $request->file('photo')->getClientOriginalExtension();
             $filename = $Partyuser->id . '_partyuser' . '.' . $extension;
+            $data['updated_by'] = Auth::id();
 
             // Store new photo
             $data['photo'] = $request->file('photo')->storeAs('party_user_photos', $filename, 'public');

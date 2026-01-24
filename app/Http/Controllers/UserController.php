@@ -247,7 +247,7 @@ class UserController extends Controller
             'name'    => $request->first_name . ' ' . $request->last_name,
             'role_id' => $request->role_id,
             'username' => $request->username,
-            // 'updated_by' => $request->updated_by, // Optional if you have this
+            'updated_by' => auth()->id()
         ]);
 
         // Update user info relation
