@@ -68,7 +68,7 @@
     <script src="{{ asset('assets/js/backend-bundle.min.js') }}" defer></script>
     <script src="{{ asset('assets/js/table-treeview.js') }}" defer></script>
     <script src="{{ asset('assets/js/customizer.js') }}" defer></script>
-    <script src="{{ asset('assets/js/chart-custom.js') }}" defer></script>
+    {{-- <script src="{{ asset('assets/js/chart-custom.js') }}" defer></script> --}}
     <script src="{{ asset('assets/js/script.js') }}" defer></script>
     <script src="{{ asset('assets/js/app.js') }}" defer></script>
 

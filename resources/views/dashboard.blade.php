@@ -1272,20 +1272,20 @@ $categoryImages = [
             .catch(err => console.error(err));
     }
 
-    function updateRevenueVsCostChart(fy) {
-        updateDropdown('dropdownMenuButtonFYRevenueVsCost', fy);
+    // function updateRevenueVsCostChart(fy) {
+    //     updateDropdown('dropdownMenuButtonFYRevenueVsCost', fy);
 
-        fetch(`/dashboard/chart/revenue-vs-cost?fy=${fy}`)
-            .then(res => res.json())
-            .then(data => {
-                charts.revenueVsCost.updateOptions({
-                    xaxis: {
-                        categories: data.categories
-                    }
-                });
+    //     fetch(`/dashboard/chart/revenue-vs-cost?fy=${fy}`)
+    //         .then(res => res.json())
+    //         .then(data => {
+    //             charts.revenueVsCost.updateOptions({
+    //                 xaxis: {
+    //                     categories: data.categories
+    //                 }
+    //             });
 
-                charts.revenueVsCost.updateSeries(data.series);
-            })
-            .catch(err => console.error(err));
-    }
+    //             charts.revenueVsCost.updateSeries(data.series);
+    //         })
+    //         .catch(err => console.error(err));
+    // }
 </script>
