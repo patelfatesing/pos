@@ -1,9 +1,8 @@
 <h2>Shift Closed Summary</h2>
 
-<p><strong>User:</strong> </p>
-<p><strong>Branch:</strong> </p>
-<p><strong>Start Time:</strong> </p>
-<p><strong>End Time:</strong> </p>
+<p><strong>Branch:</strong> {{ $shift->branch->name ?? '' }}</p>
+<p><strong>Start Time:</strong> {{ $shift->start_time }}</p>
+<p><strong>End Time:</strong> {{ $shift->end_time }}</p>
 
 <hr>
 

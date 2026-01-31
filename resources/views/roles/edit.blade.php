@@ -144,9 +144,11 @@
                                     <div class="form-group">
                                         <label>Status *</label>
                                         <select name="is_active" class="form-control">
-                                            <option value="yes" {{ $record->is_active == 'yes' ? 'selected' : '' }}>Yes
+                                            <option value="yes" {{ $record->is_active == 'yes' ? 'selected' : '' }}>
+                                                Active
                                             </option>
-                                            <option value="no" {{ $record->is_active == 'no' ? 'selected' : '' }}>No
+                                            <option value="no" {{ $record->is_active == 'no' ? 'selected' : '' }}>
+                                                Inactive
                                             </option>
                                         </select>
                                     </div>
@@ -200,9 +202,9 @@
                                                                     All</option>
                                                             @else
                                                                 {{-- Old permission set: all, yes, no --}}
-                                                                <option value="all"
+                                                                {{-- <option value="all"
                                                                     {{ ($permissions[$sub->id] ?? '') == 'all' ? 'selected' : '' }}>
-                                                                    All</option>
+                                                                    All</option> --}}
                                                                 <option value="yes"
                                                                     {{ ($permissions[$sub->id] ?? '') == 'yes' ? 'selected' : '' }}>
                                                                     Yes</option>
