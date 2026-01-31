@@ -22,7 +22,7 @@ use App\Models\DailyProductStock;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ShiftCloseMail;
-
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ShiftCloseModal extends Component
 {
@@ -572,6 +572,64 @@ class ShiftCloseModal extends Component
                 return;
             }
 
+            $invoices = Invoice::where('user_id', $user_id)
+                ->where('branch_id', $branch_id)
+                ->whereBetween('created_at', [$this->currentShift->start_time, now()])
+                ->where('status', 'Paid')
+                ->get();
+
+            $departments = [];
+
+            foreach ($invoices as $invoice) {
+
+                $items = is_array($invoice->items)
+                    ? $invoice->items
+                    : json_decode($invoice->items, true);
+
+                foreach ($items as $item) {
+
+                    $category = $item['category'] ?? 'Others';
+                    $price    = (float) $item['price'];
+                    $qty      = (int) $item['quantity'];
+                    $total    = $price * $qty;
+
+                    if (!isset($departments[$category])) {
+                        $departments[$category] = [
+                            'name'  => $category,
+                            'gross' => 0,
+                            'qty'   => 0,
+                        ];
+                    }
+
+                    $departments[$category]['gross'] += $total;
+                    $departments[$category]['qty']   += $qty;
+                }
+            }
+
+            $departments = collect($departments)->values();
+
+            $payments = Invoice::where('user_id', $user_id)
+                ->where('branch_id', $branch_id)
+                ->whereBetween('created_at', [$this->currentShift->start_time, now()])
+                ->where('status', 'Paid')
+                ->selectRaw('
+                    SUM(cash_amount) as cash,
+                    SUM(upi_amount) as upi,
+                    SUM(online_amount) as online,
+                    SUM(creditpay) as credit,
+                    SUM(paid_credit) as paid_credit
+                ')
+                ->first();
+
+            $payments = [
+                'Cash'        => $payments->cash ?? 0,
+                'UPI'         => $payments->upi ?? 0,
+                'Online'      => $payments->online ?? 0,
+                'Credit'      => $payments->credit ?? 0,
+                'Paid Credit' => $payments->paid_credit ?? 0,
+            ];
+
+
             // Update shift data
             $shift = UserShift::where('user_id', $user_id)
                 ->where('branch_id', $branch_id)
@@ -649,8 +707,31 @@ class ShiftCloseModal extends Component
             // --------------------------------------
             // SEND EMAIL TO ADMIN
             // --------------------------------------
+
+            $noOfCustomer = Invoice::where('user_id', $user_id)
+                ->where('branch_id', $branch_id)
+                ->whereBetween('created_at', [$this->currentShift->start_time, now()])
+                ->where('status', 'Paid')
+                ->count();
+
+
+            $pdf = Pdf::loadView('pdfs.shift_close_report', [
+                'shift' => $shift,
+                'summary' => $summary,
+                'departments' => $departments,
+                'payments' => $payments,
+                'noOfCustomer' => $noOfCustomer,
+            ])->setPaper('A4', 'portrait');
+
+            // Save PDF in storage folder
+
+            $fileName = 'shift_report_' . $shift->shift_no . '_' . now()->format('Ymd_His') . '.pdf';
+
+            $pdfPath = storage_path('app/public/' . $fileName);
+            $pdf->save($pdfPath);
+
             Mail::to('patel.fatesing36@gmail.com')->send(
-                new ShiftCloseMail($shift, $summary)
+                new ShiftCloseMail($shift, $summary, $payments, $departments, $fileName, $pdfPath)
             );
 
 

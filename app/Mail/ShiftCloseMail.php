@@ -12,16 +12,28 @@ class ShiftCloseMail extends Mailable
 
     public $shift;
     public $summary;
+    public $payments;
+    public $pdfPath;
+    public $fileName;
+    public $departments;
 
-    public function __construct($shift, $summary)
+    public function __construct($shift, $summary, $payments, $departments, $fileName, $pdfPath)
     {
         $this->shift = $shift;
         $this->summary = $summary;
+        $this->pdfPath = $pdfPath;
+        $this->payments = $payments;
+        $this->fileName = $fileName;
+        $this->departments = $departments;
     }
 
     public function build()
     {
         return $this->subject("Shift Closed - " . $this->shift->shift_no)
-                    ->view('emails.shift-close');
+            ->view('emails.shift-close')
+            ->attach($this->pdfPath, [
+                'as' => basename($this->pdfPath),
+                'mime' => 'application/pdf',
+            ]);
     }
 }
