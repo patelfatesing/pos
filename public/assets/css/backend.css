@@ -20195,3 +20195,16 @@ i { vertical-align: middle; }
 .title-table { font-size: 14px; font-weight: bold; margin: 0; min-width: 30%; }
 .card-header h4 { font-size: 16px; line-height: 20px; }
 .accounting-ledgers-page .add-list.btn { padding: 4px 8px; font-size: 12px; }
+@media (min-width: 1200px) and (max-width: 1500px) {
+  .content-page .card.card-block.card-stretch.card-height .card-body .iq-icon-box-2{ width: 50px; height: 50px; line-height: 50px; font-size: 20px; margin-right: 15px; }
+  .content-page .card.card-block.card-stretch.card-height .card-body .iq-icon-box-2 + div > p { font-size: 14px; line-height: 16px; }
+  .content-page .card.card-block.card-stretch.card-height .card-body .iq-icon-box-2 + div > h4 { font-size: 20px; line-height: 24px; }
+  .iq-top-navbar .iq-sub-dropdown { width: 250px; }
+  body.sidebar-main .iq-sidebar-logo { transform: translateX(-110px); }
+  .media-body.profile-detail + .p-3 p { font-size: 14px; line-height: 16px;}
+  
+
+}
+.mb0 { margin-bottom: 0; }
+.iq-top-navbar .navbar-expand-lg { margin-top: 10px;}
+.iq-sidebar-menu .iq-menu li a .iq-arrow-right { height: 0;}

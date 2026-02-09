@@ -187,38 +187,23 @@
 
                 <li class="">
                     <a href="{{ route('accounting.groups.list') }}" class="svg-icon">
-                        <svg class="svg-icon" id="p-dash9" width="20" height="20"
-                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                            <rect x="7" y="7" width="3" height="9"></rect>
-                            <rect x="14" y="7" width="3" height="5"></rect>
-                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="20" height="20" fill="currentColor">
+                            <path d="M320 64C355.3 64 384 92.7 384 128C384 163.3 355.3 192 320 192C284.7 192 256 163.3 256 128C256 92.7 284.7 64 320 64zM416 376C416 401 403.3 423 384 435.9L384 528C384 554.5 362.5 576 336 576L304 576C277.5 576 256 554.5 256 528L256 435.9C236.7 423 224 401 224 376L224 336C224 283 267 240 320 240C373 240 416 283 416 336L416 376zM160 96C190.9 96 216 121.1 216 152C216 182.9 190.9 208 160 208C129.1 208 104 182.9 104 152C104 121.1 129.1 96 160 96zM176 336L176 368C176 400.5 188.1 430.1 208 452.7L208 528C208 529.2 208 530.5 208.1 531.7C199.6 539.3 188.4 544 176 544L144 544C117.5 544 96 522.5 96 496L96 439.4C76.9 428.4 64 407.7 64 384L64 352C64 299 107 256 160 256C172.7 256 184.8 258.5 195.9 262.9C183.3 284.3 176 309.3 176 336zM432 528L432 452.7C451.9 430.2 464 400.5 464 368L464 336C464 309.3 456.7 284.4 444.1 262.9C455.2 258.4 467.3 256 480 256C533 256 576 299 576 352L576 384C576 407.7 563.1 428.4 544 439.4L544 496C544 522.5 522.5 544 496 544L464 544C451.7 544 440.4 539.4 431.9 531.7C431.9 530.5 432 529.2 432 528zM480 96C510.9 96 536 121.1 536 152C536 182.9 510.9 208 480 208C449.1 208 424 182.9 424 152C424 121.1 449.1 96 480 96z"/></svg>
                         <span class="ml-4">Groups</span>
                     </a>
                 </li>
 
                 <li class="">
                     <a href="{{ route('accounting.ledgers.list') }}" class="svg-icon">
-                        <svg class="svg-icon" id="p-dash9" width="20" height="20"
-                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                            <rect x="7" y="7" width="3" height="9"></rect>
-                            <rect x="14" y="7" width="3" height="5"></rect>
-                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="20" height="20" fill="currentColor">
+                            <path d="M128 128C92.7 128 64 156.7 64 192L64 448C64 483.3 92.7 512 128 512L512 512C547.3 512 576 483.3 576 448L576 192C576 156.7 547.3 128 512 128L128 128zM360 352L488 352C501.3 352 512 362.7 512 376C512 389.3 501.3 400 488 400L360 400C346.7 400 336 389.3 336 376C336 362.7 346.7 352 360 352zM336 264C336 250.7 346.7 240 360 240L488 240C501.3 240 512 250.7 512 264C512 277.3 501.3 288 488 288L360 288C346.7 288 336 277.3 336 264zM212 208C223 208 232 217 232 228L232 232L240 232C251 232 260 241 260 252C260 263 251 272 240 272L192.5 272C185.6 272 180 277.6 180 284.5C180 290.6 184.4 295.8 190.4 296.8L232.1 303.8C257.4 308 276 329.9 276 355.6C276 381.7 257 403.3 232 407.4L232 412.1C232 423.1 223 432.1 212 432.1C201 432.1 192 423.1 192 412.1L192 408.1L168 408.1C157 408.1 148 399.1 148 388.1C148 377.1 157 368.1 168 368.1L223.5 368.1C230.4 368.1 236 362.5 236 355.6C236 349.5 231.6 344.3 225.6 343.3L183.9 336.3C158.5 332 140 310.1 140 284.5C140 255.7 163.2 232.3 192 232L192 228C192 217 201 208 212 208z"/></svg>
                         <span class="ml-4">Ledgers</span>
                     </a>
                 </li>
                 <li class="">
                     <a href="{{ route('accounting.vouchers.create') }}" class="svg-icon">
-                        <svg class="svg-icon" id="p-dash9" width="20" height="20"
-                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                            <rect x="7" y="7" width="3" height="9"></rect>
-                            <rect x="14" y="7" width="3" height="5"></rect>
-                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="20" height="20" fill="currentColor">
+                            <path d="M96 128C60.7 128 32 156.7 32 192L32 256C32 264.8 39.4 271.7 47.7 274.6C66.5 281.1 80 299 80 320C80 341 66.5 358.9 47.7 365.4C39.4 368.3 32 375.2 32 384L32 448C32 483.3 60.7 512 96 512L544 512C579.3 512 608 483.3 608 448L608 384C608 375.2 600.6 368.3 592.3 365.4C573.5 358.9 560 341 560 320C560 299 573.5 281.1 592.3 274.6C600.6 271.7 608 264.8 608 256L608 192C608 156.7 579.3 128 544 128L96 128zM448 400L448 240L192 240L192 400L448 400zM144 224C144 206.3 158.3 192 176 192L464 192C481.7 192 496 206.3 496 224L496 416C496 433.7 481.7 448 464 448L176 448C158.3 448 144 433.7 144 416L144 224z"/></svg>
                         <span class="ml-4">Vouchers</span>
                     </a>
                 </li>
@@ -357,13 +342,9 @@
 
                 <li class=" ">
                     <a href="#return" class="collapsed" data-toggle="collapse" aria-expanded="false">
-                        <svg class="svg-icon" id="p-dash6" width="20" height="20"
-                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="4 14 10 14 10 20"></polyline>
-                            <polyline points="20 10 14 10 14 4"></polyline>
-                            <line x1="14" y1="10" x2="21" y2="3"></line>
-                            <line x1="3" y1="21" x2="10" y2="14"></line>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                         </svg>
                         <span class="ml-4">Access Control</span>
                         <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20"
