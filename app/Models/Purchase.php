@@ -55,6 +55,11 @@ class Purchase extends Model
         return $this->hasMany(PurchaseProduct::class);
     }
 
+    public function items(): HasMany
+    {
+        return $this->hasMany(PurchaseProduct::class, 'purchase_id', 'id');
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
