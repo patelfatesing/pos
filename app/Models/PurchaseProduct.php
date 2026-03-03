@@ -17,6 +17,7 @@ class PurchaseProduct extends Model
         'qnt',
         'rate',
         'amount',
+        'product_id'
     ];
 
     public function purchase(): BelongsTo

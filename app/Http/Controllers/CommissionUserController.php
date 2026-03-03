@@ -340,6 +340,7 @@ class CommissionUserController extends Controller
             // Store new photo
             $data['photo'] = $request->file('photo')->storeAs('commission_photos', $filename, 'public');
         }
+        $data['updated_by'] = auth()->id();
         $Commissionuser->update($data);
 
         return redirect()->route('commission-users.list')->with('success', 'Commission User Updated');

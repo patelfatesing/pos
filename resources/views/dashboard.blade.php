@@ -45,6 +45,10 @@ $categoryImages = [
             font-size: 14px;
         }
     }
+
+    .card-title{
+        /* color: black; */
+    }
 </style>
 <!-- Wrapper Start -->
 <div class="wrapper">
@@ -115,7 +119,11 @@ $categoryImages = [
                                 <div class="card-body">
                                     <div class="d-flex align-items-center mb-4 card-total-sale">
                                         <div class="icon iq-icon-box-2 bg-success-light">
-                                            <i class="fas fa-box-open text-success fa-2x"></i>
+                                            {{-- <i class="fas fa-box-open text-success fa-2x"></i> --}}
+                                              <img src="{{ asset('assets/images/dashboard-icons/sold-quantity-ic.png') }}"
+                                            class="style-img m-auto"
+                                            style=""
+                                            alt="Sold Quantity" />
                                         </div>
                                         <div>
                                             <p class="mb-2">Sold Quantity</p>
@@ -270,13 +278,24 @@ $categoryImages = [
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-4 card-total-sale">
                                 <div class="icon iq-icon-box-2 sky-blue-gb">
-                                    <i class="fas fa-piggy-bank text-success fa-2x" title="Cash/Bank"></i>
+                                    <i class="fas fa-percentage text-secondary fa-2x" title="Ratios"></i>
                                 </div>
                                 <div>
-                                    <p class="mb-2">Cash/Bank Accounts</p>
-                                    <h4>{{ $cba['closing'] ?? '0.00' }} {{ $cba['side'] ?? '' }}</h4>
-                                    <div class="small text-muted">Closing Balance</div>
+                                    <p class="mb-2">Accounting Ratios</p>
+                                    <h4>{{ !empty($rat['roi_percent']) ? $rat['roi_percent'] . ' %' : '—' }}</h4>
+                                    <div class="small text-muted">Return on Investment</div>
                                 </div>
+                            </div>
+
+                            <div class="small d-flex justify-content-between">
+                                <span>Inventory Turnover</span><span>{{ $rat['inventory_turnover'] ?? '—' }}</span>
+                            </div>
+                            <div class="small d-flex justify-content-between">
+                                <span>Debt/Equity</span><span>{{ $rat['debt_equity'] ?? '—' }}</span>
+                            </div>
+                            <div class="small d-flex justify-content-between">
+                                <span>Receivable Turnover
+                                    (Days)</span><span>{{ $rat['receivable_turnover_days'] ?? '—' }}</span>
                             </div>
                         </div>
                     </div>
@@ -348,24 +367,13 @@ $categoryImages = [
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-4 card-total-sale">
                                 <div class="icon iq-icon-box-2 sky-blue-gb">
-                                    <i class="fas fa-percentage text-secondary fa-2x" title="Ratios"></i>
+                                    <i class="fas fa-piggy-bank text-success fa-2x" title="Cash/Bank"></i>
                                 </div>
                                 <div>
-                                    <p class="mb-2">Accounting Ratios</p>
-                                    <h4>{{ !empty($rat['roi_percent']) ? $rat['roi_percent'] . ' %' : '—' }}</h4>
-                                    <div class="small text-muted">Return on Investment</div>
+                                    <p class="mb-2">Cash/Bank Accounts</p>
+                                    <h4>{{ $cba['closing'] ?? '0.00' }} {{ $cba['side'] ?? '' }}</h4>
+                                    <div class="small text-muted">Closing Balance</div>
                                 </div>
-                            </div>
-
-                            <div class="small d-flex justify-content-between">
-                                <span>Inventory Turnover</span><span>{{ $rat['inventory_turnover'] ?? '—' }}</span>
-                            </div>
-                            <div class="small d-flex justify-content-between">
-                                <span>Debt/Equity</span><span>{{ $rat['debt_equity'] ?? '—' }}</span>
-                            </div>
-                            <div class="small d-flex justify-content-between">
-                                <span>Receivable Turnover
-                                    (Days)</span><span>{{ $rat['receivable_turnover_days'] ?? '—' }}</span>
                             </div>
                         </div>
                     </div>
@@ -1272,20 +1280,20 @@ $categoryImages = [
             .catch(err => console.error(err));
     }
 
-    // function updateRevenueVsCostChart(fy) {
-    //     updateDropdown('dropdownMenuButtonFYRevenueVsCost', fy);
+    function updateRevenueVsCostChart(fy) {
+        updateDropdown('dropdownMenuButtonFYRevenueVsCost', fy);
 
-    //     fetch(`/dashboard/chart/revenue-vs-cost?fy=${fy}`)
-    //         .then(res => res.json())
-    //         .then(data => {
-    //             charts.revenueVsCost.updateOptions({
-    //                 xaxis: {
-    //                     categories: data.categories
-    //                 }
-    //             });
+        fetch(`/dashboard/chart/revenue-vs-cost?fy=${fy}`)
+            .then(res => res.json())
+            .then(data => {
+                charts.revenueVsCost.updateOptions({
+                    xaxis: {
+                        categories: data.categories
+                    }
+                });
 
-    //             charts.revenueVsCost.updateSeries(data.series);
-    //         })
-    //         .catch(err => console.error(err));
-    // }
+                charts.revenueVsCost.updateSeries(data.series);
+            })
+            .catch(err => console.error(err));
+    }
 </script>

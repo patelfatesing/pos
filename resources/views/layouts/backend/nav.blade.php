@@ -322,7 +322,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                                     class="btn border mr-2">Profile</a>
 
 
-                                                <form method="POST" action="{{ route('logout') }}">
+                                                <form method="POST" class="mb0" action="{{ route('logout') }}">
                                                     @csrf
 
                                                     <a :href="route('logout')" class="btn border"

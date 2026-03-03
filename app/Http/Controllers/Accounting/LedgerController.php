@@ -108,7 +108,7 @@ class LedgerController extends Controller
         }
 
         $data = $rows->map(function ($l) {
-             // $ownerId = $g->created_by;  // If available
+            // $ownerId = $g->created_by;  // If available
             // if (canDo($roleId, 'product-edit', $ownerId)) {
             // }
             $activeBadge = $l->is_active
@@ -265,9 +265,19 @@ class LedgerController extends Controller
         $rows = [];
         $totalDebit  = 0.0;
         $totalCredit = 0.0;
+        $editUrl = '';
 
         foreach ($vouchers as $v) {
 
+
+
+            if ($v['voucher_type'] == 'Purchase') {
+                $editUrl = route('purchase.edit', $v['gen_id']);
+            } elseif ($v['voucher_type'] == 'Sales') {
+                $editUrl = route('sales.edit-sales', $v['gen_id']);
+            } else {
+                $editUrl = route('accounting.vouchers.edit', $v['ledger_id']);
+            }
             // This ledger’s own line
             $self = $v->lines->firstWhere('ledger_id', $ledgerId);
             if (!$self) continue;
@@ -299,6 +309,7 @@ class LedgerController extends Controller
                 'vch_no'      => (string) $v->ref_no, // or gen_id if you use it
                 'debit'       => $debit,
                 'credit'      => $credit,
+                 'edit_url'    => $editUrl,
             ];
 
             /* ================= DETAIL ROWS ================= */
