@@ -4035,6 +4035,10 @@ class Shoppingcart extends Component
             $this->dispatch('show-online-cash-modal');
 
             $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'useCredit', 'showCheckbox', 'roundedTotal', 'removeCrossHold', 'cashNotes');
+            if ($voucher && $invoice) {
+                $voucher->gen_id = $invoice->id;
+                $voucher->save();
+            }
             $this->dispatch('loader-stop'); // ✅ Livewire v3
             session()->forget(['current_party_id', 'current_commission_id']);
         } catch (\Illuminate\Validation\ValidationException $e) {

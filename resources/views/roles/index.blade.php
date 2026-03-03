@@ -75,7 +75,7 @@
                     },
                     {
                         data: 'created_at'
-                    }, 
+                    },
                     {
                         data: 'action',
                         orderable: false
@@ -98,7 +98,7 @@
             });
         });
 
-        function delete_user(id) {
+        function delete_role(id) {
 
             Swal.fire({
                 title: "Are you sure?",
@@ -109,20 +109,24 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        type: "delete", // "method" also works
-                        url: "{{ url('store/delete') }}/" + id, // Ensure correct Laravel URL
+                        type: "post", // "method" also works
+                        url: "{{ url('roles/delete') }}", // Ensure correct Laravel URL
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
                         data: {
                             id: id
                         },
-                        success: function(response) {
-                            swal("Deleted!", "The store has been deleted.", "success")
-                                .then(() => location.reload());
+                        success: function(res) {
+                            if (res.status === "error") {
+                                Swal.fire("Error!", res.message, "error");
+                                return;
+                            }
+                            $('#roles_table').DataTable().ajax.reload();
+                            Swal.fire("Deleted!", "The role has been deleted.", "success");
                         },
-                        error: function(xhr) {
-                            swal("Error!", "Something went wrong.", "error");
+                        error: function() {
+                            Swal.fire("Error!", "An error occurred while deleting.", "error");
                         }
                     });
                 }

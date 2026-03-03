@@ -146,7 +146,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/roles/edit/{id}', [RolesController::class, 'edit'])->name('roles.edit');
     Route::get('/roles/view/{role}', [RolesController::class, 'show'])->name('roles.show');
     Route::post('/roles/update', [RolesController::class, 'update'])->name('roles.update');
-    Route::delete('/roles/{id}', [RolesController::class, 'destroy'])->name('roles.destroy');
+    Route::post('/roles/delete', [RolesController::class, 'destroy'])->name('roles.delete');
     Route::post('{role}/permissions', [RolesController::class, 'updatePermission'])
         ->name('roles.permissions.update');
 
@@ -348,6 +348,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/purchase/get-data', [PurchaseController::class, 'getData'])->name('purchase.getData');
     Route::get('/purchase/view/{id}', [PurchaseController::class, 'view'])->name('purchase.view');
     Route::get('/vendor/get-product-details/{id}', [PurchaseController::class, 'getProductDetails'])->name('vendor.get-product-details');
+    Route::get('/vendor/get-product-by-barcode/{barcode}', [PurchaseController::class, 'getProductByBarcode']);
     Route::get('/vendor-products/{vendor}', [PurchaseController::class, 'getVendorProducts'])
         ->name('vendor.products');
     Route::get('/subcategory/{id}/products', [PurchaseController::class, 'productsBySubcategory'])
