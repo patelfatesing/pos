@@ -54,13 +54,19 @@ class RolesController extends Controller
         $url = url('/');
 
         foreach ($data as $role) {
-             $action = ''; // initialize first
+            $action = ''; // initialize first
+            // Check if role is assigned to any user
+            $isAssigned = \App\Models\User::where('role_id', $role->id)->exists();
 
-    if ($role->name != "admin" && $role->name != "cashier" && $role->name != "warehouse") {
-        $action = "<a href='" . $url . "/roles/edit/" . $role->id . "' class='btn btn-info mr-2'>Edit</a>";
-    }// $action .= "<a href='" . $url . "/roles/view/" . $role->id . "' class='btn btn-primary mr-2'>View</a>";
+
+            if ($role->name != "admin" && $role->name != "cashier" && $role->name != "warehouse") {
+                $action = "<a href='" . $url . "/roles/edit/" . $role->id . "' class='btn btn-info mr-2'>Edit</a>";
+            } // $action .= "<a href='" . $url . "/roles/view/" . $role->id . "' class='btn btn-primary mr-2'>View</a>";
             // $action .= '<button type="button" onclick="delete_role(' . $role->id . ')" class="btn btn-danger ml-2">Delete</button>';
 
+            if (!$isAssigned) {
+                $action .= '<button type="button" onclick="delete_role(' . $role->id . ')" class="btn btn-danger ml-2">Delete</button>';
+            }
             $records[] = [
                 'name' => $role->name,
                 'is_active' => ($role->is_active ? '<div class="badge badge-success">Active</div>' : '<div class="badge badge-success">Inactive</div>'),
@@ -297,12 +303,13 @@ class RolesController extends Controller
     }
 
     // Soft delete a record
-    public function destroy($id)
+    public function destroy(Request $request)
     {
+        $id = $request->id;
         $record = Roles::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
 
         $record->update(['is_deleted' => 'yes']);
 
-        return redirect()->route('roles.list')->with('success', 'Record deleted successfully.');
+        return response()->json(['success' => true, 'message' => 'Role has been deleted successfully.']);
     }
 }

@@ -121,14 +121,25 @@
                                         </div>
                                     </div>
 
-                                    <div id="product-items">
-                                        <h5>Products</h5>
-                                        @if (old('items'))
-                                            @foreach (old('items') as $index => $item)
-                                                <div class="item-row product_items mb-3">
-                                                    <div class="row">
-                                                        <div class="col-md-6">
-                                                            <div class="form-group">
+                                    <div class="table-responsive mb-3">
+                                        <table class="table table-bordered" id="product-items">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th width="5%">Sr No</th>
+                                                    <th width="40%">Product</th>
+                                                    <th width="20%">Quantity</th>
+                                                    <th width="20%">Stock Info</th>
+                                                    <th width="15%">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="productBody">
+
+                                                @if (old('items'))
+                                                    @foreach (old('items') as $index => $item)
+                                                        <tr class="item-row product_items">
+                                                            <td class="sr-no">{{ $index + 1 }}</td>
+
+                                                            <td>
                                                                 <select name="items[{{ $index }}][product_id]"
                                                                     class="form-control product-select @error('items.' . $index . '.product_id') is-invalid @enderror">
                                                                     <option value="">Select Product</option>
@@ -139,72 +150,68 @@
                                                                         </option>
                                                                     @endforeach
                                                                 </select>
-                                                                @error('items.' . $index . '.product_id')
-                                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                                @enderror
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-4">
-                                                            <div class="form-group">
+                                                            </td>
+
+                                                            <td>
                                                                 <input type="number"
                                                                     name="items[{{ $index }}][quantity]"
                                                                     class="form-control @error('items.' . $index . '.quantity') is-invalid @enderror"
-                                                                    placeholder="Quantity" min="1"
+                                                                    min="1"
                                                                     value="{{ old('items.' . $index . '.quantity') }}">
-                                                                @error('items.' . $index . '.quantity')
-                                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                                @enderror
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-2">
-                                                            <button type="button"
-                                                                class="btn btn-danger remove-item">Remove</button>
-                                                        </div>
-                                                    </div>
-                                                    <div class="availability-container mt-2 small text-muted"></div>
-                                                </div>
-                                            @endforeach
-                                        @else
-                                            <div class="item-row product_items mb-3">
-                                                <div class="row">
-                                                    <div class="col-md-6">
-                                                        <div class="form-group">
+                                                            </td>
 
+                                                            <td>
+                                                                <div class="availability-container small text-muted"></div>
+                                                            </td>
+
+                                                            <td>
+                                                                <button type="button"
+                                                                    class="btn btn-sm btn-danger remove-item">
+                                                                    Remove
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                @else
+                                                    <tr class="item-row product_items">
+                                                        <td class="sr-no">1</td>
+                                                        <td>
                                                             <select name="items[0][product_id]"
-                                                                class="form-control product-select @error('items.0.product_id') is-invalid @enderror">
+                                                                class="form-control product-select">
                                                                 <option value="">Select Product</option>
                                                             </select>
-                                                            @error('items.0.product_id')
-                                                                <div class="invalid-feedback">{{ $message }}</div>
-                                                            @enderror
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <div class="form-group">
+                                                        </td>
+                                                        <td>
                                                             <input type="number" name="items[0][quantity]"
-                                                                class="form-control @error('items.0.quantity') is-invalid @enderror"
-                                                                placeholder="Quantity" min="1">
-                                                            @error('items.0.quantity')
-                                                                <div class="invalid-feedback">{{ $message }}</div>
-                                                            @enderror
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-2">
-                                                        <button type="button"
-                                                            class="btn btn-danger remove-item">Remove</button>
-                                                    </div>
-                                                </div>
-                                                <div class="availability-container mt-2 small text-muted"></div>
-                                            </div>
-                                        @endif
+                                                                class="form-control" min="1">
+                                                        </td>
+                                                        <td>
+                                                            <div class="availability-container small text-muted"></div>
+                                                        </td>
+                                                        <td>
+                                                            <button type="button"
+                                                                class="btn btn-sm btn-danger remove-item">
+                                                                Remove
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                @endif
+
+                                            </tbody>
+                                        </table>
                                     </div>
+
+
                                     <div class="row mb-3">
                                         <div class="col-md-12 text-end">
                                             <h5>Total Quantity: <span id="total-quantity">0</span></h5>
                                         </div>
                                     </div>
-                                    <button type="button" id="add-item" class="btn btn-secondary mb-3">+ Add
-                                        Product</button>
+                                    {{-- <button type="button" id="add-item" class="btn btn-secondary mb-3">+ Add
+                                        Product</button> --}}
+                                    <button type="button" id="add-item" class="btn btn-secondary mb-3">
+                                        + Add Product
+                                    </button>
 
                                     <div class="row mt-3">
                                         <div class="col-12">
@@ -223,6 +230,12 @@
     </div>
 
     <script>
+        function updateSrNo() {
+            $('#productBody tr').each(function(index) {
+                $(this).find('.sr-no').text(index + 1);
+            });
+        }
+
         let itemIndex = {{ old('items') ? count(old('items')) : 1 }};
 
         // Prevent double submission and validate form
@@ -294,39 +307,49 @@
 
         document.getElementById('add-item').addEventListener('click', function() {
             const template = `
-                <div class="item-row product_items mb-3">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <select name="items[${itemIndex}][product_id]" class="form-control product-select">
-                                    <option value="">Select Product</option>
-                                    @foreach ($products as $product)
-                                        <option value="{{ $product->id }}">{{ $product->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <input type="number" name="items[${itemIndex}][quantity]" class="form-control" placeholder="Quantity" min="1">
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <button type="button" class="btn btn-danger remove-item">Remove</button>
-                        </div>
-                    </div>
-                    <div class="availability-container mt-2 small text-muted"></div>
-                </div>
-            `;
+                <tr class="item-row product_items">
+                    <td class="sr-no">${itemIndex + 1}</td>
 
-            document.getElementById('product-items').insertAdjacentHTML('beforeend', template);
+                    <td>
+                        <select name="items[${itemIndex}][product_id]" 
+                            class="form-control product-select">
+                            <option value="">Select Product</option>
+                            @foreach ($products as $product)
+                                <option value="{{ $product->id }}">{{ $product->name }}</option>
+                            @endforeach
+                        </select>
+                    </td>
+
+                    <td>
+                        <input type="number" 
+                            name="items[${itemIndex}][quantity]" 
+                            class="form-control"
+                            min="1">
+                    </td>
+
+                    <td>
+                        <div class="availability-container small text-muted"></div>
+                    </td>
+
+                    <td>
+                        <button type="button" class="btn btn-sm btn-danger remove-item">
+                            Remove
+                        </button>
+                    </td>
+                </tr>
+                `;
+
+            $('#productBody').append(template);
             itemIndex++;
+            updateSrNo();
         });
 
         // Remove item handler
         $(document).on('click', '.remove-item', function() {
-            if (document.querySelectorAll('.item-row').length > 1) {
-                $(this).closest('.item-row').remove();
+            if ($('#productBody tr').length > 1) {
+                $(this).closest('tr').remove();
+                updateSrNo();
+                updateTotalQuantity();
             }
         });
 

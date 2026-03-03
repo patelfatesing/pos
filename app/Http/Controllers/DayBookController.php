@@ -80,7 +80,7 @@ public function index(Request $request)
             'particulars'  => $firstLine->ledger->name ?? '---',
             'voucher_type' => $v->voucher_type,
             'voucher_no'   => $v->ref_no ?? $v->id,
-
+            'gen_id'    => $v->gen_id,
             'debit'  => $firstLine->dc === 'Dr' ? $firstLine->amount : null,
             'credit' => $firstLine->dc === 'Cr' ? $firstLine->amount : null,
         ]);

@@ -11,6 +11,7 @@ use App\Models\Invoice;
 use App\Models\UserShift;
 use Carbon\Carbon;
 use App\Models\CashBreakdown;
+use App\Models\Branch;
 
 class TakeCashModal extends Component
 {
@@ -37,6 +38,7 @@ class TakeCashModal extends Component
     public $upiAmount = 0;
     public $totalCollected = 0;
     public $search = '';
+    public $inOutStatus = false; // Add this property to your component
 
     public function updatingSearch()
     {
@@ -87,24 +89,24 @@ class TakeCashModal extends Component
         if (!isset($this->cashNotes[$key][$denomination][$type])) {
             $this->cashNotes[$key][$denomination][$type] = 0;
         }
-        if($type =="out"){
-             $this->countAvailableNote(); // This updates $this->availableNotes
+        if ($type == "out") {
+            $this->countAvailableNote(); // This updates $this->availableNotes
             $shiftAvailabeNotes = json_decode($this->availableNotes, true);
             if (!isset($shiftAvailabeNotes[$denomination])) {
                 $shiftAvailabeNotes[$denomination] = 0;
             }
-             $this->cashNotes[$key][$denomination][$type]++;
-             if($this->cashNotes[$key][$denomination][$type]>$shiftAvailabeNotes[$denomination]){
+            $this->cashNotes[$key][$denomination][$type]++;
+            if ($this->cashNotes[$key][$denomination][$type] > $shiftAvailabeNotes[$denomination]) {
                 $this->dispatch('note-unavailable', [
                     'message' => "Note of ₹$denomination ($type) is not available for $shiftAvailabeNotes[$denomination]."
                 ]);
                 $this->cashNotes[$key][$denomination][$type]--;
                 return;
             }
-        }else{
+        } else {
 
             $this->cashNotes[$key][$denomination][$type]++;
-           // $this->cashNotes[$key][$denomination][$type] = ($this->cashNotes[$key][$denomination][$type] ?? 0) + 1;
+            // $this->cashNotes[$key][$denomination][$type] = ($this->cashNotes[$key][$denomination][$type] ?? 0) + 1;
         }
         $this->calculateTotals();
         $this->calculateTotal();
@@ -112,10 +114,9 @@ class TakeCashModal extends Component
     public function setTransactionType($type)
     {
         $this->transactionType = $type;
-      
     }
 
-     public function countAvailableNote()
+    public function countAvailableNote()
     {
         $noteCount = [];
         $today = Carbon::today();
@@ -258,36 +259,36 @@ class TakeCashModal extends Component
         // validate cash breakdown logic
         $totalOut = $this->totals['totalOut'] ?? 0;
         $totalIn = $this->totals['totalIn'] ?? 0;
-        
-          // Optional: Add logic to reset or calculate something
+
+        // Optional: Add logic to reset or calculate something
         if ($this->transactionType === 'add') {
-            if(empty($totalIn)){
-                 $this->dispatch('note-add', [
-                   'message' => "Please add amount."
-               ]);
-               return;
+            if (empty($totalIn)) {
+                $this->dispatch('note-add', [
+                    'message' => "Please add amount."
+                ]);
+                return;
             }
             // logic for Add Money clicked
-        } elseif ( $this->transactionType=== 'change') {
+        } elseif ($this->transactionType === 'change') {
             // logic for Change clicked
-            if(empty($totalIn) && empty($totalOut)){
-                 $this->dispatch('note-add', [
-                   'message' => "Please add amount."
-               ]);
-               return;
-            }else if($totalIn!=$totalOut){
+            if (empty($totalIn) && empty($totalOut)) {
+                $this->dispatch('note-add', [
+                    'message' => "Please add amount."
+                ]);
+                return;
+            } else if ($totalIn != $totalOut) {
 
                 $this->dispatch('note-add', [
-                   'message' => "Please match IN OUT amount for change."
-               ]);
-               return;
+                    'message' => "Please match IN OUT amount for change."
+                ]);
+                return;
             }
         }
 
 
         $collectedAmount = $totalIn - $totalOut;
         $denominations = array_values($this->cashNotes);
-        $currentShift = UserShift::getYesterdayShift(auth()->user()->id, $branch_id,"pending");
+        $currentShift = UserShift::getYesterdayShift(auth()->user()->id, $branch_id, "pending");
         $date = "";
         if (!empty($currentShift)) {
             $date = \Carbon\Carbon::parse($currentShift->start_time)->toDateString();
@@ -296,8 +297,8 @@ class TakeCashModal extends Component
         }
         $currentShift = UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $date)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "pending"])->first();
 
-        if(!empty($currentShift)) {
-            $currentShift->cash_added=$collectedAmount;
+        if (!empty($currentShift)) {
+            $currentShift->cash_added = $collectedAmount;
             $currentShift->save();
         }
         $cashBreakdown = \App\Models\CashBreakdown::create([
@@ -305,7 +306,7 @@ class TakeCashModal extends Component
             'branch_id' => $branch_id,
             'denominations' => json_encode($denominations),
             'total' => $collectedAmount,
-            'type' => $this->transactionType." cash"
+            'type' => $this->transactionType . " cash"
         ]);
         $this->cashNotes = []; // Reset
         $this->showCollectModal = false;
@@ -326,6 +327,11 @@ class TakeCashModal extends Component
                     ->orWhere('credit_points', 'like', '%' . $this->search . '%');
             });
         }
+
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
+        $store = Branch::select('in_out_enable', 'one_time_sales')->findOrFail($branch_id);
+        $this->inOutStatus = $store->in_out_enable;
 
         $partyUsers = $query->paginate(10);
 

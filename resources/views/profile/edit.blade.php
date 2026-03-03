@@ -1,30 +1,31 @@
+
+
 @extends('layouts.backend.layouts')
 @section('page-content')
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Profile') }}
-        </h2>
-    </x-slot>
+    <!-- Wrapper Start -->
+    <div class="wrapper">
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-profile-information-form')
-                </div>
-            </div>
+        <div class="content-page">
 
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-password-form')
+            <div class="container-fluid add-form-list">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between">
+                                <div class="header-title">
+                                    <h4 class="card-title">Profile Information</h4>
+                                </div>
+                               
+                            </div>
+                            <div class="card-body">
+                                  @include('profile.partials.update-profile-information-form')
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.delete-user-form')
-                </div>
+                <!-- Page end  -->
             </div>
         </div>
     </div>
+    <!-- Wrapper End-->
 @endsection

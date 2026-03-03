@@ -45,6 +45,10 @@ $categoryImages = [
             font-size: 14px;
         }
     }
+
+    .card-title{
+        /* color: black; */
+    }
 </style>
 <!-- Wrapper Start -->
 <div class="wrapper">

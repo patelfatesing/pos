@@ -3,43 +3,181 @@
 @section('styles')
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 
-<style>
-/* ================= TALLY LOOK ================= */
-body { background: #f2f2f2; } 
-.tally-header { background: #32bdea; color: #fff; padding: 8px 12px; font-family: monospace; margin-bottom: 4px; } 
-.tally-header h5 { margin: 0; font-size: 16px; font-weight: bold; } 
-.tally-header small { font-size: 12px; opacity: 0.9; }
-.controls .btn, .controls select, .controls input { font-size: 12px; height: 26px; padding: 2px 6px; margin-left: 4px; } 
-/* ================= TABLE ================= */
-table.dataTable { font-family: monospace; font-size: 13px; background: #fff; border-collapse: collapse !important; } 
-table.dataTable thead th { border-top: 1px solid #999 !important; border-bottom: 1px solid #999 !important; font-weight: bold; padding: 4px 6px; }
-table.dataTable tbody td { padding: 3px 6px; border: none !important; white-space: nowrap; } 
-table.dataTable tbody tr.odd:hover,
-table.dataTable tbody tr.even:hover { background: #fff3b0 !important; color: #000; }
-table.dataTable tbody tr:hover { background: #fff3b0; color: #000; } 
-.col-particulars { text-align: left; width: 40%; overflow: hidden; text-overflow: ellipsis; }
-.col-center { text-align: center; } 
-.col-right { text-align: right; }
-.content-page.accounting-ledgers-page { padding: 90px 0 0; min-height: auto; }
-/* ================= FOOTER BALANCE ================= */
-.tally-balance { font-family: monospace; font-size: 13px; background: #ffffff; border-top: 1px solid #999; padding: 6px 10px; display: flex; justify-content: space-between; }
-/* Hide DataTable UI */
-.dataTables_length, .dataTables_filter, .dataTables_info, .dataTables_paginate { display: none; }
-/* === RIGHT SIDE FIXED TOTAL (TALLY STYLE) === */
-.tally-footer-right { position: sticky; bottom: 0; float: right; background: #fff; border: 1px solid #999; padding: 6px 10px; font-family: monospace; font-size: 13px; min-width: 240px; z-index: 10; width: 100%; border-width: 1px 0px; }
-.tally-footer-right table { width: 100%; border-collapse: collapse; } 
-.tally-footer-right td { padding: 2px 4px; } 
-.tally-footer-right td:first-child { width: 75%; text-align: right; }
-.tally-footer-right td:last-child { text-align: left; font-weight: bold; } 
-.tally-closing td { border-top: 1px solid #999; padding-top: 6px; }
-.accounting-ledgers-page table.dataTable { margin: 0 !important; }
-.ledger-title { font-size: 0;}
-.ledger-title p { margin: 0; font-size: 14px; line-height: 1.2; }
-.controls .btn { background: #fff; border: 1px solid #ccc; color: #333;}
-.controls .btn-secondary { background: #32BDEA; border: 1px solid #32BDEA; color: #fff;}
-div.dataTables_wrapper{ min-height:calc(100vh - 350px);}
+    <style>
+        /* ================= TALLY LOOK ================= */
+        body {
+            background: #f2f2f2;
+        }
 
-</style>
+        .tally-header {
+            background: #32bdea;
+            color: #fff;
+            padding: 8px 12px;
+            font-family: monospace;
+            margin-bottom: 4px;
+        }
+
+        .tally-header h5 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .tally-header small {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .controls .btn,
+        .controls select,
+        .controls input {
+            font-size: 12px;
+            height: 26px;
+            padding: 2px 6px;
+            margin-left: 4px;
+        }
+
+        /* ================= TABLE ================= */
+        table.dataTable {
+            font-family: monospace;
+            font-size: 13px;
+            background: #fff;
+            border-collapse: collapse !important;
+        }
+
+        table.dataTable thead th {
+            border-top: 1px solid #999 !important;
+            border-bottom: 1px solid #999 !important;
+            font-weight: bold;
+            padding: 4px 6px;
+        }
+
+        table.dataTable tbody td {
+            padding: 3px 6px;
+            border: none !important;
+            white-space: nowrap;
+        }
+
+        table.dataTable tbody tr.odd:hover,
+        table.dataTable tbody tr.even:hover {
+            background: #fff3b0 !important;
+            color: #000;
+        }
+
+        table.dataTable tbody tr:hover {
+            background: #fff3b0;
+            color: #000;
+        }
+
+        .col-particulars {
+            text-align: left;
+            width: 40%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .col-center {
+            text-align: center;
+        }
+
+        .col-right {
+            text-align: right;
+        }
+
+        .content-page.accounting-ledgers-page {
+            padding: 90px 0 0;
+            min-height: auto;
+        }
+
+        /* ================= FOOTER BALANCE ================= */
+        .tally-balance {
+            font-family: monospace;
+            font-size: 13px;
+            background: #ffffff;
+            border-top: 1px solid #999;
+            padding: 6px 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Hide DataTable UI */
+        .dataTables_length,
+        .dataTables_filter,
+        .dataTables_info,
+        .dataTables_paginate {
+            display: none;
+        }
+
+        /* === RIGHT SIDE FIXED TOTAL (TALLY STYLE) === */
+        .tally-footer-right {
+            position: sticky;
+            bottom: 0;
+            float: right;
+            background: #fff;
+            border: 1px solid #999;
+            padding: 6px 10px;
+            font-family: monospace;
+            font-size: 13px;
+            min-width: 240px;
+            z-index: 10;
+            width: 100%;
+            border-width: 1px 0px;
+        }
+
+        .tally-footer-right table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .tally-footer-right td {
+            padding: 2px 4px;
+        }
+
+        .tally-footer-right td:first-child {
+            width: 75%;
+            text-align: right;
+        }
+
+        .tally-footer-right td:last-child {
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .tally-closing td {
+            border-top: 1px solid #999;
+            padding-top: 6px;
+        }
+
+        .accounting-ledgers-page table.dataTable {
+            margin: 0 !important;
+        }
+
+        .ledger-title {
+            font-size: 0;
+        }
+
+        .ledger-title p {
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.2;
+        }
+
+        .controls .btn {
+            background: #fff;
+            border: 1px solid #ccc;
+            color: #333;
+        }
+
+        .controls .btn-secondary {
+            background: #32BDEA;
+            border: 1px solid #32BDEA;
+            color: #fff;
+        }
+
+        div.dataTables_wrapper {
+            min-height: calc(100vh - 350px);
+        }
+    </style>
 @endsection
 
 @section('page-content')
@@ -180,7 +318,15 @@ div.dataTables_wrapper{ min-height:calc(100vh - 350px);}
                     },
                     {
                         data: 'vch_type',
-                        render: (d, t, r) => r.type === 'main' ? d : ''
+                        render: function(d, t, r) {
+                            if (r.type === 'main') {
+                                return `<a href="${r.edit_url}" 
+                       style="color:#007bff;text-decoration:none;">
+                        ${d}
+                    </a>`;
+                            }
+                            return '';
+                        }
                     },
                     {
                         data: 'vch_no',
@@ -191,16 +337,14 @@ div.dataTables_wrapper{ min-height:calc(100vh - 350px);}
                         className: 'text-end',
                         render: (d, t, r) =>
                             r.type === 'main' && d !== null ?
-                            parseFloat(d).toFixed(2) :
-                            ''
+                            parseFloat(d).toFixed(2) : ''
                     },
                     {
                         data: 'credit',
                         className: 'text-end',
                         render: (d, t, r) =>
                             r.type === 'main' && d !== null ?
-                            parseFloat(d).toFixed(2) :
-                            ''
+                            parseFloat(d).toFixed(2) : ''
                     }
                 ],
                 createdRow: function(row, data) {

@@ -171,9 +171,9 @@ if (!function_exists('getDiscountPrice')) {
 }
 
 if (!function_exists('stockStatusChange')) {
-    function stockStatusChange($product_id, $branch_id, $qty, $type, $shift_id = "", $orderType = "")
+    function stockStatusChange($product_id, $branch_id, $qty, $type, $shift_id = "", $orderType = "", $date = null)
     {
-        $date = Carbon::today();
+        $date = $date ? Carbon::parse($date) : Carbon::today();
 
         if ($type == "add_stock") {
 
@@ -440,6 +440,37 @@ if (!function_exists('stockStatusChange')) {
                 }
             }
         }
+        if ($type == "remove_stock") {
+
+            $existing = DailyProductStock::where('branch_id', $branch_id)
+                ->where('product_id', $product_id)
+                ->where('shift_id', $shift_id)
+                ->first();
+
+            if (!empty($existing)) {
+
+                $existing->modify_sale_remove_qty += $qty;
+
+                $existing->closing_stock = closingStock(
+                    $existing->opening_stock,
+                    $existing->added_stock,
+                    $existing->transferred_stock,
+                    $existing->sold_stock
+                );
+
+                $existing->save();
+            } else {
+
+                DailyProductStock::create([
+                    'branch_id' => $branch_id,
+                    'product_id' => $product_id,
+                    'date' => $date,
+                    'modify_sale_remove_qty' => $qty,
+                    'closing_stock' => 0,
+                    'shift_id' => $shift_id
+                ]);
+            }
+        }
     }
 }
 
@@ -598,6 +629,49 @@ if (!function_exists('stockRealtimeUpdate')) {
                     ]);
                 }
             }
+        }
+    }
+}
+
+if (!function_exists('recalculateStockFromDate')) {
+
+    function recalculateStockFromDate($product_id, $branch_id, $fromDate)
+    {
+        $stocks = DailyProductStock::where('product_id', $product_id)
+            ->where('branch_id', $branch_id)
+            ->whereDate('date', '>=', $fromDate)
+            ->orderBy('date')
+            ->get();
+
+        foreach ($stocks as $stock) {
+
+            // Get previous day's closing
+            $prev = DailyProductStock::where('product_id', $product_id)
+                ->where('branch_id', $branch_id)
+                ->whereDate('date', '<', $stock->date)
+                ->orderByDesc('date')
+                ->first();
+
+            // Fix: do not reset opening to zero
+            if ($prev) {
+                $opening = $prev->closing_stock;
+            } else {
+                $opening = $stock->opening_stock;
+            }
+
+            // Correct closing formula
+            $closing =
+                $opening
+                + $stock->added_stock
+                + $stock->transferred_stock
+                + $stock->modify_sale_add_qty
+                - $stock->sold_stock
+                - $stock->modify_sale_remove_qty;
+
+            $stock->opening_stock = $opening;
+            $stock->closing_stock = $closing;
+            $stock->difference_in_stock = $stock->physical_stock - $closing;
+            $stock->save();
         }
     }
 }
