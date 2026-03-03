@@ -28,21 +28,25 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-                <div class="row">
+                <div class="row align-items-center mb-3">
                     <div class="col-lg-12">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between">
-                                <div class="header-title">
-                                    <h4 class="card-title">Stock Transfers</h4>
-                                </div>
-                                <div>
+                        <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                            <div>
+                                <h4 class="mb-0">Stock Transfers</h4>
+                            </div>
+                              <div>
                                     @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'stock-transfer'))
                                         <a href="{{ route('stock-transfer.craete-transfer') }}" class="btn btn-primary">
                                             <i class="fas fa-plus"></i> New Transfer
                                         </a>
                                     @endif
                                 </div>
-                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card">
                             <div class="card-body">
                                 @if (session('success'))
                                     <div class="alert alert-success alert-dismissible fade show">

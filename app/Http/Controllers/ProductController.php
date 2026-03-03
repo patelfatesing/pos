@@ -129,7 +129,7 @@ class ProductController extends Controller
             //                             href="#" onclick="delete_product(' . $product->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>
             // </div>';
 
-            $action = '<div class="d-flex align-items-center list-action">';
+            $action = '<div class="d-flex align-items-center list-action justify-content-center">';
 
             // PRICE CHANGE BUTTON
             if (canDo($roleId, 'product-price-change', $ownerId)) {
