@@ -6,9 +6,9 @@
             <div class="container-fluid">
                 <div class="row align-items-center mb-3">
                     <div class="col-lg-12">
-                        <div class="d-flex flex-wrap align-items-center justify-content-between">
+                        <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
                             <div>
-                                <h4 class="mb-3">Stock Inventory</h4>
+                                <h4 class="mb-0">Stock Inventory</h4>
                             </div>
 
                         </div>
