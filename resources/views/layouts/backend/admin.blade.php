@@ -269,7 +269,7 @@
                             <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
                             <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
                         </svg>
-                        <span class="ml-4">Expenses Manage</span>
+                        <span class="ml-4">Expenses</span>
 
                     </a>
                     <ul id="expenses" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
