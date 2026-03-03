@@ -4,17 +4,54 @@
 @endsection
 
 <style>
-.content-page.daybook-page { padding: 90px 0 0; min-height: calc(100% - 97px); }
-.daybook-page .card-header,
-.daybook-header { display: flex; align-items: center; gap: 15px; justify-content: space-between; }
-.daybook-header h4 { font-size: 18px; line-height: 22px; }
-.daybook-page .card .card-header { background: #528da1; border-top-left-radius: 10px; border-top-right-radius: 10px; color: #fff; }
-.title-table { font-size: 14px; font-weight: bold; margin: 0; }
-.text-end { text-align: right; }
-.daybook-page .table thead th { vertical-align: top; }
-.daybook-page .table thead th span { border-top: 1px solid #000; display: block; margin-top: 3px; }
-.daybook-page .table td { padding: 4.8px !important; }
+    .content-page.daybook-page {
+        padding: 90px 0 0;
+        min-height: calc(100% - 97px);
+    }
 
+    .daybook-page .card-header,
+    .daybook-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        justify-content: space-between;
+    }
+
+    .daybook-header h4 {
+        font-size: 18px;
+        line-height: 22px;
+    }
+
+    .daybook-page .card .card-header {
+        background: #528da1;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+        color: #fff;
+    }
+
+    .title-table {
+        font-size: 14px;
+        font-weight: bold;
+        margin: 0;
+    }
+
+    .text-end {
+        text-align: right;
+    }
+
+    .daybook-page .table thead th {
+        vertical-align: top;
+    }
+
+    .daybook-page .table thead th span {
+        border-top: 1px solid #000;
+        display: block;
+        margin-top: 3px;
+    }
+
+    .daybook-page .table td {
+        padding: 4.8px !important;
+    }
 </style>
 @section('page-content')
     <div class="wrapper">
@@ -48,8 +85,10 @@
                                                 <th>Particulars</th>
                                                 <th style="width:90px">Vch Type</th>
                                                 <th style="width:70px">Vch No.</th>
-                                                <th class="text-end" style="width:120px">Debit Amount <span>Inward Qty</span></th>
-                                                <th class="text-end" style="width:120px">Credit Amount <span>Outwards Qty</span></th>
+                                                <th class="text-end" style="width:120px">Debit Amount <span>Inward
+                                                        Qty</span></th>
+                                                <th class="text-end" style="width:120px">Credit Amount <span>Outwards
+                                                        Qty</span></th>
                                             </tr>
                                         </thead>
 
@@ -57,11 +96,18 @@
                                             @foreach ($entries as $e)
                                                 <tr>
                                                     <td>{{ \Carbon\Carbon::parse($e['date'])->format('d-M-y') }}</td>
-                                                    <td><a href="{{ route('accounting.vouchers.edit', $e['ledger_id']) }}"
+                                                    <td>
+                                                        <a href="
+                                                            {{ $e['voucher_type'] == 'Purchase'
+                                                                ? route('purchase.edit', $e['gen_id'])
+                                                                : ($e['voucher_type'] == 'Sales'
+                                                                    ? route('sales.edit-sales', $e['gen_id'])
+                                                                    : route('accounting.vouchers.edit', $e['ledger_id'])) }}"
                                                             class="text-primary text-decoration-none fw-bold">
                                                             {{ $e['particulars'] }}
                                                         </a>
                                                     </td>
+
                                                     <td>{{ $e['voucher_type'] }}</td>
                                                     <td>{{ $e['voucher_no'] }}</td>
 
@@ -93,7 +139,6 @@
             </div>
         </div>
     </div>
-    
 @endsection
 
 

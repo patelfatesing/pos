@@ -19,6 +19,7 @@ use App\Models\Expense;
 use App\Models\PurchaseLedger;
 use App\Models\SubCategory;
 use App\Models\Accounting\{Voucher, VoucherLine, AccountLedger};
+use Illuminate\Validation\Rule;
 
 class PurchaseController extends Controller
 {
@@ -121,7 +122,6 @@ class PurchaseController extends Controller
         $exciseTotal    = (float) ($request->excise_total_amount ?? 0);
         $loading = (float) ($request->loading_charges ?? 0);
 
-
         try {
             // ----------------- 1) SAVE PURCHASE MASTER -----------------
             $purchase = Purchase::create([
@@ -157,6 +157,8 @@ class PurchaseController extends Controller
 
             // ----------------- 2) SAVE PRODUCTS + INVENTORY -----------------
             foreach ($request->products as $product) {
+
+                $product_id = $product['product_id'];
                 PurchaseProduct::create([
                     'brand_name' => $product['brand_name'],
                     'batch' => $product['batch'],
@@ -165,10 +167,10 @@ class PurchaseController extends Controller
                     'qnt' => $product['qnt'],
                     'rate' => $product['rate'],
                     'amount' => $product['amount'],
-                    'purchase_id' => $purchase->id
+                    'purchase_id' => $purchase->id,
+                    'product_id' => $product_id
                 ]);
 
-                $product_id = $product['product_id'];
                 $batch = $product['batch'];
                 $expiryDatePlusOneYear = Carbon::parse($product['mfg_date'])->addYear();
 
@@ -264,15 +266,20 @@ class PurchaseController extends Controller
             $rsgsm       = (float) ($request->rsgsm_purchase ?? 0);
 
             // 3.2 Voucher header (like Tally Purchase)
+            $baseAmount  = (float) $request->total;
+            $grandAmount = (float) $request->total_amount;
+            $vat         = (float) ($request->vat ?? 0);
+            $surVat      = (float) ($request->surcharge_on_vat ?? 0);
+
             $voucher = Voucher::create([
-                'gen_id'         => $purchase->id,
+                'gen_id'          => $purchase->id,
                 'voucher_date'    => $request->date,
                 'voucher_type'    => 'Purchase',
                 'ref_no'          => $request->bill_no,
-                'branch_id'       => $running_shift->branch_id ?? null,
+                'branch_id'       => $running_shift->branch_id,
                 'narration'       => 'Purchase bill no ' . $request->bill_no,
                 'created_by'      => Auth::id(),
-                'party_ledger_id' => $vendorLedgerId,
+                'party_ledger_id' => (int) $request->parchase_ledger,
                 'sub_total'       => $baseAmount,
                 'discount'        => 0,
                 'tax'             => $vat + $surVat,
@@ -489,87 +496,173 @@ class PurchaseController extends Controller
             'products.*.amount' => 'required|numeric',
         ]);
 
-        $running_shift = ShiftClosing::where('branch_id', 1)
-            ->where('status', 'pending')
-            ->first();
-
-        if (! $running_shift) {
-            return back()
-                ->withErrors(['to_store_id' => 'The Warehouse is not open.'])
-                ->withInput();
-        }
-
         DB::beginTransaction();
 
         try {
-            $purchase = Purchase::with('items')->findOrFail($id);
 
-            // ----------------- 1) REVERSE previous inventory for existing purchase items -----------------
+            $purchase = Purchase::with('items')->findOrFail($id);
             $inventoryService = new \App\Services\InventoryService();
 
-            foreach ($purchase->items as $oldItem) {
-                $product_id = $oldItem->product_id;
-                $batch = $oldItem->batch;
-                $oldQty = (float) ($oldItem->qnt ?? $oldItem->quantity ?? 0);
+            $store_id = 1;
+            $purchaseDate = $request->date;
 
-                if ($oldQty <= 0) continue;
+            // Get shift of purchase date
+            $purchaseShift = ShiftClosing::where('branch_id', $store_id)
+                ->whereDate('created_at', $purchaseDate)
+                ->first();
 
-                // find inventory record for this product + batch + store (warehouse id 1)
-                $inventory = Inventory::where('product_id', $product_id)
-                    ->where('store_id', 1)
-                    ->where('batch_no', $batch)
-                    ->first();
+            $shift_id = $purchaseShift->id ?? null;
 
-                if ($inventory) {
-                    // reduce inventory quantity
-                    $inventory->quantity = max(0, $inventory->quantity - $oldQty);
-                    $inventory->updated_at = now();
-                    $inventory->save();
+            // =========================
+            // 1. INVENTORY DIFFERENCE LOGIC
+            // =========================
+            $oldItems = [];
+            foreach ($purchase->items as $item) {
+                $oldItems[$item->product_id] = $item;
+            }
 
-                    // mark stock status change and transfer (remove)
-                    stockStatusChange($product_id, 1, $oldQty, 'remove_stock');
+            $newProductIds = collect($request->products)->pluck('product_id')->toArray();
+            $affectedProducts = [];
 
-                    // call transferProduct to reflect removal in service (assumes service supports remove_stock)
-                    $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $oldQty, 'remove_stock');
+            foreach ($request->products as $product) {
+
+                $product_id = $product['product_id'];
+                $batch = $product['batch'];
+                $newQty = (float) $product['qnt'];
+
+                $oldQty = isset($oldItems[$product_id])
+                    ? (float) $oldItems[$product_id]->qnt
+                    : 0;
+
+                $difference = $newQty - $oldQty;
+
+                if ($difference == 0) {
+                    continue;
+                }
+
+                $expiryDate = Carbon::parse($product['mfg_date'])->addYear();
+
+                $inventory = Inventory::firstOrCreate([
+                    'product_id' => $product_id,
+                    'store_id' => $store_id,
+                    'location_id' => 1,
+                    'batch_no' => $batch,
+                ], [
+                    'expiry_date' => $expiryDate,
+                    'quantity' => 0,
+                    'added_by' => Auth::id(),
+                ]);
+
+                if ($difference > 0) {
+                    // Add stock
+                    $inventory->increment('quantity', $difference);
+
+                    stockStatusChange(
+                        $product_id,
+                        $store_id,
+                        $difference,
+                        'add_stock',
+                        $shift_id,
+                        '',
+                        $purchaseDate
+                    );
+
+                    $inventoryService->transferProduct(
+                        $product_id,
+                        $inventory->id,
+                        $store_id,
+                        '',
+                        $difference,
+                        'add_stock'
+                    );
                 } else {
-                    // fallback: if inventory not found, do nothing or log - avoid exceptions
-                    // logger()->warning("Inventory record not found while reversing purchase {$purchase->id} for product {$product_id} batch {$batch}");
+                    // Remove stock
+                    $removeQty = abs($difference);
+
+                    $inventory->decrement('quantity', $removeQty);
+
+                    stockStatusChange(
+                        $product_id,
+                        $store_id,
+                        $removeQty,
+                        'remove_stock',
+                        $shift_id,
+                        '',
+                        $purchaseDate
+                    );
+
+                    $inventoryService->transferProduct(
+                        $product_id,
+                        $inventory->id,
+                        $store_id,
+                        '',
+                        $removeQty,
+                        'remove_stock'
+                    );
+                }
+
+                $affectedProducts[] = $product_id;
+            }
+
+            // =========================
+            // HANDLE REMOVED PRODUCTS
+            // =========================
+            foreach ($purchase->items as $oldItem) {
+
+                if (!in_array($oldItem->product_id, $newProductIds)) {
+
+                    $inventory = Inventory::where('product_id', $oldItem->product_id)
+                        ->where('store_id', $store_id)
+                        ->where('location_id', 1)
+                        ->where('batch_no', $oldItem->batch)
+                        ->first();
+
+                    if ($inventory) {
+
+                        $removeQty = (float) $oldItem->qnt;
+                        $inventory->decrement('quantity', $removeQty);
+
+                        stockStatusChange(
+                            $oldItem->product_id,
+                            $store_id,
+                            $removeQty,
+                            'remove_stock',
+                            $shift_id,
+                            '',
+                            $purchaseDate
+                        );
+
+                        $inventoryService->transferProduct(
+                            $oldItem->product_id,
+                            $inventory->id,
+                            $store_id,
+                            '',
+                            $removeQty,
+                            'remove_stock'
+                        );
+
+                        $affectedProducts[] = $oldItem->product_id;
+                    }
                 }
             }
 
-            // ----------------- 2) DELETE old purchase product rows -----------------
+            // =========================
+            // 2. DELETE OLD ITEMS
+            // =========================
             $purchase->items()->delete();
 
-            // ----------------- 3) UPDATE PURCHASE MASTER (header fields) -----------------
-            $purchase->update([
-                'bill_no' => $request->bill_no,
-                'vendor_id' => $request->vendor_id,
-                'vendor_new_id' => $request->vendor_new_id,
-                'parchase_ledger' => $request->parchase_ledger,
-                'total' => $request->total,
-                'date' => $request->date,
-                'excise_fee' => $request->excise_fee ?? 0,
-                'composition_vat' => $request->composition_vat ?? 0,
-                'surcharge_on_ca' => $request->surcharge_on_ca ?? 0,
-                'tcs' => $request->tcs ?? 0,
-                'aed_to_be_paid' => $request->aed_to_be_paid ?? 0,
-                'total_amount' => $request->total_amount,
-                'vat' => $request->vat,
-                'surcharge_on_vat' => $request->surcharge_on_vat,
-                'blf' => $request->blf,
-                'permit_fee' => $request->permit_fee,
-                'guarantee_fulfilled' => $request->guarantee_fulfilled ?? 0,
-                'rsgsm_purchase' => $request->rsgsm_purchase,
-                'case_purchase' => $request->case_purchase,
-                'case_purchase_per' => $request->case_purchase_per,
-                'case_purchase_amt' => $request->case_purchase_amt,
-                'status' => $request->status ?? $purchase->status,
-                'updated_by' => Auth::id(),
-            ]);
+            // =========================
+            // 3. INSERT NEW ITEMS
+            // =========================
+            $subTotal = 0;
 
-            // ----------------- 4) INSERT new products + update inventory (same logic as store) -----------------
             foreach ($request->products as $product) {
-                $pp = PurchaseProduct::create([
+
+                $subTotal += (float) $product['amount'];
+
+                PurchaseProduct::create([
+                    'purchase_id' => $purchase->id,
+                    'product_id' => $product['product_id'],
                     'brand_name' => $product['brand_name'],
                     'batch' => $product['batch'],
                     'mfg_date' => $product['mfg_date'],
@@ -577,236 +670,44 @@ class PurchaseController extends Controller
                     'qnt' => $product['qnt'],
                     'rate' => $product['rate'],
                     'amount' => $product['amount'],
-                    'purchase_id' => $purchase->id
                 ]);
-
-                $product_id = $product['product_id'];
-                $batch = $product['batch'];
-                $expiryDatePlusOneYear = Carbon::parse($product['mfg_date'])->addYear();
-
-                $store_id = 1; // Warehouse
-                $record = Product::with(['inventorieUnfiltered' => function ($query) use ($store_id, $product_id) {
-                    $query->where('store_id', $store_id)
-                        ->where('product_id', $product_id);
-                }])
-                    ->where('id', $product_id)
-                    ->where('is_deleted', 'no')
-                    ->first();
-
-                if (! empty($record->inventorieUnfiltered)) {
-                    $inventory = $record->inventorieUnfiltered;
-
-                    if ($inventory->batch_no === $batch) {
-                        // same batch — increment
-                        $inventory->quantity = $inventory->quantity + $product['qnt'];
-                        $inventory->updated_at = now();
-                        $inventory->save();
-
-                        stockStatusChange($product_id, $store_id, $product['qnt'], 'add_stock');
-                        $inventoryService->transferProduct($product_id, $inventory->id, $store_id, '', $product['qnt'], 'add_stock');
-                    } else {
-                        // different batch — create new inventory row
-                        $inventory = Inventory::firstOrCreate([
-                            'product_id'  => $product_id,
-                            'store_id'    => $store_id,
-                            'location_id' => 1,
-                            'batch_no'    => $batch,
-                        ], [
-                            'expiry_date' => $expiryDatePlusOneYear,
-                            'quantity'    => $product['qnt'],
-                            'added_by'    => Auth::id(),
-                        ]);
-
-                        // If the record existed but different keys used, ensure quantity is set
-                        if ($inventory->wasRecentlyCreated === false && $inventory->quantity == 0) {
-                            $inventory->quantity = $product['qnt'];
-                            $inventory->save();
-                        }
-
-                        stockStatusChange($product_id, $store_id, $product['qnt'], 'add_stock');
-                        $inventoryService->transferProduct($product_id, $inventory->id, $store_id, '', $product['qnt'], 'add_stock');
-                    }
-
-                    // keep the extra transfer if you rely on it elsewhere (kept as in original store)
-                    $inventoryService->transferProduct($product_id, $inventory->id, $store_id, '', $product['qnt'], 'add_stock');
-                } else {
-                    // no existing inventory found — create
-                    $inventory = Inventory::firstOrCreate([
-                        'product_id'  => $product_id,
-                        'store_id'    => $store_id,
-                        'location_id' => 1,
-                        'batch_no'    => $batch,
-                    ], [
-                        'expiry_date' => $expiryDatePlusOneYear,
-                        'added_by'    => Auth::id(),
-                        'quantity'    => $product['qnt'],
-                    ]);
-
-                    stockStatusChange($product_id, $store_id, $product['qnt'], 'add_stock');
-                    $inventoryService->transferProduct($product_id, $inventory->id, $store_id, '', $product['qnt'], 'add_stock');
-                }
             }
 
-            // ----------------- 5) RECREATE accounting voucher (delete old and rebuild) -----------------
-            // Delete old voucher(s) related to this purchase (by ref_no and voucher_type or purchase_id if you store it)
-            $oldVoucher = Voucher::where('voucher_type', 'Purchase')
-                ->where('ref_no', $purchase->bill_no) // old bill_no might have changed; if you store voucher->purchase_id use that instead
-                ->first();
+            // =========================
+            // 4. RECALCULATE STOCK
+            // =========================
+            $affectedProducts = array_unique($affectedProducts);
 
-            if ($oldVoucher) {
-                $oldVoucher->lines()->delete();
-                $oldVoucher->delete();
+            foreach ($affectedProducts as $pid) {
+                recalculateStockFromDate($pid, $store_id, $purchaseDate);
             }
 
-            // Recreate voucher (similar logic to store)
-            $vendor = VendorList::findOrFail($request->vendor_id);
-
-            if (! $request->parchase_ledger) {
-                throw new \Exception('Vendor/Purchase ledger is not selected.');
-            }
-
-            $purchaseLedgerId = (int) $request->parchase_ledger;
-            $vendorLedgerId = (int) $request->parchase_ledger;
-
-            $baseAmount = (float) ($request->total ?? 0);
-            $grandAmount = (float) ($request->total_amount ?? 0);
-
-            if ($grandAmount <= 0) {
-                throw new \Exception('Invalid purchase total amount for voucher posting.');
-            }
-
-            $aed = (float) ($request->aed_to_be_paid ?? 0);
-            $gFull = (float) ($request->guarantee_fulfilled ?? 0);
-            $tcs = (float) ($request->tcs ?? 0);
-            $vat = (float) ($request->vat ?? 0);
-            $surVat = (float) ($request->surcharge_on_vat ?? 0);
-            $blf = (float) ($request->blf ?? 0);
-            $permit = (float) ($request->permit_fee ?? 0);
-            $rsgsm = (float) ($request->rsgsm_purchase ?? 0);
-
-            $voucher = Voucher::create([
-                'voucher_date'    => $request->date,
-                'voucher_type'    => 'Purchase',
-                'ref_no'          => $request->bill_no,
-                'branch_id'       => $running_shift->branch_id ?? null,
-                'narration'       => 'Purchase bill no ' . $request->bill_no,
-                'created_by'      => Auth::id(),
-                'party_ledger_id' => $vendorLedgerId,
-                'sub_total'       => $baseAmount,
-                'discount'        => 0,
-                'tax'             => $vat + $surVat,
-                'grand_total'     => $grandAmount,
-            ]);
-
-            // Dr Purchase (goods)
-            VoucherLine::create([
-                'voucher_id'     => $voucher->id,
-                'ledger_id'      => $purchaseLedgerId,
-                'dc'             => 'Dr',
-                'amount'         => $baseAmount,
-                'line_narration' => 'Purchase - ' . $request->bill_no,
-            ]);
-
-            // Dr charges if present
-            if ($aed > 0) {
-                $l = AccountLedger::where('name', 'AED TO BE PAID')->first();
-                if ($l) {
-                    VoucherLine::create([
-                        'voucher_id'     => $voucher->id,
-                        'ledger_id'      => $l->id,
-                        'dc'             => 'Dr',
-                        'amount'         => $aed,
-                        'line_narration' => 'AED TO BE PAID - ' . $request->bill_no,
-                    ]);
-                }
-            }
-
-            if ($tcs > 0) {
-                $l = AccountLedger::where('name', 'TCS')->first();
-                if ($l) {
-                    VoucherLine::create([
-                        'voucher_id'     => $voucher->id,
-                        'ledger_id'      => $l->id,
-                        'dc'             => 'Dr',
-                        'amount'         => $tcs,
-                        'line_narration' => 'TCS - ' . $request->bill_no,
-                    ]);
-                }
-            }
-
-            if ($vat > 0) {
-                $l = AccountLedger::where('name', 'VAT')->first();
-                if ($l) {
-                    VoucherLine::create([
-                        'voucher_id'     => $voucher->id,
-                        'ledger_id'      => $l->id,
-                        'dc'             => 'Dr',
-                        'amount'         => $vat,
-                        'line_narration' => 'VAT - ' . $request->bill_no,
-                    ]);
-                }
-            }
-
-            if ($surVat > 0) {
-                $l = AccountLedger::where('name', 'SURCHARGE ON VAT')->first();
-                if ($l) {
-                    VoucherLine::create([
-                        'voucher_id'     => $voucher->id,
-                        'ledger_id'      => $l->id,
-                        'dc'             => 'Dr',
-                        'amount'         => $surVat,
-                        'line_narration' => 'SURCHARGE ON VAT - ' . $request->bill_no,
-                    ]);
-                }
-            }
-
-            if ($blf > 0) {
-                $l = AccountLedger::where('name', 'BLF')->first();
-                if ($l) {
-                    VoucherLine::create([
-                        'voucher_id'     => $voucher->id,
-                        'ledger_id'      => $l->id,
-                        'dc'             => 'Dr',
-                        'amount'         => $blf,
-                        'line_narration' => 'BLF - ' . $request->bill_no,
-                    ]);
-                }
-            }
-
-            if ($permit > 0) {
-                $l = AccountLedger::where('name', 'Permit Fee')->first();
-                if ($l) {
-                    VoucherLine::create([
-                        'voucher_id'     => $voucher->id,
-                        'ledger_id'      => $l->id,
-                        'dc'             => 'Dr',
-                        'amount'         => $permit,
-                        'line_narration' => 'Permit Fee - ' . $request->bill_no,
-                    ]);
-                }
-            }
-
-            // Cr Vendor (full amount)
-            VoucherLine::create([
-                'voucher_id'     => $voucher->id,
-                'ledger_id'      => $vendorLedgerId,
-                'dc'             => 'Cr',
-                'amount'         => $grandAmount,
-                'line_narration' => 'Vendor: ' . $vendor->name,
+            // =========================
+            // 5. UPDATE PURCHASE TOTALS
+            // =========================
+            $purchase->update([
+                'bill_no' => $request->bill_no,
+                'vendor_id' => $request->vendor_id,
+                'vendor_new_id' => $request->vendor_new_id,
+                'parchase_ledger' => $request->parchase_ledger,
+                'date' => $purchaseDate,
+                'total' => $subTotal,
+                'total_amount' => $subTotal,
+                'updated_by' => Auth::id(),
             ]);
 
             DB::commit();
 
             return redirect()
                 ->route('purchase.list')
-                ->with('success', 'Purchase has been successfully updated.');
+                ->with('success', 'Purchase updated successfully.');
         } catch (\Exception $e) {
+
             DB::rollBack();
 
-            // Optionally log exception
-            // logger()->error('Failed to update purchase', ['id' => $id, 'error' => $e->getMessage()]);
-
-            return back()->withErrors(['error' => 'Failed to update purchase: ' . $e->getMessage()])->withInput();
+            return back()
+                ->withErrors(['error' => 'Failed to update purchase: ' . $e->getMessage()])
+                ->withInput();
         }
     }
 
@@ -916,6 +817,40 @@ class PurchaseController extends Controller
             ->first();
 
         return json_decode($record);
+    }
+
+    public function getProductByBarcode(string $barcode)
+    {
+        $record = Product::select(
+            'products.id',
+            'products.name',
+            'products.size',
+            'products.brand',
+            'products.mrp',
+            'inventories.batch_no',
+            'inventories.mfg_date',
+            'products.cost_price',
+            'products.sell_price',
+            DB::raw('SUM(COALESCE(inventories.quantity, 0)) as total_quantity')
+        )
+            ->leftJoin('inventories', 'products.id', '=', 'inventories.product_id')
+            ->where('products.is_deleted', 'no')
+            ->where('products.barcode', $barcode) // 🔥 Changed Here
+            ->groupBy(
+                'products.id',
+                'products.name',
+                'products.brand',
+                'inventories.batch_no',
+                'inventories.mfg_date',
+                'products.cost_price',
+                'products.sell_price',
+                'products.size',
+                'products.mrp'
+            )
+            ->orderBy('total_quantity', 'asc')
+            ->first();
+
+        return response()->json($record);
     }
 
     public function view($id)

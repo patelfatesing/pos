@@ -196,10 +196,6 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                         <div id="view_discount_price" class="text-muted"></div>
                     </div>
 
-                    <div class="col-md-12 mb-3">
-                        <strong>Description:</strong>
-                        <div id="view_description" class="text-muted"></div>
-                    </div>
 
                     <div class="col-md-6 mb-3">
                         <strong>Status:</strong>
@@ -478,7 +474,7 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                 $("#view_cost_price").text(product.cost_price);
                 $("#view_discount_price").text(product.discount_price ?? '-');
                 $("#view_description").text(product.description ?? '-');
-                $("#view_status").text(product.is_active == 1 ? "Active" : "Inactive");
+                $("#view_status").text(product.is_active == 'yes' ? "Active" : "Inactive");
                 $("#view_created_at").text(formatDate(product.created_at));
                 $("#view_updated_at").text(formatDate(product.updated_at));
 

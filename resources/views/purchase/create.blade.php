@@ -141,6 +141,18 @@
                                                         @enderror
                                                     </div>
                                                 </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="product_barcode">Barcode</label>
+
+                                                        <input type="text" class="form-control" id="product_barcode"
+                                                            name="product_barcode" value="{{ old('product_barcode') }}">
+
+                                                        @error('product_select')
+                                                            <span class="text-danger">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             <hr />
@@ -702,7 +714,7 @@
     // ---------- MAIN READY ----------
 
     $(document).ready(function() {
-        let srNo = $('#productBody tr').length ? $('#productBody tr').length + 1 : 1;
+        // let srNo = $('#productBody tr').length ? $('#productBody tr').length + 1 : 1;
         $('.vendor-common').hide();
 
         // Product select -> fetch details
@@ -724,12 +736,13 @@
         });
 
         function addProduct(data) {
-            const brand = data.id;
-            const brandVal = data.name;
-            const batch = data.batch_no;
-            const mfg = data.mfg_date;
-            const mrp = data.mrp;
-            const rate = data.cost_price;
+
+            const brand = data.id ?? '';
+            const brandVal = data.name ?? '';
+            const batch = data.batch_no ?? '';
+            const mfg = data.mfg_date ?? '';
+            const mrp = data.mrp ?? 0;
+            const rate = data.cost_price ?? 0;
             const qty = 1;
             const amount = rate * qty;
 
@@ -746,44 +759,43 @@
 
             if (existingRow) {
                 const qtyInput = existingRow.find('input[name*="[qnt]"]');
-                const amountInput = existingRow.find('input[name*="[amount]"]');
-
                 let existingQty = parseInt(qtyInput.val()) || 0;
-                const newQty = existingQty + qty;
-                const newAmount = (newQty * rate).toFixed(2);
-
+                const newQty = existingQty + 1;
                 qtyInput.val(newQty);
-                amountInput.val(newAmount);
-                qtyInput.data('prev', newQty);
 
                 calculateProductTotals();
                 updateBillingTotal();
-            } else {
-                const row = `
+                return;
+            }
+
+            // 🔥 ALWAYS GET CURRENT ROW COUNT
+            const rowIndex = $('#product_table tbody tr').length;
+
+            const row = `
                 <tr>
-                    <td>${srNo}</td>
-                    <input type="hidden" name="products[${srNo - 1}][product_id]" value="${brand}">
+                    <td>${rowIndex + 1}</td>
+                    <input type="hidden" name="products[${rowIndex}][product_id]" value="${brand}">
                     <td style="width:25%">
-                        <input type="text" name="products[${srNo - 1}][brand_name]" class="form-control" value="${brandVal}" readonly>
+                        <input type="text" name="products[${rowIndex}][brand_name]" class="form-control" value="${brandVal}" readonly>
                     </td>
                     <td>
-                        <input type="text" name="products[${srNo - 1}][batch]" class="form-control" value="${batch}">
+                        <input type="text" name="products[${rowIndex}][batch]" class="form-control" value="${batch}">
                     </td>
                     <td>
-                        <input type="date" name="products[${srNo - 1}][mfg_date]" class="form-control" value="${mfg ?? ''}">
+                        <input type="date" name="products[${rowIndex}][mfg_date]" class="form-control" value="${mfg ?? ''}">
                     </td>
                     <td>
-                        <input type="hidden" name="products[${srNo - 1}][mrp]" value="${mrp}">
+                        <input type="hidden" name="products[${rowIndex}][mrp]" value="${mrp}">
                         <input type="number" class="form-control" value="${mrp}" disabled>
                     </td>
                     <td>
-                        <input type="number" name="products[${srNo - 1}][qnt]" class="form-control" value="${qty}" min="1" data-prev="${qty}">
+                        <input type="number" name="products[${rowIndex}][qnt]" class="form-control" value="${qty}" min="1">
                     </td>
                     <td>
-                        <input type="number" step="0.01" name="products[${srNo - 1}][rate]" class="form-control" value="${rate}">
+                        <input type="number" step="0.01" name="products[${rowIndex}][rate]" class="form-control" value="${rate}">
                     </td>
                     <td>
-                        <input type="number" step="0.01" name="products[${srNo - 1}][amount]" class="form-control" value="${amount.toFixed(2)}">
+                        <input type="number" step="0.01" name="products[${rowIndex}][amount]" class="form-control" value="${amount.toFixed(2)}">
                     </td>
                     <td>
                         <button type="button" class="btn btn-sm btn-danger remove">Remove</button>
@@ -791,19 +803,16 @@
                 </tr>
                 `;
 
-                $('#product_table tbody').append(row);
-                srNo++;
+            $('#product_table tbody').append(row);
 
-                calculateProductTotals();
-                updateBillingTotal();
-            }
-
-            $('#product_select').val('');
+            calculateProductTotals();
+            updateBillingTotal();
         }
 
         // Remove row
         $(document).on('click', '.remove', function() {
             $(this).closest('tr').remove();
+            updateSrNo();
             calculateProductTotals();
             updateBillingTotal();
 
@@ -959,6 +968,37 @@
             $('#parchase_ledger').val(vendorId);
         });
 
+        // Barcode Enter / Scan
+        $('#product_barcode').on('keydown', function(e) {
+
+            if (e.which === 13) {
+                e.preventDefault();
+
+                const barcode = $(this).val().trim();
+                if (!barcode) return;
+
+                $.ajax({
+                    url: "{{ url('/vendor/get-product-by-barcode') }}/" + barcode,
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data) {
+
+                        if (!data || !data.id) {
+                            alert('Product not found for this barcode.');
+                            return;
+                        }
+
+                        addProduct(data); // ✅ now accessible
+                        $('#product_barcode').val('');
+                        $('#product_barcode').focus(); // optional auto-focus
+                    },
+                    error: function() {
+                        alert('Invalid barcode or product not found.');
+                    }
+                });
+            }
+        });
+
     });
 
     // Initial on page load (after validation error)
@@ -976,4 +1016,24 @@
             $('#license-ledger-box').addClass('d-none');
         }
     });
+
+
+    function updateSrNo() {
+        $('#product_table tbody tr').each(function(index) {
+            $(this).find('td:first').text(index + 1);
+
+            // Also update input index name like products[0], products[1]...
+            $(this).find('input, select').each(function() {
+                const name = $(this).attr('name');
+                if (name) {
+                    const newName = name.replace(/products\[\d+\]/, 'products[' + index +
+                        ']');
+                    $(this).attr('name', newName);
+                }
+            });
+        });
+
+        // Reset srNo counter
+        srNo = $('#product_table tbody tr').length + 1;
+    }
 </script>

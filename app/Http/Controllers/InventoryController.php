@@ -131,7 +131,7 @@ class InventoryController extends Controller
         foreach ($data as $inventory) {
             $total_qty = Inventory::countQty($inventory->product_id, $inventory->store_id);
 
-            $lowAccess = getAccess($roleId, 'stock-low-level');
+            $lowAccess = canDo($roleId, 'stock-low-level','');
 
             // ❌ No permission → return empty table
             if ($lowAccess == 'yes') {
