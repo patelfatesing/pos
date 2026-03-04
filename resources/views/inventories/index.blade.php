@@ -5,39 +5,38 @@
         <div class="content-page">
             <div class="container-fluid">
                 <div class="row align-items-center mb-3">
-                    <div class="col-lg-12">
-                        <div class="d-flex flex-wrap align-items-center justify-content-between">
-                            <div>
-                                <h4 class="mb-3">Stock Inventory</h4>
+                    <div class="col-lg-12 card-header">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h4 class="mb-0">Stock Inventory</h4>
                             </div>
-
+                            <div class="col-md-3">
+                                <div class="form-group mb-0">
+                                    <select name="storeSearch" id="storeSearch" class="form-control">
+                                        <option value="">Select All Store</option>
+                                        @foreach ($branch as $id => $name)
+                                            <option value="{{ $id }}">{{ $name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group mb-0">
+                                    <select name="subCategorySearch" id="subCategorySearch" class="form-control">
+                                        <option value="">Select All Sub Category</option>
+                                        @foreach ($subcategories as $id => $name)
+                                            <option value="{{ $name->id }}">{{ $name->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="col-12">
-                        <div class="col-md-3" style="float: right; margin-bottom: 10px;">
-                            <div class="form-group">
-                                <select name="storeSearch" id="storeSearch" class="form-control">
-                                    <option value="">Select All Store</option>
-                                    @foreach ($branch as $id => $name)
-                                        <option value="{{ $id }}">{{ $name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3" style="float: right; margin-bottom: 10px;">
-                            <div class="form-group">
-                                <select name="subCategorySearch" id="subCategorySearch" class="form-control">
-                                    <option value="">Select All Sub Category</option>
-                                    @foreach ($subcategories as $id => $name)
-                                        <option value="{{ $name->id }}">{{ $name->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-
+                        
                         <div class="table-responsive rounded">
                             <table class="table table-striped table-bordered nowrap" id="inventory_table"
                                 style="width:100%;">
