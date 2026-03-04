@@ -26,8 +26,8 @@
                                     </a>
                                 @endif
                             </div>
-                            <div class="col-md-3 pr-0 mt-3">
-                                <div class="form-group">
+                            <div class="col-md-3 pr-0">
+                                <div class="form-group mb-0">
                                     <select name="subCategorySearch" id="subCategorySearch" class="form-control">
                                         <option value="">All</option>
                                         @foreach ($subcategories as $id => $name)
