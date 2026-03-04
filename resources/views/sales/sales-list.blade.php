@@ -35,11 +35,15 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-                <!-- Filters -->
-                <div class="row">
-                    <div class="col-lg-12 mb-3 d-flex justify-content-between align-items-center">
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
                         <h4 class="mb-0">Transaction List</h4>
                     </div>
+                    <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
+                </div>
+                <!-- Filters -->
+                <div class="row mt-1">
+
                     <div class="col-md-3 mb-2">
                         <input type="date" id="start_date" class="form-control">
                     </div>
@@ -114,8 +118,8 @@
             <div class="modal-content">
                 <div class="modal-header bg-secondary text-white">
                     <h5 class="modal-title">Invoice Activity History</h5>
-                    
-                     <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>

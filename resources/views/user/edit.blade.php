@@ -4,18 +4,19 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid add-form-list">
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Edit User - {{ $record->userInfo->first_name }}
+                            {{ $record->userInfo->last_name }}</h4>
+                    </div>
+                    <div>
+                        <a href="{{ route('users.list') }}" class="btn btn-secondary">Back</a>
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="card">
-                            <div class="card-header d-flex justify-content-between">
-                                <div class="header-title">
-                                    <h4 class="card-title">Edit User - {{ $record->userInfo->first_name }}
-                                        {{ $record->userInfo->last_name }}</h4>
-                                </div>
-                                <div>
-                                    <a href="{{ route('users.list') }}" class="btn btn-secondary">Back</a>
-                                </div>
-                            </div>
+                           
                             <div class="card-body">
                                 <form action="{{ route('users.update') }}" method="POST" data-toggle="validator">
                                     @csrf
@@ -46,9 +47,8 @@
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>Username </label>
-                                                <input class="floating-input form-control"
-                                                    value="{{ $record->username }}" name="username"
-                                                    type="text" placeholder=" ">
+                                                <input class="floating-input form-control" value="{{ $record->username }}"
+                                                    name="username" type="text" placeholder=" ">
                                                 @error('username')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
@@ -82,9 +82,8 @@
                                                     <option value="">Select Role</option>
 
                                                     @foreach ($roles as $id => $name)
-                                                        
-
-                                                        <option value="{{ $id }}" {{ isset($record->role_id) && $record->role_id == $id ? 'selected' : '' }}>
+                                                        <option value="{{ $id }}"
+                                                            {{ isset($record->role_id) && $record->role_id == $id ? 'selected' : '' }}>
                                                             {{ $name }}
                                                         </option>
                                                     @endforeach
@@ -115,7 +114,7 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Address</label>
-                                                <textarea class="form-control" name="address" rows="4">{{ $record->userInfo->address }}</textarea>
+                                                <textarea class="form-control" name="address" rows="2">{{ $record->userInfo->address }}</textarea>
                                             </div>
                                         </div>
                                     </div>

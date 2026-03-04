@@ -58,12 +58,7 @@
         <div class="content-page daybook-page">
             <div class="container-fluid">
                 <div class="row">
-                    <div class="col-lg-12">
-                        <div class="d-flex daybook-header flex-wrap align-items-center justify-content-between mb-2">
-                            <h4 class="mb-0">Day Book</h4>
-                            <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
-                        </div>
-                    </div>
+                   
                     <div class="col-lg-12">
                         <div class="table-responsive rounded mb-3">
 
@@ -75,6 +70,7 @@
                                     <span class="float-end small">
                                         For {{ \Carbon\Carbon::parse($fromDate)->format('d-M-y') }}
                                     </span>
+                                    <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
                                 </div>
 
                                 <div class="card-body p-0">

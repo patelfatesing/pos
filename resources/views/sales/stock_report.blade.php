@@ -23,13 +23,15 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-
-                <!-- Page Header -->
-                <div class="row">
-                    <div class="col-lg-12 mb-3">
-                        <h4>Stock Summary</h4>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Stock Summary</h4>
                     </div>
-
+                    <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
+                </div>
+                <!-- Page Header -->
+                <div class="row mt-1">
+                  
                     <!-- Filters -->
                     <div class="col-md-2 mb-2">
                         <select id="store_id" class="form-control">

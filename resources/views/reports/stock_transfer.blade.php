@@ -89,11 +89,13 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <h4 class="mb-0">Stock Transfer / Request Report</h4>
+                  <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Stock Transfer / Request Report</h4>
+                    </div>
+                    <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
                 </div>
-
+                
                 <div class="table-responsive rounded">
                     <table class="table table-striped table-bordered nowrap" id="stock_transfer_table" style="width:100%;">
                         <thead class="bg-white">

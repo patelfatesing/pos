@@ -40,11 +40,13 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-
-                <div class="row">
-                    <div class="col-lg-12 d-flex flex-wrap align-items-center justify-content-between mb-3">
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
                         <h4 class="mb-0">Sales Report — Shift-wise</h4>
                     </div>
+                    <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
+                </div>
+                <div class="row">
 
                     <div class="col-lg-12">
                         <div class="table-responsive rounded mb-3 p-2">
@@ -229,7 +231,7 @@
                         },
                         {
                             data: 'transactions',
-                        }, 
+                        },
                         {
                             data: 'shift_date'
                         }

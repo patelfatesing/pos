@@ -113,13 +113,14 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid add-form-list">
-
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between">
-                        <h4 class="card-title">Edit Roles & Permission - {{ $record->name }}</h4>
-                        <a href="{{ route('roles.list') }}" class="btn btn-secondary">Back</a>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Edit Roles & Permission - {{ $record->name }}</h4>
                     </div>
-
+                    <a href="{{ route('roles.list') }}" class="btn btn-secondary">Back</a>
+                </div>
+                <div class="card">
+                    
                     <div class="card-body">
 
                         <form action="{{ route('roles.update', $record->id) }}" method="POST">

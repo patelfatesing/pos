@@ -51,19 +51,15 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-
-                <div class="row align-items-center mb-3">
-                    <div class="col-lg-12">
-                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                            <div>
-                                <h4 class="mb-3">Category-wise / Subcategory-wise Sales</h4>
-                            </div>
-                        </div>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Category-wise / Subcategory-wise Sales</h4>
                     </div>
+                    <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
                 </div>
 
                 <!-- Filters -->
-                <div class="row g-2 mb-2">
+                <div class="row g-2 mb-2 mt-2">
                     <div class="col-md-2">
                         <select id="branch_id" class="form-control">
                             <option value="">All Branches</option>
@@ -78,7 +74,7 @@
                     <div class="col-md-2">
                         <input type="date" id="end_date" class="form-control w-140" />
                     </div>
-                   
+
                     {{-- <div class="col-md-2">
                         <select id="category_id" class="form-control">
                             <option value="">All Categories</option>
