@@ -10,17 +10,16 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                            <div>
-                                <h4 class="mb-3">Purchase Invoice</h4>
-                            </div>
-                            <a href="{{ route('purchase.create') }}" class="btn btn-primary add-list">
-                                <i class="las la-plus mr-3"></i>Add New Purchase Invoice
-                            </a>
-                        </div>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Purchase Invoice</h4>
                     </div>
+                    <a href="{{ route('purchase.create') }}" class="btn btn-primary add-list">
+                        <i class="las la-plus mr-3"></i>Add New Purchase Invoice
+                    </a>
+                </div>
+                <div class="row">
+                   
                     <div class="col-lg-12">
                         <div class="table-responsive rounded mb-3">
                             <table class="table data-tables table-striped" id="purchase_table">
@@ -87,7 +86,7 @@
                         searchable: false
                     }
                 ],
-                
+
                 aoColumnDefs: [{
                     bSortable: false,
                     aTargets: [] // make "action" column unsortable

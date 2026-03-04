@@ -10,7 +10,15 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <h1>Stock Request Details</h1>
+                <div class="row align-items-center mb-3">
+                    <div class="col-lg-12">
+                        <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                            <div>
+                                <h4 class="mb-0">Stock Request Details</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="table-responsive rounded mb-3">
                     <table class="table data-tables table-striped" id="stock-requests-table">
                         <thead class="bg-white text-uppercase">

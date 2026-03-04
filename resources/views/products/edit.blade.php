@@ -5,17 +5,17 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid add-form-list">
+                <div class="card-header d-flex justify-content-between">
+                    <div class="header-title">
+                        <h4 class="card-title">Update Product</h4>
+                    </div>
+                    <div>
+                        <a href="{{ route('products.list') }}" class="btn btn-secondary">Back</a>
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="card">
-                            <div class="card-header d-flex justify-content-between">
-                                <div class="header-title">
-                                    <h4 class="card-title">Update Product</h4>
-                                </div>
-                                <div>
-                                    <a href="{{ route('products.list') }}" class="btn btn-secondary">Back</a>
-                                </div>
-                            </div>
 
                             <div class="card-body">
                                 <form action="{{ route('products.update') }}" method="POST" enctype="multipart/form-data">
@@ -168,8 +168,8 @@
                                             <!-- Discount Price -->
                                             <div class="form-group">
                                                 <label for="mrp">MRP</label>
-                                                <input type="number" value="{{ old('mrp', $record->mrp) }}"
-                                                    name="mrp" step="0.01" class="form-control">
+                                                <input type="number" value="{{ old('mrp', $record->mrp) }}" name="mrp"
+                                                    step="0.01" class="form-control">
                                                 @error('mrp')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror

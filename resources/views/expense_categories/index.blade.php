@@ -9,19 +9,15 @@
         <div class="content-page">
             <div class="container-fluid">
                 <!-- Page Header -->
-                <div class="row align-items-center mb-3">
-                    <div class="col-lg-12">
-                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                            <div>
-                                <h4 class="mb-3">Expense Category List</h4>
-                            </div>
-                            <a href="#" onclick="add_exp_category()" class="btn btn-primary add-list">
-                                <i class="las la-plus mr-3"></i>Create New Expense Category
-                            </a>
-                        </div>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Expense Category List</h4>
                     </div>
+                    <a href="#" onclick="add_exp_category()" class="btn btn-primary add-list">
+                        <i class="las la-plus mr-3"></i>Create New Expense Category
+                    </a>
                 </div>
-
+            
                 <!-- Table -->
                 <div class="row">
                     <div class="col-12">
@@ -58,7 +54,7 @@
             <div class="modal-content">
                 <form id="addExpenseForm">
                     @csrf
-                    <div class="modal-header">
+                    <div class="modal-header card-header">
                         <h5 class="modal-title" id="addExpModalLabel">Add Expense Category</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>

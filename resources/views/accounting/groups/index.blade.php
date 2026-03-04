@@ -7,20 +7,17 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                            <div>
-                                <h4 class="mb-3">Account Groups</h4>
-                            </div>
-                            @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'accounting-groups-create'))
-                                <a href="{{ route('accounting.groups.create') }}" class="btn btn-primary">
-                                    <i class="las la-plus me-1"></i> Add Group
-                                </a>
-                            @endif
-                        </div>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Account Groups</h4>
                     </div>
+                    @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'accounting-groups-create'))
+                        <a href="{{ route('accounting.groups.create') }}" class="btn btn-primary">
+                            <i class="las la-plus me-1"></i> Add Group
+                        </a>
+                    @endif
+                </div>
+                <div class="row mt-1">
 
                     <div class="col-lg-12">
                         @if (session('success'))

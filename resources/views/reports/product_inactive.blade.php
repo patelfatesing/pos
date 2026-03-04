@@ -95,11 +95,14 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <h4 class="mb-0">Product Inactive Report</h4>
+                  <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Product Inactive Report</h4>
+                    </div>
+                    <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
                 </div>
-                <div class="table-responsive rounded">
+               
+                <div class="table-responsive rounded mt-2">
                     <table class="table table-striped table-bordered nowrap" id="product_inactive_table" style="width:100%;">
                         <thead class="bg-white">
                             <tr class="ligth ligth-data">

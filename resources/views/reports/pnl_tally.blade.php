@@ -171,17 +171,19 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-
-                <div class="pnl-card">
-                    <div class="pnl-head">
-                        <div class="pnl-title">Profit &amp; Loss</div>
-                        <div class="pnl-sub" id="pnl_period">—</div>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0"> Profit &amp; Loss</h4>
                     </div>
+                    <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
+                </div>
+                <div class="pnl-card">
+
 
                     <div class="filters" id="pnl_filters">
 
                         {{-- Removed Branch Completely --}}
-                        
+
                         <input type="date" id="pnl_start" class="form-control form-control-sm" autocomplete="off">
                         <input type="date" id="pnl_end" class="form-control form-control-sm" autocomplete="off">
 
@@ -283,130 +285,131 @@
 
 
 @section('scripts')
-<script>
-    const GROUP_URL = @json(route('reports.pnl.group'));
-    const LEDGER_URL = @json(route('reports.pnl.ledger'));
-    const PDF_BASE = @json(route('reports.profit-loss.pdf'));
-    // base URL for ledger vouchers (no trailing slash)
-    const LEDGER_VOUCHERS_BASE = '/accounting/ledgers';
+    <script>
+        const GROUP_URL = @json(route('reports.pnl.group'));
+        const LEDGER_URL = @json(route('reports.pnl.ledger'));
+        const PDF_BASE = @json(route('reports.profit-loss.pdf'));
+        // base URL for ledger vouchers (no trailing slash)
+        const LEDGER_VOUCHERS_BASE = '/accounting/ledgers';
 
-    (function() {
-        const $ = id => document.getElementById(id);
-        const CSRF = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        (function() {
+            const $ = id => document.getElementById(id);
+            const CSRF = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-        const fmtDate = d => {
-            const dt = new Date(d);
-            const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000);
-            return local.toISOString().slice(0, 10);
-        };
-
-        const today = fmtDate(new Date());
-        const last30 = fmtDate(new Date(Date.now() - 29 * 86400000));
-
-        $('pnl_start').value = last30;
-        $('pnl_end').value = today;
-
-        function updateHeader() {
-            $('pnl_period').textContent = `${$('pnl_start').value} to ${$('pnl_end').value}`;
-        }
-
-        function updatePdfLink() {
-            const params = new URLSearchParams({
-                start_date: $('pnl_start').value,
-                end_date: $('pnl_end').value
-            });
-            $('pnl_pdf_link').href = `${PDF_BASE}?${params.toString()}`;
-        }
-
-        updateHeader();
-        updatePdfLink();
-
-        function refresh() {
-            let payload = {
-                start_date: $('pnl_start').value,
-                end_date: $('pnl_end').value
+            const fmtDate = d => {
+                const dt = new Date(d);
+                const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000);
+                return local.toISOString().slice(0, 10);
             };
 
-            fetch(@json(route('reports.pnl_tally.data')), {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json",
-                    "X-CSRF-TOKEN": CSRF
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(r => {
-                if (!r.ok) throw new Error('Network response was not ok');
-                return r.json();
-            })
-            .then(json => {
-                renderSide('#tbl_trading_dr tbody', json.trading.dr.rows);
-                renderSide('#tbl_trading_cr tbody', json.trading.cr.rows);
-                renderSide('#tbl_pl_dr tbody', json.pl.dr.rows);
-                renderSide('#tbl_pl_cr tbody', json.pl.cr.rows);
+            const today = fmtDate(new Date());
+            const last30 = fmtDate(new Date(Date.now() - 29 * 86400000));
 
-                $('trading_total_dr').textContent = json.trading.table_total;
-                $('trading_total_cr').textContent = json.trading.table_total;
-                $('pl_total_dr').textContent = json.pl.table_total;
-                $('pl_total_cr').textContent = json.pl.table_total;
-            })
-            .catch(err => {
-                console.error('Failed to load P&L data', err);
-                // optionally show user-visible error
-            });
-        }
+            $('pnl_start').value = last30;
+            $('pnl_end').value = today;
 
-        // Render reusable
-        function renderSide(selector, rows) {
-            const tbody = document.querySelector(selector);
-            tbody.innerHTML = "";
+            function updateHeader() {
+                $('pnl_period').textContent = `${$('pnl_start').value} to ${$('pnl_end').value}`;
+            }
 
-            const start = encodeURIComponent($('pnl_start').value || '');
-            const end = encodeURIComponent($('pnl_end').value || '');
+            function updatePdfLink() {
+                const params = new URLSearchParams({
+                    start_date: $('pnl_start').value,
+                    end_date: $('pnl_end').value
+                });
+                $('pnl_pdf_link').href = `${PDF_BASE}?${params.toString()}`;
+            }
 
-            rows.forEach(r => {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `<td>${escapeHtml(r.label)}</td><td class="amount">${r.amount}</td>`;
-                tbody.appendChild(tr);
-
-                if (r.children) {
-                    r.children.forEach(c => {
-                        const tr2 = document.createElement("tr");
-                        // if ledger_id present, make clickable GET link with query params
-                        let labelHtml = escapeHtml(c.label);
-                        if (c.ledger_id) {
-                            const href = `${LEDGER_VOUCHERS_BASE}/${encodeURIComponent(c.ledger_id)}/vouchers?start_date=${start}&end_date=${end}`;
-                            labelHtml = `<a href="${href}" target="_blank" rel="noopener" class="ledger-link">${escapeHtml(c.label)}</a>`;
-                        }
-                        tr2.innerHTML = `<td class="child-label">${labelHtml}</td><td class="amount">${c.amount}</td>`;
-                        tbody.appendChild(tr2);
-                    });
-                }
-            });
-        }
-
-        // escape to avoid XSS if data ever contains HTML
-        function escapeHtml(text) {
-            if (text === null || text === undefined) return '';
-            return String(text)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
-
-        // No method-spoofing / form submission needed — links use GET with query params
-        $('pnl_apply').addEventListener("click", () => {
             updateHeader();
             updatePdfLink();
+
+            function refresh() {
+                let payload = {
+                    start_date: $('pnl_start').value,
+                    end_date: $('pnl_end').value
+                };
+
+                fetch(@json(route('reports.pnl_tally.data')), {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Accept": "application/json",
+                            "X-CSRF-TOKEN": CSRF
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(r => {
+                        if (!r.ok) throw new Error('Network response was not ok');
+                        return r.json();
+                    })
+                    .then(json => {
+                        renderSide('#tbl_trading_dr tbody', json.trading.dr.rows);
+                        renderSide('#tbl_trading_cr tbody', json.trading.cr.rows);
+                        renderSide('#tbl_pl_dr tbody', json.pl.dr.rows);
+                        renderSide('#tbl_pl_cr tbody', json.pl.cr.rows);
+
+                        $('trading_total_dr').textContent = json.trading.table_total;
+                        $('trading_total_cr').textContent = json.trading.table_total;
+                        $('pl_total_dr').textContent = json.pl.table_total;
+                        $('pl_total_cr').textContent = json.pl.table_total;
+                    })
+                    .catch(err => {
+                        console.error('Failed to load P&L data', err);
+                        // optionally show user-visible error
+                    });
+            }
+
+            // Render reusable
+            function renderSide(selector, rows) {
+                const tbody = document.querySelector(selector);
+                tbody.innerHTML = "";
+
+                const start = encodeURIComponent($('pnl_start').value || '');
+                const end = encodeURIComponent($('pnl_end').value || '');
+
+                rows.forEach(r => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `<td>${escapeHtml(r.label)}</td><td class="amount">${r.amount}</td>`;
+                    tbody.appendChild(tr);
+
+                    if (r.children) {
+                        r.children.forEach(c => {
+                            const tr2 = document.createElement("tr");
+                            // if ledger_id present, make clickable GET link with query params
+                            let labelHtml = escapeHtml(c.label);
+                            if (c.ledger_id) {
+                                const href =
+                                    `${LEDGER_VOUCHERS_BASE}/${encodeURIComponent(c.ledger_id)}/vouchers?start_date=${start}&end_date=${end}`;
+                                labelHtml =
+                                    `<a href="${href}" target="_blank" rel="noopener" class="ledger-link">${escapeHtml(c.label)}</a>`;
+                            }
+                            tr2.innerHTML =
+                                `<td class="child-label">${labelHtml}</td><td class="amount">${c.amount}</td>`;
+                            tbody.appendChild(tr2);
+                        });
+                    }
+                });
+            }
+
+            // escape to avoid XSS if data ever contains HTML
+            function escapeHtml(text) {
+                if (text === null || text === undefined) return '';
+                return String(text)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            // No method-spoofing / form submission needed — links use GET with query params
+            $('pnl_apply').addEventListener("click", () => {
+                updateHeader();
+                updatePdfLink();
+                refresh();
+            });
+
             refresh();
-        });
-
-        refresh();
-    })();
-</script>
+        })();
+    </script>
 @endsection
-
-

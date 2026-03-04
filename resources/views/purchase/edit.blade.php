@@ -4,6 +4,12 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid add-form-list">
+                
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Stock Request Details</h4>
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="card">
@@ -333,7 +339,8 @@
                                                                 class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center border-top">
                                                                 <h6>Total Amount</h6>
                                                                 <div>
-                                                                    <input type="hidden" class="total_amt" value="{{ old('total', $purchase->total) }}">
+                                                                    <input type="hidden" class="total_amt"
+                                                                        value="{{ old('total', $purchase->total) }}">
 
                                                                     <input type="hidden" name="total_amount"
                                                                         class="total_amount"

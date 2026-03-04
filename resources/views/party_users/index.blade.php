@@ -58,23 +58,19 @@
             <div class="container-fluid">
 
                 <!-- Page Header -->
-                <div class="row align-items-center mb-3">
-                    <div class="col-lg-12">
-                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                            <div>
-                                <h4 class="mb-3">Party Customer List</h4>
-                            </div>
-                            @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'party-customer-create'))
-                                <a href="{{ route('party-users.create') }}" class="btn btn-primary add-list">
-                                    <i class="las la-plus mr-3"></i>Create New Party Customer
-                                </a>
-                            @endif
-                        </div>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Party Customer List</h4>
                     </div>
+                    @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'party-customer-create'))
+                        <a href="{{ route('party-users.create') }}" class="btn btn-primary add-list">
+                            <i class="las la-plus mr-3"></i>Create New Party Customer
+                        </a>
+                    @endif
                 </div>
-
+            
                 <!-- Table -->
-                <div class="row">
+                <div class="row mt-1">
                     <div class="col-12">
                         <div class="table-responsive rounded">
                             <table class="table table-striped table-bordered nowrap" id="party_users_table"
