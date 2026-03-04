@@ -60,9 +60,9 @@
                 <!-- Page Header -->
                 <div class="row align-items-center mb-3">
                     <div class="col-lg-12">
-                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+                        <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-4">
                             <div>
-                                <h2 class="mb-3">Users List</h2>
+                                <h4 class="mb-0">Users List</h4>
                             </div>
                             @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'users-create'))
                                 <a href="{{ route('users.create') }}" class="btn btn-primary add-list">
