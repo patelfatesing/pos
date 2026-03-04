@@ -58,18 +58,15 @@
             <div class="container-fluid">
 
                 <!-- Page Header -->
-                <div class="row align-items-center mb-3">
-                    <div class="col-lg-12">
-                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                            <div>
-                                <h4 class="mb-3">Low Stock / Out of Stock Report</h4>
-                            </div>
-                        </div>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Low Stock / Out of Stock Report</h4>
                     </div>
+                    <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
                 </div>
-
+            
                 <!-- Filters row (optional above table) -->
-                <div class="row g-2 mb-2">
+                <div class="row g-2 mb-2 mt-1">
                     <div class="col-md-3">
                         <select id="branch_id" class="form-control">
                             <option value="">All Branches</option>

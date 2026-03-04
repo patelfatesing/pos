@@ -10,17 +10,15 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-                <div class="col-lg-12">
-                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                        <div>
-                            <h4 class="mb-3">Role List</h4>
-                        </div>
-                        <a href="{{ route('roles.create') }}" class="btn btn-primary add-list">
-                            <i class="las la-plus mr-3"></i>Create New Role
-                        </a>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Role List</h4>
                     </div>
+                    <a href="{{ route('roles.create') }}" class="btn btn-primary add-list">
+                        <i class="las la-plus mr-3"></i>Create New Role
+                    </a>
                 </div>
-
+            
                 <div class="table-responsive rounded mb-3">
                     <table class="table data-tables table-striped" id="roles_table">
                         <thead class="bg-white text-uppercase">

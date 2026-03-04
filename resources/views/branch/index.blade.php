@@ -19,20 +19,16 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-
-                <div class="col-lg-12">
-                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                        <div>
-                            <h4 class="mb-3">Store List</h4>
-                        </div>
-                        @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'store-manage'))
-                            <a href="{{ route('branch.create') }}" class="btn btn-primary add-list">
-                                <i class="las la-plus mr-3"></i>Create New Store
-                            </a>
-                        @endif
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Store List</h4>
                     </div>
+                    @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'store-manage'))
+                        <a href="{{ route('branch.create') }}" class="btn btn-primary add-list">
+                            <i class="las la-plus mr-3"></i>Create New Store
+                        </a>
+                    @endif
                 </div>
-
                 <div class="table-responsive rounded mb-3">
                     <table class="table data-tables table-striped" id="branch_table">
                         <thead class="bg-white text-uppercase">
@@ -65,7 +61,7 @@
             <div class="modal-content">
                 <form id="lowLevelForm">
                     @csrf
-                    <div class="modal-header">
+                    <div class="modal-header card-header">
                         <h5 class="modal-title" id="lowlevelStockBranchModalLabel">Product Low Stock Set</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
@@ -107,7 +103,7 @@
             <div class="modal-content">
                 <form id="addHolidayForm" method="POST" action="{{ route('holidays.store') }}">
                     @csrf
-                    <div class="modal-header">
+                    <div class="modal-header card-header">
                         <h5 class="modal-title" id="AddHolidayModalLabel">
                             <i class="ri-calendar-event-line"></i> Add Holiday
                         </h5>
@@ -160,7 +156,7 @@
             <div class="modal-content">
                 <form id="addOneTimeForm" method="POST" action="{{ route('branch.add.one.time.store') }}">
                     @csrf
-                    <div class="modal-header">
+                    <div class="modal-header card-header">
                         <h5 class="modal-title" id="AddOneTimeModalLabel">
                             <i class="ri-calendar-event-line"></i> Set Time One Time sales
                         </h5>

@@ -59,11 +59,15 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <h4 class="mb-0">Day End Sales Summary (Consolidated — Branch-wise)</h4>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Day End Sales Summary (Consolidated — Branch-wise)</h4>
+                    </div>
+                    <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
                 </div>
+               
 
-                <div class="table-responsive rounded">
+                <div class="table-responsive rounded mt-2">
                     <table class="table table-striped table-bordered nowrap" id="day_end_table" style="width:100%;">
                         <thead class="bg-white">
                             <tr class="ligth ligth-data">
@@ -77,7 +81,7 @@
                                 <th>Stock Difference</th>
                                 <th>Case Dispense</th>
                                 <th style="display:none;">RowType</th> {{-- hidden sort key --}}
-                                
+
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -91,7 +95,7 @@
                                 <th id="ft_diff">0.00</th>
                                 <th id="ft_case">0.00</th>
                                 <th style="display:none;"></th>
-                                
+
                             </tr>
                         </tfoot>
                     </table>

@@ -11,17 +11,15 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <div class="col-lg-12">
-                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                        <div>
-                            <h4 class="mb-3">Categories List</h4>
-                        </div>
-                        @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'categories-create'))
-                            <button class="btn btn-primary add-list" data-toggle="modal" data-target="#addCategoryModal">
-                                <i class="las la-plus mr-3"></i>Create New Category
-                            </button>
-                        @endif
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Categories List</h4>
                     </div>
+                    @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'categories-create'))
+                        <button class="btn btn-primary add-list" data-toggle="modal" data-target="#addCategoryModal">
+                            <i class="las la-plus mr-3"></i>Create New Category
+                        </button>
+                    @endif
                 </div>
                 <div class="table-responsive rounded mb-3">
                     <table class="table data-tables table-striped" id="categories_tbl">
@@ -52,7 +50,7 @@
         <div class="modal-dialog modal-md" role="document">
             <div class="modal-content">
 
-                <div class="modal-header">
+                <div class="modal-header card-header d-flex flex-wrap align-items-center justify-content-between">
                     <h5 class="modal-title">Add Category</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span>×</span>
@@ -84,7 +82,7 @@
         <div class="modal-dialog modal-md" role="document">
             <div class="modal-content">
 
-                <div class="modal-header">
+                <div class="modal-header card-header d-flex flex-wrap align-items-center justify-content-between">
                     <h5 class="modal-title">Edit Category</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span>×</span>

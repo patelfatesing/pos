@@ -7,18 +7,18 @@
         <div class="content-page">
 
             <div class="container-fluid add-form-list">
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ __('messages.add_user') }}</h4>
+                    </div>
+                    <div>
+                        <a href="{{ route('users.list') }}" class="btn btn-secondary">{{ __('messages.back') }}</a>
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="card">
-                            <div class="card-header d-flex justify-content-between">
-                                <div class="header-title">
-                                    <h4 class="card-title">{{ __('messages.add_user') }}</h4>
-                                </div>
-                                <div>
-                                    <a href="{{ route('users.list') }}"
-                                        class="btn btn-secondary">{{ __('messages.back') }}</a>
-                                </div>
-                            </div>
+                            
                             <div class="card-body">
                                 <form action="{{ route('users.store') }}" method="POST" data-toggle="validator">
                                     @csrf
@@ -46,15 +46,14 @@
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>Username</label>
-                                                <input class="floating-input form-control"
-                                                    value="{{ old('username') }}" name="username" type="text"
-                                                    placeholder=" ">
+                                                <input class="floating-input form-control" value="{{ old('username') }}"
+                                                    name="username" type="text" placeholder=" ">
                                                 @error('username')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
                                         </div>
-                                        
+
                                         <div class="col-lg-6">
                                             <div class="floating-label form-group">
                                                 <label>{{ __('messages.email') }}</label>
@@ -133,7 +132,8 @@
                                                     data-style="py-0">
                                                     <option value="">Select Store</option>
                                                     @foreach ($branch as $id => $name)
-                                                        <option value="{{ $id }}" data-id="{{ $id }}">
+                                                        <option value="{{ $id }}"
+                                                            data-id="{{ $id }}">
                                                             {{ $name }}</option>
                                                     @endforeach
                                                 </select>
@@ -145,7 +145,7 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>{{ __('messages.address') }}</label>
-                                                <textarea class="form-control" name="address" rows="4">{{ old('address') }}</textarea>
+                                                <textarea class="form-control" name="address" rows="2">{{ old('address') }}</textarea>
                                             </div>
                                         </div>
                                     </div>
