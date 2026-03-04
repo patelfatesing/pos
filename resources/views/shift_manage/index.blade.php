@@ -6,15 +6,13 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-                <div class="col-lg-12">
-                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                        <div>
-                            <h4 class="mb-3">Shift Manage</h4>
-                        </div>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Shift Manage</h4>
                     </div>
                 </div>
 
-                <div class="row">
+                <div class="row mt-2">
                     <div class="col-md-2 mb-2">
                         <input type="date" id="start_date" class="form-control">
                     </div>

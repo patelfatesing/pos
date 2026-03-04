@@ -88,15 +88,19 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-                <div class="bs-card">
-                    <div class="bs-head">
-                        <div class="bs-title">Balance Sheet</div>
-                        <div class="bs-sub" id="bs_asof">—</div>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Balance Sheet</h4>
                     </div>
+                    <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
+                </div>
+                <div class="bs-card">
+                   
 
                     <div class="d-flex align-items-center gap-2 mb-2" id="bs_filters">
                         <input type="date" id="bs_start" class="form-control form-control-sm" style="max-width:170px">
-                        <input type="date" id="bs_end" class="form-control form-control-sm mr-2" style="max-width:170px">
+                        <input type="date" id="bs_end" class="form-control form-control-sm mr-2"
+                            style="max-width:170px">
                         <button id="bs_apply" class="btn btn-primary btn-sm">Apply</button>
                     </div>
 

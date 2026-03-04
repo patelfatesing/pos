@@ -11,16 +11,15 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <div class="col-lg-12">
-                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                        <div>
-                            <h4 class="mb-3">Expense List</h4>
-                        </div>
-                        <a href="{{ route('exp.create') }}" class="btn btn-primary add-list">
-                            <i class="las la-plus mr-3"></i>Create New Expense
-                        </a>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Expense List</h4>
                     </div>
+                    <a href="{{ route('exp.create') }}" class="btn btn-primary add-list">
+                        <i class="las la-plus mr-3"></i>Create New Expense
+                    </a>
                 </div>
+                
                 <div class="table-responsive rounded mb-3">
                     <table class="table data-tables table-striped" id="exp_tbl">
                         <thead class="bg-white text-uppercase">

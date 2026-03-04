@@ -43,13 +43,11 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-
-                <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
                     <div>
-                        <h4 class="mb-3">Vouchers</h4>
+                        <h4 class="mb-0">Vouchers</h4>
                     </div>
-                    <!-- Updated Buttons -->
-                    <div class="d-flex align-items-center ms-auto toolbar-actions">
+                     <div class="d-flex align-items-center ms-auto toolbar-actions">
                         <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-info btn-icon"
                             title="Reload the list">
                             <i class="las la-sync"></i>
@@ -64,6 +62,7 @@
                         @endif
                     </div>
                 </div>
+               
 
                 @if (session('success'))
                     <div class="alert alert-success">{{ session('success') }}</div>

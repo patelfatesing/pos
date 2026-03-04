@@ -58,12 +58,15 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-
-                <div class="row align-items-center mb-2">
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Vendor Delivery Invoice Report</h4>
+                    </div>
+                    <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
+                </div>
+                <div class="row align-items-center mb-2 mt-2">
                     <div class="col-lg-12">
-                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-2">
-                            <h4 class="mb-0">Vendor Delivery Invoice Report</h4>
-                        </div>
+                       
                         <div class="summary-badges">
                             <span class="badge bg-dark">Total Qty: <span id="sum_qty">0</span></span>
                             <span class="badge bg-dark">Items Amount: <span id="sum_items_amount">0.00</span></span>
@@ -82,7 +85,7 @@
                             @endforeach
                         </select>
                     </div>
-                        {{-- <div class="col-md-2">
+                    {{-- <div class="col-md-2">
                             <select id="status" class="form-control">
                                 <option value="">All Status</option>
                                 <option value="pending">Pending</option>

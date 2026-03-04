@@ -10,18 +10,15 @@
 
         <div class="content-page">
             <div class="container-fluid">
-
-                <div class="col-lg-12">
-                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                        <div>
-                            <h4 class="mb-3">Pack Size List</h4>
-                        </div>
-                        @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'pack-size-create'))
-                            <button class="btn btn-primary add-list" data-toggle="modal" data-target="#packSizeModal">
-                                <i class="las la-plus mr-3"></i>Create New Pack Size
-                            </button>
-                        @endif
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Pack Size List</h4>
                     </div>
+                    @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'pack-size-create'))
+                        <button class="btn btn-primary add-list" data-toggle="modal" data-target="#packSizeModal">
+                            <i class="las la-plus mr-3"></i>Create New Pack Size
+                        </button>
+                    @endif
                 </div>
 
                 <div class="table-responsive rounded mb-3">
@@ -50,7 +47,7 @@
         <div class="modal-dialog modal-md" role="document">
             <div class="modal-content">
 
-                <div class="modal-header">
+                <div class="modal-header card-header d-flex flex-wrap align-items-center justify-content-between">
                     <h5 class="modal-title">Add Pack Size</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span>&times;</span>
