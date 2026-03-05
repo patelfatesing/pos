@@ -6,20 +6,17 @@
 
         <div class="content-page">
             <div class="container-fluid add-form-list">
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-3">
+                    <div>
+                        <h4 class="mb-0">Create Demand Order</h4>
+                    </div>
+                    <a href="{{ route('demand-order.list') }}" class="btn btn-secondary">Back</a>
+
+                </div>
                 <div class="row">
                     <div class="col-sm-12 col-lg-12">
                         <div class="iq-card">
-                            <div class="row align-items-center mb-3">
-                                <div class="col-lg-12">
-                                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                                        <div>
-                                            <h4 class="mb-3">Create Demand Order</h4>
-                                        </div>
-                                        <a href="{{ route('demand-order.list') }}" class="btn btn-secondary">Back</a>
-                                
-                                    </div>
-                                </div>
-                            </div>
+
                             <div class="iq-card-body">
                                 <form action="{{ route('demand-order.step1') }}" method="POST">
                                     @csrf

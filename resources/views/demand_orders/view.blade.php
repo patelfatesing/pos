@@ -10,17 +10,18 @@
 
         <div class="content-page">
             <div class="container-fluid add-form-list">
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-3">
+                    <div>
+                        <h4 class="mb-0">View Delivery Invoice</h4>
+                    </div>
+                    <div>
+                        <a href="{{ route('purchase.list') }}" class="btn btn-secondary">Back</a>
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="card">
-                            <div class="card-header d-flex justify-content-between">
-                                <div class="header-title">
-                                    <h4 class="card-title">View Delivery Invoice</h4>
-                                </div>
-                                <div>
-                                    <a href="{{ route('purchase.list') }}" class="btn btn-secondary">Back</a>
-                                </div>
-                            </div>
+
                             <div class="card-body">
                                 <div class="card-body">
                                     <div class="row">

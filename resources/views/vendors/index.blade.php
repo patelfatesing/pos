@@ -10,19 +10,18 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                            <div>
-                                <h4 class="mb-3">Vendor List</h4>
-                            </div>
-                            @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'vendor-create'))
-                                <a href="{{ route('vendor.create') }}" class="btn btn-primary add-list">
-                                    <i class="las la-plus mr-3"></i>Add New Vendor
-                                </a>
-                            @endif
-                        </div>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-3">
+                    <div>
+                        <h4 class="mb-0">Vendor List</h4>
                     </div>
+                    @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'vendor-create'))
+                        <a href="{{ route('vendor.create') }}" class="btn btn-primary add-list">
+                            <i class="las la-plus mr-3"></i>Add New Vendor
+                        </a>
+                    @endif
+                </div>
+                <div class="row">
+                    
                     <div class="col-lg-12">
                         <table class="table datatable" id="vendor_table">
                             <thead>

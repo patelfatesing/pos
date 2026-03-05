@@ -4,27 +4,38 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid add-form-list">
-                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
-                    <div>
-                        <h4 class="mb-0">⚡ Party Customer Price Change -</h4>
-                        <form class="pull-right" action="" method="GET" style="display: inline;">
-                            <select name="id" id="id" class="form-control" onchange="this.form.submit()">
-                                <option value="">All Subcategories</option>
-                                @foreach ($partyUserAll as $party)
-                                    <option value="{{ $party->id }}"
-                                        {{ $partyUser->id == $party->id ? 'selected' : '' }}>
-                                        {{ $party->first_name }}
-                                    </option>
-                                @endforeach
-                            </select>
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h4 class="mb-0">⚡ Party Customer Price Change -</h4>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-end align-items-center">
+                                <form class="pull-right mt-3" action="" method="GET" style="display: inline;">
+                                    <select name="id" id="id" class="form-control"
+                                        onchange="this.form.submit()">
+                                        <option value="">All Subcategories</option>
+                                        @foreach ($partyUserAll as $party)
+                                            <option value="{{ $party->id }}"
+                                                {{ $partyUser->id == $party->id ? 'selected' : '' }}>
+                                                {{ $party->first_name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
 
-                            @if (request()->has('subcategory_id') && !empty(request()->get('subcategory_id')))
-                                <input type="hidden" name="subcategory_id" value="{{ request()->get('subcategory_id') }}">
-                            @endif
-                        </form>
-                        <a href="{{ route('party-users.list') }}" class="btn btn-secondary">Back</a>
+                                    @if (request()->has('subcategory_id') && !empty(request()->get('subcategory_id')))
+                                        <input type="hidden" name="subcategory_id"
+                                            value="{{ request()->get('subcategory_id') }}">
+                                    @endif
+                                </form>
+                                <a href="{{ route('party-users.list') }}" class="btn btn-secondary ml-2">Back</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+
+
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="card">
