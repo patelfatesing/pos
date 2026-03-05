@@ -60,7 +60,7 @@
                 <!-- Page Header -->
                 <div class="row align-items-center mb-3">
                     <div class="col-lg-12">
-                        <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-4">
+                        <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-3">
                             <div>
                                 <h4 class="mb-0">Users List</h4>
                             </div>

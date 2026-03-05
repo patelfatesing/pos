@@ -7,18 +7,15 @@
             <div class="container-fluid">
 
                 <!-- Page Header -->
-                <div class="row align-items-center mb-3">
-                    <div class="col-lg-12">
-                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                            <div>
-                                <h4 class="mb-3">Demand Order List</h4>
-                            </div>
-                            <a href="{{ route('demand-order.step1') }}" class="btn btn-primary add-list">
-                                <i class="las la-plus mr-3"></i>Add Demand Order
-                            </a>
-                        </div>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-3">
+                    <div>
+                        <h4 class="mb-0">Demand Order List</h4>
                     </div>
+                    <a href="{{ route('demand-order.step1') }}" class="btn btn-primary add-list">
+                        <i class="las la-plus mr-3"></i>Add Demand Order
+                    </a>
                 </div>
+                
 
                 <!-- Table -->
                 <div class="row">
@@ -102,7 +99,7 @@
                         render: function(data, type, row, meta) {
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
-                    }, 
+                    },
                     {
                         data: 'vendor'
                     },
@@ -113,13 +110,13 @@
                         data: 'shipping_date'
                     },
                     {
-                        data:'total_quantity'
+                        data: 'total_quantity'
                     },
                     {
-                        data:'total_sell_price'
+                        data: 'total_sell_price'
                     },
                     {
-                        data:'sub_category'
+                        data: 'sub_category'
                     },
                     {
                         data: 'status'
@@ -132,7 +129,7 @@
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [4,5,6,7] // make "action" column unsortable
+                    aTargets: [4, 5, 6, 7] // make "action" column unsortable
                 }],
                 order: [
                     [3, 'desc']
