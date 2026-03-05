@@ -6,19 +6,20 @@
 
         <div class="content-page">
             <div class="container-fluid add-form-list">
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-3">
+                    <div>
+                        <h4 class="mb-0">Create Demand Order</h4>
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-sm-12 col-lg-12">
                         <div class="iq-card">
-                            <div class="iq-card-header d-flex justify-content-between">
-                                <div class="iq-header-title">
-                                    <h4 class="card-title">Create Demand Order</h4>
-                                </div>
-                            </div>
+                            
                             <div class="iq-card-body">
                                 <form action="{{ route('demand-order.step3') }}" method="POST">
                                     @csrf
 
-                                    <input type="hidden" name="demand_date" value="{{@$demand_date}}">
+                                    <input type="hidden" name="demand_date" value="{{ @$demand_date }}">
                                     <ul id="top-tab-list" class="p-0">
                                         <li id="account">
                                             <a href="javascript:void();">
@@ -30,7 +31,7 @@
                                                 <i class="ri-user-fill"></i><span>Prediction</span>
                                             </a>
                                         </li>
-                                        <li class="active"  id="payment">
+                                        <li class="active" id="payment">
                                             <a href="javascript:void();">
                                                 <i class="ri-file-text-line"></i><span>Final Select</span>
                                             </a>
@@ -41,7 +42,7 @@
                                             </a>
                                         </li>
                                     </ul>
-                                 
+
                                     <fieldset>
                                         <div class="form-card text-left">
                                             <div class="row">
@@ -54,29 +55,28 @@
                                             </div>
 
                                             <div class="col-md-4">
-                                                    <div class="form-group">
-                                                        <label for="notes" class="form-label">Notes</label>
-                                                        <textarea name="notes" class="form-control"></textarea>
+                                                <div class="form-group">
+                                                    <label for="notes" class="form-label">Notes</label>
+                                                    <textarea name="notes" class="form-control"></textarea>
 
-                                                    </div>
                                                 </div>
-                                                <div class="col-md-4">
-                                                    <div class="form-group">
-                                                        <label for="product_select">Product</label>
-                                                        <select name="product_select" id="product_select"
-                                                            class="form-control">
-                                                            <option value="">-- Select Product --</option>
-                                                            @foreach ($products as $product)
-                                                                <option value="{{ $product['id'] }}">
-                                                                    {{ $product['name'] }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                        @error('product_select')
-                                                            <span class="text-danger">{{ $message }}</span>
-                                                        @enderror
-                                                    </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label for="product_select">Product</label>
+                                                    <select name="product_select" id="product_select" class="form-control">
+                                                        <option value="">-- Select Product --</option>
+                                                        @foreach ($products as $product)
+                                                            <option value="{{ $product['id'] }}">
+                                                                {{ $product['name'] }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('product_select')
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                    @enderror
                                                 </div>
+                                            </div>
                                             <div class="table-responsive mb-3">
                                                 <table class="table table-bordered" id="product_table">
                                                     <thead class="table-light">
@@ -92,35 +92,58 @@
                                                     </thead>
                                                     <tbody>
                                                         @php
-                                                            $srNo=0;
+                                                            $srNo = 0;
                                                         @endphp
                                                         @foreach ($selectedProducts as $item)
                                                             @php
-                                                                $product=$item['product_details'];
+                                                                $product = $item['product_details'];
                                                                 $srNo++;
                                                             @endphp
                                                             <tr>
-                                                                <td>{{$srNo}}</td>
-                                                                <input type="hidden" name="products[{{ @$srNo }}][product_id]" value="{{$item['product_id']}}">
-                                                                <input type="hidden" name="products[{{ $srNo }}][size]" class="form-control" value="{{ $product['size'] ?? '' }}">
+                                                                <td>{{ $srNo }}</td>
+                                                                <input type="hidden"
+                                                                    name="products[{{ @$srNo }}][product_id]"
+                                                                    value="{{ $item['product_id'] }}">
+                                                                <input type="hidden"
+                                                                    name="products[{{ $srNo }}][size]"
+                                                                    class="form-control"
+                                                                    value="{{ $product['size'] ?? '' }}">
 
                                                                 <td style="min-width: 220px; width: 35%;">
-                                                                    <input type="text" name="products[{{ @$srNo }}][brand_name]" class="form-control" value="{{ $product['brand'] ?? '' }}" readonly>
+                                                                    <input type="text"
+                                                                        name="products[{{ @$srNo }}][brand_name]"
+                                                                        class="form-control"
+                                                                        value="{{ $product['brand'] ?? '' }}" readonly>
                                                                 </td>
                                                                 <td>
-                                                                    <input type="number" step="0.01" name="products[{{ $srNo }}][mrp]" class="form-control" value="{{ $product['mrp'] ?? '' }}">
+                                                                    <input type="number" step="0.01"
+                                                                        name="products[{{ $srNo }}][mrp]"
+                                                                        class="form-control"
+                                                                        value="{{ $product['mrp'] ?? '' }}">
                                                                 </td>
                                                                 <td>
-                                                                    <input type="number" name="products[{{ $srNo }}][qnt]" class="form-control" value="{{ $item['order_qty'] ?? 1 }}" min="1" data-prev="{{ $item['order_qty'] ?? 1 }}">
+                                                                    <input type="number"
+                                                                        name="products[{{ $srNo }}][qnt]"
+                                                                        class="form-control"
+                                                                        value="{{ $item['order_qty'] ?? 1 }}"
+                                                                        min="1"
+                                                                        data-prev="{{ $item['order_qty'] ?? 1 }}">
                                                                 </td>
                                                                 <td>
-                                                                    <input type="number" step="0.01" name="products[{{ $srNo }}][rate]" class="form-control" value="{{ $product['cost_price'] ?? '' }}">
+                                                                    <input type="number" step="0.01"
+                                                                        name="products[{{ $srNo }}][rate]"
+                                                                        class="form-control"
+                                                                        value="{{ $product['cost_price'] ?? '' }}">
                                                                 </td>
                                                                 <td>
-                                                                    <input type="number" step="0.01" name="products[{{ $srNo }}][amount]" class="form-control" value="{{ $product['amount'] ?? '' }}" readonly>
+                                                                    <input type="number" step="0.01"
+                                                                        name="products[{{ $srNo }}][amount]"
+                                                                        class="form-control"
+                                                                        value="{{ $product['amount'] ?? '' }}" readonly>
                                                                 </td>
                                                                 <td>
-                                                                    <button type="button" class="btn btn-sm btn-danger remove">Remove</button>
+                                                                    <button type="button"
+                                                                        class="btn btn-sm btn-danger remove">Remove</button>
                                                                 </td>
                                                             </tr>
                                                         @endforeach
@@ -128,13 +151,13 @@
                                                 </table>
                                             </div>
                                         </div>
-                                      
-                                         <button type="submit"
+
+                                        <button type="submit"
                                             class="btn btn-primary next action-button float-right">Submit</button>
-                                          <a href="{{ route('demand-order.step2') }}"
+                                        <a href="{{ route('demand-order.step2') }}"
                                             class="btn btn-dark previous action-button-previous float-right mr-3">Previous</a>
                                     </fieldset>
-                                    
+
                                 </form>
                             </div>
                         </div>

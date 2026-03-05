@@ -20212,3 +20212,5 @@ i { vertical-align: middle; }
 .content-page { margin-left: 240px;}
 .iq-sidebar { width: 240px;}
 .iq-top-navbar { width: calc(100% - 240px); }
+
+.accounting-ledgers-page .tally-footer-right td:first-child { width: 80%;}

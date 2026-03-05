@@ -6,14 +6,15 @@
 
         <div class="content-page">
             <div class="container-fluid add-form-list">
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-3">
+                    <div>
+                        <h4 class="mb-0">Create Demand Order</h4>
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-sm-12 col-lg-12">
                         <div class="iq-card">
-                            <div class="iq-card-header d-flex justify-content-between">
-                                <div class="iq-header-title">
-                                    <h4 class="card-title">Create Demand Order</h4>
-                                </div>
-                            </div>
+
                             <div class="iq-card-body">
                                 <form action="{{ route('demand-order.step2') }}" id="productForm" method="POST">
                                     @csrf
@@ -61,7 +62,7 @@
                                                                 <input type="checkbox" id="select-all"
                                                                     class="form-checkbox mr-1"> Select
                                                             </th>
-                                                             <th class="text-left text-sm font-medium text-gray-700">Sr No
+                                                            <th class="text-left text-sm font-medium text-gray-700">Sr No
                                                             </th>
                                                             <th class="text-left text-sm font-medium text-gray-700">Product
                                                             </th>
@@ -79,30 +80,39 @@
                                                                 Sales</th>
                                                             <th class="text-right text-sm font-medium text-gray-700">Avg
                                                                 Daily</th>
-                                                            <th class="text-right text-sm font-medium text-gray-700">Delivery Pending
+                                                            <th class="text-right text-sm font-medium text-gray-700">
+                                                                Delivery Pending
                                                             </th>
                                                             <th class="text-right text-sm font-medium text-gray-700">
                                                                 Suggested Qty</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody class="bg-white divide-y divide-gray-200">
-                                                    @php
-                                                    $selectedProducts = session('demand_orders.step2', []); // assuming session holds array of product IDs
-                                                    @endphp
+                                                        @php
+                                                            $selectedProducts = session('demand_orders.step2', []); // assuming session holds array of product IDs
+                                                        @endphp
 
                                                         @foreach ($predictions as $key => $p)
-                                                                @php
-                                                            $selectCheck=(!empty($selectedProducts['selected']) && in_array($p['product_id'], $selectedProducts['selected']) )? 'checked' : '' ;
+                                                            @php
+                                                                $selectCheck =
+                                                                    !empty($selectedProducts['selected']) &&
+                                                                    in_array(
+                                                                        $p['product_id'],
+                                                                        $selectedProducts['selected'],
+                                                                    )
+                                                                        ? 'checked'
+                                                                        : '';
                                                             @endphp
                                                             <tr>
                                                                 <td class="px-4 py-2">
                                                                     <input type="checkbox" name="selected[]"
                                                                         value="{{ $p['product_id'] }}"
-                                                                        class="form-checkbox product-checkbox"   {{ $selectCheck }}>
-                                                                        
+                                                                        class="form-checkbox product-checkbox"
+                                                                        {{ $selectCheck }}>
+
                                                                 </td>
                                                                 <td class="px-4 py-2 text-sm text-gray-800">
-                                                                    {{ $key+1 }}</td>
+                                                                    {{ $key + 1 }}</td>
                                                                 <td class="px-4 py-2 text-sm text-gray-800">
                                                                     {{ $p['name'] }}</td>
                                                                 <td class="px-4 py-2 text-sm text-gray-800">
@@ -159,13 +169,11 @@
 @endsection
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script>
- 
-</script>
+<script></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        
+
         const selectAllCheckbox = document.getElementById('select-all');
         const checkboxes = document.querySelectorAll('.product-checkbox');
 
@@ -195,6 +203,4 @@
         updateSelectAllState();
     });
 </script>
-<script>
-   
-</script>
+<script></script>

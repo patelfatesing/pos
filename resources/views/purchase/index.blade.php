@@ -10,7 +10,7 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-3">
                     <div>
                         <h4 class="mb-0">Purchase Invoice</h4>
                     </div>
