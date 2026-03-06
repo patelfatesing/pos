@@ -1,9 +1,4 @@
 @extends('layouts.backend.layouts')
-<style>
-    #excise-section-div.d-none {
-        display: none !important;
-    }
-</style>
 @section('page-content')
     <!-- Wrapper Start -->
     <div class="wrapper">
@@ -282,7 +277,7 @@
                                             {{-- BOTTOM THREE COLUMNS --}}
                                             <div class="row mt-4 mb-3">
                                                 {{-- LEFT: LICENSE LEDGER --}}
-                                                <div class="col-lg-4" id="license-ledger-box-div">
+                                                <div class="col-lg-4" id="">
                                                     <div class="or-detail rounded" id="license-ledger-box">
                                                         <div class="p-3">
                                                             <h5 class="mb-3">Details For License Ledger</h5>
@@ -312,7 +307,7 @@
                                                 </div>
 
                                                 {{-- MIDDLE: EXCISE FEE BOX (vendor 1) --}}
-                                                <div class="col-lg-4 excise-section d-none" id="excise-section-div">
+                                                <div class="col-lg-4 excise-section d-none" id="">
                                                     <div class="or-detail rounded">
                                                         <div class="p-3">
                                                             <h5 class="mb-3">Excise Fee</h5>
@@ -653,18 +648,18 @@
         };
 
         // SHOW LICENSE LEDGER ONLY FOR VENDOR 1 & 2
-      //  if (vendorId === '1' || vendorId === '2') {
-        //    $('#license-ledger-box').removeClass('d-none');
-        //} else {
-          //  $('#license-ledger-box').addClass('d-none');
-       // }
+       if (vendorId === '1' || vendorId === '2') {
+           $('#license-ledger-box').removeClass('d-none');
+        } else {
+           $('#license-ledger-box').addClass('d-none');
+       }
 
        // SHOW LICENSE LEDGER ONLY FOR VENDOR 1 & 2
-if (vendorId === '1' || vendorId === '2') {
-    $('#license-ledger-box-div').removeClass('d-none');
-} else {
-    $('#license-ledger-box-div').addClass('d-none');
-}
+// if (vendorId === '1' || vendorId === '2') {
+//     $('#license-ledger-box-div').removeClass('d-none');
+// } else {
+//     $('#license-ledger-box-div').addClass('d-none');
+// }
 
 
         if (vendorId === '1') {
@@ -720,16 +715,16 @@ if (vendorId === '1' || vendorId === '2') {
         if (oldValues.tcs) $('#tcs').val(oldValues.tcs);
 
         // Adjust Billing position based on visible columns
-        const licenseVisible = !$('#license-ledger-box-div').hasClass('d-none');
-        const exciseVisible = !$('#excise-section-div').hasClass('d-none');
+        // const licenseVisible = !$('#license-ledger-box-div').hasClass('d-none');
+        // const exciseVisible = !$('#excise-section-div').hasClass('d-none');
 
-        if (licenseVisible && !exciseVisible) {
-            $('#billing-column').removeClass('offset-lg-0').addClass('offset-lg-4');
-        } else if (licenseVisible && exciseVisible) {
-            $('#billing-column').removeClass('offset-lg-4').addClass('offset-lg-0');
-        } else {
-            $('#billing-column').removeClass('offset-lg-0').addClass('offset-lg-4');
-        }
+        // if (licenseVisible && !exciseVisible) {
+        //     $('#billing-column').removeClass('offset-lg-0').addClass('offset-lg-4');
+        // } else if (licenseVisible && exciseVisible) {
+        //     $('#billing-column').removeClass('offset-lg-4').addClass('offset-lg-0');
+        // } else {
+        //     $('#billing-column').removeClass('offset-lg-0').addClass('offset-lg-4');
+        // }
         calculateProductTotals();
         updateBillingTotal();
     }
@@ -798,8 +793,9 @@ if (vendorId === '1' || vendorId === '2') {
                 <tr>
                     <td>${rowIndex + 1}</td>
                     <input type="hidden" name="products[${rowIndex}][product_id]" value="${brand}">
+                    <input type="hidden" name="products[${rowIndex}][brand_name]" class="form-control" value="${brandVal}">
                     <td style="width:25%">
-                        <input type="text" name="products[${rowIndex}][brand_name]" class="form-control" value="${brandVal}" readonly>
+                        <span>${brandVal}</span>
                     </td>
                     <td>
                         <input type="text" name="products[${rowIndex}][batch]" class="form-control" value="${batch}">

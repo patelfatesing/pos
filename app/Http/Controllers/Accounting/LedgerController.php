@@ -266,17 +266,16 @@ class LedgerController extends Controller
         $totalDebit  = 0.0;
         $totalCredit = 0.0;
         $editUrl = '';
-
+      
         foreach ($vouchers as $v) {
-
-
-
+ 
             if ($v['voucher_type'] == 'Purchase') {
                 $editUrl = route('purchase.edit', $v['gen_id']);
             } elseif ($v['voucher_type'] == 'Sales') {
                 $editUrl = route('sales.edit-sales', $v['gen_id']);
             } else {
-                $editUrl = route('accounting.vouchers.edit', $v['ledger_id']);
+                $line = $v->lines->where('ledger_id', $ledgerId)->first();
+                $editUrl = route('accounting.vouchers.edit', $line->ledger_id);
             }
             // This ledger’s own line
             $self = $v->lines->firstWhere('ledger_id', $ledgerId);
