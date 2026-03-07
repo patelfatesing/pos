@@ -20,7 +20,7 @@
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="card">
-                           
+
                             <div class="card-body">
                                 @if (session('success'))
                                     <div class="alert alert-success alert-dismissible fade show">
@@ -132,8 +132,8 @@
                                                     <th width="5%">Sr No</th>
                                                     <th width="40%">Product</th>
                                                     <th width="20%">Quantity</th>
-                                                    <th width="20%">Stock Info</th>
-                                                    <th width="15%">Action</th>
+                                                    <th width="15%">Stock Info</th>
+                                                    <th width="20%">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="productBody">
@@ -173,6 +173,7 @@
                                                                     class="btn btn-sm btn-danger remove-item">
                                                                     Remove
                                                                 </button>
+
                                                             </td>
                                                         </tr>
                                                     @endforeach
@@ -211,11 +212,8 @@
                                             <h5>Total Quantity: <span id="total-quantity">0</span></h5>
                                         </div>
                                     </div>
-                                    {{-- <button type="button" id="add-item" class="btn btn-secondary mb-3">+ Add
-                                        Product</button> --}}
-                                    <button type="button" id="add-item" class="btn btn-secondary mb-3">
-                                        + Add Product
-                                    </button>
+
+
 
                                     <div class="row mt-3">
                                         <div class="col-12">
@@ -234,6 +232,69 @@
     </div>
 
     <script>
+        $(document).ready(function() {
+            updateAddButton();
+            $('#category_id').on('change', function() {
+
+                var categoryId = $(this).val();
+                if (categoryId) {
+                    $.ajax({
+                        url: "{{ url('/products/subcategory') }}/" + categoryId,
+                        type: "GET",
+                        dataType: "json",
+                        success: function(data) {
+                            $('#sub_category_ids').empty();
+                            $('#sub_category_ids').append(
+                                '<option value="" disabled selected>Select Sub Category</option>'
+                            );
+                            $.each(data, function(key, value) {
+                                $("#fate").text(value.name);
+                                $('#sub_category_ids').append('<option value="' + value
+                                    .id + '">' + value.name + '</option>');
+                            });
+                        },
+                        error: function() {
+                            alert('Failed to fetch subcategories. Please try again.');
+                        }
+                    });
+                } else {
+                    $('#sub_category_ids').empty();
+                    $('#sub_category_ids').append(
+                        '<option value="" disabled selected>Select Sub Category</option>');
+                }
+            });
+
+            // When subcategory is selected, update the product dropdown for the last added row
+            $('#sub_category_ids').on('change', function() {
+                const subCategoryId = $(this).val();
+
+                // Only update the product dropdown in the last added product row
+                const lastProductRow = $('#product-items .item-row:last');
+                lastProductRow.find('.product-select').empty().append(
+                    '<option value="">Select Product</option>');
+
+                // Populate the product dropdown for the selected subcategory
+                if (subCategoryId) {
+                    $.ajax({
+                        url: "{{ url('/products/get-products') }}/" + subCategoryId,
+                        type: "GET",
+                        dataType: "json",
+                        success: function(data) {
+                            data.forEach(function(product) {
+                                lastProductRow.find('.product-select').append(
+                                    '<option value="' + product.id + '">' + product
+                                    .name + '</option>');
+                            });
+                        },
+                        error: function() {
+                            alert('Failed to fetch products. Please try again.');
+                        }
+                    });
+                }
+            });
+
+        });
+
         function updateSrNo() {
             $('#productBody tr').each(function(index) {
                 $(this).find('.sr-no').text(index + 1);
@@ -309,10 +370,11 @@
             return true;
         });
 
-        document.getElementById('add-item').addEventListener('click', function() {
+        $(document).on('click', '#add-item', function() {
+
             const template = `
                 <tr class="item-row product_items">
-                    <td class="sr-no">${itemIndex + 1}</td>
+                    <td class="sr-no"></td>
 
                     <td>
                         <select name="items[${itemIndex}][product_id]" 
@@ -344,8 +406,12 @@
                 `;
 
             $('#productBody').append(template);
+
             itemIndex++;
+
             updateSrNo();
+            updateAddButton();
+            updateTotalQuantity();
         });
 
         // Remove item handler
@@ -354,6 +420,7 @@
                 $(this).closest('tr').remove();
                 updateSrNo();
                 updateTotalQuantity();
+                updateAddButton();
             }
         });
 
@@ -449,6 +516,16 @@
             $('#total-quantity').text(total);
         }
 
+            function updateAddButton() {
+
+                // remove ALL existing add buttons
+                $('#productBody #add-item').remove();
+
+                // add button only in last row
+                $('#productBody tr:last td:last').prepend(
+                    '<button type="button" id="add-item" class="btn btn-secondary pull-right ml-1">+ Add Product</button>'
+                );
+            }
         // Trigger total update on quantity input change
         $(document).on('input', 'input[name^="items"][name$="[quantity]"]', updateTotalQuantity);
 
@@ -460,68 +537,6 @@
         // When row is removed
         $(document).on('click', '.remove-item', function() {
             setTimeout(updateTotalQuantity, 100);
-        });
-
-        $(document).ready(function() {
-            $('#category_id').on('change', function() {
-
-                var categoryId = $(this).val();
-                if (categoryId) {
-                    $.ajax({
-                        url: "{{ url('/products/subcategory') }}/" + categoryId,
-                        type: "GET",
-                        dataType: "json",
-                        success: function(data) {
-                            $('#sub_category_ids').empty();
-                            $('#sub_category_ids').append(
-                                '<option value="" disabled selected>Select Sub Category</option>'
-                            );
-                            $.each(data, function(key, value) {
-                                $("#fate").text(value.name);
-                                $('#sub_category_ids').append('<option value="' + value
-                                    .id + '">' + value.name + '</option>');
-                            });
-                        },
-                        error: function() {
-                            alert('Failed to fetch subcategories. Please try again.');
-                        }
-                    });
-                } else {
-                    $('#sub_category_ids').empty();
-                    $('#sub_category_ids').append(
-                        '<option value="" disabled selected>Select Sub Category</option>');
-                }
-            });
-
-            // When subcategory is selected, update the product dropdown for the last added row
-            $('#sub_category_ids').on('change', function() {
-                const subCategoryId = $(this).val();
-
-                // Only update the product dropdown in the last added product row
-                const lastProductRow = $('#product-items .item-row:last');
-                lastProductRow.find('.product-select').empty().append(
-                    '<option value="">Select Product</option>');
-
-                // Populate the product dropdown for the selected subcategory
-                if (subCategoryId) {
-                    $.ajax({
-                        url: "{{ url('/products/get-products') }}/" + subCategoryId,
-                        type: "GET",
-                        dataType: "json",
-                        success: function(data) {
-                            data.forEach(function(product) {
-                                lastProductRow.find('.product-select').append(
-                                    '<option value="' + product.id + '">' + product
-                                    .name + '</option>');
-                            });
-                        },
-                        error: function() {
-                            alert('Failed to fetch products. Please try again.');
-                        }
-                    });
-                }
-            });
-
         });
     </script>
 @endsection
