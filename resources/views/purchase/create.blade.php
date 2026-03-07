@@ -282,24 +282,34 @@
                                                         <div class="p-3">
                                                             <h5 class="mb-3">Details For License Ledger</h5>
                                                             <div>
-                                                                <div class="form-group">
-                                                                    <label>AED TO BE PAID</label>
-                                                                    <input type="number" class="form-control"
-                                                                        value="{{ old('aed_to_be_paid') }}"
-                                                                        name="aed_to_be_paid" id="aed_to_be_paid" />
-                                                                </div>
-                                                                <div class="form-group">
-                                                                    <label>Guarantee Fulfilled</label>
-                                                                    <input type="number" class="form-control"
-                                                                        value="{{ old('guarantee_fulfilled') }}"
-                                                                        name="guarantee_fulfilled"
-                                                                        id="guarantee_fulfilled" />
-                                                                </div>
-                                                                <div class="form-group">
-                                                                    <label>Loading Charges (Including Tax)</label>
-                                                                    <input type="number" class="form-control"
-                                                                        value="{{ old('loading_charges') }}"
-                                                                        name="loading_charges" id="loading_charges" />
+                                                                <div class="row">
+                                                                    <div class="col-md-6">
+                                                                        <div class="form-group">
+                                                                            <label>AED TO BE PAID</label>
+                                                                            <input type="number" class="form-control"
+                                                                                value="{{ old('aed_to_be_paid') }}"
+                                                                                name="aed_to_be_paid"
+                                                                                id="aed_to_be_paid" />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        <div class="form-group">
+                                                                            <label>Guarantee Fulfilled</label>
+                                                                            <input type="number" class="form-control"
+                                                                                value="{{ old('guarantee_fulfilled') }}"
+                                                                                name="guarantee_fulfilled"
+                                                                                id="guarantee_fulfilled" />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-12">
+                                                                        <div class="form-group">
+                                                                            <label>Loading Charges (Including Tax)</label>
+                                                                            <input type="number" class="form-control"
+                                                                                value="{{ old('loading_charges') }}"
+                                                                                name="loading_charges"
+                                                                                id="loading_charges" />
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -312,24 +322,34 @@
                                                         <div class="p-3">
                                                             <h5 class="mb-3">Excise Fee</h5>
                                                             <div>
-                                                                <div class="form-group">
-                                                                    <label>Permit Fee</label>
-                                                                    <input type="number" class="form-control"
-                                                                        name="permit_fee_excise" id="permit_fee_excise"
-                                                                        value="{{ old('permit_fee_excise') }}" />
-                                                                </div>
-                                                                <div class="form-group">
-                                                                    <label>Vend Fee</label>
-                                                                    <input type="number" class="form-control"
-                                                                        name="vend_fee_excise" id="vend_fee_excise"
-                                                                        value="{{ old('vend_fee_excise') }}" />
-                                                                </div>
-                                                                <div class="form-group">
-                                                                    <label>Composite Fee (For RTDC Shop)</label>
-                                                                    <input type="number" class="form-control"
-                                                                        name="composite_fee_excise"
-                                                                        id="composite_fee_excise"
-                                                                        value="{{ old('composite_fee_excise') }}" />
+                                                                <div class="row">
+                                                                    <div class="col-md-6">
+                                                                        <div class="form-group">
+                                                                            <label>Permit Fee</label>
+                                                                            <input type="number" class="form-control"
+                                                                                name="permit_fee_excise"
+                                                                                id="permit_fee_excise"
+                                                                                value="{{ old('permit_fee_excise') }}" />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        <div class="form-group">
+                                                                            <label>Vend Fee</label>
+                                                                            <input type="number" class="form-control"
+                                                                                name="vend_fee_excise"
+                                                                                id="vend_fee_excise"
+                                                                                value="{{ old('vend_fee_excise') }}" />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-12">
+                                                                        <div class="form-group">
+                                                                            <label>Composite Fee (For RTDC Shop)</label>
+                                                                            <input type="number" class="form-control"
+                                                                                name="composite_fee_excise"
+                                                                                id="composite_fee_excise"
+                                                                                value="{{ old('composite_fee_excise') }}" />
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -360,52 +380,72 @@
                                                             {{-- Vendor 1 --}}
                                                             <div id="vendor-1-fields"
                                                                 class="vendor-fields d-none vendor-1">
-                                                                <div class="form-group">
-                                                                    <label>EXCISE FEE</label>
-                                                                    <input type="number" class="form-control"
-                                                                        value="{{ old('excise_fee') }}" name="excise_fee"
-                                                                        id="excise_fee" />
-                                                                </div>
-                                                                <div class="form-group">
-                                                                    <label>COMPOSITION VAT</label>
-                                                                    <input type="number" class="form-control"
-                                                                        value="{{ old('composition_vat') }}"
-                                                                        name="composition_vat" id="composition_vat" />
-                                                                </div>
-                                                                <div class="form-group">
-                                                                    <label>SURCHARGE ON CA</label>
-                                                                    <input type="number" class="form-control"
-                                                                        value="{{ old('surcharge_on_ca') }}"
-                                                                        name="surcharge_on_ca" id="surcharge_on_ca" />
+                                                                <div class="row">
+                                                                    <div class="col-md-6">
+                                                                        <div class="form-group">
+                                                                            <label>EXCISE FEE</label>
+                                                                            <input type="number" class="form-control"
+                                                                                value="{{ old('excise_fee') }}"
+                                                                                name="excise_fee" id="excise_fee" />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        <div class="form-group">
+                                                                            <label>COMPOSITION VAT</label>
+                                                                            <input type="number" class="form-control"
+                                                                                value="{{ old('composition_vat') }}"
+                                                                                name="composition_vat"
+                                                                                id="composition_vat" />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-12">
+                                                                        <div class="form-group">
+                                                                            <label>SURCHARGE ON CA</label>
+                                                                            <input type="number" class="form-control"
+                                                                                value="{{ old('surcharge_on_ca') }}"
+                                                                                name="surcharge_on_ca"
+                                                                                id="surcharge_on_ca" />
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                             </div>
-
                                                             {{-- Vendor 2 --}}
                                                             <div id="vendor-2-fields"
                                                                 class="vendor-fields d-none vendor-2">
-                                                                <div class="form-group">
-                                                                    <label>VAT</label>
-                                                                    <input type="number" id="vat"
-                                                                        value="{{ old('vat') }}" class="form-control"
-                                                                        name="vat" />
-                                                                </div>
-                                                                <div class="form-group">
-                                                                    <label>SURCHARGE ON VAT</label>
-                                                                    <input type="number" id="surcharge_on_vat"
-                                                                        value="{{ old('surcharge_on_vat') }}"
-                                                                        class="form-control" name="surcharge_on_vat" />
-                                                                </div>
-                                                                <div class="form-group">
-                                                                    <label>BLF</label>
-                                                                    <input type="number" id="blf"
-                                                                        value="{{ old('blf') }}" class="form-control"
-                                                                        name="blf" />
-                                                                </div>
-                                                                <div class="form-group">
-                                                                    <label>Permit Fee</label>
-                                                                    <input type="number" class="form-control"
-                                                                        value="{{ old('permit_fee') }}" name="permit_fee"
-                                                                        id="permit_fee" />
+                                                                <div class="row">
+                                                                    <div class="col-md-6">
+                                                                        <div class="form-group">
+                                                                            <label>VAT</label>
+                                                                            <input type="number" id="vat"
+                                                                                value="{{ old('vat') }}"
+                                                                                class="form-control" name="vat" />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        <div class="form-group">
+                                                                            <label>SURCHARGE ON VAT</label>
+                                                                            <input type="number" id="surcharge_on_vat"
+                                                                                value="{{ old('surcharge_on_vat') }}"
+                                                                                class="form-control"
+                                                                                name="surcharge_on_vat" />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        <div class="form-group">
+                                                                            <label>BLF</label>
+                                                                            <input type="number" id="blf"
+                                                                                value="{{ old('blf') }}"
+                                                                                class="form-control" name="blf" />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        <div class="form-group">
+                                                                            <label>Permit Fee</label>
+                                                                            <input type="number" class="form-control"
+                                                                                value="{{ old('permit_fee') }}"
+                                                                                name="permit_fee" id="permit_fee" />
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                                 {{-- <div class="form-group">
                                                                     <label>RSGSM Purchase</label>
@@ -648,18 +688,18 @@
         };
 
         // SHOW LICENSE LEDGER ONLY FOR VENDOR 1 & 2
-       if (vendorId === '1' || vendorId === '2') {
-           $('#license-ledger-box').removeClass('d-none');
+        if (vendorId === '1' || vendorId === '2') {
+            $('#license-ledger-box').removeClass('d-none');
         } else {
-           $('#license-ledger-box').addClass('d-none');
-       }
+            $('#license-ledger-box').addClass('d-none');
+        }
 
-       // SHOW LICENSE LEDGER ONLY FOR VENDOR 1 & 2
-// if (vendorId === '1' || vendorId === '2') {
-//     $('#license-ledger-box-div').removeClass('d-none');
-// } else {
-//     $('#license-ledger-box-div').addClass('d-none');
-// }
+        // SHOW LICENSE LEDGER ONLY FOR VENDOR 1 & 2
+        // if (vendorId === '1' || vendorId === '2') {
+        //     $('#license-ledger-box-div').removeClass('d-none');
+        // } else {
+        //     $('#license-ledger-box-div').addClass('d-none');
+        // }
 
 
         if (vendorId === '1') {
