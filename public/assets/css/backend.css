@@ -20212,3 +20212,6 @@ i { vertical-align: middle; }
 .content-page { margin-left: 240px;}
 .iq-sidebar { width: 240px;}
 .iq-top-navbar { width: calc(100% - 240px); }
+.dataTable tbody tr:nth-child(odd) { background-color: #ffffff; } 
+.dataTable tbody tr td:first-child { text-align: center; } 
+.dataTable tbody tr:nth-child(even) { background-color: #f1f1f1; }
