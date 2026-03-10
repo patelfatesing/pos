@@ -36,15 +36,22 @@
             font-size: 18px;
             margin-bottom: 10px;
         }
+
+        #add-product-btn {
+            white-space: nowrap;
+        }
     </style>
 
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-                <div class="d-flex justify-content-between mb-3">
-                    <h4>Add Transaction - #{{ $branch_data->name }}</h4>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-3">
+                    <div>
+                        <h4 class="mb-0">Add Transaction - #{{ $branch_data->name }}</h4>
+                    </div>
                     <a href="{{ route('sales.sales.list') }}" class="btn btn-secondary">Back</a>
                 </div>
+
                 <form id="invoice-items-form" method="POST" action="{{ route('sales.invoice.insert-sale') }}">
                     @csrf
                     <div class="card mb-3">
@@ -64,33 +71,33 @@
                                 </div>
                                 <input type="hidden" name="branch_id" value="{{ $branch_data->id }}">
                                 <input type="hidden" name="shift_id" value="{{ $Shift_data->id }}">
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <input type="number" min="1" id="new-product-qty" class="form-control"
                                         placeholder="Qty">
                                 </div>
-                                <div class="col-md-2">
-                                    <button type="button" class="btn btn-primary" id="add-product-btn">Add Item</button>
-                                </div>
-                                <div class="col-md-2">
+
+                                <div class="col-md-5 d-flex gap-2">
+                                     <button type="button" class="btn btn-primary mr-2" id="add-product-btn">
+                                        Add Item
+                                    </button>
                                     @if ($branch_data->id == 1)
-                                        <select id="party-id" class="form-control" name="party_user_id">
+                                        <select id="party-id" class="form-control">
                                             <option value="">Select Party Customer</option>
                                             @foreach ($partyUsers as $cust)
-                                                <option value="{{ $cust->id }}">
-                                                    {{ $cust->first_name }}
-                                                </option>
+                                                <option value="{{ $cust->id }}">{{ $cust->first_name }}</option>
                                             @endforeach
                                         </select>
                                     @else
-                                        <select id="commission-id" class="form-control" name="commission_user_id">
+                                        <select id="commission-id" class="form-control">
                                             <option value="">Select Commission Customer</option>
                                             @foreach ($commissionUsers as $cust)
-                                                <option value="{{ $cust->id }}">
-                                                    {{ $cust->first_name }}
-                                                </option>
+                                                <option value="{{ $cust->id }}">{{ $cust->first_name }}</option>
                                             @endforeach
                                         </select>
                                     @endif
+
+                                   
+
                                 </div>
                             </div>
                         </div>
@@ -114,8 +121,8 @@
                         </div>
                     </div>
 
-                    <div class="card-body">
-                        <div class="row mt-4 mb-3">
+                    
+                        <div class="row mb-0">
                             <div class="offset-lg-8 col-lg-4">
                                 <div class="or-detail rounded">
                                     <div class="p-3">
@@ -157,8 +164,8 @@
                                         <div class="mb-2 d-flex justify-content-between">
                                             <label><strong>Payment Method</strong></label>
                                             <div>
-                                                <input type="radio" id="cash-option" name="payment_method"
-                                                    value="cash" checked>
+                                                <input type="radio" id="cash-option" name="payment_method" value="cash"
+                                                    checked>
                                                 <label for="cash-option">Cash</label>
                                                 <input type="radio" id="upi-option" name="payment_method"
                                                     value="online">
@@ -198,7 +205,7 @@
                                 <button type="submit" class="btn btn-success">Save Invoice Items</button>
                             </div>
                         </div>
-                    </div>
+                    
                 </form>
             </div>
         </div>

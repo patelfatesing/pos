@@ -334,7 +334,7 @@
                                     </div>
                                 @endif
                             </div>
-                            
+
                             @if ($this->showOneTimeBlock && auth()->user()->hasRole('cashier'))
                                 <div class="col-12 col-md-3 capture-eve-block">
                                     <div class="position-relative capture-eve">
@@ -914,7 +914,7 @@
                                         <div class="col-xs-12 col-sm-6">
                                             <div class="mb-2">
                                                 <label for="narration"
-                                                    class="form-label reason_withdrawal">{{ __('messages.select_reason_for_withdrawal') }}</label>
+                                                    class="form-label reason_withdrawal">{{ __('messages.select_reason') }}</label>
                                                 <select name="narration" id="narration"
                                                     class="form-control frame-stock-request-searchbar6 Specificity: (0,1,0)"
                                                     required>
@@ -983,43 +983,43 @@
                                         </div>
                                         {{-- SubCategory Dropdown --}}
                                         <div class="mb-3">
-                                            <h5>Sub Category</h5>
+                                            <h5>Category</h5>
                                             <select wire:model="selectedSubCategory"
                                                 wire:change="selectedSubCategory2($event.target.value)"
                                                 class="form-control d-inline w-50 product-select-sh frame-stock-request-searchbar6 Specificity: (0,1,0)">
-                                                <option value="">-- Select Sub Category --</option>
+                                                <option value="">-- Select Category --</option>
                                                 @foreach ($subCategories as $sub)
                                                     <option value="{{ $sub->id }}">{{ $sub->name }}
                                                     </option>
                                                 @endforeach
                                             </select>
                                         </div>
-                                        <div id="product-items">
+                                        <div id="product-items" wire:ignore>
                                             <h5>Products</h5>
                                             <div class="item-row mb-3">
 
                                                 <select name="items[0][product_id]"
-                                                    class="form-control d-inline w-50 product-select-sh frame-stock-request-searchbar6 Specificity: (0,1,0)"
+                                                    class="product-dropdown form-control d-inline w-50 product-select-sh frame-stock-request-searchbar6"
                                                     required>
-                                                    <option value="">--
-                                                        {{ __('messages.select_product') }} --
+
+                                                    <option value="">-- {{ __('messages.select_product') }} --
                                                     </option>
+
                                                     @foreach ($product_in_stocks as $pro)
-                                                        <option value="{{ $pro->id }}">
-                                                            {{ $pro->name }}
+                                                        <option value="{{ $pro->id }}">{{ $pro->name }}
                                                         </option>
                                                     @endforeach
+
                                                 </select>
-                                                @error('items')
-                                                    <span class="text-danger">{{ $message }}</span>
-                                                @enderror
+
                                                 <input type="number" name="items[0][quantity]"
                                                     class="form-control d-inline w-25 ms-2 frame-stock-request-searchbar6"
                                                     placeholder="Qty" min="1" required>
 
-                                                <button type="button"
-                                                    class="btn btn-danger btn-sm ms-2 remove-item"><i
-                                                        class="fa fa-trash-o" aria-hidden="true"></i></button>
+                                                <button type="button" class="btn btn-danger btn-sm ms-2 remove-item">
+                                                    <i class="fa fa-trash-o"></i>
+                                                </button>
+
                                             </div>
                                         </div>
 
@@ -1029,16 +1029,23 @@
                                             class="btn btn-warning btn-sm mb-3 ms-2">
                                             Clear
                                         </button>
-
-                                        <div class="mb-3">
-                                            <label for="notes"
-                                                class="form-label">{{ __('messages.notes') }}</label>
-                                            <textarea name="notes" id="notes" class="form-control frame-stock-request-group260"></textarea>
-                                        </div>
-                                        <div class="d-flex submit_btn_block">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="notes"
+                                                        class="form-label">{{ __('messages.notes') }}</label>
+                                                    <textarea name="notes" id="notes" class="form-control frame-stock-request-group260"></textarea>
+                                                </div>
+                                            </div>
+                                             <div class="col-md-6">
+                                                <div class="d-flex submit_btn_block">
                                             <button type="submit"
                                                 class="frame-stock-request-group223 btn-submit">{{ __('messages.submit_request') }}</button>
                                         </div>
+                                             </div>
+
+                                        </div>
+                                        
                                     </form>
                                 </div>
                             </div>
@@ -2098,9 +2105,6 @@
     })();
 
 
-
-
-
     document.addEventListener('DOMContentLoaded', function() {
 
         const startZero = document.getElementById('startZero');
@@ -2413,9 +2417,7 @@
     window.addEventListener('DOMContentLoaded', function() {
         $('#warehouseStockRequest').modal('hide');
     });
-</script>
 
-<script>
     document.addEventListener('livewire:init', () => {
         Livewire.on('openModal', () => {
             //   var myModal = new bootstrap.Modal(document.getElementById('myModal'));
@@ -2468,9 +2470,7 @@
             $('#cashModal').modal('hide');
         });
     });
-</script>
 
-<script>
     window.addEventListener('user-selection-updated', event => {
         const userId = event.detail.userId;
         yourJsFunction(userId);
@@ -2567,8 +2567,7 @@
             // document.getElementById('result').textContent = `Total Cash: ${total.toLocaleString()}`;
         }
     }
-</script>
-<script>
+
     let stream;
 
     navigator.mediaDevices.getUserMedia({
@@ -2762,9 +2761,7 @@
             input.value += value;
         }
     };
-</script>
 
-<script>
     function updateNote(id, delta, denomination) {
         fetch('/get-available-notes', {
                 method: 'GET',
@@ -2942,8 +2939,7 @@
             }
         });
     });
-</script>
-<script>
+
     window.addEventListener('close-hold-modal', function() {
         // Hide modal
         const modal = document.getElementById('holdTransactionsModal');
@@ -2959,9 +2955,7 @@
         document.body.classList.remove('modal-open');
         document.body.style.paddingRight = '';
     });
-</script>
 
-<script>
     function updateAmounts() {
         let total = 0;
         const amountInput = document.getElementById('holdamountTotal');
@@ -3007,24 +3001,61 @@
     });
 
     let itemIndex = 1;
+
     document.getElementById('add-item').addEventListener('click', function() {
-        const row = document.querySelector('.item-row').cloneNode(true);
-        row.querySelectorAll('select, input').forEach(el => {
-            const name = el.getAttribute('name');
-            const updatedName = name.replace(/\[\d+\]/, `[${itemIndex}]`);
-            el.setAttribute('name', updatedName);
-            if (el.tagName === 'INPUT') el.value = '';
+
+        const container = document.getElementById('product-items');
+        const firstRow = container.querySelector('.item-row');
+        const newRow = firstRow.cloneNode(true);
+
+        // Copy product dropdown options
+        const firstSelect = firstRow.querySelector('.product-dropdown');
+        const newSelect = newRow.querySelector('.product-dropdown');
+
+        newSelect.innerHTML = firstSelect.innerHTML;
+
+        // Update names
+        newRow.querySelectorAll('select, input').forEach(function(el) {
+
+            let name = el.getAttribute('name');
+
+            if (name) {
+                let newName = name.replace(/\[\d+\]/, '[' + itemIndex + ']');
+                el.setAttribute('name', newName);
+            }
+
+            if (el.tagName === 'INPUT') {
+                el.value = '';
+            }
+
+            if (el.tagName === 'SELECT') {
+                el.selectedIndex = 0;
+            }
+
         });
-        document.getElementById('product-items').appendChild(row);
+
+        container.appendChild(newRow);
         itemIndex++;
+
     });
 
     document.addEventListener('click', function(e) {
-        if (e.target && e.target.classList.contains('remove-item')) {
+
+        const removeBtn = e.target.closest('.remove-item');
+        const removeBtnWh = e.target.closest('.remove-item-wh');
+
+        if (removeBtn) {
             if (document.querySelectorAll('.item-row').length > 1) {
-                e.target.closest('.item-row').remove();
+                removeBtn.closest('.item-row').remove();
             }
         }
+
+        if (removeBtnWh) {
+            if (document.querySelectorAll('.item-row-wh').length > 1) {
+                removeBtnWh.closest('.item-row-wh').remove();
+            }
+        }
+
 
         if (e.target && e.target.id === 'clear-items') {
             const container = document.getElementById('product-items');
@@ -3079,8 +3110,7 @@
         document.getElementById('product-items-wh').appendChild(row);
         itemIndex++;
     });
-</script>
-<script>
+
     document.addEventListener('click', function(event) {
         const searchContainer = document.getElementById('search-container');
         const suggestionBox = document.getElementById('search-suggestion-wrapper');
@@ -3313,9 +3343,7 @@
             }
         });
     });
-</script>
 
-<script>
     $(document).ready(function() {
 
         $('#warehouseForm').on('submit', function(e) {
@@ -3626,8 +3654,7 @@
         location.reload();
         // reloadWithFullscreen();
     });
-</script>
-<script>
+
     document.addEventListener('DOMContentLoaded', function() {
         let shiftPending = false;
         const attachClickAlert = (btn) => {
@@ -3666,4 +3693,41 @@
         const sidebar = document.getElementById('sidebar');
         sidebar.classList.toggle('collapsed');
     }
+
+    window.addEventListener('productsUpdated', function(event) {
+
+        let products = event.detail.products;
+
+        document.querySelectorAll('.product-dropdown').forEach(function(select) {
+
+            let selectedValue = select.value;
+            let selectedText = select.options[select.selectedIndex]?.text;
+
+            let options = '<option value="">-- Select Product --</option>';
+
+            let exists = false;
+
+            products.forEach(function(product) {
+
+                if (selectedValue == product.id) {
+                    exists = true;
+                }
+
+                options += `<option value="${product.id}">${product.name}</option>`;
+            });
+
+            // If selected product not in new list, keep it
+            if (selectedValue && !exists) {
+                options += `<option value="${selectedValue}" selected>${selectedText}</option>`;
+            }
+
+            select.innerHTML = options;
+
+            if (selectedValue) {
+                select.value = selectedValue;
+            }
+
+        });
+
+    });
 </script>

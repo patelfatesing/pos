@@ -4122,10 +4122,18 @@ class Shoppingcart extends Component
         $this->total = 0;
     }
 
+    // public function selectedSubCategory2($subCategoryId)
+    // {
+    //     $this->selectedProduct = null;
+    //     $this->loadProducts($subCategoryId);
+    // }
+
     public function selectedSubCategory2($subCategoryId)
     {
         $this->selectedProduct = null;
         $this->loadProducts($subCategoryId);
+
+       $this->dispatch('productsUpdated', products: $this->product_in_stocks);
     }
 
     public function loadProducts($subCategoryId)

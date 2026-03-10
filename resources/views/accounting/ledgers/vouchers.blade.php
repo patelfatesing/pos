@@ -134,7 +134,7 @@
         }
 
         .tally-footer-right td:first-child {
-            width: 75%;
+            width: 85%;
             text-align: right;
         }
 
