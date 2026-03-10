@@ -512,8 +512,8 @@ pre {
 
 .container-fluid, .container-sm, .container-md, .container-lg, .container-xl {
   width: 100%;
-  padding-right: 0px;
-  padding-left: 0px;
+  padding-right: 15px;
+  padding-left: 15px;
   margin-right: auto;
   margin-left: auto; }
 
@@ -20107,7 +20107,7 @@ button.close-popup {
 
 .iq-icon-box-2 {
   height: 60px;
-  width: 70px;
+  width: 60px;
   line-height: 55px;
   text-align: center;
   margin-right: 20px;
@@ -20212,3 +20212,5 @@ i { vertical-align: middle; }
 .content-page { margin-left: 240px;}
 .iq-sidebar { width: 240px;}
 .iq-top-navbar { width: calc(100% - 240px); }
+
+.accounting-ledgers-page .tally-footer-right td:first-child { width: 80%;}

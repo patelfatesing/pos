@@ -125,7 +125,7 @@ class StockController extends Controller
 
         $arr['id'] = (string) $stockRequest->id;
         $arr['store_id'] = (string) $wh_id;
-        sendNotification('request_stock', $stores->name . ' some Product is stock request', null, $wh_id, json_encode($arr));
+        sendNotification('request_stock', $stores->name . ' some products request is received from the', null, $wh_id, json_encode($arr));
 
         if ($request->ajax() && !empty($errors)) {
             DB::rollback();
@@ -196,11 +196,10 @@ class StockController extends Controller
             ]);
 
             $stores = Branch::select('name')->find($branch_id);
-
-
+            
             $arr['id'] = (string) $stockRequest->id;
             $arr['store_id'] = (string) $branch_id;
-            sendNotification('request_stock', $stores->name . ' store some Product is stock request', null, $branch_id, json_encode($arr));
+            sendNotification('request_stock', 'Some products request is received from the '.$stores->name, null, $branch_id, json_encode($arr));
 
             DB::commit();
             return redirect()->back()->with('success', 'Stock request submitted successfully.');
@@ -1042,15 +1041,16 @@ class StockController extends Controller
         // Load stock request with related branch and product info
         $stockRequest = StockRequest::with(['branch', 'items.product'])->findOrFail($id);
         $sourceId = $stockRequest->branch->id;
-
+                
         $allBranches = Branch::with('shiftClosings:id,branch_id')
             ->select('id', 'name')
             ->where('id', '!=', $sourceId)
-            ->whereHas('shiftClosings', function ($q) {
-                $q->where('status', 'pending');
-            })
+            // ->whereHas('shiftClosings', function ($q) {
+            //     $q->where('status', 'pending');
+            // })
             ->get()
             ->keyBy('id');
+            
 
         $flattened = [];
 
@@ -1065,7 +1065,9 @@ class StockController extends Controller
                     ->where('store_id', $branchId)
                     ->value('quantity');
 
-                if (empty($inventoryQty) || $inventoryQty <= 0) continue;
+                // if (empty($inventoryQty) || $inventoryQty <= 0) continue;
+                 // if inventory null set 0
+                $inventoryQty = $inventoryQty ?? 0;
 
                 $flattened[] = [
                     'product_id' => $productId,

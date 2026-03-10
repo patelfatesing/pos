@@ -49,7 +49,8 @@ class PartyUserController extends Controller
             $query->where('status', $request->status);
         }
 
-        $recordsTotal = Partyuser::count();
+        $recordsTotal = Partyuser::where('is_delete', 'no')
+                ->count();
         $recordsFiltered = $query->count();
 
         // pagination: only when length > 0
@@ -263,7 +264,7 @@ class PartyUserController extends Controller
         $id = request()->id ?? null;
         $partyUser = Partyuser::select('first_name', 'id')->where('id', $id)->first();
         $subcategories = DB::table('sub_categories')->where('is_deleted', 'no')->get();
-        $partyUserAll = Partyuser::select('first_name', 'id')->get();
+        $partyUserAll = Partyuser::select('first_name', 'id')->where('is_delete', 'no')->get();
 
         $subcategoryId = request()->subcategory_id ?? null;
 

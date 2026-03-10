@@ -108,9 +108,15 @@ class PurchaseController extends Controller
             ->where('status', 'pending')
             ->first();
 
+        // if (!$running_shift) {
+        //     return back()
+        //         ->withErrors(['to_store_id' => 'The Warehouse is not open.'])
+        //         ->withInput();
+        // }
+
         if (!$running_shift) {
             return back()
-                ->withErrors(['to_store_id' => 'The Warehouse is not open.'])
+                ->with('warehouse_error', 'Warehouse shift is not open, Please check.')
                 ->withInput();
         }
 

@@ -114,21 +114,23 @@
                         <!-- Hidden branch_id -->
                         <input type="hidden" name="branch_id" id="hd_branch_id" value="{{ $currentBranch->id ?? 1 }}">
 
-                        <!-- Title -->
-                        <div class="form-group">
-                            <label for="holiday_title">Title <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="holiday_title" name="title"
-                                value="{{ old('title') }}" maxlength="100">
-                        </div>
+                       <div class="row">
+                            <!-- Title -->
+                            <div class="form-group col-md-6">
+                                <label for="holiday_title">Title <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="holiday_title" name="title"
+                                    value="{{ old('title') }}" maxlength="100">
+                            </div>
 
-                        <!-- Holiday Date -->
-                        @php
-                            $today = \Carbon\Carbon::now('Asia/Kolkata')->toDateString();
-                        @endphp
-                        <div class="form-group">
-                            <label for="holiday_date">Holiday Date <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" id="holiday_date" name="holiday_date"
-                                value="{{ old('holiday_date', $today) }}" min="{{ $today }}">
+                            <!-- Holiday Date -->
+                            @php
+                                $today = \Carbon\Carbon::now('Asia/Kolkata')->toDateString();
+                            @endphp
+                            <div class="form-group col-md-6">
+                                <label for="holiday_date">Holiday Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="holiday_date" name="holiday_date"
+                                    value="{{ old('holiday_date', $today) }}" min="{{ $today }}">
+                            </div>
                         </div>
 
                         <!-- Description -->

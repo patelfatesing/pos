@@ -10,15 +10,12 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                            <div>
-                                <h2 class="mb-3">Notifications List</h2>
-                            </div>
-                        </div>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Notifications List</h4>
                     </div>
-
+                </div>
+                <div class="row">
                     <!-- Filters -->
                     <div class="col-lg-12 mb-4">
                         <div class="row">

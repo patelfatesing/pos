@@ -1,80 +1,75 @@
 @extends('layouts.backend.datatable_layouts')
 @section('page-content')
+    
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Wrapper Start -->
-
-    <div class="wrapper">
-        <div class="content-page">
-            <div class="container-fluid">
-                <!-- Page Header -->
-                <div class="row align-items-center mb-3">
-                    <div class="col-lg-12">
-                        <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
-                            <div>
-                                <h4 class="mb-0">Product List</h4>
-                            </div>
-                            <div class="ml-auto">
-                                @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'product-import'))
-                                    <a href="{{ route('products.import') }}" class="btn btn-primary pull-right add-list">
-                                        <i class="las la-file-import me-1"></i>Import Product
-                                    </a>
-                                @endif
-                                @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'product-create'))
-                                    <a href="{{ route('products.create') }}"
-                                        class="btn btn-primary pull-right add-list ml-2">
-                                        <i class="las la-plus me-1"></i>Create New Product
-                                    </a>
-                                @endif
-                            </div>
-                            <div class="col-md-3 pr-0">
-                                <div class="form-group mb-0">
-                                    <select name="subCategorySearch" id="subCategorySearch" class="form-control">
-                                        <option value="">All</option>
-                                        @foreach ($subcategories as $id => $name)
-                                            <option value="{{ $name->id }}">{{ $name->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+    <div class="content-page">
+        <div class="container-fluid">
+            <!-- Page Header -->
+            <div class="row align-items-center mb-3">
+                <div class="col-lg-12">
+                    <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                        <div>
+                            <h4 class="mb-0">Product List</h4>
+                        </div>
+                        <div class="ml-auto">
+                            @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'product-import'))
+                                <a href="{{ route('products.import') }}" class="btn btn-primary pull-right add-list">
+                                    <i class="las la-file-import me-1"></i>Import Product
+                                </a>
+                            @endif
+                            @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'product-create'))
+                                <a href="{{ route('products.create') }}" class="btn btn-primary pull-right add-list ml-2">
+                                    <i class="las la-plus me-1"></i>Create New Product
+                                </a>
+                            @endif
+                        </div>
+                        <div class="col-md-3 pr-0">
+                            <div class="form-group mb-0">
+                                <select name="subCategorySearch" id="subCategorySearch" class="form-control">
+                                    <option value="">All</option>
+                                    @foreach ($subcategories as $id => $name)
+                                        <option value="{{ $name->id }}">{{ $name->name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Table -->
-                <div class="row">
-                    <div class="col-12">
-
-                        <div class="table-responsive rounded">
-                            <table class="table table-striped table-bordered nowrap" id="products_table"
-                                style="width:100%;">
-                                <thead class="bg-white">
-                                    <tr class="ligth ligth-data">
-                                        <th>Sr No</th> <!-- Added this line -->
-                                        <th>
-                                            <b>N</b>ame
-                                        </th>
-                                        <th>Category</th>
-                                        {{-- <th>Pack Size</th>
-                                        <th>Brand</th> --}}
-                                        <th>MRP</th>
-                                        <th>Sale Price</th>
-                                        <th>Cost Price</th>
-                                        <th>Status</th>
-                                        <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
-                                        <th data-type="date" data-format="YYYY/DD/MM">Updated Date</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
             </div>
+
+            <!-- Table -->
+            <div class="row">
+                <div class="col-12">
+
+                    <div class="table-responsive rounded">
+                        <table class="table table-striped table-bordered nowrap" id="products_table" style="width:100%;">
+                            <thead class="bg-white">
+                                <tr class="ligth ligth-data">
+                                    <th>Sr No</th> <!-- Added this line -->
+                                    <th>
+                                        <b>N</b>ame
+                                    </th>
+                                    <th>Category</th>
+                                    {{-- <th>Pack Size</th>
+                                        <th>Brand</th> --}}
+                                    <th>MRP</th>
+                                    <th>Sale Price</th>
+                                    <th>Cost Price</th>
+                                    <th>Status</th>
+                                    <th data-type="date" data-format="YYYY/DD/MM">Created Date</th>
+                                    <th data-type="date" data-format="YYYY/DD/MM">Updated Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
-
     @php
         // Calculate tomorrow's date
 $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
@@ -224,11 +219,10 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
             </div>
         </div>
     </div>
-
-
     <!-- Wrapper End-->
 
     <script>
+        var pdfLogo = "";
         $(document).ready(function() {
 
             $.ajaxSetup({
@@ -237,7 +231,6 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                 }
             });
 
-
             var table = $('#products_table').DataTable({
                 processing: true,
                 serverSide: true,
@@ -245,7 +238,10 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                 ordering: true,
                 bLengthChange: true,
                 pageLength: 10,
-
+                language: {
+                    search: "",
+                    lengthMenu: "_MENU_"
+                },
                 ajax: {
                     url: '{{ url('products/get-data') }}', // FIXED
                     type: "POST",
@@ -253,7 +249,14 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                         d.sub_category_id = $('#subCategorySearch').val();
                     }
                 },
-
+                dom: "<'row align-items-center mb-2'\
+                        <'col-md-12 d-flex justify-content-end align-items-center'B f l>\
+                            >\
+                            t\
+                            <'row mt-2'\
+                                <'col-md-6'i>\
+                                <'col-md-6 d-flex justify-content-end'p>\
+                            >",
                 columns: [{
                         data: null,
                         name: 'sr_no',
@@ -340,29 +343,96 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                     [7, 'desc']
                 ],
 
-                dom: "<'custom-toolbar-row'lfB>t<'row mt-2'<'col-md-6'i><'col-md-6'p>>",
 
                 buttons: [{
-                        extend: 'excelHtml5',
-                        className: 'btn btn-outline-success btn-sm me-2',
-                        title: 'Products List',
-                        filename: 'products_excel',
-                        exportOptions: {
-                            columns: ':visible'
+                    extend: 'collection',
+                    text: '<i class="fa fa-download"></i>',
+                    className: 'btn btn-info btn-sm',
+                    autoClose: true,
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            text: '<i class="fa fa-file-excel-o"></i> Excel',
+                            title: 'Product List',
+                            filename: 'product_list',
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        },
+                        {
+                            extend: 'pdfHtml5',
+                            text: '<i class="fa fa-file-pdf-o"></i> PDF',
+                            filename: 'product_list',
+                            orientation: 'landscape',
+                            pageSize: 'A4',
+
+                            exportOptions: {
+                                columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                            },
+
+                            customize: function(doc) {
+
+                                // REMOVE default title
+                                doc.content.splice(0, 1);
+
+                                doc.styles.tableHeader.alignment = 'center';
+
+                                var tableBody = doc.content[0].table.body;
+
+                                for (var i = 1; i < tableBody.length; i++) {
+                                    tableBody[i][3].alignment = 'center';
+                                    tableBody[i][4].alignment = 'center';
+                                    tableBody[i][5].alignment = 'center';
+                                }
+
+                                // HEADER
+                                doc.content.unshift({
+
+                                    margin: [0, 0, 0, 12],
+
+                                    columns: [
+
+                                        {
+                                            width: '33%',
+                                            columns: [{
+                                                    image: pdfLogo,
+                                                    width: 30
+                                                },
+                                                {
+                                                    text: 'LiquorHub',
+                                                    fontSize: 11,
+                                                    bold: true,
+                                                    margin: [5, 8, 0, 0]
+                                                }
+                                            ]
+                                        },
+
+                                        {
+                                            width: '34%',
+                                            text: 'Product List',
+                                            alignment: 'center',
+                                            fontSize: 16,
+                                            bold: true,
+                                            margin: [0, 8, 0, 0]
+                                        },
+
+                                        {
+                                            width: '33%',
+                                            text: 'Generated: ' + new Date()
+                                                .toLocaleString(),
+                                            alignment: 'right',
+                                            fontSize: 9,
+                                            margin: [0, 8, 0, 0]
+                                        }
+
+                                    ]
+                                });
+
+                                doc.styles.tableHeader.fontSize = 10;
+                                doc.defaultStyle.fontSize = 9;
+                            }
                         }
-                    },
-                    {
-                        extend: 'pdfHtml5',
-                        className: 'btn btn-outline-danger btn-sm',
-                        title: 'Products List',
-                        filename: 'products_pdf',
-                        orientation: 'landscape',
-                        pageSize: 'A4',
-                        exportOptions: {
-                            columns: ':visible'
-                        }
-                    }
-                ]
+                    ]
+                }]
             });
 
             // Filter reload
@@ -556,5 +626,28 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
 
             return `${day}-${month}-${year} ${hours}:${minutes} ${ampm}`;
         }
+
+        function getBase64Image(url, callback) {
+            var img = new Image();
+            img.crossOrigin = "Anonymous";
+
+            img.onload = function() {
+                var canvas = document.createElement("canvas");
+                canvas.width = this.width;
+                canvas.height = this.height;
+
+                var ctx = canvas.getContext("2d");
+                ctx.drawImage(this, 0, 0);
+
+                var dataURL = canvas.toDataURL("image/png");
+                callback(dataURL);
+            };
+
+            img.src = url;
+        }
+
+        getBase64Image("https://liquorhub.in/assets/images/logo.png", function(base64) {
+            pdfLogo = base64;
+        });
     </script>
 @endsection

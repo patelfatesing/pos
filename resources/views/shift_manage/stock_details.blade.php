@@ -7,16 +7,14 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <div class="col-lg-12">
-                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                        <div>
-                            <h4 class="mb-3">🧾 Product Stock Summary - {{ $branch_name->name }}</h4>
-                        </div>
-                        <div>
-                            <a href="{{ route('shift-manage.list') }}" class="btn btn-secondary">Back</a>
-                        </div>
+            
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">🧾 Product Stock Summary - {{ $branch_name->name }}</h4>
                     </div>
+                    <a href="{{ route('shift-manage.list') }}" class="btn btn-secondary">Back</a>
                 </div>
+
                 <div class="table-responsive rounded mb-3" id="shiftTableContainer">
                     <div class="card mt-4">
                         <!-- Page Header -->
@@ -51,13 +49,13 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th>Product</th>
-                                            <th>Category</th>
+                                            <th>Product Category</th>
                                             <th>Opening Stock</th>
                                             <th>Added Stock</th>
                                             <th>Transferred Stock</th>
                                             <th>Sold Stock</th>
                                             <th>Modify Sale Add Stock</th>
-                                            <th>Modify Sale Remove Stock</th>
+                                            <th>Modify Sale Stock</th>
                                             <th>Closing Stock</th>
                                             <th>Physical Stock</th>
                                             <th>Difference Stock</th>

@@ -1,5 +1,9 @@
 @extends('layouts.backend.layouts')
-
+<style>
+    .card-header {
+        background-color: #528da1 !important;
+    }
+</style>
 <?php
 $roleId = auth()->user()->role_id;
 ?>
@@ -119,7 +123,8 @@ $roleId = auth()->user()->role_id;
                             </div>
                             @if ($roleId == 1 || getAccess($roleId, 'stock-request-approval') === 'yes')
                                 <div class="card-footer text-end">
-                                    <button type="submit" class="btn btn-success">Submit Approval</button>
+                                    <button type="submit" class="btn btn-success">Submit</button>
+                                    <button type="reset" class="btn btn-danger">Reset</button>
                                 </div>
                             @endif
                         </form>
@@ -214,12 +219,36 @@ $roleId = auth()->user()->role_id;
                 setupCheckboxLogic(productId);
             });
         });
-    </script>
-
-    <script>
+        
         // Optional: remove row
         $(document).on('click', '.remove-row', function() {
             $(this).closest('tr').remove();
+        });
+
+        $(document).on('click', 'button[type="reset"]', function() {
+
+            // reset all approve qty inputs
+            $('.approve-input').each(function() {
+                $(this).val(0);
+                $(this).prop('disabled', false);
+            });
+
+            // reset all checkboxes
+            $('.approve-checkbox').each(function() {
+                $(this).prop('checked', false);
+                $(this).prop('disabled', false);
+            });
+
+            // reinitialize product row logic
+            const productIds = [...new Set($('.product-row').map(function() {
+                return $(this).data('product-id');
+            }).get())];
+
+            productIds.forEach(productId => {
+                syncProductRows(productId);
+                setupCheckboxLogic(productId);
+            });
+
         });
     </script>
 @endsection

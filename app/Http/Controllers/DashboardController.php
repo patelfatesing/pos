@@ -33,11 +33,9 @@ class DashboardController extends Controller
         // Get role name from session
         $roleName = strtolower(session('role_name'));
         // Redirect non-admin users to items.cart
-        // if ($roleName == "warehouse" || $roleName == "cashier") {
-        //     return redirect()->route('items.cart');
-        // } else {
-        //     return redirect(route('dashboard'));
-        // }
+        if ($roleName == "warehouse" || $roleName == "cashier") {
+            return redirect()->route('items.cart');
+        } 
 
         // Only admin users will reach this point
         $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');

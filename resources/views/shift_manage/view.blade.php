@@ -10,26 +10,24 @@
         <div class="wrapper">
             <div class="content-page">
                 <div class="container-fluid add-form-list">
+                    <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                        <div>
+                            <h4 class="mb-0">View Transaction - {{ $branch_name }}</h4>
+                        </div>
+                        <div class="d-flex">
+                            <a href="{{ route('sales.add-sales', ['branch_id' => $id, 'shift_id' => $shift_id]) }}"
+                                class="btn btn-primary-dark mr-2">
+                                <i class="fa fa-edit"></i> Add Trasaction
+                            </a>
+                            <a href="{{ route('shift-manage.list') }}" class="btn btn-secondary">
+                                Back
+                            </a>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="card">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <!-- Header Title Section -->
-                                    <div class="header-title">
-                                        <h4 class="card-title">View Transaction - {{ $branch_name }}</h4>
-                                    </div>
-
-                                    <!-- Buttons Section -->
-                                    <div class="d-flex">
-                                        <a href="{{ route('sales.add-sales', ['branch_id' => $id, 'shift_id' => $shift_id]) }}"
-                                            class="btn btn-primary-dark mr-2">
-                                            <i class="fa fa-edit"></i> Add Trasaction
-                                        </a>
-                                        <a href="{{ route('shift-manage.list') }}" class="btn btn-secondary">
-                                            Back
-                                        </a>
-                                    </div>
-                                </div>
+                               
 
                                 <div class="card-body">
 
@@ -116,13 +114,12 @@
                                                                 )->isYesterday();
                                                             @endphp
 
-                                                           
-                                                                <a href="{{ url('/sales/edit-sales/' . $invoice->id) }}"
-                                                                    class="btn btn-sm btn-success mb-1"
-                                                                    title="Edit Invoice">
-                                                                    <i class="fa fa-edit"></i>
-                                                                </a>
-                                                            
+
+                                                            <a href="{{ url('/sales/edit-sales/' . $invoice->id) }}"
+                                                                class="btn btn-sm btn-success mb-1" title="Edit Invoice">
+                                                                <i class="fa fa-edit"></i>
+                                                            </a>
+
                                                         </td>
                                                     </tr>
                                                 @endforeach
