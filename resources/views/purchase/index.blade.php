@@ -89,7 +89,7 @@
 
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [] // make "action" column unsortable
+                    aTargets: [1] // make "action" column unsortable
                 }],
                 order: [
                     [4, 'desc']

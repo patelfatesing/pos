@@ -322,7 +322,7 @@ class NotificationController extends Controller
                 'content' => $notification->content,
                 'created_by' => $notification->created_by_name ?? 'System',
                 'status' => ucfirst($notification->status), // Capitalize status
-                'created_at' => Carbon::parse($notification->created_at)->format('Y-m-d H:i:s'),
+                'created_at' => Carbon::parse($notification->created_at)->format('d M Y h:iA'),
             ];
         }
 

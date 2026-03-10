@@ -131,8 +131,8 @@
                                                 <tr>
                                                     <th width="5%">Sr No</th>
                                                     <th width="40%">Product</th>
-                                                    <th width="20%">Quantity</th>
-                                                    <th width="15%">Stock Info</th>
+                                                    <th width="10%">Quantity</th>
+                                                    <th width="25%">Stock Info</th>
                                                     <th width="20%">Action</th>
                                                 </tr>
                                             </thead>
@@ -523,7 +523,7 @@
 
                 // add button only in last row
                 $('#productBody tr:last td:last').prepend(
-                    '<button type="button" id="add-item" class="btn btn-secondary pull-right ml-1">+ Add Product</button>'
+                    '<button type="button" id="add-item" class="btn btn-secondary btn-sm pull-right ml-1">+ Add Product</button>'
                 );
             }
         // Trigger total update on quantity input change

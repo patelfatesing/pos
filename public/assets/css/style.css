@@ -58,3 +58,73 @@
     margin-left: 5px;
     color: #32BDEA;
 }
+
+        .dataTables_filter {
+            position: relative;
+            margin-right: 10px;
+        }
+
+        .dataTables_filter input {
+            border-radius: 20px;
+            padding: 6px 35px 6px 12px;
+            border: 1px solid #ddd;
+            width: 220px;
+        }
+
+        .dataTables_filter::after {
+            content: "\f002";
+            font-family: "Font Awesome 5 Free";
+            font-weight: 900;
+            position: absolute;
+            right: 10px;
+            top: 8px;
+            color: #999;
+        }
+
+        .dataTables_length select {
+            border-radius: 6px;
+            width: 60px;
+        }
+
+        .dt-buttons .btn {
+            border-radius: 6px;
+            margin-right: 5px;
+        }
+
+        /* Align export, search and length dropdown */
+        .dataTables_wrapper .row.mb-2 .col-md-12 {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Search box */
+        .dataTables_filter {
+            margin: 0;
+        }
+
+        /* Show entries dropdown */
+        .dataTables_length {
+            margin: 0;
+        }
+
+        /* Export button */
+        .dt-buttons {
+            margin: 0;
+        }
+
+        .dt-buttons .btn {
+            background: #e9ecef;
+            border: 1px solid #ccc;
+            color: #333;
+        }
+
+        div.dt-buttons>.dt-button,
+        div.dt-buttons>div.dt-button-split .dt-button {
+            margin-bottom: 1.90em !important;
+        }
+
+        .dataTables_wrapper .dataTables_length select {
+            height: 40px !important;
+        }

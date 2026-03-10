@@ -1,19 +1,29 @@
 @extends('layouts.backend.layouts')
 @section('page-content')
+
+    @if (session('warehouse_error'))
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Warehouse Closed',
+                text: "{{ session('warehouse_error') }}",
+                confirmButtonColor: '#d33'
+            });
+        </script>
+    @endif
     <!-- Wrapper Start -->
-    <div class="wrapper">
+   
         <div class="content-page">
-            <div class="container-fluid add-form-list">
+            <div class="container-fluid">
                 <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
                     <div>
                         <h4 class="mb-0">Purchase Invoice</h4>
                     </div>
+
                     <div>
                         <a href="{{ route('purchase.list') }}" class="btn btn-secondary">Back</a>
                     </div>
-                    @error('to_store_id')
-                        <span class="text-danger">{{ $message }}</span>
-                    @enderror
+
                 </div>
                 <div class="row">
                     <div class="col-sm-12">
@@ -23,7 +33,7 @@
                                 <div class="card">
                                     <div class="card-body">
                                         <form action="{{ route('purchase.store') }}" method="POST"
-                                            enctype="multipart/form-data">
+                                            enctype="multipart/form-data" novalidate>
                                             @csrf
                                             <div class="row">
                                                 <div class="col-md-4">
@@ -178,13 +188,18 @@
                                                             @foreach (old('products') as $i => $product)
                                                                 <tr>
                                                                     <td>{{ $i + 1 }}</td>
-                                                                    <td>
+                                                                    <td style="width:25%">
                                                                         <input type="hidden"
                                                                             name="products[{{ $i }}][product_id]"
                                                                             value="{{ $product['product_id'] }}">
-                                                                        <input type="text" class="form-control"
+
+                                                                        <input type="hidden" class="form-control"
                                                                             name="products[{{ $i }}][brand_name]"
                                                                             value="{{ $product['brand_name'] }}" readonly>
+
+
+                                                                        <span>{{ $product['brand_name'] }}</span>
+
                                                                     </td>
                                                                     <td>
                                                                         <input type="text" class="form-control"
@@ -209,8 +224,7 @@
                                                                             name="products[{{ $i }}][mrp]"
                                                                             value="{{ $product['mrp'] }}">
                                                                         <input type="number" class="form-control mrp"
-                                                                            step="0.01" value="{{ $product['mrp'] }}"
-                                                                            disabled>
+                                                                            value="{{ $product['mrp'] }}" disabled>
                                                                         @error("products.$i.mrp")
                                                                             <span
                                                                                 class="text-danger">{{ $message }}</span>
@@ -227,7 +241,6 @@
                                                                     </td>
                                                                     <td>
                                                                         <input type="number" class="form-control rate"
-                                                                            step="0.01"
                                                                             name="products[{{ $i }}][rate]"
                                                                             value="{{ $product['rate'] }}">
                                                                         @error("products.$i.rate")
@@ -237,7 +250,6 @@
                                                                     </td>
                                                                     <td>
                                                                         <input type="number" class="form-control amount"
-                                                                            step="0.01"
                                                                             name="products[{{ $i }}][amount]"
                                                                             value="{{ $product['amount'] }}">
                                                                         @error("products.$i.amount")
@@ -262,11 +274,11 @@
 
                                             <div class="row mt-4 mb-3">
                                                 <div class="offset-lg-8 col-lg-4">
-                                                    <div class="or-detail rounded">
+                                                    <div class="rounded">
                                                         <div class="p-3">
-                                                            <span>Sub Total: </span>
+                                                            <span class="mr-4">Sub Total: </span>
                                                             <input hidden class="total_amt">
-                                                            <span id="total"></span>
+                                                            <span class="pull-right" id="total"></span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -451,8 +463,8 @@
                                                                     <label>RSGSM Purchase</label>
                                                                     <input type="number" class="form-control"
                                                                         value="{{ old('rsgsm_purchase') }}"
-                                                                        name="rsgsm_purchase" id="rsgsm_purchase" />
-                                                                </div> --}}
+                                                            name="rsgsm_purchase" id="rsgsm_purchase" />
+                                                        </div> --}}
                                                             </div>
 
                                                             {{-- Common for vendor 1 & 2 --}}
@@ -527,309 +539,309 @@
                 <!-- Page end -->
             </div>
         </div>
-    </div>
+    
     <!-- Wrapper End -->
-@endsection
 
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script>
-    // ---------- HELPERS (GLOBAL) ----------
 
-    function calculateProductTotals() {
-        let total = 0;
-        $('input[name*="[rate]"]').each(function() {
-            const $row = $(this).closest('tr');
-            const rate = parseFloat($(this).val()) || 0;
-            const qty = parseFloat($row.find('input[name*="[qnt]"]').val()) || 0;
-            const amount = (rate * qty).toFixed(2);
-            $row.find('input[name*="[amount]"]').val(amount);
-            total += parseFloat(amount);
-        });
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        // ---------- HELPERS (GLOBAL) ----------
 
-        $('#total').text(total.toFixed(2));
-        $(".total_amt").val(total.toFixed(2));
-        $('.total_val').val(total.toFixed(2));
+        function calculateProductTotals() {
+            let total = 0;
+            $('input[name*="[rate]"]').each(function() {
+                const $row = $(this).closest('tr');
+                const rate = parseInt($(this).val()) || 0;
+                const qty = parseInt($row.find('input[name*="[qnt]"]').val()) || 0;
+                const amount = (rate * qty);
+                $row.find('input[name*="[amount]"]').val(amount);
+                total += parseInt(amount);
+            });
 
-        return total;
-    }
+            $('#total').text(total);
+            $(".total_amt").val(total);
+            $('.total_val').val(total);
 
-    function updateExciseSection() {
-        const permit = parseFloat($('#permit_fee_excise').val()) || 0;
-        const vend = parseFloat($('#vend_fee_excise').val()) || 0;
-        const composite = parseFloat($('#composite_fee_excise').val()) || 0;
+            return total;
+        }
 
-        const totalExcise = permit + vend + composite;
+        function updateExciseSection() {
+            const permit = parseInt($('#permit_fee_excise').val()) || 0;
+            const vend = parseInt($('#vend_fee_excise').val()) || 0;
+            const composite = parseInt($('#composite_fee_excise').val()) || 0;
 
-        $('#excise_total_amount').text('₹' + totalExcise.toFixed(2));
-        $('.excise_total_amount').val(totalExcise.toFixed(2));
+            const totalExcise = permit + vend + composite;
 
-        // Push to Billing Details -> EXCISE FEE
-        $('#excise_fee').val(totalExcise.toFixed(2));
+            $('#excise_total_amount').text('₹' + totalExcise);
+            $('.excise_total_amount').val(totalExcise);
 
-        updateBillingTotal();
-    }
+            // Push to Billing Details -> EXCISE FEE
+            $('#excise_fee').val(totalExcise);
 
-    function updateBillingTotal() {
-        const baseTotal = parseFloat($(".total_amt").val()) || 0;
+            updateBillingTotal();
+        }
 
-        const excise = parseFloat($('#excise_fee').val()) || 0;
-        const compVat = parseFloat($('#composition_vat').val()) || 0;
-        const surcharge = parseFloat($('#surcharge_on_ca').val()) || 0;
-        const tcs = parseFloat($('#tcs').val()) || 0;
-        const vat = parseFloat($('#vat').val()) || 0;
-        const surcharge_on_vat = parseFloat($('#surcharge_on_vat').val()) || 0;
-        const blf = parseFloat($('#blf').val()) || 0;
-        const permit_fee = parseFloat($('#permit_fee').val()) || 0;
-        const rsgsm_purchase = parseFloat($('#rsgsm_purchase').val()) || 0;
-        const aed = parseFloat($('#aed_to_be_paid').val()) || 0;
-        const loading = parseFloat($('#loading_charges').val()) || 0; // ✅ NEW
+        function updateBillingTotal() {
+            const baseTotal = parseInt($(".total_amt").val()) || 0;
 
-        let additionalCharges =
-            excise +
-            compVat +
-            surcharge +
-            tcs +
-            aed +
-            loading + // ✅ include loading charges
-            vat +
-            surcharge_on_vat +
-            blf +
-            permit_fee +
-            rsgsm_purchase;
+            const excise = parseInt($('#excise_fee').val()) || 0;
+            const compVat = parseInt($('#composition_vat').val()) || 0;
+            const surcharge = parseInt($('#surcharge_on_ca').val()) || 0;
+            const tcs = parseInt($('#tcs').val()) || 0;
+            const vat = parseInt($('#vat').val()) || 0;
+            const surcharge_on_vat = parseInt($('#surcharge_on_vat').val()) || 0;
+            const blf = parseInt($('#blf').val()) || 0;
+            const permit_fee = parseInt($('#permit_fee').val()) || 0;
+            const rsgsm_purchase = parseInt($('#rsgsm_purchase').val()) || 0;
+            const aed = parseInt($('#aed_to_be_paid').val()) || 0;
+            const loading = parseInt($('#loading_charges').val()) || 0; // ✅ NEW
 
-        let grandTotal = baseTotal + additionalCharges;
+            let additionalCharges =
+                excise +
+                compVat +
+                surcharge +
+                tcs +
+                aed +
+                loading + // ✅ include loading charges
+                vat +
+                surcharge_on_vat +
+                blf +
+                permit_fee +
+                rsgsm_purchase;
 
-        const discountPercent = parseFloat($('.pur_dis').val()) || 0;
-        const discountAmount = parseFloat($('.pur_amt').val()) || 0;
+            let grandTotal = baseTotal + additionalCharges;
 
-        if (discountPercent > 0) {
-            const discount = (grandTotal * discountPercent) / 100;
-            grandTotal -= discount;
-            $('.pur_amt').val(discount.toFixed(2));
-        } else if (discountAmount > 0) {
-            grandTotal -= discountAmount;
-            if (grandTotal > 0) {
-                $('.pur_dis').val(((discountAmount / (grandTotal + discountAmount)) * 100).toFixed(2));
+            const discountPercent = parseInt($('.pur_dis').val()) || 0;
+            const discountAmount = parseInt($('.pur_amt').val()) || 0;
+
+            if (discountPercent > 0) {
+                const discount = (grandTotal * discountPercent) / 100;
+                grandTotal -= discount;
+                $('.pur_amt').val(discount);
+            } else if (discountAmount > 0) {
+                grandTotal -= discountAmount;
+                if (grandTotal > 0) {
+                    $('.pur_dis').val(((discountAmount / (grandTotal + discountAmount)) * 100));
+                }
+            }
+
+            $('#total_amount').text('₹' + grandTotal);
+            $('.total_amount').val(grandTotal);
+        }
+
+        function filterSubcategoriesByVendor(vendorId) {
+
+            const vendor1Subs = ['1', '2']; // vendor_id = 1
+            const vendor2Subs = ['3', '4']; // vendor_id = 2
+
+            $('#subcategories option').each(function() {
+
+                const subId = $(this).data('id');
+
+                // Always show default option
+                if (!subId) {
+                    $(this).show();
+                    return;
+                }
+
+                if (vendorId === '1') {
+                    $(this).toggle(vendor1Subs.includes(String(subId)));
+                } else if (vendorId === '2') {
+                    $(this).toggle(vendor2Subs.includes(String(subId)));
+                } else {
+                    // Other vendors → show all
+                    $(this).show();
+                }
+            });
+
+            // Reset if selected option becomes hidden
+            if ($('#subcategories option:selected').is(':hidden')) {
+                $('#subcategories').val('');
             }
         }
 
-        $('#total_amount').text('₹' + grandTotal.toFixed(2));
-        $('.total_amount').val(grandTotal.toFixed(2));
-    }
+        function onVendorChange(vendorId) {
+            $('.vendor-fields').addClass('d-none');
+            $('.vendor-common').hide();
+            $('.excise-section').addClass('d-none');
 
-    function filterSubcategoriesByVendor(vendorId) {
+            $('#excise_fee, #composition_vat, #surcharge_on_ca, #aed_to_be_paid').val(0);
+            $('#vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase').val(0);
+            $('.pur_dis, .pur_amt').val(0);
 
-        const vendor1Subs = ['1', '2']; // vendor_id = 1
-        const vendor2Subs = ['3', '4']; // vendor_id = 2
+            $('#permit_fee_excise, #vend_fee_excise, #composite_fee_excise').val(0);
+            $('#excise_total_amount').text('₹0');
+            $('.excise_total_amount').val('0');
 
-        $('#subcategories option').each(function() {
+            const $billingCol = $('#billing-column');
 
-            const subId = $(this).data('id');
+            const oldValues = {
+                excise_fee: "{{ old('excise_fee') }}",
+                composition_vat: "{{ old('composition_vat') }}",
+                surcharge_on_ca: "{{ old('surcharge_on_ca') }}",
+                aed_to_be_paid: "{{ old('aed_to_be_paid') }}",
+                guarantee_fulfilled: "{{ old('guarantee_fulfilled') }}",
 
-            // Always show default option
-            if (!subId) {
-                $(this).show();
-                return;
+                vat: "{{ old('vat') }}",
+                surcharge_on_vat: "{{ old('surcharge_on_vat') }}",
+                blf: "{{ old('blf') }}",
+                permit_fee: "{{ old('permit_fee') }}",
+                rsgsm_purchase: "{{ old('rsgsm_purchase') }}",
+
+                permit_fee_excise: "{{ old('permit_fee_excise') }}",
+                vend_fee_excise: "{{ old('vend_fee_excise') }}",
+                composite_fee_excise: "{{ old('composite_fee_excise') }}",
+                excise_total_amount: "{{ old('excise_total_amount') }}",
+
+                case_purchase_per: "{{ old('case_purchase_per') }}",
+                case_purchase_amt: "{{ old('case_purchase_amt') }}",
+
+                tcs: "{{ old('tcs') }}"
+            };
+
+            // SHOW LICENSE LEDGER ONLY FOR VENDOR 1 & 2
+            if (vendorId === '1' || vendorId === '2') {
+                $('#license-ledger-box').removeClass('d-none');
+            } else {
+                $('#license-ledger-box').addClass('d-none');
             }
+
+            // SHOW LICENSE LEDGER ONLY FOR VENDOR 1 & 2
+            // if (vendorId === '1' || vendorId === '2') {
+            //     $('#license-ledger-box-div').removeClass('d-none');
+            // } else {
+            //     $('#license-ledger-box-div').addClass('d-none');
+            // }
+
 
             if (vendorId === '1') {
-                $(this).toggle(vendor1Subs.includes(String(subId)));
+                // Vendor 1: three columns -> Billing no offset, excise visible
+                $billingCol.removeClass('offset-lg-4').addClass('offset-lg-0');
+
+                $('.excise-section').removeClass('d-none');
+                $('#vendor-1-fields').removeClass('d-none');
+                $('.vendor-common').show();
+
+                if (oldValues.permit_fee_excise) $('#permit_fee_excise').val(oldValues.permit_fee_excise);
+                if (oldValues.vend_fee_excise) $('#vend_fee_excise').val(oldValues.vend_fee_excise);
+                if (oldValues.composite_fee_excise) $('#composite_fee_excise').val(oldValues.composite_fee_excise);
+
+                if (oldValues.excise_fee) $('#excise_fee').val(oldValues.excise_fee);
+                if (oldValues.composition_vat) $('#composition_vat').val(oldValues.composition_vat);
+                if (oldValues.surcharge_on_ca) $('#surcharge_on_ca').val(oldValues.surcharge_on_ca);
+                if (oldValues.aed_to_be_paid) $('#aed_to_be_paid').val(oldValues.aed_to_be_paid);
+                if (oldValues.guarantee_fulfilled) $('#guarantee_fulfilled').val(oldValues.guarantee_fulfilled);
+
+                if (oldValues.excise_total_amount) {
+                    $('#excise_total_amount').text('₹' + parseInt(oldValues.excise_total_amount));
+                    $('.excise_total_amount').val(parseInt(oldValues.excise_total_amount));
+                }
+
+                updateExciseSection(); // also sets excise_fee
+
             } else if (vendorId === '2') {
-                $(this).toggle(vendor2Subs.includes(String(subId)));
+                // Vendor 2: excise hidden, Billing right side
+                $billingCol.removeClass('offset-lg-0').addClass('offset-lg-4');
+
+                $('#vendor-2-fields').removeClass('d-none');
+
+                if (oldValues.vat) $('#vat').val(oldValues.vat);
+                if (oldValues.surcharge_on_vat) $('#surcharge_on_vat').val(oldValues.surcharge_on_vat);
+                if (oldValues.blf) $('#blf').val(oldValues.blf);
+                if (oldValues.permit_fee) $('#permit_fee').val(oldValues.permit_fee);
+                if (oldValues.rsgsm_purchase) $('#rsgsm_purchase').val(oldValues.rsgsm_purchase);
+
+                $('.vendor-common').show();
+            } else if (vendorId) {
+                // Other vendors: excise hidden, show cash purchase, Billing right
+                $billingCol.removeClass('offset-lg-0').addClass('offset-lg-4');
+
+                $('#vendor-others-fields').removeClass('d-none');
+                if (oldValues.case_purchase_per) $('.pur_dis').val(oldValues.case_purchase_per);
+                if (oldValues.case_purchase_amt) $('.pur_amt').val(oldValues.case_purchase_amt);
             } else {
-                // Other vendors → show all
-                $(this).show();
-            }
-        });
-
-        // Reset if selected option becomes hidden
-        if ($('#subcategories option:selected').is(':hidden')) {
-            $('#subcategories').val('');
-        }
-    }
-
-    function onVendorChange(vendorId) {
-        $('.vendor-fields').addClass('d-none');
-        $('.vendor-common').hide();
-        $('.excise-section').addClass('d-none');
-
-        $('#excise_fee, #composition_vat, #surcharge_on_ca, #aed_to_be_paid').val(0);
-        $('#vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase').val(0);
-        $('.pur_dis, .pur_amt').val(0);
-
-        $('#permit_fee_excise, #vend_fee_excise, #composite_fee_excise').val(0);
-        $('#excise_total_amount').text('₹0.00');
-        $('.excise_total_amount').val('0');
-
-        const $billingCol = $('#billing-column');
-
-        const oldValues = {
-            excise_fee: '{{ old('excise_fee') }}',
-            composition_vat: '{{ old('composition_vat') }}',
-            surcharge_on_ca: '{{ old('surcharge_on_ca') }}',
-            aed_to_be_paid: '{{ old('aed_to_be_paid') }}',
-            guarantee_fulfilled: '{{ old('guarantee_fulfilled') }}',
-
-            vat: '{{ old('vat') }}',
-            surcharge_on_vat: '{{ old('surcharge_on_vat') }}',
-            blf: '{{ old('blf') }}',
-            permit_fee: '{{ old('permit_fee') }}',
-            rsgsm_purchase: '{{ old('rsgsm_purchase') }}',
-
-            permit_fee_excise: '{{ old('permit_fee_excise') }}',
-            vend_fee_excise: '{{ old('vend_fee_excise') }}',
-            composite_fee_excise: '{{ old('composite_fee_excise') }}',
-            excise_total_amount: '{{ old('excise_total_amount') }}',
-
-            case_purchase_per: '{{ old('case_purchase_per') }}',
-            case_purchase_amt: '{{ old('case_purchase_amt') }}',
-
-            tcs: '{{ old('tcs') }}'
-        };
-
-        // SHOW LICENSE LEDGER ONLY FOR VENDOR 1 & 2
-        if (vendorId === '1' || vendorId === '2') {
-            $('#license-ledger-box').removeClass('d-none');
-        } else {
-            $('#license-ledger-box').addClass('d-none');
-        }
-
-        // SHOW LICENSE LEDGER ONLY FOR VENDOR 1 & 2
-        // if (vendorId === '1' || vendorId === '2') {
-        //     $('#license-ledger-box-div').removeClass('d-none');
-        // } else {
-        //     $('#license-ledger-box-div').addClass('d-none');
-        // }
-
-
-        if (vendorId === '1') {
-            // Vendor 1: three columns -> Billing no offset, excise visible
-            $billingCol.removeClass('offset-lg-4').addClass('offset-lg-0');
-
-            $('.excise-section').removeClass('d-none');
-            $('#vendor-1-fields').removeClass('d-none');
-            $('.vendor-common').show();
-
-            if (oldValues.permit_fee_excise) $('#permit_fee_excise').val(oldValues.permit_fee_excise);
-            if (oldValues.vend_fee_excise) $('#vend_fee_excise').val(oldValues.vend_fee_excise);
-            if (oldValues.composite_fee_excise) $('#composite_fee_excise').val(oldValues.composite_fee_excise);
-
-            if (oldValues.excise_fee) $('#excise_fee').val(oldValues.excise_fee);
-            if (oldValues.composition_vat) $('#composition_vat').val(oldValues.composition_vat);
-            if (oldValues.surcharge_on_ca) $('#surcharge_on_ca').val(oldValues.surcharge_on_ca);
-            if (oldValues.aed_to_be_paid) $('#aed_to_be_paid').val(oldValues.aed_to_be_paid);
-            if (oldValues.guarantee_fulfilled) $('#guarantee_fulfilled').val(oldValues.guarantee_fulfilled);
-
-            if (oldValues.excise_total_amount) {
-                $('#excise_total_amount').text('₹' + parseFloat(oldValues.excise_total_amount).toFixed(2));
-                $('.excise_total_amount').val(parseFloat(oldValues.excise_total_amount).toFixed(2));
+                // No vendor selected -> Billing right, excise hidden
+                $billingCol.removeClass('offset-lg-0').addClass('offset-lg-4');
             }
 
-            updateExciseSection(); // also sets excise_fee
+            if (oldValues.tcs) $('#tcs').val(oldValues.tcs);
 
-        } else if (vendorId === '2') {
-            // Vendor 2: excise hidden, Billing right side
-            $billingCol.removeClass('offset-lg-0').addClass('offset-lg-4');
+            // Adjust Billing position based on visible columns
+            // const licenseVisible = !$('#license-ledger-box-div').hasClass('d-none');
+            // const exciseVisible = !$('#excise-section-div').hasClass('d-none');
 
-            $('#vendor-2-fields').removeClass('d-none');
-
-            if (oldValues.vat) $('#vat').val(oldValues.vat);
-            if (oldValues.surcharge_on_vat) $('#surcharge_on_vat').val(oldValues.surcharge_on_vat);
-            if (oldValues.blf) $('#blf').val(oldValues.blf);
-            if (oldValues.permit_fee) $('#permit_fee').val(oldValues.permit_fee);
-            if (oldValues.rsgsm_purchase) $('#rsgsm_purchase').val(oldValues.rsgsm_purchase);
-
-            $('.vendor-common').show();
-        } else if (vendorId) {
-            // Other vendors: excise hidden, show cash purchase, Billing right
-            $billingCol.removeClass('offset-lg-0').addClass('offset-lg-4');
-
-            $('#vendor-others-fields').removeClass('d-none');
-            if (oldValues.case_purchase_per) $('.pur_dis').val(oldValues.case_purchase_per);
-            if (oldValues.case_purchase_amt) $('.pur_amt').val(oldValues.case_purchase_amt);
-        } else {
-            // No vendor selected -> Billing right, excise hidden
-            $billingCol.removeClass('offset-lg-0').addClass('offset-lg-4');
+            // if (licenseVisible && !exciseVisible) {
+            //     $('#billing-column').removeClass('offset-lg-0').addClass('offset-lg-4');
+            // } else if (licenseVisible && exciseVisible) {
+            //     $('#billing-column').removeClass('offset-lg-4').addClass('offset-lg-0');
+            // } else {
+            //     $('#billing-column').removeClass('offset-lg-0').addClass('offset-lg-4');
+            // }
+            calculateProductTotals();
+            updateBillingTotal();
         }
 
-        if (oldValues.tcs) $('#tcs').val(oldValues.tcs);
+        // ---------- MAIN READY ----------
 
-        // Adjust Billing position based on visible columns
-        // const licenseVisible = !$('#license-ledger-box-div').hasClass('d-none');
-        // const exciseVisible = !$('#excise-section-div').hasClass('d-none');
+        $(document).ready(function() {
+            // let srNo = $('#productBody tr').length ? $('#productBody tr').length + 1 : 1;
+            $('.vendor-common').hide();
 
-        // if (licenseVisible && !exciseVisible) {
-        //     $('#billing-column').removeClass('offset-lg-0').addClass('offset-lg-4');
-        // } else if (licenseVisible && exciseVisible) {
-        //     $('#billing-column').removeClass('offset-lg-4').addClass('offset-lg-0');
-        // } else {
-        //     $('#billing-column').removeClass('offset-lg-0').addClass('offset-lg-4');
-        // }
-        calculateProductTotals();
-        updateBillingTotal();
-    }
+            // Product select -> fetch details
+            $('#product_select').change(function() {
+                const product_id = $(this).val();
+                if (!product_id) return;
 
-    // ---------- MAIN READY ----------
-
-    $(document).ready(function() {
-        // let srNo = $('#productBody tr').length ? $('#productBody tr').length + 1 : 1;
-        $('.vendor-common').hide();
-
-        // Product select -> fetch details
-        $('#product_select').change(function() {
-            const product_id = $(this).val();
-            if (!product_id) return;
-
-            $.ajax({
-                url: "{{ url('/vendor/get-product-details/') }}/" + product_id,
-                type: "GET",
-                dataType: "json",
-                success: function(data) {
-                    addProduct(data);
-                },
-                error: function() {
-                    alert('Failed to fetch product details. Please try again.');
-                }
-            });
-        });
-
-        function addProduct(data) {
-
-            const brand = data.id ?? '';
-            const brandVal = data.name ?? '';
-            const batch = data.batch_no ?? '';
-            const mfg = data.mfg_date ?? '';
-            const mrp = data.mrp ?? 0;
-            const rate = data.cost_price ?? 0;
-            const qty = 1;
-            const amount = rate * qty;
-
-            let existingRow = null;
-
-            $('#product_table tbody tr').each(function() {
-                const rowBrand = $(this).find('input[name*="[brand_name]"]').val();
-                const rowBatch = $(this).find('input[name*="[batch]"]').val();
-                if (rowBrand === brandVal && rowBatch === batch) {
-                    existingRow = $(this);
-                    return false;
-                }
+                $.ajax({
+                    url: "{{ url('/vendor/get-product-details/') }}/" + product_id,
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data) {
+                        addProduct(data);
+                    },
+                    error: function() {
+                        alert('Failed to fetch product details. Please try again.');
+                    }
+                });
             });
 
-            if (existingRow) {
-                const qtyInput = existingRow.find('input[name*="[qnt]"]');
-                let existingQty = parseInt(qtyInput.val()) || 0;
-                const newQty = existingQty + 1;
-                qtyInput.val(newQty);
+            function addProduct(data) {
 
-                calculateProductTotals();
-                updateBillingTotal();
-                return;
-            }
+                const brand = data.id ?? '';
+                const brandVal = data.name ?? '';
+                const batch = data.batch_no ?? '';
+                const mfg = data.mfg_date ?? '';
+                const mrp = formatNumber(data.mrp) ?? 0;
+                const rate = formatNumber(data.cost_price) ?? 0;
+                const qty = 1;
+                const amount = rate * qty;
 
-            // 🔥 ALWAYS GET CURRENT ROW COUNT
-            const rowIndex = $('#product_table tbody tr').length;
+                let existingRow = null;
 
-            const row = `
+                $('#product_table tbody tr').each(function() {
+                    const rowBrand = $(this).find('input[name*="[brand_name]"]').val();
+                    const rowBatch = $(this).find('input[name*="[batch]"]').val();
+                    if (rowBrand === brandVal && rowBatch === batch) {
+                        existingRow = $(this);
+                        return false;
+                    }
+                });
+
+                if (existingRow) {
+                    const qtyInput = existingRow.find('input[name*="[qnt]"]');
+                    let existingQty = parseInt(qtyInput.val()) || 0;
+                    const newQty = existingQty + 1;
+                    qtyInput.val(newQty);
+
+                    calculateProductTotals();
+                    updateBillingTotal();
+                    return;
+                }
+
+                // 🔥 ALWAYS GET CURRENT ROW COUNT
+                const rowIndex = $('#product_table tbody tr').length;
+
+                const row = `
                 <tr>
                     <td>${rowIndex + 1}</td>
                     <input type="hidden" name="products[${rowIndex}][product_id]" value="${brand}">
@@ -851,10 +863,10 @@
                         <input type="number" name="products[${rowIndex}][qnt]" class="form-control" value="${qty}" min="1">
                     </td>
                     <td>
-                        <input type="number" step="0.01" name="products[${rowIndex}][rate]" class="form-control" value="${rate}">
+                        <input type="number"  name="products[${rowIndex}][rate]" class="form-control" value="${rate}">
                     </td>
                     <td>
-                        <input type="number" step="0.01" name="products[${rowIndex}][amount]" class="form-control" value="${amount.toFixed(2)}">
+                        <input type="number"  name="products[${rowIndex}][amount]" class="form-control" value="${amount}">
                     </td>
                     <td>
                         <button type="button" class="btn btn-sm btn-danger remove">Remove</button>
@@ -862,237 +874,243 @@
                 </tr>
                 `;
 
-            $('#product_table tbody').append(row);
+                $('#product_table tbody').append(row);
 
-            calculateProductTotals();
-            updateBillingTotal();
-        }
-
-        // Remove row
-        $(document).on('click', '.remove', function() {
-            $(this).closest('tr').remove();
-            updateSrNo();
-            calculateProductTotals();
-            updateBillingTotal();
-
-            if ($('#productBody tr').length === 0) {
-                $('#excise_fee, #composition_vat, #surcharge_on_ca, #aed_to_be_paid').val('');
-                $('#vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase').val('');
-                $('.pur_dis, .pur_amt').val('');
-                $('#tcs').val('');
-                $('#total_amount').text('₹0.00');
-                $('.total_amount').val('0.00');
-                $('#excise_total_amount').text('₹0.00');
-                $('.excise_total_amount').val('0.00');
+                calculateProductTotals();
+                updateBillingTotal();
             }
-        });
 
-        // qty / rate change
-        $(document).on('input', 'input[name*="[qnt]"], input[name*="[rate]"]', function() {
-            const $input = $(this);
-            const $row = $input.closest('tr');
+            // Remove row
+            $(document).on('click', '.remove', function() {
+                $(this).closest('tr').remove();
+                updateSrNo();
+                calculateProductTotals();
+                updateBillingTotal();
 
-            const qty = parseFloat($row.find('input[name*="[qnt]"]').val()) || 0;
-            const rate = parseFloat($row.find('input[name*="[rate]"]').val()) || 0;
-            const amount = (qty * rate).toFixed(2);
+                if ($('#productBody tr').length === 0) {
+                    $('#excise_fee, #composition_vat, #surcharge_on_ca, #aed_to_be_paid').val('');
+                    $('#vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase').val('');
+                    $('.pur_dis, .pur_amt').val('');
+                    $('#tcs').val('');
+                    $('#total_amount').text('₹0');
+                    $('.total_amount').val('0');
+                    $('#excise_total_amount').text('₹0');
+                    $('.excise_total_amount').val('0');
+                }
+            });
 
-            $row.find('input[name*="[amount]"]').val(amount);
-            $input.data('prev', qty);
+            // qty / rate change
+            $(document).on('input', 'input[name*="[qnt]"], input[name*="[rate]"]', function() {
+                const $input = $(this);
+                const $row = $input.closest('tr');
 
-            calculateProductTotals();
-            updateBillingTotal();
-        });
+                const qty = parseInt($row.find('input[name*="[qnt]"]').val()) || 0;
+                const rate = parseInt($row.find('input[name*="[rate]"]').val()) || 0;
+                const amount = (qty * rate);
 
-        // Amount change -> recalc rate
-        $(document).on('input', 'input[name*="[amount]"]', function() {
-            const $row = $(this).closest('tr');
-            const amount = parseFloat($(this).val()) || 0;
-            const qty = parseFloat($row.find('input[name*="[qnt]"]').val()) || 1;
-            const rate = amount / qty;
-            $row.find('input[name*="[rate]"]').val(rate.toFixed(2));
+                $row.find('input[name*="[amount]"]').val(amount);
+                $input.data('prev', qty);
 
-            calculateProductTotals();
-            updateBillingTotal();
-        });
-
-        // Billing fields
-        // Billing fields
-        $('#excise_fee, #composition_vat, #surcharge_on_ca, #tcs, #vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase, #aed_to_be_paid, #loading_charges')
-            .on('input', function() {
+                calculateProductTotals();
                 updateBillingTotal();
             });
 
-        // Excise box fields
-        $(document).on('input', '#permit_fee_excise, #vend_fee_excise, #composite_fee_excise', function() {
-            updateExciseSection();
-        });
+            // Amount change -> recalc rate
+            $(document).on('input', 'input[name*="[amount]"]', function() {
+                const $row = $(this).closest('tr');
+                const amount = parseInt($(this).val()) || 0;
+                const qty = parseInt($row.find('input[name*="[qnt]"]').val()) || 1;
+                const rate = amount / qty;
+                $row.find('input[name*="[rate]"]').val(rate);
 
-        // Discount fields
-        function updateFromPercentage() {
-            let originalAmount = $(".total_val").val() || 0;
-            originalAmount = parseFloat(originalAmount) || 0;
+                calculateProductTotals();
+                updateBillingTotal();
+            });
 
-            let percent = parseFloat($('.pur_dis').val()) || 0;
-            let discount = (originalAmount * percent) / 100;
+            // Billing fields
+            // Billing fields
+            $('#excise_fee, #composition_vat, #surcharge_on_ca, #tcs, #vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase, #aed_to_be_paid, #loading_charges')
+                .on('input', function() {
+                    updateBillingTotal();
+                });
 
-            $('.pur_amt').val(discount.toFixed(2));
+            // Excise box fields
+            $(document).on('input', '#permit_fee_excise, #vend_fee_excise, #composite_fee_excise', function() {
+                updateExciseSection();
+            });
 
-            let ta = originalAmount - discount;
-            $('#total_amount').text('₹' + ta.toFixed(2));
-            $('.total_amount').val(ta.toFixed(2));
-        }
+            // Discount fields
+            function updateFromPercentage() {
+                let originalAmount = $(".total_val").val() || 0;
+                originalAmount = parseInt(originalAmount) || 0;
 
-        function updateFromAmount() {
-            let originalAmount = $(".total_val").val() || 0;
-            originalAmount = parseFloat(originalAmount) || 0;
+                let percent = parseInt($('.pur_dis').val()) || 0;
+                let discount = (originalAmount * percent) / 100;
 
-            let amount = parseFloat($('.pur_amt').val()) || 0;
-            let percent = originalAmount > 0 ? (amount / originalAmount) * 100 : 0;
+                $('.pur_amt').val(discount);
 
-            $('.pur_dis').val(percent.toFixed(2));
-
-            let ta = originalAmount - amount;
-            $('#total_amount').text('₹' + ta.toFixed(2));
-            $('.total_amount').val(ta.toFixed(2));
-        }
-
-        $('.pur_dis').on('input', function() {
-            updateFromPercentage();
-            updateBillingTotal();
-        });
-        $('.pur_amt').on('input', function() {
-            updateFromAmount();
-            updateBillingTotal();
-        });
-
-        // Subcategory -> products
-        $('#subcategories').on('change', function() {
-            const subcatId = $(this).val();
-            const $productSelect = $('#product_select');
-
-            $productSelect.empty().append('<option value="">Loading...</option>');
-
-            if (!subcatId) {
-                $productSelect.empty().append('<option value="">-- Select Product --</option>');
-                return;
+                let ta = originalAmount - discount;
+                $('#total_amount').text('₹' + ta);
+                $('.total_amount').val(ta);
             }
 
-            $.ajax({
-                url: "/subcategory/" + subcatId + "/products",
-                type: "GET",
-                dataType: "json",
-                success: function(products) {
-                    $productSelect.empty().append(
-                        '<option value="">-- Select Product --</option>');
-                    if (!products || products.length === 0) {
-                        $productSelect.append(
-                            '<option value="">No products found</option>');
-                        return;
-                    }
+            function updateFromAmount() {
+                let originalAmount = $(".total_val").val() || 0;
+                originalAmount = parseInt(originalAmount) || 0;
 
-                    products.forEach(function(p) {
-                        $productSelect.append(
-                            $('<option>', {
-                                value: p.id,
-                                text: p.name,
-                                'data-mrp': p.mrp ?? '',
-                                'data-cost_price': p.cost_price ?? '',
-                                'data-sell_price': p.sell_price ?? ''
-                            })
-                        );
-                    });
+                let amount = parseInt($('.pur_amt').val()) || 0;
+                let percent = originalAmount > 0 ? (amount / originalAmount) * 100 : 0;
 
-                    const oldProduct = "{{ old('product_select') }}";
-                    if (oldProduct) {
-                        $productSelect.val(oldProduct);
-                    }
-                },
-                error: function(xhr) {
-                    $productSelect.empty().append(
-                        '<option value="">-- Select Product --</option>');
-                    alert('Failed to fetch products for selected subcategory. Try again.');
-                    console.error(xhr);
-                }
+                $('.pur_dis').val(percent);
+
+                let ta = originalAmount - amount;
+                $('#total_amount').text('₹' + ta);
+                $('.total_amount').val(ta);
+            }
+
+            $('.pur_dis').on('input', function() {
+                updateFromPercentage();
+                updateBillingTotal();
             });
-        });
+            $('.pur_amt').on('input', function() {
+                updateFromAmount();
+                updateBillingTotal();
+            });
 
-        // vendor change -> onVendorChange + auto sync ledger
-        $('#vendor_id').on('change', function() {
-            const vendorId = $(this).val();
+            // Subcategory -> products
+            $('#subcategories').on('change', function() {
+                const subcatId = $(this).val();
+                const $productSelect = $('#product_select');
 
-            onVendorChange(vendorId); // your existing logic
-            filterSubcategoriesByVendor(vendorId); // ✅ subcategory logic
+                $productSelect.empty().append('<option value="">Loading...</option>');
 
-            // Auto-sync purchase ledger
-            $('#parchase_ledger').val(vendorId);
-        });
-
-        // Barcode Enter / Scan
-        $('#product_barcode').on('keydown', function(e) {
-
-            if (e.which === 13) {
-                e.preventDefault();
-
-                const barcode = $(this).val().trim();
-                if (!barcode) return;
+                if (!subcatId) {
+                    $productSelect.empty().append('<option value="">-- Select Product --</option>');
+                    return;
+                }
 
                 $.ajax({
-                    url: "{{ url('/vendor/get-product-by-barcode') }}/" + barcode,
+                    url: "/subcategory/" + subcatId + "/products",
                     type: "GET",
                     dataType: "json",
-                    success: function(data) {
-
-                        if (!data || !data.id) {
-                            alert('Product not found for this barcode.');
+                    success: function(products) {
+                        $productSelect.empty().append(
+                            '<option value="">-- Select Product --</option>');
+                        if (!products || products.length === 0) {
+                            $productSelect.append(
+                                '<option value="">No products found</option>');
                             return;
                         }
 
-                        addProduct(data); // ✅ now accessible
-                        $('#product_barcode').val('');
-                        $('#product_barcode').focus(); // optional auto-focus
+                        products.forEach(function(p) {
+                            $productSelect.append(
+                                $('<option>', {
+                                    value: p.id,
+                                    text: p.name,
+                                    'data-mrp': p.mrp ?? '',
+                                    'data-cost_price': p.cost_price ?? '',
+                                    'data-sell_price': p.sell_price ?? ''
+                                })
+                            );
+                        });
+
+                        const oldProduct = "{{ old('product_select') }}";
+                        if (oldProduct) {
+                            $productSelect.val(oldProduct);
+                        }
                     },
-                    error: function() {
-                        alert('Invalid barcode or product not found.');
+                    error: function(xhr) {
+                        $productSelect.empty().append(
+                            '<option value="">-- Select Product --</option>');
+                        alert('Failed to fetch products for selected subcategory. Try again.');
+                        console.error(xhr);
                     }
                 });
+            });
+
+            // vendor change -> onVendorChange + auto sync ledger
+            $('#vendor_id').on('change', function() {
+                const vendorId = $(this).val();
+
+                onVendorChange(vendorId); // your existing logic
+                filterSubcategoriesByVendor(vendorId); // ✅ subcategory logic
+
+                // Auto-sync purchase ledger
+                $('#parchase_ledger').val(vendorId);
+            });
+
+            // Barcode Enter / Scan
+            $('#product_barcode').on('keydown', function(e) {
+
+                if (e.which === 13) {
+                    e.preventDefault();
+
+                    const barcode = $(this).val().trim();
+                    if (!barcode) return;
+
+                    $.ajax({
+                        url: "{{ url('/vendor/get-product-by-barcode') }}/" + barcode,
+                        type: "GET",
+                        dataType: "json",
+                        success: function(data) {
+
+                            if (!data || !data.id) {
+                                alert('Product not found for this barcode.');
+                                return;
+                            }
+
+                            addProduct(data); // ✅ now accessible
+                            $('#product_barcode').val('');
+                            $('#product_barcode').focus(); // optional auto-focus
+                        },
+                        error: function() {
+                            alert('Invalid barcode or product not found.');
+                        }
+                    });
+                }
+            });
+
+        });
+
+        // Initial on page load (after validation error)
+        document.addEventListener('DOMContentLoaded', function() {
+
+            calculateProductTotals();
+            updateBillingTotal();
+
+            const oldVendorId = "{{ old('vendor_id') }}";
+
+            if (oldVendorId) {
+                onVendorChange(oldVendorId);
+                filterSubcategoriesByVendor(oldVendorId);
+            } else {
+                $('#license-ledger-box-div').addClass('d-none');
             }
         });
 
-    });
+        function updateSrNo() {
+            $('#product_table tbody tr').each(function(index) {
+                $(this).find('td:first').text(index + 1);
 
-    // Initial on page load (after validation error)
-    document.addEventListener('DOMContentLoaded', function() {
-
-        calculateProductTotals();
-        updateBillingTotal();
-
-        const oldVendorId = '{{ old('vendor_id') }}';
-
-        if (oldVendorId) {
-            onVendorChange(oldVendorId);
-            filterSubcategoriesByVendor(oldVendorId);
-        } else {
-            $('#license-ledger-box-div').addClass('d-none');
-        }
-    });
-
-
-    function updateSrNo() {
-        $('#product_table tbody tr').each(function(index) {
-            $(this).find('td:first').text(index + 1);
-
-            // Also update input index name like products[0], products[1]...
-            $(this).find('input, select').each(function() {
-                const name = $(this).attr('name');
-                if (name) {
-                    const newName = name.replace(/products\[\d+\]/, 'products[' + index +
-                        ']');
-                    $(this).attr('name', newName);
-                }
+                // Also update input index name like products[0], products[1]...
+                $(this).find('input, select').each(function() {
+                    const name = $(this).attr('name');
+                    if (name) {
+                        const newName = name.replace(/products\[\d+\]/, 'products[' + index +
+                            ']');
+                        $(this).attr('name', newName);
+                    }
+                });
             });
-        });
 
-        // Reset srNo counter
-        srNo = $('#product_table tbody tr').length + 1;
-    }
-</script>
+            // Reset srNo counter
+            srNo = $('#product_table tbody tr').length + 1;
+        }
+
+        function formatNumber(num) {
+            num = parseFloat(num) || 0;
+            return Number.isInteger(num) ? num : num.toFixed(2);
+        }
+    </script>
+
+@endsection
