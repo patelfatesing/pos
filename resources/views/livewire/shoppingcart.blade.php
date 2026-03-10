@@ -1029,7 +1029,7 @@
                                             class="btn btn-warning btn-sm mb-3 ms-2">
                                             Clear
                                         </button>
-                                        <div class="row">
+                                        <div class="row align-items-end">
                                             <div class="col-md-6">
                                                 <div class="mb-3">
                                                     <label for="notes"
@@ -1038,7 +1038,7 @@
                                                 </div>
                                             </div>
                                              <div class="col-md-6">
-                                                <div class="d-flex submit_btn_block">
+                                                <div class="d-flex submit_btn_block mb-3">
                                             <button type="submit"
                                                 class="frame-stock-request-group223 btn-submit">{{ __('messages.submit_request') }}</button>
                                         </div>
