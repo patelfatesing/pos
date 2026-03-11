@@ -1,107 +1,54 @@
 @extends('layouts.backend.datatable_layouts')
 
-@section('styles')
-    <style>
-        .add-list {
-            white-space: nowrap;
-        }
-
-        .custom-toolbar-row {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .custom-toolbar-row .dataTables_length {
-            order: 1;
-        }
-
-        .custom-toolbar-row .dt-buttons {
-            order: 2;
-        }
-
-        .custom-toolbar-row .status-filter {
-            order: 3;
-        }
-
-        .custom-toolbar-row .dataTables_filter {
-            order: 4;
-            margin-left: auto;
-        }
-
-        .dataTables_wrapper .dataTables_filter label,
-        .dataTables_wrapper .dataTables_length label {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-bottom: 0;
-        }
-
-        .dt-buttons .btn {
-            margin-right: 5px;
-        }
-
-        @media (max-width: 768px) {
-            .custom-toolbar-row>div {
-                flex: 1 1 100%;
-                margin-bottom: 10px;
-            }
-        }
-    </style>
-@endsection
 
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <div class="wrapper">
-        <div class="content-page">
-            <div class="container-fluid">
-                <!-- Page Header -->
-                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
-                    <div>
-                        <h4 class="mb-0">Commission Customer List</h4>
-                    </div>
-                    @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'commission-customer-create'))
-                        <a href="{{ route('commission-users.create') }}" class="btn btn-primary add-list">
-                            <i class="las la-plus mr-3"></i>Create New Commission Customer
-                        </a>
-                    @endif
+    <div class="content-page">
+        <div class="container-fluid">
+            <!-- Page Header -->
+            <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                <div>
+                    <h4 class="mb-0">Commission Customer List</h4>
                 </div>
-            
-                <!-- Table -->
-                <div class="row mt-1">
-                    <div class="col-12">
-                        <div class="table-responsive rounded">
-                            <table class="table table-striped table-bordered nowrap" id="commission_users_table"
-                                style="width:100%;">
-                                <thead class="bg-white">
-                                    <tr class="ligth ligth-data">
-                                        <th>Sr No</th> <!-- Added this line -->
-                                        <th>Customer Name</th>
-                                        <th>Mobile Number</th>
-                                        <th>Commission Type</th>
-                                        {{-- <th>Applies To</th> --}}
-                                        <th>Status</th>
-                                        <th>Created Date</th>
-                                        <th>Updated Date</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
+                @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'commission-customer-create'))
+                    <a href="{{ route('commission-users.create') }}" class="btn btn-primary add-list">
+                        <i class="las la-plus mr-3"></i>Create New Commission Customer
+                    </a>
+                @endif
             </div>
+
+            <!-- Table -->
+            <div class="row mt-1">
+                <div class="col-12">
+                    <div class="table-responsive rounded">
+                        <table class="table table-striped table-bordered nowrap" id="commission_users_table">
+                            <thead class="bg-white">
+                                <tr class="ligth ligth-data">
+                                    <th>Sr No</th> <!-- Added this line -->
+                                    <th>Customer Name</th>
+                                    <th>Mobile Number</th>
+                                    <th>Commission Type</th>
+                                    {{-- <th>Applies To</th> --}}
+                                    <th>Status</th>
+                                    <th>Created Date</th>
+                                    <th>Updated Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 @endsection
 
 @section('scripts')
     <script>
+        var pdfLogo = "";
         $(document).ready(function() {
             $.ajaxSetup({
                 headers: {
@@ -113,12 +60,20 @@
                 processing: true,
                 serverSide: true,
                 responsive: true,
+                language: {
+                    search: "",
+                    lengthMenu: "_MENU_"
+                },
                 ajax: {
                     url: '{{ url('commission-users/get-data') }}',
                     type: 'POST',
                     data: function(d) {
                         d.status = $('#status').val();
                     }
+                },
+                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+                initComplete: function() {
+                    $('.dataTables_filter input').attr("placeholder", "Search List...");
                 },
                 columns: [{
                         data: null,
@@ -169,39 +124,108 @@
                 }],
                 pageLength: 10,
 
-                dom: "<'custom-toolbar-row'lfB>t<'row mt-2'<'col-md-6'i><'col-md-6'p>>",
-
                 buttons: [{
-                        extend: 'excelHtml5',
-                        className: 'btn btn-sm btn-outline-success',
-                        title: 'Commission Customer',
-                        filename: 'commission_customer_excel',
-                        exportOptions: {
-                            columns: ':visible'
+                    extend: 'collection',
+                    text: '<i class="fa fa-download"></i>',
+                    className: 'btn btn-info btn-sm',
+                    autoClose: true,
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            text: '<i class="fa fa-file-excel-o"></i> Excel',
+                            title: 'Commission Customer List',
+                            filename: 'commission_customer_list',
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        },
+                        {
+                            extend: 'pdfHtml5',
+                            text: '<i class="fa fa-file-pdf-o"></i> PDF',
+                            filename: 'commission_customer_list',
+                            orientation: 'landscape',
+                            pageSize: 'A4',
+
+                            exportOptions: {
+                                columns: [0, 1, 2, 3, 4, 5]
+                            },
+
+                            customize: function(doc) {
+
+                                // REMOVE default title
+                                doc.content.splice(0, 1);
+
+                                // CENTER TABLE
+                                doc.content[0].alignment = 'center';
+
+                                // MAKE TABLE WIDTH FULL PAGE
+                                doc.content[0].table.widths = ['auto', '*', '*', '*', '*',
+                                    '*'
+                                ];
+
+                                doc.styles.tableHeader.alignment = 'center';
+
+                                var tableBody = doc.content[0].table.body;
+
+                                for (var i = 1; i < tableBody.length; i++) {
+                                    tableBody[i][0].alignment = 'center';
+                                    tableBody[i][1].alignment = 'left';
+                                    tableBody[i][2].alignment = 'center';
+                                    tableBody[i][3].alignment = 'center';
+                                    tableBody[i][4].alignment = 'center';
+                                    tableBody[i][5].alignment = 'center';
+                                }
+
+                                // HEADER
+                                doc.content.unshift({
+                                    margin: [0, 0, 0, 12],
+                                    columns: [{
+                                            width: '33%',
+                                            columns: [{
+                                                    image: pdfLogo,
+                                                    width: 30
+                                                },
+                                                {
+                                                    text: 'LiquorHub',
+                                                    fontSize: 11,
+                                                    bold: true,
+                                                    margin: [5, 8, 0, 0]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            width: '34%',
+                                            text: 'Commission Customer List',
+                                            alignment: 'center',
+                                            fontSize: 16,
+                                            bold: true,
+                                            margin: [0, 8, 0, 0]
+                                        },
+                                        {
+                                            width: '33%',
+                                            text: 'Generated: ' + new Date()
+                                                .toLocaleString(),
+                                            alignment: 'right',
+                                            fontSize: 9,
+                                            margin: [0, 8, 0, 0]
+                                        }
+                                    ]
+                                });
+
+                                doc.styles.tableHeader.fontSize = 10;
+                                doc.defaultStyle.fontSize = 9;
+                            }
                         }
-                    },
-                    {
-                        extend: 'pdfHtml5',
-                        className: 'btn btn-sm btn-outline-danger',
-                        title: 'Commission Customer',
-                        filename: 'commission_customer_pdf',
-                        orientation: 'landscape',
-                        pageSize: 'A4',
-                        exportOptions: {
-                            columns: ':visible'
-                        }
-                    }
-                ],
+                    ]
+                }],
                 initComplete: function() {
-                    // Inject Status Filter
-                    $('<div class="status-filter">' +
-                        '<select id="status" class="form-control">' +
+                    // Inject status filter in correct order
+                    $('<div class="status-filter d-flex align-items-center mr-2 mb-4">' +
+                        '<select id="status" class="form-control form-control-sm">' +
                         '<option value="">All Status</option>' +
                         '<option value="active">Active</option>' +
                         '<option value="inactive">Inactive</option>' +
                         '</select>' +
-                        '</div>').insertAfter('.dt-buttons');
-
+                        '</div>').insertBefore('.dt-buttons');
                     $('#status').on('change', function() {
                         table.ajax.reload();
                     });
@@ -277,5 +301,28 @@
                 }
             });
         }
+
+        function getBase64Image(url, callback) {
+            var img = new Image();
+            img.crossOrigin = "Anonymous";
+
+            img.onload = function() {
+                var canvas = document.createElement("canvas");
+                canvas.width = this.width;
+                canvas.height = this.height;
+
+                var ctx = canvas.getContext("2d");
+                ctx.drawImage(this, 0, 0);
+
+                var dataURL = canvas.toDataURL("image/png");
+                callback(dataURL);
+            };
+
+            img.src = url;
+        }
+
+        getBase64Image("https://liquorhub.in/assets/images/logo.png", function(base64) {
+            pdfLogo = base64;
+        });
     </script>
 @endsection

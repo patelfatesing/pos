@@ -1,12 +1,18 @@
-@extends('layouts.backend.layouts')
+@extends('layouts.backend.datatable_layouts')
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <style>
     .is-invalid {
         border-color: #dc3545;
+    }
+
+    .scrollable-content {
+        max-height: 450px;
+        overflow-y: auto;
+    }
+
+    .table th,
+    .table td {
+        vertical-align: middle;
     }
 </style>
 
@@ -16,43 +22,42 @@
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Wrapper Start -->
-    <div class="wrapper">
-        <div class="content-page">
-            <div class="container-fluid">
-                <div class="card-header mb-3 d-flex flex-wrap align-items-center justify-content-between">
-                    <div>
-                        <h4 class="mb-0">Store List</h4>
-                    </div>
-                    @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'store-manage'))
-                        <a href="{{ route('branch.create') }}" class="btn btn-primary add-list">
-                            <i class="las la-plus mr-3"></i>Create New Store
-                        </a>
-                    @endif
+    <div class="content-page">
+        <div class="container-fluid">
+            <div class="card-header mb-2 d-flex flex-wrap align-items-center justify-content-between">
+                <div>
+                    <h4 class="mb-0">Store List</h4>
                 </div>
-                <div class="table-responsive rounded mb-3">
-                    <table class="table data-tables table-striped" id="branch_table">
-                        <thead class="bg-white text-uppercase">
-                            <tr class="ligth ligth-data">
+                @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'store-manage'))
+                    <a href="{{ route('branch.create') }}" class="btn btn-primary add-list">
+                        <i class="las la-plus mr-3"></i>Create New Store
+                    </a>
+                @endif
+            </div>
+            <div class="table-responsive rounded mb-3">
+                <table class="table table-striped table-bordered nowrap" id="branch_table">
+                    <thead class="bg-white text-uppercase">
+                        <tr class="ligth ligth-data">
 
-                                <th>
-                                    Name
-                                </th>
-                                <th>Address</th>
-                                <th>Status</th>
-                                <th>Main Branch</th>
-                                <th>Created Date</th>
-                                <th>Updated Date</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                    <!-- Page end  -->
-                </div>
+                            <th>
+                                Name
+                            </th>
+                            <th>Address</th>
+                            <th>Status</th>
+                            <th>Main Branch</th>
+                            <th>Created Date</th>
+                            <th>Updated Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <!-- Page end  -->
             </div>
         </div>
     </div>
+
     <!-- Wrapper End-->
 
     <div class="modal fade bd-example-modal-lg" id="lowlevelStockBranchModal" tabindex="-1" role="dialog"
@@ -114,7 +119,7 @@
                         <!-- Hidden branch_id -->
                         <input type="hidden" name="branch_id" id="hd_branch_id" value="{{ $currentBranch->id ?? 1 }}">
 
-                       <div class="row">
+                        <div class="row">
                             <!-- Title -->
                             <div class="form-group col-md-6">
                                 <label for="holiday_title">Title <span class="text-danger">*</span></label>
@@ -188,19 +193,8 @@
         </div>
     </div>
 
-    <style>
-        .scrollable-content {
-            max-height: 450px;
-            overflow-y: auto;
-        }
-
-        .table th,
-        .table td {
-            vertical-align: middle;
-        }
-    </style>
-
     <script>
+        var pdfLogo = "";
         // Dynamically bind event for the custom switch
         $(document).on('change', '.custom-control-input', function() {
             var storeId = $(this).data('store-id'); // Get store ID from data attribute
@@ -273,11 +267,18 @@
                 ordering: true,
                 bLengthChange: true,
                 serverSide: true,
-
+                language: {
+                    search: "",
+                    lengthMenu: "_MENU_"
+                },
                 "ajax": {
                     "url": '{{ url('store/get-data') }}',
                     "type": "post",
                     "data": function(d) {},
+                },
+                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+                initComplete: function() {
+                    $('.dataTables_filter input').attr("placeholder", "Search List...");
                 },
                 aoColumns: [
 
@@ -312,12 +313,87 @@
                 order: [
                     [4, 'desc']
                 ], // 🟢 Sort by created_at DESC by default
-                dom: "Bfrtip",
                 lengthMenu: [
                     [10, 25, 50],
                     ['10 rows', '25 rows', '50 rows', 'All']
                 ],
-                buttons: ['pageLength']
+                buttons: [{
+                    extend: 'collection',
+                    text: '<i class="fa fa-download"></i>',
+                    className: 'btn btn-info btn-sm',
+                    autoClose: true,
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            text: '<i class="fa fa-file-excel-o"></i> Excel',
+                            title: 'Store List',
+                            filename: 'store_list',
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        },
+                        {
+                            extend: 'pdfHtml5',
+                            text: '<i class="fa fa-file-pdf-o"></i> PDF',
+                            filename: 'store_list',
+                            orientation: 'landscape',
+                            pageSize: 'A4',
+
+                            exportOptions: {
+                                columns: [0, 1, 2, 3, 4]
+                            },
+
+                            customize: function(doc) {
+
+                                // REMOVE default title
+                                doc.content.splice(0, 1);
+
+                                doc.styles.tableHeader.alignment = 'center';
+
+                                // HEADER
+                                doc.content.unshift({
+                                    margin: [0, 0, 0, 12],
+                                    columns: [{
+                                            width: '33%',
+                                            columns: [{
+                                                    image: pdfLogo,
+                                                    width: 30
+                                                },
+                                                {
+                                                    text: 'LiquorHub',
+                                                    fontSize: 11,
+                                                    bold: true,
+                                                    margin: [5, 8, 0, 0]
+                                                }
+                                            ]
+                                        },
+
+                                        {
+                                            width: '34%',
+                                            text: 'Store List',
+                                            alignment: 'center',
+                                            fontSize: 16,
+                                            bold: true,
+                                            margin: [0, 8, 0, 0]
+                                        },
+
+                                        {
+                                            width: '33%',
+                                            text: 'Generated: ' + new Date()
+                                                .toLocaleString(),
+                                            alignment: 'right',
+                                            fontSize: 9,
+                                            margin: [0, 8, 0, 0]
+                                        }
+
+                                    ]
+                                });
+
+                                doc.styles.tableHeader.fontSize = 10;
+                                doc.defaultStyle.fontSize = 9;
+                            }
+                        }
+                    ]
+                }]
 
             });
         });
@@ -411,8 +487,9 @@
                         </tr>
                     `);
                     });
-
-                    $('#lowlevelStockBranchModal').modal('show');
+                    var modal = new bootstrap.Modal(document.getElementById('lowlevelStockBranchModal'));
+                    modal.show();
+                   
                 },
                 error: function() {
                     alert('Failed to load products.');
@@ -477,14 +554,14 @@
 
         function add_store_holiday(storeId) {
             $('#hd_store_id').val(storeId);
-
-            $('#AddHolidayModal').modal('show');
-
+            var modal = new bootstrap.Modal(document.getElementById('AddHolidayModal'));
+            modal.show();
         }
 
         function add_one_time_sales(storeId) {
             $('#ots_branch_id').val(storeId);
-            $('#AddOneTimeModal').modal('show');
+            var modal = new bootstrap.Modal(document.getElementById('AddOneTimeModal'));
+            modal.show();
         }
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -584,6 +661,29 @@
                 alert("You cannot select time before 7:00 PM");
                 this.value = "19:00";
             }
+        });
+
+        function getBase64Image(url, callback) {
+            var img = new Image();
+            img.crossOrigin = "Anonymous";
+
+            img.onload = function() {
+                var canvas = document.createElement("canvas");
+                canvas.width = this.width;
+                canvas.height = this.height;
+
+                var ctx = canvas.getContext("2d");
+                ctx.drawImage(this, 0, 0);
+
+                var dataURL = canvas.toDataURL("image/png");
+                callback(dataURL);
+            };
+
+            img.src = url;
+        }
+
+        getBase64Image("https://liquorhub.in/assets/images/logo.png", function(base64) {
+            pdfLogo = base64;
         });
     </script>
 @endsection
