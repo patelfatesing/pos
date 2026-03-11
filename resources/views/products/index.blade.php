@@ -1,6 +1,5 @@
 @extends('layouts.backend.datatable_layouts')
 @section('page-content')
-    
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Wrapper Start -->
     <div class="content-page">
@@ -250,13 +249,13 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                     }
                 },
                 dom: "<'row align-items-center mb-2'\
-                        <'col-md-12 d-flex justify-content-end align-items-center'B f l>\
-                            >\
-                            t\
-                            <'row mt-2'\
-                                <'col-md-6'i>\
-                                <'col-md-6 d-flex justify-content-end'p>\
-                            >",
+                            <'col-md-12 d-flex justify-content-end align-items-center'B f l>\
+                                >\
+                                t\
+                                <'row mt-2'\
+                                    <'col-md-6'i>\
+                                    <'col-md-6 d-flex justify-content-end'p>\
+                                >",
                 columns: [{
                         data: null,
                         name: 'sr_no',

@@ -1,7 +1,6 @@
 @extends('layouts.backend.layouts')
 @section('page-content')
     <!-- Wrapper Start -->
-    <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid add-form-list">
                 <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
@@ -22,7 +21,7 @@
                                     @csrf
                                     <input type="hidden" name="id" value="{{ $record->id }}">
                                     <div class="row">
-                                        <div class="col-lg-6">
+                                        <div class="col-lg-4">
                                             <div class="floating-label form-group">
                                                 <label>Full Name</label>
                                                 <input class="floating-input form-control"
@@ -33,7 +32,7 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        <div class="col-lg-6">
+                                        <div class="col-lg-4">
                                             <div class="floating-label form-group">
                                                 <label>Last Name</label>
                                                 <input class="floating-input form-control"
@@ -44,7 +43,7 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        <div class="col-lg-6">
+                                        <div class="col-lg-4">
                                             <div class="floating-label form-group">
                                                 <label>Username </label>
                                                 <input class="floating-input form-control" value="{{ $record->username }}"
@@ -54,7 +53,7 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        <div class="col-lg-6">
+                                        <div class="col-lg-4">
                                             <div class="floating-label form-group">
                                                 <label>Email</label>
                                                 <input class="floating-input form-control" value="{{ $record->email }}"
@@ -64,7 +63,7 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        <div class="col-lg-6">
+                                        <div class="col-lg-4">
                                             <div class="floating-label form-group">
                                                 <label>Phone No.</label>
                                                 <input class="floating-input form-control"
@@ -75,7 +74,7 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-lg-4">
                                             <div class="form-group">
                                                 <label>Role *</label>
                                                 <select name="role_id" class="selectpicker form-control" data-style="py-0">
@@ -93,7 +92,7 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        <div class="col-md-6 branch-section">
+                                        <div class="col-lg-4 branch-section">
                                             <div class="form-group">
                                                 <label>Store *</label>
                                                 <select name="branch_id" class="selectpicker form-control"
@@ -111,7 +110,7 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-lg-4">
                                             <div class="form-group">
                                                 <label>Address</label>
                                                 <textarea class="form-control" name="address" rows="2">{{ $record->userInfo->address }}</textarea>
@@ -128,7 +127,6 @@
                 <!-- Page end  -->
             </div>
         </div>
-    </div>
     <!-- Wrapper End-->
 
     <script>

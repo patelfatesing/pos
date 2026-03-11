@@ -1,12 +1,11 @@
 @extends('layouts.backend.datatable_layouts')
 
 @section('page-content')
-    
 
     <div class="content-page">
         <div class="container-fluid">
             <!-- Page Header -->
-            <div class="row align-items-center mb-3">
+            <div class="row align-items-center mb-2">
                 <div class="col-lg-12">
                     <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
                         <div>
@@ -68,7 +67,6 @@
 
         </div>
     </div>
-
 
     <!-- Wrapper End-->
     <!-- Low Level Modal -->
@@ -143,7 +141,7 @@
                         d.sub_category_id = $('#subCategorySearch').val(); // Add subcategory filter
                     }
                 },
-                dom: "<'row mb-2'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
                 initComplete: function() {
                     $('.dataTables_filter input').attr("placeholder", "Search List...");
                 },

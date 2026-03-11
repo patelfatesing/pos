@@ -1,7 +1,7 @@
 @extends('layouts.backend.layouts')
 @section('page-content')
-<!-- Wrapper Start -->
-<div class="wrapper">
+    <!-- Wrapper Start -->
+
     <div class="content-page">
         <div class="container-fluid add-form-list">
             <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
@@ -27,7 +27,7 @@
                                             <input type="text" name="name" value="{{ $record->name }}"
                                                 class="form-control" placeholder="Enter Name" required>
                                             @error('name')
-                                            <span class="text-danger">{{ $message }}</span>
+                                                <span class="text-danger">{{ $message }}</span>
                                             @enderror
                                         </div>
                                     </div>
@@ -35,16 +35,15 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Status *</label>
-                                            <select name="is_active" class="selectpicker form-control"
-                                                data-style="py-0">
-                                                <option value="yes"
-                                                    {{ $record->is_active == 'yes' ? 'selected' : '' }}>Yes</option>
-                                                <option value="no"
-                                                    {{ $record->is_active == 'no' ? 'selected' : '' }}>No</option>
+                                            <select name="is_active" class="selectpicker form-control" data-style="py-0">
+                                                <option value="yes" {{ $record->is_active == 'yes' ? 'selected' : '' }}>
+                                                    Yes</option>
+                                                <option value="no" {{ $record->is_active == 'no' ? 'selected' : '' }}>No
+                                                </option>
 
                                             </select>
                                             @error('is_active')
-                                            <span class="text-danger">{{ $message }}</span>
+                                                <span class="text-danger">{{ $message }}</span>
                                             @enderror
                                         </div>
                                     </div>
@@ -55,16 +54,16 @@
                                             <label>Store Address</label>
                                             <textarea class="form-control" name="address" rows="4">{{ $record->address }}</textarea>
                                             @error('address')
-                                            <span class="text-danger">{{ $message }}</span>
+                                                <span class="text-danger">{{ $message }}</span>
                                             @enderror
                                         </div>
                                     </div>
                                     <!-- <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Description</label>
-                                                <textarea class="form-control" name="description" rows="4">{{ $record->description }}</textarea>
-                                            </div>
-                                        </div> -->
+                                                <div class="form-group">
+                                                    <label>Description</label>
+                                                    <textarea class="form-control" name="description" rows="4">{{ $record->description }}</textarea>
+                                                </div>
+                                            </div> -->
                                 </div>
                                 <button type="submit" class="btn btn-primary mr-2">Update Store</button>
                                 <button type="reset" class="btn btn-danger" id="resetBtn">Reset</button>
@@ -76,23 +75,23 @@
             <!-- Page end  -->
         </div>
     </div>
-</div>
-<!-- Wrapper End-->
-<script>
-    $(document).ready(function() {
 
-        $('#resetBtn').click(function() {
+    <!-- Wrapper End-->
+    <script>
+        $(document).ready(function() {
 
-            // Reset form fields to original values
-            $('#editStoreForm')[0].reset();
+            $('#resetBtn').click(function() {
 
-            // Reset selectpicker
-            $('.selectpicker').selectpicker('refresh');
+                // Reset form fields to original values
+                $('#editStoreForm')[0].reset();
 
-            // Remove validation messages
-            $('.text-danger').html('');
+                // Reset selectpicker
+                $('.selectpicker').selectpicker('refresh');
+
+                // Remove validation messages
+                $('.text-danger').html('');
+            });
+
         });
-
-    });
-</script>
+    </script>
 @endsection

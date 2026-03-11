@@ -1,15 +1,11 @@
-@extends('layouts.backend.layouts')
+@extends('layouts.backend.datatable_layouts')
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 @section('page-content')
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
                 <!-- Page Header -->
-                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-3">
                     <div>
                         <h4 class="mb-0">Expense Category List</h4>
                     </div>
@@ -17,13 +13,12 @@
                         <i class="las la-plus mr-3"></i>Create New Expense Category
                     </a>
                 </div>
-            
+
                 <!-- Table -->
                 <div class="row">
                     <div class="col-12">
                         <div class="table-responsive rounded">
-                            <table class="table table-striped table-bordered nowrap" id="exp_category_tbl"
-                                style="width:100%;">
+                            <table class="table table-striped table-bordered nowrap" id="exp_category_tbl">
                                 <thead class="bg-white">
                                     <tr class="ligth ligth-data">
                                         <th>Sr No</th> <!-- Added this line -->
@@ -113,18 +108,22 @@
             $('#exp_category_tbl').DataTable().clear().destroy();
 
             $('#exp_category_tbl').DataTable({
-                pagelength: 10,
+                pageLength: 10,
                 responsive: true,
                 processing: true,
                 ordering: true,
                 bLengthChange: true,
                 serverSide: true,
-
+                language: {
+                    search: "",
+                    lengthMenu: "_MENU_"
+                },
                 "ajax": {
                     "url": '{{ url('exp-category/get-data') }}',
                     "type": "post",
                     "data": function(d) {},
                 },
+                  dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'f l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
                 aoColumns: [{
                         data: null,
                         name: 'sr_no',
@@ -162,7 +161,6 @@
                     [4, 'desc']
                 ], // 🟢 Sort by created_at DESC by default
 
-                dom: "Bfrtip",
                 lengthMenu: [
                     [10, 25, 50],
                     ['10 rows', '25 rows', '50 rows', 'All']

@@ -23,7 +23,7 @@
                                     enctype="multipart/form-data">
                                     @csrf
                                     <div class="row">
-                                        <div class="col-lg-6">
+                                        <div class="col-lg-4">
                                             <div class="floating-label form-group">
                                                 <label>Customer Name</label>
                                                 <input type="text" name="first_name" class="form-control"
@@ -33,7 +33,7 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        <div class="col-lg-6">
+                                        <div class="col-lg-4">
                                             <div class="floating-label form-group">
                                                 <label>Mobile Number</label>
                                                 <input type="text" name="mobile_number" class="form-control"
@@ -44,7 +44,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-lg-6">
+                                        <div class="col-lg-4">
                                             <div class="floating-label form-group">
                                                 <label>Commission Type</label>
                                                 <select name="commission_type" class="form-control">
@@ -58,7 +58,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-lg-6">
+                                        <div class="col-lg-4">
                                             <div class="floating-label form-group">
                                                 <label>Email</label>
                                                 <input type="email" name="email" class="form-control"
@@ -69,7 +69,7 @@
                                             </div>
                                         </div>
 
-                                        {{-- <div class="col-lg-6">
+                                        {{-- <div class="col-lg-4">
                                             <div class="floating-label form-group">
                                                 <label>Applies To</label>
                                                 <select name="applies_to" class="form-control">
@@ -83,7 +83,7 @@
                                             </div>
                                         </div> --}}
 
-                                        <div class="col-lg-6">
+                                        <div class="col-lg-4">
                                             <div class="floating-label form-group">
                                                 <label>Reference Name</label>
                                                 <input type="text" name="reference_id" class="form-control"
@@ -94,7 +94,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-lg-6">
+                                        <div class="col-lg-4">
                                             <div class="floating-label form-group">
                                                 <label>Active</label>
                                                 <select name="is_active" class="form-control">
@@ -105,7 +105,7 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-lg-6">
+                                        <div class="col-lg-4">
                                             <div class="form-group">
                                                 <label>Upload Image</label>
                                                 <input type="file" name="image" class="form-control"

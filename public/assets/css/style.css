@@ -128,3 +128,32 @@
         .dataTables_wrapper .dataTables_length select {
             height: 40px !important;
         }
+
+        .dt_height {
+            height: 45px !important;
+        }
+        .status-filter{
+    width:150px;
+    margin-right:10px;
+}
+
+    .status-filter{
+    width:150px;
+    margin-right:10px;
+}
+
+.status-filter select{
+    height:38px;
+}
+
+.dt-buttons{
+    margin-right:10px;
+}
+
+.dataTables_filter{
+    margin-right:10px;
+}
+
+.header-title{
+    color: #32BDEA;
+}

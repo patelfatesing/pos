@@ -1,86 +1,91 @@
-@extends('layouts.backend.layouts')
+@extends('layouts.backend.datatable_layouts')
 
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Wrapper Start -->
-    <div class="wrapper">
-        <div class="content-page">
-            <div class="container-fluid">
-                <div class="card-header mb-3 d-flex flex-wrap align-items-center justify-content-between">
-                    <div>
-                        <h4 class="mb-0">Shift Manage</h4>
-                    </div>
+
+    <div class="content-page">
+        <div class="container-fluid">
+            <div class="card-header mb-3 d-flex flex-wrap align-items-center justify-content-between">
+                <div>
+                    <h4 class="mb-0">Shift Manage</h4>
                 </div>
-
-                <div class="row">
-                    <div class="col-md-2 mb-2">
-                        <input type="date" id="start_date" class="form-control">
-                    </div>
-                    <div class="col-md-2 mb-2">
-                        <input type="date" id="end_date" class="form-control">
-                    </div>
-                    <div class="col-md-2 mb-2">
-                        <select id="branch_id" class="form-control">
-                            <option value="">All Branches</option>
-                            @foreach ($branches as $branch)
-                                <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-2 mb-2">
-                        <select id="user_id" class="form-control">
-                            <option value="">All Users</option>
-                            @foreach ($users as $users)
-                                <option value="{{ $users->id }}">{{ $users->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="col-md-2 mb-2">
-                        <button class="btn btn-primary w-100" id="shiftSearch">Search</button>
-                    </div>
-                    <div class="col-md-2 mb-2">
-                        <button class="btn btn-secondary w-100" id="shiftReset">Reset</button>
-                    </div>
-
-                </div>
-
-                <div class="table-responsive rounded mb-3" id="shiftTableContainer">
-                    <table class="table data-tables table-striped" id="shift_tbl">
-                        <thead class="bg-white text-uppercase">
-                            <tr class="ligth ligth-data">
-                                <th>Shift No</th>
-                                <th>Store</th>
-                                <th>User</th>
-                                <th>Shift Start</th>
-                                <th>Shift End</th>
-                                <th>Opening Cash</th>
-                                <th>Closing Cash</th>
-                                <th>Status</th>
-                                <th>Total Sales</th>
-                                <th>Difference</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                        <tfoot>
-                            <tr style="font-weight:bold;background:#f8f9fa;">
-                                <th colspan="5" class="text-end">Total :</th>
-                                <th id="ft_opening_cash">₹0.00</th>
-                                <th id="ft_closing_cash">₹0.00</th>
-                                <th></th>
-                                <th id="ft_total_sales">₹0.00</th>
-                                <th id="ft_difference">₹0.00</th>
-                                <th></th>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-                <!-- Page end  -->
+                @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'categories-create'))
+                    <button class="btn btn-primary add-list" data-toggle="modal" data-target="#addCategoryModal">
+                        <i class="las la-plus mr-3"></i>Create New Category
+                    </button>
+                @endif
             </div>
+
+            <div class="row">
+                <div class="col-md-2 mb-2">
+                    <input type="date" id="start_date" class="form-control">
+                </div>
+                <div class="col-md-2 mb-2">
+                    <input type="date" id="end_date" class="form-control">
+                </div>
+                <div class="col-md-2 mb-2">
+                    <select id="branch_id" class="form-control">
+                        <option value="">All Branches</option>
+                        @foreach ($branches as $branch)
+                            <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <select id="user_id" class="form-control">
+                        <option value="">All Users</option>
+                        @foreach ($users as $users)
+                            <option value="{{ $users->id }}">{{ $users->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-2 mb-2">
+                    <button class="btn btn-primary w-100" id="shiftSearch">Search</button>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <button class="btn btn-secondary w-100" id="shiftReset">Reset</button>
+                </div>
+
+            </div>
+
+            <div class="table-responsive rounded mb-3" id="shiftTableContainer">
+                <table class="table table-striped table-bordered nowrap" id="shift_tbl">
+                    <thead class="bg-white text-uppercase">
+                        <tr class="ligth ligth-data">
+                            <th>Shift No</th>
+                            <th>Store</th>
+                            <th>User</th>
+                            <th>Shift Start</th>
+                            <th>Shift End</th>
+                            <th>Opening Cash</th>
+                            <th>Closing Cash</th>
+                            <th>Status</th>
+                            <th>Total Sales</th>
+                            <th>Difference</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                    <tfoot>
+                        <tr style="font-weight:bold;background:#f8f9fa;">
+                            <th colspan="5" class="text-end">Total :</th>
+                            <th id="ft_opening_cash">₹0.00</th>
+                            <th id="ft_closing_cash">₹0.00</th>
+                            <th></th>
+                            <th id="ft_total_sales">₹0.00</th>
+                            <th id="ft_difference">₹0.00</th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <!-- Page end  -->
         </div>
     </div>
+
     <!-- Wrapper End-->
 
     <!-- Transactions Modal -->
@@ -172,11 +177,36 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
     <script>
+        var pdfLogo = "";
+        let headerLeft;
+
+        if (pdfLogo) {
+            headerLeft = {
+                width: '33%',
+                columns: [{
+                        image: pdfLogo,
+                        width: 30
+                    },
+                    {
+                        text: 'LiquorHub',
+                        fontSize: 11,
+                        bold: true,
+                        margin: [5, 8, 0, 0]
+                    }
+                ]
+            };
+        } else {
+            headerLeft = {
+                width: '33%',
+                text: 'LiquorHub',
+                fontSize: 11,
+                bold: true
+            };
+        }
+
+
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
             const year = today.getFullYear();
@@ -205,7 +235,10 @@
                 ordering: true,
                 bLengthChange: true,
                 serverSide: true,
-
+                language: {
+                    search: "",
+                    lengthMenu: "_MENU_"
+                },
                 ajax: {
                     url: '{{ url('shift-manage/get-data') }}',
                     type: 'POST',
@@ -216,6 +249,10 @@
                         d.user_id = $('#user_id').val();
 
                     }
+                },
+                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+                initComplete: function() {
+                    $('.dataTables_filter input').attr("placeholder", "Search List...");
                 },
                 columns: [{
                         data: 'shift_no',
@@ -319,12 +356,71 @@
                 order: [
                     [3, 'desc']
                 ], // Default order on shift_start DESC
-                dom: "Bfrtip",
+
                 lengthMenu: [
                     [10, 25, 50],
                     ['10 rows', '25 rows', '50 rows']
                 ],
-                buttons: ['pageLength']
+                buttons: [{
+                    extend: 'collection',
+                    text: '<i class="fa fa-download"></i>',
+                    className: 'btn btn-info btn-sm',
+                    autoClose: true,
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            text: '<i class="fa fa-file-excel-o"></i> Excel',
+                            title: 'Shift Manage',
+                            filename: 'shift_manage_list',
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        },
+                        {
+                            extend: 'pdfHtml5',
+                            text: '<i class="fa fa-file-pdf-o"></i> PDF',
+                            filename: 'shift_manage_list',
+                            orientation: 'landscape',
+                            pageSize: 'A4',
+
+                            exportOptions: {
+                                columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+                            },
+
+                            customize: function(doc) {
+
+                                // REMOVE default title
+                                doc.content.splice(0, 1);
+
+                                doc.styles.tableHeader.alignment = 'center';
+
+                                // HEADER
+                                doc.content.unshift({
+                                    margin: [0, 0, 0, 12],
+                                    columns: [
+                                        headerLeft,
+                                        {
+                                            width: '34%',
+                                            text: 'Shift Manage',
+                                            alignment: 'center',
+                                            fontSize: 16,
+                                            bold: true
+                                        },
+                                        {
+                                            width: '33%',
+                                            text: 'Generated: ' + new Date()
+                                                .toLocaleString(),
+                                            alignment: 'right',
+                                            fontSize: 9
+                                        }
+                                    ]
+                                });
+
+                                doc.styles.tableHeader.fontSize = 10;
+                                doc.defaultStyle.fontSize = 9;
+                            }
+                        }
+                    ]
+                }]
             });
             $('#shiftSearch').on('click', function() {
                 table.draw();
@@ -566,7 +662,8 @@
                     $(this).attr('src', defaultImg);
                 });
 
-            $('#imageModal').modal('show');
+             var modal = new bootstrap.Modal(document.getElementById('imageModal'));
+            modal.show();
         }
     </script>
 @endsection

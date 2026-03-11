@@ -1,7 +1,7 @@
 @extends('layouts.backend.layouts')
 @section('page-content')
-<!-- Wrapper Start -->
-<div class="wrapper">
+    <!-- Wrapper Start -->
+
     <div class="content-page">
         <div class="container-fluid add-form-list">
             <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
@@ -26,7 +26,7 @@
                                             <input type="text" name="name" class="form-control"
                                                 placeholder="Enter Name" required>
                                             @error('name')
-                                            <span class="text-danger">{{ $message }}</span>
+                                                <span class="text-danger">{{ $message }}</span>
                                             @enderror
                                         </div>
                                     </div>
@@ -34,13 +34,12 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Status *</label>
-                                            <select name="is_active" class="selectpicker form-control"
-                                                data-style="py-0">
+                                            <select name="is_active" class="selectpicker form-control" data-style="py-0">
                                                 <option value="yes" selected>Active</option>
                                                 <option value="no">Inactive</option>
                                             </select>
                                             @error('is_active')
-                                            <span class="text-danger">{{ $message }}</span>
+                                                <span class="text-danger">{{ $message }}</span>
                                             @enderror
                                         </div>
                                     </div>
@@ -51,16 +50,16 @@
                                             <label>Store Address</label>
                                             <textarea class="form-control" name="address" rows="2"></textarea>
                                             @error('address')
-                                            <span class="text-danger">{{ $message }}</span>
+                                                <span class="text-danger">{{ $message }}</span>
                                             @enderror
                                         </div>
                                     </div>
                                     <!-- <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Description</label>
-                                                <textarea class="form-control" name="description" rows="4"></textarea>
-                                            </div>
-                                        </div> -->
+                                                <div class="form-group">
+                                                    <label>Description</label>
+                                                    <textarea class="form-control" name="description" rows="4"></textarea>
+                                                </div>
+                                            </div> -->
                                 </div>
                                 <button type="submit" class="btn btn-primary mr-2" id="resetBtn">Add Store</button>
                                 <button type="reset" class="btn btn-danger">Reset</button>
@@ -72,22 +71,22 @@
             <!-- Page end  -->
         </div>
     </div>
-</div>
-<!-- Wrapper End-->
-<script>
-    $(document).ready(function() {
 
-        $('#resetBtn').click(function() {
-            // reset normal fields
-            $('#storeForm')[0].reset();
+    <!-- Wrapper End-->
+    <script>
+        $(document).ready(function() {
 
-            // reset selectpicker
-            $('.selectpicker').val('yes').selectpicker('refresh');
+            $('#resetBtn').click(function() {
+                // reset normal fields
+                $('#storeForm')[0].reset();
 
-            // remove validation error messages
-            $('.text-danger').html('');
+                // reset selectpicker
+                $('.selectpicker').val('yes').selectpicker('refresh');
+
+                // remove validation error messages
+                $('.text-danger').html('');
+            });
+
         });
-
-    });
-</script>
+    </script>
 @endsection

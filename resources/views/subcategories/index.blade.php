@@ -1,8 +1,5 @@
-@extends('layouts.backend.layouts')
+@extends('layouts.backend.datatable_layouts')
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Wrapper Start -->
@@ -20,9 +17,9 @@
                         </button>
                     @endif
                 </div>
-               
+
                 <div class="table-responsive rounded mb-3">
-                    <table class="table data-tables table-striped" id="subcategories_tbl">
+                    <table class="table table-striped table-bordered nowrap" id="subcategories_tbl">
                         <thead class="bg-white text-uppercase">
                             <tr class="ligth ligth-data">
                                 <th>
@@ -136,6 +133,7 @@
     </div>
 
     <script>
+        var pdfLogo = "";
         $(document).ready(function() {
 
             $.ajaxSetup({
@@ -147,17 +145,24 @@
             $('#subcategories_tbl').DataTable().clear().destroy();
 
             $('#subcategories_tbl').DataTable({
-                pagelength: 10,
+                pageLength: 10,
                 responsive: true,
                 processing: true,
                 ordering: true,
                 bLengthChange: true,
                 serverSide: true,
-
+                language: {
+                    search: "",
+                    lengthMenu: "_MENU_"
+                },
                 "ajax": {
                     "url": '{{ url('subcategories/get-data') }}',
                     "type": "post",
                     "data": function(d) {},
+                },
+                dom: "<'row mb-2'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+                initComplete: function() {
+                    $('.dataTables_filter input').attr("placeholder", "Search List...");
                 },
                 aoColumns: [
 
@@ -189,12 +194,88 @@
                 order: [
                     [3, 'desc']
                 ], // 🟢 Sort by created_at DESC by default
-                dom: "Bfrtip",
+                
                 lengthMenu: [
                     [10, 25, 50],
                     ['10 rows', '25 rows', '50 rows', 'All']
                 ],
-                buttons: ['pageLength']
+                buttons: [{
+                    extend: 'collection',
+                    text: '<i class="fa fa-download"></i>',
+                    className: 'btn btn-info btn-sm',
+                    autoClose: true,
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            text: '<i class="fa fa-file-excel-o"></i> Excel',
+                            title: 'Sub Categories List',
+                            filename: 'sub_categories_list',
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        },
+                        {
+                            extend: 'pdfHtml5',
+                            text: '<i class="fa fa-file-pdf-o"></i> PDF',
+                            filename: 'sub_categories_list',
+                            orientation: 'landscape',
+                            pageSize: 'A4',
+
+                            exportOptions: {
+                                columns: [0, 1, 2, 3]
+                            },
+
+                            customize: function(doc) {
+
+                                // REMOVE default title
+                                doc.content.splice(0, 1);
+
+                                doc.styles.tableHeader.alignment = 'center';
+
+                                // HEADER
+                                doc.content.unshift({
+                                    margin: [0, 0, 0, 12],
+                                    columns: [{
+                                            width: '33%',
+                                            columns: [{
+                                                    image: pdfLogo,
+                                                    width: 30
+                                                },
+                                                {
+                                                    text: 'LiquorHub',
+                                                    fontSize: 11,
+                                                    bold: true,
+                                                    margin: [5, 8, 0, 0]
+                                                }
+                                            ]
+                                        },
+
+                                        {
+                                            width: '34%',
+                                            text: 'Categories List',
+                                            alignment: 'center',
+                                            fontSize: 16,
+                                            bold: true,
+                                            margin: [0, 8, 0, 0]
+                                        },
+
+                                        {
+                                            width: '33%',
+                                            text: 'Generated: ' + new Date()
+                                                .toLocaleString(),
+                                            alignment: 'right',
+                                            fontSize: 9,
+                                            margin: [0, 8, 0, 0]
+                                        }
+
+                                    ]
+                                });
+
+                                doc.styles.tableHeader.fontSize = 10;
+                                doc.defaultStyle.fontSize = 9;
+                            }
+                        }
+                    ]
+                }]
 
             });
 
@@ -348,5 +429,28 @@
             });
 
         }
+
+        function getBase64Image(url, callback) {
+            var img = new Image();
+            img.crossOrigin = "Anonymous";
+
+            img.onload = function() {
+                var canvas = document.createElement("canvas");
+                canvas.width = this.width;
+                canvas.height = this.height;
+
+                var ctx = canvas.getContext("2d");
+                ctx.drawImage(this, 0, 0);
+
+                var dataURL = canvas.toDataURL("image/png");
+                callback(dataURL);
+            };
+
+            img.src = url;
+        }
+
+        getBase64Image("https://liquorhub.in/assets/images/logo.png", function(base64) {
+            pdfLogo = base64;
+        });
     </script>
 @endsection

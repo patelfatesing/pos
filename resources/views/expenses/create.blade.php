@@ -1,8 +1,7 @@
 @extends('layouts.backend.layouts')
 
 @section('page-content')
-    <!-- Wrapper Start -->
-    <div class="wrapper">
+    
         <div class="content-page">
             <div class="container-fluid add-form-list">
                 <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
@@ -22,7 +21,7 @@
                                     @csrf
 
                                     <div class="row">
-                                        <div class="col-md-6">
+                                        <div class="col-lg-4">
                                             <div class="form-group">
                                                 <label for="expense_category_id">Expense Ledger *</label>
                                                 <select name="expense_category_id" class="form-control">
@@ -37,7 +36,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-md-6">
+                                        <div class="col-lg-4">
                                             <div class="form-group">
                                                 <label for="title">Title *</label>
                                                 <input name="title" type="text" class="form-control"
@@ -48,7 +47,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-md-6">
+                                        <div class="col-lg-4">
                                             <div class="form-group">
                                                 <label for="amount">Amount *</label>
                                                 <input name="amount" type="number" step="0.01" class="form-control"
@@ -59,7 +58,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-md-6">
+                                        <div class="col-lg-4">
                                             <div class="form-group">
                                                 <label for="expense_date">Expense Date *</label>
                                                 <input name="expense_date" type="date" class="form-control">
@@ -69,7 +68,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-md-12">
+                                        <div class="col-md-4">
                                             <div class="form-group">
                                                 <label for="description">Description</label>
                                                 <textarea name="description" class="form-control" rows="3" placeholder="Enter description (optional)"></textarea>
@@ -90,6 +89,5 @@
                 <!-- Page end -->
             </div>
         </div>
-    </div>
-    <!-- Wrapper End -->
+   
 @endsection
