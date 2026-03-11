@@ -20213,5 +20213,9 @@ i { vertical-align: middle; }
 .iq-sidebar { width: 240px;}
 .iq-top-navbar { width: calc(100% - 240px); }
 .dataTable tbody tr:nth-child(odd) { background-color: #ffffff; } 
+.dataTable thead tr th:first-child,
 .dataTable tbody tr td:first-child { text-align: center; } 
 .dataTable tbody tr:nth-child(even) { background-color: #f1f1f1; }
+.dataTables_filter::after { top: 50%; transform: translateY(-50%); }
+.dataTables_filter label { margin: 0px;}
+.dataTables_filter input { min-height: 40px; }
