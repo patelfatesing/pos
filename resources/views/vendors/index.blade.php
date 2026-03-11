@@ -1,52 +1,49 @@
-@extends('layouts.backend.layouts')
+@extends('layouts.backend.datatable_layouts')
 
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
     <!-- Wrapper Start -->
-    <div class="wrapper">
-        <div class="content-page">
-            <div class="container-fluid">
-                <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-3">
-                    <div>
-                        <h4 class="mb-0">Vendor List</h4>
-                    </div>
-                    @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'vendor-create'))
-                        <a href="{{ route('vendor.create') }}" class="btn btn-primary add-list">
-                            <i class="las la-plus mr-3"></i>Add New Vendor
-                        </a>
-                    @endif
+    <div class="content-page">
+        <div class="container-fluid">
+            <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-3">
+                <div>
+                    <h4 class="mb-0">Vendor List</h4>
                 </div>
-                <div class="row">
-                    
-                    <div class="col-lg-12">
-                        <table class="table datatable" id="vendor_table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Phone</th>
-                                    {{-- <th>GST Number</th> --}}
-                                    <th>Status</th>
-                                    <th>Created At</th>
-                                    <th>Updated At</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
-                    </div>
+                @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'vendor-create'))
+                    <a href="{{ route('vendor.create') }}" class="btn btn-primary add-list">
+                        <i class="las la-plus mr-3"></i>Add New Vendor
+                    </a>
+                @endif
+            </div>
+            <div class="row">
+
+                <div class="col-lg-12">
+                    <table class="table table-striped table-bordered nowrap" id="vendor_table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                {{-- <th>GST Number</th> --}}
+                                <th>Status</th>
+                                <th>Created At</th>
+                                <th>Updated At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
+
     <!-- Wrapper End -->
 
     <script>
+
+        var pdfLogo = "";
         $(document).ready(function() {
             $.ajaxSetup({
                 headers: {
@@ -59,9 +56,17 @@
                 responsive: true,
                 processing: true,
                 serverSide: true,
+                language: {
+                    search: "",
+                    lengthMenu: "_MENU_"
+                },
                 ajax: {
                     url: '{{ url('vendor/get-data') }}',
                     type: 'POST',
+                },
+                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+                initComplete: function() {
+                    $('.dataTables_filter input').attr("placeholder", "Search List...");
                 },
                 columns: [{
                         data: 'name'
@@ -97,8 +102,97 @@
                 order: [
                     [5, 'asc']
                 ], // 🟢 Sort by created_at DESC by default
-                dom: 'Bfrtip',
-                buttons: ['pageLength'],
+                buttons: [{
+                    extend: 'collection',
+                    text: '<i class="fa fa-download"></i>',
+                    className: 'btn btn-info btn-sm',
+                    autoClose: true,
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            text: '<i class="fa fa-file-excel-o"></i> Excel',
+                            title: 'Vendor List',
+                            filename: 'vendor_list',
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        },
+                        {
+                            extend: 'pdfHtml5',
+                            text: '<i class="fa fa-file-pdf-o"></i> PDF',
+                            filename: 'vendor_list',
+                            orientation: 'landscape',
+                            pageSize: 'A4',
+
+                            exportOptions: {
+                                columns: [0, 1, 2, 3, 4]
+                            },
+
+                            customize: function(doc) {
+
+                                // REMOVE default title
+                                doc.content.splice(0, 1);
+
+                                // CENTER TABLE
+                                doc.content[0].alignment = 'center';
+
+                                // MAKE TABLE WIDTH FULL PAGE
+                                doc.content[0].table.widths = ['auto', '*', '*', '*', '*'
+                                ];
+
+                                doc.styles.tableHeader.alignment = 'center';
+
+                                var tableBody = doc.content[0].table.body;
+
+                                for (var i = 1; i < tableBody.length; i++) {
+                                    tableBody[i][0].alignment = 'center';
+                                    tableBody[i][1].alignment = 'left';
+                                    tableBody[i][2].alignment = 'center';
+                                    tableBody[i][3].alignment = 'center';
+                                    tableBody[i][4].alignment = 'center';
+                                }
+
+                                // HEADER
+                                doc.content.unshift({
+                                    margin: [0, 0, 0, 12],
+                                    columns: [{
+                                            width: '33%',
+                                            columns: [{
+                                                    image: pdfLogo,
+                                                    width: 30
+                                                },
+                                                {
+                                                    text: 'LiquorHub',
+                                                    fontSize: 11,
+                                                    bold: true,
+                                                    margin: [5, 8, 0, 0]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            width: '34%',
+                                            text: 'Vendor List',
+                                            alignment: 'center',
+                                            fontSize: 16,
+                                            bold: true,
+                                            margin: [0, 8, 0, 0]
+                                        },
+                                        {
+                                            width: '33%',
+                                            text: 'Generated: ' + new Date()
+                                                .toLocaleString(),
+                                            alignment: 'right',
+                                            fontSize: 9,
+                                            margin: [0, 8, 0, 0]
+                                        }
+                                    ]
+                                });
+
+                                doc.styles.tableHeader.fontSize = 10;
+                                doc.defaultStyle.fontSize = 9;
+                            }
+                        }
+                    ]
+                }],
                 lengthMenu: [
                     [10, 25, 50],
                     ['10 rows', '25 rows', '50 rows']
@@ -162,5 +256,28 @@
                 }
             });
         }
+
+         function getBase64Image(url, callback) {
+            var img = new Image();
+            img.crossOrigin = "Anonymous";
+
+            img.onload = function() {
+                var canvas = document.createElement("canvas");
+                canvas.width = this.width;
+                canvas.height = this.height;
+
+                var ctx = canvas.getContext("2d");
+                ctx.drawImage(this, 0, 0);
+
+                var dataURL = canvas.toDataURL("image/png");
+                callback(dataURL);
+            };
+
+            img.src = url;
+        }
+
+        getBase64Image("https://liquorhub.in/assets/images/logo.png", function(base64) {
+            pdfLogo = base64;
+        });
     </script>
 @endsection

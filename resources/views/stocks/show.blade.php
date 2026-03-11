@@ -1,44 +1,41 @@
-@extends('layouts.backend.layouts')
+@extends('layouts.backend.datatable_layouts')
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Wrapper Start -->
-    <div class="wrapper">
 
-        <div class="content-page">
-            <div class="container-fluid">
-                <div class="row align-items-center mb-3">
-                    <div class="col-lg-12">
-                        <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
-                            <div>
-                                <h4 class="mb-0">Stock Request Details</h4>
-                            </div>
+    <div class="content-page">
+        <div class="container-fluid">
+            <div class="row align-items-center mb-3">
+                <div class="col-lg-12">
+                    <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                        <div>
+                            <h4 class="mb-0">Stock Request Details</h4>
                         </div>
                     </div>
                 </div>
-                <div class="table-responsive rounded mb-3">
-                    <table class="table data-tables table-striped" id="stock-requests-table">
-                        <thead class="bg-white text-uppercase">
-                            <tr class="ligth ligth-data">
-                                <th>Requested By Store</th>
-                                <th data-type="date" data-format="YYYY/DD/MM">Requested At</th>
-                                <th>Total Product</th>
-                                <th>Total Quantity</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                </div>
-                <!-- Page end  -->
             </div>
+            <div class="table-responsive rounded mb-3">
+                <table class="table table-striped table-bordered nowrap" id="stock-requests-table">
+                    <thead class="bg-white text-uppercase">
+                        <tr class="ligth ligth-data">
+                            <th>Requested By Store</th>
+                            <th data-type="date" data-format="YYYY/DD/MM">Requested At</th>
+                            <th>Total Product</th>
+                            <th>Total Quantity</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Page end  -->
         </div>
     </div>
+
     <style>
         .table td {
             padding: 5px 20px !important;
@@ -119,6 +116,8 @@
     </div>
 
     <script>
+        var pdfLogo = "";
+
         function getTotalRequestedQty(data, productId) {
             return data
                 .filter(row => row.product_id === productId)
@@ -283,9 +282,7 @@
                 $('#stockRejectModal').modal('show');
             }
         }
-    </script>
 
-    <script>
         $(document).ready(function() {
 
             $.ajaxSetup({
@@ -294,22 +291,33 @@
                 }
             });
 
-            $('#stock-requests-table').DataTable().clear().destroy();
+            if ($.fn.DataTable.isDataTable('#stock-requests-table')) {
+                $('#stock-requests-table').DataTable().destroy();
+            }
 
             $('#stock-requests-table').DataTable({
-                pagelength: 10,
+
+                pageLength: 10,
                 responsive: true,
                 processing: true,
                 ordering: true,
-                bLengthChange: true,
                 serverSide: true,
 
-                "ajax": {
-                    "url": '{{ url('stock/get-request-data') }}',
-                    "type": "post",
-                    "data": function(d) {},
+                language: {
+                    search: "",
+                    lengthMenu: "_MENU_"
                 },
-                aoColumns: [{
+
+                ajax: {
+                    url: '{{ url('stock/get-request-data') }}',
+                    type: 'POST'
+                },
+
+                initComplete: function() {
+                    $('.dataTables_filter input').attr("placeholder", "Search List...");
+                },
+
+                columns: [{
                         data: 'store'
                     },
                     {
@@ -325,26 +333,151 @@
                         data: 'status'
                     },
                     {
-                        data: 'action'
+                        data: 'action',
+                        orderable: false,
+                        searchable: false
                     }
-                    // Define more columns as per your table structure
-
                 ],
-                aoColumnDefs: [{
-                    bSortable: false,
-                    aTargets: [0, 2, 3, 5]
-                }],
+
                 order: [
                     [1, 'desc']
                 ],
-                dom: "Bfrtip",
+
+                dom: "<'row mb-2'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row mt-2'<'col-md-6'i><'col-md-6 d-flex justify-content-end'p>>",
                 lengthMenu: [
                     [10, 25, 50],
-                    ['10 rows', '25 rows', '50 rows', 'All']
+                    [10, 25, 50]
                 ],
-                buttons: ['pageLength']
+
+                buttons: [{
+                        extend: 'collection',
+                        text: '<i class="fa fa-download"></i>',
+                        className: 'btn btn-info btn-sm',
+                        autoClose: true,
+
+                        buttons: [
+
+                            {
+                                extend: 'excelHtml5',
+                                text: '<i class="fa fa-file-excel-o"></i> Excel',
+                                title: 'Stock Request Report',
+                                filename: 'stock_request_report',
+                                exportOptions: {
+                                    columns: [0, 1, 2, 3, 4]
+                                }
+                            },
+
+                            {
+                                extend: 'pdfHtml5',
+                                text: '<i class="fa fa-file-pdf-o"></i> PDF',
+                                filename: 'stock_request_report',
+                                orientation: 'landscape',
+                                pageSize: 'A4',
+
+                                exportOptions: {
+                                    columns: [0, 1, 2, 3, 4]
+                                },
+
+                                customize: function(doc) {
+
+                                    doc.content.splice(0, 1);
+
+                                    doc.styles.tableHeader.alignment = 'center';
+
+                                    var tableBody = doc.content[0].table.body;
+
+                                    for (var i = 1; i < tableBody.length; i++) {
+
+                                        tableBody[i][0].alignment = 'left';
+                                        tableBody[i][1].alignment = 'center';
+                                        tableBody[i][2].alignment = 'center';
+                                        tableBody[i][3].alignment = 'center';
+                                        tableBody[i][4].alignment = 'center';
+
+                                    }
+
+                                    doc.content.unshift({
+
+                                        margin: [0, 0, 0, 12],
+
+                                        columns: [
+
+                                            {
+                                                width: '33%',
+                                                columns: [{
+                                                        image: pdfLogo,
+                                                        width: 30
+                                                    },
+                                                    {
+                                                        text: 'LiquorHub',
+                                                        fontSize: 11,
+                                                        bold: true,
+                                                        margin: [5, 8, 0, 0]
+                                                    }
+                                                ]
+                                            },
+
+                                            {
+                                                width: '34%',
+                                                text: 'Stock Request Report',
+                                                alignment: 'center',
+                                                fontSize: 16,
+                                                bold: true,
+                                                margin: [0, 8, 0, 0]
+                                            },
+
+                                            {
+                                                width: '33%',
+                                                text: 'Generated: ' + new Date()
+                                                    .toLocaleString(),
+                                                alignment: 'right',
+                                                fontSize: 9,
+                                                margin: [0, 8, 0, 0]
+                                            }
+
+                                        ]
+
+                                    });
+
+                                    doc.styles.tableHeader.fontSize = 10;
+                                    doc.defaultStyle.fontSize = 9;
+
+                                }
+
+                            }
+
+                        ]
+
+                    }
+
+                ]
 
             });
+
+
+        });
+
+        function getBase64Image(url, callback) {
+            var img = new Image();
+            img.crossOrigin = "Anonymous";
+
+            img.onload = function() {
+                var canvas = document.createElement("canvas");
+                canvas.width = this.width;
+                canvas.height = this.height;
+
+                var ctx = canvas.getContext("2d");
+                ctx.drawImage(this, 0, 0);
+
+                var dataURL = canvas.toDataURL("image/png");
+                callback(dataURL);
+            };
+
+            img.src = url;
+        }
+
+        getBase64Image("https://liquorhub.in/assets/images/logo.png", function(base64) {
+            pdfLogo = base64;
         });
     </script>
 @endsection

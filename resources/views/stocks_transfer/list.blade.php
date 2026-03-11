@@ -1,7 +1,6 @@
-@extends('layouts.backend.layouts')
+@extends('layouts.backend.datatable_layouts')
 
 @section('styles')
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <style>
         .datatable th {
             white-space: nowrap;
@@ -25,54 +24,52 @@
 @endsection
 
 @section('page-content')
-    <div class="wrapper">
-        <div class="content-page">
-            <div class="container-fluid">
-                <div class="row align-items-center mb-3">
-                    <div class="col-lg-12">
-                        <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
-                            <div>
-                                <h4 class="mb-0">Stock Transfers</h4>
-                            </div>
-                              <div>
-                                    @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'stock-transfer'))
-                                        <a href="{{ route('stock-transfer.craete-transfer') }}" class="btn btn-primary">
-                                            <i class="fas fa-plus"></i> New Transfer
-                                        </a>
-                                    @endif
-                                </div>
+    <div class="content-page">
+        <div class="container-fluid">
+            <div class="row align-items-center mb-3">
+                <div class="col-lg-12">
+                    <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                        <div>
+                            <h4 class="mb-0">Stock Transfers</h4>
+                        </div>
+                        <div>
+                            @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'stock-transfer'))
+                                <a href="{{ route('stock-transfer.craete-transfer') }}" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> New Transfer
+                                </a>
+                            @endif
                         </div>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="card">
-                            <div class="card-body">
-                                @if (session('success'))
-                                    <div class="alert alert-success alert-dismissible fade show">
-                                        {{ session('success') }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
-                                            aria-label="Close"></button>
-                                    </div>
-                                @endif
-
-                                <div class="table-responsive">
-                                    <table id="stock-transfers-table" class="table table-bordered">
-                                        <thead>
-                                            <tr>
-                                                <th>Transfer #</th>
-                                                <th>From</th>
-                                                <th>To</th>
-                                                <th>Products</th>
-                                                <th>Total Qty</th>
-                                                <th>Date</th>
-                                                <th>Status</th>
-                                                <th>Created By</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                    </table>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card">
+                        <div class="card-body">
+                            @if (session('success'))
+                                <div class="alert alert-success alert-dismissible fade show">
+                                    {{ session('success') }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                        aria-label="Close"></button>
                                 </div>
+                            @endif
+
+                            <div class="table-responsive">
+                                <table id="stock-transfers-table" class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Transfer #</th>
+                                            <th>From</th>
+                                            <th>To</th>
+                                            <th>Products</th>
+                                            <th>Total Qty</th>
+                                            <th>Date</th>
+                                            <th>Status</th>
+                                            <th>Created By</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -83,16 +80,22 @@
 @endsection
 
 @section('scripts')
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
+        var pdfLogo = "";
+
         $(document).ready(function() {
             $('#stock-transfers-table').DataTable({
                 processing: true,
                 serverSide: true,
+                language: {
+                    search: "",
+                    lengthMenu: "_MENU_"
+                },
                 ajax: "{{ route('stock-transfer.get-transfer-data') }}",
+                dom: "<'row mb-2'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+                initComplete: function() {
+                    $('.dataTables_filter input').attr("placeholder", "Search List...");
+                },
                 columns: [{
                         data: 'transfer_number'
                     },
@@ -154,8 +157,121 @@
                     [5, 'desc']
                 ], // Order by transfer date descending
                 pageLength: 10,
-                responsive: true
+                responsive: true,
+                buttons: [{
+                    extend: 'collection',
+                    text: '<i class="fa fa-download"></i>',
+                    className: 'btn btn-info btn-sm',
+                    autoClose: true,
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            text: '<i class="fa fa-file-excel-o"></i> Excel',
+                            title: 'Stock Inventory',
+                            filename: 'stock_transfers',
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        },
+                        {
+                            extend: 'pdfHtml5',
+                            text: '<i class="fa fa-file-pdf-o"></i> PDF',
+                            filename: 'stock_transfers',
+                            orientation: 'landscape',
+                            pageSize: 'A4',
+
+                            exportOptions: {
+                                columns: [0, 1, 2, 3, 4, 5, 6]
+                            },
+
+                            customize: function(doc) {
+
+                                // REMOVE default title
+                                doc.content.splice(0, 1);
+
+                                doc.styles.tableHeader.alignment = 'center';
+
+                                var tableBody = doc.content[0].table.body;
+
+                                for (var i = 1; i < tableBody.length; i++) {
+
+                                    tableBody[i][3].alignment = 'center';
+                                    tableBody[i][4].alignment = 'center';
+
+                                }
+
+                                // HEADER
+                                doc.content.unshift({
+
+                                    margin: [0, 0, 0, 12],
+
+                                    columns: [
+
+                                        {
+                                            width: '33%',
+                                            columns: [{
+                                                    image: pdfLogo,
+                                                    width: 30
+                                                },
+                                                {
+                                                    text: 'LiquorHub',
+                                                    fontSize: 11,
+                                                    bold: true,
+                                                    margin: [5, 8, 0, 0]
+                                                }
+                                            ]
+                                        },
+
+                                        {
+                                            width: '34%',
+                                            text: 'Stock Transfers',
+                                            alignment: 'center',
+                                            fontSize: 16,
+                                            bold: true,
+                                            margin: [0, 8, 0, 0]
+                                        },
+
+                                        {
+                                            width: '33%',
+                                            text: 'Generated: ' + new Date()
+                                                .toLocaleString(),
+                                            alignment: 'right',
+                                            fontSize: 9,
+                                            margin: [0, 8, 0, 0]
+                                        }
+
+                                    ]
+                                });
+
+                                doc.styles.tableHeader.fontSize = 10;
+                                doc.defaultStyle.fontSize = 9;
+                            }
+                        }
+                    ]
+                }]
             });
+        });
+
+        function getBase64Image(url, callback) {
+            var img = new Image();
+            img.crossOrigin = "Anonymous";
+
+            img.onload = function() {
+                var canvas = document.createElement("canvas");
+                canvas.width = this.width;
+                canvas.height = this.height;
+
+                var ctx = canvas.getContext("2d");
+                ctx.drawImage(this, 0, 0);
+
+                var dataURL = canvas.toDataURL("image/png");
+                callback(dataURL);
+            };
+
+            img.src = url;
+        }
+
+        getBase64Image("https://liquorhub.in/assets/images/logo.png", function(base64) {
+            pdfLogo = base64;
         });
     </script>
 @endsection
