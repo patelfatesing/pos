@@ -15,8 +15,6 @@
             <div class="row">
                 <div class="col-sm-12">
                     <div class="card">
-
-
                         <div class="card-body">
                             <div class="card">
                                 <div class="card-body">
@@ -124,9 +122,11 @@
                                                         <input type="hidden"
                                                             name="products[{{ $i }}][product_id]"
                                                             value="{{ $product['product_id'] }}">
-                                                        <td><input class="form-control"
+                                                        <td><input class="form-control" type="hidden"
                                                                 name="products[{{ $i }}][brand_name]"
-                                                                value="{{ $product['brand_name'] }}" readonly></td>
+                                                                value="{{ $product['brand_name'] }}" readonly>
+                                                            
+                                                                    <span>{{ $product['brand_name'] }}</span></td>
                                                         <td><input class="form-control"
                                                                 name="products[{{ $i }}][batch]"
                                                                 value="{{ $product['batch'] }}"></td>
@@ -149,7 +149,7 @@
                                                                 name="products[{{ $i }}][amount]"
                                                                 value="{{ $product['amount'] }}"></td>
                                                         <td><button type="button"
-                                                                class="btn btn-danger remove">Remove</button></td>
+                                                                class="btn btn-sm btn-danger remove">Remove</button></td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>
@@ -340,15 +340,11 @@
                                                                 </h3>
                                                             </div>
                                                         </div>
-
                                                     </div>
                                                 </div>
                                             </div>
-
                                         </div>
-
                                         <button type="submit" class="btn btn-primary">Update Purchase</button>
-
                                     </form>
                                 </div>
                             </div>
@@ -651,10 +647,10 @@
                         <input type="number" name="products[${srNo - 1}][qnt]" class="form-control" value="${qty}" min="1" data-prev="${qty}">
                     </td>
                     <td>
-                        <input type="number" step="0.01" name="products[${srNo - 1}][rate]" class="form-control" value="${rate}">
+                        <input type="number" step="1" name="products[${srNo - 1}][rate]" class="form-control" value="${rate}">
                     </td>
                     <td>
-                        <input type="number" step="0.01" name="products[${srNo - 1}][amount]" class="form-control" value="${amount}">
+                        <input type="number" step="1" name="products[${srNo - 1}][amount]" class="form-control" value="${amount}">
                     </td>
                     <td>
                         <button type="button" class="btn btn-sm btn-danger remove">Remove</button>
