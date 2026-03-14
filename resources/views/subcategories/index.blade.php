@@ -7,7 +7,7 @@
 
         <div class="content-page">
             <div class="container-fluid">
-                <div class="card-header mb-3 d-flex flex-wrap align-items-center justify-content-between">
+                <div class="card-header mb-1 d-flex flex-wrap align-items-center justify-content-between">
                     <div>
                         <h4 class="mb-0">Sub Categories List</h4>
                     </div>
@@ -160,7 +160,7 @@
                     "type": "post",
                     "data": function(d) {},
                 },
-                dom: "<'row mb-2'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
                 initComplete: function() {
                     $('.dataTables_filter input').attr("placeholder", "Search List...");
                 },

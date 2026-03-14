@@ -5,7 +5,7 @@
         <div class="container-fluid">
 
             <!-- Page Header -->
-            <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-3">
+            <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-2">
                 <div>
                     <h4 class="mb-0">Demand Order List</h4>
                 </div>
@@ -60,7 +60,6 @@
     </div>
 
     <script>
-
         var pdfLogo = "";
         // Function to open PDF in modal
         function openPDF(fileUrl) {
@@ -93,7 +92,7 @@
                     url: '{{ url('demand-order/get-data') }}',
                     type: 'POST',
                 },
-                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'f l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
                 initComplete: function() {
                     $('.dataTables_filter input').attr("placeholder", "Search List...");
                 },
@@ -163,7 +162,7 @@
                             pageSize: 'A4',
 
                             exportOptions: {
-                                columns: [0, 1, 2, 3, 4, 5,6,7]
+                                columns: [0, 1, 2, 3, 4, 5, 6, 7]
                             },
 
                             customize: function(doc) {
@@ -176,7 +175,7 @@
 
                                 // MAKE TABLE WIDTH FULL PAGE
                                 doc.content[0].table.widths = ['auto', '*', '*', '*', '*',
-                                    '*','*','*'
+                                    '*', '*', '*'
                                 ];
 
                                 doc.styles.tableHeader.alignment = 'center';
@@ -243,7 +242,7 @@
             });
         });
 
-         function getBase64Image(url, callback) {
+        function getBase64Image(url, callback) {
             var img = new Image();
             img.crossOrigin = "Anonymous";
 

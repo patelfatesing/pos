@@ -53,66 +53,86 @@
 @endsection
 
 @section('page-content')
-    <div class="wrapper">
-        <div class="content-page">
-            <div class="container-fluid">
+    <div class="content-page">
+        <div class="container-fluid">
+            <div class="row align-items-center mb-3">
+                <div class="col-lg-12">
+                    <div class="card-header">
 
-                <!-- Page Header -->
-                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
-                    <div>
-                        <h4 class="mb-0">Low Stock / Out of Stock Report</h4>
-                    </div>
-                    <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
-                </div>
-            
-                <!-- Filters row (optional above table) -->
-                <div class="row g-2 mb-2 mt-1">
-                    <div class="col-md-3">
-                        <select id="branch_id" class="form-control">
-                            <option value="">All Branches</option>
-                            @foreach ($branches as $b)
-                                <option value="{{ $b->id }}">{{ $b->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                        <div class="row align-items-center">
 
-                    <div class="col-md-3">
-                        <select id="sub_category_id" class="form-control">
-                            <option value="">All Subcategories</option>
-                            @foreach ($subcategories as $sc)
-                                <option value="{{ $sc->id }}">{{ $sc->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
+                            <!-- Title -->
+                            <div class="col-md-4">
+                                <h4 class="mb-0">Low Stock / Out of Stock Report</h4>
+                            </div>
 
-                <!-- Table -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="table-responsive rounded">
-                            <table class="table table-striped table-bordered nowrap" id="low_stock_table"
-                                style="width:100%;">
-                                <thead class="bg-white">
-                                    <tr class="ligth ligth-data">
-                                        <th>Sr No</th>
-                                        <th>Product</th>
+                            <!-- Sub Category -->
+                            <div class="col-md-2">
+                                <select id="sub_category_id" class="form-control">
+                                    <option value="">All Subcategories</option>
+                                    @foreach ($subcategories as $sc)
+                                        <option value="{{ $sc->id }}">{{ $sc->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
 
-                                        <th>Subcategory</th>
-                                        <th>Branch</th>
-                                        <th>Available Qty</th>
-                                        <th>Low Level Stock Set</th>
-                                        <th>Status</th>
+                            <!-- Branch -->
+                            <div class="col-md-2">
+                                <select id="branch_id" class="form-control">
+                                    <option value="">All Branches</option>
+                                    @foreach ($branches as $b)
+                                        <option value="{{ $b->id }}">{{ $b->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
 
+                            <!-- Status -->
+                            <div class="col-md-2">
+                                <select id="status" class="form-control">
+                                    <option value="">All Status</option>
+                                    <option value="low" selected>Low Stock</option>
+                                    <option value="out">Out of Stock</option>
+                                </select>
+                            </div>
 
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
+                            <!-- Back Button -->
+                            <div class="col-md-1 text-right">
+                                <a href="{{ route('reports.list') }}" class="btn btn-secondary w-100">
+                                    Back
+                                </a>
+                            </div>
+
                         </div>
+
                     </div>
                 </div>
-
             </div>
+
+            <!-- Table -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="table-responsive rounded">
+                        <table class="table table-striped table-bordered nowrap" id="low_stock_table">
+                            <thead class="bg-white">
+                                <tr class="ligth ligth-data">
+                                    <th>Sr No</th>
+                                    <th>Product</th>
+
+                                    <th>Subcategory</th>
+                                    <th>Branch</th>
+                                    <th>Available Qty</th>
+                                    <th>Low Level Stock Set</th>
+                                    <th>Status</th>
+
+
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 @endsection
@@ -129,6 +149,10 @@
                 processing: true,
                 serverSide: false, // fetch all filtered rows at once
                 responsive: true,
+                language: {
+                    search: "",
+                    lengthMenu: "_MENU_"
+                },
                 ajax: {
                     url: "{{ route('reports.low_stock.data') }}",
                     type: 'POST',
@@ -197,8 +221,8 @@
                     [10, 25, 50, 100, "All"]
                 ],
                 pageLength: 10,
-                dom: "<'custom-toolbar-row'lfB>t<'row mt-2'<'col-md-6'i><'col-md-6'p>>",
-                buttons: [{
+             dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'f l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+                  buttons: [{
                         extend: 'excelHtml5',
                         className: 'btn btn-outline-success btn-sm me-2',
                         title: 'Low/Out Stock',
@@ -221,16 +245,16 @@
                 ],
                 initComplete: function() {
                     // status filter UI
-                    const statusFilter = `
-                        <div class="status-filter">
-                            <select id="status" class="form-control">
-                            <option value="">All Status</option>
-                            <option value="low" selected>Low Stock</option>
-                            <option value="out">Out of Stock</option>
+                    // const statusFilter = `
+                    //     <div class="status-filter">
+                    //         <select id="status" class="form-control">
+                    //         <option value="">All Status</option>
+                    //         <option value="low" selected>Low Stock</option>
+                    //         <option value="out">Out of Stock</option>
                             
-                            </select>
-                        </div>`;
-                    $(statusFilter).insertAfter('.dt-buttons');
+                    //         </select>
+                    //     </div>`;
+                    // $(statusFilter).insertAfter('.dt-buttons');
 
                     // bind changes
                     $('#status, #branch_id, #sub_category_id').on('change', function() {

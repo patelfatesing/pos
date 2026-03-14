@@ -188,11 +188,11 @@ class ShiftManageController extends Controller
                 'user_name' => $row->user_name,
                 'start_time' => \Carbon\Carbon::parse($row->start_time)->format('d-m-Y h:i A'),
                 'end_time' => $endTime ? $endTime->format('d-m-Y h:i A') : '-',
-                'opening_cash' => number_format($row->opening_cash, 2),
-                'closing_cash' => number_format($row->closing_cash, 2),
+                'opening_cash' => number_format($row->opening_cash, 0),
+                'closing_cash' => number_format($row->closing_cash, 0),
                 'status' => $status,
                 'total_transaction' => $totalInvoicedAmount,
-                'difference' => number_format($row->cash_discrepancy, 2),
+                'difference' => number_format($row->cash_discrepancy, 0),
 
                 'action' => $action,
             ];

@@ -1,42 +1,26 @@
-@extends('layouts.backend.layouts')
+@extends('layouts.backend.datatable_layouts')
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 @section('page-content')
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <!-- Wrapper Start -->
     <div class="wrapper">
-
         <div class="content-page">
             <div class="container-fluid">
-                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+
+                <!-- Page Header -->
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-2">
                     <div>
                         <h4 class="mb-0">Notifications List</h4>
                     </div>
                 </div>
-                <div class="row">
-                    <!-- Filters -->
-                    <div class="col-lg-12 mb-4">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <select id="type_filter" class="form-control">
-                                    <option value="">All Types</option>
-                                    <option value="low_stock">Low Stock</option>
-                                    <option value="expire_product">Expire Product</option>
-                                    <option value="request_stock">Stock Request</option>
-                                    <option value="approved_stock">Approved Stock</option>
-                                    <option value="transfer_stock">Stock Transfer</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="col-lg-12">
-                        <div class="table-responsive rounded mb-3">
-                            <table class="table data-tables table-striped" id="notification_table">
-                                <thead class="bg-white text-uppercase table-info">
+                <!-- Table -->
+                <div class="row mt-1">
+                    <div class="col-12">
+                        <div class="table-responsive rounded">
+
+                            <table class="table table-striped table-bordered nowrap" id="notification_table">
+                                <thead class="bg-white">
                                     <tr class="ligth ligth-data">
+                                        <th>Sr No</th>
                                         <th>
                                             Type
                                         </th>
@@ -46,37 +30,34 @@
                                         <th>Created At</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white text-uppercase">
-                                </tbody>
+                                <tbody></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-                <!-- Page end  -->
             </div>
         </div>
     </div>
-    <!-- Wrapper End-->
+@endsection
 
+@section('scripts')
     <script>
+        var pdfLogo = "";
         $(document).ready(function() {
-
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
 
-            $('#notification_table').DataTable().clear().destroy();
-
-            var table = $('#notification_table').DataTable({
-                pageLength: 10, // default number of rows per page
-                responsive: true,
+            const table = $('#notification_table').DataTable({
                 processing: true,
-                ordering: true,
-                lengthChange: true, // shows the dropdown to select limit
                 serverSide: true,
-
+                responsive: true,
+                language: {
+                    search: "",
+                    lengthMenu: "_MENU_"
+                },
                 ajax: {
                     url: '{{ url('notifications/fetch-data') }}',
                     type: 'POST',
@@ -84,8 +65,17 @@
                         d.type = $('#type_filter').val();
                     }
                 },
+                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
 
                 columns: [{
+                        data: null,
+                        name: 'sr_no',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    }, {
                         data: 'type'
                     },
                     {
@@ -101,27 +91,39 @@
                         data: 'created_at'
                     }
                 ],
-
-                // Disable sorting on columns 0, 1, 2 (type, content, created_by)
+                order: [
+                    [4, 'desc']
+                ],
                 columnDefs: [{
                     orderable: false,
-                    targets: [0, 1, 2]
+                    targets: [0, 1, 2, 3]
                 }],
-
-                dom: "Bfrtip",
-
                 lengthMenu: [
-                    [10, 25, 50, -1],
-                    ['10 rows', '25 rows', '50 rows', 'All']
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
                 ],
-                buttons: ['pageLength']
-            });
+                pageLength: 10,
+                buttons: [],
+                initComplete: function() {
 
-            // Add type filter change handler
-            $('#type_filter').on('change', function() {
-                table.ajax.reload();
-            });
+                    $('.dataTables_filter input').attr("placeholder", "Search List...");
 
+                    $('<div class="status-filter">' +
+                        '<select id="type_filter" class="form-control form-control-sm">' +
+                        '<option value="">All Types</option>' +
+                        '<option value="low_stock">Low Stock</option>' +
+                        '<option value="expire_product">Expire Product</option>' +
+                        '<option value="request_stock">Stock Request</option>' +
+                        '<option value="approved_stock">Approved Stock</option>' +
+                        '<option value="transfer_stock">Stock Transfer</option>' +
+                        '</select>' +
+                        '</div>').insertBefore('.dt-buttons');
+
+                    $('#type_filter').on('change', function() {
+                        table.ajax.reload();
+                    });
+                }
+            });
         });
     </script>
 @endsection

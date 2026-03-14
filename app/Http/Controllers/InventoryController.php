@@ -98,7 +98,11 @@ class InventoryController extends Controller
             });
         }
 
-        $recordsTotal = \App\Models\Inventory::count();
+        // $recordsTotal = \App\Models\Inventory::count();
+
+         $recordsTotal = \App\Models\Inventory::join('products', 'products.id', '=', 'inventories.product_id')
+            ->where('products.is_deleted', 'no')->count();
+
         $recordsFiltered = $query->count();
 
         // $data = $query->orderBy($orderColumn, $orderDirection)

@@ -20205,6 +20205,8 @@ i { vertical-align: middle; }
   .content-page { margin-left: 230px;}
   .iq-sidebar { width: 240px;}
   .iq-top-navbar { width: calc(100% - 240px); }
+  .table .ligth th, thead tr th { padding: 10px !important; line-height: 16px; font-size: 14px;}
+  thead tr th, table.dataTable td, table.dataTable th { line-height: 16px; font-size: 14px; }
 }
 .mb0 { margin-bottom: 0; }
 .iq-top-navbar .navbar-expand-lg { margin-top: 10px;}
@@ -20219,3 +20221,15 @@ i { vertical-align: middle; }
 .dataTables_filter::after { top: 50%; transform: translateY(-50%); }
 .dataTables_filter label { margin: 0px;}
 .dataTables_filter input { min-height: 40px; }
+body { font-family: 'Poppins', sans-serif;}
+body.sidebar-main .header-logo { min-width: 100px; }
+body.sidebar-main .header-logo img{ height: 0; }
+.iq-sidebar-logo img { height: auto; max-height: 60px; } 
+.iq-sidebar-logo .logo-title { display: none; }
+body.sidebar-main .iq-sidebar-logo { transform: translateX(-103px); }
+.iq-sidebar-logo { padding-top: 0px; padding-bottom: 0px}
+.dt_height .dt-buttons{ float:none; margin: 0; }
+.dt_height .dt-button.buttons-collection { margin: 0 !important; }
+.dataTables_wrapper .dt_height .dataTables_length,
+.dataTables_wrapper .dt_height .dataTables_length label,
+.dt_height .inventory_table_length,.dt_height .dataTables_filter{ margin: 0; }

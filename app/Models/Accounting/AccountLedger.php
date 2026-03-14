@@ -17,7 +17,8 @@ class AccountLedger extends Model
         'is_active',
         'is_deleted',
         'updated_by',
-        'contact_details'
+        'contact_details',
+        'created_at'
     ];
 
     protected $casts = [

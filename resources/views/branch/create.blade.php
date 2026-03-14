@@ -54,15 +54,21 @@
                                             @enderror
                                         </div>
                                     </div>
+                                    <div class="col-md-6 mt-4">
+                                        <div class="form-group mt-2">
+                                            <button type="submit" class="btn btn-primary mr-2" id="resetBtn">Add
+                                                Store</button>
+                                            <button type="reset" class="btn btn-danger">Reset</button>
+                                        </div>
+                                    </div>
                                     <!-- <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label>Description</label>
-                                                    <textarea class="form-control" name="description" rows="4"></textarea>
-                                                </div>
-                                            </div> -->
+                                                        <div class="form-group">
+                                                            <label>Description</label>
+                                                            <textarea class="form-control" name="description" rows="4"></textarea>
+                                                        </div>
+                                                    </div> -->
                                 </div>
-                                <button type="submit" class="btn btn-primary mr-2" id="resetBtn">Add Store</button>
-                                <button type="reset" class="btn btn-danger">Reset</button>
+
                             </form>
                         </div>
                     </div>

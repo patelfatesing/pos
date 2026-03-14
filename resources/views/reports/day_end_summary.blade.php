@@ -1,113 +1,58 @@
 {{-- resources/views/reports/day_end_summary.blade.php --}}
 @extends('layouts.backend.datatable_layouts')
 
-@section('styles')
-    <style>
-        .custom-toolbar-row {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .custom-toolbar-row .dataTables_length {
-            order: 1;
-        }
-
-        .custom-toolbar-row .dt-buttons {
-            order: 2;
-        }
-
-        .custom-toolbar-row .filters {
-            order: 3;
-            display: flex;
-            gap: .5rem;
-            flex-wrap: wrap;
-        }
-
-        .custom-toolbar-row .dataTables_filter {
-            order: 4;
-            margin-left: auto;
-        }
-
-        .dt-buttons .btn {
-            margin-right: 5px;
-        }
-
-        @media(max-width:768px) {
-            .custom-toolbar-row>div {
-                flex: 1 1 100%;
-                margin-bottom: 10px;
-            }
-        }
-
-        /* Optional: highlight total rows */
-        tr.day-total {
-            background: #fff8e1;
-            font-weight: 600;
-        }
-
-        tr.overall-total {
-            background: #e8f5e9;
-            font-weight: 700;
-        }
-    </style>
-@endsection
-
 @section('page-content')
-    <div class="wrapper">
-        <div class="content-page">
-            <div class="container-fluid">
-                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
-                    <div>
-                        <h4 class="mb-0">Day End Sales Summary (Consolidated — Branch-wise)</h4>
-                    </div>
-                    <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
+    <div class="content-page">
+        <div class="container-fluid">
+            <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                <div>
+                    <h4 class="mb-0">Day End Sales Summary (Consolidated — Branch-wise)</h4>
                 </div>
-               
-
-                <div class="table-responsive rounded mt-2">
-                    <table class="table table-striped table-bordered nowrap" id="day_end_table" style="width:100%;">
-                        <thead class="bg-white">
-                            <tr class="ligth ligth-data">
-                                <th>Sr No</th>
-                                <th>Date</th>
-                                <th>Branch</th> {{-- NEW --}}
-                                <th>Opening Cash</th>
-                                <th>Closing Cash</th>
-                                <th>Total Sales</th>
-                                <th>Sales Items</th>
-                                <th>Stock Difference</th>
-                                <th>Case Dispense</th>
-                                <th style="display:none;">RowType</th> {{-- hidden sort key --}}
-
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                        <tfoot>
-                            <tr>
-                                <th colspan="3" class="text-end">Overall Totals:</th>
-                                <th id="ft_opening">0.00</th>
-                                <th id="ft_closing">0.00</th>
-                                <th id="ft_sales">0.00</th>
-                                <th id="ft_items">0.00</th>
-                                <th id="ft_diff">0.00</th>
-                                <th id="ft_case">0.00</th>
-                                <th style="display:none;"></th>
-
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-
+                <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
             </div>
+
+
+            <div class="table-responsive rounded mt-2">
+                <table class="table table-striped table-bordered nowrap" id="day_end_table" style="width:100%;">
+                    <thead class="bg-white">
+                        <tr class="ligth ligth-data">
+                            <th>Sr No</th>
+                            <th>Date</th>
+                            <th>Branch</th> {{-- NEW --}}
+                            <th>Opening Cash</th>
+                            <th>Closing Cash</th>
+                            <th>Total Sales</th>
+                            <th>Sales Items</th>
+                            <th>Stock Difference</th>
+                            <th>Case Dispense</th>
+                            <th style="display:none;">RowType</th> {{-- hidden sort key --}}
+
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="3" class="text-end">Overall Totals:</th>
+                            <th id="ft_opening">0.00</th>
+                            <th id="ft_closing">0.00</th>
+                            <th id="ft_sales">0.00</th>
+                            <th id="ft_items">0.00</th>
+                            <th id="ft_diff">0.00</th>
+                            <th id="ft_case">0.00</th>
+                            <th style="display:none;"></th>
+
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
         </div>
     </div>
 @endsection
 
 @section('scripts')
     <script>
+        var pdfLogo = "";
         $(function() {
             $.ajaxSetup({
                 headers: {
@@ -116,21 +61,25 @@
             });
 
             const filtersHtml = `
-    <div class="filters">
-      <select id="period" class="form-control form-control-sm">
-        <option value="today">Today</option>
-        <option value="yesterday">Yesterday</option>
-        <option value="weekly">Weekly</option>
-        <option value="monthly" selected>Monthly</option>
-        <option value="yearly">Yearly</option>
-      </select>
-    </div>
-  `;
+                <div class="filters">
+                <select id="period" class="form-control form-control-sm">
+                    <option value="today">Today</option>
+                    <option value="yesterday">Yesterday</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly" selected>Monthly</option>
+                    <option value="yearly">Yearly</option>
+                </select>
+                </div>
+            `;
 
             const table = $('#day_end_table').DataTable({
                 processing: true,
                 serverSide: true,
                 responsive: true,
+                language: {
+                    search: "",
+                    lengthMenu: "_MENU_"
+                },
                 ajax: {
                     url: "{{ route('reports.day_end.data') }}",
                     type: 'POST',
@@ -138,6 +87,8 @@
                         d.period = $('#period').val();
                     }
                 },
+                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+
                 columns: [{
                         data: 'sr_no',
                         orderable: false,
@@ -184,33 +135,146 @@
                     [10, 25, 50, 100, "All"]
                 ],
                 pageLength: 10,
-                dom: "<'custom-toolbar-row'lfB>t<'row mt-2'<'col-md-6'i><'col-md-6'p>>",
                 buttons: [{
-                        extend: 'excelHtml5',
-                        className: 'btn btn-outline-success btn-sm me-2',
-                        title: 'Day End Sales Summary (Branch-wise)',
-                        filename: 'day_end_sales_summary_branch_wise',
-                        exportOptions: {
-                            columns: ':visible'
+                    extend: 'collection',
+                    text: '<i class="fa fa-download"></i>',
+                    className: 'btn btn-info btn-sm',
+                    autoClose: true,
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            text: '<i class="fa fa-file-excel-o"></i> Excel',
+                            title: 'Day End Sales Summary Report',
+                            filename: 'day_end_summary_report',
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        },
+                        {
+                            extend: 'pdfHtml5',
+                            text: '<i class="fa fa-file-pdf-o"></i> PDF',
+                            filename: 'day_end_summary_report',
+                            orientation: 'landscape',
+                            pageSize: 'A4',
+
+                            exportOptions: {
+                                columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                            },
+
+                            customize: function(doc) {
+
+                                // REMOVE default title
+                                doc.content.splice(0, 1);
+
+                                // CENTER TABLE
+                                doc.content[0].alignment = 'center';
+
+                                // MAKE TABLE WIDTH FULL PAGE
+                                doc.content[0].table.widths = ['auto', '*', '*', '*', '*',
+                                    '*', '*', '*', '*'
+                                ];
+
+                                doc.styles.tableHeader.alignment = 'center';
+
+                                var tableBody = doc.content[0].table.body;
+
+                                for (var i = 1; i < tableBody.length; i++) {
+                                    tableBody[i][0].alignment = 'center';
+                                    tableBody[i][1].alignment = 'left';
+                                    tableBody[i][2].alignment = 'center';
+                                    tableBody[i][3].alignment = 'center';
+                                    tableBody[i][4].alignment = 'center';
+                                    tableBody[i][5].alignment = 'center';
+                                }
+
+                                // ADD FOOTER TOTALS TO PDF
+                                var footer = [{
+                                        text: 'Overall Totals',
+                                        colSpan: 3,
+                                        alignment: 'right',
+                                        bold: true
+                                    }, {}, {},
+                                    {
+                                        text: $('#ft_opening').text(),
+                                        alignment: 'right',
+                                        bold: true
+                                    },
+                                    {
+                                        text: $('#ft_closing').text(),
+                                        alignment: 'right',
+                                        bold: true
+                                    },
+                                    {
+                                        text: $('#ft_sales').text(),
+                                        alignment: 'right',
+                                        bold: true
+                                    },
+                                    {
+                                        text: $('#ft_items').text(),
+                                        alignment: 'right',
+                                        bold: true
+                                    },
+                                    {
+                                        text: $('#ft_diff').text(),
+                                        alignment: 'right',
+                                        bold: true
+                                    },
+                                    {
+                                        text: $('#ft_case').text(),
+                                        alignment: 'right',
+                                        bold: true
+                                    }
+                                ];
+
+                                doc.content[0].table.body.push(footer);
+
+                                // HEADER
+                                doc.content.unshift({
+                                    margin: [0, 0, 0, 12],
+                                    columns: [{
+                                            width: '33%',
+                                            columns: [{
+                                                    image: pdfLogo,
+                                                    width: 30
+                                                },
+                                                {
+                                                    text: 'LiquorHub',
+                                                    fontSize: 11,
+                                                    bold: true,
+                                                    margin: [5, 8, 0, 0]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            width: '34%',
+                                            text: 'Day End Sales Summary Report',
+                                            alignment: 'center',
+                                            fontSize: 16,
+                                            bold: true,
+                                            margin: [0, 8, 0, 0]
+                                        },
+                                        {
+                                            width: '33%',
+                                            text: 'Generated: ' + new Date()
+                                                .toLocaleString(),
+                                            alignment: 'right',
+                                            fontSize: 9,
+                                            margin: [0, 8, 0, 0]
+                                        }
+                                    ]
+                                });
+
+                                doc.styles.tableHeader.fontSize = 10;
+                                doc.defaultStyle.fontSize = 9;
+                            }
                         }
-                    },
-                    {
-                        extend: 'pdfHtml5',
-                        className: 'btn btn-outline-danger btn-sm',
-                        title: 'Day End Sales Summary (Branch-wise)',
-                        filename: 'day_end_sales_summary_branch_wise',
-                        orientation: 'landscape',
-                        pageSize: 'A4',
-                        exportOptions: {
-                            columns: ':visible'
-                        }
-                    }
-                ],
+                    ]
+                }],
                 initComplete: function() {
                     $(filtersHtml).insertAfter('.dt-buttons');
                     $('#period').on('change', function() {
                         table.ajax.reload();
                     });
+                    $('.dataTables_filter input').attr("placeholder", "Search List...");
                 },
                 drawCallback: function(settings) {
                     const json = settings.json || {};
@@ -236,6 +300,29 @@
                     defaultContent: ''
                 }]
             });
+        });
+
+        function getBase64Image(url, callback) {
+            var img = new Image();
+            img.crossOrigin = "Anonymous";
+
+            img.onload = function() {
+                var canvas = document.createElement("canvas");
+                canvas.width = this.width;
+                canvas.height = this.height;
+
+                var ctx = canvas.getContext("2d");
+                ctx.drawImage(this, 0, 0);
+
+                var dataURL = canvas.toDataURL("image/png");
+                callback(dataURL);
+            };
+
+            img.src = url;
+        }
+
+        getBase64Image("https://liquorhub.in/assets/images/logo.png", function(base64) {
+            pdfLogo = base64;
         });
     </script>
 @endsection

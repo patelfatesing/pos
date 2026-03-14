@@ -43,7 +43,7 @@
                         </li>
                         <li class="">
                             <a href="{{ route('stock.requestList') }}">
-                                <i class="las la-minus"></i><span>Stock Request Manage</span>
+                                <i class="las la-minus"></i><span>Stock Request</span>
                             </a>
                         </li>
                         <li class="">

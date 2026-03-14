@@ -108,7 +108,7 @@
                         {{-- ================= CARD HEADER ================= --}}
                         <div class="avc-header card-header d-flex justify-content-between align-items-center">
                             <h4 class="mb-0">Accounting Voucher Creation</h4>
-                            <h5 class="title-table">Liqure HUB</h5>
+                            <h5 class="title-table">LIQUOR HUB</h5>
                             <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-secondary">
                                 Go To List
                             </a>

@@ -10,11 +10,7 @@
                 <div>
                     <h4 class="mb-0">Shift Manage</h4>
                 </div>
-                @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'categories-create'))
-                    <button class="btn btn-primary add-list" data-toggle="modal" data-target="#addCategoryModal">
-                        <i class="las la-plus mr-3"></i>Create New Category
-                    </button>
-                @endif
+               
             </div>
 
             <div class="row">
@@ -206,7 +202,6 @@
             };
         }
 
-
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
             const year = today.getFullYear();
@@ -344,10 +339,10 @@
                         })
                         .data().reduce((a, b) => intVal(a) + intVal(b), 0);
 
-                    $('#ft_opening_cash').html('₹' + openingTotal.toFixed(2));
-                    $('#ft_closing_cash').html('₹' + closingTotal.toFixed(2));
-                    $('#ft_total_sales').html('₹' + salesTotal.toFixed(2));
-                    $('#ft_difference').html('₹' + diffTotal.toFixed(2));
+                    $('#ft_opening_cash').html('₹' + openingTotal);
+                    $('#ft_closing_cash').html('₹' + closingTotal);
+                    $('#ft_total_sales').html('₹' + salesTotal);
+                    $('#ft_difference').html('₹' + diffTotal);
                 },
                 aoColumnDefs: [{
                     bSortable: false,
@@ -487,15 +482,15 @@
 
                             rows += '<tr>' +
                                 '<td>' + invoice.invoice_number + '</td>' +
-                                '<td>₹' + cash.toFixed(2) + '</td>' +
-                                '<td>₹' + upi.toFixed(2) + '</td>' +
-                                '<td>₹' + online.toFixed(2) + '</td>' +
-                                '<td>₹' + credit.toFixed(2) + '</td>' +
+                                '<td>₹' + cash + '</td>' +
+                                '<td>₹' + upi + '</td>' +
+                                '<td>₹' + online + '</td>' +
+                                '<td>₹' + credit + '</td>' +
                                 '<td>' + invoice.payment_mode + '</td>' +
                                 '<td>' + qty + '</td>' +
-                                '<td>₹' + subtotal.toFixed(2) + '</td>' +
-                                '<td>₹' + tax.toFixed(2) + '</td>' +
-                                '<td>₹' + total.toFixed(2) + '</td>' +
+                                '<td>₹' + subtotal + '</td>' +
+                                '<td>₹' + tax + '</td>' +
+                                '<td>₹' + total + '</td>' +
                                 '<td>' + invoice.status + '</td>' +
                                 '<td>' + invoice.created_at + '</td>' +
                                 '</tr>';

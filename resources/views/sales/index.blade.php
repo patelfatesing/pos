@@ -199,6 +199,10 @@
                 $('#sales-table').DataTable({
                     processing: true,
                     destroy: true,
+                    language: {
+                        search: "",
+                        lengthMenu: "_MENU_"
+                    },
                     ajax: {
                         url: "{{ route('sales.report.data') }}",
                         type: 'POST',
@@ -253,6 +257,7 @@
                         [10, 25, 50, 100, "All"]
                     ],
                     pageLength: 10,
+                    dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'f l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
 
                     drawCallback: function() {
                         const api = this.api();
@@ -291,23 +296,23 @@
                             if (lastBranch !== r.branch_name) {
                                 if (lastBranch !== null) {
                                     $(rows).eq(idx).before(`
-                <tr class="table-success">
-                  <td colspan="1" style="display:none;"></td>
-                  <td style="text-align:right;"><b>${lastBranch} Summary</b></td>
-                  <td><b>${bSub.toFixed(2)}</b></td>
-                  <td><b>${bCom.toFixed(2)}</b></td>
-                  <td><b>${bPar.toFixed(2)}</b></td>
-                  <td><b>${bTot.toFixed(2)}</b></td>
-                  <td><b>${bItems}</b></td>
-                  <td></td>
-                </tr>
-              `);
+                                        <tr class="table-success">
+                                        <td colspan="1" style="display:none;"></td>
+                                        <td style="text-align:right;"><b>${lastBranch} Summary</b></td>
+                                        <td><b>${bSub.toFixed(2)}</b></td>
+                                        <td><b>${bCom.toFixed(2)}</b></td>
+                                        <td><b>${bPar.toFixed(2)}</b></td>
+                                        <td><b>${bTot.toFixed(2)}</b></td>
+                                        <td><b>${bItems}</b></td>
+                                        <td></td>
+                                        </tr>
+                                    `);
                                 }
                                 $(rows).eq(idx).before(`
-              <tr class="table-primary">
-                <td colspan="8"><b>Branch: ${r.branch_name}</b></td>
-              </tr>
-            `);
+                                    <tr class="table-primary">
+                                        <td colspan="8"><b>Branch: ${r.branch_name}</b></td>
+                                    </tr>
+                                    `);
                                 bSub = bCom = bPar = bTot = bItems = 0;
                                 lastBranch = r.branch_name;
                             }
@@ -323,32 +328,32 @@
                         // final branch summary
                         if (lastBranch !== null) {
                             $('#sales-table tbody').append(`
-            <tr class="table-success">
-              <td colspan="1" style="display:none;"></td>
-              <td style="text-align:right;"><b>${lastBranch} Summary</b></td>
-              <td><b>${bSub.toFixed(2)}</b></td>
-              <td><b>${bCom.toFixed(2)}</b></td>
-              <td><b>${bPar.toFixed(2)}</b></td>
-              <td><b>${bTot.toFixed(2)}</b></td>
-              <td><b>${bItems}</b></td>
-              <td></td>
-            </tr>
-          `);
+                            <tr class="table-success">
+                            <td colspan="1" style="display:none;"></td>
+                            <td style="text-align:right;"><b>${lastBranch} Summary</b></td>
+                            <td><b>${bSub.toFixed(2)}</b></td>
+                            <td><b>${bCom.toFixed(2)}</b></td>
+                            <td><b>${bPar.toFixed(2)}</b></td>
+                            <td><b>${bTot.toFixed(2)}</b></td>
+                            <td><b>${bItems}</b></td>
+                            <td></td>
+                            </tr>
+                        `);
                         }
 
                         // grand total
                         $('#sales-table tbody').append(`
-          <tr class="table-warning">
-            <td colspan="1" style="display:none;"></td>
-            <td style="text-align:right;"><b>Grand Total (All Branches)</b></td>
-            <td><b>${gSub.toFixed(2)}</b></td>
-            <td><b>${gCom.toFixed(2)}</b></td>
-            <td><b>${gPar.toFixed(2)}</b></td>
-            <td><b>${gTot.toFixed(2)}</b></td>
-            <td><b>${gItems}</b></td>
-            <td></td>
-          </tr>
-        `);
+                                <tr class="table-warning">
+                                    <td colspan="1" style="display:none;"></td>
+                                    <td style="text-align:right;"><b>Grand Total (All Branches)</b></td>
+                                    <td><b>${gSub.toFixed(2)}</b></td>
+                                    <td><b>${gCom.toFixed(2)}</b></td>
+                                    <td><b>${gPar.toFixed(2)}</b></td>
+                                    <td><b>${gTot.toFixed(2)}</b></td>
+                                    <td><b>${gItems}</b></td>
+                                    <td></td>
+                                </tr>
+                                `);
                     }
                 });
             }

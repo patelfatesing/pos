@@ -9,7 +9,7 @@
 
             <!-- Logo -->
             <div class="d-flex align-items-center logo-area">
-                <img src="{{ asset('assets/images/logo1.png') }}" alt="Logo" class="img-fluid"
+                <img src="{{ asset('assets/images/logo.png') }}" alt="Logo" class="img-fluid"
                     style="max-height: 40px;" />
                 <h4 class="logo-title m2-2 ml-2">LiquorHub</h4>
             </div>
