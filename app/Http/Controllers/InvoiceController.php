@@ -87,7 +87,7 @@ class InvoiceController extends Controller
         $invoice = Invoice::with(['partyUser', 'commissionUser'])->find($id);
 
         $allProducts = Product::select('id', 'name', 'mrp', 'discount_price', 'sell_price')->where('is_deleted', 'no')->get();
-
+    
         $commissionUser = Commissionuser::where('status', 'Active')->find($invoice->commission_user_id);
 
         $partyUser = Partyuser::where('id', $invoice->party_user_id)

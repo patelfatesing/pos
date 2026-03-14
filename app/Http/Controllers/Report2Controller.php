@@ -1829,12 +1829,12 @@ class Report2Controller extends Controller
         // Default: last 30 days (created_at)
         $tz  = config('app.timezone', 'Asia/Kolkata');
         $now = Carbon::now($tz);
-        $start = $request->filled('start_date')
-            ? Carbon::parse($request->input('start_date'), $tz)->startOfDay()
-            : $now->copy()->subDays(29)->startOfDay();
-        $end   = $request->filled('end_date')
-            ? Carbon::parse($request->input('end_date'), $tz)->endOfDay()
-            : $now->copy()->endOfDay();
+        // $start = $request->filled('start_date')
+        //     ? Carbon::parse($request->input('start_date'), $tz)->startOfDay()
+        //     : $now->copy()->subDays(29)->startOfDay();
+        // $end   = $request->filled('end_date')
+        //     ? Carbon::parse($request->input('end_date'), $tz)->endOfDay()
+        //     : $now->copy()->endOfDay(); 
 
         $base = DB::table('products as p')
             ->leftJoin('categories as c', 'c.id', '=', 'p.category_id')
@@ -1856,7 +1856,7 @@ class Report2Controller extends Controller
             )
             ->where('p.is_active', 'no')
             ->when(!$includeDeleted, fn($q) => $q->where('p.is_deleted', 'no'))
-            ->whereBetween('p.created_at', [$start, $end])
+            // ->whereBetween('p.created_at', [$start, $end])
             ->when($categoryId, fn($q, $v) => $q->where('p.category_id', $v))
             ->when($subCategoryId, fn($q, $v) => $q->where('p.subcategory_id', $v));
 

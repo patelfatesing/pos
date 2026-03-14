@@ -5,9 +5,9 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid add-form-list">
-                <div class="card-header d-flex justify-content-between">
-                    <div class="header-title">
-                        <h4 class="card-title">Update Product</h4>
+                <div class="card-header align-items-center d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Update Product</h4>
                     </div>
                     <div>
                         <a href="{{ route('products.list') }}" class="btn btn-secondary">Back</a>
@@ -23,7 +23,7 @@
                                     <div class="row">
                                         <input type="hidden" name="id" value="{{ $record->id }}">
                                         {{-- Name --}}
-                                        <div class="col-md-6">
+                                        <div class="col-md-3">
                                             <div class="form-group">
                                                 <label>Name *</label>
                                                 <input type="text" name="name" class="form-control"
@@ -35,7 +35,7 @@
                                         </div>
 
                                         {{-- Category --}}
-                                        <div class="col-md-6">
+                                        <div class="col-md-3">
                                             <div class="form-group">
                                                 <label>Category *</label>
                                                 <select name="category_id" id="categorys" class="form-control">
@@ -54,7 +54,7 @@
                                         </div>
 
                                         {{-- Sub Category --}}
-                                        <div class="col-md-6">
+                                        <div class="col-md-3">
                                             <div class="form-group">
                                                 <label>Sub Category *</label>
                                                 <select id="sub_category_ids" name="subcategory_id" class="form-control">
@@ -73,7 +73,7 @@
                                         </div>
 
                                         {{-- Pack Size --}}
-                                        <div class="col-md-6">
+                                        <div class="col-md-3">
                                             <div class="form-group">
                                                 <label>Pack Size *</label>
                                                 <select id="size" name="size" class="form-control">
@@ -93,7 +93,7 @@
 
 
                                         {{-- Barcode --}}
-                                        <div class="col-md-6">
+                                        <div class="col-md-3">
                                             <div class="form-group">
                                                 <label>Barcode</label>
                                                 <input type="text" name="barcode" class="form-control"
@@ -105,7 +105,7 @@
                                         </div>
 
                                         {{-- Reorder Level --}}
-                                        <div class="col-md-6">
+                                        <div class="col-md-3">
                                             <div class="form-group">
                                                 <label>Low Level Stock</label>
                                                 <input type="number" name="reorder_level"
@@ -118,7 +118,7 @@
                                         </div>
 
                                         {{-- Cost Price --}}
-                                        <div class="col-md-6">
+                                        <div class="col-md-3">
                                             <div class="form-group">
                                                 <label>Cost Price *</label>
                                                 <input type="number" step="0.01" name="cost_price" class="form-control"
@@ -130,7 +130,7 @@
                                         </div>
 
                                         {{-- Sell Price --}}
-                                        <div class="col-md-6">
+                                        <div class="col-md-3">
                                             <div class="form-group">
                                                 <label>Sell Price *</label>
                                                 <input type="number" step="0.01" name="sell_price" class="form-control"
@@ -142,7 +142,7 @@
                                         </div>
 
                                         {{-- Discount Price --}}
-                                        <div class="col-md-6">
+                                        <div class="col-md-3">
                                             <div class="form-group">
                                                 <label>Discount Price</label>
                                                 <input type="number" step="0.01" name="discount_price"
@@ -153,7 +153,7 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        {{-- <div class="col-md-6">
+                                        {{-- <div class="col-md-3">
                                             <!-- Expiry Date -->
                                             <div class="form-group">
                                                 <label for="expiry_date">Exp Date</label>
@@ -164,7 +164,7 @@
                                                 @enderror
                                             </div>
                                         </div> --}}
-                                        <div class="col-md-6">
+                                        <div class="col-md-3">
                                             <!-- Discount Price -->
                                             <div class="form-group">
                                                 <label for="mrp">MRP</label>
@@ -179,7 +179,7 @@
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <label>Description / Product Details</label>
-                                                <textarea class="form-control" name="description" rows="4">{{ old('description', $record->description) }}</textarea>
+                                                <textarea class="form-control" name="description" rows="3">{{ old('description', $record->description) }}</textarea>
                                                 @error('description')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror

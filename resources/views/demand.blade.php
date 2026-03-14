@@ -63,7 +63,7 @@
     {{-- Shop & Order Info Table --}}
     <table class="header-table">
         <tr>
-            <th>Demand Date</th>
+            <th>Demand Order Date</th>
             <th>{{ \Carbon\Carbon::parse($data['demand_date'])->format('d-m-Y') }}</th>
         </tr>
         <tr>

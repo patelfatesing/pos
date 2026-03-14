@@ -157,3 +157,7 @@
 .header-title{
     color: #32BDEA;
 }
+
+.dataTables_filter input {
+    width: 300px !important;
+}

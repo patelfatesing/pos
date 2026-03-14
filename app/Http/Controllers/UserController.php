@@ -156,7 +156,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'username' => 'required|string|unique:users,username',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'email|unique:users,email',
             'phone_number' => [
                 'required',
                 'regex:/^(\+?\d{1,3})?\d{10}$/'

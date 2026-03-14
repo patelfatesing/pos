@@ -40,71 +40,74 @@
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <div class="wrapper">
-        <div class="content-page">
-            <div class="container-fluid">
-                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
-                    <div>
-                        <h4 class="mb-0">Vouchers</h4>
-                    </div>
-                     <div class="d-flex align-items-center ms-auto toolbar-actions">
-                        <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-info btn-icon"
-                            title="Reload the list">
-                            <i class="las la-sync"></i>
-                            <span class="d-none d-sm-inline">Refresh</span>
-                        </a>
-                        @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'accounting-voucher-create'))
-                            <a href="{{ route('accounting.vouchers.create') }}" class="btn btn-primary btn-icon"
-                                title="Create voucher">
-                                <i class="las la-plus"></i>
-                                <span class="d-none d-sm-inline">Create</span>
+    <div class="content-page">
+        <div class="container-fluid">
+
+
+            <div class="row align-items-center mb-2">
+                <div class="col-lg-12">
+                    <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                        <div>
+                            <h4 class="mb-0">Vouchers</h4>
+                        </div>
+                        <div class="ml-auto">
+                            <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-info btn-icon"
+                                title="Reload the list">
+                                <i class="las la-sync"></i>
+                                <span class="d-none d-sm-inline">Refresh</span>
                             </a>
-                        @endif
+                            @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'accounting-voucher-create'))
+                                <a href="{{ route('accounting.vouchers.create') }}" class="btn btn-primary btn-icon"
+                                    title="Create voucher">
+                                    <i class="las la-plus"></i>
+                                    <span class="d-none d-sm-inline">Create</span>
+                                </a>
+                            @endif
+                        </div>
+
+                        <div class="col-md-3 pr-0">
+                            <div class="form-group mb-0">
+                                <select name="typeFilter" id="typeFilter" class="form-control">
+                                    <option value="">All</option>
+                                    @foreach ($types as $t)
+                                        <option value="{{ $t }}">{{ $t }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
-               
-
-                @if (session('success'))
-                    <div class="alert alert-success">{{ session('success') }}</div>
-                @endif
-                @if ($errors->any())
-                    <div class="alert alert-danger">{{ $errors->first() }}</div>
-                @endif
-
-                <div class="row g-2 mb-3">
-                    <div class="col-md-3">
-                        <label class="form-label mb-1">Type</label>
-                        <select id="typeFilter" class="form-select form-select-sm">
-                            <option value="">All</option>
-                            @foreach ($types as $t)
-                                <option value="{{ $t }}">{{ $t }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                <div class="table-responsive rounded mb-3">
-                    <table class="table table-striped align-middle" id="vouchers_table" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Type</th>
-                                <th>Ref No</th>
-                                <th>Branch</th>
-                                <th>Narration</th>
-                                <th class="text-end">Dr Total</th>
-                                <th class="text-end">Cr Total</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-
             </div>
+
+            @if (session('success'))
+                <div class="alert alert-success">{{ session('success') }}</div>
+            @endif
+            @if ($errors->any())
+                <div class="alert alert-danger">{{ $errors->first() }}</div>
+            @endif
+
+            <div class="table-responsive rounded mb-3">
+                <table class="table table-striped table-bordered nowrap" id="vouchers_table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Ref No</th>
+                            <th>Branch</th>
+                            <th>Narration</th>
+                            <th class="text-end">Dr Total</th>
+                            <th class="text-end">Cr Total</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
         </div>
     </div>
+
 
     <script>
         $(function() {
@@ -118,12 +121,20 @@
                 processing: true,
                 serverSide: true,
                 searching: true,
+                language: {
+                    search: "",
+                    lengthMenu: "_MENU_"
+                },
                 ajax: {
                     url: "{{ route('accounting.vouchers.getData') }}",
                     type: "POST",
                     data: function(d) {
                         d.voucher_type = $('#typeFilter').val() || '';
                     }
+                },
+                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'f l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+                initComplete: function() {
+                    $('.dataTables_filter input').attr("placeholder", "Search List...");
                 },
                 columns: [{
                         data: 'voucher_date',

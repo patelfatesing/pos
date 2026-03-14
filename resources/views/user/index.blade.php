@@ -4,9 +4,9 @@
         <div class="container-fluid">
             <!-- Page Header -->
 
-            <div class="row align-items-center mb-3">
+            <div class="row align-items-center">
                 <div class="col-lg-12">
-                    <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div class="card-header mb-1 d-flex flex-wrap align-items-center justify-content-between">
                         <div>
                             <h4 class="mb-0">Users List</h4>
                         </div>
@@ -121,7 +121,7 @@
                         d.status = $('#status').val();
                     }
                 },
-                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'f l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
                 initComplete: function() {
                     $('.dataTables_filter input').attr("placeholder", "Search List...");
                 },
@@ -276,7 +276,7 @@
                 }],
                 initComplete: function() {
                     // Inject status filter in correct order
-                    $('<div class="status-filter d-flex align-items-center mr-2 mb-4">' +
+                    $('<div class="status-filter">' +
                         '<select id="status" class="form-control form-control-sm">' +
                         '<option value="">All Status</option>' +
                         '<option value="yes">Active</option>' +

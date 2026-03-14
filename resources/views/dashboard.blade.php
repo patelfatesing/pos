@@ -119,11 +119,11 @@ $categoryImages = [
                                 <div class="card-body">
                                     <div class="d-flex align-items-center mb-4 card-total-sale">
                                         <div class="icon iq-icon-box-2 bg-success-light">
-                                            {{-- <i class="fas fa-box-open text-success fa-2x"></i> --}}
-                                              <img src="{{ asset('assets/images/dashboard-icons/sold-quantity-ic.png') }}"
+                                            <i class="fas fa-box-open text-success fa-2x"></i>
+                                              {{-- <img src="{{ asset('assets/images/dashboard-icons/sold-quantity-ic.png') }}"
                                             class="style-img m-auto"
                                             style=""
-                                            alt="Sold Quantity" />
+                                            alt="Sold Quantity" /> --}}
                                         </div>
                                         <div>
                                             <p class="mb-2">Sold Quantity</p>

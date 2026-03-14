@@ -5,7 +5,7 @@
     <div class="content-page">
         <div class="container-fluid">
             <!-- Page Header -->
-            <div class="row align-items-center mb-3">
+            <div class="row align-items-center mb-2">
                 <div class="col-lg-12">
                     <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
                         <div>
@@ -42,7 +42,7 @@
                 <div class="col-12">
 
                     <div class="table-responsive rounded">
-                        <table class="table table-striped table-bordered nowrap" id="products_table" style="width:100%;">
+                        <table class="table table-striped table-bordered nowrap" id="products_table">
                             <thead class="bg-white">
                                 <tr class="ligth ligth-data">
                                     <th>Sr No</th> <!-- Added this line -->
@@ -248,7 +248,7 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                         d.sub_category_id = $('#subCategorySearch').val();
                     }
                 },
-                dom: "<'row align-items-center mb-2'\
+                dom: "<'row dt_height'\
                             <'col-md-12 d-flex justify-content-end align-items-center'B f l>\
                                 >\
                                 t\

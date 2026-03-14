@@ -61,6 +61,11 @@ class VoucherController extends Controller
             });
         }
 
+        // Voucher Type Filter
+        if ($request->filled('voucher_type')) {
+            $base->where('v.voucher_type', $request->voucher_type);
+        }
+
         $recordsFiltered = (clone $base)->count();
 
         $sortable = [
@@ -73,7 +78,7 @@ class VoucherController extends Controller
         ];
         $orderBy = $sortable[$orderColumn] ?? 'v.voucher_date';
 
-         $roleId = auth()->user()->role_id;
+        $roleId = auth()->user()->role_id;
 
         $userId = auth()->id();
 
@@ -104,7 +109,7 @@ class VoucherController extends Controller
                 : '<span class="badge bg-danger">Unbalanced</span>';
 
             $deleteUrl = route('accounting.vouchers.destroy', $r->id);
-             // $ownerId = $g->created_by;  // If available
+            // $ownerId = $g->created_by;  // If available
             // if (canDo($roleId, 'product-edit', $ownerId)) {
             // }
             $actions = '

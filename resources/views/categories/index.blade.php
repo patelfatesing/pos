@@ -6,7 +6,7 @@
 
     <div class="content-page">
         <div class="container-fluid">
-            <div class="card-header mb-3 d-flex flex-wrap align-items-center justify-content-between">
+            <div class="card-header mb-1 d-flex flex-wrap align-items-center justify-content-between">
                 <div>
                     <h4 class="mb-0">Categories List</h4>
                 </div>

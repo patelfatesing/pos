@@ -1,84 +1,81 @@
-@extends('layouts.backend.layouts')
+@extends('layouts.backend.datatable_layouts')
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Wrapper Start -->
-    <div class="wrapper">
 
-        <div class="content-page">
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between">
-                                <div class="header-title">
-                                    <h4 class="card-title">Stock Transfer Details</h4>
+    <div class="content-page">
+        <div class="container-fluid">
+            <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                <div>
+                    <h4 class="mb-0">Stock Transfer Details</h4>
+                </div>
+                <a href="{{ route('stock-transfer.list') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card">
+
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-borderless">
+                                        <tr>
+                                            <th width="150">Transfer Number:</th>
+                                            <td>{{ $stockTransfer->transfer_number }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>From Branch:</th>
+                                            <td>{{ $stockTransfer->fromBranch->name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>To Branch:</th>
+                                            <td>{{ $stockTransfer->toBranch->name }}</td>
+                                        </tr>
+                                    </table>
                                 </div>
-                                <div>
-                                    <a href="{{ route('stock-transfer.list') }}" class="btn btn-secondary">
-                                        <i class="fas fa-arrow-left"></i> Back to List
-                                    </a>
+                                <div class="col-md-6">
+                                    <table class="table table-borderless">
+                                        <tr>
+                                            <th width="150">Status:</th>
+                                            <td>
+                                                <span
+                                                    class="badge bg-{{ $stockTransfer->status === 'completed' ? 'success' : ($stockTransfer->status === 'pending' ? 'warning' : 'danger') }}">
+                                                    {{ ucfirst($stockTransfer->status) }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Transfer Date:</th>
+                                            <td>{{ $stockTransfer->transferred_at ? date('d-m-Y H:i', strtotime($stockTransfer->transferred_at)) : 'N/A' }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Transferred By:</th>
+                                            <td>{{ $stockTransfer->transferredBy->name }}</td>
+                                        </tr>
+                                    </table>
                                 </div>
                             </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <table class="table table-borderless">
-                                            <tr>
-                                                <th width="150">Transfer Number:</th>
-                                                <td>{{ $stockTransfer->transfer_number }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>From Branch:</th>
-                                                <td>{{ $stockTransfer->fromBranch->name }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>To Branch:</th>
-                                                <td>{{ $stockTransfer->toBranch->name }}</td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <table class="table table-borderless">
-                                            <tr>
-                                                <th width="150">Status:</th>
-                                                <td>
-                                                    <span class="badge bg-{{ $stockTransfer->status === 'completed' ? 'success' : ($stockTransfer->status === 'pending' ? 'warning' : 'danger') }}">
-                                                        {{ ucfirst($stockTransfer->status) }}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <th>Transfer Date:</th>
-                                                <td>{{ $stockTransfer->transferred_at ? date('d-m-Y H:i', strtotime($stockTransfer->transferred_at)) : 'N/A' }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Transferred By:</th>
-                                                <td>{{ $stockTransfer->transferredBy->name }}</td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                </div>
 
-                                <div class="row mt-4">
-                                    <div class="col-12">
-                                        <h5 class="mb-3">Products Details</h5>
-                                        <div class="table-responsive">
-                                            <table class="table table-bordered">
-                                                <thead>
-                                                    <tr>
-                                                        <th>#</th>
-                                                        <th>Product</th>
-                                                        <th>Quantity</th>
-                                                        <th>Category</th>
-                                                        <th>Sub Category</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach($transferProducts as $index => $product)
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <h5 class="mb-3">Products Details</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Product</th>
+                                                    <th>Quantity</th>
+                                                    <th>Category</th>
+                                                    <th>Sub Category</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($transferProducts as $index => $product)
                                                     <tr>
                                                         <td>{{ $index + 1 }}</td>
                                                         <td>{{ $product->product->name }}</td>
@@ -86,24 +83,26 @@
                                                         <td>{{ $product->product->category->name ?? 'N/A' }}</td>
                                                         <td>{{ $product->product->subcategory->name ?? 'N/A' }}</td>
                                                     </tr>
-                                                    @endforeach
-                                                </tbody>
-                                                <tfoot>
-                                                    <tr>
-                                                        <th colspan="2" class="text-end">Total Products: {{ $stockTransfer->total_products }}</th>
-                                                        <th>{{ $stockTransfer->total_quantity }}</th>
-                                                        <th colspan="3"></th>
-                                                    </tr>
-                                                </tfoot>
-                                            </table>
-                                        </div>
+                                                @endforeach
+                                            </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <th colspan="2" class="text-end">Total Products:
+                                                        {{ $stockTransfer->total_products }}</th>
+                                                    <th>{{ $stockTransfer->total_quantity }}</th>
+                                                    <th colspan="3"></th>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
                                     </div>
                                 </div>
+                            </div>
 
-                                @if($stockTransfer->status === 'pending')
+                            @if ($stockTransfer->status === 'pending')
                                 <div class="row mt-4">
                                     <div class="col-12">
-                                        <form action="{{ route('stock-transfer.update-status', $stockTransfer->id) }}" method="POST" class="d-inline">
+                                        <form action="{{ route('stock-transfer.update-status', $stockTransfer->id) }}"
+                                            method="POST" class="d-inline">
                                             @csrf
                                             @method('PUT')
                                             <button type="submit" name="status" value="completed" class="btn btn-success">
@@ -115,15 +114,13 @@
                                         </form>
                                     </div>
                                 </div>
-                                @endif
-                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Wrapper End-->
 
     <div class="modal fade bd-example-modal-lg" id="approvedStockModal" tabindex="-1" role="dialog"
         aria-labelledby="approvedStockModalLabel" aria-hidden="true">
@@ -338,14 +335,15 @@
 @endsection
 
 @section('styles')
-<style>
-    .table-borderless th,
-    .table-borderless td {
-        padding: 0.5rem 0;
-    }
-    .badge {
-        font-size: 0.85em;
-        padding: 0.35em 0.65em;
-    }
-</style>
+    <style>
+        .table-borderless th,
+        .table-borderless td {
+            padding: 0.5rem 0;
+        }
+
+        .badge {
+            font-size: 0.85em;
+            padding: 0.35em 0.65em;
+        }
+    </style>
 @endsection

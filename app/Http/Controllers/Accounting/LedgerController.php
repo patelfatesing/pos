@@ -65,6 +65,26 @@ class LedgerController extends Controller
             });
         }
 
+
+        /* ---------- ADD FILTERS HERE ---------- */
+
+        // Group Filter
+        if ($request->filled('group_id')) {
+            $base->where('account_ledgers.group_id', $request->group_id);
+        }
+
+        // Branch Filter
+        if ($request->filled('branch_id')) {
+            $base->where('account_ledgers.branch_id', $request->branch_id);
+        }
+
+        // Active Filter
+        if ($request->filled('active')) {
+            $base->where('account_ledgers.is_active', $request->active == 'yes' ? 1 : 0);
+        }
+
+        /* -------------------------------------- */
+
         $roleId = auth()->user()->role_id;
 
         $userId = auth()->id();
@@ -137,7 +157,7 @@ class LedgerController extends Controller
                 'opening_balance' => number_format((float)$l->opening_balance, 2),
                 'opening_type'    => e($l->opening_type),
                 'is_active'       => $activeBadge,
-                'created_at'      => optional($l->created_at)->format('d-m-Y h:i A') ?? '-',
+                'created_at'      => $l->created_at ? \Carbon\Carbon::parse($l->created_at)->format('d-m-Y h:i A') : '-',
                 'action'          => $actions,
             ];
         });
@@ -266,9 +286,9 @@ class LedgerController extends Controller
         $totalDebit  = 0.0;
         $totalCredit = 0.0;
         $editUrl = '';
-      
+
         foreach ($vouchers as $v) {
- 
+
             if ($v['voucher_type'] == 'Purchase') {
                 $editUrl = route('purchase.edit', $v['gen_id']);
             } elseif ($v['voucher_type'] == 'Sales') {
@@ -308,7 +328,7 @@ class LedgerController extends Controller
                 'vch_no'      => (string) $v->ref_no, // or gen_id if you use it
                 'debit'       => $debit,
                 'credit'      => $credit,
-                 'edit_url'    => $editUrl,
+                'edit_url'    => $editUrl,
             ];
 
             /* ================= DETAIL ROWS ================= */

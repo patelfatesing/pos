@@ -1,105 +1,81 @@
 @extends('layouts.backend.datatable_layouts')
-<!-- jQuery (already included) -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<!-- Popper (required for Bootstrap) -->
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
-
-<!-- Bootstrap 5 JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-@section('styles')
-    <style>
-        #invoice_table th,
-        #invoice_table td {
-            white-space: normal !important;
-            word-wrap: break-word;
-            vertical-align: middle;
-            min-width: 120px;
-        }
-
-        .dataTables_wrapper .dataTables_filter input {
-            width: auto;
-            display: inline-block;
-        }
-
-        .timeline {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-    </style>
-@endsection
 
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <div class="wrapper">
-        <div class="content-page">
-            <div class="container-fluid">
-                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
-                    <div>
-                        <h4 class="mb-0">Transaction List</h4>
-                    </div>
-                    <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
-                </div>
-                <!-- Filters -->
-                <div class="row mt-1">
 
-                    <div class="col-md-3 mb-2">
-                        <input type="date" id="start_date" class="form-control">
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <input type="date" id="end_date" class="form-control">
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <select id="branch_id" class="form-control">
-                            <option value="">All Branches</option>
-                            @foreach ($branches as $branch)
-                                <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <button class="btn btn-primary w-100" id="storeSearch">Search</button>
-                    </div>
+    <div class="content-page">
+        <div class="container-fluid">
+            <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-3">
+                <div>
+                    <h4 class="mb-0">Transaction List</h4>
                 </div>
+                <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
+            </div>
+            <!-- Filters -->
+            <div class="row mt-2">
 
-                <!-- Table -->
-                <div class="table-responsive">
-                    <table class="table table-striped" id="invoice_table" style="width:100%;">
-                        <thead>
-                            <tr>
-                                <th>Sr. No.</th>
-                                <th>Invoice No</th>
-                                <th>Party Customer</th>
-                                <th>Commission Customer</th>
-                                <th>Commission Discount</th>
-                                <th>Party Discount</th>
-                                <th>Credit</th>
-                                <th>Sub Total</th>
-                                <th>Total</th>
-                                <th>Sales Qty</th>
-                                <th>Store</th>
-                                <th>Payment Status</th>
-                                <th>Payment Mode</th>
-                                <th>Date</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                        <tfoot>
-                            <tr>
-                                <th colspan="4" style="text-align:right">Total:</th>
-                                <th id="commission_total"></th>
-                                <th id="party_total"></th>
-                                <th id="credit_total"></th>
-                                <th id="sub_total_total"></th>
-                                <th id="grand_total"></th>
-                                <th id="item_count_total"></th>
-                                <th colspan="4"></th>
-                            </tr>
-                        </tfoot>
-                    </table>
+                <div class="col-md-3 mb-2">
+                    <input type="date" id="start_date" class="form-control">
                 </div>
+                <div class="col-md-3 mb-2">
+                    <input type="date" id="end_date" class="form-control">
+                </div>
+                <div class="col-md-3 mb-2">
+                    <select id="branch_id" class="form-control">
+                        <option value="">All Branches</option>
+                        @foreach ($branches as $branch)
+                            <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <button class="btn btn-primary w-100" id="storeSearch">Search</button>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered nowrap" id="invoice_table">
+                    <thead>
+                        <tr>
+                            <th>Sr. No.</th>
+                            <th>Invoice No</th>
+                            <th>Commission Customer</th>
+                            <th>Commission Discount</th>
+                            <th>Party Customer</th>
+                            <th>Party Discount</th>
+                            <th>Credit</th>
+                            <th>Sub Total</th>
+                            <th>Total</th>
+                            <th>Sales Qty</th>
+                            <th>Store</th>
+                            <th>Payment Status</th>
+                            <th>Payment Mode</th>
+                            <th>Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th class="text-end"><b>Total:</b></th>
+                            <th id="commission_total" class="text-end"></th>
+                            <th id="party_total" class="text-end"></th>
+                            <th id="credit_total" class="text-end"></th>
+                            <th id="sub_total_total" class="text-end"></th>
+                            <th id="grand_total" class="text-end"></th>
+                            <th id="item_count_total" class="text-end"></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
         </div>
     </div>
@@ -136,6 +112,7 @@
 
 @section('scripts')
     <script>
+        var pdfLogo = "";
         $(document).ready(function() {
             $.ajaxSetup({
                 headers: {
@@ -149,66 +126,191 @@
                 processing: true,
                 serverSide: true,
                 autoWidth: false,
+                language: {
+                    search: "",
+                    lengthMenu: "_MENU_"
+                },
                 order: [
                     [13, 'desc']
                 ], // created_at column
-                dom: 'Blfrtip',
+                aoColumnDefs: [{
+                    bSortable: false,
+                    aTargets: [0, 10, 11, 12, 14]
+                }],
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, "All"]
                 ],
+                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+                initComplete: function() {
+                    $('.dataTables_filter input').attr("placeholder", "Search List...");
+                },
+
                 buttons: [{
-                        extend: 'excelHtml5',
-                        text: 'Export Excel',
-                        className: 'btn btn-sm btn-outline-success',
-                        title: 'Transaction Report',
-                        filename: 'transaction_report_excel',
-                        exportOptions: {
-                            columns: ':visible'
-                        }
-                    },
-                    {
-                        extend: 'pdfHtml5',
-                        text: 'Export PDF',
-                        className: 'btn btn-sm btn-outline-danger',
-                        title: 'Transaction Report',
-                        filename: 'transaction_report_pdf',
-                        orientation: 'landscape',
-                        pageSize: 'A4',
-                        exportOptions: {
-                            columns: ':visible'
+                    extend: 'collection',
+                    text: '<i class="fa fa-download"></i>',
+                    className: 'btn btn-info btn-sm',
+                    autoClose: true,
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            text: '<i class="fa fa-file-excel-o"></i> Excel',
+                            title: 'Transaction List',
+                            filename: 'transaction_list',
+                            exportOptions: {
+                                columns: ':visible'
+                            }
                         },
-                        customize: function(doc) {
-                            // Add current date at top-right
-                            const currentDate = new Date().toLocaleDateString('en-IN', {
-                                day: '2-digit',
-                                month: 'short',
-                                year: 'numeric'
-                            });
+                        {
+                            extend: 'pdfHtml5',
+                            text: '<i class="fa fa-file-pdf-o"></i> PDF',
+                            filename: 'transaction_list',
+                            orientation: 'landscape',
+                            pageSize: 'A4',
 
-                            doc.content.splice(0, 0, {
-                                text: 'Generate Date: ' + currentDate,
-                                alignment: 'right',
-                                margin: [0, 0, 0, 10],
-                                fontSize: 10
-                            });
+                            exportOptions: {
+                                columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+                            },
 
-                            // Title styling
-                            doc.styles.title = {
-                                alignment: 'center',
-                                fontSize: 14,
-                                bold: true,
-                                margin: [0, 0, 0, 10]
-                            };
+                            customize: function(doc) {
 
-                            // Table header styling
-                            doc.styles.tableHeader.alignment = 'left';
+                                // REMOVE default title
+                                doc.content.splice(0, 1);
 
-                            // General font size
-                            doc.defaultStyle.fontSize = 9;
+                                // CENTER TABLE
+                                doc.content[0].alignment = 'center';
+
+                                // MAKE TABLE WIDTH FULL PAGE
+                                doc.content[0].table.widths = [
+                                    30, 90, 100, 100, 70, 70, 50, 70, 70, 60, 80, 70,
+                                    70, 80, 60
+                                ];
+                                // Center table
+                                doc.content[0].alignment = 'center';
+
+                                // Header style
+                                doc.styles.tableHeader = {
+                                    alignment: 'center',
+                                    bold: true,
+                                    fontSize: 10,
+                                    fillColor: '#34495E',
+                                    color: 'white'
+                                };
+
+                                // Align body columns
+                                var tableBody = doc.content[0].table.body;
+
+                                for (var i = 1; i < tableBody.length; i++) {
+
+                                    tableBody[i][0].alignment = 'center';
+                                    tableBody[i][1].alignment = 'left';
+                                    tableBody[i][2].alignment = 'left';
+                                    tableBody[i][3].alignment = 'left';
+
+                                    tableBody[i][4].alignment = 'right';
+                                    tableBody[i][5].alignment = 'right';
+                                    tableBody[i][6].alignment = 'right';
+                                    tableBody[i][7].alignment = 'right';
+                                    tableBody[i][8].alignment = 'right';
+                                    tableBody[i][9].alignment = 'right';
+                                }
+
+                                // Get footer totals from page
+                                var commission = $('#commission_total').text();
+                                var party = $('#party_total').text();
+                                var credit = $('#credit_total').text();
+                                var subtotal = $('#sub_total_total').text();
+                                var total = $('#grand_total').text();
+                                var items = $('#item_count_total').text();
+
+                                // Add footer totals row
+                                doc.content[0].table.body.push([
+
+                                    {
+                                        text: 'Total',
+                                        colSpan: 4,
+                                        alignment: 'right',
+                                        bold: true
+                                    }, {}, {}, {},
+                                    {
+                                        text: party,
+                                        alignment: 'right',
+                                        bold: true
+                                    },
+                                    {
+                                        text: credit,
+                                        alignment: 'right',
+                                        bold: true
+                                    },
+                                    {
+                                        text: commission,
+                                        alignment: 'right',
+                                        bold: true
+                                    },
+                                    {
+                                        text: subtotal,
+                                        alignment: 'right',
+                                        bold: true
+                                    },
+                                    {
+                                        text: total,
+                                        alignment: 'right',
+                                        bold: true
+                                    },
+                                    {
+                                        text: items,
+                                        alignment: 'right',
+                                        bold: true
+                                    },
+
+                                    {
+                                        text: '',
+                                        colSpan: 5
+                                    }, {}, {}, {}, {}
+
+                                ]);
+
+                                // HEADER
+                                doc.content.unshift({
+                                    margin: [0, 0, 0, 12],
+                                    columns: [{
+                                            width: '33%',
+                                            columns: [{
+                                                    image: pdfLogo,
+                                                    width: 30
+                                                },
+                                                {
+                                                    text: 'LiquorHub',
+                                                    fontSize: 11,
+                                                    bold: true,
+                                                    margin: [5, 8, 0, 0]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            width: '34%',
+                                            text: 'Transaction List',
+                                            alignment: 'center',
+                                            fontSize: 16,
+                                            bold: true,
+                                            margin: [0, 8, 0, 0]
+                                        },
+                                        {
+                                            width: '33%',
+                                            text: 'Generated: ' + new Date()
+                                                .toLocaleString(),
+                                            alignment: 'right',
+                                            fontSize: 9,
+                                            margin: [0, 8, 0, 0]
+                                        }
+                                    ]
+                                });
+
+                                doc.styles.tableHeader.fontSize = 10;
+                                doc.defaultStyle.fontSize = 9;
+                            }
                         }
-                    }
-                ],
+                    ]
+                }],
                 ajax: {
                     url: '{{ url('sales/get-data') }}',
                     type: 'POST',
@@ -225,26 +327,47 @@
                     {
                         data: 'invoice_number'
                     },
-                    {
-                        data: 'party_user'
-                    },
+                    
                     {
                         data: 'commission_user'
                     },
                     {
-                        data: 'commission_amount'
+                        data: 'commission_amount',
+                        render: function(data) {
+                            return parseFloat(data) % 1 === 0 ? parseInt(data) : parseFloat(data)
+                                .toFixed(2);
+                        }
                     },
                     {
-                        data: 'party_amount'
+                        data: 'party_user'
                     },
                     {
-                        data: 'creditpay'
+                        data: 'party_amount',
+                        render: function(data) {
+                            return parseFloat(data) % 1 === 0 ? parseInt(data) : parseFloat(data)
+                                .toFixed(2);
+                        }
                     },
                     {
-                        data: 'sub_total'
+                        data: 'creditpay',
+                        render: function(data) {
+                            return parseFloat(data) % 1 === 0 ? parseInt(data) : parseFloat(data)
+                                .toFixed(2);
+                        }
                     },
                     {
-                        data: 'total'
+                        data: 'sub_total',
+                        render: function(data) {
+                            return parseFloat(data) % 1 === 0 ? parseInt(data) : parseFloat(data)
+                                .toFixed(2);
+                        }
+                    },
+                    {
+                        data: 'total',
+                        render: function(data) {
+                            return parseFloat(data) % 1 === 0 ? parseInt(data) : parseFloat(data)
+                                .toFixed(2);
+                        }
                     },
                     {
                         data: 'items_count'
@@ -284,13 +407,12 @@
                         total += intVal(row.total);
                         items += intVal(row.items_count);
                     });
-
-                    $(api.column(4).footer()).html('₹' + commission.toFixed(2));
-                    $(api.column(5).footer()).html('₹' + party.toFixed(2));
-                    $(api.column(6).footer()).html('₹' + credit.toFixed(2));
-                    $(api.column(7).footer()).html('₹' + subtotal.toFixed(2));
-                    $(api.column(8).footer()).html('₹' + total.toFixed(2));
-                    $(api.column(9).footer()).html(items);
+                    $('#commission_total').html('₹' + commission);
+                    $('#party_total').html('₹' + party);
+                    $('#credit_total').html('₹' + credit);
+                    $('#sub_total_total').html('₹' + subtotal);
+                    $('#grand_total').html('₹' + total);
+                    $('#item_count_total').html(items);
                 }
             });
 
@@ -324,17 +446,44 @@
             $('#invoiceHistoryModal').modal('show');
 
             $('#invoice-history-content').html(`
-        <div class="text-center p-4">
-            <span class="spinner-border text-secondary"></span>
-            <p>Loading...</p>
-        </div>
-    `);
+                <div class="text-center p-4">
+                    <span class="spinner-border text-secondary"></span>
+                    <p>Loading...</p>
+                </div>
+            `);
 
             $.get('{{ url('invoice') }}/' + invoiceId + '/history', function(response) {
                 $('#invoice-history-content').html(response);
             }).fail(function() {
                 $('#invoice-history-content').html(`<p class="text-danger">Failed to load history.</p>`);
             });
+        });
+
+        function formatNumber(val) {
+            return parseFloat(val) % 1 === 0 ? parseInt(val) : parseFloat(val).toFixed(2);
+        }
+
+        function getBase64Image(url, callback) {
+            var img = new Image();
+            img.crossOrigin = "Anonymous";
+
+            img.onload = function() {
+                var canvas = document.createElement("canvas");
+                canvas.width = this.width;
+                canvas.height = this.height;
+
+                var ctx = canvas.getContext("2d");
+                ctx.drawImage(this, 0, 0);
+
+                var dataURL = canvas.toDataURL("image/png");
+                callback(dataURL);
+            };
+
+            img.src = url;
+        }
+
+        getBase64Image("https://liquorhub.in/assets/images/logo.png", function(base64) {
+            pdfLogo = base64;
         });
     </script>
 @endsection
