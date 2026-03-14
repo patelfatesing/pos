@@ -96,6 +96,7 @@
                                                         @endphp
                                                         @foreach ($selectedProducts as $item)
                                                             @php
+                                                           
                                                                 $product = $item['product_details'];
                                                                 $srNo++;
                                                             @endphp
@@ -113,7 +114,7 @@
                                                                     <input type="text"
                                                                         name="products[{{ @$srNo }}][brand_name]"
                                                                         class="form-control"
-                                                                        value="{{ $product['brand'] ?? '' }}" readonly>
+                                                                        value="{{ $product['name'] ?? '' }}" readonly>
                                                                 </td>
                                                                 <td>
                                                                     <input type="number" step="0.01"

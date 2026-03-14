@@ -251,7 +251,7 @@
                     const rowTotal = qty * price; // Calculate row total
                     let dis = qty * (price - discount); // Calculate row discount
 
-                    $(this).find('.item-total').html('<b>₹' + rowTotal.toFixed(2) +
+                    $(this).find('.item-total').html('<b>₹' + (rowTotal - dis) +
                         '</b>'); // Update row total
 
                     var selectedCommissionUserId = $('#commission-id').val();

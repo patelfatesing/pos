@@ -1,159 +1,157 @@
 @extends('layouts.backend.layouts')
 
 @section('page-content')
-    <div class="wrapper">
-        <div class="content-page">
-            <div class="container-fluid add-form-list">
-                <div class="card-header">
-                    <div class="row align-items-center">
-                        <div class="col-md-6">
+    <div class="content-page">
+        <div class="container-fluid add-form-list">
+            <div class="row align-items-center mb-2">
+                <div class="col-lg-12">
+                    <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                        <div>
                             <h4 class="mb-0">⚡ Party Customer Price Change -</h4>
                         </div>
-                        <div class="col-md-6">
-                            <div class="d-flex justify-content-end align-items-center">
-                                <form class="pull-right mt-3" action="" method="GET" style="display: inline;">
-                                    <select name="id" id="id" class="form-control"
-                                        onchange="this.form.submit()">
-                                        <option value="">All Subcategories</option>
-                                        @foreach ($partyUserAll as $party)
-                                            <option value="{{ $party->id }}"
-                                                {{ $partyUser->id == $party->id ? 'selected' : '' }}>
-                                                {{ $party->first_name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                        <div class="col-md-5 pr-0"> </div>
+                        <div class="col-md-2 pr-0">
+                            <form class="pull-right mt-3" action="" method="GET" style="display: inline;">
+                                <select name="id" id="id" class="form-control" onchange="this.form.submit()">
+                                    <option value="">All Subcategories</option>
+                                    @foreach ($partyUserAll as $party)
+                                        <option value="{{ $party->id }}"
+                                            {{ $partyUser->id == $party->id ? 'selected' : '' }}>
+                                            {{ $party->first_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
 
-                                    @if (request()->has('subcategory_id') && !empty(request()->get('subcategory_id')))
-                                        <input type="hidden" name="subcategory_id"
-                                            value="{{ request()->get('subcategory_id') }}">
-                                    @endif
-                                </form>
-                                <a href="{{ route('party-users.list') }}" class="btn btn-secondary ml-2">Back</a>
-                            </div>
+                                @if (request()->has('subcategory_id') && !empty(request()->get('subcategory_id')))
+                                    <input type="hidden" name="subcategory_id"
+                                        value="{{ request()->get('subcategory_id') }}">
+                                @endif
+                            </form>
+                        </div>
+
+                        <div class="col-md-1 pr-0">
+                            <a href="{{ route('party-users.list') }}" class="btn btn-secondary ml-2">Back</a>
                         </div>
                     </div>
                 </div>
+            </div>
 
-
-
-                <div class="row">
-                    <div class="col-sm-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <form method="GET" action="{{ route('party-users.cust-product-price-change-form') }}">
-                                    <div class="row ml-2 mt-2">
-                                        <div class="col-md-3 mb-2">
-                                            <!-- 🔍 Search box -->
-                                            <div class="form-group">
-                                                <input type="text" id="productSearch" class="form-control"
-                                                    placeholder="🔍 Search Product by Name or MRP" name="search">
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-3 mb-2">
-                                            <select name="subcategory_id" id="subcategory_id" class="form-control"
-                                                onchange="this.form.submit()">
-                                                <option value="">All Subcategories</option>
-                                                @foreach ($subcategories as $subcategory)
-                                                    <option value="{{ $subcategory->id }}"
-                                                        {{ request('subcategory_id') == $subcategory->id ? 'selected' : '' }}>
-                                                        {{ $subcategory->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-
-                                        <div class="col-md-1 mb-2">
-                                            <!-- Reset button that keeps the `id` parameter intact -->
-                                            <a href="{{ route('party-users.cust-product-price-change-form') }}?id={{ $partyUser->id }}"
-                                                class="btn btn-secondary">Reset</a>
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <form method="GET" action="{{ route('party-users.cust-product-price-change-form') }}">
+                                <div class="row ml-2 mt-2">
+                                    <div class="col-md-3 mb-2">
+                                        <!-- 🔍 Search box -->
+                                        <div class="form-group">
+                                            <input type="text" id="productSearch" class="form-control"
+                                                placeholder="🔍 Search Product by Name or MRP" name="search">
                                         </div>
                                     </div>
 
-                                    <!-- Hidden input to include the `id` parameter in the form submission -->
-                                    <input type="hidden" name="id" value="{{ $partyUser->id }}">
-                                </form>
+                                    <div class="col-md-3 mb-2">
+                                        <select name="subcategory_id" id="subcategory_id" class="form-control"
+                                            onchange="this.form.submit()">
+                                            <option value="">All Subcategories</option>
+                                            @foreach ($subcategories as $subcategory)
+                                                <option value="{{ $subcategory->id }}"
+                                                    {{ request('subcategory_id') == $subcategory->id ? 'selected' : '' }}>
+                                                    {{ $subcategory->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
 
-                                <form id="custPriceChnageForm" action="{{ route('cust-product-price-change-store') }}"
-                                    method="POST">
-                                    @csrf
+                                    <div class="col-md-1 mb-2">
+                                        <!-- Reset button that keeps the `id` parameter intact -->
+                                        <a href="{{ route('party-users.cust-product-price-change-form') }}?id={{ $partyUser->id }}"
+                                            class="btn btn-secondary">Reset</a>
+                                    </div>
+                                </div>
 
-                                    <input type="hidden" name="cust_user_id" value="{{ $partyUser->id }}">
+                                <!-- Hidden input to include the `id` parameter in the form submission -->
+                                <input type="hidden" name="id" value="{{ $partyUser->id }}">
+                            </form>
+
+                            <form id="custPriceChnageForm" action="{{ route('cust-product-price-change-store') }}"
+                                method="POST">
+                                @csrf
+
+                                <input type="hidden" name="cust_user_id" value="{{ $partyUser->id }}">
 
 
 
-                                    <!-- Product Table -->
-                                    <div class="scrollable-content p-3 border rounded" id="scrollableContent">
-                                        <div class="table-responsive">
-                                            <table class="table table-bordered mb-0" id="productTable">
-                                                <thead class="thead-light">
+                                <!-- Product Table -->
+                                <div class="scrollable-content p-3 border rounded" id="scrollableContent">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered mb-0" id="productTable">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Product</th>
+                                                    <th>MRP</th>
+                                                    <th>Sell Price</th>
+                                                    <th>Discount Price</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @forelse($products as $key => $product)
                                                     <tr>
-                                                        <th>#</th>
-                                                        <th>Product</th>
-                                                        <th>MRP</th>
-                                                        <th>Sell Price</th>
-                                                        <th>Discount Price</th>
+                                                        <td>{{ $key + 1 }}</td>
+                                                        <td>{{ $product->name }}</td>
+                                                        <td>{{ number_format($product->mrp, 0) }}</td>
+                                                        <td>{{ number_format($product->sell_price, 0) }}</td>
+                                                        <td>
+                                                            <input type="number" step="1"
+                                                                name="items[{{ $product->id }}][cust_discount_price]"
+                                                                value="{{ old('items.' . $product->id . '.cust_discount_price', number_format($product->cust_discount_price,0) == '0' ? number_format($product->mrp,0) : number_format($product->cust_discount_price,0)) }}"
+                                                                class="form-control @error('items.' . $product->id . '.cust_discount_price') is-invalid @enderror"
+                                                                placeholder="Enter discount price">
+
+                                                            <input type="hidden" name="items[{{ $product->id }}][mrp]"
+                                                                value="{{ $product->mrp }}">
+
+                                                            @error('items.' . $product->id . '.cust_discount_price')
+                                                                <div class="invalid-feedback d-block">{{ $message }}
+                                                                </div>
+                                                            @enderror
+                                                            @error('items.' . $product->id . '.sell_price')
+                                                                <div class="invalid-feedback d-block">{{ $message }}
+                                                                </div>
+                                                            @enderror
+                                                        </td>
                                                     </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @forelse($products as $key => $product)
-                                                        <tr>
-                                                            <td>{{ $key + 1 }}</td>
-                                                            <td>{{ $product->name }}</td>
-                                                            <td>{{ $product->mrp }}</td>
-                                                            <td>{{ $product->sell_price }}</td>
-                                                            <td>
-                                                                <input type="number" step="0.01"
-                                                                    name="items[{{ $product->id }}][cust_discount_price]"
-                                                                    value="{{ old('items.' . $product->id . '.cust_discount_price', $product->cust_discount_price == '0.00' ? $product->mrp : $product->cust_discount_price) }}"
-                                                                    class="form-control @error('items.' . $product->id . '.cust_discount_price') is-invalid @enderror"
-                                                                    placeholder="Enter discount price">
-
-                                                                <input type="hidden"
-                                                                    name="items[{{ $product->id }}][mrp]"
-                                                                    value="{{ $product->mrp }}">
-
-                                                                @error('items.' . $product->id . '.cust_discount_price')
-                                                                    <div class="invalid-feedback d-block">{{ $message }}
-                                                                    </div>
-                                                                @enderror
-                                                                @error('items.' . $product->id . '.sell_price')
-                                                                    <div class="invalid-feedback d-block">{{ $message }}
-                                                                    </div>
-                                                                @enderror
-                                                            </td>
-                                                        </tr>
-                                                    @empty
-                                                        <tr>
-                                                            <td colspan="5" class="text-center">✅ All products are above
-                                                                Low Level Stock.</td>
-                                                        </tr>
-                                                    @endforelse
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                                @empty
+                                                    <tr>
+                                                        <td colspan="5" class="text-center">Data not available</td>
+                                                    </tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
                                     </div>
+                                </div>
 
-                                    <!-- Notes -->
-                                    <div class="form-group mt-3">
-                                        <label for="notes">Notes</label>
-                                        <input type="text" name="notes" class="form-control" placeholder="Enter Notes">
-                                    </div>
+                                <!-- Notes -->
+                                <div class="form-group mt-3">
+                                    <label for="notes">Notes</label>
+                                    <input type="text" name="notes" class="form-control" placeholder="Enter Notes">
+                                </div>
 
-                                    <!-- Submit Buttons -->
-                                    <div class="text-right mt-3">
-                                        <a href="{{ url()->previous() }}" class="btn btn-secondary">Cancel</a>
-                                        <button type="button" class="btn btn-primary" id="submitButton"
-                                            onclick="submitForm()">Submit Price Change</button>
-                                    </div>
-                                </form>
-                            </div> <!-- /.card-body -->
-                        </div>
+                                <!-- Submit Buttons -->
+                                <div class="text-right mt-3">
+                                    <a href="{{ url()->previous() }}" class="btn btn-secondary">Cancel</a>
+                                    <button type="button" class="btn btn-primary" id="submitButton"
+                                        onclick="submitForm()">Submit Price Change</button>
+                                </div>
+                            </form>
+                        </div> <!-- /.card-body -->
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
 
     <style>
         .scrollable-content {

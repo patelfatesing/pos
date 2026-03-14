@@ -6,7 +6,7 @@
             <div class="container-fluid">
 
                 <!-- Page Header -->
-                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-2">
                     <div>
                         <h4 class="mb-0">Party Customer List</h4>
                     </div>
@@ -114,7 +114,7 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                 processing: true,
                 serverSide: true,
                 responsive: true,
-                 language: {
+                language: {
                     search: "",
                     lengthMenu: "_MENU_"
                 },
@@ -126,7 +126,7 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                     }
                 },
                 dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
-                
+
                 columns: [{
                         data: null,
                         name: 'sr_no',
@@ -179,117 +179,25 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                 pageLength: 10,
 
 
-                buttons: [{
-                    extend: 'collection',
-                    text: '<i class="fa fa-download"></i>',
-                    className: 'btn btn-info btn-sm',
-                    autoClose: true,
-                    buttons: [{
-                            extend: 'excelHtml5',
-                            text: '<i class="fa fa-file-excel-o"></i> Excel',
-                            title: 'Party Customer List',
-                            filename: 'Party_Customer_List',
-                            exportOptions: {
-                                columns: ':visible'
-                            }
-                        },
-                        {
-                            extend: 'pdfHtml5',
-                            text: '<i class="fa fa-file-pdf-o"></i> PDF',
-                            filename: 'Party_Customer_List',
-                            orientation: 'landscape',
-                            pageSize: 'A4',
+                buttons: [],
 
-                            exportOptions: {
-                                columns: [0, 1, 2, 3, 4, 5]
-                            },
 
-                            customize: function(doc) {
+                initComplete: function() {
 
-                                // REMOVE default title
-                                doc.content.splice(0, 1);
+                    $('.dataTables_filter input').attr("placeholder", "Search List...");
 
-                                // CENTER TABLE
-                                doc.content[0].alignment = 'center';
+                    $('<div class="status-filter">' +
+                        '<select id="status" class="form-control form-control-sm">' +
+                        '<option value="">All Status</option>' +
+                        '<option value="active">Active</option>' +
+                        '<option value="inactive">Inactive</option>' +
+                        '</select>' +
+                        '</div>').insertBefore('.dt-buttons');
 
-                                // MAKE TABLE WIDTH FULL PAGE
-                                doc.content[0].table.widths = ['auto', '*', '*', '*', '*',
-                                    '*'
-                                ];
-
-                                doc.styles.tableHeader.alignment = 'center';
-
-                                var tableBody = doc.content[0].table.body;
-
-                                for (var i = 1; i < tableBody.length; i++) {
-                                    tableBody[i][0].alignment = 'center';
-                                    tableBody[i][1].alignment = 'left';
-                                    tableBody[i][2].alignment = 'center';
-                                    tableBody[i][3].alignment = 'center';
-                                    tableBody[i][4].alignment = 'center';
-                                    tableBody[i][5].alignment = 'center';
-                                }
-
-                                // HEADER
-                                doc.content.unshift({
-                                    margin: [0, 0, 0, 12],
-                                    columns: [{
-                                            width: '33%',
-                                            columns: [{
-                                                    image: pdfLogo,
-                                                    width: 30
-                                                },
-                                                {
-                                                    text: 'LiquorHub',
-                                                    fontSize: 11,
-                                                    bold: true,
-                                                    margin: [5, 8, 0, 0]
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            width: '34%',
-                                            text: 'Party Customer List',
-                                            alignment: 'center',
-                                            fontSize: 16,
-                                            bold: true,
-                                            margin: [0, 8, 0, 0]
-                                        },
-                                        {
-                                            width: '33%',
-                                            text: 'Generated: ' + new Date()
-                                                .toLocaleString(),
-                                            alignment: 'right',
-                                            fontSize: 9,
-                                            margin: [0, 8, 0, 0]
-                                        }
-                                    ]
-                                });
-
-                                doc.styles.tableHeader.fontSize = 10;
-                                doc.defaultStyle.fontSize = 9;
-                            }
-                        }
-                    ]
-                }],
-                
-
-                 initComplete: function() {
-
-                $('.dataTables_filter input').attr("placeholder", "Search List...");
-
-                $('<div class="status-filter d-flex align-items-center mr-2 mb-4">' +
-                    '<select id="status" class="form-control form-control-sm">' +
-                    '<option value="">All Status</option>' +
-                    '<option value="active">Active</option>' +
-                    '<option value="inactive">Inactive</option>' +
-                    '</select>' +
-                    '</div>').insertBefore('.dt-buttons');
-
-                $('#status').on('change', function () {
-                    table.ajax.reload();
-                });
-            }
+                    $('#status').on('change', function() {
+                        table.ajax.reload();
+                    });
+                }
             });
         });
 

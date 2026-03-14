@@ -168,117 +168,114 @@
 @endsection
 
 @section('page-content')
-    <div class="wrapper">
-        <div class="content-page">
-            <div class="container-fluid">
-                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
-                    <div>
-                        <h4 class="mb-0"> Profit &amp; Loss</h4>
-                    </div>
-                    <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
+    <div class="content-page">
+        <div class="container-fluid">
+            <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                <div>
+                    <h4 class="mb-0"> Profit &amp; Loss</h4>
                 </div>
-                <div class="pnl-card">
+                <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
+            </div>
+            <div class="pnl-card">
 
 
-                    <div class="filters" id="pnl_filters">
+                <div class="filters" id="pnl_filters">
+                    <input type="date" id="pnl_start" class="form-control form-control-sm">
+                    <input type="date" id="pnl_end" class="form-control form-control-sm">
 
-                        {{-- Removed Branch Completely --}}
+                    <button id="pnl_apply" type="button" class="btn btn-primary btn-sm">Apply</button>
 
-                        <input type="date" id="pnl_start" class="form-control form-control-sm" autocomplete="off">
-                        <input type="date" id="pnl_end" class="form-control form-control-sm" autocomplete="off">
+                    <span id="pnl_period" class="ms-2 text-muted"></span>
+                </div>
 
-                        <button id="pnl_apply" type="button" class="btn btn-primary btn-sm">Apply</button>
+                <a id="pnl_pdf_link" class="btn btn-sm btn-outline-primary" href="#" target="_blank">
+                    Download PDF
+                </a>
+
+                {{-- Trading Account --}}
+                <div class="two-col mt-2">
+                    <div>
+                        <div class="muted mb-1" id="lbl_tr_dr">Trading Account (Dr)</div>
+                        <table class="pnl" id="tbl_trading_dr">
+                            <thead>
+                                <tr>
+                                    <th>Particulars</th>
+                                    <th class="amount">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                            <tfoot>
+                                <tr class="row-total">
+                                    <td>Total</td>
+                                    <td class="amount" id="trading_total_dr">0.00</td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
-
-                    <a id="pnl_pdf_link" class="btn btn-sm btn-outline-primary" href="#" target="_blank">
-                        Download PDF
-                    </a>
-
-                    {{-- Trading Account --}}
-                    <div class="two-col mt-2">
-                        <div>
-                            <div class="muted mb-1" id="lbl_tr_dr">Trading Account (Dr)</div>
-                            <table class="pnl" id="tbl_trading_dr">
-                                <thead>
-                                    <tr>
-                                        <th>Particulars</th>
-                                        <th class="amount">Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                                <tfoot>
-                                    <tr class="row-total">
-                                        <td>Total</td>
-                                        <td class="amount" id="trading_total_dr">0.00</td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                        <div>
-                            <div class="muted mb-1" id="lbl_tr_cr">Trading Account (Cr)</div>
-                            <table class="pnl" id="tbl_trading_cr">
-                                <thead>
-                                    <tr>
-                                        <th>Particulars</th>
-                                        <th class="amount">Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                                <tfoot>
-                                    <tr class="row-total">
-                                        <td>Total</td>
-                                        <td class="amount" id="trading_total_cr">0.00</td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
+                    <div>
+                        <div class="muted mb-1" id="lbl_tr_cr">Trading Account (Cr)</div>
+                        <table class="pnl" id="tbl_trading_cr">
+                            <thead>
+                                <tr>
+                                    <th>Particulars</th>
+                                    <th class="amount">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                            <tfoot>
+                                <tr class="row-total">
+                                    <td>Total</td>
+                                    <td class="amount" id="trading_total_cr">0.00</td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
+                </div>
 
-                    <hr>
+                <hr>
 
-                    {{-- Profit & Loss Account --}}
-                    <div class="two-col">
-                        <div>
-                            <div class="muted mb-1" id="lbl_pl_dr">Profit &amp; Loss A/c (Dr)</div>
-                            <table class="pnl" id="tbl_pl_dr">
-                                <thead>
-                                    <tr>
-                                        <th>Particulars</th>
-                                        <th class="amount">Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                                <tfoot>
-                                    <tr class="row-total">
-                                        <td>Total</td>
-                                        <td class="amount" id="pl_total_dr">0.00</td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                        <div>
-                            <div class="muted mb-1" id="lbl_pl_cr">Profit &amp; Loss A/c (Cr)</div>
-                            <table class="pnl" id="tbl_pl_cr">
-                                <thead>
-                                    <tr>
-                                        <th>Particulars</th>
-                                        <th class="amount">Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                                <tfoot>
-                                    <tr class="row-total">
-                                        <td>Total</td>
-                                        <td class="amount" id="pl_total_cr">0.00</td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
+                {{-- Profit & Loss Account --}}
+                <div class="two-col">
+                    <div>
+                        <div class="muted mb-1" id="lbl_pl_dr">Profit &amp; Loss A/c (Dr)</div>
+                        <table class="pnl" id="tbl_pl_dr">
+                            <thead>
+                                <tr>
+                                    <th>Particulars</th>
+                                    <th class="amount">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                            <tfoot>
+                                <tr class="row-total">
+                                    <td>Total</td>
+                                    <td class="amount" id="pl_total_dr">0.00</td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
-
+                    <div>
+                        <div class="muted mb-1" id="lbl_pl_cr">Profit &amp; Loss A/c (Cr)</div>
+                        <table class="pnl" id="tbl_pl_cr">
+                            <thead>
+                                <tr>
+                                    <th>Particulars</th>
+                                    <th class="amount">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                            <tfoot>
+                                <tr class="row-total">
+                                    <td>Total</td>
+                                    <td class="amount" id="pl_total_cr">0.00</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
                 </div>
 
             </div>
+
         </div>
     </div>
 @endsection
@@ -308,9 +305,12 @@
             $('pnl_start').value = last30;
             $('pnl_end').value = today;
 
-            function updateHeader() {
-                $('pnl_period').textContent = `${$('pnl_start').value} to ${$('pnl_end').value}`;
-            }
+           function updateHeader() {
+    const el = $('pnl_period');
+    if (el) {
+        el.textContent = `${$('pnl_start').value} to ${$('pnl_end').value}`;
+    }
+}
 
             function updatePdfLink() {
                 const params = new URLSearchParams({

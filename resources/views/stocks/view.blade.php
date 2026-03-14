@@ -11,10 +11,8 @@
 
     <div class="content-page">
         <div class="container-fluid">
-            <div class="card-header d-flex justify-content-between">
-                <div class="header-title">
-                    <h4 class="card-title">Stock Request Detail fff</h4>
-                </div>
+            <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                <h4 class="mb-0">Stock Request Items Detail</h4>
                 <div>
                     <a href="{{ route('stock.requestList') }}" class="btn btn-secondary">Back</a>
                 </div>
@@ -62,9 +60,9 @@
             </div>
 
             <div class="card">
-                <div class="card-header"><strong>Requested Items</strong></div>
+                {{-- <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-2"><strong>Requested Items</strong></div> --}}
                 <div class="card-body p-0">
-                    <table class="table table-bordered mb-0" id="stock-requests-details-table">
+                    <table class="table table-bordered mb-2" id="stock-requests-details-table">
                         <thead>
                             <tr>
                                 <th>Sr No</th>
@@ -226,7 +224,7 @@
                 ordering: true,
                 bLengthChange: true,
                 serverSide: true,
-                 language: {
+                language: {
                     search: "",
                     lengthMenu: "_MENU_"
                 },
@@ -238,7 +236,7 @@
                         d._token = '{{ csrf_token() }}';
                     }
                 },
-                 dom: "<'row mb-2'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'f l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
                 initComplete: function() {
                     $('.dataTables_filter input').attr("placeholder", "Search List...");
                 },
@@ -297,7 +295,8 @@
                     [10, 25, 50],
                     ['10 rows', '25 rows', '50 rows', 'All']
                 ],
-                 buttons: [{
+                
+                buttons: [{
                     extend: 'collection',
                     text: '<i class="fa fa-download"></i>',
                     className: 'btn btn-info btn-sm',

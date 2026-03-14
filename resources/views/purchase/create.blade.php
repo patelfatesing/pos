@@ -12,534 +12,516 @@
         </script>
     @endif
     <!-- Wrapper Start -->
-   
-        <div class="content-page">
-            <div class="container-fluid">
-                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
-                    <div>
-                        <h4 class="mb-0">Purchase Invoice</h4>
-                    </div>
 
-                    <div>
-                        <a href="{{ route('purchase.list') }}" class="btn btn-secondary">Back</a>
-                    </div>
-
+    <div class="content-page">
+        <div class="container-fluid">
+            <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                <div>
+                    <h4 class="mb-0">Purchase Invoice</h4>
                 </div>
-                <div class="row">
-                    <div class="col-sm-12">
-                        <div class="card">
 
-                            <div class="card-body">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <form action="{{ route('purchase.store') }}" method="POST"
-                                            enctype="multipart/form-data" novalidate>
-                                            @csrf
-                                            <div class="row">
-                                                <div class="col-md-4">
-                                                    <label for="bill_no" class="form-label">Bill No</label>
-                                                    <input type="text" class="form-control" id="bill_no" name="bill_no"
-                                                        value="{{ old('bill_no') }}">
-                                                    @error('bill_no')
+                <div>
+                    <a href="{{ route('purchase.list') }}" class="btn btn-secondary">Back</a>
+                </div>
+
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="card">
+
+                        <div class="card-body">
+                            <div class="card">
+                                <div class="card-body">
+                                    <form action="{{ route('purchase.store') }}" method="POST"
+                                        enctype="multipart/form-data" novalidate>
+                                        @csrf
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <label for="bill_no" class="form-label">Bill No</label>
+                                                <input type="text" class="form-control" id="bill_no" name="bill_no"
+                                                    value="{{ old('bill_no') }}">
+                                                @error('bill_no')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+
+                                            <div class="col-md-4">
+                                                <label for="date" class="form-label">Date</label>
+                                                <input type="date" class="form-control" id="date" name="date"
+                                                    value="{{ old('date') }}" max="{{ now()->toDateString() }}">
+                                                @error('date')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label for="vendor_id">Vendor Name</label>
+                                                    <select name="vendor_id" id="vendor_id" class="form-control">
+                                                        <option value="">-- Select Party --</option>
+                                                        @foreach ($vendors as $vendor)
+                                                            <option value="{{ $vendor->id }}"
+                                                                {{ old('vendor_id') == $vendor->id ? 'selected' : '' }}>
+                                                                {{ $vendor->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('vendor_id')
                                                         <span class="text-danger">{{ $message }}</span>
                                                     @enderror
                                                 </div>
+                                            </div>
 
-                                                <div class="col-md-4">
-                                                    <label for="date" class="form-label">Date</label>
-                                                    <input type="date" class="form-control" id="date" name="date"
-                                                        value="{{ old('date') }}" max="{{ now()->toDateString() }}">
-                                                    @error('date')
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label for="vendor_new_id">Ledger Name</label>
+                                                    <select name="vendor_new_id" id="vendor_new_id" class="form-control">
+                                                        <option value="">-- Select Ledger Name --</option>
+                                                        @foreach ($ledgersAll as $vendor)
+                                                            <option value="{{ $vendor->id }}"
+                                                                {{ old('vendor_new_id') == $vendor->id ? 'selected' : '' }}>
+                                                                {{ $vendor->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('vendor_new_id')
                                                         <span class="text-danger">{{ $message }}</span>
                                                     @enderror
                                                 </div>
+                                                <a href="{{ route('accounting.ledgers.create', 'purchase') }}"
+                                                    class="btn btn-outline-secondary btn-sm">
+                                                    Create Ledger
+                                                </a>
+                                            </div>
 
-                                                <div class="col-md-4">
-                                                    <div class="form-group">
-                                                        <label for="vendor_id">Vendor Name</label>
-                                                        <select name="vendor_id" id="vendor_id" class="form-control">
-                                                            <option value="">-- Select Party --</option>
-                                                            @foreach ($vendors as $vendor)
-                                                                <option value="{{ $vendor->id }}"
-                                                                    {{ old('vendor_id') == $vendor->id ? 'selected' : '' }}>
-                                                                    {{ $vendor->name }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                        @error('vendor_id')
-                                                            <span class="text-danger">{{ $message }}</span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-
-                                                <div class="col-md-4">
-                                                    <div class="form-group">
-                                                        <label for="vendor_new_id">Ledger Name</label>
-                                                        <select name="vendor_new_id" id="vendor_new_id"
-                                                            class="form-control">
-                                                            <option value="">-- Select Ledger Name --</option>
-                                                            @foreach ($ledgersAll as $vendor)
-                                                                <option value="{{ $vendor->id }}"
-                                                                    {{ old('vendor_new_id') == $vendor->id ? 'selected' : '' }}>
-                                                                    {{ $vendor->name }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                        @error('vendor_new_id')
-                                                            <span class="text-danger">{{ $message }}</span>
-                                                        @enderror
-                                                    </div>
-                                                    <a href="{{ route('accounting.ledgers.create', 'purchase') }}"
-                                                        class="btn btn-outline-secondary btn-sm">
-                                                        Create Ledger
-                                                    </a>
-                                                </div>
-
-                                                <div class="col-md-4">
-                                                    <div class="form-group">
-                                                        <label for="parchase_ledger">Purchase Ledger</label>
-                                                        <select name="parchase_ledger" id="parchase_ledger"
-                                                            class="form-control">
-                                                            <option value="">-- Select Ledger --</option>
-                                                            @foreach ($ledgers as $ven)
-                                                                <option value="{{ $ven->id }}"
-                                                                    {{ old('parchase_ledger') == $ven->id ? 'selected' : '' }}>
-                                                                    {{ $ven->name }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                        @error('parchase_ledger')
-                                                            <span class="text-danger">{{ $message }}</span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-
-                                                <div class="col-md-4">
-                                                    <div class="form-group">
-                                                        <label for="subcategories">Sub Category</label>
-                                                        <select name="subcategories" id="subcategories"
-                                                            class="form-control">
-                                                            <option value="">-- Select Sub Category --</option>
-                                                            @foreach ($subcategories as $subcat)
-                                                                <option value="{{ $subcat->id }}"
-                                                                    data-id="{{ $subcat->id }}"
-                                                                    {{ old('subcategories') == $subcat->id ? 'selected' : '' }}>
-                                                                    {{ $subcat->name }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                        @error('subcategories')
-                                                            <span class="text-danger">{{ $message }}</span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-
-                                                <div class="col-md-4">
-                                                    <div class="form-group">
-                                                        <label for="product_select">Product</label>
-                                                        <select name="product_select" id="product_select"
-                                                            class="form-control">
-                                                            <option value="">-- Select Product --</option>
-                                                            @foreach ($products as $product)
-                                                                <option value="{{ $product['id'] }}">
-                                                                    {{ $product['name'] }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                        @error('product_select')
-                                                            <span class="text-danger">{{ $message }}</span>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <div class="form-group">
-                                                        <label for="product_barcode">Barcode</label>
-
-                                                        <input type="text" class="form-control" id="product_barcode"
-                                                            name="product_barcode" value="{{ old('product_barcode') }}">
-
-                                                        @error('product_select')
-                                                            <span class="text-danger">{{ $message }}</span>
-                                                        @enderror
-                                                    </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label for="parchase_ledger">Purchase Ledger</label>
+                                                    <select name="parchase_ledger" id="parchase_ledger"
+                                                        class="form-control">
+                                                        <option value="">-- Select Ledger --</option>
+                                                        @foreach ($ledgers as $ven)
+                                                            <option value="{{ $ven->id }}"
+                                                                {{ old('parchase_ledger') == $ven->id ? 'selected' : '' }}>
+                                                                {{ $ven->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('parchase_ledger')
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                    @enderror
                                                 </div>
                                             </div>
 
-                                            <hr />
-
-                                            {{-- PRODUCTS TABLE --}}
-                                            <div class="table-responsive mb-3">
-                                                <table class="table table-bordered" id="product_table">
-                                                    <thead class="table-light">
-                                                        <tr>
-                                                            <th>Sr No</th>
-                                                            <th>Product</th>
-                                                            <th>Batch</th>
-                                                            <th>MFG Date</th>
-                                                            <th>MRP Rate</th>
-                                                            <th>Qty</th>
-                                                            <th>Cost Price</th>
-                                                            <th>Amount</th>
-                                                            <th>Action</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody id="productBody">
-                                                        @if (old('products'))
-                                                            @foreach (old('products') as $i => $product)
-                                                                <tr>
-                                                                    <td>{{ $i + 1 }}</td>
-                                                                    <td style="width:25%">
-                                                                        <input type="hidden"
-                                                                            name="products[{{ $i }}][product_id]"
-                                                                            value="{{ $product['product_id'] }}">
-
-                                                                        <input type="hidden" class="form-control"
-                                                                            name="products[{{ $i }}][brand_name]"
-                                                                            value="{{ $product['brand_name'] }}" readonly>
-
-
-                                                                        <span>{{ $product['brand_name'] }}</span>
-
-                                                                    </td>
-                                                                    <td>
-                                                                        <input type="text" class="form-control"
-                                                                            name="products[{{ $i }}][batch]"
-                                                                            value="{{ $product['batch'] }}">
-                                                                        @error("products.$i.batch")
-                                                                            <span
-                                                                                class="text-danger">{{ $message }}</span>
-                                                                        @enderror
-                                                                    </td>
-                                                                    <td>
-                                                                        <input type="date" class="form-control"
-                                                                            name="products[{{ $i }}][mfg_date]"
-                                                                            value="{{ $product['mfg_date'] }}">
-                                                                        @error("products.$i.mfg_date")
-                                                                            <span
-                                                                                class="text-danger">{{ $message }}</span>
-                                                                        @enderror
-                                                                    </td>
-                                                                    <td>
-                                                                        <input type="hidden"
-                                                                            name="products[{{ $i }}][mrp]"
-                                                                            value="{{ $product['mrp'] }}">
-                                                                        <input type="number" class="form-control mrp"
-                                                                            value="{{ $product['mrp'] }}" disabled>
-                                                                        @error("products.$i.mrp")
-                                                                            <span
-                                                                                class="text-danger">{{ $message }}</span>
-                                                                        @enderror
-                                                                    </td>
-                                                                    <td>
-                                                                        <input type="number" class="form-control qnt"
-                                                                            name="products[{{ $i }}][qnt]"
-                                                                            value="{{ $product['qnt'] }}">
-                                                                        @error("products.$i.qnt")
-                                                                            <span
-                                                                                class="text-danger">{{ $message }}</span>
-                                                                        @enderror
-                                                                    </td>
-                                                                    <td>
-                                                                        <input type="number" class="form-control rate"
-                                                                            name="products[{{ $i }}][rate]"
-                                                                            value="{{ $product['rate'] }}">
-                                                                        @error("products.$i.rate")
-                                                                            <span
-                                                                                class="text-danger">{{ $message }}</span>
-                                                                        @enderror
-                                                                    </td>
-                                                                    <td>
-                                                                        <input type="number" class="form-control amount"
-                                                                            name="products[{{ $i }}][amount]"
-                                                                            value="{{ $product['amount'] }}">
-                                                                        @error("products.$i.amount")
-                                                                            <span
-                                                                                class="text-danger">{{ $message }}</span>
-                                                                        @enderror
-                                                                    </td>
-                                                                    <td>
-                                                                        <button type="button"
-                                                                            class="btn btn-sm btn-danger remove">
-                                                                            Remove
-                                                                        </button>
-                                                                    </td>
-                                                                </tr>
-                                                            @endforeach
-                                                        @endif
-                                                    </tbody>
-                                                </table>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label for="subcategories">Sub Category</label>
+                                                    <select name="subcategories" id="subcategories" class="form-control">
+                                                        <option value="">-- Select Sub Category --</option>
+                                                        @foreach ($subcategories as $subcat)
+                                                            <option value="{{ $subcat->id }}"
+                                                                data-id="{{ $subcat->id }}"
+                                                                {{ old('subcategories') == $subcat->id ? 'selected' : '' }}>
+                                                                {{ $subcat->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('subcategories')
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                    @enderror
+                                                </div>
                                             </div>
 
-                                            <input type="hidden" name="total" class="total_val" value="" />
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label for="product_select">Product</label>
+                                                    <select name="product_select" id="product_select" class="form-control">
+                                                        <option value="">-- Select Product --</option>
+                                                        @foreach ($products as $product)
+                                                            <option value="{{ $product['id'] }}">
+                                                                {{ $product['name'] }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('product_select')
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label for="product_barcode">Barcode</label>
 
-                                            <div class="row mt-4 mb-3">
-                                                <div class="offset-lg-8 col-lg-4">
-                                                    <div class="rounded">
-                                                        <div class="p-3">
-                                                            <span class="mr-4">Sub Total: </span>
-                                                            <input hidden class="total_amt">
-                                                            <span class="pull-right" id="total"></span>
+                                                    <input type="text" class="form-control" id="product_barcode"
+                                                        name="product_barcode" value="{{ old('product_barcode') }}">
+
+                                                    @error('product_select')
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <hr />
+
+                                        {{-- PRODUCTS TABLE --}}
+                                        <div class="table-responsive mb-3">
+                                            <table class="table table-bordered" id="product_table">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Sr No</th>
+                                                        <th>Product</th>
+                                                        <th>Batch</th>
+                                                        <th>MFG Date</th>
+                                                        <th>MRP Rate</th>
+                                                        <th>Qty</th>
+                                                        <th>Cost Price</th>
+                                                        <th>Amount</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="productBody">
+                                                    @if (old('products'))
+                                                        @foreach (old('products') as $i => $product)
+                                                            <tr>
+                                                                <td>{{ $i + 1 }}</td>
+                                                                <td style="width:25%">
+                                                                    <input type="hidden"
+                                                                        name="products[{{ $i }}][product_id]"
+                                                                        value="{{ $product['product_id'] }}">
+
+                                                                    <input type="hidden" class="form-control"
+                                                                        name="products[{{ $i }}][brand_name]"
+                                                                        value="{{ $product['brand_name'] }}" readonly>
+
+
+                                                                    <span>{{ $product['brand_name'] }}</span>
+
+                                                                </td>
+                                                                <td>
+                                                                    <input type="text" class="form-control"
+                                                                        name="products[{{ $i }}][batch]"
+                                                                        value="{{ $product['batch'] }}">
+                                                                    @error("products.$i.batch")
+                                                                        <span class="text-danger">{{ $message }}</span>
+                                                                    @enderror
+                                                                </td>
+                                                                <td>
+                                                                    <input type="date" class="form-control"
+                                                                        name="products[{{ $i }}][mfg_date]"
+                                                                        value="{{ $product['mfg_date'] }}">
+                                                                    @error("products.$i.mfg_date")
+                                                                        <span class="text-danger">{{ $message }}</span>
+                                                                    @enderror
+                                                                </td>
+                                                                <td>
+                                                                    <input type="hidden"
+                                                                        name="products[{{ $i }}][mrp]"
+                                                                        value="{{ $product['mrp'] }}">
+                                                                    <input type="number" class="form-control mrp"
+                                                                        value="{{ $product['mrp'] }}" disabled>
+                                                                    @error("products.$i.mrp")
+                                                                        <span class="text-danger">{{ $message }}</span>
+                                                                    @enderror
+                                                                </td>
+                                                                <td>
+                                                                    <input type="number" class="form-control qnt"
+                                                                        name="products[{{ $i }}][qnt]"
+                                                                        value="{{ $product['qnt'] }}">
+                                                                    @error("products.$i.qnt")
+                                                                        <span class="text-danger">{{ $message }}</span>
+                                                                    @enderror
+                                                                </td>
+                                                                <td>
+                                                                    <input type="number" class="form-control rate"
+                                                                        name="products[{{ $i }}][rate]"
+                                                                        value="{{ $product['rate'] }}">
+                                                                    @error("products.$i.rate")
+                                                                        <span class="text-danger">{{ $message }}</span>
+                                                                    @enderror
+                                                                </td>
+                                                                <td>
+                                                                    <input type="number" class="form-control amount"
+                                                                        name="products[{{ $i }}][amount]"
+                                                                        value="{{ $product['amount'] }}">
+                                                                    @error("products.$i.amount")
+                                                                        <span class="text-danger">{{ $message }}</span>
+                                                                    @enderror
+                                                                </td>
+                                                                <td>
+                                                                    <button type="button"
+                                                                        class="btn btn-sm btn-danger remove">
+                                                                        Remove
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    @endif
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <input type="hidden" name="total" class="total_val" value="" />
+
+                                        <div class="row mt-0 mb-0">
+                                            <div class="offset-lg-8 col-lg-4">
+                                                <div class="rounded">
+                                                    <div class="p-1">
+                                                        <div class="text-end">
+                                                            <h5>Sub Total : <span id="total"></span></h5>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
+                                        </div>
 
-                                            <hr />
+                                        <hr />
 
-                                            {{-- BOTTOM THREE COLUMNS --}}
-                                            <div class="row mt-4 mb-3">
-                                                {{-- LEFT: LICENSE LEDGER --}}
-                                                <div class="col-lg-4" id="">
-                                                    <div class="or-detail rounded" id="license-ledger-box">
-                                                        <div class="p-3">
-                                                            <h5 class="mb-3">Details For License Ledger</h5>
-                                                            <div>
-                                                                <div class="row">
-                                                                    <div class="col-md-6">
-                                                                        <div class="form-group">
-                                                                            <label>AED TO BE PAID</label>
-                                                                            <input type="number" class="form-control"
-                                                                                value="{{ old('aed_to_be_paid') }}"
-                                                                                name="aed_to_be_paid"
-                                                                                id="aed_to_be_paid" />
-                                                                        </div>
+                                        {{-- BOTTOM THREE COLUMNS --}}
+                                        <div class="row mt-4 mb-3">
+                                            {{-- LEFT: LICENSE LEDGER --}}
+                                            <div class="col-lg-4" id="">
+                                                <div class="or-detail rounded" id="license-ledger-box">
+                                                    <div class="p-3">
+                                                        <h5 class="mb-3">Details For License Ledger</h5>
+                                                        <div>
+                                                            <div class="row">
+                                                                <div class="col-md-6">
+                                                                    <div class="form-group">
+                                                                        <label>AED TO BE PAID</label>
+                                                                        <input type="number" class="form-control"
+                                                                            value="{{ old('aed_to_be_paid') }}"
+                                                                            name="aed_to_be_paid" id="aed_to_be_paid" />
                                                                     </div>
-                                                                    <div class="col-md-6">
-                                                                        <div class="form-group">
-                                                                            <label>Guarantee Fulfilled</label>
-                                                                            <input type="number" class="form-control"
-                                                                                value="{{ old('guarantee_fulfilled') }}"
-                                                                                name="guarantee_fulfilled"
-                                                                                id="guarantee_fulfilled" />
-                                                                        </div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <div class="form-group">
+                                                                        <label>Guarantee Fulfilled</label>
+                                                                        <input type="number" class="form-control"
+                                                                            value="{{ old('guarantee_fulfilled') }}"
+                                                                            name="guarantee_fulfilled"
+                                                                            id="guarantee_fulfilled" />
                                                                     </div>
-                                                                    <div class="col-md-12">
-                                                                        <div class="form-group">
-                                                                            <label>Loading Charges (Including Tax)</label>
-                                                                            <input type="number" class="form-control"
-                                                                                value="{{ old('loading_charges') }}"
-                                                                                name="loading_charges"
-                                                                                id="loading_charges" />
-                                                                        </div>
+                                                                </div>
+                                                                <div class="col-md-12">
+                                                                    <div class="form-group">
+                                                                        <label>Loading Charges (Including Tax)</label>
+                                                                        <input type="number" class="form-control"
+                                                                            value="{{ old('loading_charges') }}"
+                                                                            name="loading_charges" id="loading_charges" />
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
+                                            </div>
 
-                                                {{-- MIDDLE: EXCISE FEE BOX (vendor 1) --}}
-                                                <div class="col-lg-4 excise-section d-none" id="">
-                                                    <div class="or-detail rounded">
-                                                        <div class="p-3">
-                                                            <h5 class="mb-3">Excise Fee</h5>
-                                                            <div>
-                                                                <div class="row">
-                                                                    <div class="col-md-6">
-                                                                        <div class="form-group">
-                                                                            <label>Permit Fee</label>
-                                                                            <input type="number" class="form-control"
-                                                                                name="permit_fee_excise"
-                                                                                id="permit_fee_excise"
-                                                                                value="{{ old('permit_fee_excise') }}" />
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <div class="form-group">
-                                                                            <label>Vend Fee</label>
-                                                                            <input type="number" class="form-control"
-                                                                                name="vend_fee_excise"
-                                                                                id="vend_fee_excise"
-                                                                                value="{{ old('vend_fee_excise') }}" />
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-md-12">
-                                                                        <div class="form-group">
-                                                                            <label>Composite Fee (For RTDC Shop)</label>
-                                                                            <input type="number" class="form-control"
-                                                                                name="composite_fee_excise"
-                                                                                id="composite_fee_excise"
-                                                                                value="{{ old('composite_fee_excise') }}" />
-                                                                        </div>
+                                            {{-- MIDDLE: EXCISE FEE BOX (vendor 1) --}}
+                                            <div class="col-lg-4 excise-section d-none" id="">
+                                                <div class="or-detail rounded">
+                                                    <div class="p-3">
+                                                        <h5 class="mb-3">Excise Fee</h5>
+                                                        <div>
+                                                            <div class="row">
+                                                                <div class="col-md-6">
+                                                                    <div class="form-group">
+                                                                        <label>Permit Fee</label>
+                                                                        <input type="number" class="form-control"
+                                                                            name="permit_fee_excise"
+                                                                            id="permit_fee_excise"
+                                                                            value="{{ old('permit_fee_excise') }}" />
                                                                     </div>
                                                                 </div>
-                                                            </div>
-                                                        </div>
-                                                        <div
-                                                            class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center border-top">
-                                                            <h6>Total</h6>
-                                                            <div>
-                                                                <input type="hidden" name="excise_total_amount"
-                                                                    class="excise_total_amount"
-                                                                    value="{{ old('excise_total_amount') }}" />
-                                                                <h3 class="text-primary font-weight-700"
-                                                                    id="excise_total_amount">
-                                                                    @if (old('excise_total_amount'))
-                                                                        ₹{{ number_format(old('excise_total_amount'), 2) }}
-                                                                    @endif
-                                                                </h3>
+                                                                <div class="col-md-6">
+                                                                    <div class="form-group">
+                                                                        <label>Vend Fee</label>
+                                                                        <input type="number" class="form-control"
+                                                                            name="vend_fee_excise" id="vend_fee_excise"
+                                                                            value="{{ old('vend_fee_excise') }}" />
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-12">
+                                                                    <div class="form-group">
+                                                                        <label>Composite Fee (For RTDC Shop)</label>
+                                                                        <input type="number" class="form-control"
+                                                                            name="composite_fee_excise"
+                                                                            id="composite_fee_excise"
+                                                                            value="{{ old('composite_fee_excise') }}" />
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    <div
+                                                        class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center border-top">
+                                                        <h6>Total</h6>
+                                                        <div>
+                                                            <input type="hidden" name="excise_total_amount"
+                                                                class="excise_total_amount"
+                                                                value="{{ old('excise_total_amount') }}" />
+                                                            <h3 class="text-primary font-weight-700"
+                                                                id="excise_total_amount">
+                                                                @if (old('excise_total_amount'))
+                                                                    ₹{{ number_format(old('excise_total_amount'), 2) }}
+                                                                @endif
+                                                            </h3>
+                                                        </div>
+                                                    </div>
                                                 </div>
+                                            </div>
 
-                                                {{-- RIGHT: BILLING DETAILS (must be right side) --}}
-                                                <div class="col-lg-4 offset-lg-4" id="billing-column">
-                                                    <div class="or-detail rounded">
-                                                        <div class="p-3">
-                                                            <h5 class="mb-3">Billing Details</h5>
+                                            {{-- RIGHT: BILLING DETAILS (must be right side) --}}
+                                            <div class="col-lg-4 offset-lg-4" id="billing-column">
+                                                <div class="or-detail rounded">
+                                                    <div class="p-3">
+                                                        <h5 class="mb-3">Billing Details</h5>
 
-                                                            {{-- Vendor 1 --}}
-                                                            <div id="vendor-1-fields"
-                                                                class="vendor-fields d-none vendor-1">
-                                                                <div class="row">
-                                                                    <div class="col-md-6">
-                                                                        <div class="form-group">
-                                                                            <label>EXCISE FEE</label>
-                                                                            <input type="number" class="form-control"
-                                                                                value="{{ old('excise_fee') }}"
-                                                                                name="excise_fee" id="excise_fee" />
-                                                                        </div>
+                                                        {{-- Vendor 1 --}}
+                                                        <div id="vendor-1-fields" class="vendor-fields d-none vendor-1">
+                                                            <div class="row">
+                                                                <div class="col-md-6">
+                                                                    <div class="form-group">
+                                                                        <label>EXCISE FEE</label>
+                                                                        <input type="number" class="form-control"
+                                                                            value="{{ old('excise_fee') }}"
+                                                                            name="excise_fee" id="excise_fee" />
                                                                     </div>
-                                                                    <div class="col-md-6">
-                                                                        <div class="form-group">
-                                                                            <label>COMPOSITION VAT</label>
-                                                                            <input type="number" class="form-control"
-                                                                                value="{{ old('composition_vat') }}"
-                                                                                name="composition_vat"
-                                                                                id="composition_vat" />
-                                                                        </div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <div class="form-group">
+                                                                        <label>COMPOSITION VAT</label>
+                                                                        <input type="number" class="form-control"
+                                                                            value="{{ old('composition_vat') }}"
+                                                                            name="composition_vat" id="composition_vat" />
                                                                     </div>
-                                                                    <div class="col-md-12">
-                                                                        <div class="form-group">
-                                                                            <label>SURCHARGE ON CA</label>
-                                                                            <input type="number" class="form-control"
-                                                                                value="{{ old('surcharge_on_ca') }}"
-                                                                                name="surcharge_on_ca"
-                                                                                id="surcharge_on_ca" />
-                                                                        </div>
+                                                                </div>
+                                                                <div class="col-md-12">
+                                                                    <div class="form-group">
+                                                                        <label>SURCHARGE ON CA</label>
+                                                                        <input type="number" class="form-control"
+                                                                            value="{{ old('surcharge_on_ca') }}"
+                                                                            name="surcharge_on_ca" id="surcharge_on_ca" />
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            {{-- Vendor 2 --}}
-                                                            <div id="vendor-2-fields"
-                                                                class="vendor-fields d-none vendor-2">
-                                                                <div class="row">
-                                                                    <div class="col-md-6">
-                                                                        <div class="form-group">
-                                                                            <label>VAT</label>
-                                                                            <input type="number" id="vat"
-                                                                                value="{{ old('vat') }}"
-                                                                                class="form-control" name="vat" />
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <div class="form-group">
-                                                                            <label>SURCHARGE ON VAT</label>
-                                                                            <input type="number" id="surcharge_on_vat"
-                                                                                value="{{ old('surcharge_on_vat') }}"
-                                                                                class="form-control"
-                                                                                name="surcharge_on_vat" />
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <div class="form-group">
-                                                                            <label>BLF</label>
-                                                                            <input type="number" id="blf"
-                                                                                value="{{ old('blf') }}"
-                                                                                class="form-control" name="blf" />
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <div class="form-group">
-                                                                            <label>Permit Fee</label>
-                                                                            <input type="number" class="form-control"
-                                                                                value="{{ old('permit_fee') }}"
-                                                                                name="permit_fee" id="permit_fee" />
-                                                                        </div>
+                                                        </div>
+                                                        {{-- Vendor 2 --}}
+                                                        <div id="vendor-2-fields" class="vendor-fields d-none vendor-2">
+                                                            <div class="row">
+                                                                <div class="col-md-6">
+                                                                    <div class="form-group">
+                                                                        <label>VAT</label>
+                                                                        <input type="number" id="vat"
+                                                                            value="{{ old('vat') }}"
+                                                                            class="form-control" name="vat" />
                                                                     </div>
                                                                 </div>
-                                                                {{-- <div class="form-group">
+                                                                <div class="col-md-6">
+                                                                    <div class="form-group">
+                                                                        <label>SURCHARGE ON VAT</label>
+                                                                        <input type="number" id="surcharge_on_vat"
+                                                                            value="{{ old('surcharge_on_vat') }}"
+                                                                            class="form-control"
+                                                                            name="surcharge_on_vat" />
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <div class="form-group">
+                                                                        <label>BLF</label>
+                                                                        <input type="number" id="blf"
+                                                                            value="{{ old('blf') }}"
+                                                                            class="form-control" name="blf" />
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <div class="form-group">
+                                                                        <label>Permit Fee</label>
+                                                                        <input type="number" class="form-control"
+                                                                            value="{{ old('permit_fee') }}"
+                                                                            name="permit_fee" id="permit_fee" />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            {{-- <div class="form-group">
                                                                     <label>RSGSM Purchase</label>
                                                                     <input type="number" class="form-control"
                                                                         value="{{ old('rsgsm_purchase') }}"
                                                             name="rsgsm_purchase" id="rsgsm_purchase" />
                                                         </div> --}}
-                                                            </div>
-
-                                                            {{-- Common for vendor 1 & 2 --}}
-                                                            <div class="vendor-common">
-                                                                <div class="form-group">
-                                                                    <label>TCS</label>
-                                                                    <input type="number" id="tcs"
-                                                                        value="{{ old('tcs') }}" class="form-control"
-                                                                        name="tcs" />
-                                                                </div>
-                                                            </div>
                                                         </div>
 
-                                                        {{-- Other vendors: cash purchase --}}
-                                                        <div id="vendor-others-fields" class="vendor-fields d-none">
-                                                            <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center border border-danger"
-                                                                style="background-color: #fdf1f7;">
-                                                                <div>
-                                                                    <strong class="d-block">CASH PURCHASE</strong>
-                                                                    <div class="d-flex align-items-center">
-                                                                        <label class="mr-1 mb-0">(-)</label>
-                                                                        <input type="float"
-                                                                            class="form-control form-control-sm pur_dis"
-                                                                            placeholder="%" name="case_purchase_per"
-                                                                            style="width: 80px;" min="0"
-                                                                            max="100"
-                                                                            value="{{ old('case_purchase_per') }}">
-                                                                        <span class="ml-1">%</span>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="text-right d-flex align-items-center">
-                                                                    <label class="mr-1 mb-0">(-)</label>
-                                                                    <input type="float" name="case_purchase_amt"
-                                                                        class="form-control form-control-sm pur_amt text-danger font-weight-bold"
-                                                                        placeholder="Amount" style="width: 120px;"
-                                                                        min="0"
-                                                                        value="{{ old('case_purchase_amt') }}">
-                                                                </div>
+                                                        {{-- Common for vendor 1 & 2 --}}
+                                                        <div class="vendor-common">
+                                                            <div class="form-group">
+                                                                <label>TCS</label>
+                                                                <input type="number" id="tcs"
+                                                                    value="{{ old('tcs') }}" class="form-control"
+                                                                    name="tcs" />
                                                             </div>
                                                         </div>
+                                                    </div>
 
-                                                        <div
-                                                            class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center border-top">
-                                                            <h6>Total Amount</h6>
+                                                    {{-- Other vendors: cash purchase --}}
+                                                    <div id="vendor-others-fields" class="vendor-fields d-none">
+                                                        <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center border border-danger"
+                                                            style="background-color: #fdf1f7;">
                                                             <div>
-                                                                <input type="hidden" name="total_amount"
-                                                                    class="total_amount"
-                                                                    value="{{ old('total_amount') }}" />
-                                                                <h3 class="text-primary font-weight-700"
-                                                                    id="total_amount">
-                                                                    @if (old('total_amount'))
-                                                                        ₹{{ number_format(old('total_amount'), 2) }}
-                                                                    @endif
-                                                                </h3>
+                                                                <strong class="d-block">CASH PURCHASE</strong>
+                                                                <div class="d-flex align-items-center">
+                                                                    <label class="mr-1 mb-0">(-)</label>
+                                                                    <input type="float"
+                                                                        class="form-control form-control-sm pur_dis"
+                                                                        placeholder="%" name="case_purchase_per"
+                                                                        style="width: 80px;" min="0"
+                                                                        max="100"
+                                                                        value="{{ old('case_purchase_per') }}">
+                                                                    <span class="ml-1">%</span>
+                                                                </div>
                                                             </div>
+                                                            <div class="text-right d-flex align-items-center">
+                                                                <label class="mr-1 mb-0">(-)</label>
+                                                                <input type="float" name="case_purchase_amt"
+                                                                    class="form-control form-control-sm pur_amt text-danger font-weight-bold"
+                                                                    placeholder="Amount" style="width: 120px;"
+                                                                    min="0"
+                                                                    value="{{ old('case_purchase_amt') }}">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div
+                                                        class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center border-top">
+                                                        <h6>Total Amount</h6>
+                                                        <div>
+                                                            <input type="hidden" name="total_amount"
+                                                                class="total_amount" value="{{ old('total_amount') }}" />
+                                                            <h3 class="text-primary font-weight-700" id="total_amount">
+                                                                @if (old('total_amount'))
+                                                                    ₹{{ number_format(old('total_amount'), 2) }}
+                                                                @endif
+                                                            </h3>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
+                                        </div>
 
-                                            <button type="submit" class="btn btn-primary mr-2">Add Purchase
-                                                Order</button>
-                                            <button type="reset" class="btn btn-danger">Reset</button>
-                                        </form>
+                                        <button type="submit" class="btn btn-primary mr-2">Add Purchase
+                                            Order</button>
+                                        <button type="reset" class="btn btn-danger">Reset</button>
+                                    </form>
 
-                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <!-- Page end -->
             </div>
+            <!-- Page end -->
         </div>
-    
+    </div>
+
     <!-- Wrapper End -->
 
 

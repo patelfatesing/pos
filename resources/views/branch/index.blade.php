@@ -14,6 +14,10 @@
     .table td {
         vertical-align: middle;
     }
+
+    .buttons-collection{
+        height: 40px !important;
+    }
 </style>
 
 @php
@@ -276,8 +280,8 @@
                     "type": "post",
                     "data": function(d) {},
                 },
-                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
-                initComplete: function() {
+              dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'f l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+                  initComplete: function() {
                     $('.dataTables_filter input').attr("placeholder", "Search List...");
                 },
                 aoColumns: [
@@ -308,7 +312,7 @@
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [1, 2, 3, 6]
+                    aTargets: [0,1, 2, 3, 6]
                 }],
                 order: [
                     [4, 'desc']

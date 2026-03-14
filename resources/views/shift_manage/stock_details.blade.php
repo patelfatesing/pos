@@ -35,7 +35,7 @@
                                 <div class="col-md-3 mb-2">
                                     <input type="text" name="search" class="form-control" placeholder="Search Product"
                                         value="{{ request('search') }}">
-                                </div>
+                                </div>                            
                                 <div class="col-md-1 mb-2">
                                     <a href="{{ route('shift-manage.stock-details', $shift->id) }}"
                                         class="btn btn-secondary">Reset</a>
@@ -107,8 +107,10 @@
                                                     available.</td>
                                             </tr>
                                         @endforelse
-
-                                        <tr class="fw-semibold text-end text-center" style="font-size: 1.4rem;">
+                                        
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="fw-semibold text-end text-center total_sticky" style="font-size: 1.4rem;">
                                             <th colspan="2">TOTAL</th>
                                             <th>{{ $totalOpening }}</th>
                                             <th>{{ $totalAdded }}</th>
@@ -123,7 +125,7 @@
                                             <th>{{ $totalModifyAdd }}</th>
                                             <th>{{ $totalModifyRemove }}</th>
                                         </tr>
-                                    </tbody>
+                                    </tfoot>
                                 </table>
                             </div>
                         </div>

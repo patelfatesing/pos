@@ -7,7 +7,7 @@
 
     <div class="content-page">
         <div class="container-fluid">
-            <div class="row align-items-center mb-3">
+            <div class="row align-items-center mb-2">
                 <div class="col-lg-12">
                     <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
                         <div>
@@ -343,12 +343,15 @@
                     [1, 'desc']
                 ],
 
-                dom: "<'row mb-2'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row mt-2'<'col-md-6'i><'col-md-6 d-flex justify-content-end'p>>",
+                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'f l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
                 lengthMenu: [
                     [10, 25, 50],
                     [10, 25, 50]
                 ],
-
+                aoColumnDefs: [{
+                    bSortable: false,
+                    aTargets: [0, 4, 5]
+                }],
                 buttons: [{
                         extend: 'collection',
                         text: '<i class="fa fa-download"></i>',
@@ -451,10 +454,7 @@
                     }
 
                 ]
-
             });
-
-
         });
 
         function getBase64Image(url, callback) {

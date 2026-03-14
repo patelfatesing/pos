@@ -1,19 +1,17 @@
-@extends('layouts.backend.layouts')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<style>
-    .nav-pills .nav-link.active {
-        color: #2891b3;
-        background: #88DFFB;
-    }
-</style>
+@extends('layouts.backend.datatable_layouts')
+
 @section('page-content')
     <!-- Wrapper Start -->
     <div class="wrapper">
 
         <div class="content-page">
             <div class="container-fluid add-form-list">
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-2">
+                    <div>
+                        <h4 class="mb-0">Party Customer Information</h4>
+                    </div>
+                     <a href="{{ route('party-users.list') }}" class="btn btn-secondary">Back</a>
+                </div>
                 <div class="row">
                     <div class="col-sm-12">
 
@@ -21,14 +19,7 @@
                             <div class="container-fluid">
 
                                 <div class="card">
-                                    <div class="card-header d-flex justify-content-between">
-                                        <div class="header-title">
-                                            <h4 class="card-title">Party Customer Information</h4>
-                                        </div>
-                                        <div>
-                                            <a href="{{ route('party-users.list') }}" class="btn btn-secondary">Back</a>
-                                        </div>
-                                    </div>
+                                   
                                     <div class="card-body">
                                         <ul class="nav nav-pills mb-3 nav-fill" id="pills-tab-1" role="tablist">
                                             <li class="nav-item">
@@ -45,7 +36,7 @@
                                             <li class="nav-item">
                                                 <a class="nav-link" id="pills-profile-tab-fill" data-toggle="pill"
                                                     href="#pills-contact-fill" role="tab" aria-controls="pills-profile"
-                                                    aria-selected="false"><span class="text-dark">Credit 
+                                                    aria-selected="false"><span class="text-dark">Credit
                                                         History</span></a>
                                             </li>
 
@@ -105,7 +96,8 @@
                                                                                 fill="none" viewBox="0 0 24 24"
                                                                                 stroke="currentColor">
                                                                                 <path stroke-linecap="round"
-                                                                                    stroke-linejoin="round" stroke-width="2"
+                                                                                    stroke-linejoin="round"
+                                                                                    stroke-width="2"
                                                                                     d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                                                             </svg>
                                                                             <p class="mb-0">{{ $partyUser->email }}</p>
@@ -330,15 +322,15 @@
                     data: 'invoice_number',
                     name: 'invoice_number'
                 },
-               
-                  {
+
+                {
                     data: 'invoice_date',
                     name: 'invoice_date',
                     render: function(data, type, row) {
-                        if(row.invoice_date==null){
+                        if (row.invoice_date == null) {
 
                             return row.created_at;
-                        }else{
+                        } else {
                             return row.invoice_date;
                         }
                     },
@@ -347,7 +339,7 @@
                     data: 'credit_amount',
                     name: 'credit_amount'
                 },
-                 {
+                {
                     data: 'debit_amount',
                     name: 'debit_amount'
                 },
@@ -368,13 +360,13 @@
         });
     });
 
-  
-    function showPhoto(party_user_id,invoice_id='') {
+
+    function showPhoto(party_user_id, invoice_id = '') {
 
         $.ajax({
             url: '/cust-trasaction-photo/view/' + party_user_id,
             type: 'GET',
-            data:{
+            data: {
                 'imageType': "Party",
                 'invoice_id': invoice_id
             },

@@ -24,7 +24,7 @@
                                     @method('PUT')
 
                                     <div class="row">
-                                        <div class="col-lg-6">
+                                        <div class="col-lg-4">
                                             <div class="floating-label form-group">
                                                 <label>Customer Name</label>
                                                 <input type="text" name="first_name" class="form-control"
@@ -35,7 +35,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-lg-6">
+                                        <div class="col-lg-4">
                                             <div class="floating-label form-group">
                                                 <label>Email</label>
                                                 <input type="email" name="email" class="form-control"
@@ -46,7 +46,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-lg-6">
+                                        <div class="col-lg-4">
                                             <div class="floating-label form-group">
                                                 <label>Phone</label>
                                                 <input type="text" name="phone" class="form-control"
@@ -57,7 +57,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-lg-6">
+                                        <div class="col-lg-4">
                                             <div class="floating-label form-group">
                                                 <label>Address</label>
                                                 <input type="text" name="address" class="form-control"
@@ -68,7 +68,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-lg-6">
+                                        <div class="col-lg-4">
                                             <div class="floating-label form-group">
                                                 <label>Credit Points</label>
                                                 <input type="number" name="credit_points" step="1"
@@ -80,7 +80,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-lg-6">
+                                        <div class="col-lg-4">
                                             <div class="form-group">
                                                 <label>Upload Photo</label>
                                                 <input type="file" name="photo" class="form-control" accept="image/*"

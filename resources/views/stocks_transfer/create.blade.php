@@ -25,16 +25,14 @@
                                 @if (session('success'))
                                     <div class="alert alert-success alert-dismissible fade show">
                                         {{ session('success') }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
-                                            aria-label="Close"></button>
+                                       
                                     </div>
                                 @endif
 
                                 @if (session('error'))
                                     <div class="alert alert-danger alert-dismissible fade show">
                                         {{ session('error') }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
-                                            aria-label="Close"></button>
+                                       
                                     </div>
                                 @endif
 
@@ -45,8 +43,7 @@
                                                 <li>{{ $error }}</li>
                                             @endforeach
                                         </ul>
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
-                                            aria-label="Close"></button>
+                                       
                                     </div>
                                 @endif
 
@@ -114,8 +111,17 @@
                                                     data-style="py-0">
                                                     <option value="" selected>Select Sub Category</option>
                                                     @if (old('subcategory_id'))
-                                                        <option value="{{ old('subcategory_id') }}" selected>
-                                                            {{ old('subcategory_id') }}</option>
+                                                        @php
+                                                            $oldSub = \App\Models\SubCategory::find(
+                                                                old('subcategory_id'),
+                                                            );
+                                                        @endphp
+
+                                                        @if ($oldSub)
+                                                            <option value="{{ $oldSub->id }}" selected>
+                                                                {{ $oldSub->name }}
+                                                            </option>
+                                                        @endif
                                                     @endif
                                                 </select>
                                                 @error('subcategory_id')
@@ -131,8 +137,8 @@
                                                 <tr>
                                                     <th width="5%">Sr No</th>
                                                     <th width="40%">Product</th>
-                                                    <th width="10%">Quantity</th>
                                                     <th width="25%">Stock Info</th>
+                                                    <th width="10%">Quantity</th>
                                                     <th width="20%">Action</th>
                                                 </tr>
                                             </thead>
@@ -156,6 +162,11 @@
                                                                 </select>
                                                             </td>
 
+
+
+                                                            <td>
+                                                                <div class="availability-container small text-muted"></div>
+                                                            </td>
                                                             <td>
                                                                 <input type="number"
                                                                     name="items[{{ $index }}][quantity]"
@@ -163,11 +174,6 @@
                                                                     min="1"
                                                                     value="{{ old('items.' . $index . '.quantity') }}">
                                                             </td>
-
-                                                            <td>
-                                                                <div class="availability-container small text-muted"></div>
-                                                            </td>
-
                                                             <td>
                                                                 <button type="button"
                                                                     class="btn btn-sm btn-danger remove-item">
@@ -187,12 +193,13 @@
                                                             </select>
                                                         </td>
                                                         <td>
+                                                            <div class="availability-container small text-muted"></div>
+                                                        </td>
+                                                        <td>
                                                             <input type="number" name="items[0][quantity]"
                                                                 class="form-control" min="1">
                                                         </td>
-                                                        <td>
-                                                            <div class="availability-container small text-muted"></div>
-                                                        </td>
+
                                                         <td>
                                                             <button type="button"
                                                                 class="btn btn-sm btn-danger remove-item">
@@ -203,17 +210,18 @@
                                                 @endif
 
                                             </tbody>
+                                            <tfoot class="table-light">
+                                                <tr>
+                                                    <th colspan="3" style="text-align: right !important;">Total
+                                                        Quantity</th>
+                                                    <th style="text-align: center !important;">
+                                                        <span id="total-quantity">0</span>
+                                                    </th>
+                                                    <th></th>
+                                                </tr>
+                                            </tfoot>
                                         </table>
                                     </div>
-
-
-                                    <div class="row mb-3">
-                                        <div class="col-md-12 text-end">
-                                            <h5>Total Quantity: <span id="total-quantity">0</span></h5>
-                                        </div>
-                                    </div>
-
-
 
                                     <div class="row mt-3">
                                         <div class="col-12">
@@ -385,7 +393,9 @@
                             @endforeach
                         </select>
                     </td>
-
+  <td>
+                        <div class="availability-container small text-muted"></div>
+                    </td>
                     <td>
                         <input type="number" 
                             name="items[${itemIndex}][quantity]" 
@@ -393,9 +403,7 @@
                             min="1">
                     </td>
 
-                    <td>
-                        <div class="availability-container small text-muted"></div>
-                    </td>
+                  
 
                     <td>
                         <button type="button" class="btn btn-sm btn-danger remove-item">
@@ -516,16 +524,16 @@
             $('#total-quantity').text(total);
         }
 
-            function updateAddButton() {
+        function updateAddButton() {
 
-                // remove ALL existing add buttons
-                $('#productBody #add-item').remove();
+            // remove ALL existing add buttons
+            $('#productBody #add-item').remove();
 
-                // add button only in last row
-                $('#productBody tr:last td:last').prepend(
-                    '<button type="button" id="add-item" class="btn btn-secondary btn-sm pull-right ml-1">+ Add Product</button>'
-                );
-            }
+            // add button only in last row
+            $('#productBody tr:last td:last').prepend(
+                '<button type="button" id="add-item" class="btn btn-secondary btn-sm pull-right ml-1">+ Add Product</button>'
+            );
+        }
         // Trigger total update on quantity input change
         $(document).on('input', 'input[name^="items"][name$="[quantity]"]', updateTotalQuantity);
 
@@ -537,6 +545,25 @@
         // When row is removed
         $(document).on('click', '.remove-item', function() {
             setTimeout(updateTotalQuantity, 100);
+        });
+
+        $('#from_store_id').on('change', function() {
+
+            let fromStore = $(this).val();
+
+            // Reset To Store dropdown
+            $('#to_store_id option').prop('disabled', false);
+
+            if (fromStore) {
+                // Disable same store in To Store
+                $('#to_store_id option[value="' + fromStore + '"]').prop('disabled', true);
+
+                // If already selected, clear it
+                if ($('#to_store_id').val() == fromStore) {
+                    $('#to_store_id').val('');
+                }
+            }
+
         });
     </script>
 @endsection

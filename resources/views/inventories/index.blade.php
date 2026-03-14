@@ -42,7 +42,7 @@
                 <div class="col-12">
 
                     <div class="table-responsive rounded">
-                        <table class="table table-striped table-bordered nowrap" id="inventory_table" style="width:100%;">
+                        <table class="table table-striped table-bordered nowrap" id="inventory_table">
                             <thead class="bg-white">
                                 <tr class="ligth ligth-data">
                                     <th>Sr No</th>

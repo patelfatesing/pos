@@ -191,7 +191,7 @@
                         <h4 class="mb-0">Ledger Vouchers — {{ $ledger->name }}</h4>
                         <p><small id="dateRangeLabel">{{ $start }} to {{ $end }}</small></p>
                     </div>
-                    <h5 class="title-table">Liqure HUB</h5>
+                    <h5 class="title-table">LIQUOR HUB</h5>
                     <div class="controls">
                         <a href="{{ route('accounting.vouchers.create') }}" class="btn btn-outline-light btn-sm">
                             Add Voucher
@@ -199,7 +199,7 @@
 
                         <button id="printBtn" class="btn btn-outline-warning btn-sm">Print</button>
 
-                        <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
+                        <a href="{{ route('accounting.ledgers.list') }}" class="btn btn-secondary">Back</a>
 
                         {{-- <input type="text" id="daterange" class="form-control d-inline-block" style="width:210px" />
                         <button id="applyFilter" class="btn btn-light btn-sm">Apply</button> --}}

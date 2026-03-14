@@ -28,6 +28,7 @@ class ReportController extends Controller
     public function getLowLevelData(Request $request)
     {
         $branchId    = $request->integer('branch_id');
+        $sub_category_id    = $request->integer('sub_category_id');
         $statusParam = strtolower(trim((string) $request->input('status', ''))); // expected: '', 'all', 'low', 'out', 'ok'
         $searchValue = $request->input('search.value');
 
@@ -40,6 +41,7 @@ class ReportController extends Controller
             ->where('p.is_active', 'yes')
             ->where('p.is_deleted', 'no')
             ->when($branchId, fn($q, $v) => $q->where('inv.store_id', $v))
+            ->when($sub_category_id, fn($q, $v) => $q->where('p.subcategory_id', $v))
             ->when($searchValue, function ($q) use ($searchValue) {
                 $q->where(function ($qq) use ($searchValue) {
                     $qq->where('p.name', 'like', "%{$searchValue}%")
@@ -104,7 +106,11 @@ class ReportController extends Controller
         });
 
         // Filter by status code: 'low' | 'out' | 'ok'
-        if (in_array($statusParam, ['low', 'out', 'ok'], true)) {
+        // Always exclude OK stock
+        $rows = $rows->whereIn('status_code', ['low', 'out'])->values();
+
+        // If user selected specific status
+        if (in_array($statusParam, ['low', 'out'], true)) {
             $rows = $rows->where('status_code', $statusParam)->values();
         }
         // '', 'all' → no extra filtering
@@ -628,15 +634,15 @@ class ReportController extends Controller
                 'date'         => $r['date'],
                 'branch_name'  => $r['branch_name'],
                 'bills'        => (int)$r['bills'],
-                'net_sales'    => round($r['net_sales'], 2),
-                'discounts'    => round($r['discounts'], 2),
-                'tax'          => round($r['tax'], 2),
-                'total_sales'  => round($r['total_sales'], 2),
-                'refunds'      => round($r['refunds'], 2),
-                'cogs'         => round($r['cogs'], 2),
-                'gross_profit' => round($grossProfit, 2),
-                'expenses'     => round($r['expenses'], 2),
-                'net_profit'   => round($netProfit, 2),
+                'net_sales'    => round($r['net_sales'], 0),
+                'discounts'    => round($r['discounts'], 0),
+                'tax'          => round($r['tax'], 0),
+                'total_sales'  => round($r['total_sales'], 0),
+                'refunds'      => round($r['refunds'], 0),
+                'cogs'         => round($r['cogs'], 0),
+                'gross_profit' => round($grossProfit, 0),
+                'expenses'     => round($r['expenses'], 0),
+                'net_profit'   => round($netProfit, 0),
             ];
         })->values();
 
@@ -691,15 +697,15 @@ class ReportController extends Controller
                 'date'         => e($r['date']),
                 'branch_name'  => e($r['branch_name']),
                 'bills'        => $r['bills'],
-                'net_sales'    => number_format($r['net_sales'], 2),
-                'discounts'    => number_format($r['discounts'], 2),
-                'tax'          => number_format($r['tax'], 2),
-                'total_sales'  => number_format($r['total_sales'], 2),
-                'refunds'      => number_format($r['refunds'], 2),
-                'cogs'         => number_format($r['cogs'], 2),
-                'gross_profit' => number_format($r['gross_profit'], 2),
-                'expenses'     => number_format($r['expenses'], 2),
-                'net_profit'   => number_format($r['net_profit'], 2),
+                'net_sales'    => number_format($r['net_sales'], 0),
+                'discounts'    => number_format($r['discounts'], 0),
+                'tax'          => number_format($r['tax'], 0),
+                'total_sales'  => number_format($r['total_sales'], 0),
+                'refunds'      => number_format($r['refunds'], 0),
+                'cogs'         => number_format($r['cogs'], 0),
+                'gross_profit' => number_format($r['gross_profit'], 0),
+                'expenses'     => number_format($r['expenses'], 0),
+                'net_profit'   => number_format($r['net_profit'], 0),
                 'action'       => '',
             ];
         }
@@ -906,16 +912,16 @@ class ReportController extends Controller
                 'subcategory_id'    => $p['subcategory_id'],
                 'category_name'     => $p['category_name'],
                 'sub_category_name' => $p['sub_category_name'],
-                'qty'               => round($m['qty'], 2),
-                'gross_revenue'     => round($m['gross_revenue'], 2),
-                'discounts'         => round($m['discounts'], 2),
-                'net_sales'         => round($m['net_sales'], 2),
-                'tax'               => round($m['tax'], 2),
-                'total_sales'       => round($m['total_sales'], 2),
-                'cogs'              => round($m['cogs'], 2),
-                'refunds'           => round($m['refunds'], 2),
-                'gross_profit'      => round($grossProfit, 2),
-                'net_profit'        => round($grossProfit, 2),
+                'qty'               => round($m['qty'], 0),
+                'gross_revenue'     => round($m['gross_revenue'], 0),
+                'discounts'         => round($m['discounts'], 0),
+                'net_sales'         => round($m['net_sales'], 0),
+                'tax'               => round($m['tax'], 0),
+                'total_sales'       => round($m['total_sales'], 0),
+                'cogs'              => round($m['cogs'], 0),
+                'refunds'           => round($m['refunds'], 0),
+                'gross_profit'      => round($grossProfit, 0),
+                'net_profit'        => round($grossProfit, 0),
             ];
         })->values();
 
@@ -977,16 +983,16 @@ class ReportController extends Controller
                 'product_name'      => e($r['product_name']),
                 'category_name'     => e($r['category_name'] ?? ''),
                 'sub_category_name' => e($r['sub_category_name'] ?? ''),
-                'qty'               => number_format($r['qty'], 2),
-                'gross_revenue'     => number_format($r['gross_revenue'], 2),
-                'discounts'         => number_format($r['discounts'], 2),
-                'net_sales'         => number_format($r['net_sales'], 2),
-                'tax'               => number_format($r['tax'], 2),
-                'total_sales'       => number_format($r['total_sales'], 2),
-                'cogs'              => number_format($r['cogs'], 2),
-                'refunds'           => number_format($r['refunds'], 2),
-                'gross_profit'      => number_format($r['gross_profit'], 2),
-                'net_profit'        => number_format($r['net_profit'], 2),
+                'qty'               => number_format($r['qty'], 0),
+                'gross_revenue'     => number_format($r['gross_revenue'], 0),
+                'discounts'         => number_format($r['discounts'], 0),
+                'net_sales'         => number_format($r['net_sales'], 0),
+                'tax'               => number_format($r['tax'], 0),
+                'total_sales'       => number_format($r['total_sales'], 0),
+                'cogs'              => number_format($r['cogs'], 0),
+                'refunds'           => number_format($r['refunds'], 0),
+                'gross_profit'      => number_format($r['gross_profit'], 0),
+                'net_profit'        => number_format($r['net_profit'], 0),
                 'action'            => '',
             ];
         }
@@ -1071,7 +1077,7 @@ class ReportController extends Controller
                 'beer_sales'       => (float)$r->beer_sum,
                 'english_sales'    => (float)$r->english_sum,
                 'discount'         => (float)$r->discount_sum,
-                'total_sales'      => round($totalSales, 2),
+                'total_sales'      => round($totalSales, 0),
             ];
         })->values();
 
@@ -1131,17 +1137,17 @@ class ReportController extends Controller
                 'work_date'      => e($r['work_date']),
                 'branch_name'    => e($r['branch_name']),
                 'shifts_count'   => $r['shifts_count'],
-                'opening_cash'   => number_format($r['opening_cash'], 2),
-                'cash_added'     => number_format($r['cash_added'], 2),
-                'upi_payment'    => number_format($r['upi_payment'], 2),
-                'withdrawal'     => number_format($r['withdrawal'], 2),
-                'closing_cash'   => number_format($r['closing_cash'], 2),
-                'discrepancy'    => number_format($r['discrepancy'], 2),
-                'deshi_sales'    => number_format($r['deshi_sales'], 2),
-                'beer_sales'     => number_format($r['beer_sales'], 2),
-                'english_sales'  => number_format($r['english_sales'], 2),
-                'discount'       => number_format($r['discount'], 2),
-                'total_sales'    => number_format($r['total_sales'], 2),
+                'opening_cash'   => number_format($r['opening_cash'], 0),
+                'cash_added'     => number_format($r['cash_added'], 0),
+                'upi_payment'    => number_format($r['upi_payment'], 0),
+                'withdrawal'     => number_format($r['withdrawal'], 0),
+                'closing_cash'   => number_format($r['closing_cash'], 0),
+                'discrepancy'    => number_format($r['discrepancy'], 0),
+                'deshi_sales'    => number_format($r['deshi_sales'], 0),
+                'beer_sales'     => number_format($r['beer_sales'], 0),
+                'english_sales'  => number_format($r['english_sales'], 0),
+                'discount'       => number_format($r['discount'], 0),
+                'total_sales'    => number_format($r['total_sales'], 0),
                 'action'         => '', // add buttons if you like
             ];
         }
@@ -1299,10 +1305,10 @@ class ReportController extends Controller
                 'invoice'        => $invoiceLink,
                 'type'           => $typeBadge,
                 'kind'           => e($kindTxt),
-                'total_amount'   => number_format((float)$r->total_amount, 2),
-                'credit_amount'  => number_format((float)$r->credit_amount, 2),
-                'debit_amount'   => number_format((float)$r->debit_amount, 2),
-                'net_amount'     => number_format((float)$r->net_amount, 2),
+                'total_amount'   => number_format((float)$r->total_amount, 0),
+                'credit_amount'  => number_format((float)$r->credit_amount, 0),
+                'debit_amount'   => number_format((float)$r->debit_amount, 0),
+                'net_amount'     => number_format((float)$r->net_amount, 0),
                 'status'         => $statusBadge,
                 'created_by'     => (string)$r->created_by,
                 'action'         => '',
@@ -1474,12 +1480,12 @@ class ReportController extends Controller
                     $groups[$L['groupKey']] = [
                         'group_id'   => $L['groupId'],
                         'group_name' => $L['groupName'] ?: 'Uncategorized',
-                        'qty'        => 0.0,
-                        'gross'      => 0.0,
-                        'discounts'  => 0.0,
-                        'net_sales'  => 0.0,
-                        'tax'        => 0.0,
-                        'total'      => 0.0,
+                        'qty'        => 0,
+                        'gross'      => 0,
+                        'discounts'  => 0,
+                        'net_sales'  => 0,
+                        'tax'        => 0,
+                        'total'      => 0,
                     ];
                     $groupBills[$L['groupKey']] = [];
                 }
@@ -1499,12 +1505,12 @@ class ReportController extends Controller
         $rows = collect($groups)->map(function ($m, $key) use ($groupBills) {
             return [
                 'group_name'  => $m['group_name'],
-                'qty'         => round($m['qty'], 2),
-                'gross'       => round($m['gross'], 2),
-                'discounts'   => round($m['discounts'], 2),
-                'net_sales'   => round($m['net_sales'], 2),
-                'tax'         => round($m['tax'], 2),
-                'total'       => round($m['total'], 2),
+                'qty'         => round($m['qty'], 0),
+                'gross'       => round($m['gross'], 0),
+                'discounts'   => round($m['discounts'], 0),
+                'net_sales'   => round($m['net_sales'], 0),
+                'tax'         => round($m['tax'], 0),
+                'total'       => round($m['total'], 0),
                 'bills'       => count($groupBills[$key] ?? []),
             ];
         })->values();
@@ -1552,12 +1558,12 @@ class ReportController extends Controller
             $data[] = [
                 'sr_no'      => $startIdx + $i + 1,
                 'group_name' => e($r['group_name']),
-                'qty'        => number_format($r['qty'], 2),
-                'gross'      => number_format($r['gross'], 2),
-                'discounts'  => number_format($r['discounts'], 2),
-                'net_sales'  => number_format($r['net_sales'], 2),
-                'tax'        => number_format($r['tax'], 2),
-                'total'      => number_format($r['total'], 2),
+                'qty'        => number_format($r['qty'], 0),
+                'gross'      => number_format($r['gross'], 0),
+                'discounts'  => number_format($r['discounts'], 0),
+                'net_sales'  => number_format($r['net_sales'], 0),
+                'tax'        => number_format($r['tax'], 0),
+                'total'      => number_format($r['total'], 0),
                 'bills'      => (int)$r['bills'],
                 'action'     => '',
             ];
@@ -1693,7 +1699,7 @@ class ReportController extends Controller
             $partyDisc  = max(0, (float)$r->party_amount);
             $totDisc    = $commDisc + $partyDisc;
 
-            $discPct = ($subtotal > 0) ? round(($totDisc / $subtotal) * 100, 2) : 0.00;
+            $discPct = ($subtotal > 0) ? round(($totDisc / $subtotal) * 100, 0) : 0.00;
 
             $netBT   = max(0.0, $subtotal - $totDisc);
             $tax     = (float)$r->tax;
@@ -1707,14 +1713,14 @@ class ReportController extends Controller
                 'invoice'         => $invoiceLink,
                 'branch_name'     => e($r->branch_name),
                 'party_name'      => e($r->party_name ?: 'N/A'),
-                'sub_total'       => number_format($subtotal, 2),
-                'commission_disc' => number_format($commDisc, 2),
-                'party_disc'      => number_format($partyDisc, 2),
-                'total_disc'      => number_format($totDisc, 2),
-                'discount_pct'    => number_format($discPct, 2) . ' %',
-                'net_before_tax'  => number_format($netBT, 2),
-                'tax'             => number_format($tax, 2),
-                'computed_total'  => number_format($compTot, 2),
+                'sub_total'       => number_format($subtotal, 0),
+                'commission_disc' => number_format($commDisc, 0),
+                'party_disc'      => number_format($partyDisc, 0),
+                'total_disc'      => number_format($totDisc, 0),
+                'discount_pct'    => number_format($discPct, 0) . ' %',
+                'net_before_tax'  => number_format($netBT, 0),
+                'tax'             => number_format($tax, 0),
+                'computed_total'  => number_format($compTot, 0),
                 'payment_mode'    => e($r->payment_mode ?: '-'),
                 'status'          => e($r->status),
                 'action'          => '',
@@ -1847,7 +1853,7 @@ class ReportController extends Controller
                 'category'     => e($r->category_name ?? ''),
                 'title'        => e($r->title ?? ''),
                 'description'  => e($r->description ?? ''),
-                'amount'       => number_format((float)$r->amount, 2),
+                'amount'       => number_format((float)$r->amount, 0),
                 'created_by'   => e($r->created_by ?? ''),
                 'created_at'   => $r->created_at ? Carbon::parse($r->created_at, $tz)->toDateTimeString() : '',
                 'action'       => '',
@@ -1860,7 +1866,7 @@ class ReportController extends Controller
             'recordsFiltered' => $filteredRecords,
             'data'            => $data,
             'totals'          => [
-                'amount' => round((float)$totalsAmount, 2),
+                'amount' => round((float)$totalsAmount, 0),
             ],
         ]);
     }
@@ -2000,12 +2006,12 @@ class ReportController extends Controller
                 'vendor_name'   => e($r->vendor_name),
                 'ledger'        => e($r->parchase_ledger ?? ''),
                 'items_qty'     => number_format((float)$r->items_qty, 0),
-                'items_amount'  => number_format((float)$r->items_amount, 2),
-                'excise_fee'    => number_format((float)$r->excise_fee, 2),
-                'vat'           => number_format((float)$r->vat, 2),
-                'tcs'           => number_format((float)$r->tcs, 2),
-                'other_charges' => number_format($charges_total, 2),
-                'grand_total'   => number_format((float)$r->grand_total, 2),
+                'items_amount'  => number_format((float)$r->items_amount, 0),
+                'excise_fee'    => number_format((float)$r->excise_fee, 0),
+                'vat'           => number_format((float)$r->vat, 0),
+                'tcs'           => number_format((float)$r->tcs, 0),
+                'other_charges' => number_format($charges_total, 0),
+                'grand_total'   => number_format((float)$r->grand_total, 0),
                 'status'        => e($r->status),
                 'action'        => '',
             ];
@@ -2018,8 +2024,8 @@ class ReportController extends Controller
             'data'            => $data,
             'totals'          => [
                 'qty'         => (float)($totals->qty_total ?? 0),
-                'items_total' => round((float)($totals->items_total ?? 0), 2),
-                'grand_total' => round((float)($totals->grand_total ?? 0), 2),
+                'items_total' => round((float)($totals->items_total ?? 0), 0),
+                'grand_total' => round((float)($totals->grand_total ?? 0), 0),
             ],
         ]);
     }
@@ -2182,7 +2188,7 @@ class ReportController extends Controller
             // Sanity: outstanding should also equal total_cr_upto_end - total_dr_upto_end (can be negative)
             $sanity = $r['total_cr_upto_end'] - $r['total_dr_upto_end'];
             // Use FIFO outstanding (non-negative per bucket), but we expose closing_outstanding = sanity
-            $closingOutstanding = round($sanity, 2);
+            $closingOutstanding = round($sanity, 0);
 
             // Min outstanding filter (on absolute or positive?) Usually we filter positive > X
             if (!is_null($minOuts) && $closingOutstanding < $minOuts) continue;
@@ -2193,14 +2199,14 @@ class ReportController extends Controller
                 'party_name'   => $party['name'],
                 'mobile'       => $party['mobile'],
                 'branch_name'  => $branchMap[$sid] ?? ('Branch #' . $sid),
-                'opening'      => round($opening, 2),
-                'period_credit' => round($periodC, 2),
-                'period_debit' => round($periodD, 2),
+                'opening'      => round($opening, 0),
+                'period_credit' => round($periodC, 0),
+                'period_debit' => round($periodD, 0),
                 'closing'      => $closingOutstanding,
-                'age_0_30'     => round($age0_30, 2),
-                'age_31_60'    => round($age31_60, 2),
-                'age_61_90'    => round($age61_90, 2),
-                'age_90_plus'  => round($age90p, 2),
+                'age_0_30'     => round($age0_30, 0),
+                'age_31_60'    => round($age31_60, 0),
+                'age_61_90'    => round($age61_90, 0),
+                'age_90_plus'  => round($age90p, 0),
                 'last_tx_date' => $r['last_tx_date'],
             ];
         }
@@ -2267,14 +2273,14 @@ class ReportController extends Controller
                 'party_name'    => e($r['party_name']),
                 'branch_name'   => e($r['branch_name']),
                 'mobile'        => e($r['mobile'] ?? ''),
-                'opening'       => number_format($r['opening'], 2),
-                'period_credit' => number_format($r['period_credit'], 2),
-                'period_debit'  => number_format($r['period_debit'], 2),
-                'closing'       => number_format($r['closing'], 2),
-                'age_0_30'      => number_format($r['age_0_30'], 2),
-                'age_31_60'     => number_format($r['age_31_60'], 2),
-                'age_61_90'     => number_format($r['age_61_90'], 2),
-                'age_90_plus'   => number_format($r['age_90_plus'], 2),
+                'opening'       => number_format($r['opening'], 0),
+                'period_credit' => number_format($r['period_credit'], 0),
+                'period_debit'  => number_format($r['period_debit'], 0),
+                'closing'       => number_format($r['closing'], 0),
+                'age_0_30'      => number_format($r['age_0_30'], 0),
+                'age_31_60'     => number_format($r['age_31_60'], 0),
+                'age_61_90'     => number_format($r['age_61_90'], 0),
+                'age_90_plus'   => number_format($r['age_90_plus'], 0),
                 'last_tx_date'  => e($r['last_tx_date'] ?? ''),
                 'action'        => '', // add "View Ledger" button if you have a route
             ];
@@ -2293,11 +2299,11 @@ class ReportController extends Controller
             'recordsFiltered' => $recordsFiltered,
             'data'            => $data,
             'totals'          => [
-                'closing'   => round($sumClosing, 2),
-                'age_0_30'  => round($sum0_30, 2),
-                'age_31_60' => round($sum31_60, 2),
-                'age_61_90' => round($sum61_90, 2),
-                'age_90p'   => round($sum90p, 2),
+                'closing'   => round($sumClosing, 0),
+                'age_0_30'  => round($sum0_30, 0),
+                'age_31_60' => round($sum31_60, 0),
+                'age_61_90' => round($sum61_90, 0),
+                'age_90p'   => round($sum90p, 0),
             ],
         ]);
     }

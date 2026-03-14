@@ -1,107 +1,17 @@
 {{-- resources/views/reports/product_inactive.blade.php --}}
 @extends('layouts.backend.datatable_layouts')
 
-@section('styles')
-    <style>
-        .custom-toolbar-row {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .custom-toolbar-row .dataTables_length {
-            order: 1;
-        }
-
-        .custom-toolbar-row .dt-buttons {
-            order: 2;
-        }
-
-        .custom-toolbar-row .filters {
-            order: 3;
-            display: flex;
-            gap: .5rem;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .custom-toolbar-row .dataTables_filter {
-            order: 4;
-            margin-left: auto;
-        }
-
-        .dt-buttons .btn {
-            margin-right: 5px;
-        }
-
-        @media(max-width:768px) {
-            .custom-toolbar-row>div {
-                flex: 1 1 100%;
-                margin-bottom: 10px;
-            }
-        }
-
-        /* single-line filter row (no scroll) */
-        .filters.one-line {
-            display: flex;
-            align-items: center;
-            gap: .5rem;
-            flex-wrap: nowrap;
-            overflow: hidden;
-        }
-
-        .filters.one-line label {
-            white-space: nowrap;
-            margin-bottom: 0;
-        }
-
-        /* make inputs shrink instead of wrapping */
-        .filters.one-line .form-control {
-            flex: 0 1 160px;
-            min-width: 120px;
-        }
-
-        /* finer control per input */
-        #category_id,
-        #sub_category_id {
-            flex: 0 1 220px;
-            min-width: 160px;
-        }
-
-        #start_date,
-        #end_date {
-            flex: 0 1 140px;
-            min-width: 110px;
-        }
-
-        /* keep the checkbox compact & inline */
-        .filters.one-line .form-check {
-            display: flex;
-            align-items: center;
-            gap: .35rem;
-            margin: 0 .25rem 0 0;
-            white-space: nowrap;
-        }
-
-        .filters.one-line .form-check-input {
-            margin-top: 0;
-        }
-    </style>
-@endsection
-
 @section('page-content')
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-                  <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
                     <div>
                         <h4 class="mb-0">Product Inactive Report</h4>
                     </div>
                     <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
                 </div>
-               
+
                 <div class="table-responsive rounded mt-2">
                     <table class="table table-striped table-bordered nowrap" id="product_inactive_table" style="width:100%;">
                         <thead class="bg-white">
@@ -161,6 +71,10 @@
                 processing: true,
                 serverSide: true,
                 responsive: true,
+                language: {
+                    search: "",
+                    lengthMenu: "_MENU_"
+                },
                 ajax: {
                     url: "{{ route('reports.product_inactive.data') }}",
                     type: 'POST',
@@ -172,6 +86,8 @@
                         d.end_date = $('#end_date').val();
                     }
                 },
+                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+
                 columns: [{
                         data: 'sr_no',
                         orderable: false,
@@ -218,25 +134,132 @@
                     [10, 25, 50, 100, "All"]
                 ],
                 pageLength: 10,
-                dom: "<'custom-toolbar-row'lfB>t<'row mt-2'<'col-md-6'i><'col-md-6'p>>",
-                buttons: [{
+                dom:"<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+                buttons: [
+                    {
                         extend: 'excelHtml5',
-                        className: 'btn btn-outline-success btn-sm me-2',
-                        title: 'Product Inactive Report',
-                        filename: 'product_inactive_report',
+                        text: '<i class="fa fa-file-excel-o"></i> Excel',
+                        title: 'Discount & Offer Report',
+                        filename: 'discount_offer_report',
                         exportOptions: {
                             columns: ':visible'
                         }
                     },
+
                     {
                         extend: 'pdfHtml5',
-                        className: 'btn btn-outline-danger btn-sm',
-                        title: 'Product Inactive Report',
-                        filename: 'product_inactive_report',
+                        text: '<i class="fa fa-file-pdf-o"></i> PDF',
+                        filename: 'discount_offer_report',
                         orientation: 'landscape',
                         pageSize: 'A4',
+
                         exportOptions: {
                             columns: ':visible'
+                        },
+
+                        customize: function(doc) {
+
+                            doc.content.splice(0, 1);
+
+                            doc.pageMargins = [15, 55, 15, 25];
+
+                            // Smaller font for many columns
+                            doc.defaultStyle.fontSize = 7;
+
+                            var table = doc.content[0].table;
+
+                            // Auto column widths (important)
+                            table.widths = new Array(table.body[0].length).fill('*');
+
+                            // Better header style
+                            doc.styles.tableHeader = {
+                                fillColor: '#2c3e50',
+                                color: 'white',
+                                alignment: 'center',
+                                bold: true,
+                                fontSize: 8
+                            };
+
+                            var body = table.body;
+
+                            for (var i = 1; i < body.length; i++) {
+
+                                body[i][0].alignment = 'center';
+                                body[i][1].alignment = 'center';
+                                body[i][2].alignment = 'center';
+                                body[i][3].alignment = 'center';
+                                body[i][4].alignment = 'left';
+
+                                for (var j = 5; j < body[i].length; j++) {
+                                    body[i][j].alignment = 'right';
+                                }
+                            }
+
+                            // Table layout for clean lines
+                            doc.content[0].layout = {
+                                hLineWidth: function() {
+                                    return .5;
+                                },
+                                vLineWidth: function() {
+                                    return .5;
+                                },
+                                hLineColor: function() {
+                                    return '#aaa';
+                                },
+                                vLineColor: function() {
+                                    return '#aaa';
+                                },
+                                paddingLeft: function() {
+                                    return 4;
+                                },
+                                paddingRight: function() {
+                                    return 4;
+                                }
+                            };
+
+                            // Header
+                            doc.content.unshift({
+
+                                margin: [0, 0, 0, 12],
+
+                                columns: [
+
+                                    {
+                                        width: '33%',
+                                        columns: [{
+                                                image: pdfLogo,
+                                                width: 30
+                                            },
+                                            {
+                                                text: 'LiquorHub',
+                                                fontSize: 11,
+                                                bold: true,
+                                                margin: [5, 8, 0, 0]
+                                            }
+                                        ]
+                                    },
+
+                                    {
+                                        width: '34%',
+                                        text: 'Discount & Offer Report',
+                                        alignment: 'center',
+                                        fontSize: 14,
+                                        bold: true,
+                                        margin: [0, 8, 0, 0]
+                                    },
+
+                                    {
+                                        width: '33%',
+                                        text: 'Generated: ' + new Date()
+                                        .toLocaleString(),
+                                        alignment: 'right',
+                                        fontSize: 8,
+                                        margin: [0, 8, 0, 0]
+                                    }
+
+                                ]
+                            });
+
                         }
                     }
                 ],

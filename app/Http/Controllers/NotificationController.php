@@ -18,8 +18,8 @@ class NotificationController extends Controller
     public function loadForm($type, Request $request)
     {
         $nf_id = $request->nfid;
-  
-        $nf = Notification::find($nf_id);     
+
+        $nf = Notification::find($nf_id);
         $nf->status = 'read';
         $nf->save();
 
@@ -310,10 +310,14 @@ class NotificationController extends Controller
         $recordsFiltered = $query->count();
 
         // Get paginated and ordered data
-        $data = $query->orderBy($orderColumn, $orderDirection)
-            ->offset($start)
-            ->limit($length)
-            ->get();
+       
+        $query->orderBy($orderColumn, $orderDirection);
+
+        if ($length != -1) {
+            $query->offset($start)->limit($length);
+        }
+
+        $data = $query->get();
 
         $records = [];
         foreach ($data as $notification) {

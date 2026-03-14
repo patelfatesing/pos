@@ -7,7 +7,7 @@
     <div class="content-page">
         <div class="container-fluid">
             <!-- Page Header -->
-            <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+            <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-2">
                 <div>
                     <h4 class="mb-0">Commission Customer List</h4>
                 </div>
@@ -219,7 +219,7 @@
                 }],
                 initComplete: function() {
                     // Inject status filter in correct order
-                    $('<div class="status-filter d-flex align-items-center mr-2 mb-4">' +
+                    $('<div class="status-filter">' +
                         '<select id="status" class="form-control form-control-sm">' +
                         '<option value="">All Status</option>' +
                         '<option value="active">Active</option>' +

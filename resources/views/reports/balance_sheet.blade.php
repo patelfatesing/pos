@@ -172,9 +172,12 @@
             $('bs_start').value = firstOfMonth;
             $('bs_end').value = today;
 
-            function setHeader(asOf, period) {
-                $('bs_asof').textContent = `As at ${asOf} (Period: ${period})`;
-            }
+           function setHeader(asOf, period) {
+    const el = $('bs_asof');
+    if (el) {
+        el.textContent = `As at ${asOf} (Period: ${period})`;
+    }
+}
 
             function clearTbody(tbody) {
                 while (tbody.firstChild) tbody.removeChild(tbody.firstChild);

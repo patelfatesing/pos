@@ -1,36 +1,14 @@
 @extends('layouts.backend.datatable_layouts')
 
-@section('styles')
-    <style>
-        .datatable th {
-            white-space: nowrap;
-        }
-
-        .badge {
-            font-size: 0.85em;
-            padding: 0.35em 0.65em;
-        }
-
-        .total-info {
-            font-size: 0.9em;
-            color: #666;
-            margin-top: 3px;
-        }
-
-        .table td {
-            vertical-align: middle;
-        }
-    </style>
-@endsection
-
 @section('page-content')
     <div class="content-page">
         <div class="container-fluid">
-            <div class="row align-items-center mb-3">
+            <!-- Page Header -->
+            <div class="row align-items-center mb-2">
                 <div class="col-lg-12">
                     <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
                         <div>
-                            <h4 class="mb-0">Stock Transfers</h4>
+                            <h4 class="mb-0">Stock Transfers </h4>
                         </div>
                         <div>
                             @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'stock-transfer'))
@@ -42,23 +20,16 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="card">
-                        <div class="card-body">
-                            @if (session('success'))
-                                <div class="alert alert-success alert-dismissible fade show">
-                                    {{ session('success') }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"
-                                        aria-label="Close"></button>
-                                </div>
-                            @endif
 
-                            <div class="table-responsive">
-                                <table id="stock-transfers-table" class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th>Transfer #</th>
+
+            <div class="row">
+                <div class="col-12">
+
+                    <div class="table-responsive rounded">
+                        <table class="table table-striped table-bordered nowrap" id="stock-transfers-table">
+                            <thead class="bg-white">
+                                <tr class="ligth ligth-data">
+                                     <th>Transfer #</th>
                                             <th>From</th>
                                             <th>To</th>
                                             <th>Products</th>
@@ -67,16 +38,18 @@
                                             <th>Status</th>
                                             <th>Created By</th>
                                             <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            </div>
-                        </div>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
+
+    
 @endsection
 
 @section('scripts')
@@ -92,8 +65,8 @@
                     lengthMenu: "_MENU_"
                 },
                 ajax: "{{ route('stock-transfer.get-transfer-data') }}",
-                dom: "<'row mb-2'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
-                initComplete: function() {
+                 dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'f l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+               initComplete: function() {
                     $('.dataTables_filter input').attr("placeholder", "Search List...");
                 },
                 columns: [{

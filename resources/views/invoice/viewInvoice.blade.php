@@ -7,9 +7,6 @@
 @endphp
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <style>
         @media print {
             .no-print {
@@ -21,22 +18,19 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-                            <div>
-                                <h4 class="mb-3">Transaction Invoice Details</h4>
-                            </div>
-                            <div>
-                                @if (!empty($shift_id))
-                                    <a href="{{ route('shift-manage.view', ['id' => $invoice->branch_id, 'shift_id' => $shift_id]) }}"
-                                        class="btn btn-secondary">Back</a>
-                                @else
-                                    <a href="{{ route('sales.sales.list') }}" class="btn btn-secondary">Back</a>
-                                @endif
-                            </div>
-                        </div>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-3">
+                    <div>
+                        <h4 class="mb-0">Transaction Invoice Details</h4>
                     </div>
+                    @if (!empty($shift_id))
+                        <a href="{{ route('shift-manage.view', ['id' => $invoice->branch_id, 'shift_id' => $shift_id]) }}"
+                            class="btn btn-secondary">Back</a>
+                    @else
+                        <a href="{{ route('sales.sales.list') }}" class="btn btn-secondary">Back</a>
+                    @endif
+                </div>
+                <div class="row">
+                    
                     <div class="col-lg-12">
                         <div class="card card-block card-stretch card-height print rounded">
                             <div class="card-header d-flex justify-content-between bg-primary header-invoice">
@@ -76,10 +70,10 @@
                                             <i class="las la-print"></i>Original View Invoice
                                         </button>
                                     @else
-                                        <button class="btn btn-primary-dark mr-2" data-toggle="modal"
+                                        {{-- <button class="btn btn-primary-dark mr-2" data-toggle="modal"
                                             data-target="#pdfModal">
                                             <i class="las la-print"></i>View Invoice
-                                        </button>
+                                        </button> --}}
                                     @endif
 
                                     <button class="btn btn-primary-dark mr-2" data-toggle="modal" data-target="#pdfModal">
@@ -356,8 +350,8 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <iframe src="{{ asset('storage/invoices/edit_' . $invoice->invoice_number . '.pdf') }}" width="100%"
-                        height="600px" frameborder="0"></iframe>
+                    <iframe src="{{ asset('storage/invoices/edit_' . $invoice->invoice_number . '.pdf') }}"
+                        width="100%" height="600px" frameborder="0"></iframe>
                 </div>
             </div>
         </div>

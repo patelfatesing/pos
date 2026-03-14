@@ -6,7 +6,7 @@
     <!-- Wrapper Start -->
     <div class="content-page">
         <div class="container-fluid">
-            <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-3">
+            <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-1">
                 <div>
                     <h4 class="mb-0">Purchase Invoice</h4>
                 </div>
@@ -67,7 +67,7 @@
                     url: '{{ url('purchase/get-data') }}',
                     type: 'POST',
                 },
-                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'f l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
                 initComplete: function() {
                     $('.dataTables_filter input').attr("placeholder", "Search List...");
                 },
@@ -139,8 +139,7 @@
                                 doc.content[0].alignment = 'center';
 
                                 // MAKE TABLE WIDTH FULL PAGE
-                                doc.content[0].table.widths = ['auto', '*', '*', '*', '*'
-                                ];
+                                doc.content[0].table.widths = ['auto', '*', '*', '*', '*'];
 
                                 doc.styles.tableHeader.alignment = 'center';
 
