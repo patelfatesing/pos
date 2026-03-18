@@ -45,6 +45,7 @@ class PurchaseController extends Controller
         $subcategoryId = request()->subcategory_id ?? null;
 
         $purchaseGroupNames = ['Purchase Ledger', 'Purchase Ledgers', 'Purchase Accounts'];
+         $vendorGroupNames = ['Sundry Creditors'];
 
         $ledgers = \DB::table('account_ledgers as l')
             ->join('account_groups as g', 'g.id', '=', 'l.group_id')
@@ -61,7 +62,7 @@ class PurchaseController extends Controller
 
         $ledgersAll = \DB::table('account_ledgers as l')
             ->join('account_groups as g', 'g.id', '=', 'l.group_id')
-            // ->whereIn('g.name', $purchaseGroupNames)
+            ->whereIn('g.name', $vendorGroupNames)
             ->where(function ($q) {
                 $q->where('l.is_deleted', 'No')->orWhereNull('l.is_deleted');
             })
@@ -87,6 +88,7 @@ class PurchaseController extends Controller
      */
     public function store(Request $request)
     {
+      
         $request->validate([
             'vendor_id' => 'required',
             'vendor_new_id' => 'required',
@@ -126,6 +128,10 @@ class PurchaseController extends Controller
         $vendExcise     = (float) ($request->vend_fee_excise ?? 0);
         $compositeExcise = (float) ($request->composite_fee_excise ?? 0);
         $exciseTotal    = (float) ($request->excise_total_amount ?? 0);
+        $excise_fee    = (float) ($request->excise_fee ?? 0);
+        $surcharge_on_ca    = (float) ($request->surcharge_on_ca ?? 0);
+        $case_purchase_amt =        (float) ($request->case_purchase_amt ?? 0);
+
         $loading = (float) ($request->loading_charges ?? 0);
 
         try {
@@ -158,7 +164,8 @@ class PurchaseController extends Controller
                 'vend_fee_excise'       => $vendExcise,
                 'composite_fee_excise'  => $compositeExcise,
                 'excise_total_amount'   => $exciseTotal,
-                'loading_charges' => $loading
+                'loading_charges' => $loading,
+                'itp_value' => $request->itp_value
             ]);
 
             // ----------------- 2) SAVE PRODUCTS + INVENTORY -----------------
@@ -251,7 +258,7 @@ class PurchaseController extends Controller
             // In your current design, same ledger id used for Purchase & Vendor.
             // Later you can split them if needed.
             $purchaseLedgerId = (int) $request->parchase_ledger; // Purchase A/c (Dr)
-            $vendorLedgerId   = (int) $request->parchase_ledger; // Vendor (Cr)
+            $vendorLedgerId   = (int) $request->vendor_new_id; // Vendor (Cr)
 
             // Base & grand total
             $baseAmount  = (float) ($request->total ?? 0);          // goods value
@@ -271,11 +278,11 @@ class PurchaseController extends Controller
             $permit      = (float) ($request->permit_fee ?? 0);
             $rsgsm       = (float) ($request->rsgsm_purchase ?? 0);
 
+            $loading_charges = (float) ($request->loading_charges ?? 0);
+
             // 3.2 Voucher header (like Tally Purchase)
             $baseAmount  = (float) $request->total;
             $grandAmount = (float) $request->total_amount;
-            $vat         = (float) ($request->vat ?? 0);
-            $surVat      = (float) ($request->surcharge_on_vat ?? 0);
 
             $voucher = Voucher::create([
                 'gen_id'          => $purchase->id,
@@ -315,19 +322,6 @@ class PurchaseController extends Controller
                     ]);
                 }
             }
-
-            // if ($gFull > 0) {
-            //     $l = AccountLedger::where('name', 'Guarantee Fulfilled')->first();
-            //     if ($l) {
-            //         VoucherLine::create([
-            //             'voucher_id'     => $voucher->id,
-            //             'ledger_id'      => $l->id,
-            //             'dc'             => 'Dr',
-            //             'amount'         => $gFull,
-            //             'line_narration' => 'Guarantee Fulfilled - ' . $request->bill_no,
-            //         ]);
-            //     }
-            // }
 
             if ($tcs > 0) {
                 $l = AccountLedger::where('name', 'TCS')->first();
@@ -381,6 +375,86 @@ class PurchaseController extends Controller
                 }
             }
 
+            if ($excise_fee > 0) {
+                $l = AccountLedger::where('name', 'EXCISE FEE')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $excise_fee,
+                        'line_narration' => 'EXCISE FEE - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            if ($loading_charges > 0) {
+                $l = AccountLedger::where('name', 'Loading Charges')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $loading_charges,
+                        'line_narration' => 'Loading Charges - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            if ($compositeExcise > 0) {
+                $l = AccountLedger::where('name', 'COMPOSITION VAT')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $compositeExcise,
+                        'line_narration' => 'COMPOSITION VAT - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            if ($surcharge_on_ca > 0) {
+                $l = AccountLedger::where('name', 'SURCHARGE ON CA')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $surcharge_on_ca,
+                        'line_narration' => 'SURCHARGE ON CA - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            if ($case_purchase_amt > 0) {
+
+                $ledger = AccountLedger::where('name', 'CASH PURCHASE')->first();
+
+                if ($ledger) {
+
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $ledger->id,
+                        'dc'             => 'Cr',
+                        'amount'         => $case_purchase_amt,
+                        'line_narration' => 'Cash Purchase Adjustment - ' . $request->bill_no,
+                    ]);
+                }
+            }
+            // if ($rsgsm > 0) {
+            //     $l = AccountLedger::where('name', 'RSGSM Purchase')->first();
+            //     if ($l) {
+            //         VoucherLine::create([
+            //             'voucher_id'     => $voucher->id,
+            //             'ledger_id'      => $l->id,
+            //             'dc'             => 'Dr',
+            //             'amount'         => $rsgsm,
+            //             'line_narration' => 'RSGSM Purchase - ' . $request->bill_no,
+            //         ]);
+            //     }
+            // }
+
             if ($permit > 0) {
                 $l = AccountLedger::where('name', 'Permit Fee')->first();
                 if ($l) {
@@ -394,15 +468,15 @@ class PurchaseController extends Controller
                 }
             }
 
-            // if ($rsgsm > 0) {
-            //     $l = AccountLedger::where('name', 'RSGSM Purchase')->first();
+            // if ($gFull > 0) {
+            //     $l = AccountLedger::where('name', 'Guarantee Fulfilled')->first();
             //     if ($l) {
             //         VoucherLine::create([
             //             'voucher_id'     => $voucher->id,
             //             'ledger_id'      => $l->id,
             //             'dc'             => 'Dr',
-            //             'amount'         => $rsgsm,
-            //             'line_narration' => 'RSGSM Purchase - ' . $request->bill_no,
+            //             'amount'         => $gFull,
+            //             'line_narration' => 'Guarantee Fulfilled - ' . $request->bill_no,
             //         ]);
             //     }
             // }
@@ -446,6 +520,7 @@ class PurchaseController extends Controller
         $subcategories = DB::table('sub_categories')->where('is_deleted', 'no')->get();
 
         $purchaseGroupNames = ['Purchase Ledger', 'Purchase Ledgers', 'Purchase Accounts'];
+        $vendorGroupNames = ['Sundry Creditors'];
 
         $ledgers = DB::table('account_ledgers as l')
             ->join('account_groups as g', 'g.id', '=', 'l.group_id')
@@ -461,6 +536,7 @@ class PurchaseController extends Controller
 
         $ledgersAll = DB::table('account_ledgers as l')
             ->join('account_groups as g', 'g.id', '=', 'l.group_id')
+            ->whereIn('g.name', $vendorGroupNames)
             ->where(function ($q) {
                 $q->where('l.is_deleted', 'No')->orWhereNull('l.is_deleted');
             })
@@ -512,16 +588,18 @@ class PurchaseController extends Controller
             $store_id = 1;
             $purchaseDate = $request->date;
 
-            // Get shift of purchase date
             $purchaseShift = ShiftClosing::where('branch_id', $store_id)
                 ->whereDate('created_at', $purchaseDate)
                 ->first();
 
             $shift_id = $purchaseShift->id ?? null;
 
-            // =========================
-            // 1. INVENTORY DIFFERENCE LOGIC
-            // =========================
+            /*
+        =====================================================
+        1. INVENTORY DIFFERENCE LOGIC
+        =====================================================
+        */
+
             $oldItems = [];
             foreach ($purchase->items as $item) {
                 $oldItems[$item->product_id] = $item;
@@ -560,7 +638,7 @@ class PurchaseController extends Controller
                 ]);
 
                 if ($difference > 0) {
-                    // Add stock
+
                     $inventory->increment('quantity', $difference);
 
                     stockStatusChange(
@@ -582,7 +660,7 @@ class PurchaseController extends Controller
                         'add_stock'
                     );
                 } else {
-                    // Remove stock
+
                     $removeQty = abs($difference);
 
                     $inventory->decrement('quantity', $removeQty);
@@ -610,9 +688,12 @@ class PurchaseController extends Controller
                 $affectedProducts[] = $product_id;
             }
 
-            // =========================
-            // HANDLE REMOVED PRODUCTS
-            // =========================
+            /*
+        =====================================================
+        2. HANDLE REMOVED PRODUCTS
+        =====================================================
+        */
+
             foreach ($purchase->items as $oldItem) {
 
                 if (!in_array($oldItem->product_id, $newProductIds)) {
@@ -652,14 +733,20 @@ class PurchaseController extends Controller
                 }
             }
 
-            // =========================
-            // 2. DELETE OLD ITEMS
-            // =========================
+            /*
+        =====================================================
+        3. DELETE OLD ITEMS
+        =====================================================
+        */
+
             $purchase->items()->delete();
 
-            // =========================
-            // 3. INSERT NEW ITEMS
-            // =========================
+            /*
+        =====================================================
+        4. INSERT NEW ITEMS
+        =====================================================
+        */
+
             $subTotal = 0;
 
             foreach ($request->products as $product) {
@@ -679,28 +766,151 @@ class PurchaseController extends Controller
                 ]);
             }
 
-            // =========================
-            // 4. RECALCULATE STOCK
-            // =========================
-            $affectedProducts = array_unique($affectedProducts);
+            /*
+        =====================================================
+        5. UPDATE PURCHASE MASTER
+        =====================================================
+        */
 
-            foreach ($affectedProducts as $pid) {
-                recalculateStockFromDate($pid, $store_id, $purchaseDate);
-            }
-
-            // =========================
-            // 5. UPDATE PURCHASE TOTALS
-            // =========================
             $purchase->update([
                 'bill_no' => $request->bill_no,
                 'vendor_id' => $request->vendor_id,
                 'vendor_new_id' => $request->vendor_new_id,
                 'parchase_ledger' => $request->parchase_ledger,
                 'date' => $purchaseDate,
-                'total' => $subTotal,
-                'total_amount' => $subTotal,
+                'total' => $request->total,
+                'excise_fee' => $request->excise_fee ?? 0,
+                'composition_vat' => $request->composition_vat ?? 0,
+                'surcharge_on_ca' => $request->surcharge_on_ca ?? 0,
+                'tcs' => $request->tcs ?? 0,
+                'aed_to_be_paid' => $request->aed_to_be_paid ?? 0,
+                'total_amount' => $request->total_amount,
+                'vat' => $request->vat,
+                'surcharge_on_vat' => $request->surcharge_on_vat,
+                'blf' => $request->blf,
+                'permit_fee' => $request->permit_fee,
+                'rsgsm_purchase' => $request->rsgsm_purchase,
+                'loading_charges' => $request->loading_charges ?? 0,
+                 'itp_value' => $request->itp_value,
                 'updated_by' => Auth::id(),
             ]);
+
+            /*
+        =====================================================
+        6. DELETE OLD VOUCHER
+        =====================================================
+        */
+
+            $oldVoucher = Voucher::where('gen_id', $purchase->id)
+                ->where('voucher_type', 'Purchase')
+                ->first();
+
+            if ($oldVoucher) {
+                VoucherLine::where('voucher_id', $oldVoucher->id)->delete();
+                $oldVoucher->delete();
+            }
+
+            /*
+        =====================================================
+        7. CREATE NEW VOUCHER (SAME AS STORE)
+        =====================================================
+        */
+
+            $vendor = VendorList::findOrFail($request->vendor_id);
+
+            $baseAmount  = (float) $request->total;
+            $grandAmount = (float) $request->total_amount;
+
+            $voucher = Voucher::create([
+                'gen_id' => $purchase->id,
+                'voucher_date' => $request->date,
+                'voucher_type' => 'Purchase',
+                'ref_no' => $request->bill_no,
+                'branch_id' => $store_id,
+                'narration' => 'Purchase bill no ' . $request->bill_no,
+                'created_by' => Auth::id(),
+                'party_ledger_id' => $request->parchase_ledger,
+                'sub_total' => $baseAmount,
+                'discount' => 0,
+                'tax' => ($request->vat ?? 0) + ($request->surcharge_on_vat ?? 0),
+                'grand_total' => $grandAmount,
+            ]);
+
+            /*
+        ======================
+        DR PURCHASE
+        ======================
+        */
+
+            VoucherLine::create([
+                'voucher_id' => $voucher->id,
+                'ledger_id' => $request->parchase_ledger,
+                'dc' => 'Dr',
+                'amount' => $baseAmount,
+                'line_narration' => 'Purchase - ' . $request->bill_no,
+            ]);
+
+            /*
+        ======================
+        DR TAX LEDGERS
+        ======================
+        */
+
+            $taxLedgers = [
+                'AED TO BE PAID' => $request->aed_to_be_paid,
+                'TCS' => $request->tcs,
+                'VAT' => $request->vat,
+                'SURCHARGE ON VAT' => $request->surcharge_on_vat,
+                'BLF' => $request->blf,
+                'EXCISE FEE' => $request->excise_fee,
+                'Loading Charges' => $request->loading_charges,
+                'COMPOSITION VAT' => $request->composition_vat,
+                'SURCHARGE ON CA' => $request->surcharge_on_ca,
+                'Permit Fee' => $request->permit_fee
+            ];
+
+            foreach ($taxLedgers as $ledgerName => $amount) {
+
+                if ($amount > 0) {
+
+                    $ledger = AccountLedger::where('name', $ledgerName)->first();
+
+                    if ($ledger) {
+
+                        VoucherLine::create([
+                            'voucher_id' => $voucher->id,
+                            'ledger_id' => $ledger->id,
+                            'dc' => 'Dr',
+                            'amount' => $amount,
+                            'line_narration' => $ledgerName . ' - ' . $request->bill_no,
+                        ]);
+                    }
+                }
+            }
+
+            /*
+        ======================
+        CR VENDOR
+        ======================
+        */
+
+            VoucherLine::create([
+                'voucher_id' => $voucher->id,
+                'ledger_id' => $request->vendor_new_id,
+                'dc' => 'Cr',
+                'amount' => $grandAmount,
+                'line_narration' => 'Vendor: ' . $vendor->name,
+            ]);
+
+            /*
+        =====================================================
+        8. RECALCULATE STOCK
+        =====================================================
+        */
+
+            foreach (array_unique($affectedProducts) as $pid) {
+                recalculateStockFromDate($pid, $store_id, $purchaseDate);
+            }
 
             DB::commit();
 

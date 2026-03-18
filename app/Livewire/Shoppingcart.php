@@ -263,6 +263,7 @@ class Shoppingcart extends Component
 
         if ($currentQty > $product['total_quantity']) {
             $this->dispatch('notiffication-error', ['message' => 'Product is out of stock and cannot be added to cart.']);
+            $this->reset('search');
             return;
         }
 
@@ -2766,8 +2767,8 @@ class Shoppingcart extends Component
 
                 $branch_name = (!empty(auth()->user()->userinfo->branch->name)) ? auth()->user()->userinfo->branch->name : "";
 
-                sendNotification('low_stock', 'Some products are running low', $branch_id, auth()->id(), json_encode($arr));
-                sendNotification('low_stock', 'Some products are running low in ' . $branch_name . ' Store', null, auth()->id(), json_encode($arr));
+                sendNotification('low_stock', 'Some products are having low level stocks', $branch_id, auth()->id(), json_encode($arr));
+                sendNotification('low_stock', 'Some products are having low level stocks in ' . $branch_name . ' Store', null, auth()->id(), json_encode($arr));
             }
 
             if ($this->paymentType == "cash") {
@@ -2867,7 +2868,7 @@ class Shoppingcart extends Component
 
             // cash
             if ($cashPaid > 0) {
-                $cashLedger = AccountLedger::where('name', 'Cash Payments')->firstOrFail();
+                $cashLedger = AccountLedger::where('name', 'CASH')->firstOrFail();
                 $cashLedgerId = $cashLedger->id;
 
                 $lines[] = [
@@ -2880,7 +2881,16 @@ class Shoppingcart extends Component
 
             // upi
             if ($upiPaid > 0) {
-                $upiLedger = AccountLedger::where('name', 'UPI Payments')->firstOrFail();
+                $branchData = Branch::where('branches.id', $branch_id)
+                    ->leftJoin('account_ledgers', 'branches.bank_ledger_id', '=', 'account_ledgers.id')
+                    ->select(
+                        'account_ledgers.name as bank_ledger_name'
+                    )
+                    ->firstOrFail();
+
+                $upiLedger = AccountLedger::where('name', $branchData->bank_ledger_name)->firstOrFail();
+
+                // $upiLedger = AccountLedger::where('name', 'UPI Payments')->firstOrFail();
 
                 $lines[] = [
                     'ledger_id'      => (int) $upiLedger->id,
@@ -3201,6 +3211,12 @@ class Shoppingcart extends Component
             } else {
                 $this->dispatch('order-saved');
             }
+
+            if ($voucher && $invoice) {
+                $voucher->gen_id = $invoice->id;
+                $voucher->save();
+            }
+
             DB::commit();
             //Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->delete();
 
@@ -3678,8 +3694,8 @@ class Shoppingcart extends Component
 
                 $branch_name = (!empty(auth()->user()->userinfo->branch->name)) ? auth()->user()->userinfo->branch->name : "";
 
-                sendNotification('low_stock', 'Some products are running low', $branch_id, auth()->id(), json_encode($arr));
-                sendNotification('low_stock', 'Some products are running low in ' . $branch_name . ' Store', null, auth()->id(), json_encode($arr));
+                sendNotification('low_stock', 'Some products are having low level stocks', $branch_id, auth()->id(), json_encode($arr));
+                sendNotification('low_stock', 'Some products are having low level stocks in ' . $branch_name . ' Store', null, auth()->id(), json_encode($arr));
             }
 
             // 💾 Save cash breakdown
@@ -3738,7 +3754,16 @@ class Shoppingcart extends Component
 
             // upi part
             if ($this->upi > 0) {
-                $tender_ledger1 = AccountLedger::where('name', 'UPI Payments')->firstOrFail();
+
+             $branchData = Branch::where('branches.id', $branch_id)
+                    ->leftJoin('account_ledgers', 'branches.bank_ledger_id', '=', 'account_ledgers.id')
+                    ->select(
+                        'account_ledgers.name as bank_ledger_name'
+                    )
+                    ->firstOrFail();
+
+                $tender_ledger1 = AccountLedger::where('name', $branchData->bank_ledger_name)->firstOrFail();
+                // $tender_ledger1 = AccountLedger::where('name', 'UPI Payments')->firstOrFail();
                 $tender_ledger_id1 = $tender_ledger1->id;
 
                 $lines[] = [
@@ -3786,7 +3811,16 @@ class Shoppingcart extends Component
                 return ($v === '' || $v === null) ? null : $v;
             };
 
-            $tender_ledger = AccountLedger::where('name', 'UPI Payments')->firstOrFail();
+            $branchData = Branch::where('branches.id', $branch_id)
+                    ->leftJoin('account_ledgers', 'branches.bank_ledger_id', '=', 'account_ledgers.id')
+                    ->select(
+                        'account_ledgers.name as bank_ledger_name'
+                    )
+                    ->firstOrFail();
+
+            $tender_ledger = AccountLedger::where('name', $branchData->bank_ledger_name)->firstOrFail();
+
+            // $tender_ledger = AccountLedger::where('name', 'UPI Payments')->firstOrFail();
             $tender_ledger_id = $tender_ledger->id;
 
             $salesLedger     = $nv($sales_ledger_id ?? null);

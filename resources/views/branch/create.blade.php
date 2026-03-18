@@ -44,7 +44,23 @@
                                         </div>
                                     </div>
                                 </div>
+
                                 <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Bank Account Ledger *</label>
+                                            <select name="bank_ledger_id" class="selectpicker form-control"
+                                                data-style="py-0">
+                                                <option value="">Select Bank Account Ledger</option>
+                                                @foreach ($acc_ledger as $id => $name)
+                                                    <option value="{{ $id }}">{{ $name }}</option>
+                                                @endforeach
+                                            </select>
+                                            @error('bank_ledger_id')
+                                                <span class="text-danger">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Store Address</label>
@@ -62,11 +78,11 @@
                                         </div>
                                     </div>
                                     <!-- <div class="col-md-6">
-                                                        <div class="form-group">
-                                                            <label>Description</label>
-                                                            <textarea class="form-control" name="description" rows="4"></textarea>
-                                                        </div>
-                                                    </div> -->
+                                                            <div class="form-group">
+                                                                <label>Description</label>
+                                                                <textarea class="form-control" name="description" rows="4"></textarea>
+                                                            </div>
+                                                        </div> -->
                                 </div>
 
                             </form>

@@ -10,7 +10,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         @endif
     </div>
-
+   
     <div class="modal-body">
         <div class="container mt-1">
             <div class="card mb-4">
@@ -41,7 +41,7 @@
                                 </tr>
                             </thead>
                             @php
-                                $totalQty = $stockTransfer->sum('approved_quantity');
+                                $totalQty = $stockTransfer->sum('quantity');
                             @endphp
                             <tbody>
                                 @foreach ($stockTransfer as $index => $item)
@@ -62,7 +62,7 @@
                             @if ($stockTransfer->isNotEmpty())
                                 <tfoot>
                                     <tr>
-                                        <th colspan="3" class="text-start total_bgc">Total:</th>
+                                        <th colspan="4" class="text-start total_bgc">Total:</th>
                                         <th class="total_bgc">{{ $totalQty }}</th>
                                         <th colspan="2" class="total_bgc"></th>
                                     </tr>
@@ -70,6 +70,7 @@
                             @endif
                         </table>
                     @else
+                    
                         <table class="table table-bordered mb-0">
                             <thead class="table-info">
                                 <tr>
@@ -83,7 +84,7 @@
                             </thead>
                             <tbody>
                                 @php
-                                    $totalQty = $stockTransfer->sum('approved_quantity');
+                                    $totalQty = $stockTransfer->sum('quantity');
                                 @endphp
                                 @foreach ($stockTransfer as $index => $item)
                                     <tr>
@@ -104,7 +105,7 @@
                             @if ($stockTransfer->isNotEmpty())
                                 <tfoot>
                                     <tr>
-                                        <th colspan="3" class="text-start total_bgc">Total:</th>
+                                        <th colspan="4" class="text-start total_bgc">Total:</th>
                                         <th class="total_bgc">{{ $totalQty }}</th>
                                         <th colspan="2" class="total_bgc"></th>
                                     </tr>

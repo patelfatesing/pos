@@ -83,7 +83,7 @@ class ExpiryAlert extends Command
     
             // Notify Admin about all expiring products
             // Notification::route('mail', 'admin@example.com')->notify(new ExpiryProductNotification($expiringProducts));
-            sendNotification('expire_product', 'Some Product is expire after some few days',null, 1,'');
+            sendNotification('expire_product', 'Some products are getting expired soon after few days',null, 1,'');
             // Notify store managers
             foreach ($productsByStore as $storeId => $products) {
                 $store = Branch::find($storeId);
@@ -91,7 +91,7 @@ class ExpiryAlert extends Command
                     // Send only one email per store with the grouped expiring products
                     // Notification::route('mail', $store->manager->email)
                     //     ->notify(new ExpiryProductNotification($products));
-                    sendNotification('expire_product', $store->name.' some Product is expire after some few days',$store->id, 1,'');
+                    sendNotification('expire_product', $store->name.' shop in some products are getting expired soon after few day',$store->id, 1,'');
                 }
             }
             $this->info('Expiry notifications sent to Admin and Store Managers.');

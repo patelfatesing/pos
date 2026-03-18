@@ -45,7 +45,7 @@ class NotifyLowStock extends Command
             // Notification::send($admin, new LowStockNotification($lowStocks));
         // }
 
-        sendNotification('low_stock', 'Some Product is low level',null, 1,'');
+        sendNotification('low_stock', 'Some products are having low level stocks',null, 1,'');
         // Notify Store Managers
         $storeManagers = Branch::where('is_deleted', 'no')->get();
 
@@ -53,7 +53,7 @@ class NotifyLowStock extends Command
             $storeProducts = $lowStocks->where('store_id', $manager->id);
 
             if ($storeProducts->isNotEmpty()) {
-                sendNotification('low_stock', $manager->name.' some Product is low level',$manager->id, 1,'');
+                sendNotification('low_stock', $manager->name.' shop in some products are having low level stocks',$manager->id, 1,'');
                 // Notification::send($manager, new LowStockNotification($storeProducts));
             }
         }

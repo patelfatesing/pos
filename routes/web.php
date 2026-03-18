@@ -540,6 +540,9 @@ Route::middleware('auth')->group(function () {
 
         Route::get('monthly/{ledger}', [CashBankReportController::class, 'ledgerMonthly'])
             ->name('reports.monthly');
+
+        Route::get('/group-summary/{group_id}', [Report2Controller::class,'groupSummary'])
+            ->name('reports.group.summary');
     });
 
     // routes/web.php

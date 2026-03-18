@@ -364,7 +364,7 @@ class ProductController extends Controller
             // $arr['id'] = $his_data->id;
             // json_encode(['id' => (string) $his_data->id]);
 
-            sendNotification('price_change', $product->name . ' Product price is changed.', $store->id, Auth::id(), json_encode(['id' => (string)$his_data->id]), 0);
+            sendNotification('price_change', $product->name . ' product price has been changed by Admin.', $store->id, Auth::id(), json_encode(['id' => (string)$his_data->id]), 0);
         }
 
         return response()->json([

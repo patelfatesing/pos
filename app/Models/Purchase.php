@@ -36,7 +36,8 @@ class Purchase extends Model
         'vend_fee_excise',
         'composite_fee_excise',
         'excise_total_amount',
-        'loading_charges'
+        'loading_charges',
+        'itp_value'
 
     ];
 

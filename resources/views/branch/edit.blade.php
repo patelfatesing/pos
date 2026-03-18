@@ -49,6 +49,24 @@
                                     </div>
                                 </div>
                                 <div class="row">
+                                     <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Bank Account Ledger *</label>
+                                                <select name="bank_ledger_id" class="selectpicker form-control"
+                                                    data-style="py-0">
+                                                    <option value="">Select Bank Account Ledger</option>
+                                                    @foreach ($acc_ledger as $id => $name)
+                                                        <option value="{{ $id }}"
+                                                            {{ isset($record->bank_ledger_id) && $record->bank_ledger_id == $id ? 'selected' : '' }}>
+                                                            {{ $name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                @error('bank_ledger_id')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Store Address</label>

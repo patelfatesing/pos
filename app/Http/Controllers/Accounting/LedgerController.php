@@ -282,6 +282,8 @@ class LedgerController extends Controller
             ->orderBy('id')
             ->get();
 
+           
+
         $rows = [];
         $totalDebit  = 0.0;
         $totalCredit = 0.0;
@@ -295,7 +297,7 @@ class LedgerController extends Controller
                 $editUrl = route('sales.edit-sales', $v['gen_id']);
             } else {
                 $line = $v->lines->where('ledger_id', $ledgerId)->first();
-                $editUrl = route('accounting.vouchers.edit', $line->ledger_id);
+                $editUrl = route('accounting.vouchers.edit', $v['id']);
             }
             // This ledger’s own line
             $self = $v->lines->firstWhere('ledger_id', $ledgerId);

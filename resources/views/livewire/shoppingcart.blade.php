@@ -961,12 +961,7 @@
                     <h5 class="modal-title fw-semibold" id="cashout">
                         <i class="bi bi-camera-video me-2"></i>{{ __('messages.stock_request') }}
                     </h5>
-                    {{-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <i class="bi bi-x-lg"></i>
-                                </button> --}}
-
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-
                 </div>
 
                 <div class="modal-body p-6">
@@ -999,7 +994,7 @@
                                             <div class="item-row mb-3">
 
                                                 <select name="items[0][product_id]"
-                                                    class="product-dropdown form-control d-inline w-50 product-select-sh frame-stock-request-searchbar6"
+                                                    class="product-dropdown form-control d-inline w-50 frame-stock-request-searchbar6"
                                                     required>
 
                                                     <option value="">-- {{ __('messages.select_product') }} --
@@ -1037,15 +1032,15 @@
                                                     <textarea name="notes" id="notes" class="form-control frame-stock-request-group260"></textarea>
                                                 </div>
                                             </div>
-                                             <div class="col-md-6">
+                                            <div class="col-md-6">
                                                 <div class="d-flex submit_btn_block mb-3">
-                                            <button type="submit"
-                                                class="frame-stock-request-group223 btn-submit">{{ __('messages.submit_request') }}</button>
-                                        </div>
-                                             </div>
+                                                    <button type="submit"
+                                                        class="frame-stock-request-group223 btn-submit">{{ __('messages.submit_request') }}</button>
+                                                </div>
+                                            </div>
 
                                         </div>
-                                        
+
                                     </form>
                                 </div>
                             </div>
@@ -1169,57 +1164,65 @@
                         <input type="hidden" name="amount" id="holdamountTotal" class="form-control"
                             placeholder="Enter opening amount" readonly>
                         <div class="cash-in-hand-table">
-                            <table id="case_in_hand" class="case_in_hand table table-bordered product-table">
-                                <thead class="table-info">
-                                    <tr>
-                                        <th class="main-screen-text25 text-center">
-                                            {{ __('messages.currency') }}</th>
-                                        <th class="main-screen-text25 text-center">
-                                            {{ __('messages.notes') }}</th>
-                                        <th class="main-screen-text25 text-center">
-                                            {{ __('messages.amount') }}</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="tbody-border">
-                                    @foreach ($noteDenominations as $key => $denomination)
+                            @if ($inOutStatus)
+                                <table id="case_in_hand" class="case_in_hand table table-bordered product-table">
+                                    <thead class="table-info">
                                         <tr>
-                                            <td class="fw-semibold text-center">{{ $denomination }} <span
-                                                    class="mx-3">x</span></td>
-                                            <td class="text-center">
-                                                <div class="d-flex align-items-center counter-add-delete-area"
-                                                    style="width: 100%;">
-                                                    <button style="width: 40%;" type="button"
-                                                        class="btn btn-gray btn-decrease rounded-start"
-                                                        data-denomination="{{ $denomination }}"
-                                                        style="font-size: 1.2rem;">−</button>
-                                                    <input type="text"
-                                                        name="cashNotes[{{ $key }}][{{ $denomination }}]"
-                                                        id="cashhandsum_{{ $denomination }}"
-                                                        class="form-control text-center  bg-white px-1 note-input"
-                                                        value="0" readonly
-                                                        data-denomination="{{ $denomination }}"
-                                                        style="width: 60px;">
-                                                    <button style="width: 40%;" type="button"
-                                                        class="btn btn-gray rounded-end btn-increase"
-                                                        data-denomination="{{ $denomination }}"
-                                                        style="font-size: 1.2rem;">+</button>
-                                                </div>
-                                            </td>
-                                            <td class="text-center fw-semibold amount-cell"
-                                                id="discashhandsum_{{ $denomination }}">
-                                                ₹{{ number_format($denomination, 0) }}</td>
+                                            <th class="main-screen-text25 text-center">
+                                                {{ __('messages.currency') }}</th>
+                                            <th class="main-screen-text25 text-center">
+                                                {{ __('messages.notes') }}</th>
+                                            <th class="main-screen-text25 text-center">
+                                                {{ __('messages.amount') }}</th>
                                         </tr>
-                                    @endforeach
-                                </tbody>
-                                <tfoot>
-                                    <tr class="table-success-new">
-                                        <td class="fw-bold text-start total_bgc" colspan="2">
-                                            {{ __('messages.total_cash') }}</td>
-                                        <td class="fw-bold text-center total_bgc" id="totalNoteCashHand">
-                                            ₹0</td>
-                                    </tr>
-                                </tfoot>
-                            </table>
+                                    </thead>
+                                    <tbody class="tbody-border">
+
+                                        @foreach ($noteDenominations as $key => $denomination)
+                                            <tr>
+                                                <td class="fw-semibold text-center">{{ $denomination }} <span
+                                                        class="mx-3">x</span></td>
+                                                <td class="text-center">
+                                                    <div class="d-flex align-items-center counter-add-delete-area"
+                                                        style="width: 100%;">
+                                                        <button style="width: 40%;" type="button"
+                                                            class="btn btn-gray btn-decrease rounded-start"
+                                                            data-denomination="{{ $denomination }}"
+                                                            style="font-size: 1.2rem;">−</button>
+                                                        <input type="text"
+                                                            name="cashNotes[{{ $key }}][{{ $denomination }}]"
+                                                            id="cashhandsum_{{ $denomination }}"
+                                                            class="form-control text-center  bg-white px-1 note-input"
+                                                            value="0" readonly
+                                                            data-denomination="{{ $denomination }}"
+                                                            style="width: 60px;">
+                                                        <button style="width: 40%;" type="button"
+                                                            class="btn btn-gray rounded-end btn-increase"
+                                                            data-denomination="{{ $denomination }}"
+                                                            style="font-size: 1.2rem;">+</button>
+                                                    </div>
+                                                </td>
+                                                <td class="text-center fw-semibold amount-cell"
+                                                    id="discashhandsum_{{ $denomination }}">
+                                                    ₹{{ number_format($denomination, 0) }}</td>
+                                            </tr>
+                                        @endforeach
+
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="table-success-new">
+                                            <td class="fw-bold text-start total_bgc" colspan="2">
+                                                {{ __('messages.total_cash') }}</td>
+                                            <td class="fw-bold text-center total_bgc" id="totalNoteCashHand">
+                                                ₹0</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            @else
+                                <input type="number" id="cashAmount" step="1"
+                                    wire:model.debounce.500ms="cash" class="form-control rounded-pill" min="0"
+                                    max="">
+                            @endif
                             <!-- ✅ Start with 0 checkbox -->
                             <div class="form-check mt-1">
                                 <input class="form-check-input start-zero-checkbox" type="checkbox" id="startZero"
@@ -3242,6 +3245,26 @@
                     return false;
                 }
             }
+        });
+
+        $(document).on('change', '.product-dropdown', function() {
+
+            const productId = $(this).val();
+            const currentSelect = $(this);
+
+            if (productId) {
+                const isDuplicate = $('.product-dropdown').not(this).toArray().some(select => select
+                    .value === productId);
+
+                if (isDuplicate) {
+                    showAlert('error', 'LiquorHub!',
+                        'This product is already selected. Please choose a different product');
+
+                    currentSelect.val('');
+                    return false;
+                }
+            }
+
         });
 
         $(document).on('change', '.product-select', function() {

@@ -331,8 +331,8 @@ class StockTransferController extends Controller
                 $arr['product_id'] =  implode(',', array_values($arr_low_stock));
                 $arr['store_id'] =  (string) $request->from_store_id;
 
-                sendNotification('low_stock', 'Some products are running low', $request->from_store_id, Auth::id(), json_encode($arr));
-                sendNotification('low_stock', 'Some products are running low', null, Auth::id(), json_encode($arr));
+                sendNotification('low_stock', 'Some products have low level stock please check', $request->from_store_id, Auth::id(), json_encode($arr));
+                sendNotification('low_stock', 'Some products have low level stock please check', null, Auth::id(), json_encode($arr));
             }
 
             // Send notification and commit

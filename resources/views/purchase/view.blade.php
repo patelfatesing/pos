@@ -21,7 +21,7 @@
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="card">
-                           
+
                             <div class="card-body">
                                 <div class="card-body">
                                     <div class="row">
@@ -39,7 +39,14 @@
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label>Date:</label>
+                                                <label>Bill Date:</label>
+                                                <span class="ml-2">
+                                                    {{ \Carbon\Carbon::parse($purchase->date)->format('d-m-Y h:i A') }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Created Date:</label>
                                                 <span class="ml-2">
                                                     {{ \Carbon\Carbon::parse($purchase->created_at)->format('d-m-Y h:i A') }}</span>
                                             </div>
@@ -79,127 +86,121 @@
                                         </table>
                                     </div>
 
-                                    <hr>
-                                    <div class="row">
-                                        <div class="col-md-6 offset-md-6">
-                                            <table class="table table-bordered">
-                                                <tbody>
-                                                    <tr>
-                                                        <th>Total</th>
-                                                        <td>₹{{ number_format($purchase->total, 2) }}</td>
-                                                    </tr>
+                                    <div class="row mt-3">
+
+                                        @if ($purchase->vendor_id == 1 || $purchase->vendor_id == 2)
+                                            <div class="col-lg-4">
+                                                <div class="card border">
+                                                    <div class="card-body">
+                                                        <h5>License Ledger Details</h5>
+
+                                                        <p><strong>ITP Value:</strong>
+                                                            ₹{{ number_format($purchase->itp_value, 2) }}</p>
+
+                                                        @if ($purchase->aed_to_be_paid)
+                                                            <p><strong>AED To Be Paid:</strong>
+                                                                ₹{{ number_format($purchase->aed_to_be_paid, 2) }}</p>
+                                                        @endif
+
+                                                        @if ($purchase->guarantee_fulfilled)
+                                                            <p><strong>Guarantee Fulfilled:</strong>
+                                                                ₹{{ number_format($purchase->guarantee_fulfilled, 2) }}</p>
+                                                        @endif
+
+                                                        @if ($purchase->loading_charges)
+                                                            <p><strong>Loading Charges:</strong>
+                                                                ₹{{ number_format($purchase->loading_charges, 2) }}</p>
+                                                        @endif
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        @if ($purchase->vendor_id == 1)
+                                            <div class="col-lg-4">
+                                                <div class="card border">
+                                                    <div class="card-body">
+
+                                                        <h5>Excise Fee</h5>
+
+                                                        <p><strong>Permit Fee:</strong>
+                                                            ₹{{ number_format($purchase->permit_fee_excise, 2) }}</p>
+
+                                                        <p><strong>Vend Fee:</strong>
+                                                            ₹{{ number_format($purchase->vend_fee_excise, 2) }}</p>
+
+                                                        <p><strong>Composite Fee:</strong>
+                                                            ₹{{ number_format($purchase->composite_fee_excise, 2) }}</p>
+
+                                                        <hr>
+
+                                                        <p><strong>Total:</strong>
+                                                            ₹{{ number_format($purchase->excise_total_amount, 2) }}
+                                                        </p>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        <div class="col-lg-4">
+                                            <div class="card border">
+                                                <div class="card-body">
+
+                                                    <h5>Billing Details</h5>
+
+                                                    <p><strong>Sub Total:</strong>
+                                                        ₹{{ number_format($purchase->total, 2) }}</p>
 
                                                     @if ($purchase->vendor_id == 1)
-                                                        @if ($purchase->permit_fee_excise > 0)
-                                                            <tr>
-                                                                <th>Permit Fee Excise</th>
-                                                                <td>₹{{ number_format($purchase->permit_fee_excise, 2) }}
-                                                                </td>
-                                                            </tr>
-                                                        @endif
+                                                        <p><strong>Excise Fee:</strong>
+                                                            ₹{{ number_format($purchase->excise_fee, 2) }}</p>
 
-                                                        @if ($purchase->vend_fee_excise > 0)
-                                                            <tr>
-                                                                <th>Vend Fee Excise</th>
-                                                                <td>₹{{ number_format($purchase->vend_fee_excise, 2) }}
-                                                                </td>
-                                                            </tr>
-                                                        @endif
+                                                        <p><strong>Composition VAT:</strong>
+                                                            ₹{{ number_format($purchase->composition_vat, 2) }}</p>
 
-                                                        @if ($purchase->composite_fee_excise > 0)
-                                                            <tr>
-                                                                <th>Composite Fee Excise</th>
-                                                                <td>₹{{ number_format($purchase->composite_fee_excise, 2) }}
-                                                                </td>
-                                                            </tr>
-                                                        @endif
+                                                        <p><strong>Surcharge On CA:</strong>
+                                                            ₹{{ number_format($purchase->surcharge_on_ca, 2) }}</p>
+                                                    @elseif($purchase->vendor_id == 2)
+                                                        <p><strong>VAT:</strong> ₹{{ number_format($purchase->vat, 2) }}
+                                                        </p>
 
-                                                        {{-- <tr>
-                                                            <th>Excise Fee</th>
-                                                            <td>₹{{ number_format($purchase->excise_fee, 2) }}</td>
-                                                        </tr> --}}
-                                                        <tr>
-                                                            <th>Composition VAT</th>
-                                                            <td>₹{{ number_format($purchase->composition_vat, 2) }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <th>Surcharge on CA</th>
-                                                            <td>₹{{ number_format($purchase->surcharge_on_ca, 2) }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <th>TCS</th>
-                                                            <td>₹{{ number_format($purchase->tcs, 2) }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <th>AED to be Paid</th>
-                                                            <td>₹{{ number_format($purchase->aed_to_be_paid, 2) }}</td>
-                                                        </tr>
-                                                    @elseif ($purchase->vendor_id == 2)
-                                                        <tr>
-                                                            <th>VAT</th>
-                                                            <td>₹{{ number_format($purchase->vat ?? 0, 2) }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <th>Surcharge on VAT</th>
-                                                            <td>₹{{ number_format($purchase->surcharge_on_vat ?? 0, 2) }}
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <th>TCS</th>
-                                                            <td>₹{{ number_format($purchase->tcs ?? 0, 2) }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <th>BLF</th>
-                                                            <td>₹{{ number_format($purchase->blf ?? 0, 2) }}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <th>Permit Fee</th>
-                                                            <td>₹{{ number_format($purchase->permit_fee ?? 0, 2) }}</td>
-                                                        </tr>
-                                                        {{-- <tr>
-                                                            <th>RSGSM Purchase</th>
-                                                            <td>₹{{ number_format($purchase->rsgsm_purchase ?? 0, 2) }}
-                                                            </td>
-                                                        </tr> --}}
+                                                        <p><strong>Surcharge On VAT:</strong>
+                                                            ₹{{ number_format($purchase->surcharge_on_vat, 2) }}</p>
+
+                                                        <p><strong>BLF:</strong> ₹{{ number_format($purchase->blf, 2) }}
+                                                        </p>
+
+                                                        <p><strong>Permit Fee:</strong>
+                                                            ₹{{ number_format($purchase->permit_fee, 2) }}</p>
                                                     @else
-                                                        <tr>
-                                                            <th>Case Purchase %</th>
-                                                            <td>₹{{ number_format($purchase->case_purchase_per ?? 0, 2) }}
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <th>Case Purchase Amount</th>
-                                                            <td>₹{{ number_format($purchase->case_purchase_amt ?? 0, 2) }}
-                                                            </td>
-                                                        </tr>
+                                                        <p><strong>Cash Purchase %:</strong>
+                                                            {{ $purchase->case_purchase_per }}%</p>
+
+                                                        <p><strong>Cash Purchase Amount:</strong>
+                                                            ₹{{ number_format($purchase->case_purchase_amt, 2) }}</p>
                                                     @endif
 
-                                                    @if ($purchase->loading_charges > 0)
-                                                        <tr>
-                                                            <th>Loading Charges</th>
-                                                            <td>₹{{ number_format($purchase->loading_charges, 2) }}</td>
-                                                        </tr>
-                                                    @endif
+                                                    <p><strong>TCS:</strong> ₹{{ number_format($purchase->tcs, 2) }}</p>
 
+                                                    <hr>
 
-                                                    <tr class="table-primary">
-                                                        <th><strong>Total With Tax</strong></th>
-                                                        <td><strong>₹{{ number_format($purchase->total_amount, 2) }}</strong>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
+                                                    <h5>Total Amount: ₹{{ number_format($purchase->total_amount, 2) }}</h5>
 
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
 
+                                        <hr>
+                             
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        <!-- Page end -->
                     </div>
-                    <!-- Page end -->
                 </div>
             </div>
-        </div>
-        <!-- Wrapper End -->
-    @endsection
+            <!-- Wrapper End -->
+        @endsection

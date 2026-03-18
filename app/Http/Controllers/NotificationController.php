@@ -310,7 +310,7 @@ class NotificationController extends Controller
         $recordsFiltered = $query->count();
 
         // Get paginated and ordered data
-       
+
         $query->orderBy($orderColumn, $orderDirection);
 
         if ($length != -1) {
@@ -320,15 +320,60 @@ class NotificationController extends Controller
         $data = $query->get();
 
         $records = [];
+        $btn = '';
         foreach ($data as $notification) {
+
+            $type = ucwords(str_replace('_', ' ', $notification->type));
+            $formattedDate = Carbon::parse($notification->created_at)->format('d M Y h:iA');
+
+            if ($notification->type == 'expire_product') {
+
+                $btn = '
+                    <a href="' . url('notification/' . $notification->id) . '" 
+                    class="iq-sub-card open-form mb-1"
+                    data-type="' . $notification->type . '" 
+                    data-id="' . $notification->id . '" 
+                    data-nfid="' . $notification->id . '">
+
+                      <i class="ri-eye-line mr-0"></i>
+
+                    </a>';
+                        } else {
+
+                            $btn = '
+                    <a href="#" id="' . $notification->id . '" 
+                    class="iq-sub-card open-form mb-1"
+                    data-type="' . $notification->type . '" 
+                    data-id="' . $notification->id . '" 
+                    data-nfid="' . $notification->id . '">
+
+                       <i class="ri-eye-line mr-0"></i>
+
+                    </a>';
+            }
+
             $records[] = [
-                'type' => ucwords(str_replace('_', ' ', $notification->type)), // Format type for display
+                'type' => $type,
                 'content' => $notification->content,
                 'created_by' => $notification->created_by_name ?? 'System',
-                'status' => ucfirst($notification->status), // Capitalize status
-                'created_at' => Carbon::parse($notification->created_at)->format('d M Y h:iA'),
+                'status' => ucfirst($notification->status),
+                'created_at' => $formattedDate,
+                'action' => $btn
             ];
         }
+
+        // foreach ($data as $notification) {
+
+
+        //     $records[] = [
+        //         'type' => ucwords(str_replace('_', ' ', $notification->type)), // Format type for display
+        //         'content' => $notification->content,
+        //         'created_by' => $notification->created_by_name ?? 'System',
+        //         'status' => ucfirst($notification->status), // Capitalize status
+        //         'created_at' => Carbon::parse($notification->created_at)->format('d M Y h:iA'),
+        //         'action' => $btn
+        //     ];
+        // }
 
         return response()->json([
             'draw' => $draw,

@@ -105,7 +105,10 @@
                                                         <td>
                                                             <input type="number" step="1"
                                                                 name="items[{{ $product->id }}][cust_discount_price]"
-                                                                value="{{ old('items.' . $product->id . '.cust_discount_price', number_format($product->cust_discount_price,0) == '0' ? number_format($product->mrp,0) : number_format($product->cust_discount_price,0)) }}"
+                                                                value="{{ old(
+                                                                    'items.' . $product->id . '.cust_discount_price',
+                                                                    $product->cust_discount_price == 0 ? (int) $product->mrp : (int) $product->cust_discount_price,
+                                                                ) }}"
                                                                 class="form-control @error('items.' . $product->id . '.cust_discount_price') is-invalid @enderror"
                                                                 placeholder="Enter discount price">
 
@@ -124,7 +127,7 @@
                                                     </tr>
                                                 @empty
                                                     <tr>
-                                                        <td colspan="5" class="text-center">Data not available</td>
+                                                        <td colspan="5" class="text-center">No data available</td>
                                                     </tr>
                                                 @endforelse
                                             </tbody>

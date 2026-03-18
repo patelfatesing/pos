@@ -71,7 +71,7 @@
                             <th id="ft_opening_cash">₹0.00</th>
                             <th id="ft_closing_cash">₹0.00</th>
                             <th></th>
-                            <th id="ft_total_sales">₹0.00</th>
+                            <th id="ft_total_sales">0.00</th>
                             <th id="ft_difference">₹0.00</th>
                             <th></th>
                         </tr>
@@ -341,7 +341,7 @@
 
                     $('#ft_opening_cash').html('₹' + openingTotal);
                     $('#ft_closing_cash').html('₹' + closingTotal);
-                    $('#ft_total_sales').html('₹' + salesTotal);
+                    $('#ft_total_sales').html('' + salesTotal);
                     $('#ft_difference').html('₹' + diffTotal);
                 },
                 aoColumnDefs: [{

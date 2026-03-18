@@ -55,7 +55,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>Rejecr Reason: </label>
+                                <label>Reject Reason: </label>
                                 <span class="ml-2"> {{ $stockRequest->reject_reason ?? '-' }}</span>
                             </div>
                         </div>

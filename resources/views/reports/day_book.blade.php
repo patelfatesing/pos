@@ -66,7 +66,7 @@
                             <div class="card">
                                 <div class="card-header py-2">
                                     <strong>Day Book</strong>
-                                    <h5 class="title-table">Liqure HUB</h5>
+                                    <h5 class="title-table">LIQUOR HUB</h5>
                                     <span class="float-end small">
                                         For {{ \Carbon\Carbon::parse($fromDate)->format('d-M-y') }}
                                     </span>
