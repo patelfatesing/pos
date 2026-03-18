@@ -177,14 +177,10 @@
                 <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
             </div>
             <div class="pnl-card">
-
-
                 <div class="filters" id="pnl_filters">
                     <input type="date" id="pnl_start" class="form-control form-control-sm">
                     <input type="date" id="pnl_end" class="form-control form-control-sm">
-
                     <button id="pnl_apply" type="button" class="btn btn-primary btn-sm">Apply</button>
-
                     <span id="pnl_period" class="ms-2 text-muted"></span>
                 </div>
 
@@ -286,6 +282,7 @@
         const GROUP_URL = @json(route('reports.pnl.group'));
         const LEDGER_URL = @json(route('reports.pnl.ledger'));
         const PDF_BASE = @json(route('reports.profit-loss.pdf'));
+        const GROUP_SUMMARY_BASE = "{{ url('/reports/group-summary') }}";
         // base URL for ledger vouchers (no trailing slash)
         const LEDGER_VOUCHERS_BASE = '/accounting/ledgers';
 
@@ -305,12 +302,12 @@
             $('pnl_start').value = last30;
             $('pnl_end').value = today;
 
-           function updateHeader() {
-    const el = $('pnl_period');
-    if (el) {
-        el.textContent = `${$('pnl_start').value} to ${$('pnl_end').value}`;
-    }
-}
+            function updateHeader() {
+                const el = $('pnl_period');
+                if (el) {
+                    el.textContent = `${$('pnl_start').value} to ${$('pnl_end').value}`;
+                }
+            }
 
             function updatePdfLink() {
                 const params = new URLSearchParams({
@@ -360,34 +357,50 @@
             }
 
             // Render reusable
-            function renderSide(selector, rows) {
+            function renderSide(selector, rows, maxRows = 0) {
+
                 const tbody = document.querySelector(selector);
                 tbody.innerHTML = "";
 
                 const start = encodeURIComponent($('pnl_start').value || '');
                 const end = encodeURIComponent($('pnl_end').value || '');
 
-                rows.forEach(r => {
-                    const tr = document.createElement("tr");
-                    tr.innerHTML = `<td>${escapeHtml(r.label)}</td><td class="amount">${r.amount}</td>`;
-                    tbody.appendChild(tr);
+                let data = rows || [];
 
-                    if (r.children) {
-                        r.children.forEach(c => {
-                            const tr2 = document.createElement("tr");
-                            // if ledger_id present, make clickable GET link with query params
-                            let labelHtml = escapeHtml(c.label);
-                            if (c.ledger_id) {
-                                const href =
-                                    `${LEDGER_VOUCHERS_BASE}/${encodeURIComponent(c.ledger_id)}/vouchers?start_date=${start}&end_date=${end}`;
-                                labelHtml =
-                                    `<a href="${href}" target="_blank" rel="noopener" class="ledger-link">${escapeHtml(c.label)}</a>`;
-                            }
-                            tr2.innerHTML =
-                                `<td class="child-label">${labelHtml}</td><td class="amount">${c.amount}</td>`;
-                            tbody.appendChild(tr2);
+                // 👉 Fill empty rows to match opposite side
+                if (maxRows > 0) {
+                    while (data.length < maxRows) {
+                        data.push({
+                            label: '',
+                            amount: ''
                         });
                     }
+                }
+
+                data.forEach(r => {
+
+                    let labelHtml = r.label ? escapeHtml(r.label) : '&nbsp;';
+                    let amount = r.amount ? r.amount : '&nbsp;';
+
+                    // Detect group id from API
+                    let groupId = r.section_group_id || r.group_id || r.id || null;
+
+                    if (groupId && r.label) {
+
+                        const url =
+                            `${GROUP_SUMMARY_BASE}/${groupId}?start_date=${start}&end_date=${end}`;
+
+                        labelHtml = `<a href="${url}">${escapeHtml(r.label)}</a>`;
+                    }
+
+                    const tr = document.createElement("tr");
+
+                    tr.innerHTML = `
+                        <td>${labelHtml}</td>
+                        <td class="amount">${amount}</td>
+                    `;
+
+                    tbody.appendChild(tr);
                 });
             }
 

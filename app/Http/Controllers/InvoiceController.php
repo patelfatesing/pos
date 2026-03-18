@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\App;
+use App\Models\Accounting\AccountLedger;
+use App\Models\Accounting\Voucher;
 
 class InvoiceController extends Controller
 {
@@ -87,29 +89,6 @@ class InvoiceController extends Controller
         $invoice = Invoice::with(['partyUser', 'commissionUser'])->find($id);
 
         $allProducts = Product::select('id', 'name', 'mrp', 'discount_price', 'sell_price')->where('is_deleted', 'no')->get();
-    
-        $commissionUser = Commissionuser::where('status', 'Active')->find($invoice->commission_user_id);
-
-        $partyUser = Partyuser::where('id', $invoice->party_user_id)
-            ->where('status', 'Active')
-            ->first();
-
-        // Load party-specific prices only if needed
-        $partyPrices = collect();
-        if ($invoice->branch_id == 1 && $invoice->party_user_id) {
-            $partyPrices = PartyCustomerProductsPrice::where('party_user_id', $invoice->party_user_id)
-                ->whereIn('product_id', $allProducts->pluck('id'))
-                ->get();
-        }
-
-        return view('invoice.editSales', compact('invoice', 'commissionUser', 'partyUser', 'allProducts', 'partyPrices'));
-    }
-
-    public function editSales_old($id)
-    {
-        $invoice = Invoice::with(['partyUser', 'commissionUser'])->find($id);
-
-        $allProducts = Product::select('id', 'name', 'mrp', 'discount_price', 'sell_price')->where('is_deleted', 'no')->get();
 
         $commissionUser = Commissionuser::where('status', 'Active')->find($invoice->commission_user_id);
 
@@ -125,7 +104,9 @@ class InvoiceController extends Controller
                 ->get();
         }
 
-        return view('invoice.editSales', compact('invoice', 'commissionUser', 'partyUser', 'allProducts', 'partyPrices'));
+        $branch_data = Branch::find($invoice->branch_id);
+
+        return view('invoice.editSales', compact('invoice', 'commissionUser', 'partyUser', 'allProducts', 'partyPrices', 'branch_data'));
     }
 
     public function addSales($branchId, $shift_id)
@@ -214,7 +195,6 @@ class InvoiceController extends Controller
 
     public function updateItems(Request $request, $id)
     {
-
         $invoice = Invoice::findOrFail($id);
 
         $validated = $request->validate([
@@ -248,16 +228,25 @@ class InvoiceController extends Controller
         $invoiceShiftId = optional($invoiceShift)->id;
         $currentShiftId = optional($currentShift)->id;
 
+        // 🔥 ADD THIS
+        $affectedProducts = [];
+
         // Totals
         $subTotal = 0;
         $totalQty = 0;
         $total = 0;
 
         foreach ($newItems as $item) {
+
             $productId = $item['product_id'];
             $newQty = (int) $item['quantity'];
+
+            // 🔴 TRACK PRODUCTS
+            $affectedProducts[] = $productId;
+
             $newMRP = (float) $item['mrp'];
             $sell_price = (float) $item['sell_price'];
+
             $totalQty += $newQty;
             $subTotal += $newQty * $newMRP;
             $total += $newQty * $sell_price;
@@ -266,151 +255,64 @@ class InvoiceController extends Controller
             $oldQty = $old ? (int) $old['quantity'] : 0;
             $oldMRP = $old['mrp'] ?? 0;
 
-            // ➕ New Product
+            // ================= NEW PRODUCT =================
             if (!$old) {
-                InvoiceActivityLog::create([
-                    'invoice_id' => $invoice->id,
-                    'action' => 'add',
-                    'description' => 'Product added',
-                    'new_data' => $item,
-                    'user_id' => auth()->id(),
-                ]);
+
+                updateInventoryStock($productId, $branchId, $newQty, 'sale');
 
                 if ($invoiceShiftId) {
-                    DailyProductStock::updateOrCreate(
-                        [
-                            'product_id' => $productId,
-                            'branch_id' => $branchId,
-                            'shift_id' => $invoiceShiftId,
-                            'date' => $invoiceDate,
-                        ],
-                        [
-                            'modify_sale_add_qty' => DB::raw('modify_sale_add_qty + ' . $newQty),
-                        ]
-                    );
+                    stockStatusChangeNew($productId, $branchId, $newQty, 'sold_stock', $invoiceShiftId);
+                    
                 }
 
                 continue;
             }
-
-            // 🔼 Quantity Increased
+            // ================= QTY INCREASE =================
             if ($newQty > $oldQty) {
+
                 $diff = $newQty - $oldQty;
 
-                InvoiceActivityLog::create([
-                    'invoice_id' => $invoice->id,
-                    'action' => 'update',
-                    'description' => "Qty increased: {$oldQty} → {$newQty}",
-                    'old_data' => $old,
-                    'new_data' => $item,
-                    'user_id' => auth()->id(),
-                ]);
+                updateInventoryStock($productId, $branchId, $diff, 'sale');
 
                 if ($invoiceShiftId) {
-                    DailyProductStock::where([
-                        'product_id' => $productId,
-                        'branch_id' => $branchId,
-                        'shift_id' => $invoiceShiftId,
-                        'date' => $invoiceDate,
-                    ])->increment('modify_sale_add_qty', $diff);
-                }
-
-                if ($currentShiftId) {
-                    DailyProductStock::updateOrCreate(
-                        [
-                            'product_id' => $productId,
-                            'branch_id' => $branchId,
-                            'shift_id' => $currentShiftId,
-                            'date' => $currentDate,
-                        ],
-                        [
-                            'sold_stock' => DB::raw('sold_stock + ' . $diff),
-                        ]
-                    );
+                    stockStatusChangeNew($productId, $branchId, $diff, 'sold_stock', $invoiceShiftId);
                 }
             }
 
-            // 🔽 Quantity Decreased
+            // ================= QTY DECREASE =================
             elseif ($newQty < $oldQty) {
+
                 $diff = $oldQty - $newQty;
 
-                InvoiceActivityLog::create([
-                    'invoice_id' => $invoice->id,
-                    'action' => 'update',
-                    'description' => "Qty decreased: {$oldQty} → {$newQty}",
-                    'old_data' => $old,
-                    'new_data' => $item,
-                    'user_id' => auth()->id()
-                ]);
-
-
+                updateInventoryStock($productId, $branchId, $diff, 'refund');
 
                 if ($invoiceShiftId) {
-                    stockStatusChange($item['product_id'], $branchId, $diff, 'remove_modify_stock', $invoiceShiftId);
-                    // DailyProductStock::where([
-                    //     'product_id' => $productId,
-                    //     'branch_id' => $branchId,
-                    //     'shift_id' => $invoiceShiftId,
-                    //     'date' => $invoiceDate,
-                    // ])->increment('modify_sale_remove_qty', $diff);
+                    stockStatusChangeNew($productId, $branchId, $diff, 'refunded_order', $invoiceShiftId);
                 }
-
-                if ($currentShiftId) {
-
-                    stockStatusChange($item['product_id'], $branchId, $diff, 'remove_add_stock', $currentShiftId);
-                    // DailyProductStock::updateOrCreate(
-                    //     [
-                    //         'product_id' => $productId,
-                    //         'branch_id' => $branchId,
-                    //         'shift_id' => $currentShiftId,
-                    //         'date' => $currentDate,
-                    //     ],
-                    //     [
-                    //         'added_stock' => DB::raw('added_stock + ' . $diff),
-                    //     ]
-                    // );
-                } else {
-                    stockStatusChange($item['product_id'], $branchId, $diff, 'remove_add_stock', $invoiceShiftId);
-                }
-            }
-
-            // ✏️ MRP Changed
-            elseif ($newMRP != $oldMRP) {
-                InvoiceActivityLog::create([
-                    'invoice_id' => $invoice->id,
-                    'action' => 'update',
-                    'description' => "Price changed: ₹{$oldMRP} → ₹{$newMRP}",
-                    'old_data' => $old,
-                    'new_data' => $item,
-                    'user_id' => auth()->id(),
-                ]);
             }
         }
 
-        // ❌ Removed Products
-        $currentItems->each(function ($item) use ($newItems, $invoice, $invoiceShiftId, $branchId, $currentShiftId) {
+        // ================= REMOVED ITEMS =================
+        $currentItems->each(function ($item) use ($newItems, $branchId, $invoiceShiftId, &$affectedProducts) {
 
             if (!$newItems->contains('product_id', $item['product_id'])) {
-                InvoiceActivityLog::create([
-                    'invoice_id' => $invoice->id,
-                    'action' => 'remove',
-                    'description' => 'Product removed',
-                    'old_data' => $item,
-                    'user_id' => auth()->id(),
-                ]);
+
+                $affectedProducts[] = $item['product_id'];
+
+                updateInventoryStock($item['product_id'], $branchId, $item['quantity'], 'refund');
 
                 if ($invoiceShiftId) {
-                    stockStatusChange($item['product_id'], $branchId, $item['quantity'], 'remove_modify_stock', $invoiceShiftId);
-                }
-
-                if ($currentShiftId) {
-
-                    stockStatusChange($item['product_id'], $branchId, $item['quantity'], 'remove_add_stock', $currentShiftId);
-                } else {
-                    stockStatusChange($item['product_id'], $branchId, $item['quantity'], 'remove_add_stock', $invoiceShiftId);
+                    stockStatusChange($item['product_id'], $branchId, $item['quantity'], 'refunded_order', $invoiceShiftId);
                 }
             }
         });
+
+        // 🔥🔥🔥 IMPORTANT FIX
+        foreach (array_unique($affectedProducts) as $pid) {
+            recalculateStockFromDate($pid, $branchId, $invoiceDate);
+        }
+
+        // ================= REST YOUR CODE SAME =================
 
         // 💳 Credit change (Only for store_id = 1)
         $oldCredit = $invoice->creditpay ?? 0;
@@ -471,6 +373,202 @@ class InvoiceController extends Controller
         $invoice->invoice_status = $newCredit > 0 ? 'unpaid' : 'paid';
         $invoice->edit_in = 'yes';
         $invoice->save();
+
+        // ================= DELETE OLD VOUCHER =================
+
+        $oldVoucher = Voucher::where('gen_id', $invoice->id)
+            ->where('voucher_type', 'Sales')
+            ->first();
+
+        if ($oldVoucher) {
+            DB::table('voucher_lines')->where('voucher_id', $oldVoucher->id)->delete();
+            $oldVoucher->delete();
+        }
+
+        // ================= BUILD NEW VOUCHER =================
+
+        $branchId = $invoice->branch_id;
+
+        $lines = [];
+        $cashLedgerId = null;
+        $customer_ledger_id = null;
+
+        // ===== PAYMENT =====
+        $cashPaid = round((float) $invoice->cash_amount, 2);
+        $upiPaid  = round((float) $invoice->upi_amount, 2);
+        $creditUsed = ($branchId == 1) ? round((float) $invoice->creditpay, 2) : 0;
+
+        // CASH
+        if ($cashPaid > 0) {
+            $cashLedger = AccountLedger::where('name', 'CASH')->firstOrFail();
+            $cashLedgerId = $cashLedger->id;
+
+            $lines[] = [
+                'ledger_id' => $cashLedgerId,
+                'dc' => 'Dr',
+                'amount' => $cashPaid,
+                'line_narration' => 'Cash received',
+            ];
+        }
+
+        // UPI
+        if ($upiPaid > 0) {
+            $branchData = Branch::where('id', $branchId)
+                ->leftJoin('account_ledgers', 'branches.bank_ledger_id', '=', 'account_ledgers.id')
+                ->select('account_ledgers.name as bank_ledger_name')
+                ->first();
+
+            $upiLedger = AccountLedger::where('name', $branchData->bank_ledger_name)->firstOrFail();
+
+            $lines[] = [
+                'ledger_id' => $upiLedger->id,
+                'dc' => 'Dr',
+                'amount' => $upiPaid,
+                'line_narration' => 'UPI received',
+            ];
+        }
+
+        // CUSTOMER LEDGER
+        if ($invoice->party_user_id) {
+
+            $partyUser = PartyUser::find($invoice->party_user_id);
+
+            if ($partyUser) {
+
+                $ledger = AccountLedger::where('name', $partyUser->first_name)->first();
+
+                if (!$ledger) {
+                    $ledger = AccountLedger::create([
+                        'name' => $partyUser->first_name,
+                        'group_name' => 'Sundry Debtors',
+                        'opening_balance' => 0,
+                        'debit_credit' => 'Dr',
+                        'branch_id' => $branchId,
+                        'group_id' =>19,
+                        'created_by' => auth()->id(),
+                    ]);
+                }
+
+                $customer_ledger_id = $ledger->id;
+            }
+        }
+
+        // CREDIT
+        if ($branchId == 1 && $creditUsed > 0 && $customer_ledger_id) {
+            $lines[] = [
+                'ledger_id' => $customer_ledger_id,
+                'dc' => 'Dr',
+                'amount' => $creditUsed,
+                'line_narration' => 'Credit to customer',
+            ];
+        }
+
+        // ===== DISCOUNT =====
+        $discountAmt = ($branchId == 1)
+            ? round((float) $invoice->party_amount, 2)
+            : round((float) $invoice->commission_amount, 2);
+
+        if ($discountAmt > 0) {
+            $discountLedger = AccountLedger::where('name', 'Discount Allowed')->firstOrFail();
+
+            $lines[] = [
+                'ledger_id' => $discountLedger->id,
+                'dc' => 'Dr',
+                'amount' => $discountAmt,
+                'line_narration' => 'Discount allowed',
+            ];
+        }
+
+        // ===== SALES =====
+        $totalSale = round((float) $invoice->sub_total, 2);
+        $netAmount = $totalSale - $discountAmt;
+
+        if ($branchId == 1) {
+            $salesLedger = AccountLedger::where('name', 'WAREHOUSE')->firstOrFail();
+        } else {
+            $branch = Branch::find($branchId);
+            $salesLedger = AccountLedger::where('name', $branch->name)->firstOrFail();
+        }
+
+        $sales_ledger_id = $salesLedger->id;
+
+        // ===== ROUND OFF =====
+        $totalTender = $cashPaid + $upiPaid + $creditUsed;
+        $roundOff = round($totalTender - $netAmount, 2);
+
+        $roundLedger = AccountLedger::where('name', 'Round Off')->first();
+
+        if ($roundOff < 0 && $roundLedger) {
+            $lines[] = [
+                'ledger_id' => $roundLedger->id,
+                'dc' => 'Dr',
+                'amount' => abs($roundOff),
+                'line_narration' => 'Round Off (-)',
+            ];
+        }
+
+        if ($roundOff > 0 && $roundLedger) {
+            $lines[] = [
+                'ledger_id' => $roundLedger->id,
+                'dc' => 'Cr',
+                'amount' => $roundOff,
+                'line_narration' => 'Round Off (+)',
+            ];
+        }
+
+        // SALES CR
+        $lines[] = [
+            'ledger_id' => $sales_ledger_id,
+            'dc' => 'Cr',
+            'amount' => $totalSale,
+            'line_narration' => 'Sales',
+        ];
+
+        // ===== BALANCE CHECK =====
+        $dr = collect($lines)->where('dc', 'Dr')->sum('amount');
+        $cr = collect($lines)->where('dc', 'Cr')->sum('amount');
+
+        if (round($dr, 2) !== round($cr, 2)) {
+            throw new \Exception("Voucher not balanced: Dr={$dr} Cr={$cr}");
+        }
+
+        // ===== REF NO =====
+        $prefix = "POS-" . $branchId . "-";
+
+        $lastRef = Voucher::where('voucher_type', 'Sales')
+            ->where('branch_id', $branchId)
+            ->where('ref_no', 'like', $prefix . '%')
+            ->orderBy('id', 'desc')
+            ->value('ref_no');
+
+        $nextNumber = $lastRef ? ((int) str_replace($prefix, '', $lastRef)) + 1 : 1;
+        $nextRef = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+        // ===== PAYLOAD =====
+        $payload = [
+            'voucher_date' => now()->format('Y-m-d'),
+            'voucher_type' => 'Sales',
+            'branch_id' => $branchId,
+            'ref_no' => $nextRef,
+            'narration' => 'Edited Sale',
+            'party_ledger_id' => $customer_ledger_id,
+            'mode' => 'cash',
+            'cash_ledger_id' => $cashLedgerId,
+            'sub_total' => $totalSale,
+            'discount' => $discountAmt,
+            'tax' => 0,
+            'grand_total' => $netAmount + max(0, $roundOff),
+            'lines' => $lines,
+        ];
+
+        // CREATE NEW
+        $voucher = $this->posTransaction($payload);
+
+        // LINK
+        if ($voucher) {
+            $voucher->gen_id = $invoice->id;
+            $voucher->save();
+        }
 
         $cust_name = '';
         if ($invoice->party_user_id  != "") {
@@ -547,12 +645,13 @@ class InvoiceController extends Controller
             if ($branch_id == 1) {
                 $party_user_id = $request->party_user_id;
                 $partyUser = PartyUser::where('status', 'Active')->where('is_delete', 'No')->find($party_user_id);
+
                 $partyAmount = $request->total_discount;
-                if (!empty($partyUser)) {
-                    // $partyUser->use_credit = (int)$partyUser->use_credit + (int)$this->creditPay;
-                    // $partyUser->left_credit = (int)$partyUser->credit_points - (int)$partyUser->use_credit;
-                    // $partyUser->save();
-                }
+                // if (!empty($partyUser) && $request->creditpay) {
+                //     $partyUser->use_credit = (int)$partyUser->use_credit + (int)$request->creditpay;
+                //     $partyUser->left_credit = (int)$partyUser->credit_points - (int)$partyUser->use_credit;
+                //     $partyUser->save();
+                // }
             } else {
                 $commissionAmount = $request->total_discount;
                 if (!empty($request->commission_user_id)) {
@@ -593,8 +692,10 @@ class InvoiceController extends Controller
 
             // Handle low stock notifications
             $arr_low_stock = [];
-            foreach ($cartitems as $productId => $item) {
+            $affectedProducts = []; // 🔴 ADD
 
+            foreach ($cartitems as $productId => $item) {
+                $affectedProducts[] = $item['product_id']; // 🔴 ADD
                 $product = Product::with('inventorieUnfiltered')  // Load the inventories relationship with the product
                     ->where('id', $item['product_id'])  // Filter by product ID
                     ->whereHas('inventorieUnfiltered', function ($query) use ($branch_id) {  // Filter inventories by store_id (if needed)
@@ -614,25 +715,30 @@ class InvoiceController extends Controller
                 //     'date' => $Shift_data->statrt_time,
                 // ])->increment('modify_sale_remove_qty', $item['quantity']);
 
-                $currentShift = ShiftClosing::where('branch_id', $branch_id)
-                    ->where('start_time', '<=', now())
-                    ->where('end_time', '>=', now())
-                    ->first();
+                // $currentShift = ShiftClosing::where('branch_id', $branch_id)
+                //     ->where('start_time', '<=', now())
+                //     ->where('end_time', '>=', now())
+                //     ->first();
 
+                stockStatusChange(
+                    $item['product_id'],
+                    $branch_id,
+                    $item['quantity'],
+                    'sold_stock',
+                    $shift_id, // ✅ ONLY invoice shift
+                    '',
+                    $Shift_data->start_time
+                );
                 // if (!empty($currentShift)) {
-                stockStatusChange($item['product_id'], $branch_id, $item['quantity'], 'sold_stock', $shift_id);
+
+                // stockStatusChange($item['product_id'], $branch_id, $item['quantity'], 'add_modify_stock', $currentShift->id);
+                // DailyProductStock::where([
+                //     'product_id' => $item['product_id'],
+                //     'branch_id' => $branch_id,
+                //     'shift_id' => $currentShift->id,
+                //     'date' => $currentShift->start_time
+                // ])->increment('modify_sale_remove_qty', $item['quantity']);
                 // }
-
-                if (!empty($currentShift)) {
-
-                    stockStatusChange($item['product_id'], $branch_id, $item['quantity'], 'add_modify_stock', $currentShift->id);
-                    // DailyProductStock::where([
-                    //     'product_id' => $item['product_id'],
-                    //     'branch_id' => $branch_id,
-                    //     'shift_id' => $currentShift->id,
-                    //     'date' => $currentShift->start_time
-                    // ])->increment('modify_sale_remove_qty', $item['quantity']);
-                }
 
                 \Log::info('Stock Status Changed for Product ID: ' . $item['product_id'] . ' Branch ID: ' . $branch_id . ' Quantity: ' . $item['quantity']);
 
@@ -653,6 +759,15 @@ class InvoiceController extends Controller
                 //     }
                 // }
                 // }
+            }
+
+            // 🔴 RECALCULATE STOCK (IMPORTANT)
+            foreach (array_unique($affectedProducts) as $pid) {
+                recalculateStockFromDate(
+                    $pid,
+                    $branch_id,
+                    Carbon::parse($Shift_data->start_time)->toDateString()
+                );
             }
 
             // Create or update invoice
@@ -678,11 +793,11 @@ class InvoiceController extends Controller
             $created_at = $modifiedEndTime->format('Y-m-d H:i:s');
 
             $cust_name = '';
-            if ($creditPay > 0 && $partyUser->id != "") {
+            if ($creditPay > 0 && $request->party_user_id != "") {
 
                 $partyUser = PartyUser::where('status', 'Active')
                     ->where('is_delete', 'No')
-                    ->where('id', $partyUser->id) // use the foreign key
+                    ->where('id', $request->party_user_id) // use the foreign key
                     ->first();
                 $cust_name = $partyUser->first_name ?? '';
                 if (!empty($partyUser)) {
@@ -727,9 +842,217 @@ class InvoiceController extends Controller
                 'party_amount'       => $partyAmount,
                 'total'              => $cashAmount,
                 'tax'                => 0,
+                'sales_type'         => 'admin_sale',
                 'created_at'         => $created_at,
                 'updated_at'         => $created_at,
             ]);
+
+            // ================= POS VOUCHER BUILD =================
+
+            $branchId = $branch_id;
+
+            // 0) Init
+            $lines              = [];
+            $cashLedgerId       = null;
+            $customer_ledger_id = null;
+
+            // ============= 1) Tenders (Cash + UPI) =============
+
+            $cashPaid = round((float) $cash, 2);
+            $upiPaid  = round((float) $upi, 2);
+
+            // CASH
+            if ($cashPaid > 0) {
+                $cashLedger = AccountLedger::where('name', 'CASH')->firstOrFail();
+                $cashLedgerId = $cashLedger->id;
+
+                $lines[] = [
+                    'ledger_id'      => (int) $cashLedgerId,
+                    'dc'             => 'Dr',
+                    'amount'         => $cashPaid,
+                    'line_narration' => 'Cash received',
+                ];
+            }
+
+            // UPI
+            if ($upiPaid > 0) {
+                $branchData = Branch::where('branches.id', $branchId)
+                    ->leftJoin('account_ledgers', 'branches.bank_ledger_id', '=', 'account_ledgers.id')
+                    ->select('account_ledgers.name as bank_ledger_name')
+                    ->first();
+
+                $upiLedger = AccountLedger::where('name', $branchData->bank_ledger_name)->firstOrFail();
+
+                $lines[] = [
+                    'ledger_id'      => (int) $upiLedger->id,
+                    'dc'             => 'Dr',
+                    'amount'         => $upiPaid,
+                    'line_narration' => 'UPI received',
+                ];
+            }
+
+            // CREDIT (only branch 1)
+            $creditUsed = ($branchId == 1) ? round((float) $creditPay, 2) : 0;
+
+            // ============= 2) CUSTOMER LEDGER =============
+            if (!empty($partyUser)) {
+                $customerLedger = AccountLedger::where('name', $partyUser->first_name)->first();
+                if ($customerLedger) {
+                    $party_customer_ledger_id = $customerLedger->id;
+                } else {
+
+                    $customerLedger = AccountLedger::create([
+                        'name'        => $partyUser->first_name,
+                        'group_name'  => 'Sundry Debtors', // IMPORTANT for Tally
+                        'group_id' => 19,
+                        'opening_balance' => 0,
+                        'debit_credit'    => 'Dr',
+                        'created_by'      => auth()->id(),
+                    ]);
+
+                    $party_customer_ledger_id = $customerLedger->id;
+                    \Log::info('Auto-created Party Ledger: ' . $customerLedger->name);
+                }
+            }
+
+            // Credit Dr
+            if ($branchId == 1 && $creditUsed > 0 && $party_customer_ledger_id) {
+                $lines[] = [
+                    'ledger_id'      => (int) $party_customer_ledger_id,
+                    'dc'             => 'Dr',
+                    'amount'         => $creditUsed,
+                    'line_narration' => 'Credit to customer',
+                ];
+            }
+
+            // Total Tender
+            $totalTender = $cashPaid + $upiPaid + $creditUsed;
+
+            // ============= 3) DISCOUNT =============
+            $discountAmt = ($branchId == 1)
+                ? round((float) $partyAmount, 2)
+                : round((float) $commissionAmount, 2);
+
+            if ($discountAmt > 0) {
+                $discountLedger = AccountLedger::where('name', 'Discount Allowed')->firstOrFail();
+
+                $lines[] = [
+                    'ledger_id'      => (int) $discountLedger->id,
+                    'dc'             => 'Dr',
+                    'amount'         => $discountAmt,
+                    'line_narration' => 'Discount allowed',
+                ];
+            }
+
+            // ============= 4) SALES LEDGER =============
+            $totalSale = round((float) $sub_total, 2);
+            $netAmount = $totalSale - $discountAmt;
+
+            if ($branchId == 1) {
+                $salesLedger = AccountLedger::where('name', 'WAREHOUSE')->firstOrFail();
+            } else {
+                $branch = Branch::findOrFail($branchId);
+                $salesLedger = AccountLedger::where('name', $branch->name)->firstOrFail();
+            }
+            $sales_ledger_id = $salesLedger->id;
+
+            // ============= 5) ROUND OFF =============
+            $roundOff = round($totalTender - $netAmount, 2);
+
+            $roundLedger = AccountLedger::where('name', 'Round Off')->first();
+
+            if ($roundOff < 0 && $roundLedger) {
+                $lines[] = [
+                    'ledger_id'      => (int) $roundLedger->id,
+                    'dc'             => 'Dr',
+                    'amount'         => abs($roundOff),
+                    'line_narration' => 'Round Off (-)',
+                ];
+            }
+
+            if ($roundOff > 0 && $roundLedger) {
+                $lines[] = [
+                    'ledger_id'      => (int) $roundLedger->id,
+                    'dc'             => 'Cr',
+                    'amount'         => $roundOff,
+                    'line_narration' => 'Round Off (+)',
+                ];
+            }
+
+            // ============= 6) SALES CR =============
+            $lines[] = [
+                'ledger_id'      => (int) $sales_ledger_id,
+                'dc'             => 'Cr',
+                'amount'         => $totalSale,
+                'line_narration' => 'Sales: items',
+            ];
+
+            // ============= 7) BALANCE CHECK =============
+            $dr = collect($lines)->where('dc', 'Dr')->sum('amount');
+            $cr = collect($lines)->where('dc', 'Cr')->sum('amount');
+
+            // echo "<pre>";
+            // print_r($dr);
+            // dd($cr);
+            if (round($dr, 2) !== round($cr, 2)) {
+                throw new \Exception("Voucher not balanced: Dr={$dr} Cr={$cr}");
+            }
+
+            // ============= 8) REF NO =============
+            $prefix = "POS-" . $branchId . "-";
+
+            $lastRef = Voucher::where('voucher_type', 'Sales')
+                ->where('branch_id', $branchId)
+                ->where('ref_no', 'like', $prefix . '%')
+                ->orderBy('id', 'desc')
+                ->value('ref_no');
+
+            $nextNumber = $lastRef
+                ? ((int) str_replace($prefix, '', $lastRef)) + 1
+                : 1;
+
+            $nextRef = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+            // ============= 9) MODE =============
+            $mode = null;
+            if ($cashPaid > 0 && $upiPaid > 0) {
+                $mode = 'cash';
+            } elseif ($cashPaid > 0) {
+                $mode = 'cash';
+            } elseif ($upiPaid > 0) {
+                $mode = 'upi';
+            }
+
+            // ============= 10) PAYLOAD =============
+            $payload = [
+                'voucher_date'    => Carbon::now()->format('Y-m-d'),
+                'voucher_type'    => 'Sales',
+                'branch_id'       => $branchId,
+                'ref_no'          => $nextRef,
+                'narration'       => 'Counter sale',
+
+                'party_ledger_id' => $customer_ledger_id,
+
+                'mode'            => $mode,
+                'cash_ledger_id'  => $cashLedgerId,
+
+                'sub_total'       => $totalSale,
+                'discount'        => $discountAmt,
+                'tax'             => 0,
+                'grand_total'     => $netAmount + max(0, $roundOff),
+
+                'lines'           => $lines,
+            ];
+
+            // CREATE VOUCHER
+            $voucher = $this->posTransaction($payload);
+
+            // Link with invoice
+            if ($voucher) {
+                DB::table('vouchers')
+                    ->where('id', $voucher->id)
+                    ->update(['gen_id' => $invoiceId]);
+            }
 
             $invoice = DB::table('invoices')
                 ->where('id', $invoiceId)
@@ -752,5 +1075,172 @@ class InvoiceController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
         }
+    }
+
+    public function posTransaction(array $arr_data)
+    {
+
+        $nv = function ($v) {
+            return ($v === '' || $v === null) ? null : $v;
+        };
+
+        $type = $nv($arr_data['voucher_type'] ?? null);
+        $mode = $nv($arr_data['mode'] ?? null);
+
+        // Party normalization
+        $partyFromPR = $nv($arr_data['party_ledger_id'] ?? null) ?: $nv($arr_data['pr_party_ledger'] ?? null);
+        $partyFromTR = $nv($arr_data['party_ledger_id'] ?? null) ?: $nv($arr_data['tr_party_ledger'] ?? null);
+
+        if (in_array($type, ['Payment', 'Receipt'])) {
+            $party = $partyFromPR ?: $partyFromTR;
+        } elseif (in_array($type, ['Sales', 'Purchase', 'DebitNote', 'CreditNote'])) {
+            $party = $partyFromTR ?: $partyFromPR;
+        } else {
+            $party = null;
+        }
+
+        // Mode: cash / bank / upi / card
+        $cashLedger = $nv($arr_data['cash_ledger_id'] ?? null) ?: $nv($arr_data['pr_cash_ledger'] ?? null);
+        $bankLedger = $nv($arr_data['bank_ledger_id'] ?? null) ?: $nv($arr_data['pr_bank_ledger'] ?? null);
+
+        if ($mode === 'cash') {
+            $bankLedger = null;
+        } elseif (in_array($mode, ['bank', 'upi', 'card'])) {
+            $cashLedger = null;
+        } else {
+            $cashLedger = $bankLedger = null;
+        }
+
+        // Totals
+        $subTotal   = $nv($arr_data['sub_total'] ?? $arr_data['tr_subtotal'] ?? null);
+        $discount   = $nv($arr_data['discount'] ?? $arr_data['tr_discount'] ?? null);
+        $tax        = $nv($arr_data['tax'] ?? $arr_data['tr_tax'] ?? null);
+        $grandTotal = $nv($arr_data['grand_total'] ?? $arr_data['tr_grand'] ?? null);
+
+        if (!$grandTotal && ($subTotal || $discount || $tax)) {
+            $grandTotal = round(($subTotal ?? 0) - ($discount ?? 0) + ($tax ?? 0), 2);
+        }
+
+        $fromLedger = $nv($arr_data['from_ledger_id'] ?? $arr_data['ct_from'] ?? null);
+        $toLedger   = $nv($arr_data['to_ledger_id'] ?? $arr_data['ct_to'] ?? null);
+        $branchId   = $nv($arr_data['branch_id'] ?? null);
+        $refNo      = $nv($arr_data['ref_no'] ?? null);
+
+        // Lines array
+        $lines = $arr_data['lines'] ?? [];
+        if (count($lines) < 2) {
+            throw new \Exception('At least two lines (Dr/Cr) are required.');
+        }
+
+        // --- Check Debit/Credit Balance ---
+        $dr = 0;
+        $cr = 0;
+        foreach ($lines as $line) {
+            if (($line['dc'] ?? '') === 'Dr') {
+                $dr += (float)($line['amount'] ?? 0);
+            } elseif (($line['dc'] ?? '') === 'Cr') {
+                $cr += (float)($line['amount'] ?? 0);
+            }
+        }
+
+        if (round($dr, 2) !== round($cr, 2)) {
+            // throw new \Exception('Debit and Credit total mismatch.');
+        }
+
+        try {
+            return DB::transaction(function () use (
+                $arr_data,
+                $type,
+                $party,
+                $mode,
+                $cashLedger,
+                $bankLedger,
+                $fromLedger,
+                $toLedger,
+                $branchId,
+                $refNo,
+                $subTotal,
+                $discount,
+                $tax,
+                $grandTotal,
+                $lines
+            ) {
+                // ... existing create code ...
+
+                $voucher = \App\Models\Accounting\Voucher::create([
+                    'voucher_date'    => $arr_data['voucher_date'] ?? now(),
+                    'voucher_type'    => $type,
+                    'ref_no'          => $refNo,
+                    'branch_id'       => $branchId,
+                    'narration'       => $arr_data['narration'] ?? null,
+                    'created_by'      => 1,
+                    'party_ledger_id' => $party,
+                    'mode'            => $mode,
+                    'instrument_no'   => $arr_data['instrument_no'] ?? null,
+                    'instrument_date' => $arr_data['instrument_date'] ?? null,
+                    'cash_ledger_id'  => $cashLedger,
+                    'bank_ledger_id'  => $bankLedger,
+                    'from_ledger_id'  => $fromLedger,
+                    'to_ledger_id'    => $toLedger,
+                    'sub_total'       => $subTotal ?? 0,
+                    'discount'        => $discount ?? 0,
+                    'tax'             => $tax ?? 0,
+                    'grand_total'     => $grandTotal ?? 0,
+                ]);
+
+
+                foreach ($lines as $line) {
+                    $voucher->lines()->create([
+                        'ledger_id'      => $line['ledger_id'],
+                        'dc'             => $line['dc'],
+                        'amount'         => round((float)$line['amount'], 2),
+                        'line_narration' => $line['line_narration'] ?? null,
+                    ]);
+                }
+                // dd($voucher);
+                return $voucher;
+            });
+        } catch (QueryException $qe) {
+            // DB-level error: show SQL + bindings + error info
+            Log::error('posTransaction QueryException', [
+                'message' => $qe->getMessage(),
+                'sql'     => $qe->sql ?? null,
+                'bindings' => $qe->bindings ?? null,
+                'errorInfo' => $qe->errorInfo ?? null,
+                'payload' => $arr_data,
+            ]);
+            throw $qe; // rethrow so Livewire / caller gets exception (or return/handle)
+        } catch (\Throwable $e) {
+            Log::error('posTransaction Exception', [
+                'class' => get_class($e),
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'payload' => $arr_data,
+            ]);
+            throw $e;
+        }
+    }
+
+    public function editSales_old($id)
+    {
+        $invoice = Invoice::with(['partyUser', 'commissionUser'])->find($id);
+
+        $allProducts = Product::select('id', 'name', 'mrp', 'discount_price', 'sell_price')->where('is_deleted', 'no')->get();
+
+        $commissionUser = Commissionuser::where('status', 'Active')->find($invoice->commission_user_id);
+
+        $partyUser = Partyuser::where('id', $invoice->party_user_id)
+            ->where('status', 'Active')
+            ->first();
+
+        // Load party-specific prices only if needed
+        $partyPrices = collect();
+        if ($invoice->branch_id == 1 && $invoice->party_user_id) {
+            $partyPrices = PartyCustomerProductsPrice::where('party_user_id', $invoice->party_user_id)
+                ->whereIn('product_id', $allProducts->pluck('id'))
+                ->get();
+        }
+
+        return view('invoice.editSales', compact('invoice', 'commissionUser', 'partyUser', 'allProducts', 'partyPrices'));
     }
 }

@@ -275,7 +275,7 @@
                         };
                         $('#openingBalance').text(
                             (opening.balance >= 0 ? 'Dr ' : 'Cr ') +
-                            Math.abs(opening.balance).toFixed(2)
+                            Math.abs(opening.balance)
                         );
 
                         /* ---------- CURRENT ---------- */
@@ -284,8 +284,8 @@
                             total_credit: 0
                         };
                         $('#currentTotal').text(
-                            'Dr ' + period.total_debit.toFixed(2) +
-                            ' | Cr ' + period.total_credit.toFixed(2)
+                            'Dr ' + period.total_debit +
+                            ' | Cr ' + period.total_credit
                         );
 
                         /* ---------- CLOSING ---------- */
@@ -295,7 +295,7 @@
 
                         $('#closingBalance').text(
                             (closing >= 0 ? 'Dr ' : 'Cr ') +
-                            Math.abs(closing).toFixed(2)
+                            Math.abs(closing)
                         );
 
                         return json.data || [];
@@ -337,14 +337,14 @@
                         className: 'text-end',
                         render: (d, t, r) =>
                             r.type === 'main' && d !== null ?
-                            parseFloat(d).toFixed(2) : ''
+                            parseFloat(d) : ''
                     },
                     {
                         data: 'credit',
                         className: 'text-end',
                         render: (d, t, r) =>
                             r.type === 'main' && d !== null ?
-                            parseFloat(d).toFixed(2) : ''
+                            parseFloat(d) : ''
                     }
                 ],
                 createdRow: function(row, data) {

@@ -15,6 +15,7 @@ class CashInHandController extends Controller
     // app/Http/Controllers/CashInHandController.php
     public function store(Request $request)
     {
+
         $request->validate([
             'startZero' => 'nullable|boolean',                  // checkbox (1 when checked)
             'amount'    => 'exclude_if:startZero,1|required|numeric|min:1',
@@ -28,22 +29,37 @@ class CashInHandController extends Controller
         }
         $cashNotes = [];
         $total = 0;
+       
+        if (!empty($data['cashNotes'])) {
 
-        foreach ($data as $key => $value) {
-            if (Str::startsWith($key, 'cashNotes_')) {
-                $parts = explode('_', $key);
-                $denomination = (string) end($parts); // Ensure it's a string
-                $count = (string) (int)$value;         // Convert to string after casting to int
+            foreach ($data['cashNotes'] as $note) {
 
-                $cashNotes[$parts[1]][$denomination]['in'] = $count;
-                $total += ((int)$denomination) * (int)$count;
+                foreach ($note as $denomination => $count) {
+
+                    $count = (int)$count;
+                    $denomination = (int)$denomination;
+
+                    $cashNotes[] = [
+                        (string)$denomination => [
+                            'in'  => $count,
+                            'out' => 0
+                        ]
+                    ];
+
+                    $total += $denomination * $count;
+                }
             }
         }
 
-        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
-        $start = date('Y-m-d H:i:s'); // current time
-        $end = date('Y-m-d') . " 23:59:15";
-        $cashNotes = json_encode($cashNotes) ?? [];
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id))
+            ? auth()->user()->userinfo->branch->id
+            : "";
+
+        $start = date('Y-m-d H:i:s');
+        $end   = date('Y-m-d') . " 23:59:15";
+
+        $cashNotes = json_encode($cashNotes);
+
         // 💾 Save cash breakdown
         $cashBreakdown = \App\Models\CashBreakdown::create([
             'user_id' => auth()->id(),

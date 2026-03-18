@@ -55,17 +55,29 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
+
                                 <label>Notes: </label>
-                                <span class="ml-2"> {{ $stockRequest->notes ?? '-' }}</span>
+                                <span class="ml-2">{{ $stockRequest->notes ?? '-' }}</span>
+
                             </div>
                         </div>
+                        @if ($stockRequest->status === 'rejected')
+                        <div class="col-md-6">
+                            <div class="form-group">
+
+                                <label>Reason: </label>
+                                <span class="ml-2">{{ $stockRequest->reject_reason ?? '-' }}</span>
+
+                            </div>
+                        </div>
+                        @endif
                     </div>
 
                 </div>
             </div>
 
             <div class="card">
-                <div class="card-header header_bgc"><strong>Requested Items</strong></div>
+              
                 <div class="card-body p-0">
                     <table class="table table-bordered mb-0">
                         <thead class="table-info">

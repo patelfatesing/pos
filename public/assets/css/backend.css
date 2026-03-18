@@ -512,8 +512,8 @@ pre {
 
 .container-fluid, .container-sm, .container-md, .container-lg, .container-xl {
   width: 100%;
-  padding-right: 0px;
-  padding-left: 0px;
+  padding-right: 15px;
+  padding-left: 15px;
   margin-right: auto;
   margin-left: auto; }
 
@@ -14755,7 +14755,7 @@ g[aria-describedby="id-22-description"] {
 .content-page {
   overflow: hidden;
   margin-left: 260px;
-  padding: 105px 15px 0px;
+  padding: 90px 5px 0px;
   min-height: 100vh;
   -webkit-transition: all 0.3s ease-in-out;
   -moz-transition: all 0.3s ease-in-out;
@@ -20107,7 +20107,7 @@ button.close-popup {
 
 .iq-icon-box-2 {
   height: 60px;
-  width: 70px;
+  width: 60px;
   line-height: 55px;
   text-align: center;
   margin-right: 20px;
@@ -20189,31 +20189,22 @@ i { vertical-align: middle; }
 @media (max-width: 470px) {
   .progress-order-right { margin-left: 0px !important; margin-top: 20px; } .progress-value { padding-right: 20px !important; border: 0 !important; } .card-item-right .style-text { margin-left: 10px; } 
 }
-
+@media (min-width: 1200px) and (max-width: 1500px) {
+  .content-page .card.card-block.card-stretch.card-height .card-body .iq-icon-box-2{ width: 50px; height: 50px; line-height: 50px; font-size: 20px; margin-right: 15px; }
+  .content-page .card.card-block.card-stretch.card-height .card-body .iq-icon-box-2 + div > p { font-size: 14px; line-height: 16px; }
+  .media-body.profile-detail + .p-3 p { font-size: 14px; line-height: 16px;}
+  .table .ligth th, thead tr th { padding: 10px !important; line-height: 16px; font-size: 14px;}
+  thead tr th, table.dataTable td, table.dataTable th { line-height: 16px; font-size: 14px; }
+}
 /* Newly Css */
 .card-header { padding: .5rem .9rem; background: #528da1; border-top-left-radius: 10px; border-top-right-radius: 10px; color: #fff; }
 .title-table { font-size: 14px; font-weight: bold; margin: 0; min-width: 30%; }
 .card-header h4 { font-size: 20px; line-height: 24px; }
 .accounting-ledgers-page .add-list.btn { padding: 4px 8px; font-size: 12px; }
-@media (min-width: 1200px) and (max-width: 1500px) {
-  .content-page .card.card-block.card-stretch.card-height .card-body .iq-icon-box-2{ width: 50px; height: 50px; line-height: 50px; font-size: 20px; margin-right: 15px; }
-  .content-page .card.card-block.card-stretch.card-height .card-body .iq-icon-box-2 + div > p { font-size: 14px; line-height: 16px; }
-  .content-page .card.card-block.card-stretch.card-height .card-body .iq-icon-box-2 + div > h4 { font-size: 20px; line-height: 24px; }
-  .iq-top-navbar .iq-sub-dropdown { width: 250px; }
-  body.sidebar-main .iq-sidebar-logo { transform: translateX(-110px); }
-  .media-body.profile-detail + .p-3 p { font-size: 14px; line-height: 16px;}
-  .content-page { margin-left: 230px;}
-  .iq-sidebar { width: 240px;}
-  .iq-top-navbar { width: calc(100% - 240px); }
-  .table .ligth th, thead tr th { padding: 10px !important; line-height: 16px; font-size: 14px;}
-  thead tr th, table.dataTable td, table.dataTable th { line-height: 16px; font-size: 14px; }
-}
+body.sidebar-main .iq-sidebar-logo { transform: translateX(-80px); }
 .mb0 { margin-bottom: 0; }
-.iq-top-navbar .navbar-expand-lg { margin-top: 10px;}
+.iq-sidebar-logo .logo-title { margin-bottom: 0; }
 .iq-sidebar-menu .iq-menu li a .iq-arrow-right { height: 0;}
-.content-page { margin-left: 240px;}
-.iq-sidebar { width: 240px;}
-.iq-top-navbar { width: calc(100% - 240px); }
 .dataTable tbody tr:nth-child(odd) { background-color: #ffffff; } 
 .dataTable thead tr th:first-child,
 .dataTable tbody tr td:first-child { text-align: center; } 
@@ -20222,14 +20213,16 @@ i { vertical-align: middle; }
 .dataTables_filter label { margin: 0px;}
 .dataTables_filter input { min-height: 40px; }
 body { font-family: 'Poppins', sans-serif;}
-body.sidebar-main .header-logo { min-width: 100px; }
-body.sidebar-main .header-logo img{ height: 0; }
-.iq-sidebar-logo img { height: auto; max-height: 60px; } 
-.iq-sidebar-logo .logo-title { display: none; }
-body.sidebar-main .iq-sidebar-logo { transform: translateX(-103px); }
-.iq-sidebar-logo { padding-top: 0px; padding-bottom: 0px}
 .dt_height .dt-buttons{ float:none; margin: 0; }
 .dt_height .dt-button.buttons-collection { margin: 0 !important; }
 .dataTables_wrapper .dt_height .dataTables_length,
 .dataTables_wrapper .dt_height .dataTables_length label,
 .dt_height .inventory_table_length,.dt_height .dataTables_filter{ margin: 0; }
+.iq-sidebar-logo img { height: 35px; }
+.iq-sidebar-logo a { align-items: center;}
+.logo-title.light-logo span.hub_ic {margin: 0; color: #ff7e41; font-weight: bold; font-size: 22px;}
+.iq-top-navbar .iq-sub-dropdown{ max-width: 250px; }
+
+@media (max-width: 991px) {
+    body.sidebar-main .iq-sidebar-logo { transform: unset; }
+}
