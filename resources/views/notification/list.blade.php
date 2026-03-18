@@ -1,7 +1,7 @@
 @extends('layouts.backend.datatable_layouts')
 
 @section('page-content')
-    <div class="wrapper">
+    
         <div class="content-page">
             <div class="container-fluid">
 
@@ -28,6 +28,7 @@
                                         <th>Notify By </th>
                                         <th>Status</th>
                                         <th>Created At</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -37,7 +38,7 @@
                 </div>
             </div>
         </div>
-    </div>
+   
 @endsection
 
 @section('scripts')
@@ -89,6 +90,9 @@
                     },
                     {
                         data: 'created_at'
+                    },
+                    {
+                        data: 'action'
                     }
                 ],
                 order: [
@@ -96,7 +100,7 @@
                 ],
                 columnDefs: [{
                     orderable: false,
-                    targets: [0, 1, 2, 3]
+                    targets: [0, 1, 2, 3,6]
                 }],
                 lengthMenu: [
                     [10, 25, 50, 100, -1],

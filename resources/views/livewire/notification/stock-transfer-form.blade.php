@@ -27,7 +27,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>To: </label>
-                                <span class="ml-2"> {{ to_store }}</span>
+                                <span class="ml-2"> {{ $to_store }}</span>
 
                             </div>
                         </div>

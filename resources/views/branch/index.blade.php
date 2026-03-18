@@ -49,6 +49,7 @@
                             <th>Address</th>
                             <th>Status</th>
                             <th>Main Branch</th>
+                            <th>Bank Ledger</th>
                             <th>Created Date</th>
                             <th>Updated Date</th>
                             <th>Action</th>
@@ -298,6 +299,9 @@
                     {
                         data: 'main_branch'
                     },
+                     {
+                        data: 'bank_ledger'
+                    },
                     {
                         data: 'created_at'
                     },
@@ -312,7 +316,7 @@
                 ],
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [0,1, 2, 3, 6]
+                    aTargets: [0,1, 2, 3, 7]
                 }],
                 order: [
                     [4, 'desc']

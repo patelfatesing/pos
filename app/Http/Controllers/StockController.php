@@ -125,7 +125,8 @@ class StockController extends Controller
 
         $arr['id'] = (string) $stockRequest->id;
         $arr['store_id'] = (string) $wh_id;
-        sendNotification('request_stock', $stores->name . ' some products request is received from the', null, $wh_id, json_encode($arr));
+        
+        sendNotification('request_stock', 'Stock request is received for some products by '.$stores->name, null, $wh_id, json_encode($arr));
 
         if ($request->ajax() && !empty($errors)) {
             DB::rollback();
@@ -199,7 +200,7 @@ class StockController extends Controller
             
             $arr['id'] = (string) $stockRequest->id;
             $arr['store_id'] = (string) $branch_id;
-            sendNotification('request_stock', 'Some products request is received from the '.$stores->name, null, $branch_id, json_encode($arr));
+            sendNotification('request_stock', 'Stock request for some product received by '.$stores->name, null, $branch_id, json_encode($arr));
 
             DB::commit();
             return redirect()->back()->with('success', 'Stock request submitted successfully.');
@@ -253,7 +254,7 @@ class StockController extends Controller
             $arr['id'] = (string) $stockRequest->id;
             $arr['store_id'] = (string) $request['store_id'];
 
-            sendNotification('request_stock', $branch->name . ' store is stock request', null, $branch_id, json_encode($arr));
+            sendNotification('request_stock', 'Stock request for some product received by '.$branch->name, null, $branch_id, json_encode($arr));
 
             DB::commit();
             return redirect()->route('stock.requestList')->with('success', 'Stock request submitted successfully.');
@@ -486,10 +487,10 @@ class StockController extends Controller
 
                 // View pending request
                 $action .= '<a class="btn btn-warning btn-sm ml-1 mr-2"
-        data-toggle="tooltip" title="View"
-        href="' . url('/stock-requests/popup-details/' . $requestItem->id) . '">
-        Pending
-    </a>';
+                    data-toggle="tooltip" title="View"
+                    href="' . url('/stock-requests/popup-details/' . $requestItem->id) . '">
+                    Pending
+                </a>';
 
                 // Reject button (permission optional, adjust slug if needed)
                 if ($roleId == 1 || getAccess($roleId, 'stock-request-reject') === 'yes') {
@@ -772,7 +773,7 @@ class StockController extends Controller
 
             sendNotification(
                 'approved_stock',
-                'Admin your stock request has been approved',
+                'Stock request has been approved by Admin',
                 $from_store_id,
                 Auth::id(),
                 json_encode($notificationData)
@@ -793,7 +794,7 @@ class StockController extends Controller
 
                     sendNotification(
                         'transfer_stock',
-                        'Products have been transferred to your store',
+                        'Product are transferred successfully by Admin',
                         $to_store_id,
                         Auth::id(),
                         json_encode($notificationData)
@@ -840,8 +841,8 @@ class StockController extends Controller
 
             sendNotification(
                 'rejected_stock',
-                'Admin your stock request has been rejected',
-                $from_store_id,
+                'Stock request has rejected by Admin please check reason',
+                $stockRequest->requested_by,
                 Auth::id(),
                 json_encode($notificationData)
             );

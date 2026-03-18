@@ -43,8 +43,8 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
             <div class="iq-navbar-logo d-flex align-items-center justify-content-between">
                 <i class="ri-menu-line wrapper-menu"></i>
                 <a href="{{ route('dashboard') }}" class="header-logo">
-                    <img src="{{ asset('assets/images/logo.png') }}" class="img-fluid rounded-normal" alt="logo" />
-                    <h5 class="logo-title ml-3">LiquorHub</h5>
+                    <img src="{{ asset('assets/images/logo_ic.png') }}" class="img-fluid rounded-normal" alt="logo" />
+                    <h4 class="logo-title">LiquorHub</h4>
                 </a>
             </div>
             <div class="iq-search-bar device-search">
@@ -95,7 +95,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                 </div>
                             </div>
                         </li> --}}
-                         <!-- Date Filter Start -->
+                        <!-- Date Filter Start -->
                         {{-- <li class="nav-item nav-icon d-flex align-items-center mt-4">
                             <form id="dateFilterForm" class="d-flex align-items-center" method="GET" action="{{ url()->current() }}" style="gap: 0.5rem;">
                                 <div class="input-group input-group-sm">
@@ -134,7 +134,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                 </div>
                             </form>
                         </li> --}}
-                       
+
                         <!-- Date Filter End -->
                         <li class="nav-item nav-icon dropdown">
                             {{-- <a href="#" class="search-toggle dropdown-toggle btn border add-btn"
@@ -313,7 +313,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                         </div>
                                         <div class="p-3">
                                             <h5 class="mb-1">{{ @$user->userInfo->first_name }}
-                                                </h5>
+                                            </h5>
                                             <p class="mb-0">Since
                                                 {{ \Carbon\Carbon::parse(Auth::user()->created_at)->format('d F, Y') }}
                                             </p>
@@ -384,8 +384,9 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                 $(".notification-count").text(get_tc);
 
                 $('#modalContent').html(response);
-
-                $('#approveModal').modal('show');
+                var modal = new bootstrap.Modal(document.getElementById('approveModal'));
+                modal.show();
+                // $('#approveModal').modal('show');
             },
             error: function() {
                 alert('Failed to load form.');
@@ -549,9 +550,9 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
         fetchNotifications();
     </script>
 @endif
- <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        document.getElementById('clearDateFilter').addEventListener('click', function () {
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('clearDateFilter').addEventListener('click', function() {
             document.getElementById('start_date').value = '';
             document.getElementById('end_date').value = '';
             document.getElementById('dateFilterForm').submit();

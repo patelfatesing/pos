@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Notification;
 use App\Events\DrawerOpened;
 use App\Models\User;
+use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\PartyCustomerProductsPrice;
 use App\Models\DailyProductStock;
@@ -388,19 +389,37 @@ if (!function_exists('stockStatusChange')) {
 
             $existing = DailyProductStock::where('branch_id', $branch_id)
                 ->where('product_id', $product_id)
-                // ->whereDate('date', $date)
                 ->where('shift_id', $shift_id)
                 ->first();
 
-            if (!empty($existing)) {
-                // $existing->added_stock += $qty;
+            if ($existing) {
+
                 if ($orderType == "refunded_order") {
-                    $existing->sold_stock -= $qty;
-                    $existing->closing_stock += $qty;
+
+                    // ❌ DO NOT decrease sold_stock
+                    // $existing->sold_stock -= $qty;
+
+                    // ✅ Track in modify remove
+                    $existing->modify_sale_remove_qty += $qty;
                 } else {
-                    $existing->opening_stock += $qty;
-                    $existing->closing_stock = closingStock($existing->opening_stock, $existing->added_stock, $existing->transferred_stock, $existing->sold_stock);
+
+                    // ❌ DO NOT touch opening_stock
+                    // $existing->opening_stock += $qty;
+
+                    // ✅ Track in modify add
+                    $existing->modify_sale_add_qty += $qty;
                 }
+
+                // ✅ Correct closing stock calculation
+                $existing->closing_stock = closingStock(
+                    $existing->opening_stock,
+                    $existing->added_stock,
+                    $existing->transferred_stock,
+                    $existing->sold_stock
+                        + $existing->modify_sale_add_qty
+                        - $existing->modify_sale_remove_qty
+                );
+
                 $existing->save();
             } else {
 
@@ -408,38 +427,61 @@ if (!function_exists('stockStatusChange')) {
                     ->where('status', 'pending')
                     ->first();
 
-                if (!empty($running_shift)) {
+                if ($running_shift) {
+
                     $existing_ck = DailyProductStock::where('branch_id', $branch_id)
                         ->where('shift_id', $running_shift->id)
                         ->where('product_id', $product_id)
                         ->first();
-                    if (!empty($existing_ck)) {
-                        // $existing_ck->added_stock += $qty;
-                        $existing_ck->shift_id = $running_shift->id;
-                        $existing->opening_stock += $qty;
-                        $existing_ck->closing_stock = closingStock($existing_ck->opening_stock, $existing_ck->added_stock, $existing_ck->transferred_stock, $existing_ck->sold_stock);
+
+                    if ($existing_ck) {
+
+                        if ($orderType == "refunded_order") {
+
+                            $existing_ck->modify_sale_remove_qty += $qty;
+                        } else {
+
+                            $existing_ck->modify_sale_add_qty += $qty;
+                        }
+
+                        $existing_ck->closing_stock = closingStock(
+                            $existing_ck->opening_stock,
+                            $existing_ck->added_stock,
+                            $existing_ck->transferred_stock,
+                            $existing_ck->sold_stock
+                                + $existing_ck->modify_sale_add_qty
+                                - $existing_ck->modify_sale_remove_qty
+                        );
+
                         $existing_ck->save();
                     } else {
+
                         DailyProductStock::create([
                             'branch_id' => $branch_id,
                             'product_id' => $product_id,
                             'date' => $date,
-                            'opening_stock' => $qty,
-                            'closing_stock' => $qty,
-                            'shift_id' => $running_shift->id
+                            'shift_id' => $running_shift->id,
+                            'opening_stock' => 0,
+                            'closing_stock' => 0,
+                            'modify_sale_add_qty' => $orderType == "add_order" ? $qty : 0,
+                            'modify_sale_remove_qty' => $orderType == "refunded_order" ? $qty : 0,
                         ]);
                     }
                 } else {
+
                     DailyProductStock::create([
                         'branch_id' => $branch_id,
                         'product_id' => $product_id,
                         'date' => $date,
-                        'opening_stock' => $qty,
-                        'closing_stock' => $qty,
+                        'opening_stock' => 0,
+                        'closing_stock' => 0,
+                        'modify_sale_add_qty' => $orderType == "add_order" ? $qty : 0,
+                        'modify_sale_remove_qty' => $orderType == "refunded_order" ? $qty : 0,
                     ]);
                 }
             }
         }
+
         if ($type == "remove_stock") {
 
             $existing = DailyProductStock::where('branch_id', $branch_id)
@@ -639,40 +681,122 @@ if (!function_exists('recalculateStockFromDate')) {
     {
         $stocks = DailyProductStock::where('product_id', $product_id)
             ->where('branch_id', $branch_id)
-            ->whereDate('date', '>=', $fromDate)
-            ->orderBy('date')
+            ->whereDate('date', '>=', Carbon::parse($fromDate)->subDay())
+            ->orderBy('date', 'asc')
+            ->orderBy('shift_id', 'asc')
             ->get();
 
-        foreach ($stocks as $stock) {
+        $prevClosing = null;
 
-            // Get previous day's closing
-            $prev = DailyProductStock::where('product_id', $product_id)
-                ->where('branch_id', $branch_id)
-                ->whereDate('date', '<', $stock->date)
-                ->orderByDesc('date')
-                ->first();
+        foreach ($stocks as $index => $stock) {
 
-            // Fix: do not reset opening to zero
-            if ($prev) {
-                $opening = $prev->closing_stock;
-            } else {
-                $opening = $stock->opening_stock;
+            // ✅ FIRST ROW FIX
+            if ($index == 0) {
+                $prevClosing = $stock->closing_stock;
+
+                // 🔥 ADD THIS (missing part)
+                $stock->physical_stock = $stock->closing_stock;
+                $stock->difference_in_stock = 0;
+
+                $stock->save();
+                continue;
             }
 
-            // Correct closing formula
-            $closing =
-                $opening
-                + $stock->added_stock
-                + $stock->transferred_stock
+            // Normal flow
+            $stock->opening_stock = $prevClosing;
+
+            $stock->sold_stock = max(0, $stock->sold_stock);
+
+            $finalSold = $stock->sold_stock
                 + $stock->modify_sale_add_qty
-                - $stock->sold_stock
                 - $stock->modify_sale_remove_qty;
 
-            $stock->opening_stock = $opening;
-            $stock->closing_stock = $closing;
-            $stock->difference_in_stock = $stock->physical_stock - $closing;
+            $stock->closing_stock =
+                $stock->opening_stock
+                + $stock->added_stock
+                + $stock->transferred_stock
+                - $finalSold;
+
+            $stock->physical_stock = $stock->closing_stock;
+
+            $stock->difference_in_stock =
+                $stock->physical_stock - $stock->closing_stock;
+
             $stock->save();
+
+            $prevClosing = $stock->closing_stock;
         }
+    }
+}
+
+if (!function_exists('updateInventoryStock')) {
+
+    function updateInventoryStock($productId, $branchId, $qty, $type)
+    {
+        $inventory = Inventory::firstOrCreate(
+            [
+                'product_id' => $productId,
+                'store_id' => $branchId,
+            ],
+            [
+                'quantity' => 0
+            ]
+        );
+
+        if ($type == 'sale') {
+            $inventory->quantity -= $qty;
+        }
+
+        if ($type == 'refund') {
+            $inventory->quantity += $qty;
+        }
+
+        // optional safety
+        $inventory->quantity = max(0, $inventory->quantity);
+
+        $inventory->save();
+    }
+}
+
+if (!function_exists('stockStatusChangeNew')) {
+    function stockStatusChangeNew($product_id, $branch_id, $qty, $type, $shift_id)
+    {
+        $shift = ShiftClosing::find($shift_id);
+        $date = Carbon::parse($shift->start_time)->toDateString();
+
+        $stock = DailyProductStock::firstOrCreate(
+            [
+                'product_id' => $product_id,
+                'branch_id'  => $branch_id,
+                'shift_id'   => $shift_id,
+                'date'       => $date,
+            ],
+            [
+                'opening_stock' => 0,
+                'closing_stock' => 0,
+            ]
+        );
+
+        // 🔥 ONLY SOLD STOCK LOGIC
+        if ($type == 'sold_stock') {
+            $stock->sold_stock += $qty;
+        }
+
+        if ($type == 'refunded_order') {
+            $stock->sold_stock -= $qty;
+        }
+
+        // prevent negative
+        $stock->sold_stock = max(0, $stock->sold_stock);
+
+        // recalc closing
+        $stock->closing_stock =
+            $stock->opening_stock
+            + $stock->added_stock
+            + $stock->transferred_stock
+            - $stock->sold_stock;
+
+        $stock->save();
     }
 }
 

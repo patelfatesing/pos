@@ -57,7 +57,7 @@
                     <div class="card mb-3">
                         <div class="card-body">
                             <div class="row g-2 align-items-center">
-                                <div class="col-md-5">
+                                <div class="col-md-4">
                                     <select id="new-product-id" class="form-control">
                                         <option value="">Select Product</option>
                                         @foreach ($allProducts as $product)
@@ -71,33 +71,39 @@
                                 </div>
                                 <input type="hidden" name="branch_id" value="{{ $branch_data->id }}">
                                 <input type="hidden" name="shift_id" value="{{ $Shift_data->id }}">
-                                <div class="col-md-2">
+                                <div class="col-md-1">
                                     <input type="number" min="1" id="new-product-qty" class="form-control"
                                         placeholder="Qty">
                                 </div>
-
-                                <div class="col-md-5 d-flex gap-2">
+                                <div class="col-md-1">
                                      <button type="button" class="btn btn-primary mr-2" id="add-product-btn">
                                         Add Item
                                     </button>
+                                </div>
+                                <div class="col-md-4 d-flex">
+                                </div>
+                                    <div class="col-md-2 gap-2">
                                     @if ($branch_data->id == 1)
-                                        <select id="party-id" class="form-control">
+                                        <select id="party-id" class="form-control" name="party_user_id">
                                             <option value="">Select Party Customer</option>
                                             @foreach ($partyUsers as $cust)
-                                                <option value="{{ $cust->id }}">{{ $cust->first_name }}</option>
+                                                <option value="{{ $cust->id }}"
+                                                    {{ old('party_user_id') == $cust->id ? 'selected' : '' }}>
+                                                    {{ $cust->first_name }}
+                                                </option>
                                             @endforeach
                                         </select>
                                     @else
-                                        <select id="commission-id" class="form-control">
+                                        <select id="commission-id" class="form-control" name="commission_user_id">
                                             <option value="">Select Commission Customer</option>
                                             @foreach ($commissionUsers as $cust)
-                                                <option value="{{ $cust->id }}">{{ $cust->first_name }}</option>
+                                                <option value="{{ $cust->id }}"
+                                                    {{ old('commission_user_id') == $cust->id ? 'selected' : '' }}>
+                                                    {{ $cust->first_name }}
+                                                </option>
                                             @endforeach
                                         </select>
                                     @endif
-
-                                   
-
                                 </div>
                             </div>
                         </div>
@@ -121,98 +127,150 @@
                         </div>
                     </div>
 
-                    
-                        <div class="row mb-0">
-                            <div class="offset-lg-8 col-lg-4">
-                                <div class="or-detail rounded">
-                                    <div class="p-3">
-                                        <h5 class="mb-3">Order Details</h5>
-                                        <input type="hidden" id="total_discount" name="total_discount" value="0">
-                                        <input type="hidden" id="gr_total" name="total" value="0">
-                                        <input type="hidden" id="sub_total" name="sub_total" value="0">
-                                        <input type="hidden" id="left_credit_id" value="0">
 
-                                        <div class="mb-2 d-flex justify-content-between">
-                                            <h6>Sub Total</h6>
-                                            <p id="total"></p>
-                                        </div>
-                                        <div class="mb-2 d-flex justify-content-between">
-                                            <h6 class="credit-section">Party Deduction</h6>
-                                            <h6 class="commission-section">Commission Deduction</h6>
-                                            <p id="discount-total">₹</p>
-                                        </div>
-                                        <div class="credit-section">
-                                            <div class="mb-2 d-flex justify-content-between">
-                                                <h6>Credit Limit</h6>
-                                                <p id="credit-limit"></p>
-                                            </div>
-                                            <div class="mb-2 d-flex justify-content-between">
-                                                <h6>Left Limit</h6>
-                                                <p id="left_credit"></p>
-                                            </div>
-                                            <div class="mb-2 d-flex justify-content-between">
-                                                <h6>Credit Used (Invoice)</h6>
-                                                <p>₹<input type="number" name="creditpay" id="creditpay-input"
-                                                        min="0" step="1" class="form-control d-inline-block"
-                                                        style="width: 120px; display: inline;">
-                                                    <small id="creditpay-error" class="text-danger d-block"
-                                                        style="display:none;"></small>
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <!-- Payment Method Radio Buttons -->
-                                        <div class="mb-2 d-flex justify-content-between">
-                                            <label><strong>Payment Method</strong></label>
-                                            <div>
-                                                <input type="radio" id="cash-option" name="payment_method" value="cash"
-                                                    checked>
-                                                <label for="cash-option">Cash</label>
-                                                <input type="radio" id="upi-option" name="payment_method"
-                                                    value="online">
-                                                <label for="upi-option">UPI</label>
-                                                <input type="radio" id="cash-upi-option" name="payment_method"
-                                                    value="cashupi">
-                                                <label for="cash-upi-option">Cash + UPI</label>
-                                            </div>
-                                        </div>
+                    <div class="row mb-0">
+                        <div class="offset-lg-8 col-lg-4">
+                            <div class="or-detail rounded">
+                                <div class="p-3">
+                                    <h5 class="mb-3">Order Details</h5>
+                                    <input type="hidden" id="total_discount" name="total_discount" value="0">
+                                    <input type="hidden" id="gr_total" name="total" value="0">
+                                    <input type="hidden" id="sub_total" name="sub_total" value="0">
+                                    <input type="hidden" id="left_credit_id" value="0">
 
-                                        <!-- Cash and UPI Inputs Section -->
-                                        <div id="payment-fields">
-                                            <div id="cash-field" class="payment-input">
-                                                <h6>Cash</h6>
-                                                <input type="number" id="cash-amount" class="form-control"
-                                                    min="0" step="1" readonly name="cash_amount">
-                                            </div>
-
-                                            <div id="upi-field" class="payment-input" style="display: none;">
-                                                <h6>UPI</h6>
-                                                <input type="number" id="upi-amount" class="form-control"
-                                                    name="upi_amount" min="0" step="1" readonly>
-                                            </div>
+                                    <div class="mb-2 d-flex justify-content-between">
+                                        <h6>Sub Total</h6>
+                                        <p id="total"></p>
+                                    </div>
+                                    <div class="mb-2 d-flex justify-content-between">
+                                        <h6 class="credit-section">Party Deduction</h6>
+                                        <h6 class="commission-section">Commission Deduction</h6>
+                                        <p id="discount-total">₹</p>
+                                    </div>
+                                    <div class="credit-section">
+                                        <div class="mb-2 d-flex justify-content-between">
+                                            <h6>Credit Limit</h6>
+                                            <p id="credit-limit"></p>
+                                        </div>
+                                        <div class="mb-2 d-flex justify-content-between">
+                                            <h6>Left Limit</h6>
+                                            <p id="left_credit"></p>
+                                        </div>
+                                        <div class="mb-2 d-flex justify-content-between">
+                                            <h6>Credit Used (Invoice)</h6>
+                                            <p>₹<input type="number" name="creditpay" id="creditpay-input" min="0"
+                                                    step="1" class="form-control d-inline-block"
+                                                    style="width: 120px; display: inline;">
+                                                <small id="creditpay-error" class="text-danger d-block"
+                                                    style="display:none;"></small>
+                                            </p>
                                         </div>
                                     </div>
-                                    <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
-                                        <h6>Total</h6>
-                                        <h3 class="text-primary font-weight-700" id="grand-total"></h3>
+                                    <!-- Payment Method Radio Buttons -->
+                                    <div class="mb-2 d-flex justify-content-between">
+                                        <label><strong>Payment Method</strong></label>
+                                        <div>
+                                            <input type="radio" id="cash-option" name="payment_method" value="cash"
+                                                checked>
+                                            <label for="cash-option">Cash</label>
+                                            <input type="radio" id="upi-option" name="payment_method" value="online">
+                                            <label for="upi-option">UPI</label>
+                                            <input type="radio" id="cash-upi-option" name="payment_method"
+                                                value="cashupi">
+                                            <label for="cash-upi-option">Cash + UPI</label>
+                                        </div>
                                     </div>
+
+                                    <!-- Cash and UPI Inputs Section -->
+                                    <div id="payment-fields">
+                                        <div id="cash-field" class="payment-input">
+                                            <h6>Cash</h6>
+                                            <input type="number" id="cash-amount" class="form-control" min="0"
+                                                step="1" readonly name="cash_amount">
+                                        </div>
+
+                                        <div id="upi-field" class="payment-input" style="display: none;">
+                                            <h6>UPI</h6>
+                                            <input type="number" id="upi-amount" class="form-control" name="upi_amount"
+                                                min="0" step="1" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
+                                    <h6>Total</h6>
+                                    <h3 class="text-primary font-weight-700" id="grand-total"></h3>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="d-flex justify-content-end mt-3 total-summary mb-3">
-                            <div>
+                    <div class="d-flex justify-content-end mt-3 total-summary mb-3">
+                        <div>
 
-                                <button type="submit" class="btn btn-success">Save Invoice Items</button>
-                            </div>
+                            <button type="submit" class="btn btn-success">Save Invoice Items</button>
                         </div>
-                    
+                    </div>
+
                 </form>
             </div>
         </div>
     </div>
 
     <script>
+        let oldItems = @json(old('items', []));
+
         $(document).ready(function() {
+
+            if (oldItems && Object.keys(oldItems).length > 0) {
+
+                Object.keys(oldItems).forEach(function(index) {
+
+                    let item = oldItems[index];
+
+                    let productId = item.product_id;
+                    let name = item.name;
+                    let qty = parseInt(item.quantity) || 1;
+                    let price = parseFloat(item.sell_price) || 0;
+                    let mrp = parseFloat(item.mrp) || 0;
+                    let discount = parseFloat(item.discount ?? price);
+
+                    const row = `
+                            <tr>
+                                <td>#</td>
+                                <td>${name}
+                                    <input type="hidden" name="items[${itemIndex}][product_id]" value="${productId}">
+                                    <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
+                                    <input type="hidden" name="items[${itemIndex}][sell_price]" value="${price}">
+                                    <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
+                                </td>
+                                <td>
+                                    <input type="number" name="items[${itemIndex}][quantity]" 
+                                        class="form-control qty-input"
+                                        value="${qty}" 
+                                        data-price="${price}" 
+                                        data-discount="${discount}">
+                                </td>
+                                <td>
+                                    <div class="price-stack">
+                                        <span class="discount">₹${discount}</span>
+                                        <span class="mrp">₹${price}</span>
+                                    </div>
+                                </td>
+                                <td class="item-total"><b>₹${(price * qty)}</b></td>
+                                <td>
+                                    <img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}" 
+                                        class="btn btn-sm remove-item">
+                                </td>
+                            </tr>
+                        `;
+
+                    $('#invoice-items-body').append(row);
+                    itemIndex++;
+                });
+
+                updateTotals();
+            }
+
             let itemIndex = 0;
             const storeId = {{ $branch_data->id }};
 
@@ -268,16 +326,17 @@
                 });
 
                 // Update the displayed totals
-                $('#total').text(totalSellPrice.toFixed(2));
-                $('#grand-total').text(grandTotal.toFixed(2));
-                $('#discount-total').text(discountTotal.toFixed(2));
-                $('#total_discount').val(discountTotal.toFixed(2));
-                $('#gr_total').val(totalSellPrice.toFixed(2));
-                $('#sub_total').val(grandTotal.toFixed(2));
+                $('#total').text(totalSellPrice);
+                $('#grand-total').text(grandTotal);
+                $('#discount-total').text(discountTotal);
+                $('#total_discount').val(discountTotal);
+                $('#gr_total').val(totalSellPrice);
+                $('#sub_total').val(grandTotal);
             }
 
             // Add product to the invoice
             $('#add-product-btn').on('click', function() {
+
                 const selected = $('#new-product-id option:selected');
                 const productId = selected.val();
                 const name = selected.data('name');
@@ -294,117 +353,135 @@
                     const existingId = $(this).find('input[name*="[product_id]"]').val();
                     if (existingId == productId) {
                         productRow = $(this);
-                        return false; // Exit loop when product is found
+                        return false;
                     }
                 });
 
-                // Determine which price to use based on user selection (partyUser or commissionUser)
-                let discountPrice = discount; // Default to product's discount
-                const partyId = $('#party-id').val(); // Get selected party customer ID
-                const commissionId = $('#commission-id').val(); // Get selected commission user ID
+                // ✅ INVENTORY CHECK START
+                $.post('{{ route('inventory.check') }}', {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    product_id: productId,
+                    store_id: storeId,
+                    quantity: qty
+                }, function(response) {
 
-                if (partyId) {
-                    // Fetch discount from party_customer_products_price table for partyUser
-                    $.get("{{ url('/party-customer-discount') }}/" + partyId + '/' + productId, function(
-                        response) {
-                        if (response.discount) {
-                            discount = response.discount;
-                        }
+                    if (response.status === 'error') {
+                        Swal.fire("Stock Error", response.message, "error");
+                        return;
+                    }
 
-                        // Add product to the invoice with the correct discount price
+                    // ✅ ONLY AFTER STOCK OK → RUN YOUR ORIGINAL LOGIC
+
+                    const partyId = $('#party-id').val();
+                    const commissionId = $('#commission-id').val();
+
+                    if (partyId) {
+
+                        $.get("{{ url('/party-customer-discount') }}/" + partyId + '/' + productId,
+                            function(response) {
+
+                                if (response.discount) {
+                                    discount = response.discount;
+                                }
+
+                                if (!productRow) {
+                                    const row = `
+                                        <tr>
+                                            <td>#</td>
+                                            <td>${name}
+                                                <input type="hidden" name="items[${itemIndex}][product_id]" value="${productId}">
+                                            </td>
+                                            <td>
+                                                <input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" data-price="${sell_price}" data-discount="${discount}">
+                                                <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
+                                                <input type="hidden" name="items[${itemIndex}][sell_price]" value="${sell_price}">
+                                                <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
+                                            </td>
+                                            <td>
+                                                <div class="price-stack">
+                                                    <span class="discount">₹${discount}</span>
+                                                    <span class="mrp">₹${sell_price}</span>
+                                                </div>
+                                            </td>
+                                            <td class="item-total"><b>₹${(sell_price * qty)}</b></td>
+                                            <td><img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}" class="btn btn-sm remove-item"></td>
+                                        </tr>
+                                    `;
+                                    $('#invoice-items-body').append(row);
+                                    itemIndex++;
+                                    updateTotals();
+                                }
+
+                            });
+
+                    } else if (commissionId) {
+
                         if (!productRow) {
+
                             const row = `
-                        <tr>
-                            <td>#</td>
-                            <td>${name}
-                                <input type="hidden" name="items[${itemIndex}][product_id]" value="${productId}">
-                            </td>
-                            <td>
-                                <input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" data-price="${sell_price}" data-discount="${discount}">
-                                <input type="hidden" name="items[${itemIndex}][name]" class="form-control qty-input" value="${name}" >
-                                <input type="hidden" name="items[${itemIndex}][sell_price]" class="form-control qty-input" value="${sell_price}">
-                                <input type="hidden" name="items[${itemIndex}][mrp]" class="form-control qty-input" value="${mrp}">
-                                </td>
-                            <td>
-                                 <div class="price-stack">
-                                                        <span class="discount">₹${discount}</span>
-                                                        <span class="mrp">₹${sell_price.toFixed(2)}</span>
-                                                    </div>
-                                </td>
-                            <td class="item-total"><b>₹${(sell_price * qty).toFixed(2)}</b></td>
-                            <td><img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}" alt="Delete" class="main-screen-delete24dp1f1f1ffill0wght400grad0opsz24110 btn btn-sm remove-item"></td>
-                        </tr>
-                    `;
+                                <tr>
+                                    <td>#</td>
+                                    <td>${name}
+                                        <input type="hidden" name="items[${itemIndex}][product_id]" value="${productId}">
+                                    </td>
+                                    <td>
+                                        <input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" data-price="${sell_price}" data-discount="${discount}">
+                                        <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
+                                        <input type="hidden" name="items[${itemIndex}][sell_price]" value="${sell_price}">
+                                        <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
+                                    </td>
+                                    <td>
+                                        <div class="price-stack">
+                                            <span class="discount">${discount}</span>
+                                            <span class="mrp">₹${sell_price}</span>
+                                        </div>
+                                    </td>
+                                    <td class="item-total"><b>₹${(sell_price * qty)}</b></td>
+                                    <td><img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}" class="btn btn-sm remove-item"></td>
+                                </tr>
+                            `;
                             $('#invoice-items-body').append(row);
                             itemIndex++;
                             updateTotals();
                         }
-                    });
-                } else if (commissionId) {
-                    // If commissionUser is selected, use discount_price from product table
-                    if (!productRow) {
 
-                        const row = `
-                    <tr>
-                        <td>#</td>
-                        <td>${name}
-                            <input type="hidden" name="items[${itemIndex}][product_id]" value="${productId}">
-                        </td>
-                        <td>
-                            <input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" data-price="${sell_price}" data-discount="${discount}">
-                            <input type="hidden" name="items[${itemIndex}][name]" class="form-control qty-input" value="${name}" >
-                                <input type="hidden" name="items[${itemIndex}][sell_price]" class="form-control qty-input" value="${sell_price}">
-                                <input type="hidden" name="items[${itemIndex}][mrp]" class="form-control qty-input" value="${mrp}">
-                            </td>
-                        <td>
-                             
-                                                         <div class="price-stack">
-                                                        <span class="discount">${discount.toFixed(2)}</span>
-                                                        <span class="mrp">₹${sell_price.toFixed(2)}</span>
-                                                    </div>
-                            </td>
-                        
-                        <td class="item-total"><b>₹${(sell_price * qty).toFixed(2)}</b></td>
-                        <td><img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}" alt="Delete" class="main-screen-delete24dp1f1f1ffill0wght400grad0opsz24110 btn btn-sm remove-item"></td>
-                    </tr>
-                `;
-                        $('#invoice-items-body').append(row);
-                        itemIndex++;
-                        updateTotals();
-                    }
-                } else {
-                    // If no user is selected, use product's discount price
-                    if (!productRow) {
-                        const row = `
-                    <tr>
-                        <td>#</td>
-                        <td>${name}
-                            <input type="hidden" name="items[${itemIndex}][product_id]" value="${productId}">
-                        </td>
-                        <td>
-                            <input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" data-price="${sell_price}" data-discount="${discount}">
-                            <input type="hidden" name="items[${itemIndex}][name]" class="form-control qty-input" value="${name}" >
-                                <input type="hidden" name="items[${itemIndex}][sell_price]" class="form-control qty-input" value="${sell_price}">
-                                <input type="hidden" name="items[${itemIndex}][mrp]" class="form-control qty-input" value="${mrp}">
-                            </td>
-                        <td>
-                            
-                                                         <div class="price-stack">
-                                                        <span class="discount">${sell_price.toFixed(2)}</span>
-                                                    </div>
-                                                    </td>
-                        <td class="item-total"><b>₹${(sell_price * qty).toFixed(2)}</b></td>
-                        <td><img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}" alt="Delete" class="main-screen-delete24dp1f1f1ffill0wght400grad0opsz24110 btn btn-sm remove-item"></td>
-                    </tr>
-                `;
-                        $('#invoice-items-body').append(row);
-                        itemIndex++;
-                        updateTotals();
-                    }
-                }
+                    } else {
 
-                $('#new-product-id').val('');
-                $('#new-product-qty').val('');
+                        if (!productRow) {
+
+                            const row = `
+                                <tr>
+                                    <td>#</td>
+                                    <td>${name}
+                                        <input type="hidden" name="items[${itemIndex}][product_id]" value="${productId}">
+                                    </td>
+                                    <td>
+                                        <input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" data-price="${sell_price}" data-discount="${discount}">
+                                        <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
+                                        <input type="hidden" name="items[${itemIndex}][sell_price]" value="${sell_price}">
+                                        <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
+                                    </td>
+                                    <td>
+                                        <div class="price-stack">
+                                            <span class="discount">${sell_price}</span>
+                                        </div>
+                                    </td>
+                                    <td class="item-total"><b>₹${(sell_price * qty)}</b></td>
+                                    <td><img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}" class="btn btn-sm remove-item"></td>
+                                </tr>
+                            `;
+                            $('#invoice-items-body').append(row);
+                            itemIndex++;
+                            updateTotals();
+                        }
+                    }
+
+                    $('#new-product-id').val('');
+                    $('#new-product-qty').val('');
+
+                });
+                // ✅ INVENTORY CHECK END
+
             });
 
             // Remove product from invoice
@@ -437,7 +514,7 @@
                 let errorMsg = '';
 
                 if (entered > creditLimit) {
-                    errorMsg = 'Credit Pay cannot exceed Credit Limit ₹' + creditLimit.toFixed(2);
+                    errorMsg = 'Credit Pay cannot exceed Credit Limit ₹' + creditLimit;
 
                 } else if (entered > grandTotal) {
 
@@ -445,7 +522,7 @@
                         "Credit pay (₹" +
                         creditLimit + ") cannot exceed credit limit (₹" +
                         creditLimit + ").", "error");
-                    $(this).val(grandTotal.toFixed(2));
+                    $(this).val(grandTotal);
                     return false;
                 }
 
@@ -484,14 +561,33 @@
             });
 
             $('form').on('submit', function(e) {
+
+                const branchName = "{{ $branch_data->name }}";
+                const partyId = $('#party-id').val();
+
+                // ✅ WAREHOUSE → Party Required
+                if (branchName === 'WAREHOUSE' && !partyId) {
+                    e.preventDefault();
+                    Swal.fire(
+                        "Validation Error",
+                        "Please select Party Customer for WAREHOUSE transactions.",
+                        "warning"
+                    );
+                    return false;
+                }
+
+                // Existing credit validation
                 const creditLimit = $("#left_credit_id").val();
                 const creditPay = parseFloat($('input[name="creditpay"]').val()) || 0;
 
                 if (creditPay > creditLimit) {
                     e.preventDefault();
-                    Swal.fire("Credit Limit Exceeded", "Credit pay (₹" + creditPay +
-                        ") cannot exceed credit limit (₹" +
-                        creditLimit + ").", "error");
+                    Swal.fire(
+                        "Credit Limit Exceeded",
+                        "Credit pay (₹" + creditPay + ") cannot exceed credit limit (₹" + creditLimit +
+                        ").",
+                        "error"
+                    );
                 }
             });
 
@@ -518,7 +614,7 @@
                             console.log('Party User Credit Response:', response);
                             $('#credit-limit').text(response.credit);
                             $('#left_credit').text(response.left_credit);
-                            $('#creditpay-input').val(response.use_credit);
+                            $('#creditpay-input').val('');
                             $('#left_credit_id').val(response.left_credit);
                         });
 
@@ -569,9 +665,9 @@
                                 // If MRP is not set, append it
                                 if (mrpElement.length === 0) {
                                     $(this).find('.price-stack').append(
-                                        `<span class="mrp">₹${price.toFixed(2)}</span>`);
+                                        `<span class="mrp">₹${price}</span>`);
                                 } else {
-                                    mrpElement.text(`₹${price.toFixed(2)}`);
+                                    mrpElement.text(`₹${price}`);
                                 }
 
                                 updateTotals(); // Recalculate totals
@@ -589,9 +685,9 @@
                         // If MRP is not set, append it
                         if (mrpElement.length === 0) {
                             $(this).find('.price-stack').append(
-                                `<span class="mrp">₹${price.toFixed(2)}</span>`);
+                                `<span class="mrp">₹${price}</span>`);
                         } else {
-                            mrpElement.text(`₹${price.toFixed(2)}`);
+                            mrpElement.text(`₹${price}`);
                         }
 
                         updateTotals(); // Recalculate totals

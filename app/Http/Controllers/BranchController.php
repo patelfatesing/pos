@@ -6,6 +6,7 @@ use App\Models\Branch;
 use Illuminate\Http\Request;
 use App\Models\CashBreakdown;
 use Illuminate\Support\Carbon;
+use App\Models\Accounting\AccountLedger;
 
 class BranchController extends Controller
 {
@@ -100,16 +101,18 @@ class BranchController extends Controller
         $orderColumn = $request->input('columns' . $orderColumnIndex . 'data', 'id');
         $orderDirection = $request->input('order.0.dir', 'asc');
 
-        $query = new Branch();
+        $query = Branch::leftJoin('account_ledgers', 'branches.bank_ledger_id', '=', 'account_ledgers.id')
+            ->select('branches.*', 'account_ledgers.name as bank_ledger_name');
 
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
-                $q->where('name', 'like', '%' . $searchValue . '%')
-                    ->orWhere('address', 'like', '%' . $searchValue . '%');
+                $q->where('branches.name', 'like', '%' . $searchValue . '%')
+                    ->orWhere('branches.address', 'like', '%' . $searchValue . '%')
+                    ->orWhere('account_ledgers.name', 'like', '%' . $searchValue . '%');
             });
         }
 
-        $query->where('is_deleted', 'no');
+        $query->where('branches.is_deleted', 'no');
 
         $recordsTotal = Branch::count();
         $recordsFiltered = $query->count();
@@ -181,6 +184,7 @@ class BranchController extends Controller
                 'name' => $store->name,
                 'address' => $store->address,
                 'main_branch' => $store->main_branch,
+                'bank_ledger' => $store->bank_ledger_name ?? '-',
                 'is_active' => $store->is_active == 'yes'
                     ? '<span onclick=\'branchStatusChange("' . $store->id . '", "no")\'><div class="badge badge-success" style="cursor:pointer">Active</div></span>'
                     : '<span onclick=\'branchStatusChange("' . $store->id . '", "yes")\'><div class="badge badge-danger" style="cursor:pointer">Inactive</div></span>',
@@ -203,7 +207,8 @@ class BranchController extends Controller
      */
     public function create()
     {
-        return view('branch.create');
+        $acc_ledger = AccountLedger::where('group_id', 17)->pluck('name', 'id');
+        return view('branch.create', compact('acc_ledger'));
     }
 
     /**
@@ -219,6 +224,7 @@ class BranchController extends Controller
             'address' => 'nullable|string',
             'description' => 'nullable|string',
             'is_active' => 'in:yes,no',
+            'bank_ledger_id' => 'required'
         ]);
 
         Branch::create([
@@ -228,6 +234,7 @@ class BranchController extends Controller
             'is_active' => $validated['is_active'] ?? 'yes',
             'is_deleted' => 'no',
             'created_by' => auth()->id(),
+            'bank_ledger_id' => $validated['bank_ledger_id'],
         ]);
 
         return redirect()->route('branch.list')->with('success', 'Record created successfully.');
@@ -262,8 +269,11 @@ class BranchController extends Controller
         // if (!auth()->user()->hasPermission('Update')) {
         //     abort(403, 'Unauthorized - You do not have the required permission.');
         // }
+
+        $acc_ledger = AccountLedger::where('group_id', 17)->pluck('name', 'id');
+
         $record = Branch::where('id', $id)->where('is_deleted', 'no')->firstOrFail();
-        return view('branch.edit', compact('record'));
+        return view('branch.edit', compact('record', 'acc_ledger'));
     }
 
     // Update a record
@@ -281,6 +291,7 @@ class BranchController extends Controller
             'address' => 'nullable|string',
             'description' => 'nullable|string',
             'is_active' => 'in:yes,no',
+            'bank_ledger_id' => 'required'
         ]);
 
         // add updated_by

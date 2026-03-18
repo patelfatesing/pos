@@ -1,355 +1,448 @@
 @extends('layouts.backend.layouts')
+<style>
+    #product_table {
+        table-layout: fixed;
+        width: 100%;
+    }
 
+    #product_table th,
+    #product_table td {
+        vertical-align: middle;
+    }
+
+    /* Column widths */
+    #product_table th:nth-child(1),
+    #product_table td:nth-child(1) {
+        width: 5%;
+    }
+
+    #product_table th:nth-child(2),
+    #product_table td:nth-child(2) {
+        width: 25%;
+    }
+
+    #product_table th:nth-child(3),
+    #product_table td:nth-child(3) {
+        width: 8%;
+    }
+
+    #product_table th:nth-child(4),
+    #product_table td:nth-child(4) {
+        width: 13%;
+    }
+
+    #product_table th:nth-child(5),
+    #product_table td:nth-child(5) {
+        width: 8%;
+    }
+
+    #product_table th:nth-child(6),
+    #product_table td:nth-child(6) {
+        width: 8%;
+    }
+
+    #product_table th:nth-child(7),
+    #product_table td:nth-child(7) {
+        width: 10%;
+    }
+
+    #product_table th:nth-child(8),
+    #product_table td:nth-child(8) {
+        width: 10%;
+    }
+
+    #product_table th:nth-child(9),
+    #product_table td:nth-child(9) {
+        width: 10%;
+    }
+</style>
 @section('page-content')
     <div class="content-page">
-        <div class="container-fluid add-form-list">
+        <div class="container-fluid">
 
             <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
-                <div class="">
-                    <h4 class="mb-0">Edit Purchase Invoice</h4>
-                </div>
-                <div>
-                    <a href="{{ route('purchase.list') }}" class="btn btn-secondary">Back</a>
-                </div>
+                <h4>Edit Purchase Invoice</h4>
+                <a href="{{ route('purchase.list') }}" class="btn btn-secondary">Back</a>
             </div>
-            <div class="row">
-                <div class="col-sm-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="card">
-                                <div class="card-body">
 
-                                    <form action="{{ route('purchase.update', $purchase->id) }}" method="POST"
-                                        enctype="multipart/form-data">
-                                        @csrf
-                                        @method('PUT')
+            <div class="card">
+                <div class="card-body">
 
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <label>Bill No</label>
-                                                <input type="text" class="form-control" name="bill_no"
-                                                    value="{{ old('bill_no', $purchase->bill_no) }}">
-                                            </div>
+                    <form action="{{ route('purchase.update', $purchase->id) }}" method="POST">
+                        @csrf
+                        @method('PUT')
 
-                                            <div class="col-md-4">
-                                                <label>Date</label>
-                                                <input type="date" class="form-control" name="date"
-                                                    value="{{ old('date', $purchase->date) }}">
-                                            </div>
+                        <div class="row">
 
-                                            <div class="col-md-4">
-                                                <label>Vendor</label>
-                                                <select name="vendor_id" id="vendor_id" class="form-control">
-                                                    <option value="">-- Select Party --</option>
-                                                    @foreach ($vendors as $vendor)
-                                                        <option value="{{ $vendor->id }}" @selected(old('vendor_id', $purchase->vendor_id) == $vendor->id)>
-                                                            {{ $vendor->name }}
+                            <div class="col-md-4">
+                                <label>Bill No</label>
+                                <input type="text" name="bill_no" class="form-control"
+                                    value="{{ old('bill_no', $purchase->bill_no) }}">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label>Date</label>
+                                <input type="date" name="date" class="form-control"
+                                    value="{{ old('date', $purchase->date) }}">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label>Vendor</label>
+                                <select name="vendor_id" id="vendor_id" class="form-control">
+                                    <option value="">Select Vendor</option>
+                                    @foreach ($vendors as $vendor)
+                                        <option value="{{ $vendor->id }}"
+                                            {{ old('vendor_id', $purchase->vendor_id) == $vendor->id ? 'selected' : '' }}>
+                                            {{ $vendor->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label>Vendor Ledger</label>
+                                <select name="vendor_new_id" class="form-control">
+                                    <option value="">Select Ledger</option>
+                                    @foreach ($ledgersAll as $ledger)
+                                        <option value="{{ $ledger->id }}"
+                                            {{ old('vendor_new_id', $purchase->vendor_new_id) == $ledger->id ? 'selected' : '' }}>
+                                            {{ $ledger->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label>Purchase Ledger</label>
+                                <select name="parchase_ledger" id="parchase_ledger" class="form-control">
+                                    <option value="">Select Ledger</option>
+                                    @foreach ($ledgers as $ledger)
+                                        <option value="{{ $ledger->id }}"
+                                            {{ old('parchase_ledger', $purchase->parchase_ledger) == $ledger->id ? 'selected' : '' }}>
+                                            {{ $ledger->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label>Sub Category</label>
+                                <select name="subcategories" id="subcategories" class="form-control">
+                                    <option value="">Select</option>
+                                    @foreach ($subcategories as $sub)
+                                        <option value="{{ $sub->id }}" data-id="{{ $sub->id }}"
+                                            {{ old('subcategories', $purchaseProducts[0]['subcategory_id'] ?? '') == $sub->id ? 'selected' : '' }}>
+                                            {{ $sub->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                        </div>
+
+                        <hr>
+
+                        <div class="table-responsive">
+
+                            <table class="table table-bordered" id="product_table">
+
+                                <thead>
+                                    <tr>
+                                        <th>Sr No</th>
+                                        <th>Product</th>
+                                        <th>Batch</th>
+                                        <th>MFG</th>
+                                        <th>MRP</th>
+                                        <th>Qty</th>
+                                        <th>Rate</th>
+                                        <th>Amount</th>
+                                        <th class="action-col">Action</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="productBody">
+
+                                    @foreach ($purchaseProducts as $i => $item)
+                                        <tr>
+
+                                            <td>{{ $i + 1 }}</td>
+
+                                            <td>
+
+                                                <select name="products[{{ $i }}][product_id]"
+                                                    id="product_select_{{ $i }}"
+                                                    class="form-control product_select_row">
+
+                                                    <option value="">Select Product</option>
+
+                                                    @foreach ($products as $p)
+                                                        <option value="{{ $p['id'] }}"
+                                                            {{ $item['product_id'] == $p['id'] ? 'selected' : '' }}>
+                                                            {{ $p['name'] }}
                                                         </option>
                                                     @endforeach
+
                                                 </select>
+
+                                                <input type="hidden" name="products[{{ $i }}][brand_name]"
+                                                    value="{{ $item['brand_name'] }}" class="brand_name">
+
+                                            </td>
+
+                                            <td>
+                                                <input type="text" class="form-control"
+                                                    name="products[{{ $i }}][batch]"
+                                                    value="{{ $item['batch'] }}">
+                                            </td>
+
+                                            <td>
+                                                <input type="date" class="form-control"
+                                                    name="products[{{ $i }}][mfg_date]"
+                                                    value="{{ $item['mfg_date'] }}">
+                                            </td>
+
+                                            <td>
+                                                <input type="hidden" name="products[{{ $i }}][mrp]"
+                                                    value="{{ $item['mrp'] }}">
+
+                                                <input type="number" class="form-control mrp" value="{{ $item['mrp'] }}"
+                                                    disabled>
+                                            </td>
+
+                                            <td>
+                                                <input type="number" class="form-control qnt"
+                                                    name="products[{{ $i }}][qnt]" value="{{ $item['qnt'] }}">
+                                            </td>
+
+                                            <td>
+                                                <input type="number" step="0.01" class="form-control rate"
+                                                    name="products[{{ $i }}][rate]"
+                                                    value="{{ $item['rate'] }}">
+                                            </td>
+
+                                            <td>
+                                                <input type="number" class="form-control amount"
+                                                    name="products[{{ $i }}][amount]"
+                                                    value="{{ $item['amount'] }}">
+                                            </td>
+
+                                            <td class="action-col">
+
+                                                <button type="button" class="btn btn-sm btn-danger remove-row">
+                                                    Remove
+                                                </button>
+
+                                            </td>
+
+                                        </tr>
+                                    @endforeach
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                        <input type="hidden" name="total" class="total_val" value="{{ $purchase->total }}">
+
+                        <div class="text-end">
+                            <h5>Sub Total : <span id="total"></span></h5>
+                        </div>
+
+                        <hr>
+                        <div class="row">
+                            <div class="col-lg-4">
+                                <div class="or-detail rounded" id="license-ledger-box">
+                                    <div class="p-3">
+                                        <h5 class="mb-3">Details For License Ledger</h5>
+
+                                        <div class="form-group">
+                                            <label>ITP Value</label>
+                                            <h5 id="itp_value">
+                                                ₹{{ number_format(old('itp_value', $purchase->itp_value), 2) }}
+                                            </h5>
+
+                                            <input type="hidden" name="itp_value" id="itp_value_hidden"
+                                                value="{{ old('itp_value', $purchase->itp_value) }}">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>AED TO BE PAID</label>
+                                            <input type="number" class="form-control" name="aed_to_be_paid"
+                                                id="aed_to_be_paid"
+                                                value="{{ old('aed_to_be_paid', $purchase->aed_to_be_paid) }}">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Guarantee Fulfilled</label>
+                                            <input type="number" class="form-control" name="guarantee_fulfilled"
+                                                id="guarantee_fulfilled"
+                                                value="{{ old('guarantee_fulfilled', $purchase->guarantee_fulfilled) }}">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Loading Charges (Including Tax)</label>
+                                            <input type="number" class="form-control" name="loading_charges"
+                                                id="loading_charges"
+                                                value="{{ old('loading_charges', $purchase->loading_charges) }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- EXCISE --}}
+                            <div class="col-lg-4 excise-section d-none">
+                                <div class="or-detail rounded">
+                                    <div class="p-3">
+                                        <h5 class="mb-3">Excise Fee</h5>
+
+                                        <div class="form-group">
+                                            <label>Permit Fee</label>
+                                            <input type="number" class="form-control" name="permit_fee_excise"
+                                                id="permit_fee_excise"
+                                                value="{{ old('permit_fee_excise', $purchase->permit_fee_excise) }}">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Vend Fee</label>
+                                            <input type="number" class="form-control" name="vend_fee_excise"
+                                                id="vend_fee_excise"
+                                                value="{{ old('vend_fee_excise', $purchase->vend_fee_excise) }}">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Composite Fee (For RTDC Shop)</label>
+                                            <input type="number" class="form-control" name="composite_fee_excise"
+                                                id="composite_fee_excise"
+                                                value="{{ old('composite_fee_excise', $purchase->composite_fee_excise) }}">
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center border-top">
+                                        <h6>Total</h6>
+                                        <div>
+                                            <input type="hidden" name="excise_total_amount" class="excise_total_amount"
+                                                value="{{ old('excise_total_amount', $purchase->excise_total_amount) }}">
+                                            <h3 class="text-primary" id="excise_total_amount">
+                                                ₹{{ number_format(old('excise_total_amount', $purchase->excise_total_amount), 0) }}
+                                            </h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- BILLING --}}
+                            <div class="col-lg-4 offset-lg-4" id="billing-column">
+                                <div class="or-detail rounded">
+                                    <div class="p-3">
+                                        <h5 class="mb-3">Billing Details</h5>
+
+                                        {{-- Vendor 1 --}}
+                                        <div id="vendor-1-fields" class="vendor-fields d-none">
+                                            <div class="form-group">
+                                                <label>EXCISE FEE</label>
+                                                <input type="number" class="form-control" name="excise_fee"
+                                                    id="excise_fee"
+                                                    value="{{ old('excise_fee', $purchase->excise_fee) }}">
                                             </div>
 
-                                            <div class="col-md-4">
-                                                <label>Ledger Name</label>
-                                                <select name="vendor_new_id" id="vendor_new_id" class="form-control">
-                                                    <option value="">-- Select Ledger Name --</option>
-                                                    @foreach ($ledgersAll as $vendor)
-                                                        <option value="{{ $vendor->id }}" @selected(old('vendor_new_id', $purchase->vendor_new_id) == $vendor->id)>
-                                                            {{ $vendor->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
+                                            <div class="form-group">
+                                                <label>COMPOSITION VAT</label>
+                                                <input type="number" class="form-control" name="composition_vat"
+                                                    id="composition_vat"
+                                                    value="{{ old('composition_vat', $purchase->composition_vat) }}">
                                             </div>
 
-                                            <div class="col-md-4">
-                                                <label>Purchase Ledger</label>
-                                                <select name="parchase_ledger" id="parchase_ledger" class="form-control">
-                                                    <option value="">-- Select Ledger --</option>
-                                                    @foreach ($ledgers as $ven)
-                                                        <option value="{{ $ven->id }}" @selected(old('parchase_ledger', $purchase->parchase_ledger) == $ven->id)>
-                                                            {{ $ven->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-
-                                            <div class="col-md-4">
-                                                <label>Sub Category</label>
-                                                <select name="subcategories" id="subcategories" class="form-control">
-                                                    <option value="">-- Select Sub Category --</option>
-                                                    @foreach ($subcategories as $subcat)
-                                                        <option value="{{ $subcat->id }}" data-id="{{ $subcat->id }}"
-                                                            @selected(old('subcategories', $purchaseProducts[0]['subcategory_id'] ?? '') == $subcat->id)>
-                                                            {{ $subcat->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-
-                                            <div class="col-md-4">
-                                                <label>Product</label>
-                                                <select id="product_select" class="form-control">
-                                                    <option value="">-- Select Product --</option>
-                                                    @foreach ($products as $product)
-                                                        <option value="{{ $product['id'] }}">{{ $product['name'] }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
+                                            <div class="form-group">
+                                                <label>SURCHARGE ON CA</label>
+                                                <input type="number" class="form-control" name="surcharge_on_ca"
+                                                    id="surcharge_on_ca"
+                                                    value="{{ old('surcharge_on_ca', $purchase->surcharge_on_ca) }}">
                                             </div>
                                         </div>
 
-                                        <hr>
-
-                                        <table class="table table-bordered" id="product_table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Sr No</th>
-                                                    <th>Product</th>
-                                                    <th>Batch</th>
-                                                    <th>MFG Date</th>
-                                                    <th>MRP</th>
-                                                    <th>Qty</th>
-                                                    <th>Rate</th>
-                                                    <th>Amount</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-
-                                            <tbody id="productBody">
-                                                @foreach ($purchaseProducts as $i => $product)
-                                                    <tr>
-                                                        <td>{{ $i + 1 }}</td>
-                                                        <input type="hidden"
-                                                            name="products[{{ $i }}][product_id]"
-                                                            value="{{ $product['product_id'] }}">
-                                                        <td><input class="form-control" type="hidden"
-                                                                name="products[{{ $i }}][brand_name]"
-                                                                value="{{ $product['brand_name'] }}" readonly>
-                                                            
-                                                                    <span>{{ $product['brand_name'] }}</span></td>
-                                                        <td><input class="form-control"
-                                                                name="products[{{ $i }}][batch]"
-                                                                value="{{ $product['batch'] }}"></td>
-                                                        <td><input type="date" class="form-control"
-                                                                name="products[{{ $i }}][mfg_date]"
-                                                                value="{{ $product['mfg_date'] }}"></td>
-                                                        <td>
-                                                            <input type="hidden" name="products[{{ $i }}][mrp]"
-                                                                value="{{ $product['mrp'] }}">
-                                                            <input class="form-control" value="{{ $product['mrp'] }}"
-                                                                disabled>
-                                                        </td>
-                                                        <td><input class="form-control"
-                                                                name="products[{{ $i }}][qnt]"
-                                                                value="{{ $product['qnt'] }}"></td>
-                                                        <td><input class="form-control"
-                                                                name="products[{{ $i }}][rate]"
-                                                                value="{{ $product['rate'] }}"></td>
-                                                        <td><input class="form-control"
-                                                                name="products[{{ $i }}][amount]"
-                                                                value="{{ $product['amount'] }}"></td>
-                                                        <td><button type="button"
-                                                                class="btn btn-sm btn-danger remove">Remove</button></td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-
-                                        <input type="hidden" name="total" class="total_val"
-                                            value="{{ old('total', $purchase->total) }}">
-                                        <div class="text-end">
-                                            <h5>Sub Total : <span id="total"></span></h5>
-                                        </div>
-
-                                        <hr>
-
-                                        {{-- LICENSE LEDGER --}}
-                                        <div class="row">
-                                            <div class="col-lg-4">
-                                                <div class="or-detail rounded" id="license-ledger-box">
-                                                    <div class="p-3">
-                                                        <h5 class="mb-3">Details For License Ledger</h5>
-
-                                                        <div class="form-group">
-                                                            <label>AED TO BE PAID</label>
-                                                            <input type="number" class="form-control"
-                                                                name="aed_to_be_paid" id="aed_to_be_paid"
-                                                                value="{{ old('aed_to_be_paid', $purchase->aed_to_be_paid) }}">
-                                                        </div>
-
-                                                        <div class="form-group">
-                                                            <label>Guarantee Fulfilled</label>
-                                                            <input type="number" class="form-control"
-                                                                name="guarantee_fulfilled" id="guarantee_fulfilled"
-                                                                value="{{ old('guarantee_fulfilled', $purchase->guarantee_fulfilled) }}">
-                                                        </div>
-
-                                                        <div class="form-group">
-                                                            <label>Loading Charges (Including Tax)</label>
-                                                            <input type="number" class="form-control"
-                                                                name="loading_charges" id="loading_charges"
-                                                                value="{{ old('loading_charges', $purchase->loading_charges) }}">
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                        {{-- Vendor 2 --}}
+                                        <div id="vendor-2-fields" class="vendor-fields d-none">
+                                            <div class="form-group">
+                                                <label>VAT</label>
+                                                <input type="number" class="form-control" name="vat" id="vat"
+                                                    value="{{ old('vat', $purchase->vat) }}">
                                             </div>
 
-                                            {{-- EXCISE --}}
-                                            <div class="col-lg-4 excise-section d-none">
-                                                <div class="or-detail rounded">
-                                                    <div class="p-3">
-                                                        <h5 class="mb-3">Excise Fee</h5>
-
-                                                        <div class="form-group">
-                                                            <label>Permit Fee</label>
-                                                            <input type="number" class="form-control"
-                                                                name="permit_fee_excise" id="permit_fee_excise"
-                                                                value="{{ old('permit_fee_excise', $purchase->permit_fee_excise) }}">
-                                                        </div>
-
-                                                        <div class="form-group">
-                                                            <label>Vend Fee</label>
-                                                            <input type="number" class="form-control"
-                                                                name="vend_fee_excise" id="vend_fee_excise"
-                                                                value="{{ old('vend_fee_excise', $purchase->vend_fee_excise) }}">
-                                                        </div>
-
-                                                        <div class="form-group">
-                                                            <label>Composite Fee (For RTDC Shop)</label>
-                                                            <input type="number" class="form-control"
-                                                                name="composite_fee_excise" id="composite_fee_excise"
-                                                                value="{{ old('composite_fee_excise', $purchase->composite_fee_excise) }}">
-                                                        </div>
-                                                    </div>
-
-                                                    <div
-                                                        class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center border-top">
-                                                        <h6>Total</h6>
-                                                        <div>
-                                                            <input type="hidden" name="excise_total_amount"
-                                                                class="excise_total_amount"
-                                                                value="{{ old('excise_total_amount', $purchase->excise_total_amount) }}">
-                                                            <h3 class="text-primary" id="excise_total_amount">
-                                                                ₹{{ number_format(old('excise_total_amount', $purchase->excise_total_amount), 0) }}
-                                                            </h3>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                            <div class="form-group">
+                                                <label>SURCHARGE ON VAT</label>
+                                                <input type="number" class="form-control" name="surcharge_on_vat"
+                                                    id="surcharge_on_vat"
+                                                    value="{{ old('surcharge_on_vat', $purchase->surcharge_on_vat) }}">
                                             </div>
 
-                                            {{-- BILLING --}}
-                                            <div class="col-lg-4 offset-lg-4" id="billing-column">
-                                                <div class="or-detail rounded">
-                                                    <div class="p-3">
-                                                        <h5 class="mb-3">Billing Details</h5>
+                                            <div class="form-group">
+                                                <label>BLF</label>
+                                                <input type="number" class="form-control" name="blf" id="blf"
+                                                    value="{{ old('blf', $purchase->blf) }}">
+                                            </div>
 
-                                                        {{-- Vendor 1 --}}
-                                                        <div id="vendor-1-fields" class="vendor-fields d-none">
-                                                            <div class="form-group">
-                                                                <label>EXCISE FEE</label>
-                                                                <input type="number" class="form-control"
-                                                                    name="excise_fee" id="excise_fee"
-                                                                    value="{{ old('excise_fee', $purchase->excise_fee) }}">
-                                                            </div>
-
-                                                            <div class="form-group">
-                                                                <label>COMPOSITION VAT</label>
-                                                                <input type="number" class="form-control"
-                                                                    name="composition_vat" id="composition_vat"
-                                                                    value="{{ old('composition_vat', $purchase->composition_vat) }}">
-                                                            </div>
-
-                                                            <div class="form-group">
-                                                                <label>SURCHARGE ON CA</label>
-                                                                <input type="number" class="form-control"
-                                                                    name="surcharge_on_ca" id="surcharge_on_ca"
-                                                                    value="{{ old('surcharge_on_ca', $purchase->surcharge_on_ca) }}">
-                                                            </div>
-                                                        </div>
-
-                                                        {{-- Vendor 2 --}}
-                                                        <div id="vendor-2-fields" class="vendor-fields d-none">
-                                                            <div class="form-group">
-                                                                <label>VAT</label>
-                                                                <input type="number" class="form-control" name="vat"
-                                                                    id="vat"
-                                                                    value="{{ old('vat', $purchase->vat) }}">
-                                                            </div>
-
-                                                            <div class="form-group">
-                                                                <label>SURCHARGE ON VAT</label>
-                                                                <input type="number" class="form-control"
-                                                                    name="surcharge_on_vat" id="surcharge_on_vat"
-                                                                    value="{{ old('surcharge_on_vat', $purchase->surcharge_on_vat) }}">
-                                                            </div>
-
-                                                            <div class="form-group">
-                                                                <label>BLF</label>
-                                                                <input type="number" class="form-control" name="blf"
-                                                                    id="blf"
-                                                                    value="{{ old('blf', $purchase->blf) }}">
-                                                            </div>
-
-                                                            <div class="form-group">
-                                                                <label>Permit Fee</label>
-                                                                <input type="number" class="form-control"
-                                                                    name="permit_fee" id="permit_fee"
-                                                                    value="{{ old('permit_fee', $purchase->permit_fee) }}">
-                                                            </div>
-                                                        </div>
-
-                                                        {{-- Common --}}
-                                                        <div class="vendor-common">
-                                                            <div class="form-group">
-                                                                <label>TCS</label>
-                                                                <input type="number" class="form-control" name="tcs"
-                                                                    id="tcs"
-                                                                    value="{{ old('tcs', $purchase->tcs) }}">
-                                                            </div>
-                                                        </div>
-
-                                                        {{-- Cash purchase --}}
-                                                        <div id="vendor-others-fields" class="vendor-fields d-none">
-                                                            <div class="form-group">
-                                                                <label>Cash Purchase %</label>
-                                                                <input type="number" class="form-control pur_dis"
-                                                                    name="case_purchase_per"
-                                                                    value="{{ old('case_purchase_per', $purchase->case_purchase_per) }}">
-                                                            </div>
-
-                                                            <div class="form-group">
-                                                                <label>Cash Purchase Amount</label>
-                                                                <input type="number" class="form-control pur_amt"
-                                                                    name="case_purchase_amt"
-                                                                    value="{{ old('case_purchase_amt', $purchase->case_purchase_amt) }}">
-                                                            </div>
-                                                        </div>
-
-                                                        <div
-                                                            class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center border-top">
-                                                            <h6>Total Amount</h6>
-                                                            <div>
-                                                                <input type="hidden" class="total_amt"
-                                                                    value="{{ old('total', $purchase->total) }}">
-
-                                                                <input type="hidden" name="total_amount"
-                                                                    class="total_amount"
-                                                                    value="{{ old('total_amount', $purchase->total_amount) }}">
-                                                                <h3 id="total_amount">
-                                                                    ₹{{ number_format(old('total_amount', $purchase->total_amount), 0) }}
-                                                                </h3>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                            <div class="form-group">
+                                                <label>Permit Fee</label>
+                                                <input type="number" class="form-control" name="permit_fee"
+                                                    id="permit_fee"
+                                                    value="{{ old('permit_fee', $purchase->permit_fee) }}">
                                             </div>
                                         </div>
-                                        <button type="submit" class="btn btn-primary">Update Purchase</button>
-                                    </form>
+
+                                        {{-- Common --}}
+                                        <div class="vendor-common">
+                                            <div class="form-group">
+                                                <label>TCS</label>
+                                                <input type="number" class="form-control" name="tcs" id="tcs"
+                                                    value="{{ old('tcs', $purchase->tcs) }}">
+                                            </div>
+                                        </div>
+
+                                        {{-- Cash purchase --}}
+                                        <div id="vendor-others-fields" class="vendor-fields d-none">
+                                            <div class="form-group">
+                                                <label>Cash Purchase %</label>
+                                                <input type="number" class="form-control pur_dis"
+                                                    name="case_purchase_per"
+                                                    value="{{ old('case_purchase_per', $purchase->case_purchase_per) }}">
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>Cash Purchase Amount</label>
+                                                <input type="number" class="form-control pur_amt"
+                                                    name="case_purchase_amt"
+                                                    value="{{ old('case_purchase_amt', $purchase->case_purchase_amt) }}">
+                                            </div>
+                                        </div>
+
+                                        <div
+                                            class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center border-top">
+                                            <h6>Total Amount</h6>
+                                            <div>
+                                                <input type="hidden" class="total_amt"
+                                                    value="{{ old('total', $purchase->total) }}">
+
+                                                <input type="hidden" name="total_amount" class="total_amount"
+                                                    value="{{ old('total_amount', $purchase->total_amount) }}">
+                                                <h3 id="total_amount">
+                                                    ₹{{ number_format(old('total_amount', $purchase->total_amount), 0) }}
+                                                </h3>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+
+
+                        <button type="submit" class="btn btn-primary">
+                            Update Purchase
+                        </button>
+
+                    </form>
+
                 </div>
             </div>
         </div>
@@ -358,6 +451,12 @@
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
+    let productOptions = `
+            <option value="">Select Product</option>
+            @foreach ($products as $p)
+            <option value="{{ $p['id'] }}">{{ $p['name'] }}</option>
+            @endforeach
+            `;
     // ---------- HELPERS (GLOBAL) ----------
 
     function calculateProductTotals() {
@@ -425,9 +524,12 @@
         } else if (discountAmount > 0) {
             grandTotal -= discountAmount;
         }
-
         $('#total_amount').text('₹' + grandTotal);
         $('.total_amount').val(grandTotal);
+
+        // ✅ update ITP value
+        $('#itp_value').text('₹' + grandTotal);
+        $('#itp_value_hidden').val(grandTotal);
     }
 
 
@@ -566,9 +668,101 @@
         updateBillingTotal();
     }
 
+    function refreshButtons() {
+
+        $('#product_table tbody tr').each(function(index) {
+
+            const actionCell = $(this).find('.action-col');
+
+            if (index == $('#product_table tbody tr').length - 1) {
+
+                actionCell.html(
+                    '<button type="button" class="btn btn-success btn-sm add-row">Add Product</button>'
+                );
+
+            } else {
+
+                actionCell.html(
+                    '<button type="button" class="btn btn-danger btn-sm remove-row">Remove</button>'
+                );
+
+            }
+
+        });
+
+    }
+
+    $(document).on('change', '.product_select_row', function() {
+
+        const product_id = $(this).val();
+        const row = $(this).closest('tr');
+
+        $.ajax({
+
+            url: "/vendor/get-product-details/" + product_id,
+            type: "GET",
+
+            success: function(data) {
+
+                row.find('.brand_name').val(data.name);
+                row.find('input[name*="[batch]"]').val(data.batch_no);
+                row.find('input[name*="[mfg_date]"]').val(data.mfg_date);
+                row.find('.mrp').val(data.mrp);
+                row.find('.rate').val(data.cost_price);
+
+                let qty = row.find('.qnt').val() || 1;
+
+                row.find('.amount').val(qty * data.cost_price);
+
+                calculateProductTotals();
+
+            }
+
+        });
+
+    });
+
+    $(document).on('click', '.add-row', function() {
+
+        const row = $(this).closest('tr');
+
+        const product = row.find('.product_select_row').val();
+
+        if (!product) {
+
+            alert('Please select product first');
+
+            return;
+
+        }
+
+        addEmptyRow();
+
+        refreshButtons();
+
+    });
+
+    $(document).on('click', '.remove-row', function() {
+
+        $(this).closest('tr').remove();
+
+        updateSrNo();
+
+        refreshButtons();
+
+        calculateProductTotals();
+
+        updateBillingTotal();
+
+    });
+
+
     // ---------- MAIN READY ----------
 
     $(document).ready(function() {
+
+        refreshButtons();
+
         let srNo = $('#productBody tr').length ? $('#productBody tr').length + 1 : 1;
         $('.vendor-common').hide();
 
@@ -630,7 +824,7 @@
                 <tr>
                     <td>${srNo}</td>
                     <input type="hidden" name="products[${srNo - 1}][product_id]" value="${brand}">
-                    <td style="width:25%">
+                    <td>
                         <input type="text" name="products[${srNo - 1}][brand_name]" class="form-control" value="${brandVal}" readonly>
                     </td>
                     <td>
@@ -652,7 +846,7 @@
                     <td>
                         <input type="number" step="1" name="products[${srNo - 1}][amount]" class="form-control" value="${amount}">
                     </td>
-                    <td>
+                    <td class="action-col">
                         <button type="button" class="btn btn-sm btn-danger remove">Remove</button>
                     </td>
                 </tr>
@@ -687,7 +881,7 @@
         });
 
         // qty / rate change
-        $(document).on('input', 'input[name*="[qnt]"], input[name*="[rate]"]', function() {
+        $(document).on('blur', 'input[name*="[qnt]"], input[name*="[rate]"]', function() {
             const $input = $(this);
             const $row = $input.closest('tr');
 
@@ -703,7 +897,7 @@
         });
 
         // Amount change -> recalc rate
-        $(document).on('input', 'input[name*="[amount]"]', function() {
+        $(document).on('blur', 'input[name*="[amount]"]', function() {
             const $row = $(this).closest('tr');
             const amount = parseFloat($(this).val()) || 0;
             const qty = parseFloat($row.find('input[name*="[qnt]"]').val()) || 1;
@@ -759,56 +953,7 @@
             updateBillingTotal();
         });
 
-        // Subcategory -> products
-        $('#subcategories').on('change', function() {
-            const subcatId = $(this).val();
-            const $productSelect = $('#product_select');
 
-            $productSelect.empty().append('<option value="">Loading...</option>');
-
-            if (!subcatId) {
-                $productSelect.empty().append('<option value="">-- Select Product --</option>');
-                return;
-            }
-
-            $.ajax({
-                url: "/subcategory/" + subcatId + "/products",
-                type: "GET",
-                dataType: "json",
-                success: function(products) {
-                    $productSelect.empty().append(
-                        '<option value="">-- Select Product --</option>');
-                    if (!products || products.length === 0) {
-                        $productSelect.append(
-                            '<option value="">No products found</option>');
-                        return;
-                    }
-
-                    products.forEach(function(p) {
-                        $productSelect.append(
-                            $('<option>', {
-                                value: p.id,
-                                text: p.name,
-                                'data-mrp': p.mrp ?? '',
-                                'data-cost_price': p.cost_price ?? '',
-                                'data-sell_price': p.sell_price ?? ''
-                            })
-                        );
-                    });
-
-                    const oldProduct = "{{ old('product_select') }}";
-                    if (oldProduct) {
-                        $productSelect.val(oldProduct);
-                    }
-                },
-                error: function(xhr) {
-                    $productSelect.empty().append(
-                        '<option value="">-- Select Product --</option>');
-                    alert('Failed to fetch products for selected subcategory. Try again.');
-                    console.error(xhr);
-                }
-            });
-        });
 
         // vendor change -> onVendorChange + auto sync ledger
         $('#vendor_id').on('change', function() {
@@ -821,11 +966,47 @@
             $('#parchase_ledger').val(vendorId);
         });
 
+        $('#subcategories').on('change', function() {
+
+            const subcatId = $(this).val();
+
+            if (!subcatId) return;
+
+            $.ajax({
+                url: "/subcategory/" + subcatId + "/products",
+                type: "GET",
+                dataType: "json",
+                success: function(products) {
+
+                    productOptions = '<option value="">Select Product</option>';
+
+                    products.forEach(function(p) {
+                        productOptions +=
+                            `<option value="${p.id}">${p.name}</option>`;
+                    });
+
+                    // update only LAST row
+                    let lastRow = $('#product_table tbody tr:last');
+                    let select = lastRow.find('.product_select_row');
+
+                    select.html(productOptions);
+
+                }
+            });
+
+        });
+
     });
 
     // Initial on page load (after validation error)
     document.addEventListener('DOMContentLoaded', function() {
 
+        const totalAmount = "{{ old('total_amount', $purchase->total_amount) }}";
+
+        if (totalAmount) {
+            $('#itp_value').text('₹' + parseFloat(totalAmount));
+            $('#itp_value_hidden').val(parseFloat(totalAmount));
+        }
         calculateProductTotals();
         updateBillingTotal();
 
@@ -853,4 +1034,65 @@
             $('#license-ledger-box').addClass('d-none');
         }
     });
+
+    function addEmptyRow() {
+
+        const rowIndex = $('#product_table tbody tr').length;
+
+        const row = `
+        <tr>
+
+            <td>${rowIndex + 1}</td>
+
+            <td>
+
+                <select name="products[${rowIndex}][product_id]"
+                id="product_select_${rowIndex}"
+                class="form-control product_select_row">
+
+                ${productOptions}
+
+                </select>
+
+                <input type="hidden"
+                name="products[${rowIndex}][brand_name]"
+                class="brand_name">
+
+            </td>
+
+            <td>
+                <input type="text" name="products[${rowIndex}][batch]" class="form-control">
+            </td>
+
+            <td>
+                <input type="date" name="products[${rowIndex}][mfg_date]" class="form-control">
+            </td>
+
+            <td>
+                <input type="hidden" name="products[${rowIndex}][mrp]" class="mrp_hidden">
+                <input type="number" class="form-control mrp" disabled>
+            </td>
+
+            <td>
+                <input type="number" name="products[${rowIndex}][qnt]" class="form-control qnt" value="1">
+            </td>
+
+            <td>
+                <input type="number" name="products[${rowIndex}][rate]" step="0.01" class="form-control rate">
+            </td>
+
+            <td>
+                <input type="number" name="products[${rowIndex}][amount]" class="form-control amount">
+            </td>
+
+            <td class="action-col">
+                <button type="button" class="btn btn-success btn-sm add-row">Add Product</button>
+            </td>
+
+        </tr>
+        `;
+
+        $('#product_table tbody').append(row);
+
+    }
 </script>

@@ -169,7 +169,7 @@ class VoucherController extends Controller
 
     public function store(Request $r)
     {
-        // dd($r->all());
+       
         $type = $r->input('voucher_type');
 
         $nv = fn($v) => ($v === '' || $v === null) ? null : $v;
@@ -220,11 +220,11 @@ class VoucherController extends Controller
             'ref_no'          => $nv($r->input('ref_no')),
         ]);
 
-        /*
-    |--------------------------------------------------------------------------
-    | 2. REMOVE EMPTY ROWS (IMPORTANT)
-    |--------------------------------------------------------------------------
-    */
+            /*
+        |--------------------------------------------------------------------------
+        | 2. REMOVE EMPTY ROWS (IMPORTANT)
+        |--------------------------------------------------------------------------
+        */
         $lines = collect($r->input('lines', []))
             ->filter(
                 fn($l) =>
@@ -237,11 +237,11 @@ class VoucherController extends Controller
 
         $r->merge(['lines' => $lines]);
 
-        /*
-    |--------------------------------------------------------------------------
-    | 3. VALIDATION
-    |--------------------------------------------------------------------------
-    */
+            /*
+        |--------------------------------------------------------------------------
+        | 3. VALIDATION
+        |--------------------------------------------------------------------------
+        */
         $rules = [
             'voucher_date' => ['required', 'date'],
             'voucher_type' => ['required', Rule::in([
@@ -272,11 +272,11 @@ class VoucherController extends Controller
 
         $data = $r->validate($rules);
 
-        /*
-    |--------------------------------------------------------------------------
-    | 4. DR / CR BALANCE CHECK
-    |--------------------------------------------------------------------------
-    */
+                /*
+            |--------------------------------------------------------------------------
+            | 4. DR / CR BALANCE CHECK
+            |--------------------------------------------------------------------------
+            */
         $dr = 0;
         $cr = 0;
 
@@ -291,11 +291,11 @@ class VoucherController extends Controller
                 ->withInput();
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | 5. SAVE DATA
-    |--------------------------------------------------------------------------
-    */
+            /*
+        |--------------------------------------------------------------------------
+        | 5. SAVE DATA
+        |--------------------------------------------------------------------------
+        */
         DB::transaction(function () use ($data) {
 
             $voucher = \App\Models\Accounting\Voucher::create([
@@ -340,10 +340,10 @@ class VoucherController extends Controller
                 );
 
                 // Update ledger balance
-                $ledger->update([
-                    'opening_balance' => $result['balance'],
-                    'opening_type'    => $result['type'],
-                ]);
+                // $ledger->update([
+                //     'opening_balance' => $result['balance'],
+                //     'opening_type'    => $result['type'],
+                // ]);
             }
         });
 

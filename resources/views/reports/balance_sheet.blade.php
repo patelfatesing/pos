@@ -95,7 +95,7 @@
                     <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
                 </div>
                 <div class="bs-card">
-                   
+
 
                     <div class="d-flex align-items-center gap-2 mb-2" id="bs_filters">
                         <input type="date" id="bs_start" class="form-control form-control-sm" style="max-width:170px">
@@ -172,12 +172,12 @@
             $('bs_start').value = firstOfMonth;
             $('bs_end').value = today;
 
-           function setHeader(asOf, period) {
-    const el = $('bs_asof');
-    if (el) {
-        el.textContent = `As at ${asOf} (Period: ${period})`;
-    }
-}
+            function setHeader(asOf, period) {
+                const el = $('bs_asof');
+                if (el) {
+                    el.textContent = `As at ${asOf} (Period: ${period})`;
+                }
+            }
 
             function clearTbody(tbody) {
                 while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
@@ -192,24 +192,28 @@
                 tbody.appendChild(tr);
             }
 
-            function renderSide(selector, rows) {
-                const tbody = document.querySelector(selector);
-                clearTbody(tbody);
+                function renderSide(selector, rows) {
+                    const tbody = document.querySelector(selector);
+                    clearTbody(tbody);
 
-                (rows || []).forEach(r => {
-                    appendRow(tbody, r.label, r.amount);
+                    (rows || []).forEach(r => {
 
-                    (r.children || []).forEach(ch => {
+                        const url = `/reports/group-summary/${r.id}?start_date=${$('bs_start').value}&end_date=${$('bs_end').value}`;
+
                         const tr = document.createElement('tr');
-                        tr.className = 'child-row';
+
                         tr.innerHTML = `
-                            <td class="child-label">${ch.label ?? '—'}</td>
-                            <td class="amount">${ch.amount ?? '0.00'}</td>
+                            <td>
+                                <a href="${url}" style="color:#2563eb;text-decoration:none;">
+                                    ${r.label}
+                                </a>
+                            </td>
+                            <td class="amount">${r.amount ?? '0.00'}</td>
                         `;
+
                         tbody.appendChild(tr);
                     });
-                });
-            }
+                }
 
             function refresh() {
                 const payload = {
