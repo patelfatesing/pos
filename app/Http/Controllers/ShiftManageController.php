@@ -155,7 +155,7 @@ class ShiftManageController extends Controller
             }
             // }
             // if (canDo($roleId, 'view-transactions', $ownerId)) {
-                $action .= '<a class="badge bg-primary ml-2 view-invoices" 
+            $action .= '<a class="badge bg-primary ml-2 view-invoices" 
                 href="' . url('/shift-manage/view/' . $row->branch_id . "/" . $row->id) . '" title="View Transactions">
                 <i class="ri-eye-line"></i>
                 </a>';
@@ -166,14 +166,14 @@ class ShiftManageController extends Controller
             //     <i class="ri-image-line"></i>
             //     </a>';
             // if (canDo($roleId, 'view-physical-stock-photo', $ownerId)) {
-                $action .= '<a class="badge bg-primary ml-2 view-invoices" 
+            $action .= '<a class="badge bg-primary ml-2 view-invoices" 
                 href="javascript:void(0);" onclick="showImage(getImagePath(\'' . $row->physical_photo . '\'))" title="View Physical Stock Photo">
                 <i class="ri-image-line"></i>
             </a>';
             // }
 
             // if (canDo($roleId, 'print-shift-PDF', $ownerId)) {
-                $action .= '<a class="badge bg-primary ml-2 view-invoices" 
+            $action .= '<a class="badge bg-primary ml-2 view-invoices" 
                     href="' . url('/shift-manage/print-shift/' . $row->id) . '" title="Print Shift PDF" target="_blank">
                     <i class="ri-file-pdf-line"></i>
                 </a>';
@@ -599,5 +599,42 @@ class ShiftManageController extends Controller
             'message' => 'Shift already closed',
             'code' => 400
         ], 200);
+    }
+
+    public function stockDetailsPdf($id, Request $request)
+    {
+        $shift = ShiftClosing::findOrFail($id);
+        $branch_id = $shift->branch_id;
+        $branch_name = Branch::findOrFail($branch_id);
+        $subcategories = DB::table('sub_categories')->where('is_deleted', 'no')->get();
+
+        $subcategoryId = $request->input('subcategory_id');
+        $searchKeyword = $request->input('search');
+
+        $rawStockQuery = DailyProductStock::with(['product.subcategory', 'product.category'])
+            ->where('branch_id', $branch_id)
+            ->where('shift_id', $id);
+
+        if (!empty($subcategoryId)) {
+            $rawStockQuery->whereHas('product', function ($query) use ($subcategoryId) {
+                $query->where('subcategory_id', $subcategoryId);
+            });
+        }
+
+        if (!empty($searchKeyword)) {
+            $rawStockQuery->whereHas('product', function ($query) use ($searchKeyword) {
+                $query->where('name', 'like', '%' . $searchKeyword . '%');
+            });
+        }
+
+        $rawStockData = $rawStockQuery->get();
+
+        $pdf = Pdf::loadView('pdfs.stock_summary', compact(
+            'rawStockData',
+            'shift',
+            'branch_name'
+        ))->setPaper('A4', 'landscape');
+
+        return $pdf->download('stock-summary.pdf');
     }
 }

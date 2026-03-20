@@ -54,6 +54,7 @@ class TakeCashModal extends Component
             $this->onlineAmount = 0;
         }
     }
+
     public function paymentTypeChanged($type)
     {
         $this->paymentType = $type;
@@ -69,6 +70,7 @@ class TakeCashModal extends Component
         }
         $this->totalCollected = 0;
     }
+
     public function openModal()
     {
         $this->reset(['showCollectModal', 'amount', 'search']);
@@ -111,6 +113,7 @@ class TakeCashModal extends Component
         $this->calculateTotals();
         $this->calculateTotal();
     }
+
     public function setTransactionType($type)
     {
         $this->transactionType = $type;
@@ -219,23 +222,6 @@ class TakeCashModal extends Component
         ];
     }
 
-
-    // public function submitCredit()
-    // {
-    //     if ($this->selectedUser && $this->amount > 0) {
-    //         $this->selectedUser->left_credit -= $this->amount;
-    //         if ($this->selectedUser->left_credit <= 0) {
-    //             $this->selectedUser->payment_status = 'full_paid';
-    //             $this->selectedUser->left_credit = 0;
-    //         } else {
-    //             $this->selectedUser->payment_status = 'partial_paid';
-    //         }
-    //         $this->selectedUser->save();
-    //         session()->flash('message', 'Credit collected successfully.');
-    //         $this->reset(['showCollectModal', 'amount', 'selectedUser']);
-    //         $this->openModal(); // Refresh list
-    //     }
-    // }
     public function calculateTotal()
     {
         $baseAmount = ($this->totals['totalIn'] ?? 0) - ($this->totals['totalOut'] ?? 0);
@@ -251,8 +237,10 @@ class TakeCashModal extends Component
             $this->totalCollected = 0; // fallback
         }
     }
+
     public function submitCredit()
     {
+
         $this->calculateTotals();
 
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
@@ -260,16 +248,28 @@ class TakeCashModal extends Component
         $totalOut = $this->totals['totalOut'] ?? 0;
         $totalIn = $this->totals['totalIn'] ?? 0;
 
+        // dd($this->totals);
+
         // Optional: Add logic to reset or calculate something
         if ($this->transactionType === 'add') {
-            if (empty($totalIn)) {
-                $this->dispatch('note-add', [
-                    'message' => "Please add amount."
-                ]);
-                return;
+            if (!$this->inOutStatus) {
+                if (empty($this->amount)) {
+                    $this->dispatch('note-add', [
+                        'message' => "Please add amount."
+                    ]);
+                    return;
+                }
+            } else {
+                if (empty($totalIn)) {
+                    $this->dispatch('note-add', [
+                        'message' => "Please add amount."
+                    ]);
+                    return;
+                }
             }
             // logic for Add Money clicked
         } elseif ($this->transactionType === 'change') {
+
             // logic for Change clicked
             if (empty($totalIn) && empty($totalOut)) {
                 $this->dispatch('note-add', [
@@ -285,9 +285,15 @@ class TakeCashModal extends Component
             }
         }
 
+        if ($this->inOutStatus == true) {
+            $collectedAmount = $totalIn - $totalOut;
+            $denominations = array_values($this->cashNotes);
+        } else {
+            $collectedAmount = $this->amount;
+            $denominations = [];
+        }
 
-        $collectedAmount = $totalIn - $totalOut;
-        $denominations = array_values($this->cashNotes);
+        // dd($denominations);
         $currentShift = UserShift::getYesterdayShift(auth()->user()->id, $branch_id, "pending");
         $date = "";
         if (!empty($currentShift)) {
@@ -301,16 +307,19 @@ class TakeCashModal extends Component
             $currentShift->cash_added = $collectedAmount;
             $currentShift->save();
         }
-        $cashBreakdown = \App\Models\CashBreakdown::create([
+
+        \App\Models\CashBreakdown::create([
             'user_id' => auth()->id(),
             'branch_id' => $branch_id,
-            'denominations' => json_encode($denominations),
+            'denominations' => $this->inOutStatus ? '' : json_encode($denominations),
             'total' => $collectedAmount,
             'type' => $this->transactionType . " cash"
         ]);
+
         $this->cashNotes = []; // Reset
         $this->showCollectModal = false;
         $this->clearCashNotes();
+        $this->amount = '';
         $this->dispatch('notiffication-sucess', ['message' => 'Cash added successfully.']);
     }
 
@@ -333,10 +342,31 @@ class TakeCashModal extends Component
         $store = Branch::select('in_out_enable', 'one_time_sales')->findOrFail($branch_id);
         $this->inOutStatus = $store->in_out_enable;
 
+        if (!$this->inOutStatus) {
+            $this->transactionType = 'add';
+        }
+
         $partyUsers = $query->paginate(10);
 
         return view('livewire.take-cash-modal', [
             'partyUsers' => $partyUsers
         ]);
     }
+
+    // public function submitCredit()
+    // {
+    //     if ($this->selectedUser && $this->amount > 0) {
+    //         $this->selectedUser->left_credit -= $this->amount;
+    //         if ($this->selectedUser->left_credit <= 0) {
+    //             $this->selectedUser->payment_status = 'full_paid';
+    //             $this->selectedUser->left_credit = 0;
+    //         } else {
+    //             $this->selectedUser->payment_status = 'partial_paid';
+    //         }
+    //         $this->selectedUser->save();
+    //         session()->flash('message', 'Credit collected successfully.');
+    //         $this->reset(['showCollectModal', 'amount', 'selectedUser']);
+    //         $this->openModal(); // Refresh list
+    //     }
+    // }
 }

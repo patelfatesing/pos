@@ -90,6 +90,25 @@ class BranchController extends Controller
         return response()->json($noteCount);
     }
 
+    public function getGrandTotalCash()
+    {
+        $start_date = date('Y-m-d');
+        $end_date = date('Y-m-d') . ' 23:59:59';
+
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id))
+            ? auth()->user()->userinfo->branch->id
+            : "";
+
+        $total = CashBreakdown::where('user_id', auth()->id())
+            ->where('branch_id', $branch_id)
+            ->whereBetween('created_at', [$start_date, $end_date])
+            ->sum('total'); // 👈 direct sum
+
+        return response()->json([
+            'grand_total' => $total
+        ]);
+    }
+
     public function getData(Request $request)
     {
 

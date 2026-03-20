@@ -58,7 +58,7 @@
         <div class="content-page daybook-page">
             <div class="container-fluid">
                 <div class="row">
-                   
+
                     <div class="col-lg-12">
                         <div class="table-responsive rounded mb-3">
 
@@ -89,32 +89,55 @@
                                         </thead>
 
                                         <tbody>
+                                            <?php
+
+                                            ?>
                                             @foreach ($entries as $e)
                                                 <tr>
                                                     <td>{{ \Carbon\Carbon::parse($e['date'])->format('d-M-y') }}</td>
                                                     <td>
-                                                        <a href="
-                                                            {{ $e['voucher_type'] == 'Purchase'
-                                                                ? route('purchase.edit', $e['gen_id'])
-                                                                : ($e['voucher_type'] == 'Sales'
-                                                                    ? route('sales.edit-sales', $e['gen_id'])
-                                                                    : route('accounting.vouchers.edit', $e['ledger_id'])) }}"
-                                                            class="text-primary text-decoration-none fw-bold">
-                                                            {{ $e['particulars'] }}
-                                                        </a>
-                                                    </td>
 
-                                                    <td>{{ $e['voucher_type'] }}</td>
-                                                    <td>{{ $e['voucher_no'] }}</td>
+                                                        @if ($e['voucher_type'] == 'Purchase')
+                                                            @if ($e['gen_id'] != NULL)
+                                                                <a href="{{ route('purchase.edit', $e['gen_id']) }}"
+                                                                    class="text-primary text-decoration-none fw-bold">
+                                                                    {{ $e['particulars'] }}
+                                                                    
+                                                                </a>
+                                                                @else
+                                                                <a href="{{ route('accounting.vouchers.edit', $e['id']) }}"
+                                                                    class="text-primary text-decoration-none fw-bold">
+                                                                    {{ $e['particulars'] }}
+                                                                </a>
+                                                                @endif
+                                                        @elseif ($e['voucher_type'] == 'Sales')
+                                                            <a href="{{  route('sales.edit-sales', $e['gen_id'] ?? $e['id'])}}"
+                                                                class="text-primary text-decoration-none fw-bold">
+                                                                {{ $e['particulars'] }}
+                                                            </a>
+                                                        @else
+                                                            <a href="{{ route('accounting.vouchers.edit', $e['id']) }}"
+                                                                class="text-primary text-decoration-none fw-bold">
+                                                                {{ $e['particulars'] }}
+                                                            </a>
+                                                        @endif
 
-                                                    <td class="text-end">
-                                                        {{ $e['debit'] ? number_format($e['debit'], 2) : '' }}
-                                                    </td>
+                                           
 
-                                                    <td class="text-end">
-                                                        {{ $e['credit'] ? number_format($e['credit'], 2) : '' }}
-                                                    </td>
-                                                </tr>
+                                          
+                                            </td>
+
+                                            <td>{{ $e['voucher_type'] }}</td>
+                                            <td>{{ $e['voucher_no'] }}</td>
+
+                                            <td class="text-end">
+                                                {{ $e['debit'] ? number_format($e['debit'], 2) : '' }}
+                                            </td>
+
+                                            <td class="text-end">
+                                                {{ $e['credit'] ? number_format($e['credit'], 2) : '' }}
+                                            </td>
+                                            </tr>
                                             @endforeach
                                         </tbody>
 

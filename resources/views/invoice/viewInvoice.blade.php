@@ -171,10 +171,10 @@
                                                                 <h6 class="mb-0">{{ $item['name'] }}</h6>
                                                             </td>
                                                             <td class="text-center">{{ $item['quantity'] }}</td>
+                                                           <td class="text-center">
+                                                                ₹{{ number_format($item['price'], 2) }}</td>
                                                             <td class="text-center">
-                                                                ₹{{ number_format($item['mrp'], 2) }}</td>
-                                                            <td class="text-center">
-                                                                <b>₹{{ number_format($item['mrp'] * $item['quantity'], 2) }}</b>
+                                                                <b>₹{{ number_format($item['price'] * $item['quantity'], 2) }}</b>
                                                             </td>
                                                         </tr>
                                                     @endforeach
