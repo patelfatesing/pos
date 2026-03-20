@@ -16,8 +16,11 @@ class ShiftCloseMail extends Mailable
     public $pdfPath;
     public $fileName;
     public $departments;
+    public $stockFileName;
+    public $stockPdfPath;
 
-    public function __construct($shift, $summary, $payments, $departments, $fileName, $pdfPath)
+
+    public function __construct($shift, $summary, $payments, $departments, $fileName, $pdfPath, $stockFileName, $stockPdfPath)
     {
         $this->shift = $shift;
         $this->summary = $summary;
@@ -25,14 +28,20 @@ class ShiftCloseMail extends Mailable
         $this->payments = $payments;
         $this->fileName = $fileName;
         $this->departments = $departments;
+        $this->stockFileName = $stockFileName;
+        $this->stockPdfPath = $stockPdfPath;
     }
 
     public function build()
     {
         return $this->subject("Shift Closed - " . $this->shift->shift_no)
-            ->view('emails.shift-close')
+            ->view('emails.shift_close')
             ->attach($this->pdfPath, [
-                'as' => basename($this->pdfPath),
+                'as' => $this->fileName,
+                'mime' => 'application/pdf',
+            ])
+            ->attach($this->stockPdfPath, [
+                'as' => $this->stockFileName,
                 'mime' => 'application/pdf',
             ]);
     }

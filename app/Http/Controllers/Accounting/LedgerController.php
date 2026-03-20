@@ -282,7 +282,7 @@ class LedgerController extends Controller
             ->orderBy('id')
             ->get();
 
-           
+
 
         $rows = [];
         $totalDebit  = 0.0;
@@ -292,7 +292,12 @@ class LedgerController extends Controller
         foreach ($vouchers as $v) {
 
             if ($v['voucher_type'] == 'Purchase') {
-                $editUrl = route('purchase.edit', $v['gen_id']);
+                if ($v['gen_id'] != NULL) {
+                    $editUrl = route('purchase.edit', $v['gen_id']);
+                } else {
+                     $line = $v->lines->where('ledger_id', $ledgerId)->first();
+                    $editUrl = route('accounting.vouchers.edit', $v['id']);
+                }
             } elseif ($v['voucher_type'] == 'Sales') {
                 $editUrl = route('sales.edit-sales', $v['gen_id']);
             } else {

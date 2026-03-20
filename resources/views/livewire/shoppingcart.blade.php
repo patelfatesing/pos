@@ -11,7 +11,7 @@
             <div class="d-flex align-items-center logo-area">
                 <img src="{{ asset('assets/images/logo.png') }}" alt="Logo" class="img-fluid"
                     style="max-height: 40px;" />
-                <h4 class="logo-title m2-2 ml-2">LiquorHub</h4>
+                {{-- <h4 class="logo-title m2-2 ml-2">LiquorHub</h4> --}}
             </div>
 
             <!-- Right Side -->
@@ -268,9 +268,10 @@
                         <div class="row">
                             <div class="col-12 col-md-3">
                                 <div class="position-relative">
-                                    <input type="number" class="form-control rounded-pill pe-3 custom-border"
+                                    <input type="number" id="barcodeInput"
+                                        class="form-control rounded-pill pe-3 custom-border"
                                         placeholder="{{ __('messages.scan_barcode') }}" wire:model.live="search"
-                                        wire:keydown.enter="addToCartBarCode" autofocus>
+                                        wire:keydown.enter="addToCartBarCode" autocomplete="off">
 
                                     <!-- Barcode icon -->
                                     <img class="barcode-search"
@@ -336,7 +337,7 @@
                             </div>
 
                             @if ($this->showOneTimeBlock && auth()->user()->hasRole('cashier'))
-                                <div class="col-12 col-md-3 capture-eve-block">
+                                {{-- <div class="col-12 col-md-3 capture-eve-block">
                                     <div class="position-relative capture-eve">
                                         <div class="form-check d-flex align-items-center gap-2">
                                             <input type="checkbox" class="form-check-input"
@@ -346,13 +347,8 @@
                                                 One Time Transaction
                                             </label>
                                         </div>
-
-                                        {{-- <p class="mt-2">
-                                        Status:
-                                        <strong>{{ $one_time_transaction ? 'Checked' : 'Unchecked' }}</strong>
-                                    </p> --}}
                                     </div>
-                                </div>
+                                </div> --}}
                             @endif
                             @if (auth()->user()->hasRole('warehouse'))
                                 <div class="col-12 col-md-3">
@@ -833,7 +829,7 @@
         <div class="modal-dialog modal-dialog modal-dialog-scrollable modal-md modal-dialog-centered">
             <div class="modal-content shadow-sm rounded-4 border-0">
                 <div class="modal-header custom-modal-header">
-                    <h5 class="modal-title cash-summary-text61" id="cashout">
+                    <h5 class="modal-title cash-summary-text61" id="cashout11">
                         <i class="bi bi-camera-video me-2"></i>{{ __('messages.withdraw_cash_details') }}
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -846,69 +842,77 @@
                                 @csrf
 
                                 <div class="card rounded-2xl cashwithdraw-table">
+                                    @if ($inOutStatus)
+                                        <div class="table-responsive">
+                                            <table class=" table table-bordered product-table">
+                                                <thead class="table-info ">
+                                                    <tr>
+                                                        <th class="main-screen-text25 text-center">
+                                                            {{ __('messages.currency') }}</th>
+                                                        <th class="main-screen-text25 text-center">
+                                                            {{ __('messages.notes') }}</th>
+                                                        <th class="main-screen-text25 text-center">
+                                                            {{ __('messages.amount') }}</th>
 
-                                    <div class="table-responsive">
-                                        <table class=" table table-bordered product-table">
-                                            <thead class="table-info ">
-                                                <tr>
-                                                    <th class="main-screen-text25 text-center">
-                                                        {{ __('messages.currency') }}</th>
-                                                    <th class="main-screen-text25 text-center">
-                                                        {{ __('messages.notes') }}</th>
-                                                    <th class="main-screen-text25 text-center">
-                                                        {{ __('messages.amount') }}</th>
-
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($noteDenominations as $key => $denomination)
-                                                    <tr class="text-center">
-                                                        <td class="" style="width: 28%;">
-                                                            {{ $denomination }} x</td>
-                                                        <td class="" style="width: 40%;">
-                                                            <div
-                                                                class="d-flex align-items-center counter-add-delete-area">
-                                                                <button style="width: 40%;" type="button"
-                                                                    class="btn btn-gray btn-decrease rounded-start"
-                                                                    onclick="updateNote('{{ $key }}_{{ $denomination }}', -1, {{ $denomination }})">−</button>
-                                                                <span
-                                                                    id="display_{{ $key }}_{{ $denomination }}"
-                                                                    class="form-control text-center bg-white "
-                                                                    style="width: 60px;">0</span>
-
-                                                                <button style="width: 40%;"
-                                                                    class="btn btn-gray rounded-end btn-increase"
-                                                                    type="button"
-                                                                    onclick="updateNote('{{ $key }}_{{ $denomination }}', 1, {{ $denomination }})">+</button>
-                                                                <input type="hidden"
-                                                                    name="withcashNotes.{{ $key }}.{{ $denomination }}"
-                                                                    id="withcashnotes_{{ $key }}_{{ $denomination }}"
-                                                                    value="0">
-                                                            </div>
-                                                        </td>
-                                                        <td class=""
-                                                            id="withcashsum_{{ $key }}_{{ $denomination }}">
-                                                            ₹0.00</td>
                                                     </tr>
-                                                @endforeach
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($noteDenominations as $key => $denomination)
+                                                        <tr class="text-center">
+                                                            <td class="" style="width: 28%;">
+                                                                {{ $denomination }} x</td>
+                                                            <td class="" style="width: 40%;">
+                                                                <div
+                                                                    class="d-flex align-items-center counter-add-delete-area">
+                                                                    <button style="width: 40%;" type="button"
+                                                                        class="btn btn-gray btn-decrease rounded-start"
+                                                                        onclick="updateNote('{{ $key }}_{{ $denomination }}', -1, {{ $denomination }})">−</button>
+                                                                    <span
+                                                                        id="display_{{ $key }}_{{ $denomination }}"
+                                                                        class="form-control text-center bg-white "
+                                                                        style="width: 60px;">0</span>
 
-                                                <tr class="border table-success fw-bold">
-                                                    <td colspan="2" class="">
-                                                        <span style="color:#1C5609 " class="fw-bold  fs-6">Total
-                                                            Amount</span>
+                                                                    <button style="width: 40%;"
+                                                                        class="btn btn-gray rounded-end btn-increase"
+                                                                        type="button"
+                                                                        onclick="updateNote('{{ $key }}_{{ $denomination }}', 1, {{ $denomination }})">+</button>
+                                                                    <input type="hidden"
+                                                                        name="withcashNotes.{{ $key }}.{{ $denomination }}"
+                                                                        id="withcashnotes_{{ $key }}_{{ $denomination }}"
+                                                                        value="0">
+                                                                </div>
+                                                            </td>
+                                                            <td class=""
+                                                                id="withcashsum_{{ $key }}_{{ $denomination }}">
+                                                                ₹0.00</td>
+                                                        </tr>
+                                                    @endforeach
 
-                                                    </td>
-                                                    <td class="text-center"> <span class="fw-bold  fs-6"
-                                                            id="totalNoteCashwith" style="color:#1C5609 ">₹0.00</span>
-                                                    </td>
-                                                </tr>
+                                                    <tr class="border table-success fw-bold">
+                                                        <td colspan="2" class="">
+                                                            <span style="color:#1C5609 " class="fw-bold  fs-6">Total
+                                                                Amount</span>
 
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                                        </td>
+                                                        <td class="text-center"> <span class="fw-bold  fs-6"
+                                                                id="totalNoteCashwith"
+                                                                style="color:#1C5609 ">₹0.00</span>
+                                                        </td>
+                                                    </tr>
 
-                                    <input type="hidden" name="amount" id="withamountTotal"
-                                        class="form-control mb-3" readonly required>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <input type="hidden" name="amount" id="withamountTotal"
+                                            class="form-control mb-3" readonly required>
+                                    @else
+                                        <input type="number" name="amount" class="form-control mb-3"
+                                            placeholder="Enter amount" />
+                                        @error('amount')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
+                                    @endif
 
                                     <div class="row">
                                         <div class="col-xs-12 col-sm-6">
@@ -1219,9 +1223,9 @@
                                     </tfoot>
                                 </table>
                             @else
-                                <input type="number" id="cashAmount" step="1"
-                                    wire:model.debounce.500ms="cash" class="form-control rounded-pill" min="0"
-                                    max="">
+                                <input type="number" name="amount" class="form-control"
+                                    placeholder="Enter opening amount" />
+
                             @endif
                             <!-- ✅ Start with 0 checkbox -->
                             <div class="form-check mt-1">
@@ -2222,33 +2226,66 @@
 
     });
 
+    let barcodeFocusTimeout;
 
-    // Before reload, set a flag to restore fullscreen
-    // function reloadWithFullscreen() {
-    //     localStorage.setItem('restoreFullscreen', 'true');
-    //     location.reload();
-    // }
+    function focusBarcode() {
+        const input = document.getElementById('barcodeInput');
+        if (input) {
+            input.focus();
+            input.select();
+        }
+    }
 
-    // After reload, check flag and request fullscreen
-    // document.addEventListener("DOMContentLoaded", function() {
-    //     console.log(localStorage.getItem('restoreFullscreen'),
-    //         "==localStorage.getItem('restoreFullscreen')===");
-    //     if (localStorage.getItem('restoreFullscreen') === true) {
-    //         localStorage.removeItem('restoreFullscreen');
+    // ✅ Page load
+    window.addEventListener('load', () => {
+        setTimeout(focusBarcode, 200);
+    });
 
-    //         document.addEventListener('fullscreenchange', () => {
-    //             alert("dfg");
-    //             if (!document.fullscreenElement) {
-    //                 // Try to re-enter fullscreen after print, using a small timeout
-    //                 setTimeout(() => {
-    //                     document.documentElement.requestFullscreen().catch(err => {
-    //                         console.log('Fullscreen request failed:', err);
-    //                     });
-    //                 }, 500); // Delay to allow print dialog to close
-    //             }
-    //         });
-    //     }
-    // });
+    // ✅ Livewire support
+    document.addEventListener('livewire:init', () => {
+
+        Livewire.on('focus-barcode', () => {
+            setTimeout(focusBarcode, 100);
+        });
+
+        Livewire.hook('message.processed', () => {
+            focusBarcode();
+        });
+    });
+
+    // ✅ When user clicks ANYWHERE
+    document.addEventListener('click', function(e) {
+
+        const barcode = document.getElementById('barcodeInput');
+
+        // If clicked on barcode → do nothing
+        if (e.target === barcode) return;
+
+        // If clicked on input/textarea/select → allow temporary typing
+        if (e.target.tagName === 'INPUT' ||
+            e.target.tagName === 'TEXTAREA' ||
+            e.target.tagName === 'SELECT') {
+
+            clearTimeout(barcodeFocusTimeout);
+
+            // ⏳ After 3 seconds → return focus to barcode
+            barcodeFocusTimeout = setTimeout(() => {
+                focusBarcode();
+            }, 3000);
+
+        } else {
+            // Clicked anywhere else → immediately focus barcode
+            focusBarcode();
+        }
+    });
+
+    // ✅ If user stops typing anywhere → return focus
+    document.addEventListener('keydown', function() {
+        clearTimeout(barcodeFocusTimeout);
+        barcodeFocusTimeout = setTimeout(() => {
+            focusBarcode();
+        }, 3000);
+    });
 
     window.addEventListener('open-cash-modal', event => {
         const modal = new bootstrap.Modal(document.getElementById('cashModal'));
@@ -2893,6 +2930,27 @@
                 // location.reload(); // reload after OK click or auto close
             }
         });
+    });
+
+    window.addEventListener('loader-start', () => {
+        const loader = document.getElementById('custom-loader');
+        if (loader) {
+            loader.classList.remove('d-none'); // remove Bootstrap's hidden class
+            loader.style.display = 'flex'; // force visible
+            console.log('Loader shown');
+        }
+    });
+
+    window.addEventListener('loader-stop', () => {
+        setTimeout(function() {
+            // $('.toast').fadeOut('slow');
+        }, 5000); // 5 seconds before fade-out
+        const loader = document.getElementById('custom-loader');
+        if (loader) {
+            loader.classList.add('d-none'); // optional, add back class
+            loader.style.display = 'none'; // hide completely
+            console.log('Loader hidden');
+        }
     });
 
     window.addEventListener('close-shift-error', event => {

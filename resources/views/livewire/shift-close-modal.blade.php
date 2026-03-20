@@ -69,7 +69,7 @@
                                                             Remove Hold
                                                         </button>
                                                     @endif
-                                                   
+
                                                 </div>
                                                 <div class="col-md-6 col-lg-12 col-xl-6">
                                                     <div class="row status-time-area">
@@ -416,42 +416,32 @@
                                 </div>
 
                                 <form wire:submit.prevent="save" id="stockPhysicalForm">
-
                                     @if (!empty($this->addstockStatus))
-
                                         <div class="table-responsive">
-
-
-
                                             <table class="table table-bordered physical-table mb-0">
-
                                                 <thead class="table-info">
-
                                                     <tr>
-
                                                         <th>Product Name</th>
-
-                                                        <th>Qty</th>
-
+                                                        <th>Opening </th>
+                                                        <th>Sales </th>
+                                                        <th>Physical</th>
                                                     </tr>
-
                                                 </thead>
 
                                                 <tbody>
-
                                                     <input type="hidden" wire:model="shft_id">
-
                                                     @foreach ($this->addstockStatus as $index => $product)
                                                         <tr>
-
                                                             <td class="border">
-
                                                                 {{ $product['product']['name'] }}
-
                                                             </td>
-
                                                             <td class="border">
-
+                                                                {{ $product['opening_stock'] }}
+                                                            </td>
+                                                            <td class="border">
+                                                                {{ $product['sold_stock'] }}
+                                                            </td>
+                                                            <td class="border">
                                                                 <input type="number"
                                                                     wire:model="products.{{ $product['product_id'] }}.qty"
                                                                     class="form-control rounded-pill">
@@ -460,44 +450,71 @@
                                                                     <span
                                                                         class="text-danger small">{{ $message }}</span>
                                                                 @enderror
-
                                                             </td>
-
                                                         </tr>
                                                     @endforeach
-
                                                 </tbody>
-
                                             </table>
+                                        </div>
+                                        <div class="row mt-2">
 
+                                            <!-- CASH -->
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <input type="number" wire:model.live="cash"
+                                                        class="form-control rounded-pill @error('cash') is-invalid @enderror"
+                                                        min="0" step="1"
+                                                        placeholder="Enter cash amount">
 
+                                                    @error('cash')
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                            <!-- UPI -->
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <input type="number" wire:model.live="upi"
+                                                        class="form-control rounded-pill @error('upi') is-invalid @enderror"
+                                                        min="0" step="1" placeholder="Enter UPI amount">
+
+                                                    @error('upi')
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                            <!-- ROUNDED -->
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <input type="number" wire:model.live="roundedAmount"
+                                                        class="form-control rounded-pill @error('roundedAmount') is-invalid @enderror"
+                                                        min="0" step="1"
+                                                        placeholder="Enter rounded amount">
+
+                                                    @error('roundedAmount')
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                    @enderror
+                                                </div>
+                                            </div>
 
                                         </div>
                                     @else
                                         <div class="d-flex justify-content-center mt-1">
-
                                             <div class="form-check d-flex align-items-center gap-2">
-
                                                 <input class="form-check-input start-zero-checkbox"
                                                     wire:model="no_sale_product" type="checkbox" id="no_sale_product"
                                                     name="no_sale_product" value="1">
-
                                                 <label class="form-check-label mb-0">
-
                                                     Save with no sale product
-
                                                 </label>
-
                                                 @error('no_sale_product')
                                                     <span class="text-danger small">{{ $message }}</span>
                                                 @enderror
-
                                             </div>
-
                                         </div>
-
                                     @endif
-
                                 </form>
                             </div>
                         </div>
