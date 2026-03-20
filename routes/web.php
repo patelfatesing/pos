@@ -446,6 +446,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/shift-manage/view/{id}/{shift_id}', [ShiftManageController::class, 'view'])->name('shift-manage.view');
     Route::get('/shift-manage/stock-details/{id}', [ShiftManageController::class, 'stockDetails'])->name('shift-manage.stock-details');
     Route::get('/shift-manage/print-shift/{id}', [ShiftManageController::class, 'printShift'])->name('purchase.print-shift');
+    Route::get('/stock-summary-pdf/{id}', [ShiftManageController::class, 'stockDetailsPdf'])->name('shift-manage.stock-details-pdf');
 
     Route::post('/holidays', [HolidayController::class, 'store'])
         ->name('holidays.store');
@@ -541,7 +542,7 @@ Route::middleware('auth')->group(function () {
         Route::get('monthly/{ledger}', [CashBankReportController::class, 'ledgerMonthly'])
             ->name('reports.monthly');
 
-        Route::get('/group-summary/{group_id}', [Report2Controller::class,'groupSummary'])
+        Route::get('/group-summary/{group_id}', [Report2Controller::class, 'groupSummary'])
             ->name('reports.group.summary');
     });
 

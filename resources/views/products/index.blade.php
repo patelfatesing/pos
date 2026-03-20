@@ -231,12 +231,12 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
             });
 
             var table = $('#products_table').DataTable({
-                processing: true,
-                serverSide: true,
+                pageLength: 10,
                 responsive: true,
+                processing: true,
                 ordering: true,
                 bLengthChange: true,
-                pageLength: 10,
+                serverSide: true,
                 language: {
                     search: "",
                     lengthMenu: "_MENU_"
@@ -249,13 +249,13 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                     }
                 },
                 dom: "<'row dt_height'\
-                            <'col-md-12 d-flex justify-content-end align-items-center'B f l>\
-                                >\
-                                t\
-                                <'row mt-2'\
-                                    <'col-md-6'i>\
-                                    <'col-md-6 d-flex justify-content-end'p>\
-                                >",
+                                <'col-md-12 d-flex justify-content-end align-items-center'B f l>\
+                                    >\
+                                    t\
+                                    <'row mt-2'\
+                                        <'col-md-6'i>\
+                                        <'col-md-6 d-flex justify-content-end'p>\
+                                    >",
                 columns: [{
                         data: null,
                         name: 'sr_no',
@@ -340,8 +340,11 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
 
                 order: [
                     [7, 'desc']
+                ], // Order by updated_at
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
                 ],
-
 
                 buttons: [{
                     extend: 'collection',

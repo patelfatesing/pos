@@ -76,13 +76,13 @@
                                         placeholder="Qty">
                                 </div>
                                 <div class="col-md-1">
-                                     <button type="button" class="btn btn-primary mr-2" id="add-product-btn">
+                                    <button type="button" class="btn btn-primary mr-2" id="add-product-btn">
                                         Add Item
                                     </button>
                                 </div>
                                 <div class="col-md-4 d-flex">
                                 </div>
-                                    <div class="col-md-2 gap-2">
+                                <div class="col-md-2 gap-2">
                                     @if ($branch_data->id == 1)
                                         <select id="party-id" class="form-control" name="party_user_id">
                                             <option value="">Select Party Customer</option>
@@ -248,12 +248,15 @@
                                         class="form-control qty-input"
                                         value="${qty}" 
                                         data-price="${price}" 
-                                        data-discount="${discount}">
+                                        data-sell_price="${price}" 
+                                        data-discount="${discount}" data-mrp="${mrp}">
                                 </td>
                                 <td>
                                     <div class="price-stack">
+                                        
+                                        
                                         <span class="discount">₹${discount}</span>
-                                        <span class="mrp">₹${price}</span>
+                                        <span class="sell_price">₹${price}</span>
                                     </div>
                                 </td>
                                 <td class="item-total"><b>₹${(price * qty)}</b></td>
@@ -281,16 +284,17 @@
             let totalSellPrice = 0;
             let discountTotal = 0;
 
+            // Initially hide both
+            $(".credit-section").hide();
+            $(".commission-section").hide();
+
+            // Show based on branch
             if (storeId == 1) {
                 $('#party-id').show();
                 $('#commission-id').hide();
-                $(".credit-section").hide();
-                $(".commission-section").hide();
             } else {
                 $('#party-id').hide();
                 $('#commission-id').show();
-                $(".credit-section").hide();
-                $(".commission-section").show();
             }
 
             // Update the totals dynamically
@@ -299,39 +303,54 @@
                 grandTotal = 0;
                 totalSellPrice = 0;
                 discountTotal = 0;
-                // Loop through each product row to calculate the totals
+
+                const partyId = $('#party-id').val();
+                const commissionId = $('#commission-id').val();
+
                 $('#invoice-items-body tr').each(function() {
+
                     const qty = parseFloat($(this).find('.qty-input').val()) || 0;
+
+                    const mrp = parseFloat($(this).find('.qty-input').data('mrp')) || 0;
+                    const sell_price = parseFloat($(this).find('.qty-input').data('sell_price')) || 0;
                     const price = parseFloat($(this).find('.qty-input').data('price')) || 0;
-                    const discount = parseFloat($(this).find('.qty-input').data('discount')) || 0;
+                    const discount = parseFloat($(this).find('.qty-input').data('discount')) || price;
 
-                    totalSellPrice += price * qty; // Calculate total sell price
-                    const rowTotal = qty * price; // Calculate row total
-                    let dis = qty * (price - discount); // Calculate row discount
+                    let finalPrice = price; // default
 
-                    $(this).find('.item-total').html('<b>₹' + (rowTotal - dis) +
-                        '</b>'); // Update row total
-
-                    var selectedCommissionUserId = $('#commission-id').val();
-
-                    if (storeId != 1 && selectedCommissionUserId == "") {
-                        grandTotal += rowTotal; // Add row total to grand total
-                        discountTotal = 0; // Add row discount to discount total
-                    } else {
-                        grandTotal += rowTotal - dis; // Add row total minus discount to grand total
-                        discountTotal += dis; // Add row discount to discount total
+                    // ✅ APPLY LOGIC
+                    if (partyId || commissionId) {
+                        finalPrice = discount;
                     }
 
-                    $('#cash-amount').val(grandTotal);
+                    // ✅ CALCULATIONS
+                    const rowTotal = finalPrice * qty;
+                    const subtotal = sell_price * qty;
+                    const disAmt = (sell_price - discount) * qty;
+
+                    // ✅ UPDATE ROW TOTAL
+                    $(this).find('.item-total').html('<b>₹' + rowTotal + '</b>');
+
+                    // ✅ TOTALS
+                    totalSellPrice += subtotal;
+                    discountTotal += disAmt;
+                    grandTotal += rowTotal;
                 });
 
-                // Update the displayed totals
-                $('#total').text(totalSellPrice);
+                $('#total').text(grandTotal);
                 $('#grand-total').text(grandTotal);
-                $('#discount-total').text(discountTotal);
+                
+                if (partyId || commissionId) {
+                    $('#discount-total').text('₹' + discountTotal);
+                } else {
+                    $('#discount-total').text('₹0');
+                }
+
                 $('#total_discount').val(discountTotal);
                 $('#gr_total').val(totalSellPrice);
                 $('#sub_total').val(grandTotal);
+
+                $('#cash-amount').val(grandTotal);
             }
 
             // Add product to the invoice
@@ -392,15 +411,17 @@
                                                 <input type="hidden" name="items[${itemIndex}][product_id]" value="${productId}">
                                             </td>
                                             <td>
-                                                <input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" data-price="${sell_price}" data-discount="${discount}">
+                                                <input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" data-price="${sell_price}" data-sell_price="${sell_price}" data-discount="${discount}" data-mrp="${mrp}">
                                                 <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
                                                 <input type="hidden" name="items[${itemIndex}][sell_price]" value="${sell_price}">
                                                 <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
                                             </td>
                                             <td>
                                                 <div class="price-stack">
+                                                     
                                                     <span class="discount">₹${discount}</span>
-                                                    <span class="mrp">₹${sell_price}</span>
+                                                    <span class="sell_price">₹${sell_price}</span>
+                                                   
                                                 </div>
                                             </td>
                                             <td class="item-total"><b>₹${(sell_price * qty)}</b></td>
@@ -425,7 +446,7 @@
                                         <input type="hidden" name="items[${itemIndex}][product_id]" value="${productId}">
                                     </td>
                                     <td>
-                                        <input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" data-price="${sell_price}" data-discount="${discount}">
+                                        <input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" data-price="${sell_price}" data-sell_price="${sell_price}" data-discount="${discount}" data-mrp="${mrp}">
                                         <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
                                         <input type="hidden" name="items[${itemIndex}][sell_price]" value="${sell_price}">
                                         <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
@@ -433,7 +454,9 @@
                                     <td>
                                         <div class="price-stack">
                                             <span class="discount">${discount}</span>
-                                            <span class="mrp">₹${sell_price}</span>
+                                            <span class="sell_price">₹${sell_price}</span>
+                                            
+                                            
                                         </div>
                                     </td>
                                     <td class="item-total"><b>₹${(sell_price * qty)}</b></td>
@@ -456,14 +479,14 @@
                                         <input type="hidden" name="items[${itemIndex}][product_id]" value="${productId}">
                                     </td>
                                     <td>
-                                        <input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" data-price="${sell_price}" data-discount="${discount}">
+                                        <input type="number" name="items[${itemIndex}][quantity]" class="form-control qty-input" value="${qty}" data-price="${sell_price}" data-sell_price="${sell_price}" data-discount="${discount}" data-mrp="${mrp}">
                                         <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
                                         <input type="hidden" name="items[${itemIndex}][sell_price]" value="${sell_price}">
                                         <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
                                     </td>
                                     <td>
                                         <div class="price-stack">
-                                            <span class="discount">${sell_price}</span>
+                                            <span class="sell_price">${sell_price}</span>
                                         </div>
                                     </td>
                                     <td class="item-total"><b>₹${(sell_price * qty)}</b></td>
@@ -593,104 +616,111 @@
 
             // Listen for changes on partyUser select
             $('#party-id').on('change', function() {
-                const partyUserId = $('#party-id').val();
+
+                const partyUserId = $(this).val();
+
+                // Reset commission
+                $('#commission-id').val('');
+
                 if (!partyUserId) {
                     $(".credit-section").hide();
+                    updateProductDiscounts(null, null);
+
                     return;
                 }
 
-                $('#commission-id').val(''); // Reset commission user selection
+                // ✅ SHOW ONLY CREDIT
                 $(".credit-section").show();
-                if (partyUserId) {
-                    updateProductDiscounts(partyUserId); // Update all discounts for the selected partyUser
-                }
+                $(".commission-section").hide();
 
-                if (partyUserId) {
+                // Fetch credit
+                $.get('{{ route('partyUserCredit', ':id') }}'.replace(':id', partyUserId), function(res) {
+                    $('#credit-limit').text(res.credit);
+                    $('#left_credit').text(res.left_credit);
+                    $('#left_credit_id').val(res.left_credit);
+                    $('#creditpay-input').val('');
+                });
 
-                    $.get('{{ route('partyUserCredit', ':partyUserId') }}'.replace(':partyUserId',
-                            partyUserId),
-                        function(response) {
-
-                            console.log('Party User Credit Response:', response);
-                            $('#credit-limit').text(response.credit);
-                            $('#left_credit').text(response.left_credit);
-                            $('#creditpay-input').val('');
-                            $('#left_credit_id').val(response.left_credit);
-                        });
-
-                }
+                // ✅ Apply discount
+                updateProductDiscounts(partyUserId, null);
             });
 
             // Listen for changes on commissionUser select
             $('#commission-id').on('change', function() {
-                const commissionUserId = $('#commission-id').val();
-                if (commissionUserId) {
-                    updateProductDiscounts(); // Update all discounts for the selected commissionUser
+
+                const commissionUserId = $(this).val();
+
+                // Reset party
+                $('#party-id').val('');
+
+                if (!commissionUserId) {
+                    $(".commission-section").hide();
+                    return;
                 }
+
+                // ✅ SHOW ONLY COMMISSION
+                $(".commission-section").show();
+                $(".credit-section").hide();
+
+                // ✅ Apply discount
+                updateProductDiscounts(null, commissionUserId);
             });
 
             // Function to update product discounts when partyUser or commissionUser is selected
-            function updateProductDiscounts(partyUserId = null) {
-                $('#invoice-items-body tr').each(function() {
-                    const productId = $(this).find('input[name*="[product_id]"]').val();
-                    const qty = $(this).find('.qty-input').val();
-                    const price = parseFloat($(this).find('.qty-input').data(
-                        'price')); // Get the current price
-                    const discount = parseFloat($(this).find('.qty-input').data(
-                        'discount')); // Get the current price
-                    const commissionUserId = $('#commission-id').val(); // Get the selected commission user
+            function updateProductDiscounts(partyUserId = null, commissionUserId = null) {
 
-                    console.log('Updating discounts for product:', productId, 'Qty:', qty, 'Price:', price);
+                $('#invoice-items-body tr').each(function() {
+
+                    const row = $(this);
+                    const productId = row.find('input[name*="[product_id]"]').val();
+                    const qty = parseFloat(row.find('.qty-input').val()) || 1;
+                    const mrp = parseFloat(row.find('.qty-input').data('mrp')) || 0;
+                    const price = parseFloat(row.find('.qty-input').data('price')) || 0;
+
 
                     if (partyUserId) {
-                        // Fetch the discount for the selected partyUser
+
+                        // 🔥 PARTY DISCOUNT (API)
                         $.get(`{{ url('/party-customer-discount') }}/${partyUserId}/${productId}`,
-                            function(response) {
-                                let discountPrice =
-                                    price; // Default to product price if no discount is available
-                                if (response.discount) {
-                                    discountPrice = response.discount;
-                                }
+                            function(res) {
 
-                                // Update the discount price and total in the row
-                                $(this).find('.qty-input').data('discount', discountPrice);
-                                $(this).find('.item-total').html('<b>₹' + (discountPrice * qty).toFixed(
-                                        2) +
-                                    '</b>');
+                                let discountPrice = res.discount ? parseFloat(res.discount) : price;
 
-                                // Update the price-stack to reflect the updated discount price
-                                $(this).find('.price-stack .discount').text(`₹${discountPrice}`);
-                                let mrpElement = $(this).find('.price-stack .mrp');
+                                row.find('.qty-input').data('discount', discountPrice);
 
-                                // If MRP is not set, append it
-                                if (mrpElement.length === 0) {
-                                    $(this).find('.price-stack').append(
-                                        `<span class="mrp">₹${price}</span>`);
-                                } else {
-                                    mrpElement.text(`₹${price}`);
-                                }
+                                row.find('.price-stack').html(`
+                                    <span class="discount">₹${discountPrice}</span>
+                                    <span class="mrp">₹${price}</span>
+                                `);
 
-                                updateTotals(); // Recalculate totals
-                            }.bind(this));
+                                updateTotals();
+
+                            });
+
                     } else if (commissionUserId) {
-                        // If commissionUser is selected, apply discount_price from product table
-                        // const discountPrice = price; // Use the original price for commission user
 
-                        $(this).find('.qty-input').data('discount', discount);
+                        // 🔥 COMMISSION DISCOUNT (product table)
+                        const discount = parseFloat(row.find('.qty-input').data('discount')) || price;
 
-                        // Update the price-stack to reflect the price for commission user
-                        $(this).find('.price-stack .discount').text(`₹${discount}`);
-                        let mrpElement = $(this).find('.price-stack .mrp');
+                        row.find('.qty-input').data('discount', discount);
 
-                        // If MRP is not set, append it
-                        if (mrpElement.length === 0) {
-                            $(this).find('.price-stack').append(
-                                `<span class="mrp">₹${price}</span>`);
-                        } else {
-                            mrpElement.text(`₹${price}`);
-                        }
+                        row.find('.price-stack').html(`
+                                <span class="discount">₹${discount}</span>
+                                <span class="sell_price">₹${mrp}</span>
+                            `);
 
-                        updateTotals(); // Recalculate totals
+                        updateTotals();
+
+                    } else {
+
+                        // 🔥 NORMAL (NO DISCOUNT)
+                        row.find('.qty-input').data('discount', price);
+
+                        row.find('.price-stack').html(`
+                            <span class="discount">₹${price}</span>
+                        `);
+
+                        updateTotals();
                     }
                 });
             }

@@ -24,11 +24,16 @@
                     <div class="modal-body">
                         <!-- Table -->
                         <div class="table-responsive">
-                            @if ($inOutStatus)
-                                {{ __('messages.tendered_amount') }}
-                                    <span>Cash</span>
-                                    <input type="text" id="total" value=""
-                                        class="d-none" />
+                            @if (!$inOutStatus)
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <div class="row g-2 align-items-center">
+                                            <div class="col-md-8">
+                                                <span> Add Amount</span>
+                                                <input type="number" wire:model.live="amount" class="form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
                                 @else
                                     <table class=" table table-bordered ">
                                         <thead class="table-dark">
@@ -101,14 +106,17 @@
                                 <div class="row align-items-center px-2 py-3 rounded">
                                     <div class="col-md-7 d-flex align-items-center gap-3">
                                         <label class="fw-bold mb-0 text-secondary">Transaction Type:</label>
-                                        <div class="form-check form-check-inline mb-0">
-                                            <input class="form-check-input custom-radio" type="radio"
-                                                wire:model="transactionType" wire:click="setTransactionType('change')"
-                                                name="transactionType" id="change" value="change">
-                                            <label class="form-check-label text-secondary" for="change">
-                                                <i class="bi bi-arrow-left-right me-1"></i> Change
-                                            </label>
-                                        </div>
+                                        @if ($inOutStatus)
+                                            <div class="form-check form-check-inline mb-0">
+                                                <input class="form-check-input custom-radio" type="radio"
+                                                    wire:model="transactionType"
+                                                    wire:click="setTransactionType('change')" name="transactionType"
+                                                    id="change" value="change">
+                                                <label class="form-check-label text-secondary" for="change">
+                                                    <i class="bi bi-arrow-left-right me-1"></i> Change
+                                                </label>
+                                            </div>
+                                        @endif
                                         <div class="form-check form-check-inline mb-0">
                                             <input class="form-check-input custom-radio" type="radio"
                                                 wire:model="transactionType" wire:click="setTransactionType('add')"

@@ -75,6 +75,7 @@ public function index(Request $request)
         if (!$firstLine) continue;
 
         $entries->push([
+            'id' => $v->id,
             'ledger_id'    => $v->id,
             'date'         => $v->voucher_date,
             'particulars'  => $firstLine->ledger->name ?? '---',

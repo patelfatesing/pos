@@ -7,7 +7,7 @@ use App\Models\UserShift;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use App\Models\DailyProductStock;
-
+use App\Models\Branch;
 
 class CashInHandController extends Controller
 {
@@ -15,7 +15,6 @@ class CashInHandController extends Controller
     // app/Http/Controllers/CashInHandController.php
     public function store(Request $request)
     {
-
         $request->validate([
             'startZero' => 'nullable|boolean',                  // checkbox (1 when checked)
             'amount'    => 'exclude_if:startZero,1|required|numeric|min:1',
@@ -27,6 +26,10 @@ class CashInHandController extends Controller
         if (empty($branch_id)) {
             return redirect('/login');
         }
+        
+        $store = Branch::select('in_out_enable', 'one_time_sales')->findOrFail($branch_id);
+        $inOutStatus = $store->in_out_enable;
+
         $cashNotes = [];
         $total = 0;
        
@@ -51,14 +54,15 @@ class CashInHandController extends Controller
             }
         }
 
-        $branch_id = (!empty(auth()->user()->userinfo->branch->id))
-            ? auth()->user()->userinfo->branch->id
-            : "";
-
         $start = date('Y-m-d H:i:s');
         $end   = date('Y-m-d') . " 23:59:15";
 
         $cashNotes = json_encode($cashNotes);
+
+        $total = 0;
+        if(!$request->startZero){
+          $total = $request->amount;
+        }
 
         // 💾 Save cash breakdown
         $cashBreakdown = \App\Models\CashBreakdown::create([
@@ -66,8 +70,9 @@ class CashInHandController extends Controller
             'branch_id' => $branch_id,
             'type' => "cashinhand",
             'denominations' => $cashNotes,
-            'total' => $request->amount,
+            'total' => $total,
         ]);
+
         $datePart = now()->format('dmy'); // e.g., 1106 for 11 June
 
         $lastShift = UserShift::where([
@@ -96,7 +101,7 @@ class CashInHandController extends Controller
                 'start_time' => $start,
                 'end_time' => $end,
                 'shift_no' => $shiftNo,
-                'opening_cash' => $request->amount,
+                'opening_cash' => $total,
                 'cash_break_id' => $cashBreakdown->id,
             ]
         );
@@ -140,4 +145,5 @@ class CashInHandController extends Controller
         //return redirect()->route('items.cart')->with('notification-sucess', 'Cash in hand saved.');
         return redirect()->back()->with('notification-sucess', 'Cash in hand saved.');
     }
+    
 }

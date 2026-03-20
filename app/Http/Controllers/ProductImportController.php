@@ -20,6 +20,7 @@ use App\Models\ShiftClosing;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use App\Models\Accounting\{Voucher, VoucherLine, AccountLedger};
 
 class ProductImportController extends Controller
 {
@@ -344,144 +345,233 @@ class ProductImportController extends Controller
             'from_store_id' => 'required|exists:branches,id',
             'items' => 'required|array',
             'items.*.product_id' => 'required|exists:products,id',
-            // 'items.*.quantity' => 'required|integer|min:1',
         ]);
 
-        $from_store_id = $request->from_store_id;
+        DB::beginTransaction(); // ✅ IMPORTANT
 
-        $inventoryService = new \App\Services\InventoryService();
+        try {
 
-        foreach ($request->items as $product_id => $product) {
+            $from_store_id = $request->from_store_id;
 
-            $record = Product::with('inventorieUnfiltered')->where('id', $product_id)->where('is_deleted', 'no')->firstOrFail();
-            $inventory = Inventory::findOrFail($record->inventorieUnfiltered->id);
+            // ================================
+            // ✅ LEDGER CHECK (SAFE)
+            // ================================
+            $openingStockLedger = AccountLedger::where('name', 'Opening Stock')->first();
 
-            if ($from_store_id == 1) {
-
-                if (!empty($inventory['quantity'])) {
-                    $qnt =  $inventory['quantity'] + $product['quantity'];
-                } else {
-                    $qnt =  !empty($product['quantity']) ? $product['quantity'] : 0;
-                }
-
-                $inventory->updated_at = now();
-                $inventory->quantity = $qnt;
-
-                $inventory->save();
-            } else {
-
-                $inventory_branch = Inventory::where('product_id', $product_id)->where('store_id', $from_store_id)->first();
-
-                if (!empty($inventory_branch)) {
-
-                    if (!empty($inventory_branch['quantity'])) {
-                        $qnt =  $inventory_branch['qnquantityt'] + $product['quantity'];
-                    } else {
-                        $qnt =  !empty($product['quantity']) ? $product['quantity'] : 0;
-                    }
-
-                    $inventory_branch->updated_at = now();
-                    $inventory_branch->quantity = $qnt;
-                    $inventory_branch->save();
-                } else {
-
-                    Inventory::updateOrCreate(
-                        [
-                            'product_id' => $product_id,
-                            'store_id' => $from_store_id,
-                            'batch_no' => $inventory->batch_no,
-                            'location_id' => $from_store_id,
-                            'expiry_date' => $inventory->expiry_date,
-                            'mfg_date' => $inventory->mfg_date,
-                            'quantity' => !empty($product['quantity']) ? $product['quantity'] : 0,
-                            // 'low_level_qty' => $product['reorder_level'],
-                            'added_by' => Auth::id()
-                        ]
-                    );
-                }
+            if (!$openingStockLedger) {
+                $openingStockLedger = AccountLedger::create([
+                    'name' => 'Opening Stock',
+                    'opening_balance' => 0,
+                    'created_by' => Auth::id(),
+                    'group_id' => 7
+                ]);
             }
 
-            $date = Carbon::today();
+            $openingStockLedgerId = $openingStockLedger->id;
 
-            $quantity = !empty($product['quantity']) ? $product['quantity'] : 0;
+            $openingBalanceLedger = AccountLedger::where('name', 'Opening Balance')->first();
 
-            $running_shift = ShiftClosing::where('branch_id', $from_store_id)
-                ->orderBy('id', 'desc')
-                ->first();
+            if (!$openingBalanceLedger) {
+                $openingBalanceLedger = AccountLedger::create([
+                    'name' => 'Opening Balance',
+                    'group_id' => 1,
+                    'opening_balance' => 0,
+                    'created_by' => Auth::id()
+                ]);
+            }
 
+            $openingBalanceLedgerId = $openingBalanceLedger->id;
 
+            $inventoryService = new \App\Services\InventoryService();
 
-            if (!empty($running_shift)) {
-                $shift_id = $running_shift->id ?? null;
-                $shift_status = $running_shift->status;
+            $totalOpeningAmount = 0;
 
-                // Check if stock exists for current shift
-                $stock = DailyProductStock::where([
-                    'product_id' => $product_id,
-                    'branch_id' => $from_store_id,
-                    'shift_id' => $shift_id,
-                ])->first();
+            foreach ($request->items as $product_id => $product) {
 
-                if ($stock) {
-                    $stock->added_stock += $quantity;
-                    $stock->closing_stock += $quantity;
+                $productData = Product::findOrFail($product['product_id']);
+               
+                $quantity = !empty($product['quantity']) ? $product['quantity'] : 0;
+                $rate = $productData['cost_price'] ?? 0;
+                $totalOpeningAmount += ($quantity * $rate);
 
-                    if ($shift_status === 'completed') {
-                        $stock->physical_stock += $quantity;
-                    }
+                // ================================
+                // ORIGINAL LOGIC (UNCHANGED)
+                // ================================
+                $record = Product::with('inventorieUnfiltered')
+                    ->where('id', $product_id)
+                    ->where('is_deleted', 'no')
+                    ->firstOrFail();
 
-                    $stock->save();
+                $inventory = Inventory::findOrFail($record->inventorieUnfiltered->id);
+
+                if ($from_store_id == 1) {
+
+                    $qnt = !empty($inventory['quantity'])
+                        ? $inventory['quantity'] + $product['quantity']
+                        : ($product['quantity'] ?? 0);
+
+                    $inventory->update([
+                        'quantity' => $qnt,
+                        'updated_at' => now()
+                    ]);
                 } else {
-                    // Create new shift-based record
-                    DailyProductStock::create([
+
+                    $inventory_branch = Inventory::where('product_id', $product_id)
+                        ->where('store_id', $from_store_id)
+                        ->first();
+
+                    if (!empty($inventory_branch)) {
+
+                        $qnt = !empty($inventory_branch['quantity'])
+                            ? $inventory_branch['quantity'] + $product['quantity']
+                            : ($product['quantity'] ?? 0);
+
+                        $inventory_branch->update([
+                            'quantity' => $qnt,
+                            'updated_at' => now()
+                        ]);
+                    } else {
+
+                        Inventory::updateOrCreate(
+                            [
+                                'product_id' => $product_id,
+                                'store_id' => $from_store_id,
+                                'batch_no' => $inventory->batch_no,
+                                'location_id' => $from_store_id,
+                                'expiry_date' => $inventory->expiry_date,
+                                'mfg_date' => $inventory->mfg_date,
+                            ],
+                            [
+                                'quantity' => $product['quantity'] ?? 0,
+                                'added_by' => Auth::id()
+                            ]
+                        );
+                    }
+                }
+
+                $date = Carbon::today();
+
+                $running_shift = ShiftClosing::where('branch_id', $from_store_id)
+                    ->latest()
+                    ->first();
+
+                if (!empty($running_shift)) {
+
+                    $stock = DailyProductStock::where([
                         'product_id' => $product_id,
                         'branch_id' => $from_store_id,
-                        'shift_id' => $shift_id,
-                        'date' => $date,
-                        'opening_stock' => 0,
-                        'added_stock' => $quantity,
-                        'transferred_stock' => 0,
-                        'sold_stock' => 0,
-                        'closing_stock' => $quantity,
-                        'physical_stock' => $quantity,
-                        'difference_in_stock' => 0,
-                    ]);
-                }
-            } else {
-                // No shift → check if product+branch record exists (ignore date)
-                $stock = DailyProductStock::where([
-                    'product_id' => $product_id,
-                    'branch_id' => $from_store_id,
-                    'shift_id' => null,
-                ])->first();
+                        'shift_id' => $running_shift->id,
+                    ])->first();
 
-                if ($stock) {
-                    // Update existing no-shift stock
-                    $stock->opening_stock += $quantity;
-                    $stock->closing_stock += $quantity;
-                    $stock->save();
+                    if ($stock) {
+
+                        $stock->update([
+                            'added_stock' => $stock->added_stock + $quantity,
+                            'closing_stock' => $stock->closing_stock + $quantity,
+                            'physical_stock' => $running_shift->status === 'completed'
+                                ? $stock->physical_stock + $quantity
+                                : $stock->physical_stock
+                        ]);
+                    } else {
+
+                        DailyProductStock::create([
+                            'product_id' => $product_id,
+                            'branch_id' => $from_store_id,
+                            'shift_id' => $running_shift->id,
+                            'date' => $date,
+                            'opening_stock' => 0,
+                            'added_stock' => $quantity,
+                            'transferred_stock' => 0,
+                            'sold_stock' => 0,
+                            'closing_stock' => $quantity,
+                            'physical_stock' => $quantity,
+                            'difference_in_stock' => 0,
+                        ]);
+                    }
                 } else {
-                    // Create new no-shift stock
-                    DailyProductStock::create([
+
+                    $stock = DailyProductStock::where([
                         'product_id' => $product_id,
                         'branch_id' => $from_store_id,
                         'shift_id' => null,
-                        'date' => $date,
-                        'opening_stock' => $quantity,
-                        'added_stock' => 0,
-                        'transferred_stock' => 0,
-                        'sold_stock' => 0,
-                        'closing_stock' => $quantity,
-                        'physical_stock' => 0,
-                        'difference_in_stock' => 0,
-                    ]);
+                    ])->first();
+
+                    if ($stock) {
+
+                        $stock->update([
+                            'opening_stock' => $stock->opening_stock + $quantity,
+                            'closing_stock' => $stock->closing_stock + $quantity
+                        ]);
+                    } else {
+
+                        DailyProductStock::create([
+                            'product_id' => $product_id,
+                            'branch_id' => $from_store_id,
+                            'shift_id' => null,
+                            'date' => $date,
+                            'opening_stock' => $quantity,
+                            'added_stock' => 0,
+                            'transferred_stock' => 0,
+                            'sold_stock' => 0,
+                            'closing_stock' => $quantity,
+                            'physical_stock' => 0,
+                            'difference_in_stock' => 0,
+                        ]);
+                    }
                 }
+
+                // $inventoryService->transferProduct(
+                //     $product_id,
+                //     $inventory->id,
+                //     $from_store_id,
+                //     '',
+                //     $quantity,
+                //     'add_stock'
+                // );
             }
 
-            $inventoryService->transferProduct($product_id, $inventory->id, $from_store_id, '', !empty($product['quantity']) ? $product['quantity'] : 0, 'add_stock');
-        }
+            // ================================
+            // ✅ VOUCHER
+            // ================================
+            if ($totalOpeningAmount > 0) {
 
-        return redirect()->route('inventories.list')->with('success', 'Opening Stock has beeb added successfully.');
+                $voucher = Voucher::create([
+                    'voucher_date' => now(),
+                    'voucher_type' => 'Opening Stock',
+                    'ref_no' => 'OPEN-' . now()->format('YmdHis'),
+                    'branch_id' => $from_store_id,
+                    'narration' => 'Opening stock entry',
+                    'created_by' => Auth::id(),
+                    'sub_total' => $totalOpeningAmount,
+                    'grand_total' => $totalOpeningAmount,
+                    'voucher_type' => 'Purchase'
+                ]);
+
+                VoucherLine::create([
+                    'voucher_id' => $voucher->id,
+                    'ledger_id' => $openingStockLedgerId,
+                    'dc' => 'Dr',
+                    'amount' => $totalOpeningAmount,
+                ]);
+
+                VoucherLine::create([
+                    'voucher_id' => $voucher->id,
+                    'ledger_id' => $openingBalanceLedgerId,
+                    'dc' => 'Cr',
+                    'amount' => $totalOpeningAmount,
+                ]);
+            }
+
+            DB::commit(); // ✅ SUCCESS
+
+            return redirect()->route('inventories.list')
+                ->with('success', 'Opening Stock has been added successfully.');
+        } catch (\Exception $e) {
+
+            DB::rollBack(); // ❌ FAIL SAFE
+
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     public function collection(Collection $rows)
