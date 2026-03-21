@@ -20,8 +20,18 @@ class StockTransferController extends Controller
 {
     public function index()
     {
-         if (auth()->user()->role_id == 1 || canDo(auth()->user()->role_id, 'stock-transfer-list')) {
-            return view('stocks_transfer.list');
+        $branch_id = '';
+        if (isset($_GET['branch_id'])) {
+            $branch_id = $_GET['branch_id'];
+        }
+
+        $shift_id = '';
+        if (isset($_GET['shift_id'])) {
+            $shift_id = $_GET['shift_id'];
+        }
+
+        if (auth()->user()->role_id == 1 || canDo(auth()->user()->role_id, 'stock-transfer-list')) {
+            return view('stocks_transfer.list', compact('branch_id', 'shift_id'));
         } else {
             return view('errors.403', [
                 'message' => 'You do not have permission to view this stock request.'
@@ -279,8 +289,8 @@ class StockTransferController extends Controller
                             'product_id'   => $item['product_id'],
                             'batch_no'     => $inventory->batch_no,
                             'expiry_date'  =>  $inventory->expiry_date
-                            ? $inventory->expiry_date->toDateString()
-                            : null,
+                                ? $inventory->expiry_date->toDateString()
+                                : null,
                             'quantity'     => $deductQty,
                             'low_level_qty' => $low_qty_level_wh,
                         ]);
@@ -357,5 +367,55 @@ class StockTransferController extends Controller
             DB::rollback();
             return back()->with('error', 'Failed to transfer stock: ' . $e->getMessage())->withInput();
         }
+    }
+
+    public function edit($id)
+    {
+        $transfer = StockTransfer::with('items')->findOrFail($id);
+
+        $stores = Store::all();
+        $categories = Category::all();
+        $products = Product::all();
+
+        return view('stock-transfer.edit', compact(
+            'transfer',
+            'stores',
+            'categories',
+            'products'
+        ));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'from_store_id' => 'required|different:to_store_id',
+            'to_store_id' => 'required',
+            'items.*.product_id' => 'required',
+            'items.*.quantity' => 'required|numeric|min:1',
+        ]);
+
+        $transfer = StockTransfer::findOrFail($id);
+
+        // Update main data
+        $transfer->update([
+            'from_store_id' => $request->from_store_id,
+            'to_store_id'   => $request->to_store_id,
+            'category_id'   => $request->category_id,
+            'subcategory_id' => $request->subcategory_id,
+        ]);
+
+        // Delete old items
+        StockTransferItem::where('stock_transfer_id', $id)->delete();
+
+        // Insert new items
+        foreach ($request->items as $item) {
+            StockTransferItem::create([
+                'stock_transfer_id' => $transfer->id,
+                'product_id' => $item['product_id'],
+                'quantity' => $item['quantity'],
+            ]);
+        }
+
+        return redirect()->route('stock-transfer.list')->with('success', 'Transfer updated successfully!');
     }
 }

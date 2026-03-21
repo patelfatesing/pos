@@ -330,8 +330,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/stock-transfer/list', [StockTransferController::class, 'index'])->name('stock-transfer.list');
     Route::get('/stock-transfer/get-transfer-data', [StockTransferController::class, 'getTransferData'])->name('stock-transfer.get-transfer-data');
     Route::get('/stock-transfer/view/{id}', [StockTransferController::class, 'view'])->name('stock-transfer.view');
-
     Route::post('/stock-transfer/store', [StockTransferController::class, 'store'])->name('stock-transfer.store');
+    Route::get('/stock-transfer/{id}/edit', [StockTransferController::class, 'edit'])->name('stock-transfer.edit');
+    Route::post('/stock-transfer/{id}/update', [StockTransferController::class, 'update'])->name('stock-transfer.update');
 
     Route::get('/vendor/list', [VendorListController::class, 'index'])->name('vendor.list');
     Route::post('/vendor/get-data', [VendorListController::class, 'getData'])->name('vendor.getData');
@@ -447,6 +448,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/shift-manage/stock-details/{id}', [ShiftManageController::class, 'stockDetails'])->name('shift-manage.stock-details');
     Route::get('/shift-manage/print-shift/{id}', [ShiftManageController::class, 'printShift'])->name('purchase.print-shift');
     Route::get('/stock-summary-pdf/{id}', [ShiftManageController::class, 'stockDetailsPdf'])->name('shift-manage.stock-details-pdf');
+    Route::post('/shift-manage/get-trasaction-data', [ShiftManageController::class, 'getData'])->name('shift-manage.get-trasaction-data');
 
     Route::post('/holidays', [HolidayController::class, 'store'])
         ->name('holidays.store');

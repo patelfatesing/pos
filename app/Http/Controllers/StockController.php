@@ -125,8 +125,8 @@ class StockController extends Controller
 
         $arr['id'] = (string) $stockRequest->id;
         $arr['store_id'] = (string) $wh_id;
-        
-        sendNotification('request_stock', 'Stock request is received for some products by '.$stores->name, null, $wh_id, json_encode($arr));
+
+        sendNotification('request_stock', 'Stock request is received for some products by ' . $stores->name, null, $wh_id, json_encode($arr));
 
         if ($request->ajax() && !empty($errors)) {
             DB::rollback();
@@ -197,10 +197,10 @@ class StockController extends Controller
             ]);
 
             $stores = Branch::select('name')->find($branch_id);
-            
+
             $arr['id'] = (string) $stockRequest->id;
             $arr['store_id'] = (string) $branch_id;
-            sendNotification('request_stock', 'Stock request for some product received by '.$stores->name, null, $branch_id, json_encode($arr));
+            sendNotification('request_stock', 'Stock request for some product received by ' . $stores->name, null, $branch_id, json_encode($arr));
 
             DB::commit();
             return redirect()->back()->with('success', 'Stock request submitted successfully.');
@@ -254,7 +254,7 @@ class StockController extends Controller
             $arr['id'] = (string) $stockRequest->id;
             $arr['store_id'] = (string) $request['store_id'];
 
-            sendNotification('request_stock', 'Stock request for some product received by '.$branch->name, null, $branch_id, json_encode($arr));
+            sendNotification('request_stock', 'Stock request for some product received by ' . $branch->name, null, $branch_id, json_encode($arr));
 
             DB::commit();
             return redirect()->route('stock.requestList')->with('success', 'Stock request submitted successfully.');
@@ -269,9 +269,20 @@ class StockController extends Controller
      */
     public function show(StockRequest $stockRequest)
     {
+
+        $branch_id = '';
+        if (isset($_GET['branch_id'])) {
+            $branch_id = $_GET['branch_id'];
+        }
+
+        $shift_id = '';
+        if (isset($_GET['shift_id'])) {
+            $shift_id = $_GET['shift_id'];
+        }
+
         if (auth()->user()->role_id == 1 || canAccess(auth()->user()->role_id, 'stock-request')) {
             $stockRequest->load('branch', 'user', 'items.product');
-            return view('stocks.show', compact('stockRequest'));
+            return view('stocks.show', compact('stockRequest','branch_id','shift_id'));
         } else {
 
             return view('errors.403', [
@@ -1042,7 +1053,7 @@ class StockController extends Controller
         // Load stock request with related branch and product info
         $stockRequest = StockRequest::with(['branch', 'items.product'])->findOrFail($id);
         $sourceId = $stockRequest->branch->id;
-                
+
         $allBranches = Branch::with('shiftClosings:id,branch_id')
             ->select('id', 'name')
             ->where('id', '!=', $sourceId)
@@ -1051,7 +1062,7 @@ class StockController extends Controller
             // })
             ->get()
             ->keyBy('id');
-            
+
 
         $flattened = [];
 
@@ -1067,7 +1078,7 @@ class StockController extends Controller
                     ->value('quantity');
 
                 // if (empty($inventoryQty) || $inventoryQty <= 0) continue;
-                 // if inventory null set 0
+                // if inventory null set 0
                 $inventoryQty = $inventoryQty ?? 0;
 
                 $flattened[] = [

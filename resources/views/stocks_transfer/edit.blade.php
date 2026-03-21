@@ -1,38 +1,36 @@
 @extends('layouts.backend.layouts')
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 @section('page-content')
     <!-- Wrapper Start -->
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid add-form-list">
-                <div class="row align-items-center mb-3">
-                    <div class="col-lg-12">
-                        <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
-                            <div>
-                                <h4 class="mb-0">Stock Transfer Store to Store</h4>
-                            </div>
-                            <div>
-                                <a href="{{ route('stock-transfer.list') }}" class="btn btn-secondary">Back</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="card">
+                            <div class="card-header d-flex justify-content-between">
+                                <div class="header-title">
+                                    <h4 class="card-title">Stock Transfer Store to Store</h4>
+                                </div>
+                                <div>
+                                    <a href="{{ route('stock-transfer.list') }}" class="btn btn-secondary">Back</a>
+                                </div>
+                            </div>
 
                             <div class="card-body">
                                 @if (session('success'))
                                     <div class="alert alert-success alert-dismissible fade show">
                                         {{ session('success') }}
-                                       
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                            aria-label="Close"></button>
                                     </div>
                                 @endif
 
                                 @if (session('error'))
                                     <div class="alert alert-danger alert-dismissible fade show">
                                         {{ session('error') }}
-                                       
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                            aria-label="Close"></button>
                                     </div>
                                 @endif
 
@@ -43,7 +41,8 @@
                                                 <li>{{ $error }}</li>
                                             @endforeach
                                         </ul>
-                                       
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                            aria-label="Close"></button>
                                     </div>
                                 @endif
 
@@ -111,17 +110,8 @@
                                                     data-style="py-0">
                                                     <option value="" selected>Select Sub Category</option>
                                                     @if (old('subcategory_id'))
-                                                        @php
-                                                            $oldSub = \App\Models\SubCategory::find(
-                                                                old('subcategory_id'),
-                                                            );
-                                                        @endphp
-
-                                                        @if ($oldSub)
-                                                            <option value="{{ $oldSub->id }}" selected>
-                                                                {{ $oldSub->name }}
-                                                            </option>
-                                                        @endif
+                                                        <option value="{{ old('subcategory_id') }}" selected>
+                                                            {{ old('subcategory_id') }}</option>
                                                     @endif
                                                 </select>
                                                 @error('subcategory_id')
@@ -131,25 +121,14 @@
                                         </div>
                                     </div>
 
-                                    <div class="table-responsive mb-3">
-                                        <table class="table table-bordered" id="product-items">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th width="5%">Sr No</th>
-                                                    <th width="40%">Product</th>
-                                                    <th width="25%">Stock Info</th>
-                                                    <th width="10%">Quantity</th>
-                                                    <th width="20%">Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="productBody">
-
-                                                @if (old('items'))
-                                                    @foreach (old('items') as $index => $item)
-                                                        <tr class="item-row product_items">
-                                                            <td class="sr-no">{{ $index + 1 }}</td>
-
-                                                            <td>
+                                    <div id="product-items">
+                                        <h5>Products</h5>
+                                        @if (old('items'))
+                                            @foreach (old('items') as $index => $item)
+                                                <div class="item-row product_items mb-3">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
                                                                 <select name="items[{{ $index }}][product_id]"
                                                                     class="form-control product-select @error('items.' . $index . '.product_id') is-invalid @enderror">
                                                                     <option value="">Select Product</option>
@@ -160,68 +139,72 @@
                                                                         </option>
                                                                     @endforeach
                                                                 </select>
-                                                            </td>
-
-
-
-                                                            <td>
-                                                                <div class="availability-container small text-muted"></div>
-                                                            </td>
-                                                            <td>
+                                                                @error('items.' . $index . '.product_id')
+                                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                                @enderror
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="form-group">
                                                                 <input type="number"
                                                                     name="items[{{ $index }}][quantity]"
                                                                     class="form-control @error('items.' . $index . '.quantity') is-invalid @enderror"
-                                                                    min="1"
+                                                                    placeholder="Quantity" min="1"
                                                                     value="{{ old('items.' . $index . '.quantity') }}">
-                                                            </td>
-                                                            <td>
-                                                                <button type="button"
-                                                                    class="btn btn-sm btn-danger remove-item">
-                                                                    Remove
-                                                                </button>
+                                                                @error('items.' . $index . '.quantity')
+                                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                                @enderror
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-2">
+                                                            <button type="button"
+                                                                class="btn btn-danger remove-item">Remove</button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="availability-container mt-2 small text-muted"></div>
+                                                </div>
+                                            @endforeach
+                                        @else
+                                            <div class="item-row product_items mb-3">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
 
-                                                            </td>
-                                                        </tr>
-                                                    @endforeach
-                                                @else
-                                                    <tr class="item-row product_items">
-                                                        <td class="sr-no">1</td>
-                                                        <td>
                                                             <select name="items[0][product_id]"
-                                                                class="form-control product-select">
+                                                                class="form-control product-select @error('items.0.product_id') is-invalid @enderror">
                                                                 <option value="">Select Product</option>
                                                             </select>
-                                                        </td>
-                                                        <td>
-                                                            <div class="availability-container small text-muted"></div>
-                                                        </td>
-                                                        <td>
+                                                            @error('items.0.product_id')
+                                                                <div class="invalid-feedback">{{ $message }}</div>
+                                                            @enderror
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="form-group">
                                                             <input type="number" name="items[0][quantity]"
-                                                                class="form-control" min="1">
-                                                        </td>
-
-                                                        <td>
-                                                            <button type="button"
-                                                                class="btn btn-sm btn-danger remove-item">
-                                                                Remove
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                @endif
-
-                                            </tbody>
-                                            <tfoot class="table-light">
-                                                <tr>
-                                                    <th colspan="3" style="text-align: right !important;">Total
-                                                        Quantity</th>
-                                                    <th style="text-align: center !important;">
-                                                        <span id="total-quantity">0</span>
-                                                    </th>
-                                                    <th></th>
-                                                </tr>
-                                            </tfoot>
-                                        </table>
+                                                                class="form-control @error('items.0.quantity') is-invalid @enderror"
+                                                                placeholder="Quantity" min="1">
+                                                            @error('items.0.quantity')
+                                                                <div class="invalid-feedback">{{ $message }}</div>
+                                                            @enderror
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <button type="button"
+                                                            class="btn btn-danger remove-item">Remove</button>
+                                                    </div>
+                                                </div>
+                                                <div class="availability-container mt-2 small text-muted"></div>
+                                            </div>
+                                        @endif
                                     </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-12 text-end">
+                                            <h5>Total Quantity: <span id="total-quantity">0</span></h5>
+                                        </div>
+                                    </div>
+                                    <button type="button" id="add-item" class="btn btn-secondary mb-3">+ Add
+                                        Product</button>
 
                                     <div class="row mt-3">
                                         <div class="col-12">
@@ -240,75 +223,6 @@
     </div>
 
     <script>
-        $(document).ready(function() {
-            updateAddButton();
-            $('#category_id').on('change', function() {
-
-                var categoryId = $(this).val();
-                if (categoryId) {
-                    $.ajax({
-                        url: "{{ url('/products/subcategory') }}/" + categoryId,
-                        type: "GET",
-                        dataType: "json",
-                        success: function(data) {
-                            $('#sub_category_ids').empty();
-                            $('#sub_category_ids').append(
-                                '<option value="" disabled selected>Select Sub Category</option>'
-                            );
-                            $.each(data, function(key, value) {
-                                $("#fate").text(value.name);
-                                $('#sub_category_ids').append('<option value="' + value
-                                    .id + '">' + value.name + '</option>');
-                            });
-                        },
-                        error: function() {
-                            alert('Failed to fetch subcategories. Please try again.');
-                        }
-                    });
-                } else {
-                    $('#sub_category_ids').empty();
-                    $('#sub_category_ids').append(
-                        '<option value="" disabled selected>Select Sub Category</option>');
-                }
-            });
-
-            // When subcategory is selected, update the product dropdown for the last added row
-            $('#sub_category_ids').on('change', function() {
-                const subCategoryId = $(this).val();
-
-                // Only update the product dropdown in the last added product row
-                const lastProductRow = $('#product-items .item-row:last');
-                lastProductRow.find('.product-select').empty().append(
-                    '<option value="">Select Product</option>');
-
-                // Populate the product dropdown for the selected subcategory
-                if (subCategoryId) {
-                    $.ajax({
-                        url: "{{ url('/products/get-products') }}/" + subCategoryId,
-                        type: "GET",
-                        dataType: "json",
-                        success: function(data) {
-                            data.forEach(function(product) {
-                                lastProductRow.find('.product-select').append(
-                                    '<option value="' + product.id + '">' + product
-                                    .name + '</option>');
-                            });
-                        },
-                        error: function() {
-                            alert('Failed to fetch products. Please try again.');
-                        }
-                    });
-                }
-            });
-
-        });
-
-        function updateSrNo() {
-            $('#productBody tr').each(function(index) {
-                $(this).find('.sr-no').text(index + 1);
-            });
-        }
-
         let itemIndex = {{ old('items') ? count(old('items')) : 1 }};
 
         // Prevent double submission and validate form
@@ -378,57 +292,41 @@
             return true;
         });
 
-        $(document).on('click', '#add-item', function() {
-
+        document.getElementById('add-item').addEventListener('click', function() {
             const template = `
-                <tr class="item-row product_items">
-                    <td class="sr-no"></td>
+                <div class="item-row product_items mb-3">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <select name="items[${itemIndex}][product_id]" class="form-control product-select">
+                                    <option value="">Select Product</option>
+                                    @foreach ($products as $product)
+                                        <option value="{{ $product->id }}">{{ $product->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <input type="number" name="items[${itemIndex}][quantity]" class="form-control" placeholder="Quantity" min="1">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-danger remove-item">Remove</button>
+                        </div>
+                    </div>
+                    <div class="availability-container mt-2 small text-muted"></div>
+                </div>
+            `;
 
-                    <td>
-                        <select name="items[${itemIndex}][product_id]" 
-                            class="form-control product-select">
-                            <option value="">Select Product</option>
-                            @foreach ($products as $product)
-                                <option value="{{ $product->id }}">{{ $product->name }}</option>
-                            @endforeach
-                        </select>
-                    </td>
-  <td>
-                        <div class="availability-container small text-muted"></div>
-                    </td>
-                    <td>
-                        <input type="number" 
-                            name="items[${itemIndex}][quantity]" 
-                            class="form-control"
-                            min="1">
-                    </td>
-
-                  
-
-                    <td>
-                        <button type="button" class="btn btn-sm btn-danger remove-item">
-                            Remove
-                        </button>
-                    </td>
-                </tr>
-                `;
-
-            $('#productBody').append(template);
-
+            document.getElementById('product-items').insertAdjacentHTML('beforeend', template);
             itemIndex++;
-
-            updateSrNo();
-            updateAddButton();
-            updateTotalQuantity();
         });
 
         // Remove item handler
         $(document).on('click', '.remove-item', function() {
-            if ($('#productBody tr').length > 1) {
-                $(this).closest('tr').remove();
-                updateSrNo();
-                updateTotalQuantity();
-                updateAddButton();
+            if (document.querySelectorAll('.item-row').length > 1) {
+                $(this).closest('.item-row').remove();
             }
         });
 
@@ -524,16 +422,6 @@
             $('#total-quantity').text(total);
         }
 
-        function updateAddButton() {
-
-            // remove ALL existing add buttons
-            $('#productBody #add-item').remove();
-
-            // add button only in last row
-            $('#productBody tr:last td:last').prepend(
-                '<button type="button" id="add-item" class="btn btn-secondary btn-sm pull-right ml-1">+ Add Product</button>'
-            );
-        }
         // Trigger total update on quantity input change
         $(document).on('input', 'input[name^="items"][name$="[quantity]"]', updateTotalQuantity);
 
@@ -547,22 +435,65 @@
             setTimeout(updateTotalQuantity, 100);
         });
 
-        $('#from_store_id').on('change', function() {
+        $(document).ready(function() {
+            $('#category_id').on('change', function() {
 
-            let fromStore = $(this).val();
-
-            // Reset To Store dropdown
-            $('#to_store_id option').prop('disabled', false);
-
-            if (fromStore) {
-                // Disable same store in To Store
-                $('#to_store_id option[value="' + fromStore + '"]').prop('disabled', true);
-
-                // If already selected, clear it
-                if ($('#to_store_id').val() == fromStore) {
-                    $('#to_store_id').val('');
+                var categoryId = $(this).val();
+                if (categoryId) {
+                    $.ajax({
+                        url: "{{ url('/products/subcategory') }}/" + categoryId,
+                        type: "GET",
+                        dataType: "json",
+                        success: function(data) {
+                            $('#sub_category_ids').empty();
+                            $('#sub_category_ids').append(
+                                '<option value="" disabled selected>Select Sub Category</option>'
+                            );
+                            $.each(data, function(key, value) {
+                                $("#fate").text(value.name);
+                                $('#sub_category_ids').append('<option value="' + value
+                                    .id + '">' + value.name + '</option>');
+                            });
+                        },
+                        error: function() {
+                            alert('Failed to fetch subcategories. Please try again.');
+                        }
+                    });
+                } else {
+                    $('#sub_category_ids').empty();
+                    $('#sub_category_ids').append(
+                        '<option value="" disabled selected>Select Sub Category</option>');
                 }
-            }
+            });
+
+            // When subcategory is selected, update the product dropdown for the last added row
+            $('#sub_category_ids').on('change', function() {
+                const subCategoryId = $(this).val();
+
+                // Only update the product dropdown in the last added product row
+                const lastProductRow = $('#product-items .item-row:last');
+                lastProductRow.find('.product-select').empty().append(
+                    '<option value="">Select Product</option>');
+
+                // Populate the product dropdown for the selected subcategory
+                if (subCategoryId) {
+                    $.ajax({
+                        url: "{{ url('/products/get-products') }}/" + subCategoryId,
+                        type: "GET",
+                        dataType: "json",
+                        success: function(data) {
+                            data.forEach(function(product) {
+                                lastProductRow.find('.product-select').append(
+                                    '<option value="' + product.id + '">' + product
+                                    .name + '</option>');
+                            });
+                        },
+                        error: function() {
+                            alert('Failed to fetch products. Please try again.');
+                        }
+                    });
+                }
+            });
 
         });
     </script>

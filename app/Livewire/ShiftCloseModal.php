@@ -469,132 +469,184 @@ class ShiftCloseModal extends Component
 
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
-        $data = [];
         $sale_total = 0;
         $data = []; // ✅ initialize BEFORE loop
+        if ($branch_id != 1) {
 
-        foreach ($this->products as $product_id => $product) {
+            foreach ($this->products as $product_id => $product) {
 
-            $dailyProductStock = DailyProductStock::where('branch_id', $branch_id)
-                ->where('product_id', $product_id)
-                ->where('shift_id', $this->currentShift->id)
-                ->first();
+                $dailyProductStock = DailyProductStock::where('branch_id', $branch_id)
+                    ->where('product_id', $product_id)
+                    ->where('shift_id', $this->currentShift->id)
+                    ->first();
 
-            if (!empty($dailyProductStock)) {
+                if (!empty($dailyProductStock)) {
 
-                // $calculatedClosingStock = $dailyProductStock->opening_stock
-                //     + $dailyProductStock->added_stock
-                //     - $dailyProductStock->transferred_stock
-                //     - $dailyProductStock->sold_stock;
+                    // $calculatedClosingStock = $dailyProductStock->opening_stock
+                    //     + $dailyProductStock->added_stock
+                    //     - $dailyProductStock->transferred_stock
+                    //     - $dailyProductStock->sold_stock;
 
-                if (isset($product['qty']) && is_numeric($product['qty']) && (float)$product['qty'] > 0) {
+                    if (isset($product['qty']) && is_numeric($product['qty']) && (float)$product['qty'] > 0) {
 
-                    $qty = (float)$product['qty'];
+                        $qty = (float)$product['qty'];
 
 
 
-                    $sales_plus = $dailyProductStock->opening_stock + $dailyProductStock->added_stock;
-                    $sales_minus = $dailyProductStock->transferred_stock + $dailyProductStock->sold_stock + $qty;
+                        $sales_plus = $dailyProductStock->opening_stock + $dailyProductStock->added_stock;
+                        $sales_minus = $dailyProductStock->transferred_stock + $dailyProductStock->sold_stock + $qty;
 
-                    $one_time_sale = $sales_plus - $sales_minus;
+                        $one_time_sale = $sales_plus - $sales_minus;
 
-                    $dailyProductStock->physical_stock = $qty;
-                    $dailyProductStock->sold_stock = $dailyProductStock->sold_stock + $one_time_sale;
-                    $dailyProductStock->closing_stock = $dailyProductStock->closing_stock - $one_time_sale;
-                    $dailyProductStock->difference_in_stock = $dailyProductStock->physical_stock - $dailyProductStock->closing_stock;
+                        $dailyProductStock->physical_stock = $qty;
+                        $dailyProductStock->sold_stock = $dailyProductStock->sold_stock + $one_time_sale;
+                        $dailyProductStock->closing_stock = $dailyProductStock->closing_stock - $one_time_sale;
+                        $dailyProductStock->difference_in_stock = $dailyProductStock->physical_stock - $dailyProductStock->closing_stock;
 
-                    $this->totalQuantity += $one_time_sale;
+                        $this->totalQuantity += $one_time_sale;
 
-                    $productData = Product::with(['category', 'subcategory'])->findOrFail($product_id);
+                        $productData = Product::with(['category', 'subcategory'])->findOrFail($product_id);
 
-                    // ✅ PUSH instead of overwrite
-                    $data[] = [
-                        'product_id' => $productData->id,
-                        'name' => $productData->name,
-                        'quantity' => $one_time_sale,
-                        'category' => optional($productData->category)->name,
-                        'subcategory' => optional($productData->subcategory)->name,
-                        'price' => $productData->sell_price,
-                        'mrp' => $productData->mrp
-                    ];
+                        // ✅ PUSH instead of overwrite
+                        $data[] = [
+                            'product_id' => $productData->id,
+                            'name' => $productData->name,
+                            'quantity' => $one_time_sale,
+                            'category' => optional($productData->category)->name,
+                            'subcategory' => optional($productData->subcategory)->name,
+                            'price' => $productData->sell_price,
+                            'mrp' => $productData->mrp
+                        ];
 
-                    $sale_total += $one_time_sale * $productData->sell_price;
-                    $this->total_item_total += $one_time_sale * $productData->sell_price;
+                        $sale_total += $one_time_sale * $productData->sell_price;
+                        $this->total_item_total += $one_time_sale * $productData->sell_price;
 
-                    // stockStatusChange($product_id, $branch_id, $qty, 'sold_stock', optional($this->currentShift)->id);
+                        // stockStatusChange($product_id, $branch_id, $qty, 'sold_stock', optional($this->currentShift)->id);
 
-                    // $existing = DailyProductStock::where('branch_id', $branch_id)
-                    //     ->where('product_id', $product_id)
-                    //     // ->whereDate('date', $date)
-                    //     ->where('shift_id', $this->currentShift->id)
-                    //     ->first();
+                        // $existing = DailyProductStock::where('branch_id', $branch_id)
+                        //     ->where('product_id', $product_id)
+                        //     // ->whereDate('date', $date)
+                        //     ->where('shift_id', $this->currentShift->id)
+                        //     ->first();
 
-                    // $existing->sold_stock += $qty;
-                    // $existing->closing_stock = closingStock($existing->opening_stock, $existing->added_stock, $existing->transferred_stock, $existing->sold_stock);
-                    // $existing->save();
-                } else {
-                    $dailyProductStock->physical_stock = $dailyProductStock->opening_stock;
+                        // $existing->sold_stock += $qty;
+                        // $existing->closing_stock = closingStock($existing->opening_stock, $existing->added_stock, $existing->transferred_stock, $existing->sold_stock);
+                        // $existing->save();
+                    } else {
+                        $dailyProductStock->physical_stock = $dailyProductStock->opening_stock;
+                    }
+
+                    $dailyProductStock->save();
                 }
-
-                $dailyProductStock->save();
             }
-        }
 
-        $Shift_data = ShiftClosing::find(optional($this->currentShift)->id);
+            $Shift_data = ShiftClosing::find(optional($this->currentShift)->id);
 
-        $invoice_number = Invoice::generateInvoiceNumberNew($branch_id, $Shift_data->start_time);
+            $invoice_number = Invoice::generateInvoiceNumberNew($branch_id, $Shift_data->start_time);
 
-        \Log::info('Before Invoice Creation');
-        DB::table('invoices')->insertGetId([
-            'user_id'            => Auth::id(),
-            'branch_id'          => $branch_id,
-            'roundof'            => $this->roundedTotal,
-            'invoice_number'     => $invoice_number,
-            'commission_user_id' => null,
-            'party_user_id'      => null,
-            'payment_mode'       => 'cashupi',
-            'items'              => json_encode($data),
-            'total_item_qty'     => $this->totalQuantity,
-            'total_item_total'   => $this->total_item_total,
-            'upi_amount'         => $this->upi,
-            'change_amount'      => 0,
-            'creditpay'          => 0,
-            'cash_amount'        => $this->cash,
-            'online_amount'      => $this->online_amount,
-            'sub_total'          => $sale_total,
-            'status'             => 'Paid',
-            'invoice_status'     => 'paid',
-            'commission_amount'  => 0,
-            'party_amount'       => 0,
-            'total'              => $sale_total,
-            'tax'                => 0,
-            'sales_type'         => 'one_time',
-            'created_at' => now()->format('Y-m-d H:i:s'),
-            'updated_at' => now()->format('Y-m-d H:i:s')
-        ]);
-
-
-        $query = DailyProductStock::with('product')
-            ->where('branch_id', $branch_id)
-            ->where('shift_id', optional($this->currentShift)->id)
-            ->where(function ($q) {
-                $q->where('sold_stock', 0)
-                    ->where('transferred_stock', 0)
-                    ->where('added_stock', 0);
-            });
+            \Log::info('Before Invoice Creation');
+            DB::table('invoices')->insertGetId([
+                'user_id'            => Auth::id(),
+                'branch_id'          => $branch_id,
+                'roundof'            => $this->roundedTotal,
+                'invoice_number'     => $invoice_number,
+                'commission_user_id' => null,
+                'party_user_id'      => null,
+                'payment_mode'       => 'cashupi',
+                'items'              => json_encode($data),
+                'total_item_qty'     => $this->totalQuantity,
+                'total_item_total'   => $this->total_item_total,
+                'upi_amount'         => $this->upi,
+                'change_amount'      => 0,
+                'creditpay'          => 0,
+                'cash_amount'        => $this->cash,
+                'online_amount'      => $this->online_amount,
+                'sub_total'          => $sale_total,
+                'status'             => 'Paid',
+                'invoice_status'     => 'paid',
+                'commission_amount'  => 0,
+                'party_amount'       => 0,
+                'total'              => $sale_total,
+                'tax'                => 0,
+                'sales_type'         => 'one_time',
+                'created_at' => now()->format('Y-m-d H:i:s'),
+                'updated_at' => now()->format('Y-m-d H:i:s')
+            ]);
 
 
-
-        $rawStockData = $query->get();
-
-        foreach ($rawStockData as $product_id => $product) {
-            $dailyProductStock1 = DailyProductStock::where('branch_id', $branch_id)
-                ->where('product_id', $product->product_id)
+            $query = DailyProductStock::with('product')
+                ->where('branch_id', $branch_id)
                 ->where('shift_id', optional($this->currentShift)->id)
-                ->first();
+                ->where(function ($q) {
+                    $q->where('sold_stock', 0)
+                        ->where('transferred_stock', 0)
+                        ->where('added_stock', 0);
+                });
 
-            $dailyProductStock1->physical_stock = $dailyProductStock1->opening_stock;
-            $dailyProductStock1->save();
+
+
+            $rawStockData = $query->get();
+
+            foreach ($rawStockData as $product_id => $product) {
+                $dailyProductStock1 = DailyProductStock::where('branch_id', $branch_id)
+                    ->where('product_id', $product->product_id)
+                    ->where('shift_id', optional($this->currentShift)->id)
+                    ->first();
+
+                $dailyProductStock1->physical_stock = $dailyProductStock1->opening_stock;
+                $dailyProductStock1->save();
+            }
+        } else {
+            foreach ($this->products as $product_id => $product) {
+                $dailyProductStock = DailyProductStock::where('branch_id', $branch_id)
+                    ->where('product_id', $product_id)
+                    ->where('shift_id', $this->currentShift->id)
+                    ->first();
+
+                if (!empty($dailyProductStock)) {
+                    // Calculate closing stock
+                    $calculatedClosingStock = $dailyProductStock->opening_stock
+                        + $dailyProductStock->added_stock
+                        - $dailyProductStock->transferred_stock
+                        - $dailyProductStock->sold_stock;
+
+                    // Check if qty is numeric
+                    if (isset($product['qty']) && is_numeric($product['qty']) && (float)$product['qty'] > 0) {
+                        $qty = (float)$product['qty'];
+
+                        $dailyProductStock->physical_stock = $qty;
+                        $dailyProductStock->closing_stock = $calculatedClosingStock;
+                        $dailyProductStock->difference_in_stock = $calculatedClosingStock - $qty;
+                    } else {
+                        // Don't override closing_stock and difference_in_stock
+
+                        $dailyProductStock->physical_stock = $dailyProductStock->opening_stock;
+                    }
+
+                    $dailyProductStock->save();
+                }
+            }
+
+            $query = DailyProductStock::with('product')
+                ->where('branch_id', $branch_id)
+                ->where('shift_id', optional($this->currentShift)->id)
+                ->where(function ($q) {
+                    $q->where('sold_stock', 0)
+                        ->where('transferred_stock', 0)
+                        ->where('added_stock', 0);
+                });
+
+            $rawStockData = $query->get();
+
+            foreach ($rawStockData as $product_id => $product) {
+                $dailyProductStock1 = DailyProductStock::where('branch_id', $branch_id)
+                    ->where('product_id', $product->product_id)
+                    ->where('shift_id', optional($this->currentShift)->id)
+                    ->first();
+
+                $dailyProductStock1->physical_stock = $dailyProductStock1->opening_stock;
+                $dailyProductStock1->save();
+            }
         }
 
         $shift = UserShift::where('id', $this->currentShift->id)
@@ -830,7 +882,7 @@ class ShiftCloseModal extends Component
             $shiftFileName = 'shift_' . time() . '.pdf';
             $shiftPdfPath = storage_path('app/public/' . $shiftFileName);
 
-            Pdf::loadView('emails.shift_close_pdf', compact('shift', 'summary', 'payments', 'departments','customers'))
+            Pdf::loadView('emails.shift_close_pdf', compact('shift', 'summary', 'payments', 'departments', 'customers'))
                 ->save($shiftPdfPath);
 
             // ================= PDF 2 =================
