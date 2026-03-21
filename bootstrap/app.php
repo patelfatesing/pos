@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Web middleware
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
+            \App\Http\Middleware\StoreBackUrl::class,
         ]);
 
         // Named middleware aliases

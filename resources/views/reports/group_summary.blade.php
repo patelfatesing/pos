@@ -124,23 +124,16 @@
                 <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
 
                     <h4 class="mb-0">Group Summary - {{ $group->name }}</h4>
-
-                    <a href="{{ route('reports.pnl_tally.view') }}" class="btn btn-primary add-list">
-                        Back to P&L
+                    <a href="{{ session('back_url') ?? route('reports.pnl_tally.view') }}" class="btn btn-secondary">
+                        Back
                     </a>
-
                 </div>
 
-
                 <div class="table-responsive mb-3">
-
                     {{-- HEADER GRID --}}
                     <div class="tally-top-grid">
-
                         <div class="left-head">Particulars</div>
-
                         <div class="right-head">
-
                             <div class="ledger-info">
                                 <div>{{ $group->name }}</div>
                                 <div><b>{{ config('app.name') }}</b></div>
@@ -150,39 +143,26 @@
                             </div>
 
                             <div class="right-bottom">
-
                                 <div class="txn-head">
-
                                     <div class="txn-title">Transactions</div>
-
                                     <div class="txn-cols">
                                         <div>Debit</div>
                                         <div>Credit</div>
                                     </div>
-
                                 </div>
-
                                 <div class="closing-head">
                                     Closing<br>Balance
                                 </div>
-
                             </div>
-
                         </div>
-
                     </div>
-
 
                     {{-- TABLE --}}
                     <table class="tally-table">
-
                         <tbody>
-
                             @foreach ($ledgers as $ledger)
                                 <tr class="{{ $loop->first ? 'active-row' : '' }}">
-
                                     <td class="col-particulars">
-
                                         <a
                                             href="{{ route('reports.monthly', [
                                                 'ledger' => $ledger->id,
@@ -191,9 +171,7 @@
                                             ]) }}">
 
                                             {{ $ledger->name }}
-
                                         </a>
-
                                     </td>
 
                                     <td class="col-dr text-right">

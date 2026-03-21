@@ -58,6 +58,45 @@
         .header-title {
             font-weight: 600;
         }
+
+        .verify-box {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        /* hide default checkbox */
+        .verify-box input {
+            margin-right: 5px;
+        }
+
+        /* Colors like your UI */
+        .verify-box.sales {
+            background: #28a745;
+            color: #fff;
+        }
+
+        .verify-box.transfer {
+            background: #28a745;
+            color: #fff;
+        }
+
+        .verify-box.request {
+            background: #fd7e14;
+            color: #fff;
+        }
+
+        .verify-box.shift {
+            background: #17a2b8;
+            color: #fff;
+        }
+
+        /* Optional: checked effect */
+        .verify-box input:checked+span {
+            font-weight: 700;
+        }
     </style>
 
     <div class="content-page">
@@ -66,14 +105,22 @@
                 <div>
                     <h4 class="mb-0">🧾 Product Stock Summary - {{ $branch_name->name }}</h4>
                 </div>
-                <a href="{{ route('shift-manage.list') }}" class="btn btn-secondary">Back</a>
+                <div>
+                    <a href="{{ route('shift-manage.stock-details-pdf', $shift->id) }}?subcategory_id={{ request('subcategory_id') }}&search={{ request('search') }}"
+                        class="btn btn-danger">
+                        📄 PDF
+                    </a>
+                    <a href="{{ route('shift-manage.list') }}" class="btn btn-secondary">Back</a>
+                </div>
             </div>
 
             {{-- Filters --}}
             <div class="card p-2">
                 <form method="GET" action="{{ route('shift-manage.stock-details', $shift->id) }}">
-                    <div class="row">
-                        <div class="col-md-3 mb-2">
+                    <div class="row align-items-end">
+
+                        <!-- Subcategory -->
+                        <div class="col-md-2">
                             <select name="subcategory_id" class="form-control" onchange="this.form.submit()">
                                 <option value="">All Subcategories</option>
                                 @foreach ($subcategories as $subcategory)
@@ -85,24 +132,42 @@
                             </select>
                         </div>
 
-                        <div class="col-md-3 mb-2">
+                        <!-- Search -->
+                        <div class="col-md-2">
                             <input type="text" name="search" class="form-control" placeholder="Search Product"
                                 value="{{ request('search') }}">
                         </div>
-
-                        <div class="col-md-2 mb-2">
-                            <button class="btn btn-primary w-100">Search</button>
-                        </div>
-
-                        <div class="col-md-2 mb-2">
-                            <a href="{{ route('shift-manage.stock-details', $shift->id) }}"
-                                class="btn btn-secondary w-100">Reset</a>
-                        </div>
-                        <div col-md-2 mb-2>
-                            <a href="{{ route('shift-manage.stock-details-pdf', $shift->id) }}?subcategory_id={{ request('subcategory_id') }}&search={{ request('search') }}"
-                                class="btn btn-danger">
-                                Download PDF
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary">
+                                🔍 Search
+                            </button>
+                            <a href="{{ route('shift-manage.stock-details', $shift->id) }}" class="btn btn-secondary">
+                                🔄 Reset
                             </a>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            {{-- <div class="d-flex align-items-center gap-1 verify-box sales ml-2">
+                                <input type="checkbox" name="verify_sales" id="verify_sales">
+                                <span onclick="handleClick('sales')">✔ Sales</span>
+                            </div>
+
+                            <div class="d-flex align-items-center gap-1 verify-box transfer ml-2">
+                                <input type="checkbox" name="verify_transfer" id="verify_transfer">
+                                <span onclick="handleClick('transfer')">✔ Transfer</span>
+                            </div>
+
+                            <div class="d-flex align-items-center gap-1 verify-box request ml-2">
+                                <input type="checkbox" name="verify_request" id="verify_request">
+                                <span onclick="handleClick('request')">✔ Request</span>
+                            </div>
+
+                            <div class="d-flex align-items-center gap-1 verify-box shift ml-2">
+                                <input type="checkbox" name="unverify_shift" id="unverify_shift">
+                                <span>✖ Shift</span>
+                            </div> --}}
+
                         </div>
                     </div>
                 </form>
@@ -193,3 +258,19 @@
         </div>
     </div>
 @endsection
+
+<script>
+    function handleClick(type) {
+
+        let id = "{{ $id }}";
+        let shift_id = "{{ $shift->id }}";
+
+        if (type === 'sales') {
+            window.location.href = `/shift-manage/view/${id}/${shift_id}`;
+        } else if (type === 'transfer') {
+            window.location.href = "{{ route('stock-transfer.list') }}?branch_id="+id+"&shift_id="+shift_id;
+        } else if (type === 'request') {
+            window.location.href = "{{ route('stock.requestList') }}?branch_id="+id+"&shift_id="+shift_id;
+        } 
+    }
+</script>
