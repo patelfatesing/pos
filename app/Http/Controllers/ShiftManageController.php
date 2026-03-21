@@ -110,6 +110,7 @@ class ShiftManageController extends Controller
 
         foreach ($data as $row) {
             // $ownerId = $row->created_by;
+            $img = $row->physical_photo;
             $endTime = $row->end_time ? \Carbon\Carbon::parse($row->end_time) : null;
             $status = "";
             if ($row->status == "pending") {
@@ -155,11 +156,18 @@ class ShiftManageController extends Controller
             }
             // }
             // if (canDo($roleId, 'view-transactions', $ownerId)) {
-            $action .= '<a class="badge bg-primary ml-2 view-invoices" 
-                href="' . url('/shift-manage/view/' . $row->branch_id . "/" . $row->id) . '" title="View Transactions">
-                <i class="ri-eye-line"></i>
-                </a>';
+            // $action .= '<a class="badge bg-primary ml-2 view-invoices" 
+            //     href="' . url('/shift-manage/view/' . $row->branch_id . "/" . $row->id) . '" title="View Transactions">
+            //     <i class="ri-eye-line"></i>
+            //     </a>';
             // }
+
+            $action .= '<a class="badge bg-primary ml-2 view-image-btn"
+                    href="javascript:void(0);"
+                    data-image="' . e($img) . '"
+                    title="View Physical Stock Photo">
+                    <i class="ri-image-line"></i>
+                </a>';
 
             // $action .= '<a class="badge bg-primary ml-2 view-invoices" 
             //     href="' . url('/shift-manage/' . $row->id) . '" title="View Physical Stock Photo">
