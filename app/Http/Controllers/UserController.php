@@ -156,9 +156,9 @@ class UserController extends Controller
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'username' => 'required|string|unique:users,username',
-            'email' => 'email|unique:users,email',
+            'email' => 'nullable|email|unique:users,email',
             'phone_number' => [
-                'required',
+                'nullable',
                 'regex:/^(\+?\d{1,3})?\d{10}$/'
             ],
             'password' => 'required|string|min:8|confirmed',
@@ -220,8 +220,9 @@ class UserController extends Controller
             'first_name'    => 'required|string|max:255',
             'last_name'     => 'required|string|max:255',
             'username' => 'required|string|unique:users,username,' . $id,
+            'email' => 'nullable|email|unique:users,email',
             'phone_number'  => [
-                'required',
+                'nullable',
                 'regex:/^(\+?\d{1,3})?\d{10}$/'
             ],
             'role_id'       => 'required|exists:roles,id',

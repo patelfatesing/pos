@@ -84,7 +84,7 @@
                                                             <div class="time-flex">
                                                                 <h6 class="text-start close-text">End Time</h6>
                                                                 <h6 class="text-start close-text">
-                                                                    {{ $this->currentShift->start_time ?? '-' }}</h6>
+                                                                    {{ $this->currentShift->end_time ?? '-' }}</h6>
                                                             </div>
                                                         </div>
                                                     </div>
