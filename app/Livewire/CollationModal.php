@@ -96,6 +96,7 @@ class CollationModal extends Component
     public function clearCashNotes()
     {
         $this->cashNotes = [];
+        $this->totalCollected = 0;
         $this->calculateTotals();
     }
 

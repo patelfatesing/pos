@@ -50,7 +50,7 @@ class PartyUserController extends Controller
         }
 
         $recordsTotal = Partyuser::where('is_delete', 'no')
-                ->count();
+            ->count();
         $recordsFiltered = $query->count();
 
         // pagination: only when length > 0
@@ -216,7 +216,7 @@ class PartyUserController extends Controller
     public function update(Request $request, Partyuser $Partyuser)
     {
         $data = $request->validate([
-            'first_name' => 'required|string|max:255|unique:party_users,first_name,' . $Partyuser->id,
+            'first_name' => 'required|string|max:255|unique:party_users,first_name,' . $Partyuser->id . ',id',
             'email' => 'nullable|email|max:255|unique:party_users,email,' . $Partyuser->id,
             'phone' => 'nullable|digits:10|regex:/^[0-9]+$/|unique:party_users,phone,' . $Partyuser->id,
             'address' => 'nullable|string|max:255',

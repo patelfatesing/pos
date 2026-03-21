@@ -156,10 +156,10 @@ class ShiftManageController extends Controller
             }
             // }
             // if (canDo($roleId, 'view-transactions', $ownerId)) {
-            // $action .= '<a class="badge bg-primary ml-2 view-invoices" 
-            //     href="' . url('/shift-manage/view/' . $row->branch_id . "/" . $row->id) . '" title="View Transactions">
-            //     <i class="ri-eye-line"></i>
-            //     </a>';
+            $action .= '<a class="badge bg-primary ml-2 view-invoices" 
+                href="' . url('/shift-manage/view/' . $row->branch_id . "/" . $row->id) . '" title="View Transactions">
+                <i class="ri-eye-line"></i>
+                </a>';
             // }
 
             $action .= '<a class="badge bg-primary ml-2 view-image-btn"
@@ -174,10 +174,10 @@ class ShiftManageController extends Controller
             //     <i class="ri-image-line"></i>
             //     </a>';
             // if (canDo($roleId, 'view-physical-stock-photo', $ownerId)) {
-            $action .= '<a class="badge bg-primary ml-2 view-invoices" 
-                href="javascript:void(0);" onclick="showImage(getImagePath(\'' . $row->physical_photo . '\'))" title="View Physical Stock Photo">
-                <i class="ri-image-line"></i>
-            </a>';
+            // $action .= '<a class="badge bg-primary ml-2 view-invoices" 
+            //     href="javascript:void(0);" onclick="showImage(getImagePath(\'' . $row->physical_photo . '\'))" title="View Physical Stock Photo">
+            //     <i class="ri-image-line"></i>
+            // </a>';
             // }
 
             // if (canDo($roleId, 'print-shift-PDF', $ownerId)) {
