@@ -2,48 +2,48 @@
 
 @section('page-content')
 <style>
-/* ===== TALLY COLUMN HEADER ===== */ 
-.tally-top-grid { display: flex; align-items: center; border: 1px solid #aaa; border-top: 0; border-bottom: none; }
-.content-page.ledger-monthly-page { padding: 90px 0 0;}
-.ledger-monthly-page .card-header { padding: .5rem .9rem;}
-.ledger-monthly-page .add-list.btn { padding: 4px 8px; font-size: 12px; }
-/* LEFT */ 
-.left-head { padding: 6px; font-weight: bold; font-size: 16px; letter-spacing: 1.5px; } 
-/* RIGHT WRAPPER */ 
-.right-head { border-left: 1px solid #aaa; display: block; margin-left: auto; width: 35%; max-width: 525px; }
-/* LEDGER INFO (TOP) */
-.ledger-info { text-align: center; padding: 4px 0; border-bottom: 1px solid #aaa; line-height: 1.4; }
-/* BOTTOM AREA */
-.right-bottom { display: flex; }
-/* TRANSACTIONS */
-.txn-head { border-right: 1px solid #aaa; width: 350px; }
-.txn-title { text-align: center; font-weight: bold; border-bottom: 1px solid #aaa; padding: 4px 0; }
-.txn-cols { display: flex; }
-.txn-cols div { flex: 1; text-align: center; padding: 4px 0; border-right: 1px solid #aaa; }
-.txn-cols div:last-child { border-right: none; }
-/* CLOSING */
-.closing-head { text-align: center; font-weight: bold; padding: 6px 0; width: 175px; }
-/* ===== TALLY TABLE ===== */
-/* ===== TABLE OUTER BORDER (MATCH HEADER) ===== */
-.tally-table { width: 100%; border-collapse: collapse; font-family: "Courier New", monospace; border: 1px solid #aaa; }
-/* COLUMN WIDTHS (MUST MATCH HEADER GRID) */
-.col-particulars { width: 65%; }
-.col-dr, .col-cr, .col-closing { width: 175px; }
-/* OPENING BALANCE */
-.opening-row { font-weight: bold; }
-/* HOVER */
-.tally-table tr:hover { background: #fff3b0; }
-.tally-table td { font-size: 14px; line-height: 27px; padding-top: 0; padding-bottom: 0;}
-/* ACTIVE ROW (TALLY YELLOW BAR) */
-.active-row { background: #f5d210 !important; font-weight: bold; }
-.opening-row .col-particulars { font-style: italic; }
-/* LINKS */
-.tally-table a { color: #000; text-decoration: none; }
-.tally-table a:hover { text-decoration: underline; }
-/* LEFT SIDE SPACING (PARTICULARS) */
-.col-particulars { padding-left: 10px; }
-/* RIGHT SIDE SPACING (CLOSING BALANCE) */
-.col-closing { padding-right: 10px; }
+    /* ===== TALLY COLUMN HEADER ===== */ 
+    .tally-top-grid { display: flex; align-items: center; border: 1px solid #aaa; border-top: 0; border-bottom: none; }
+    .content-page.ledger-monthly-page { padding: 90px 0 0;}
+    .ledger-monthly-page .card-header { padding: .5rem .9rem;}
+    .ledger-monthly-page .add-list.btn { padding: 4px 8px; font-size: 12px; }
+    /* LEFT */ 
+    .left-head { padding: 6px; font-weight: bold; font-size: 16px; letter-spacing: 1.5px; } 
+    /* RIGHT WRAPPER */ 
+    .right-head { border-left: 1px solid #aaa; display: block; margin-left: auto; width: 35%; max-width: 525px; }
+    /* LEDGER INFO (TOP) */
+    .ledger-info { text-align: center; padding: 4px 0; border-bottom: 1px solid #aaa; line-height: 1.4; }
+    /* BOTTOM AREA */
+    .right-bottom { display: flex; }
+    /* TRANSACTIONS */
+    .txn-head { border-right: 1px solid #aaa; width: 350px; }
+    .txn-title { text-align: center; font-weight: bold; border-bottom: 1px solid #aaa; padding: 4px 0; }
+    .txn-cols { display: flex; }
+    .txn-cols div { flex: 1; text-align: center; padding: 4px 0; border-right: 1px solid #aaa; }
+    .txn-cols div:last-child { border-right: none; }
+    /* CLOSING */
+    .closing-head { text-align: center; font-weight: bold; padding: 6px 0; width: 175px; }
+    /* ===== TALLY TABLE ===== */
+    /* ===== TABLE OUTER BORDER (MATCH HEADER) ===== */
+    .tally-table { width: 100%; border-collapse: collapse; font-family: "Courier New", monospace; border: 1px solid #aaa; }
+    /* COLUMN WIDTHS (MUST MATCH HEADER GRID) */
+    .col-particulars { width: 65%; }
+    .col-dr, .col-cr, .col-closing { width: 175px; }
+    /* OPENING BALANCE */
+    .opening-row { font-weight: bold; }
+    /* HOVER */
+    .tally-table tr:hover { background: #fff3b0; }
+    .tally-table td { font-size: 14px; line-height: 27px; padding-top: 0; padding-bottom: 0;}
+    /* ACTIVE ROW (TALLY YELLOW BAR) */
+    .active-row { background: #f5d210 !important; font-weight: bold; }
+    .opening-row .col-particulars { font-style: italic; }
+    /* LINKS */
+    .tally-table a { color: #000; text-decoration: none; }
+    .tally-table a:hover { text-decoration: underline; }
+    /* LEFT SIDE SPACING (PARTICULARS) */
+    .col-particulars { padding-left: 10px; }
+    /* RIGHT SIDE SPACING (CLOSING BALANCE) */
+    .col-closing { padding-right: 10px; }
 
 
 </style>

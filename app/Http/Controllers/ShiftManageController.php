@@ -233,9 +233,6 @@ class ShiftManageController extends Controller
 
     public function view($id, $shift_id, Request $request)
     {
-        $perPage = $request->input('per_page', 10);
-        $search = $request->input('search'); // <-- Search term
-
         $shift = ShiftClosing::findOrFail($shift_id);
         $branch = Branch::findOrFail($id);
         $branch_name = $branch->name;
@@ -244,61 +241,191 @@ class ShiftManageController extends Controller
             ->where('branch_id', $id)
             ->whereBetween('created_at', [$shift->start_time, $shift->end_time]);
 
-        if ($shift->status === "pending") {
-            $query->whereIn('status', ['Paid', 'Hold']);
-        } else {
-            $query->where('status', 'Paid');
-        }
+        $partyUsers = DB::table('party_users')
+            ->select('id', 'first_name')
+            ->where('is_delete', 'No')->where('status', 'Active')->orderBy('first_name')->get();
 
-        // ✅ Filter by product name inside items JSON (MySQL LIKE)
-        if ($search) {
-            $query->where('items', 'LIKE', '%' . $search . '%');
-        }
+        $commissionUsers = DB::table('commission_users')
+            ->select('id', 'first_name')
+            ->where('is_deleted', 'No')->where('status', 'Active')->orderBy('first_name')->get();
 
-        // Totals (before pagination)
-        $totals = (clone $query)->selectRaw('
-        SUM(cash_amount) as total_cash,
-        SUM(upi_amount + online_amount) as total_upi,
-        SUM(creditpay) as total_credit,
-            SUM(total_item_qty) as total_items,
-            SUM(sub_total) as total_subtotal,
-            SUM(total) as total_total
-        ')->first();
-
-        $invoices = $query->orderBy('created_at', 'desc')
-            ->select(
-                'id',
-                'invoice_number',
-                'cash_amount',
-                'upi_amount',
-                'online_amount',
-                'creditpay',
-                'payment_mode',
-                'total_item_qty',
-                'sub_total',
-                'tax',
-                'total',
-                'status',
-                'created_at'
-            )
-            ->paginate($perPage)
-            ->appends(['per_page' => $perPage, 'search' => $search]); // Preserve search
 
         return view('shift_manage.view', compact(
-            'invoices',
             'shift_id',
             'branch_name',
             'id',
-            'perPage',
-            'totals'
-        ) + [
-            'totalCashAmount' => $totals->total_cash,
-            'totalUPIAmount' => $totals->total_upi,
-            'totalCreditPay' => $totals->total_credit,
-            'totalItems' => $totals->total_items,
-            'totalSubTotal' => $totals->total_subtotal,
-            'totalTotal' => $totals->total_total,
-            'search' => $search,
+            'partyUsers',
+            'commissionUsers'
+        ));
+    }
+
+    public function getData(Request $request)
+    {
+        $query = DB::table('invoices')
+            ->join('branches', 'invoices.branch_id', '=', 'branches.id')
+            ->leftJoin('party_users', 'invoices.party_user_id', '=', 'party_users.id')
+            ->leftJoin('commission_users', 'invoices.commission_user_id', '=', 'commission_users.id')
+            ->select(
+                'invoices.id',
+                'invoices.invoice_number',
+                'invoices.party_amount',
+                'invoices.status',
+                'invoices.sub_total',
+                'invoices.tax',
+                'invoices.commission_amount',
+                'invoices.creditpay',
+                'invoices.total',
+                'invoices.items',
+                'invoices.branch_id',
+                'branches.name as branch_name',
+                'invoices.created_at',
+                'invoices.commission_user_id',
+                'invoices.payment_mode',
+                'invoices.party_user_id',
+                'party_users.first_name as party_user',
+                'commission_users.first_name as commission_user',
+                'invoices.edit_in' // Include the 'edit_in' field
+            );
+
+        // Date filter
+        if ($request->start_date && $request->end_date) {
+            $query->whereBetween('invoices.created_at', [
+                Carbon::parse($request->start_date)->startOfDay(),
+                Carbon::parse($request->end_date)->endOfDay(),
+            ]);
+        }
+
+        // Filter for last 7 days
+        $query->where('invoices.created_at', '>=', Carbon::now()->subDays(7));
+
+        $query->where('invoices.status', '!=', 'Hold');
+
+        if (!empty($request->branch_id)) {
+            $query->where('invoices.branch_id', $request->branch_id);
+        }
+
+        if (!empty($request->shift_id)) {
+            $shift = ShiftClosing::findOrFail($request->shift_id);
+
+            $query->whereBetween('invoices.created_at', [$shift->start_time, $shift->end_time]);
+        }
+
+
+        // Party filter
+        if (!empty($request->party_user_id)) {
+            $query->where('invoices.party_user_id', $request->party_user_id);
+        }
+
+        // Type filter
+        if (!empty($request->type)) {
+            if ($request->type == 'commission') {
+                $query->whereNotNull('invoices.commission_user_id');
+            } elseif ($request->type == 'one_time') {
+                $query->where('invoices.sales_type', 'one_time');
+            }
+        }
+
+        $totalRecords = $query->count();
+
+        // Search filter
+        if (!empty($request->search['value'])) {
+            $searchValue = $request->search['value'];
+            $query->where(function ($q) use ($searchValue) {
+                $q->where('invoices.invoice_number', 'like', "%{$searchValue}%")
+                    ->orWhere('invoices.status', 'like', "%{$searchValue}%")
+                    ->orWhere('branches.name', 'like', "%{$searchValue}%")
+                    ->orWhere('party_users.first_name', 'like', "%{$searchValue}%")
+                    ->orWhere('commission_users.first_name', 'like', "%{$searchValue}%")
+                    ->orWhere('invoices.items', 'like', "%{$searchValue}%");
+            });
+        }
+
+        $filteredRecords = $query->count();
+
+        // Column map — MUST match frontend column order
+        $columns = [
+            'invoices.id',              // 0
+            'invoices.invoice_number',  // 1
+            'party_users.first_name',   // 2
+            'commission_users.first_name', // 3
+            'invoices.commission_amount',  // 4
+            'invoices.party_amount',    // 5
+            'invoices.creditpay',       // 6
+            'invoices.sub_total',       // 7
+            'invoices.total',           // 8
+            'invoices.items',           // 9 (items_count)
+            'branches.name',            // 10
+            'invoices.status',          // 11
+            'invoices.payment_mode',    // 12
+            'invoices.created_at',       // 13 ✅
+            'invoices.edit_in'          // 14 (for View History condition)
+        ];
+
+        if ($request->order) {
+            $orderColumnIndex = $request->order[0]['column'];
+            $orderDir = $request->order[0]['dir'] ?? 'desc';
+            $orderColumn = $columns[$orderColumnIndex] ?? 'invoices.created_at';
+            $query->orderBy($orderColumn, $orderDir);
+        } else {
+            $query->orderBy('invoices.created_at', 'desc');
+        }
+
+        // Pagination
+        if ($request->length > 0) {
+            $query->skip($request->start)->take($request->length);
+        }
+
+        $invoices = $query->get();
+
+        $data = [];
+
+        foreach ($invoices as $invoice) {
+            $items = json_decode($invoice->items, true);
+            $itemCount = collect($items)->sum('quantity');
+
+            // Determine if Edit button should be shown (last 7 days)
+            $showEditButton = Carbon::parse($invoice->created_at)->greaterThanOrEqualTo(Carbon::now()->subDays(7));
+
+            // Determine if View History button should be shown (edit_in == 'yes')
+            $showViewHistoryButton = $invoice->edit_in === 'yes';
+
+            $data[] = [
+                'invoice_number' => '<a href="' . url('/view-invoice/' . $invoice->id) . '" class="badge badge-success">' . $invoice->invoice_number . '</a>',
+                'status' => $invoice->status,
+                'sub_total' => $invoice->sub_total,
+                'total' => $invoice->total,
+                'commission_amount' => $invoice->commission_amount,
+                'creditpay' => $invoice->creditpay,
+                'party_amount' => $invoice->party_amount,
+                'items_count' => $itemCount,
+                'payment_mode' => ($invoice->payment_mode == 'online') ? 'UPI' : $invoice->payment_mode,
+                'created_at' => date('Y-m-d H:i:s', strtotime($invoice->created_at)),
+                'party_user' => $invoice->party_user ?? 'N/A',
+                'commission_user' => $invoice->commission_user ?? 'N/A',
+                'action' => '
+                        ' . ($showEditButton ? '
+                            <a href="' . url('/sales/edit-sales/' . $invoice->id) . '" class="btn btn-sm btn-success mb-1" title="Edit Invoice">
+                                <i class="fa fa-edit"></i>
+                            </a>
+                        ' : '') . '
+                        ' . ($showViewHistoryButton ? '
+                            <br>
+                            <button type="button"
+                                    class="btn btn-outline-dark btn-sm view-history-btn"
+                                    data-invoice-id="' . $invoice->id . '"
+                                    title="View History">
+                                📝 View History
+                            </button>
+                        ' : '') . '
+                    ',
+            ];
+        }
+
+        return response()->json([
+            'draw' => intval($request->draw),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $filteredRecords,
+            'data' => $data,
         ]);
     }
 
@@ -521,6 +648,88 @@ class ShiftManageController extends Controller
         ], 200);
     }
 
+    public function view_old($id, $shift_id, Request $request)
+    {
+        $perPage = $request->input('per_page', 10);
+        $search = $request->input('search'); // <-- Search term
+
+        $shift = ShiftClosing::findOrFail($shift_id);
+        $branch = Branch::findOrFail($id);
+        $branch_name = $branch->name;
+
+        $query = \DB::table('invoices')
+            ->where('branch_id', $id)
+            ->whereBetween('created_at', [$shift->start_time, $shift->end_time]);
+
+        // if ($shift->status === "pending") {
+        //     $query->whereIn('status', ['Paid', 'Hold']);
+        // } else {
+        //     $query->where('status', 'Paid');
+        // }
+
+        // ✅ Filter by product name inside items JSON (MySQL LIKE)
+        // if ($search) {
+        //     $query->where('items', 'LIKE', '%' . $search . '%');
+        // }
+
+        $partyUsers = DB::table('party_users')
+            ->select('id', 'first_name')
+            ->where('is_delete', 'No')->where('status', 'Active')->orderBy('first_name')->get();
+
+        $commissionUsers = DB::table('commission_users')
+            ->select('id', 'first_name')
+            ->where('is_deleted', 'No')->where('status', 'Active')->orderBy('first_name')->get();
+
+
+        // Totals (before pagination)
+        // $totals = (clone $query)->selectRaw('
+        // SUM(cash_amount) as total_cash,
+        // SUM(upi_amount + online_amount) as total_upi,
+        // SUM(creditpay) as total_credit,
+        //     SUM(total_item_qty) as total_items,
+        //     SUM(sub_total) as total_subtotal,
+        //     SUM(total) as total_total
+        // ')->first();
+
+        // $invoices = $query->orderBy('created_at', 'desc')
+        //     ->select(
+        //         'id',
+        //         'invoice_number',
+        //         'cash_amount',
+        //         'upi_amount',
+        //         'online_amount',
+        //         'creditpay',
+        //         'payment_mode',
+        //         'total_item_qty',
+        //         'sub_total',
+        //         'tax',
+        //         'total',
+        //         'status',
+        //         'created_at'
+        //     )
+        //     ->paginate($perPage)
+        //     ->appends(['per_page' => $perPage, 'search' => $search]); // Preserve search
+
+        return view('shift_manage.view', compact(
+            'invoices',
+            'shift_id',
+            'branch_name',
+            'id',
+            'perPage',
+            'totals',
+            'partyUsers',
+            'commissionUsers'
+        ) + [
+            // 'totalCashAmount' => $totals->total_cash,
+            // 'totalUPIAmount' => $totals->total_upi,
+            // 'totalCreditPay' => $totals->total_credit,
+            // 'totalItems' => $totals->total_items,
+            // 'totalSubTotal' => $totals->total_subtotal,
+            // 'totalTotal' => $totals->total_total,
+            // 'search' => $search,
+        ]);
+    }
+
     public function showPhoto($id)
     {
 
@@ -562,7 +771,8 @@ class ShiftManageController extends Controller
             'shift',
             'branch_name',
             'subcategoryId',
-            'searchKeyword'
+            'searchKeyword',
+            'id'
         ));
     }
 

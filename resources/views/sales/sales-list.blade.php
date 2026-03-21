@@ -52,7 +52,7 @@
                             <th>Payment Status</th>
                             <th>Payment Mode</th>
                             <th>Date</th>
-                            <th>Action</th>
+                           
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -72,7 +72,7 @@
                             <th></th>
                             <th></th>
                             <th></th>
-                            <th></th>
+                            
                         </tr>
                     </tfoot>
                 </table>
@@ -121,11 +121,12 @@
             });
 
             let table = $('#invoice_table').DataTable({
-                scrollX: true,
+                pageLength: 10,
                 responsive: true,
                 processing: true,
+                ordering: true,
+                bLengthChange: true,
                 serverSide: true,
-                autoWidth: false,
                 language: {
                     search: "",
                     lengthMenu: "_MENU_"
@@ -135,7 +136,7 @@
                 ], // created_at column
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [0, 10, 11, 12, 14]
+                    aTargets: [0, 10, 11, 12]
                 }],
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
@@ -168,7 +169,7 @@
                             pageSize: 'A4',
 
                             exportOptions: {
-                                columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+                                columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
                             },
 
                             customize: function(doc) {
@@ -383,9 +384,6 @@
                     },
                     {
                         data: 'created_at'
-                    }, // Sort by default
-                    {
-                        data: 'action'
                     }
                 ],
                 footerCallback: function(row, data) {

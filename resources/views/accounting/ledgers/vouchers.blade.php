@@ -198,9 +198,11 @@
                         </a>
 
                         <button id="printBtn" class="btn btn-outline-warning btn-sm">Print</button>
-
-                        <a href="{{ route('accounting.ledgers.list') }}" class="btn btn-secondary">Back</a>
-
+                       
+                        <a href="{{ request('redirect') ?? route('accounting.ledgers.list') }}"
+                            class="btn btn-secondary add-list">
+                            ← Back
+                        </a>
                         {{-- <input type="text" id="daterange" class="form-control d-inline-block" style="width:210px" />
                         <button id="applyFilter" class="btn btn-light btn-sm">Apply</button> --}}
                     </div>

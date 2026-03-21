@@ -456,50 +456,52 @@
                                                 </tbody>
                                             </table>
                                         </div>
-                                        <div class="row mt-2">
+                                        @if($branch_name != "WAREHOUSE")
+                                            <div class="row mt-2">
 
-                                            <!-- CASH -->
-                                            <div class="col-md-4">
-                                                <div class="form-group">
-                                                    <input type="number" wire:model.live="cash"
-                                                        class="form-control rounded-pill @error('cash') is-invalid @enderror"
-                                                        min="0" step="1"
-                                                        placeholder="Enter cash amount">
+                                                <!-- CASH -->
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <input type="number" wire:model.live="cash"
+                                                            class="form-control rounded-pill @error('cash') is-invalid @enderror"
+                                                            min="0" step="1"
+                                                            placeholder="Enter cash amount">
 
-                                                    @error('cash')
-                                                        <span class="text-danger">{{ $message }}</span>
-                                                    @enderror
+                                                        @error('cash')
+                                                            <span class="text-danger">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
                                                 </div>
-                                            </div>
 
-                                            <!-- UPI -->
-                                            <div class="col-md-4">
-                                                <div class="form-group">
-                                                    <input type="number" wire:model.live="upi"
-                                                        class="form-control rounded-pill @error('upi') is-invalid @enderror"
-                                                        min="0" step="1" placeholder="Enter UPI amount">
+                                                <!-- UPI -->
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <input type="number" wire:model.live="upi"
+                                                            class="form-control rounded-pill @error('upi') is-invalid @enderror"
+                                                            min="0" step="1" placeholder="Enter UPI amount">
 
-                                                    @error('upi')
-                                                        <span class="text-danger">{{ $message }}</span>
-                                                    @enderror
+                                                        @error('upi')
+                                                            <span class="text-danger">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
                                                 </div>
-                                            </div>
 
-                                            <!-- ROUNDED -->
-                                            <div class="col-md-4">
-                                                <div class="form-group">
-                                                    <input type="number" wire:model.live="roundedAmount"
-                                                        class="form-control rounded-pill @error('roundedAmount') is-invalid @enderror"
-                                                        min="0" step="1"
-                                                        placeholder="Enter rounded amount">
+                                                <!-- ROUNDED -->
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <input type="number" wire:model.live="roundedAmount"
+                                                            class="form-control rounded-pill @error('roundedAmount') is-invalid @enderror"
+                                                            min="0" step="1"
+                                                            placeholder="Enter rounded amount">
 
-                                                    @error('roundedAmount')
-                                                        <span class="text-danger">{{ $message }}</span>
-                                                    @enderror
+                                                        @error('roundedAmount')
+                                                            <span class="text-danger">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
                                                 </div>
-                                            </div>
 
-                                        </div>
+                                            </div>
+                                        @endif
                                     @else
                                         <div class="d-flex justify-content-center mt-1">
                                             <div class="form-check d-flex align-items-center gap-2">
