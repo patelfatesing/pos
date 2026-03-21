@@ -57,7 +57,7 @@
                                             <div class="floating-label form-group">
                                                 <label>Email</label>
                                                 <input class="floating-input form-control" value="{{ $record->email }}"
-                                                    disabled name="email" type="email" placeholder=" ">
+                                                    name="email" type="email" placeholder=" ">
                                                 @error('email')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror

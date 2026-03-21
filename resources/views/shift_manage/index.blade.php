@@ -10,7 +10,7 @@
                 <div>
                     <h4 class="mb-0">Shift Manage</h4>
                 </div>
-               
+
             </div>
 
             <div class="row">
@@ -644,7 +644,7 @@
 
         // Function to get the image path
         function getImagePath(imageFile) {
-            return '{{ asset('storage/shift-images/') }}/' + imageFile;
+            return '{{ asset('storage/') }}/' + imageFile;
         }
 
         function showImage(imageUrl) {
@@ -657,8 +657,13 @@
                     $(this).attr('src', defaultImg);
                 });
 
-             var modal = new bootstrap.Modal(document.getElementById('imageModal'));
+            var modal = new bootstrap.Modal(document.getElementById('imageModal'));
             modal.show();
         }
+
+        $(document).on('click', '.view-image-btn', function() {
+            let image = $(this).data('image');
+            showImage(getImagePath(image));
+        });
     </script>
 @endsection
