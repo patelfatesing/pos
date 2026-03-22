@@ -15,6 +15,8 @@ use App\Models\StockTransfer;
 use Illuminate\Support\Str;
 use App\Models\ShiftClosing;
 use App\Models\Category;
+use App\Models\UserShift;
+use Carbon\Carbon;
 
 class StockTransferController extends Controller
 {
@@ -77,6 +79,7 @@ class StockTransferController extends Controller
         $orderDirection = $request->input('order.0.dir', 'asc');
 
         $query = StockTransfer::select([
+            DB::raw('MIN(stock_transfers.id) as id'), // ✅ use MIN id
             'stock_transfers.transfer_number',
             'stock_transfers.from_branch_id',
             'stock_transfers.to_branch_id',
@@ -86,12 +89,15 @@ class StockTransferController extends Controller
             'from_branch.name as from_branch_name',
             'to_branch.name as to_branch_name',
             'users.name as created_by_name',
+
             DB::raw('COUNT(DISTINCT stock_transfers.product_id) as total_products'),
             DB::raw('SUM(stock_transfers.quantity) as total_quantity')
         ])
             ->join('branches as from_branch', 'stock_transfers.from_branch_id', '=', 'from_branch.id')
             ->join('branches as to_branch', 'stock_transfers.to_branch_id', '=', 'to_branch.id')
             ->join('users', 'stock_transfers.transfer_by', '=', 'users.id')
+
+            // ✅ GROUP ONLY BY TRANSFER
             ->groupBy([
                 'stock_transfers.transfer_number',
                 'stock_transfers.from_branch_id',
@@ -101,7 +107,7 @@ class StockTransferController extends Controller
                 'stock_transfers.transferred_at',
                 'from_branch.name',
                 'to_branch.name',
-                'users.name'
+                'users.name',
             ]);
 
         // Optional search
@@ -112,6 +118,17 @@ class StockTransferController extends Controller
                     ->orWhere('to_branch.name', 'like', "%$searchValue%")
                     ->orWhere('users.name', 'like', "%$searchValue%");
             });
+        }
+
+        if (!empty($request->branch_id)) {
+            $query->where(function ($q) use ($request) {
+                $q->where('stock_transfers.from_branch_id', $request->branch_id)
+                    ->orWhere('stock_transfers.to_branch_id', $request->branch_id);
+            });
+        }
+
+        if (!empty($request->shift_id)) {
+            $query->where('stock_transfers.shift_id', $request->shift_id);
         }
 
         // Role-based filtering
@@ -140,6 +157,17 @@ class StockTransferController extends Controller
         $records = [];
 
         foreach ($data as $transfer) {
+
+            $action = '<div class="d-flex align-items-center list-action">';
+            $action .= '<a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="View"
+                        href="' . route('stock-transfer.view', $transfer->transfer_number) . '"><i class="ri-eye-line mr-0"></i></a>';
+
+
+            $action .= '<a class="badge bg-success mr-2" title="Edit" href="' . url('/stock-transfer/edit/' . $transfer->id) . '">
+                <i class="ri-pencil-line"></i></a>';
+            $action .= '</div>';
+
+
             $records[] = [
                 'id' => $transfer->transfer_number,
                 'transfer_number' => $transfer->transfer_number,
@@ -150,10 +178,7 @@ class StockTransferController extends Controller
                 'created_by' => $transfer->created_by_name,
                 'total_products' => $transfer->total_products,
                 'total_quantity' => $transfer->total_quantity,
-                'action' => '<div class="d-flex align-items-center list-action">
-                    <a class="badge badge-info mr-2" data-toggle="tooltip" data-placement="top" title="View"
-                        href="' . route('stock-transfer.view', $transfer->transfer_number) . '"><i class="ri-eye-line mr-0"></i></a>
-                </div>'
+                'action' => $action
             ];
         }
 
@@ -182,6 +207,7 @@ class StockTransferController extends Controller
 
     public function store(Request $request)
     {
+
         try {
             // Validate basic form inputs
             $validated = $request->validate([
@@ -242,8 +268,12 @@ class StockTransferController extends Controller
 
             $transferNumber = "{$prefix}-{$datePart}-{$randomPart}";
 
+            $today = Carbon::today();
+
+
             $arr_low_stock = [];
             foreach ($request->items as $item) {
+
                 $remainingQty = $item['quantity'];
 
                 $inventories = Inventory::where('product_id', $item['product_id'])
@@ -252,89 +282,88 @@ class StockTransferController extends Controller
                     ->get();
 
                 foreach ($inventories as $inventory) {
+
                     if ($remainingQty <= 0) break;
-
-                    $low_qty_level = Inventory::lowLevelQty($item['product_id'], $request->from_store_id);
-
-                    $total_qty = Inventory::countQty($item['product_id'], $request->from_store_id);
 
                     $deductQty = min($inventory->quantity, $remainingQty);
 
-                    // Deduct from source store
+                    // ✅ deduct source
                     $inventory->quantity -= $deductQty;
                     $inventory->save();
 
-                    $total_qty = $total_qty - $deductQty;
-                    // Add to destination store
-                    $criteria = [
-                        'store_id'    => $request->to_store_id,
-                        'product_id'  => $item['product_id'],
-                        'batch_no'    => $inventory->batch_no,
-                        'expiry_date' => $inventory->expiry_date
-                            ? $inventory->expiry_date->toDateString()
-                            : null,
-                    ];
+                    // ✅ add destination
+                    $dest = Inventory::where([
+                        'store_id' => $request->to_store_id,
+                        'product_id' => $item['product_id'],
+                        'batch_no' => $inventory->batch_no,
+                        'expiry_date' => optional($inventory->expiry_date)->toDateString(),
+                    ])->first();
 
-                    $storeInventory = Inventory::where($criteria)->first();
-
-                    if ($storeInventory) {
-                        $storeInventory->quantity += $deductQty;
-                        $storeInventory->save();
+                    if ($dest) {
+                        $dest->quantity += $deductQty;
+                        $dest->save();
                     } else {
-                        $low_qty_level_wh = Inventory::lowLevelQty($item['product_id'], 1);
-
                         Inventory::create([
-                            'store_id'     => $request->to_store_id,
-                            'location_id'  => $request->to_store_id,
-                            'product_id'   => $item['product_id'],
-                            'batch_no'     => $inventory->batch_no,
-                            'expiry_date'  =>  $inventory->expiry_date
-                                ? $inventory->expiry_date->toDateString()
-                                : null,
-                            'quantity'     => $deductQty,
-                            'low_level_qty' => $low_qty_level_wh,
+                            'store_id' => $request->to_store_id,
+                            'location_id' => $request->to_store_id,
+                            'product_id' => $item['product_id'],
+                            'batch_no' => $inventory->batch_no,
+                            'expiry_date' => optional($inventory->expiry_date)->toDateString(),
+                            'quantity' => $deductQty,
                         ]);
                     }
 
-
-                    if ($total_qty < $low_qty_level) {
-                        // $arr['id'] = $item['product_id'];
-                        $arr_low_stock[$item['product_id']] = $item['product_id'];
-                        // sendNotification('low_stock', 'Store stock request', $request->from_store_id, Auth::id(), json_encode($arr));
-                        // sendNotification('low_stock', 'Store stock request', null, Auth::id(), json_encode($arr));
-                    }
-
-                    // Stock status changes and logs
-                    stockStatusChange($item['product_id'], $request->from_store_id, $deductQty, 'transfer_stock');
-                    stockStatusChange($item['product_id'], $request->to_store_id, $deductQty, 'add_stock');
-
-                    $inventoryService = new \App\Services\InventoryService();
-                    $inventoryService->transferProduct(
-                        $item['product_id'],
-                        $inventory->id,
-                        $request->from_store_id,
-                        $request->to_store_id,
-                        $deductQty,
-                        'store_to_store',
-                        'store'
-                    );
-
-                    // Log the transfer
-                    StockTransfer::create([
-                        'stock_request_id' => $request->request_id ?? null,
-                        'transfer_number' => $transferNumber,
-                        'from_branch_id' => $request->from_store_id,
-                        'to_branch_id' => $request->to_store_id,
-                        'product_id' => $item['product_id'],
-                        'quantity' => $item['quantity'],
-                        'status' => 'approved',
-                        'transfer_by' => Auth::id(),
-                        'transferred_at' => now(),
-                    ]);
-
                     $remainingQty -= $deductQty;
                 }
+
+                $currentShiftFrom = UserShift::whereDate('start_time', $today)->where(['branch_id' => $request->from_store_id])->where(['status' => "pending"])->first();
+                $currentShiftTo = UserShift::whereDate('start_time', $today)->where(['branch_id' => $request->to_store_id])->where(['status' => "pending"])->first();
+
+                stockStatusChange($item['product_id'], $request->from_store_id, $item['quantity'], 'transfer_stock', $currentShiftFrom->id);
+                stockStatusChange($item['product_id'], $request->to_store_id, $item['quantity'], 'add_stock', $currentShiftTo->id);
+
+                // ✅ ONLY ONCE PER PRODUCT
+                StockTransfer::create([
+                    'stock_request_id' => $request->request_id ?? null,
+                    'transfer_number' => $transferNumber,
+                    'from_branch_id' => $request->from_store_id,
+                    'to_branch_id' => $request->to_store_id,
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'], // full qty
+                    'status' => 'approved',
+                    'transfer_by' => Auth::id(),
+                    'transferred_at' => now(),
+                ]);
             }
+
+            // =========================
+            // 🔥 PREPARE LOG DATA
+            // =========================
+            $newData = [];
+
+            foreach ($request->items as $item) {
+                $newData[] = [
+                    'product_id' => $item['product_id'],
+                    'quantity'   => $item['quantity'],
+                    'from_store' => $request->from_store_id,
+                    'to_store'   => $request->to_store_id,
+                ];
+            }
+
+            // =========================
+            // 🔥 SAVE ACTIVITY LOG
+            // =========================
+            logActivity(
+                'stock_transfer',
+                'created',
+                'Stock transfer created successfully',
+                [], // no old data in create
+                [
+                    'transfer_number' => $transferNumber,
+                    'items' => $newData,
+                    'total_items' => count($newData)
+                ]
+            );
 
             if (!empty($arr_low_stock)) {
 
@@ -371,14 +400,21 @@ class StockTransferController extends Controller
 
     public function edit($id)
     {
-        $transfer = StockTransfer::with('items')->findOrFail($id);
+        // Get selected transfer row
+        $transfer = StockTransfer::findOrFail($id);
 
-        $stores = Store::all();
+        // Get ALL items of same transfer_number
+        $items = StockTransfer::where('transfer_number', $transfer->transfer_number)->get();
+
         $categories = Category::all();
+
+        $stores = Branch::where('is_deleted', 'no')->get();
+
         $products = Product::all();
 
-        return view('stock-transfer.edit', compact(
+        return view('stocks_transfer.edit', compact(
             'transfer',
+            'items',
             'stores',
             'categories',
             'products'
@@ -387,35 +423,181 @@ class StockTransferController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'from_store_id' => 'required|different:to_store_id',
-            'to_store_id' => 'required',
-            'items.*.product_id' => 'required',
-            'items.*.quantity' => 'required|numeric|min:1',
-        ]);
+        try {
 
-        $transfer = StockTransfer::findOrFail($id);
-
-        // Update main data
-        $transfer->update([
-            'from_store_id' => $request->from_store_id,
-            'to_store_id'   => $request->to_store_id,
-            'category_id'   => $request->category_id,
-            'subcategory_id' => $request->subcategory_id,
-        ]);
-
-        // Delete old items
-        StockTransferItem::where('stock_transfer_id', $id)->delete();
-
-        // Insert new items
-        foreach ($request->items as $item) {
-            StockTransferItem::create([
-                'stock_transfer_id' => $transfer->id,
-                'product_id' => $item['product_id'],
-                'quantity' => $item['quantity'],
+            // ✅ Validation
+            $request->validate([
+                'from_store_id' => 'required|exists:branches,id',
+                'to_store_id'   => 'required|exists:branches,id',
+                'items'         => 'required|array|min:1',
+                'items.*.product_id' => 'required|exists:products,id',
+                'items.*.quantity'   => 'required|integer|min:1',
             ]);
-        }
 
-        return redirect()->route('stock-transfer.list')->with('success', 'Transfer updated successfully!');
+            if ($request->from_store_id == $request->to_store_id) {
+                return back()->withErrors([
+                    'to_store_id' => 'Source and destination must be different'
+                ])->withInput();
+            }
+
+            DB::beginTransaction();
+
+            // ✅ Get existing transfer group
+            $transfer = StockTransfer::findOrFail($id);
+
+            $oldTransfers = StockTransfer::where('transfer_number', $transfer->transfer_number)->get();
+
+            // =========================
+            // 🔁 STEP 1: REVERSE OLD STOCK
+            // =========================
+            foreach ($oldTransfers as $old) {
+
+                $remainingQty = $old->quantity;
+
+                // Add back to source
+                Inventory::create([
+                    'store_id'   => $old->from_branch_id,
+                    'product_id' => $old->product_id,
+                    'quantity'   => $old->quantity,
+                    'location_id' => $old->from_branch_id
+                ]);
+
+                // Deduct from destination
+                $destInventories = Inventory::where('product_id', $old->product_id)
+                    ->where('store_id', $old->to_branch_id)
+                    ->orderBy('expiry_date')
+                    ->get();
+
+                foreach ($destInventories as $inv) {
+                    if ($remainingQty <= 0) break;
+
+                    $deduct = min($inv->quantity, $remainingQty);
+                    $inv->quantity -= $deduct;
+                    $inv->save();
+
+                    $remainingQty -= $deduct;
+                }
+            }
+
+            // =========================
+            // 🗑️ STEP 2: DELETE OLD RECORDS
+            // =========================
+            StockTransfer::where('transfer_number', $transfer->transfer_number)->delete();
+
+            // =========================
+            // 🆕 STEP 3: CREATE NEW TRANSFER (LIKE STORE)
+            // =========================
+
+            $transferNumber = $transfer->transfer_number; // keep same number
+
+            $changes = []; // for log
+
+            foreach ($request->items as $item) {
+
+                $oldQty = $oldTransfers->where('product_id', $item['product_id'])->sum('quantity');
+
+                $remainingQty = $item['quantity'];
+
+                $inventories = Inventory::where('product_id', $item['product_id'])
+                    ->where('store_id', $request->from_store_id)
+                    ->orderBy('expiry_date')
+                    ->get();
+
+                foreach ($inventories as $inventory) {
+
+                    if ($remainingQty <= 0) break;
+
+                    $deductQty = min($inventory->quantity, $remainingQty);
+
+                    // deduct source
+                    $inventory->quantity -= $deductQty;
+                    $inventory->save();
+
+                    // add destination
+                    $dest = Inventory::where([
+                        'store_id' => $request->to_store_id,
+                        'product_id' => $item['product_id'],
+                        'batch_no' => $inventory->batch_no,
+                        'expiry_date' => optional($inventory->expiry_date)->toDateString(),
+                    ])->first();
+
+                    if ($dest) {
+                        $dest->quantity += $deductQty;
+                        $dest->save();
+                    } else {
+                        Inventory::create([
+                            'store_id' => $request->to_store_id,
+                            'location_id' => $request->to_store_id,
+                            'product_id' => $item['product_id'],
+                            'batch_no' => $inventory->batch_no,
+                            'expiry_date' => optional($inventory->expiry_date)->toDateString(),
+                            'quantity' => $deductQty,
+                        ]);
+                    }
+
+                    $remainingQty -= $deductQty;
+                }
+
+                // ✅ CREATE ONLY ONCE PER PRODUCT
+                StockTransfer::create([
+                    'transfer_number' => $transferNumber,
+                    'from_branch_id' => $request->from_store_id,
+                    'to_branch_id' => $request->to_store_id,
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'status' => 'approved',
+                    'transfer_by' => Auth::id(),
+                    'transferred_at' => now(),
+                ]);
+
+                // log change
+                $changes[] = [
+                    'product_id' => $item['product_id'],
+                    'old_qty' => $oldQty,
+                    'new_qty' => $item['quantity'],
+                ];
+            }
+
+            $oldData = $oldTransfers->map(function ($item) {
+                return [
+                    'product_id' => $item->product_id,
+                    'quantity' => $item->quantity,
+                    'from' => $item->from_branch_id,
+                    'to' => $item->to_branch_id,
+                ];
+            })->toArray();
+
+            $newData = [];
+
+            foreach ($request->items as $item) {
+                $newData[] = [
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'from' => $request->from_store_id,
+                    'to' => $request->to_store_id,
+                ];
+            }
+
+            // =========================
+            // 📝 STORE CHANGE LOG
+            // =========================
+            logActivity(
+                'stock_transfer',
+                'updated',
+                'Stock transfer updated',
+                $oldData,
+                $newData
+            );
+
+            DB::commit();
+
+            return redirect()->route('stock-transfer.list')
+                ->with('success', 'Transfer updated successfully');
+        } catch (\Exception $e) {
+
+            DB::rollback();
+
+            return back()->with('error', $e->getMessage())->withInput();
+        }
     }
 }

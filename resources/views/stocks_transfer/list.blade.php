@@ -29,15 +29,15 @@
                         <table class="table table-striped table-bordered nowrap" id="stock-transfers-table">
                             <thead class="bg-white">
                                 <tr class="ligth ligth-data">
-                                     <th>Transfer #</th>
-                                            <th>From</th>
-                                            <th>To</th>
-                                            <th>Products</th>
-                                            <th>Total Qty</th>
-                                            <th>Date</th>
-                                            <th>Status</th>
-                                            <th>Created By</th>
-                                            <th>Action</th>
+                                    <th>Transfer #</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Products</th>
+                                    <th>Total Qty</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Created By</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -48,8 +48,6 @@
 
         </div>
     </div>
-
-    
 @endsection
 
 @section('scripts')
@@ -64,9 +62,18 @@
                     search: "",
                     lengthMenu: "_MENU_"
                 },
-                ajax: "{{ route('stock-transfer.get-transfer-data') }}",
-                 dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'f l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
-               initComplete: function() {
+                ajax: {
+                    url: "{{ route('stock-transfer.get-transfer-data') }}",
+                    type: "GET",
+                    data: function(d) {
+                        d.branch_id = @json($branch_id ?? null);
+                        d.shift_id = @json($shift_id ?? null);
+                    }
+                },
+
+                dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'f l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
+
+                initComplete: function() {
                     $('.dataTables_filter input').attr("placeholder", "Search List...");
                 },
                 columns: [{

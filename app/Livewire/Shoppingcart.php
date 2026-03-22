@@ -829,6 +829,7 @@ class Shoppingcart extends Component
                     $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
                 }
             }
+            $this->paymentType = "online";
         } else {
             if (!empty($this->selectedCommissionUser)) {
                 $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
@@ -903,6 +904,8 @@ class Shoppingcart extends Component
                 }
             }
         }
+
+        
     }
 
     public function processRefund()
@@ -3013,7 +3016,7 @@ class Shoppingcart extends Component
 
             $dr = collect($lines)->where('dc', 'Dr')->sum('amount');
             $cr = collect($lines)->where('dc', 'Cr')->sum('amount');
-
+           
             if (round($dr, 2) !== round($cr, 2)) {
                 throw new \Exception("Voucher not balanced: Dr={$dr} Cr={$cr}");
             }
@@ -3074,7 +3077,7 @@ class Shoppingcart extends Component
 
                 'lines'           => $lines,
             ];
-            // dd($payload);
+           
             // finally:
             $voucher = $this->posTransaction($payload);
 
