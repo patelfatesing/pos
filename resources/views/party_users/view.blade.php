@@ -1,5 +1,5 @@
 @extends('layouts.backend.datatable_layouts')
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 @section('page-content')
     <!-- Wrapper Start -->
     <div class="wrapper">
@@ -10,7 +10,7 @@
                     <div>
                         <h4 class="mb-0">Party Customer Information</h4>
                     </div>
-                     <a href="{{ route('party-users.list') }}" class="btn btn-secondary">Back</a>
+                    <a href="{{ route('party-users.list') }}" class="btn btn-secondary">Back</a>
                 </div>
                 <div class="row">
                     <div class="col-sm-12">
@@ -19,7 +19,7 @@
                             <div class="container-fluid">
 
                                 <div class="card">
-                                   
+
                                     <div class="card-body">
                                         <ul class="nav nav-pills mb-3 nav-fill" id="pills-tab-1" role="tablist">
                                             <li class="nav-item">
@@ -96,8 +96,7 @@
                                                                                 fill="none" viewBox="0 0 24 24"
                                                                                 stroke="currentColor">
                                                                                 <path stroke-linecap="round"
-                                                                                    stroke-linejoin="round"
-                                                                                    stroke-width="2"
+                                                                                    stroke-linejoin="round" stroke-width="2"
                                                                                     d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                                                             </svg>
                                                                             <p class="mb-0">{{ $partyUser->email }}</p>
@@ -375,7 +374,9 @@
                 // Assuming the response is a JSON with customer_photo and product_photo
 
                 $('#partyCustPhotoModalContent').html(response);
-                $('#partyCustPhotoShowModal').modal('show');
+                // $('#partyCustPhotoShowModal').modal('show');
+                var myModal = new bootstrap.Modal(document.getElementById('partyCustPhotoShowModal'));
+                myModal.show();
             },
             error: function() {
                 alert('Photos.Not Found');

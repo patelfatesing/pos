@@ -754,9 +754,9 @@ class ShiftCloseModal extends Component
                             ];
                         }
 
-                        $customers[$key]['total_sales'] += $invoice->total;
-                        $customers[$key]['commission_amount'] += $invoice->party_amount ?? 0;
-                        $customers[$key]['credit_used'] += $invoice->creditpay ?? 0;
+                        $customers[$key]['total_sales'] += $this->cleanAmount($invoice->total);
+                        $customers[$key]['commission_amount'] += $this->cleanAmount($invoice->party_amount) ?? 0;
+                        $customers[$key]['credit_used'] += $this->cleanAmount($invoice->creditpay) ?? 0;
                     }
                 } elseif ($branch_id != 1 && !empty($invoice->commission_user_id)) {
 
@@ -775,8 +775,8 @@ class ShiftCloseModal extends Component
                             ];
                         }
 
-                        $customers[$key]['total_sales'] += $invoice->total;
-                        $customers[$key]['commission_amount'] += $invoice->commission_amount ?? 0;
+                        $customers[$key]['total_sales'] += $this->cleanAmount($invoice->total);
+                        $customers[$key]['commission_amount'] += $this->cleanAmount($invoice->commission_amount) ?? 0;
                     }
                 }
             }
@@ -941,6 +941,15 @@ class ShiftCloseModal extends Component
     {
         // Example DB fetch, adapt to your DB structure
         return Product::select('name', 'quantity', 'price')->get()->toArray();
+    }
+
+    private function cleanAmount($value)
+    {
+        if (is_null($value)) return 0;
+
+        $value = str_replace(['₹', ',', ' '], '', $value);
+
+        return is_numeric($value) ? (float) $value : 0;
     }
 
     public function calculateDiscrepancy()
