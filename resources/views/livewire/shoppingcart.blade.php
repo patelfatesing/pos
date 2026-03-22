@@ -271,7 +271,7 @@
                                     <input type="number" id="barcodeInput"
                                         class="form-control rounded-pill pe-3 custom-border"
                                         placeholder="{{ __('messages.scan_barcode') }}" wire:model.live="search"
-                                        wire:keydown.enter="addToCartBarCode" autocomplete="off">
+                                        wire:keydown.enter="addToCartBarCode" autofocus>
 
                                     <!-- Barcode icon -->
                                     <img class="barcode-search"
@@ -1593,44 +1593,32 @@
                                     <div class="col-md-3">
                                         @if (count($itemCarts) > 0)
                                             <div class="">
+                                                @php
+                                                    $netAmount = $totals['totalIn'] - $totals['totalOut'];
+                                                @endphp
 
+                                                {{-- REFUND BUTTON --}}
                                                 @if (!empty($this->selectedSalesReturn) && $this->cashAmount == $totals['totalOut'])
                                                     <button id="paymentSubmit"
                                                         class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
                                                         wire:click="refund" wire:loading.attr="disabled">
                                                         Refund
                                                     </button>
-                                                @else
-                                                    @if ($this->cashAmount == $totals['totalIn'] - $totals['totalOut'] && $errorInCredit == false)
-                                                        <button id="paymentSubmit"
-                                                            class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
-                                                            wire:click="checkout" wire:loading.attr="disabled"
-                                                            wire:target="checkout">
 
-                                                            <span wire:loading.remove wire:target="checkout">
-                                                                {{ __('messages.submit') }}
-                                                            </span>
-                                                            <span wire:loading wire:target="checkout">
-                                                                Loading...
-                                                            </span>
-                                                        </button>
-                                                    @endif
+                                                    {{-- CHECKOUT BUTTON --}}
+                                                @elseif (($this->cashAmount == $netAmount && !$errorInCredit) || !$inOutStatus)
+                                                    <button id="paymentSubmit"
+                                                        class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
+                                                        wire:click="checkout" wire:loading.attr="disabled"
+                                                        wire:target="checkout">
 
-                                                    @if (!$inOutStatus)
-                                                        <button id="paymentSubmit"
-                                                            class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
-                                                            wire:click="checkout" wire:loading.attr="disabled"
-                                                            wire:target="checkout">
-
-                                                            <span wire:loading.remove wire:target="checkout">
-                                                                {{ __('messages.submit') }}
-                                                            </span>
-                                                            <span wire:loading wire:target="checkout">
-                                                                Loading...
-                                                            </span>
-                                                        </button>
-                                                    @endif
-
+                                                        <span wire:loading.remove wire:target="checkout">
+                                                            {{ __('messages.submit') }}
+                                                        </span>
+                                                        <span wire:loading wire:target="checkout">
+                                                            Loading...
+                                                        </span>
+                                                    </button>
                                                 @endif
                                                 {{-- <div wire:loading class=" text-muted">{{ __('messages.processing_payment') }}...
                                                 </div> --}}
@@ -2237,55 +2225,55 @@
     }
 
     // ✅ Page load
-    window.addEventListener('load', () => {
-        setTimeout(focusBarcode, 200);
-    });
+    // window.addEventListener('load', () => {
+    //     setTimeout(focusBarcode, 200);
+    // });
 
     // ✅ Livewire support
-    document.addEventListener('livewire:init', () => {
+    // document.addEventListener('livewire:init', () => {
 
-        Livewire.on('focus-barcode', () => {
-            setTimeout(focusBarcode, 100);
-        });
+    //     Livewire.on('focus-barcode', () => {
+    //         setTimeout(focusBarcode, 100);
+    //     });
 
-        Livewire.hook('message.processed', () => {
-            focusBarcode();
-        });
-    });
+    //     Livewire.hook('message.processed', () => {
+    //         focusBarcode();
+    //     });
+    // });
 
     // ✅ When user clicks ANYWHERE
-    document.addEventListener('click', function(e) {
+    // document.addEventListener('click', function(e) {
 
-        const barcode = document.getElementById('barcodeInput');
+    //     const barcode = document.getElementById('barcodeInput');
 
-        // If clicked on barcode → do nothing
-        if (e.target === barcode) return;
+    //     // If clicked on barcode → do nothing
+    //     if (e.target === barcode) return;
 
-        // If clicked on input/textarea/select → allow temporary typing
-        if (e.target.tagName === 'INPUT' ||
-            e.target.tagName === 'TEXTAREA' ||
-            e.target.tagName === 'SELECT') {
+    //     // If clicked on input/textarea/select → allow temporary typing
+    //     if (e.target.tagName === 'INPUT' ||
+    //         e.target.tagName === 'TEXTAREA' ||
+    //         e.target.tagName === 'SELECT') {
 
-            clearTimeout(barcodeFocusTimeout);
+    //         clearTimeout(barcodeFocusTimeout);
 
-            // ⏳ After 3 seconds → return focus to barcode
-            barcodeFocusTimeout = setTimeout(() => {
-                focusBarcode();
-            }, 3000);
+    //         // ⏳ After 3 seconds → return focus to barcode
+    //         barcodeFocusTimeout = setTimeout(() => {
+    //             focusBarcode();
+    //         }, 3000);
 
-        } else {
-            // Clicked anywhere else → immediately focus barcode
-            focusBarcode();
-        }
-    });
+    //     } else {
+    //         // Clicked anywhere else → immediately focus barcode
+    //         focusBarcode();
+    //     }
+    // });
 
     // ✅ If user stops typing anywhere → return focus
-    document.addEventListener('keydown', function() {
-        clearTimeout(barcodeFocusTimeout);
-        barcodeFocusTimeout = setTimeout(() => {
-            focusBarcode();
-        }, 3000);
-    });
+    // document.addEventListener('keydown', function() {
+    //     clearTimeout(barcodeFocusTimeout);
+    //     barcodeFocusTimeout = setTimeout(() => {
+    //         focusBarcode();
+    //     }, 3000);
+    // });
 
     window.addEventListener('open-cash-modal', event => {
         const modal = new bootstrap.Modal(document.getElementById('cashModal'));

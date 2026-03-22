@@ -331,7 +331,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/stock-transfer/get-transfer-data', [StockTransferController::class, 'getTransferData'])->name('stock-transfer.get-transfer-data');
     Route::get('/stock-transfer/view/{id}', [StockTransferController::class, 'view'])->name('stock-transfer.view');
     Route::post('/stock-transfer/store', [StockTransferController::class, 'store'])->name('stock-transfer.store');
-    Route::get('/stock-transfer/{id}/edit', [StockTransferController::class, 'edit'])->name('stock-transfer.edit');
+    Route::get('/stock-transfer/edit/{id}', [StockTransferController::class, 'edit'])->name('stock-transfer.edit');
     Route::post('/stock-transfer/{id}/update', [StockTransferController::class, 'update'])->name('stock-transfer.update');
 
     Route::get('/vendor/list', [VendorListController::class, 'index'])->name('vendor.list');

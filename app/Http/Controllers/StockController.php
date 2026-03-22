@@ -282,7 +282,7 @@ class StockController extends Controller
 
         if (auth()->user()->role_id == 1 || canAccess(auth()->user()->role_id, 'stock-request')) {
             $stockRequest->load('branch', 'user', 'items.product');
-            return view('stocks.show', compact('stockRequest','branch_id','shift_id'));
+            return view('stocks.show', compact('stockRequest', 'branch_id', 'shift_id'));
         } else {
 
             return view('errors.403', [
@@ -506,28 +506,31 @@ class StockController extends Controller
                 // Reject button (permission optional, adjust slug if needed)
                 if ($roleId == 1 || getAccess($roleId, 'stock-request-reject') === 'yes') {
                     $action .= '<span class="badge bg-danger"
-            style="cursor:pointer"
-            onclick="stock_reject(' . $requestItem->id . ',' . $requestItem->requested_by . ')">
-            Reject
-        </span>';
+                        style="cursor:pointer"
+                        onclick="stock_reject(' . $requestItem->id . ',' . $requestItem->requested_by . ')">
+                        Reject
+                    </span>';
                 }
             } elseif ($requestItem->status === 'approved') {
 
                 if ($roleId == 1 || getAccess($roleId, 'stock-request-approval') === 'yes') {
                     $action .= '<a class="btn btn-success btn-sm ml-1 mr-2"
-            data-toggle="tooltip" title="View"
-            href="' . url('/stock/view-request/' . $requestItem->id) . '">
-            Approved
-        </a>';
+                        data-toggle="tooltip" title="View"
+                        href="' . url('/stock/view-request/' . $requestItem->id) . '">
+                        Approved
+                    </a>';
                 }
+                $action .= '<a class="badge bg-success mr-2" title="Edit" href="' . url('/stock-transfer/edit/' . $requestItem->id) . '">
+                <i class="ri-pencil-line"></i></a>';
+                $action .= '</div>';
             } elseif ($requestItem->status === 'rejected') {
 
                 if ($roleId == 1 || getAccess($roleId, 'stock-request-reject') === 'yes') {
                     $action .= '<a class="btn btn-danger btn-sm ml-1 mr-2"
-            data-toggle="tooltip" title="View"
-            href="' . url('/stock/view/' . $requestItem->id) . '">
-            Rejected
-        </a>';
+                        data-toggle="tooltip" title="View"
+                        href="' . url('/stock/view/' . $requestItem->id) . '">
+                        Rejected
+                    </a>';
                 }
             }
 
@@ -1094,6 +1097,54 @@ class StockController extends Controller
 
         return view('stocks.requestView', compact('stockRequest', 'flattened', 'sourceId'));
     }
+
+    public function stockRequestEdit($id)
+    {
+        // Load stock request with related branch and product info
+        $stockRequest = StockRequest::with(['branch', 'items.product'])->findOrFail($id);
+        $sourceId = $stockRequest->branch->id;
+
+        $allBranches = Branch::with('shiftClosings:id,branch_id')
+            ->select('id', 'name')
+            ->where('id', '!=', $sourceId)
+            // ->whereHas('shiftClosings', function ($q) {
+            //     $q->where('status', 'pending');
+            // })
+            ->get()
+            ->keyBy('id');
+
+
+        $flattened = [];
+
+        foreach ($allBranches as $branchId => $branch) {
+            foreach ($stockRequest->items as $resItems) {
+                $productId = $resItems->product_id;
+                $requestedQty = $resItems->quantity ?? 0;
+                if ($requestedQty <= 0) continue;
+
+                $product = $resItems->product;
+                $inventoryQty = Inventory::where('product_id', $productId)
+                    ->where('store_id', $branchId)
+                    ->value('quantity');
+
+                // if (empty($inventoryQty) || $inventoryQty <= 0) continue;
+                // if inventory null set 0
+                $inventoryQty = $inventoryQty ?? 0;
+
+                $flattened[] = [
+                    'product_id' => $productId,
+                    'product_name' => $product->name ?? 'N/A',
+                    'store_id' => $branchId,
+                    'store_name' => $branch->name,
+                    'requested_qty' => $requestedQty,
+                    'store_ava_quantity' => $inventoryQty,
+                ];
+            }
+        }
+
+        return view('stocks.editRequest', compact('stockRequest', 'flattened', 'sourceId'));
+    }
+
 
     public function destroy(StockRequest $stockRequest)
     {
