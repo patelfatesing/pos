@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB; // ✅ Correct import
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Branch;
+use App\Models\Invoice;
 
 class CustomerCreditLedgerModal extends Component
 {
@@ -20,7 +21,8 @@ class CustomerCreditLedgerModal extends Component
     public $startDate;
     public $endDate;
     public $branch_id;
-
+    public $showInvoiceModal = false;
+    public $selectedInvoice = null;
 
     public function openModal()
     {
@@ -97,6 +99,12 @@ class CustomerCreditLedgerModal extends Component
         }, 'customer_ledger_' . now()->format('Ymd_His') . '.pdf');
     }
 
+    public function openInvoiceModal($invoiceId)
+    {
+        $this->selectedInvoice = Invoice::with(['partyUser'])->find($invoiceId);
+       
+        $this->showInvoiceModal = true;
+    }
 
     public function render()
     {

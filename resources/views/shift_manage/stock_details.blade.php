@@ -148,7 +148,7 @@
 
                         <div class="d-flex align-items-center gap-3">
 
-                            {{-- <div class="d-flex align-items-center gap-1 verify-box sales ml-2">
+                            <div class="d-flex align-items-center gap-1 verify-box sales ml-2">
                                 <input type="checkbox" name="verify_sales" id="verify_sales">
                                 <span onclick="handleClick('sales')">✔ Sales</span>
                             </div>
@@ -166,7 +166,7 @@
                             <div class="d-flex align-items-center gap-1 verify-box shift ml-2">
                                 <input type="checkbox" name="unverify_shift" id="unverify_shift">
                                 <span>✖ Shift</span>
-                            </div> --}}
+                            </div>
 
                         </div>
                     </div>

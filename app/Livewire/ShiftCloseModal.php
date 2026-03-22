@@ -180,21 +180,7 @@ class ShiftCloseModal extends Component
 
         $store = Branch::select('in_out_enable')->findOrFail($branch_id);
         $this->inOutStatus = $store->in_out_enable;
-        //  if(!empty($this->currentShift)){
-        //     $today = \Carbon\Carbon::parse($this->currentShift->start_time)->toDateString();
-        //     $this->showYesterDayShiftTime=true;
-        //  }else{
-        //      $today = Carbon::today();
-        //  }
 
-
-        // // Fetch and assign your shift data here (dummy data for now)
-        // $this->currentShift = $currentShift = UserShift::with('cashBreakdown')->with('branch')->whereDate('start_time', $today)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "pending"])->first();
-
-        // if (empty($this->currentShift) && $now->greaterThanOrEqualTo($cutoff)) {
-        //         $this->dispatch('close-shift-12am');
-        //         return;
-        // }
         $this->currentShift = $this->currentShift;
         $this->shft_id = $this->currentShift->id ?? null;
         // $this->currentShift = Shift::latest()->first();
@@ -207,9 +193,7 @@ class ShiftCloseModal extends Component
             ->where('branch_id', $branch_id)
             ->sum('total');
         // ✅ Initialize totals to 0 for all expected categories
-        // foreach ($sales as $category) {
-        //     $this->categoryTotals['sales'][$category] = 0;
-        // }
+
         $start_date = @$this->currentShift->start_time; // your start date (set manually)
         $end_date = @$this->currentShift->end_time; // today's date till end of day
         $totals = CreditHistory::whereBetween('created_at', [$start_date, $end_date])
@@ -234,6 +218,10 @@ class ShiftCloseModal extends Component
 
             if (is_string($items)) {
                 $items = json_decode($items, true); // decode if not already an array
+            }
+
+            if (!is_array($items)) {
+                $items = [];
             }
 
             if (is_array($items)) {
@@ -507,19 +495,21 @@ class ShiftCloseModal extends Component
 
                         $productData = Product::with(['category', 'subcategory'])->findOrFail($product_id);
 
-                        // ✅ PUSH instead of overwrite
-                        $data[] = [
-                            'product_id' => $productData->id,
-                            'name' => $productData->name,
-                            'quantity' => $one_time_sale,
-                            'category' => optional($productData->category)->name,
-                            'subcategory' => optional($productData->subcategory)->name,
-                            'price' => $productData->sell_price,
-                            'mrp' => $productData->mrp
-                        ];
+                        if ($one_time_sale > 0) {
+                            // ✅ PUSH instead of overwrite
+                            $data[] = [
+                                'product_id' => $productData->id,
+                                'name' => $productData->name,
+                                'quantity' => $one_time_sale,
+                                'category' => optional($productData->category)->name,
+                                'subcategory' => optional($productData->subcategory)->name,
+                                'price' => $productData->sell_price,
+                                'mrp' => $productData->mrp
+                            ];
 
-                        $sale_total += $one_time_sale * $productData->sell_price;
-                        $this->total_item_total += $one_time_sale * $productData->sell_price;
+                            $sale_total += $one_time_sale * $productData->sell_price;
+                            $this->total_item_total += $one_time_sale * $productData->sell_price;
+                        }
 
                         // stockStatusChange($product_id, $branch_id, $qty, 'sold_stock', optional($this->currentShift)->id);
 
@@ -545,7 +535,7 @@ class ShiftCloseModal extends Component
             $invoice_number = Invoice::generateInvoiceNumberNew($branch_id, $Shift_data->start_time);
 
             \Log::info('Before Invoice Creation');
-            DB::table('invoices')->insertGetId([
+            $invoice_id = DB::table('invoices')->insertGetId([
                 'user_id'            => Auth::id(),
                 'branch_id'          => $branch_id,
                 'roundof'            => $this->roundedTotal,
@@ -583,7 +573,12 @@ class ShiftCloseModal extends Component
                         ->where('added_stock', 0);
                 });
 
+            $invoice = Invoice::findOrFail($invoice_id);
 
+            $pdf = App::make('dompdf.wrapper');
+            $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => @$first_name, "ref_no" => $invoice->ref_no, "hold_date" => $invoice->hold_date]);
+            $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
+            $pdf->save($pdfPath);
 
             $rawStockData = $query->get();
 
@@ -701,85 +696,88 @@ class ShiftCloseModal extends Component
                 return;
             }
 
-            $invoices = Invoice::where('user_id', $user_id)
-                ->where('branch_id', $branch_id)
-                ->whereBetween('created_at', [$this->currentShift->start_time, now()])
-                ->where('status', 'Paid')
-                ->get();
-
             $departments = [];
             $customers = [];
 
-            foreach ($invoices as $invoice) {
+            Invoice::where('user_id', $user_id)
+                ->where('branch_id', $branch_id)
+                ->whereBetween('created_at', [$this->currentShift->start_time, now()])
+                ->where('status', 'Paid')
+                ->chunk(100, function ($invoices) use (&$departments, &$customers, $branch_id) {
 
-                $items = is_array($invoice->items)
-                    ? $invoice->items
-                    : json_decode($invoice->items, true);
+                    foreach ($invoices as $invoice) {
 
-                foreach ($items as $item) {
+                        $items = is_array($invoice->items)
+                            ? $invoice->items
+                            : json_decode($invoice->items, true);
 
-                    $category = $item['category'] ?? 'Others';
-                    $price    = (float) $item['price'];
-                    $qty      = (int) $item['quantity'];
-                    $total    = $price * $qty;
+                        if (!is_array($items)) $items = [];
 
-                    if (!isset($departments[$category])) {
-                        $departments[$category] = [
-                            'name'  => $category,
-                            'gross' => 0,
-                            'qty'   => 0,
-                        ];
-                    }
+                        foreach ($items as $item) {
+                            $category = $item['category'] ?? 'Others';
+                            $price = (float) ($item['price'] ?? 0);
+                            $qty   = (int) ($item['quantity'] ?? 0);
 
-                    $departments[$category]['gross'] += $total;
-                    $departments[$category]['qty']   += $qty;
-                }
+                            if (!isset($departments[$category])) {
+                                $departments[$category] = [
+                                    'name' => $category,
+                                    'gross' => 0,
+                                    'qty' => 0,
+                                ];
+                            }
 
-                // ================= CUSTOMER (PARTY / COMMISSION) =================
-
-                if ($branch_id == 1 && !empty($invoice->party_user_id)) {
-
-                    $party = PartyUser::find($invoice->party_user_id);
-
-                    if ($party) {
-                        $key = 'party_' . $party->id;
-
-                        if (!isset($customers[$key])) {
-                            $customers[$key] = [
-                                'name' => $party->first_name,
-                                'total_sales' => 0,
-                                'commission_amount' => 0,
-                                'credit_used' => 0,
-                                'remaining_credit' => $party->left_credit ?? 0,
-                            ];
+                            $departments[$category]['gross'] += $price * $qty;
+                            $departments[$category]['qty'] += $qty;
                         }
 
-                        $customers[$key]['total_sales'] += $this->cleanAmount($invoice->total);
-                        $customers[$key]['commission_amount'] += $this->cleanAmount($invoice->party_amount) ?? 0;
-                        $customers[$key]['credit_used'] += $this->cleanAmount($invoice->creditpay) ?? 0;
-                    }
-                } elseif ($branch_id != 1 && !empty($invoice->commission_user_id)) {
 
-                    $commission = CommissionUser::find($invoice->commission_user_id);
+                        // ================= CUSTOMER (PARTY / COMMISSION) =================
 
-                    if ($commission) {
-                        $key = 'commission_' . $commission->id;
+                        if ($branch_id == 1 && !empty($invoice->party_user_id)) {
 
-                        if (!isset($customers[$key])) {
-                            $customers[$key] = [
-                                'name' => $commission->first_name,
-                                'total_sales' => 0,
-                                'commission_amount' => 0,
-                                'credit_used' => 0,
-                                'remaining_credit' => 0,
-                            ];
+                            $party = PartyUser::find($invoice->party_user_id);
+
+                            if ($party) {
+                                $key = 'party_' . $party->id;
+
+                                if (!isset($customers[$key])) {
+                                    $customers[$key] = [
+                                        'name' => $party->first_name,
+                                        'total_sales' => 0,
+                                        'commission_amount' => 0,
+                                        'credit_used' => 0,
+                                        'remaining_credit' => $party->left_credit ?? 0,
+                                    ];
+                                }
+
+                                $customers[$key]['total_sales'] += $this->cleanAmount($invoice->total);
+                                $customers[$key]['commission_amount'] += ($this->cleanAmount($invoice->party_amount) ?? 0);
+                                $customers[$key]['credit_used'] += ($this->cleanAmount($invoice->creditpay) ?? 0);
+                            }
+                        } elseif ($branch_id != 1 && !empty($invoice->commission_user_id)) {
+
+                            $commission = CommissionUser::find($invoice->commission_user_id);
+
+                            if ($commission) {
+                                $key = 'commission_' . $commission->id;
+
+                                if (!isset($customers[$key])) {
+                                    $customers[$key] = [
+                                        'name' => $commission->first_name,
+                                        'total_sales' => 0,
+                                        'commission_amount' => 0,
+                                        'credit_used' => 0,
+                                        'remaining_credit' => 0,
+                                    ];
+                                }
+
+                                $customers[$key]['total_sales'] += $this->cleanAmount($invoice->total);
+                                $customers[$key]['commission_amount'] += ($this->cleanAmount($invoice->commission_amount) ?? 0);
+                            }
                         }
-
-                        $customers[$key]['total_sales'] += $this->cleanAmount($invoice->total);
-                        $customers[$key]['commission_amount'] += $this->cleanAmount($invoice->commission_amount) ?? 0;
                     }
-                }
-            }
+                });
+
 
             $customers = collect($customers)->values();
             $departments = collect($departments)->values();
@@ -823,16 +821,16 @@ class ShiftCloseModal extends Component
 
             $shift->start_time = $this->currentShift->start_time;
             $shift->end_time = now();
-            $shift->opening_cash = str_replace([',', '₹'], '', $this->categoryTotals['summary']['OPENING CASH'] ?? 0);
-            $shift->cash_discrepancy = str_replace([',', '₹'], '', $this->diffCash ?? 0);
-            $shift->closing_cash = str_replace([',', '₹'], '', $this->closingCash);
-            //$shift->cash_break_id = $cashBreakdown->id;
-            $shift->deshi_sales = str_replace([',', '₹'], '', $this->categoryTotals['sales']['DESI'] ?? 0);
-            $shift->beer_sales = str_replace([',', '₹'], '', $this->categoryTotals['sales']['BEER'] ?? 0);
-            $shift->english_sales = str_replace([',', '₹'], '', $this->categoryTotals['sales']['ENGLISH'] ?? 0);
-            $shift->upi_payment = str_replace([',', '₹'], '', $this->categoryTotals['payment']['UPI PAYMENT'] ?? 0);
-            $shift->withdrawal_payment = str_replace([',', '₹'], '', $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] ?? 0);
-            $shift->cash = str_replace([',', '₹'], '', $this->closingCash ?? 0);
+            $shift->opening_cash = (float) str_replace([',', '₹'], '', ($this->categoryTotals['summary']['OPENING CASH'] ?? 0));
+            $shift->cash_discrepancy = (float) str_replace([',', '₹'], '', ($this->diffCash ?? 0));
+            $shift->closing_cash = (float) str_replace([',', '₹'], '', ($this->closingCash ?? 0));
+            $shift->deshi_sales = (float) str_replace([',', '₹'], '', ($this->categoryTotals['sales']['DESI'] ?? 0));
+            $shift->beer_sales = (float) str_replace([',', '₹'], '', ($this->categoryTotals['sales']['BEER'] ?? 0));
+            $shift->english_sales = (float) str_replace([',', '₹'], '', ($this->categoryTotals['sales']['ENGLISH'] ?? 0));
+            $shift->upi_payment = (float) str_replace([',', '₹'], '', ($this->categoryTotals['payment']['UPI PAYMENT'] ?? 0));
+            $shift->withdrawal_payment = (float) str_replace([',', '₹'], '', ($this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] ?? 0));
+
+            $shift->cash = (float) str_replace([',', '₹'], '', ($this->closingCash ?? 0));
             $shift->closing_sales = json_encode($this->closing_sales);
             $shift->status = 'completed';
             $shift->save();
@@ -864,17 +862,12 @@ class ShiftCloseModal extends Component
             // SEND EMAIL TO ADMIN
             // --------------------------------------
 
-            $noOfCustomer = Invoice::where('user_id', $user_id)
-                ->where('branch_id', $branch_id)
-                ->whereBetween('created_at', [$this->currentShift->start_time, now()])
-                ->where('status', 'Paid')
-                ->count();
+            // $noOfCustomer = Invoice::where('user_id', $user_id)
+            //     ->where('branch_id', $branch_id)
+            //     ->whereBetween('created_at', [$this->currentShift->start_time, now()])
+            //     ->where('status', 'Paid')
+            //     ->count();
 
-            $rawStockQuery = DailyProductStock::with(['product.subcategory', 'product.category'])
-                ->where('branch_id', $branch_id)
-                ->where('shift_id', $this->currentShift->id);
-
-            $rawStockData = $rawStockQuery->get();
 
             $branch_name = Branch::findOrFail($branch_id);
 
@@ -889,8 +882,13 @@ class ShiftCloseModal extends Component
             $stockFileName = 'stock_' . time() . '.pdf';
             $stockPdfPath = storage_path('app/public/' . $stockFileName);
 
-            $rawStockData = DailyProductStock::where('branch_id', $branch_id)->get();
+            $rawStockData = DailyProductStock::select('product_id', 'opening_stock', 'closing_stock', 'sold_stock','shift_id','added_stock','transferred_stock','modify_sale_add_qty','modify_sale_remove_qty','physical_stock','difference_in_stock')
+                ->where('branch_id', $branch_id)
+                ->where('shift_id', $this->currentShift->id)
+                ->get();
+
             $branch_name = Branch::find($branch_id);
+            ini_set('memory_limit', '512M');
 
             Pdf::loadView('emails.stock_summary', compact('rawStockData', 'shift', 'branch_name'))
                 ->setPaper('A4', 'landscape')
@@ -947,9 +945,7 @@ class ShiftCloseModal extends Component
     {
         if (is_null($value)) return 0;
 
-        $value = str_replace(['₹', ',', ' '], '', $value);
-
-        return is_numeric($value) ? (float) $value : 0;
+        return (float) str_replace([',', '₹', ' '], '', $value);
     }
 
     public function calculateDiscrepancy()
@@ -968,9 +964,9 @@ class ShiftCloseModal extends Component
             ->where('branch_id', $branch_id)
             ->where('shift_id', optional($this->currentShift)->id)
             ->where(function ($q) {
-                $q->where('sold_stock', '>', 0)
-                    ->orWhere('transferred_stock', '>', 0)
-                    ->orWhere('added_stock', '>', 0);
+                // $q->where('sold_stock', '>', 0)
+                //     ->orWhere('transferred_stock', '>', 0)
+                //     ->orWhere('added_stock', '>', 0);
             });
 
         // Add search condition

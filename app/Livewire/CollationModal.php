@@ -8,6 +8,9 @@ use Livewire\WithPagination;
 use App\Models\CreditHistory;
 use App\Models\Invoice;
 use Illuminate\Support\Facades\DB; // ✅ CORRECT
+use App\Models\Branch;
+use App\Models\Accounting\AccountLedger;
+use App\Models\Accounting\Voucher;
 
 class CollationModal extends Component
 {
@@ -32,6 +35,7 @@ class CollationModal extends Component
     public $upiAmount = 0;
     public $totalCollected = 0;
     public $search = '';
+    public $inOutStatus = false;
 
     public function updatingSearch()
     {
@@ -139,14 +143,27 @@ class CollationModal extends Component
         }
     }
 
+    public function updatedAmount($value)
+    {
+        $this->totalCollected = $value;
+    }
+
     public function submitCredit()
     {
-        if ($this->paymentType === 'cash') {
-            // validate cash breakdown logic
-            $totalOut = $this->totals['totalOut'] ?? 0;
-            $totalIn = $this->totals['totalIn'] ?? 0;
+        $totalOut = 0;
+        $totalIn = 0;
 
-            $collectedAmount = $totalIn - $totalOut;
+        if ($this->paymentType === 'cash') {
+            if (!$this->inOutStatus) {
+                $collectedAmount = $this->amount;
+            } else {
+                $totalOut = $this->totals['totalOut'] ?? 0;
+                $totalIn = $this->totals['totalIn'] ?? 0;
+
+                $collectedAmount = $totalIn - $totalOut;
+            }
+            // validate cash breakdown logic
+
 
             if ($collectedAmount <= 0) {
                 $this->dispatch('notiffication-error', ['message' => 'Collection amount must be greater than zero.']);
@@ -154,10 +171,14 @@ class CollationModal extends Component
                 return;
             }
         } elseif ($this->paymentType === 'online') {
-            $totalOut =  0;
-            $totalIn = 0;
-            $this->validate(['onlineAmount' => 'required|min:1']);
-            $collectedAmount = $this->onlineAmount;
+            if (!$this->inOutStatus) {
+                $collectedAmount = $this->amount;
+            } else {
+                $totalOut =  0;
+                $totalIn = 0;
+                $this->validate(['onlineAmount' => 'required|min:1']);
+                $collectedAmount = $this->onlineAmount;
+            }
 
             if ($collectedAmount <= 0) {
                 $this->dispatch('notiffication-error', ['message' => 'Collection amount must be greater than zero.']);
@@ -166,13 +187,17 @@ class CollationModal extends Component
             }
         } elseif ($this->paymentType === 'cash+upi') {
             $this->validate(['upiAmount' => 'required|min:1']);
-            $totalOut = $this->totals['totalOut'] ?? 0;
-            $totalIn = $this->totals['totalIn'] ?? 0;
+            if (!$this->inOutStatus) {
+                $collectedAmount = $this->amount;
+            } else {
+                $totalOut = $this->totals['totalOut'] ?? 0;
+                $totalIn = $this->totals['totalIn'] ?? 0;
 
-            $collectedAmount = $totalIn - $totalOut;
+                $collectedAmount = $totalIn - $totalOut;
 
-            if (!empty($this->upiAmount)) {
-                $collectedAmount = $collectedAmount + $this->upiAmount;
+                if (!empty($this->upiAmount)) {
+                    $collectedAmount = $collectedAmount + $this->upiAmount;
+                }
             }
 
             if ($collectedAmount <= 0) {
@@ -325,6 +350,137 @@ class CollationModal extends Component
         );
         //DB::commit();
 
+        // =================== TALLY VOUCHER (CREDIT COLLECTION) ===================
+
+        $lines = [];
+        $cashLedgerId = null;
+
+        // 1️⃣ Payment split
+        $cashPaid = 0;
+        $upiPaid  = 0;
+
+        if ($this->paymentType === 'cash') {
+            $cashPaid = round((float) $collectedAmount, 2);
+        } elseif ($this->paymentType === 'online') {
+            $upiPaid = round((float) $this->onlineAmount, 2);
+        } elseif ($this->paymentType === 'cash+upi') {
+            $cashPaid = round((float) ($totalIn - $totalOut), 2);
+            $upiPaid  = round((float) $this->upiAmount, 2);
+        }
+
+        // 2️⃣ CASH DR
+        if ($cashPaid > 0) {
+            $cashLedger = AccountLedger::where('name', 'CASH')->firstOrFail();
+            $cashLedgerId = $cashLedger->id;
+
+            $lines[] = [
+                'ledger_id' => $cashLedgerId,
+                'dc' => 'Dr',
+                'amount' => $cashPaid,
+                'line_narration' => 'Cash received (credit collection)',
+            ];
+        }
+
+        // 3️⃣ UPI DR
+        if ($upiPaid > 0) {
+
+            $branchData = Branch::where('branches.id', $branch_id)
+                ->leftJoin('account_ledgers', 'branches.bank_ledger_id', '=', 'account_ledgers.id')
+                ->select('account_ledgers.name as bank_ledger_name')
+                ->firstOrFail();
+
+            $upiLedger = AccountLedger::where('name', $branchData->bank_ledger_name)->firstOrFail();
+
+            $lines[] = [
+                'ledger_id' => $upiLedger->id,
+                'dc' => 'Dr',
+                'amount' => $upiPaid,
+                'line_narration' => 'UPI received (credit collection)',
+            ];
+        }
+
+        // 4️⃣ CUSTOMER CR (IMPORTANT - opposite of sales)
+        $customerLedger = AccountLedger::where('name', $user->first_name)->first();
+
+        if (!$customerLedger) {
+            $customerLedger = AccountLedger::create([
+                'name' => $user->first_name,
+                'group_name' => 'Sundry Debtors',
+                'group_id' => 19,
+                'opening_balance' => 0,
+                'debit_credit' => 'Dr',
+                'created_by' => auth()->id(),
+            ]);
+        }
+
+        $lines[] = [
+            'ledger_id' => $customerLedger->id,
+            'dc' => 'Cr', // 🔥 IMPORTANT (collection reduces receivable)
+            'amount' => ($cashPaid + $upiPaid),
+            'line_narration' => 'Credit collection from customer',
+        ];
+
+        // 5️⃣ DR/CR CHECK
+        $dr = collect($lines)->where('dc', 'Dr')->sum('amount');
+        $cr = collect($lines)->where('dc', 'Cr')->sum('amount');
+
+        if (round($dr, 2) !== round($cr, 2)) {
+            throw new \Exception("Voucher not balanced: Dr={$dr} Cr={$cr}");
+        }
+
+        // 6️⃣ REF NUMBER
+        $prefix = "RCPT-" . $branch_id . "-";
+
+        $lastRef = Voucher::where('voucher_type', 'Receipt')
+            ->where('branch_id', $branch_id)
+            ->where('ref_no', 'like', $prefix . '%')
+            ->orderBy('id', 'desc')
+            ->value('ref_no');
+
+        $nextNumber = $lastRef ? ((int) str_replace($prefix, '', $lastRef) + 1) : 1;
+
+        $nextRef = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+        // 7️⃣ MODE
+        $mode = null;
+        if ($cashPaid > 0 && $upiPaid > 0) {
+            $mode = 'cash';
+        } elseif ($cashPaid > 0) {
+            $mode = 'cash';
+        } elseif ($upiPaid > 0) {
+            $mode = 'upi';
+        }
+
+        // 8️⃣ FINAL PAYLOAD
+        $payload = [
+            'voucher_date'    => now()->format('Y-m-d'),
+            'voucher_type'    => 'Receipt', // 🔥 IMPORTANT
+            'branch_id'       => $branch_id,
+            'ref_no'          => $nextRef,
+            'narration'       => 'Credit collection',
+
+            'party_ledger_id' => $customerLedger->id,
+
+            'mode'            => $mode,
+            'cash_ledger_id'  => $cashLedgerId,
+
+            'sub_total'       => ($cashPaid + $upiPaid),
+            'discount'        => 0,
+            'tax'             => 0,
+            'grand_total'     => ($cashPaid + $upiPaid),
+
+            'lines'           => $lines,
+        ];
+
+        // 9️⃣ SAVE VOUCHER
+        $voucher = $this->posTransaction($payload);
+
+        // LINK (optional)
+        if ($voucher) {
+            $voucher->gen_id = $user->id;
+            $voucher->save();
+        }
+
         $this->reset(['cashNotes', 'totals', 'selectedUser', 'showCollectModal']);
         $this->resetPage();
         //session()->flash('success', 'Credit collected successfully.');
@@ -353,10 +509,158 @@ class CollationModal extends Component
         }
 
         $partyUsers = $query->orderBy('use_credit', 'desc')->paginate(10);
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
+        $store = Branch::select('in_out_enable', 'one_time_sales')->findOrFail($branch_id);
+        $this->inOutStatus = $store->in_out_enable;
 
         return view('livewire.collation-modal', [
             'partyUsers' => $partyUsers
         ]);
+    }
+
+    public function posTransaction(array $arr_data)
+    {
+
+        $nv = function ($v) {
+            return ($v === '' || $v === null) ? null : $v;
+        };
+
+        $type = $nv($arr_data['voucher_type'] ?? null);
+        $mode = $nv($arr_data['mode'] ?? null);
+
+        // Party normalization
+        $partyFromPR = $nv($arr_data['party_ledger_id'] ?? null) ?: $nv($arr_data['pr_party_ledger'] ?? null);
+        $partyFromTR = $nv($arr_data['party_ledger_id'] ?? null) ?: $nv($arr_data['tr_party_ledger'] ?? null);
+
+        if (in_array($type, ['Payment', 'Receipt'])) {
+            $party = $partyFromPR ?: $partyFromTR;
+        } elseif (in_array($type, ['Sales', 'Purchase', 'DebitNote', 'CreditNote'])) {
+            $party = $partyFromTR ?: $partyFromPR;
+        } else {
+            $party = null;
+        }
+
+        // Mode: cash / bank / upi / card
+        $cashLedger = $nv($arr_data['cash_ledger_id'] ?? null) ?: $nv($arr_data['pr_cash_ledger'] ?? null);
+        $bankLedger = $nv($arr_data['bank_ledger_id'] ?? null) ?: $nv($arr_data['pr_bank_ledger'] ?? null);
+
+        if ($mode === 'cash') {
+            $bankLedger = null;
+        } elseif (in_array($mode, ['bank', 'upi', 'card'])) {
+            $cashLedger = null;
+        } else {
+            $cashLedger = $bankLedger = null;
+        }
+
+        // Totals
+        $subTotal   = $nv($arr_data['sub_total'] ?? $arr_data['tr_subtotal'] ?? null);
+        $discount   = $nv($arr_data['discount'] ?? $arr_data['tr_discount'] ?? null);
+        $tax        = $nv($arr_data['tax'] ?? $arr_data['tr_tax'] ?? null);
+        $grandTotal = $nv($arr_data['grand_total'] ?? $arr_data['tr_grand'] ?? null);
+
+        if (!$grandTotal && ($subTotal || $discount || $tax)) {
+            $grandTotal = round(($subTotal ?? 0) - ($discount ?? 0) + ($tax ?? 0), 2);
+        }
+
+        $fromLedger = $nv($arr_data['from_ledger_id'] ?? $arr_data['ct_from'] ?? null);
+        $toLedger   = $nv($arr_data['to_ledger_id'] ?? $arr_data['ct_to'] ?? null);
+        $branchId   = $nv($arr_data['branch_id'] ?? null);
+        $refNo      = $nv($arr_data['ref_no'] ?? null);
+
+        // Lines array
+        $lines = $arr_data['lines'] ?? [];
+        if (count($lines) < 2) {
+            throw new \Exception('At least two lines (Dr/Cr) are required.');
+        }
+
+        // --- Check Debit/Credit Balance ---
+        $dr = 0;
+        $cr = 0;
+        foreach ($lines as $line) {
+            if (($line['dc'] ?? '') === 'Dr') {
+                $dr += (float)($line['amount'] ?? 0);
+            } elseif (($line['dc'] ?? '') === 'Cr') {
+                $cr += (float)($line['amount'] ?? 0);
+            }
+        }
+
+        if (round($dr, 2) !== round($cr, 2)) {
+            // throw new \Exception('Debit and Credit total mismatch.');
+        }
+
+        try {
+            return DB::transaction(function () use (
+                $arr_data,
+                $type,
+                $party,
+                $mode,
+                $cashLedger,
+                $bankLedger,
+                $fromLedger,
+                $toLedger,
+                $branchId,
+                $refNo,
+                $subTotal,
+                $discount,
+                $tax,
+                $grandTotal,
+                $lines
+            ) {
+                // ... existing create code ...
+
+                $voucher = \App\Models\Accounting\Voucher::create([
+                    'voucher_date'    => $arr_data['voucher_date'] ?? now(),
+                    'voucher_type'    => $type,
+                    'ref_no'          => $refNo,
+                    'branch_id'       => $branchId,
+                    'narration'       => $arr_data['narration'] ?? null,
+                    'created_by'      => 1,
+                    'party_ledger_id' => $party,
+                    'mode'            => $mode,
+                    'instrument_no'   => $arr_data['instrument_no'] ?? null,
+                    'instrument_date' => $arr_data['instrument_date'] ?? null,
+                    'cash_ledger_id'  => $cashLedger,
+                    'bank_ledger_id'  => $bankLedger,
+                    'from_ledger_id'  => $fromLedger,
+                    'to_ledger_id'    => $toLedger,
+                    'sub_total'       => $subTotal ?? 0,
+                    'discount'        => $discount ?? 0,
+                    'tax'             => $tax ?? 0,
+                    'grand_total'     => $grandTotal ?? 0,
+                ]);
+
+
+                foreach ($lines as $line) {
+                    $voucher->lines()->create([
+                        'ledger_id'      => $line['ledger_id'],
+                        'dc'             => $line['dc'],
+                        'amount'         => round((float)$line['amount'], 2),
+                        'line_narration' => $line['line_narration'] ?? null,
+                    ]);
+                }
+                // dd($voucher);
+                return $voucher;
+            });
+        } catch (QueryException $qe) {
+            // DB-level error: show SQL + bindings + error info
+            Log::error('posTransaction QueryException', [
+                'message' => $qe->getMessage(),
+                'sql'     => $qe->sql ?? null,
+                'bindings' => $qe->bindings ?? null,
+                'errorInfo' => $qe->errorInfo ?? null,
+                'payload' => $arr_data,
+            ]);
+            throw $qe; // rethrow so Livewire / caller gets exception (or return/handle)
+        } catch (\Throwable $e) {
+            Log::error('posTransaction Exception', [
+                'class' => get_class($e),
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'payload' => $arr_data,
+            ]);
+            throw $e;
+        }
     }
 
     // public function submitCredit()

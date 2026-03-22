@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\PartyCustomerProductsPrice;
 use App\Models\DailyProductStock;
 use App\Models\ShiftClosing;
+use App\Models\ActivityLog;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -803,6 +804,36 @@ if (!function_exists('stockStatusChangeNew')) {
 function closingStock(float|int $opening = 0, float|int $added = 0, float|int $transferred = 0, float|int $sold = 0)
 {
     return ($opening + $added - $transferred - $sold);
+}
+
+if (!function_exists('logActivity')) {
+
+    function logActivity(
+        $type = null,
+        $action = null,
+        $message = null,
+        $old = [],
+        $new = []
+    ) {
+        try {
+
+            ActivityLog::create([
+                'type' => $type,
+                'action' => $action,
+                'message' => $message,
+
+                'old_data' => !empty($old) ? json_encode($old) : null,
+                'new_data' => !empty($new) ? json_encode($new) : null,
+
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+
+                'user_id' => Auth::id(),
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Activity Log Error: ' . $e->getMessage());
+        }
+    }
 }
 
 
