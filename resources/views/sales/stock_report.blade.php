@@ -34,7 +34,7 @@
                 <div class="col-md-2 mb-2">
                     <select id="category_id" class="form-control">
                         <option value="">All Categories</option>
-                        @foreach ($categories as $category)
+                        @foreach ($subcategories as $category)
                             <option value="{{ $category->id }}">{{ $category->name }}</option>
                         @endforeach
                     </select>
@@ -229,8 +229,8 @@
                         buttons: [{
                                 extend: 'excelHtml5',
                                 text: '<i class="fa fa-file-excel-o"></i> Excel',
-                                title: 'Transaction List',
-                                filename: 'transaction_list',
+                                title: 'Stock Summary',
+                                filename: 'stock_summary',
                                 exportOptions: {
                                     columns: ':visible'
                                 }
@@ -416,9 +416,10 @@
                         });
                         $('#total-qty').html(totalQty);
                         $('#total-sold').html(totalSold);
-                        $('#total-price').html('₹' + totalPrice);
-                        $('#selling-total').html('₹' + sellingTotal);
-                        $('#purchase-total').html('₹' + purchaseTotal);
+
+                        $('#total-price').html('₹' + totalPrice.toFixed(2));
+                        $('#selling-total').html('₹' + sellingTotal.toFixed(2));
+                        $('#purchase-total').html('₹' + purchaseTotal.toFixed(2));
                     }
                 });
 

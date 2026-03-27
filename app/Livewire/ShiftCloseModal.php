@@ -26,6 +26,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\ShiftClosing;
 use App\Models\Partyuser;
 use App\Models\Commissionuser;
+use App\Jobs\SendShiftCloseMailJob;
 
 class ShiftCloseModal extends Component
 {
@@ -705,6 +706,15 @@ class ShiftCloseModal extends Component
                 ->where('status', 'Paid')
                 ->chunk(100, function ($invoices) use (&$departments, &$customers, $branch_id) {
 
+                    // ✅ preload party users once per chunk
+                    $partyUsers = PartyUser::whereIn('id', $invoices->pluck('party_user_id')->filter())
+                        ->get()
+                        ->keyBy('id');
+
+                    $commissionUsers = CommissionUser::whereIn('id', $invoices->pluck('commission_user_id')->filter())
+                        ->get()
+                        ->keyBy('id');
+
                     foreach ($invoices as $invoice) {
 
                         $items = is_array($invoice->items)
@@ -730,12 +740,10 @@ class ShiftCloseModal extends Component
                             $departments[$category]['qty'] += $qty;
                         }
 
+                        // ================= PARTY =================
+                        if ($branch_id == 1 && $invoice->party_user_id) {
 
-                        // ================= CUSTOMER (PARTY / COMMISSION) =================
-
-                        if ($branch_id == 1 && !empty($invoice->party_user_id)) {
-
-                            $party = PartyUser::find($invoice->party_user_id);
+                            $party = $partyUsers[$invoice->party_user_id] ?? null;
 
                             if ($party) {
                                 $key = 'party_' . $party->id;
@@ -754,9 +762,11 @@ class ShiftCloseModal extends Component
                                 $customers[$key]['commission_amount'] += ($this->cleanAmount($invoice->party_amount) ?? 0);
                                 $customers[$key]['credit_used'] += ($this->cleanAmount($invoice->creditpay) ?? 0);
                             }
-                        } elseif ($branch_id != 1 && !empty($invoice->commission_user_id)) {
+                        }
+                        // ================= COMMISSION =================
+                        elseif ($branch_id != 1 && $invoice->commission_user_id) {
 
-                            $commission = CommissionUser::find($invoice->commission_user_id);
+                            $commission = $commissionUsers[$invoice->commission_user_id] ?? null;
 
                             if ($commission) {
                                 $key = 'commission_' . $commission->id;
@@ -862,59 +872,20 @@ class ShiftCloseModal extends Component
             // SEND EMAIL TO ADMIN
             // --------------------------------------
 
-            // $noOfCustomer = Invoice::where('user_id', $user_id)
-            //     ->where('branch_id', $branch_id)
-            //     ->whereBetween('created_at', [$this->currentShift->start_time, now()])
-            //     ->where('status', 'Paid')
-            //     ->count();
-
-
             $branch_name = Branch::findOrFail($branch_id);
 
             // ================= PDF 1 =================
             $shiftFileName = 'shift_' . time() . '.pdf';
             $shiftPdfPath = storage_path('app/public/' . $shiftFileName);
 
-            Pdf::loadView('emails.shift_close_pdf', compact('shift', 'summary', 'payments', 'departments', 'customers'))
-                ->save($shiftPdfPath);
-
-            // ================= PDF 2 =================
-            $stockFileName = 'stock_' . time() . '.pdf';
-            $stockPdfPath = storage_path('app/public/' . $stockFileName);
-
-            $rawStockData = DailyProductStock::select('product_id', 'opening_stock', 'closing_stock', 'sold_stock','shift_id','added_stock','transferred_stock','modify_sale_add_qty','modify_sale_remove_qty','physical_stock','difference_in_stock')
-                ->where('branch_id', $branch_id)
-                ->where('shift_id', $this->currentShift->id)
-                ->get();
-
-            $branch_name = Branch::find($branch_id);
-            ini_set('memory_limit', '512M');
-
-            Pdf::loadView('emails.stock_summary', compact('rawStockData', 'shift', 'branch_name'))
-                ->setPaper('A4', 'landscape')
-                ->save($stockPdfPath);
-
-            $admin = User::find(1);
-
-            try {
-                Mail::to($admin->email)->send(
-                    new ShiftCloseMail(
-                        $shift,
-                        $summary,
-                        $payments,
-                        $departments,
-                        $shiftFileName,
-                        $shiftPdfPath,
-                        $stockFileName,
-                        $stockPdfPath
-                    )
-                );
-
-                Log::info('Mail sent successfully');
-            } catch (\Exception $e) {
-                Log::error('Mail failed: ' . $e->getMessage());
-            }
-
+            SendShiftCloseMailJob::dispatch(
+                $shift,
+                $summary,
+                $payments,
+                $departments,
+                $customers,
+                $branch_id
+            );
 
             session()->forget(auth()->id() . '_warehouse_product_photo_path', []);
             session()->forget(auth()->id() . '_warehouse_customer_photo_path', []);
@@ -960,14 +931,26 @@ class ShiftCloseModal extends Component
 
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
-        $query = DailyProductStock::with('product')
-            ->where('branch_id', $branch_id)
-            ->where('shift_id', optional($this->currentShift)->id)
-            ->where(function ($q) {
-                // $q->where('sold_stock', '>', 0)
-                //     ->orWhere('transferred_stock', '>', 0)
-                //     ->orWhere('added_stock', '>', 0);
-            });
+        if ($branch_id == 1) {
+            $query = DailyProductStock::with('product')
+                ->where('branch_id', $branch_id)
+                ->where('shift_id', optional($this->currentShift)->id)
+                ->where(function ($q) {
+                    $q->where('sold_stock', '>', 0)
+                        ->orWhere('transferred_stock', '>', 0)
+                        ->orWhere('added_stock', '>', 0);
+                });
+        } else {
+            $query = DailyProductStock::with('product')
+                ->where('branch_id', $branch_id)
+                ->where('shift_id', optional($this->currentShift)->id)
+                ->where(function ($q) {
+                    // $q->where('sold_stock', '>', 0)
+                    //     ->orWhere('transferred_stock', '>', 0)
+                    //     ->orWhere('added_stock', '>', 0);
+                });
+        }
+
 
         // Add search condition
         if ($this->search) {

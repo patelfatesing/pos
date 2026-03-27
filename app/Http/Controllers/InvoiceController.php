@@ -86,6 +86,8 @@ class InvoiceController extends Controller
 
     public function editSales($id)
     {
+        $verify = request('verify');
+        
         $invoice = Invoice::with(['partyUser', 'commissionUser'])->find($id);
 
         $allProducts = Product::select('id', 'name', 'mrp', 'discount_price', 'sell_price')->where('is_deleted', 'no')->get();
@@ -105,8 +107,9 @@ class InvoiceController extends Controller
         }
 
         $branch_data = Branch::find($invoice->branch_id);
+        
 
-        return view('invoice.editSales', compact('invoice', 'commissionUser', 'partyUser', 'allProducts', 'partyPrices', 'branch_data'));
+        return view('invoice.editSales', compact('verify', 'invoice', 'commissionUser', 'partyUser', 'allProducts', 'partyPrices', 'branch_data'));
     }
 
     public function addSales($branchId, $shift_id)
@@ -225,6 +228,11 @@ class InvoiceController extends Controller
             ->where('end_time', '>=', now())
             ->first();
 
+        $verify = '';
+        if (!empty($request->verify)) {
+            $verify = $request->verify;
+        }
+        
         $invoiceShiftId = optional($invoiceShift)->id;
         $currentShiftId = optional($currentShift)->id;
 
@@ -262,7 +270,6 @@ class InvoiceController extends Controller
 
                 if ($invoiceShiftId) {
                     stockStatusChangeNew($productId, $branchId, $newQty, 'sold_stock', $invoiceShiftId);
-                    
                 }
 
                 continue;
@@ -444,7 +451,7 @@ class InvoiceController extends Controller
                         'opening_balance' => 0,
                         'debit_credit' => 'Dr',
                         'branch_id' => $branchId,
-                        'group_id' =>19,
+                        'group_id' => 19,
                         'created_by' => auth()->id(),
                     ]);
                 }
@@ -595,8 +602,15 @@ class InvoiceController extends Controller
         $pdfPath = storage_path('app/public/invoices/edit_' . $invoice->invoice_number . '.pdf');
         $pdf->save($pdfPath);
 
-
-        return redirect()->route('sales.sales.list')->with('success', 'Invoice items updated successfully.');
+        if ($verify == 'yes') {
+            $shiftId = $invoice->shift_id;
+            $branchId = $invoice->branch_id;
+            return redirect()->to('/shift-manage/stock-details/' . $shiftId)
+                ->with('success', 'Invoice items updated successfully.');
+        } else {
+            return redirect()->route('sales.sales.list')
+                ->with('success', 'Invoice items updated successfully.');
+        }
     }
 
     public function fetchHistory($id)

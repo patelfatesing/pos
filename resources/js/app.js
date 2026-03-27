@@ -9,6 +9,66 @@ window.Alpine = Alpine;
 
 Alpine.start();
 
+function getButtonTooltipText(button) {
+    const explicitLabel =
+        button.getAttribute("aria-label") || button.getAttribute("value");
+    const text = (button.textContent || "").replace(/\s+/g, " ").trim();
+    const label = explicitLabel || text;
+
+    return label ? label.slice(0, 255) : "";
+}
+
+function applyButtonTitles(root = document) {
+    const selector =
+        'button, input[type="button"], input[type="submit"], input[type="reset"]';
+    const buttons =
+        root.matches && root.matches(selector)
+            ? [root]
+            : root.querySelectorAll(selector);
+
+    buttons.forEach((button) => {
+        if (button.hasAttribute("title")) {
+            return;
+        }
+
+        const tooltipText = getButtonTooltipText(button);
+        if (tooltipText) {
+            button.setAttribute("title", tooltipText);
+        }
+    });
+}
+
+if (!window.__buttonTitleTooltipInitializer) {
+    window.__buttonTitleTooltipInitializer = true;
+
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === 1) {
+                    applyButtonTitles(node);
+                }
+            });
+        });
+    });
+
+    const startButtonTitleTooltips = () => {
+        applyButtonTitles();
+
+        if (document.body) {
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true,
+            });
+        }
+    };
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", startButtonTitleTooltips);
+    } else {
+        startButtonTitleTooltips();
+    }
+}
+
 window.Pusher = Pusher;
 
 window.Echo = new Echo({

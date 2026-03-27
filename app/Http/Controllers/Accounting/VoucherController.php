@@ -44,11 +44,12 @@ class VoucherController extends Controller
                 'v.voucher_type',
                 'v.ref_no',
                 'v.narration',
+                'v.admin_status',
                 DB::raw('COALESCE(b.name, "-") as branch_name'),
                 DB::raw("ROUND(SUM(CASE WHEN l.dc='Dr' THEN l.amount ELSE 0 END),2) as dr_total"),
                 DB::raw("ROUND(SUM(CASE WHEN l.dc='Cr' THEN l.amount ELSE 0 END),2) as cr_total"),
             ])
-            ->groupBy('v.id', 'v.voucher_date', 'v.voucher_type', 'v.ref_no', 'v.narration', 'b.name');
+            ->groupBy('v.id', 'v.voucher_date', 'v.voucher_type', 'v.ref_no', 'v.narration', 'b.name','v.admin_status');
 
         $recordsTotal = (clone $base)->count();
 
@@ -112,14 +113,31 @@ class VoucherController extends Controller
             // $ownerId = $g->created_by;  // If available
             // if (canDo($roleId, 'product-edit', $ownerId)) {
             // }
-            $actions = '
-              <div class="d-flex align-items-center gap-1">
-                <form method="POST" action="' . e($deleteUrl) . '" class="d-inline-block frm-del">
-                  ' . csrf_field() . method_field('DELETE') . '
-                  <button type="button" class="btn btn-sm btn-danger btn-delete" data-id="' . (int)$r->id . '">Delete</button>
-                </form>
-              </div>';
+            $viewUrl = url('/accounting/vouchers/view/' . $r->id);
+            $actions = '<div class="d-flex align-items-center gap-1">';
 
+            // View button (only verified OR admin)
+            if ($r->admin_status === 'verify') {
+                $actions .= '<a href="' . e($viewUrl) . '" class="btn btn-sm btn-primary mr-1">
+                    Verify
+                 </a>';
+            } else {
+                $actions .= '<span class="badge bg-warning mr-1">
+                    Unverified
+                 </span>';
+            }
+
+            $actions1 = '<div class="d-flex align-items-center gap-1">';
+
+            // Delete button (ALWAYS visible)
+            $actions1 .= '<form method="POST" action="' . e($deleteUrl) . '" class="d-inline-block frm-del">
+                ' . csrf_field() . method_field('DELETE') . '
+                <button type="button" class="btn btn-sm btn-danger btn-delete" data-id="' . (int)$r->id . '">
+                    Delete
+                </button>
+             </form>';
+
+            $actions1 .= '</div>';
             return [
                 'voucher_date' => $r->voucher_date ? \Illuminate\Support\Carbon::parse($r->voucher_date)->format('Y-m-d') : '-',
                 'voucher_type' => e($r->voucher_type),
@@ -129,7 +147,8 @@ class VoucherController extends Controller
                 'dr_total'     => number_format((float)$r->dr_total, 2),
                 'cr_total'     => number_format((float)$r->cr_total, 2),
                 'status'       => $status,
-                'action'       => $actions,
+                'admin_status' => $actions,
+                'action'       => $actions1,
             ];
         });
 
@@ -169,7 +188,7 @@ class VoucherController extends Controller
 
     public function store(Request $r)
     {
-       
+
         $type = $r->input('voucher_type');
 
         $nv = fn($v) => ($v === '' || $v === null) ? null : $v;
@@ -205,6 +224,7 @@ class VoucherController extends Controller
         $fromLedger = $nv($r->input('from_ledger_id')) ?? $nv($r->input('ct_from'));
         $toLedger   = $nv($r->input('to_ledger_id'))   ?? $nv($r->input('ct_to'));
 
+
         $r->merge([
             'party_ledger_id' => $party,
             'mode'            => $mode,
@@ -220,7 +240,7 @@ class VoucherController extends Controller
             'ref_no'          => $nv($r->input('ref_no')),
         ]);
 
-            /*
+        /*
         |--------------------------------------------------------------------------
         | 2. REMOVE EMPTY ROWS (IMPORTANT)
         |--------------------------------------------------------------------------
@@ -237,7 +257,7 @@ class VoucherController extends Controller
 
         $r->merge(['lines' => $lines]);
 
-            /*
+        /*
         |--------------------------------------------------------------------------
         | 3. VALIDATION
         |--------------------------------------------------------------------------
@@ -272,7 +292,7 @@ class VoucherController extends Controller
 
         $data = $r->validate($rules);
 
-                /*
+        /*
             |--------------------------------------------------------------------------
             | 4. DR / CR BALANCE CHECK
             |--------------------------------------------------------------------------
@@ -291,11 +311,17 @@ class VoucherController extends Controller
                 ->withInput();
         }
 
-            /*
+        /*
         |--------------------------------------------------------------------------
         | 5. SAVE DATA
         |--------------------------------------------------------------------------
         */
+
+        $voucherVerify = 'unverify';
+        if (auth()->id() == 1) {
+            $voucherVerify = 'verify';
+        }
+
         DB::transaction(function () use ($data) {
 
             $voucher = \App\Models\Accounting\Voucher::create([
@@ -317,6 +343,7 @@ class VoucherController extends Controller
                 'discount'    => $data['discount'] ?? 0,
                 'tax'         => $data['tax'] ?? 0,
                 'grand_total' => $data['grand_total'] ?? 0,
+                'admin_status' => auth()->user()->hasRole('admin') ? 'verify' : 'unverify'
             ]);
 
             foreach ($data['lines'] as $line) {
@@ -657,11 +684,160 @@ class VoucherController extends Controller
         return response()->json(['success' => true, 'message' => 'Voucher deleted permanently.']);
     }
 
+    public function voucherView($id)
+    {
+        // Get voucher with relations (adjust as per your models)
+        $voucher = Voucher::with([
+            'branch',
+            'partyLedger',
+            'cashLedger',
+            'bankLedger',
+            'fromLedger',
+            'toLedger',
+            'lines.ledger' // ✅ correct relation
+        ])->findOrFail($id);
+
+        // dd($voucher);
+
+        return view('accounting.vouchers.view_voucher', compact('voucher'));
+    }
+
+    public function vouchersData($voucherId)
+    {
+        $voucher = Voucher::with(['lines.ledger'])->findOrFail($voucherId);
+
+        $rows = [];
+        $totalDebit  = 0;
+        $totalCredit = 0;
+
+        foreach ($voucher->lines as $line) {
+
+            $debit  = null;
+            $credit = null;
+
+            if ($line->dc === 'Dr') {
+                $debit = (float) $line->amount;
+                $totalDebit += $debit;
+            } elseif ($line->dc === 'Cr') {
+                $credit = (float) $line->amount;
+                $totalCredit += $credit;
+            }
+
+            $rows[] = [
+                'type'        => 'main',
+                'date'        => optional($voucher->voucher_date)->format('d-M-y'),
+                'particulars' => $line->ledger->name ?? '',
+                'vch_type'    => $voucher->voucher_type,
+                'vch_no'      => $voucher->ref_no,
+                'debit'       => $debit,
+                'credit'      => $credit,
+                'edit_url'    => route('accounting.vouchers.edit', $voucher->id),
+            ];
+        }
+
+        return response()->json([
+            'data' => $rows,
+
+            // no opening in voucher view → keep 0
+            'opening' => [
+                'balance' => 0
+            ],
+
+            'period' => [
+                'total_debit'  => $totalDebit,
+                'total_credit' => $totalCredit,
+            ]
+        ]);
+    }
+
     public function destroyVoucherLine($id)
     {
         $line = \App\Models\Accounting\VoucherLine::findOrFail($id);
         $line->delete();
         return response()->json(['success' => true, 'message' => 'Voucher line deleted permanently.']);
+    }
+
+    public function updateParticular(Request $request, $id)
+    {
+        DB::beginTransaction();
+
+        try {
+
+            $voucher = Voucher::findOrFail($id);
+
+            // ❌ Prevent update if verified (recommended)
+            if ($voucher->admin_status === 'verify') {
+                return back()->with('error', 'Verified voucher cannot be edited');
+            }
+
+            /* ================= UPDATE VOUCHER ================= */
+            $voucher->update([
+                'voucher_date' => $request->voucher_date,
+                'voucher_type' => $request->voucher_type,
+                'ref_no'       => $request->ref_no,
+                'narration'    => $request->narration,
+                'mode'         => $request->mode,
+            ]);
+
+            /* ================= DELETE OLD LINES ================= */
+            $voucher->lines()->delete();
+
+            $totalDebit  = 0;
+            $totalCredit = 0;
+
+            /* ================= INSERT NEW LINES ================= */
+            foreach ($request->lines as $line) {
+
+                if (empty($line['ledger_id']) || empty($line['amount'])) {
+                    continue;
+                }
+
+                $dc = $line['dc']; // Dr / Cr
+                $amount = (float) $line['amount'];
+
+                if ($dc === 'Dr') {
+                    $totalDebit += $amount;
+                } else {
+                    $totalCredit += $amount;
+                }
+
+                $voucher->lines()->create([
+                    'ledger_id' => $line['ledger_id'],
+                    'dc'        => $dc,
+                    'amount'    => $amount,
+                ]);
+            }
+
+            /* ================= VALIDATION ================= */
+            if (round($totalDebit, 2) !== round($totalCredit, 2)) {
+                DB::rollBack();
+                return back()->with('error', 'Debit and Credit must be equal');
+            }
+
+            /* ================= UPDATE TOTAL ================= */
+            $voucher->update([
+                'grand_total' => $totalDebit
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('accounting.vouchers.index')
+                ->with('success', 'Voucher updated successfully');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function updateStatus(Request $request)
+    {
+        $voucher = Voucher::findOrFail($request->id);
+
+        $voucher->admin_status = $request->status;
+        $voucher->save();
+
+        return response()->json(['success' => true]);
     }
 
     // public function edit(Voucher $voucher) // or: public function edit($id)

@@ -241,6 +241,17 @@ class StockTransferController extends Controller
                     ->withInput();
             }
 
+            $running_shift_form = ShiftClosing::where('branch_id', $request->to_store_id)
+                ->where('status', 'pending')
+                ->first();
+
+
+            if (!$running_shift_form) {            // null  ➔ destination store not open
+                return back()
+                    ->withErrors(['from_store_id' => 'The from store is not open.'])
+                    ->withInput();
+            }
+
 
             // Step 1: Pre-check inventory levels
             $errors = [];
@@ -333,6 +344,8 @@ class StockTransferController extends Controller
                     'status' => 'approved',
                     'transfer_by' => Auth::id(),
                     'transferred_at' => now(),
+                    'shift_id' => $running_shift->id,
+                    'from_shift_id=>'
                 ]);
             }
 

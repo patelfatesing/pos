@@ -45,7 +45,7 @@ class PurchaseController extends Controller
         $subcategoryId = request()->subcategory_id ?? null;
 
         $purchaseGroupNames = ['Purchase Ledger', 'Purchase Ledgers', 'Purchase Accounts'];
-         $vendorGroupNames = ['Sundry Creditors'];
+        $vendorGroupNames = ['Sundry Creditors', 'Sundry Debtors'];
 
         $ledgers = \DB::table('account_ledgers as l')
             ->join('account_groups as g', 'g.id', '=', 'l.group_id')
@@ -88,7 +88,7 @@ class PurchaseController extends Controller
      */
     public function store(Request $request)
     {
-      
+
         $request->validate([
             'vendor_id' => 'required',
             'vendor_new_id' => 'required',
@@ -131,6 +131,8 @@ class PurchaseController extends Controller
         $excise_fee    = (float) ($request->excise_fee ?? 0);
         $surcharge_on_ca    = (float) ($request->surcharge_on_ca ?? 0);
         $case_purchase_amt =        (float) ($request->case_purchase_amt ?? 0);
+        $excise_80 = (float) ($request->excise_duty_80 ?? 0);
+        $excise_20 = (float) ($request->excise_duty_20 ?? 0);
 
         $loading = (float) ($request->loading_charges ?? 0);
 
@@ -297,6 +299,7 @@ class PurchaseController extends Controller
                 'discount'        => 0,
                 'tax'             => $vat + $surVat,
                 'grand_total'     => $grandAmount,
+                'admin_status'   => 'verify'
             ]);
 
             // 3.3 Dr Purchase (basic goods)
@@ -368,7 +371,7 @@ class PurchaseController extends Controller
                     VoucherLine::create([
                         'voucher_id'     => $voucher->id,
                         'ledger_id'      => $l->id,
-                        'dc'             => 'Dr',
+                        'dc'             => 'Cr',
                         'amount'         => $blf,
                         'line_narration' => 'BLF - ' . $request->bill_no,
                     ]);
@@ -427,6 +430,34 @@ class PurchaseController extends Controller
                 }
             }
 
+            // Excise Duty 80%
+            if ($excise_80 > 0) {
+                $l = AccountLedger::where('name', 'EXCISE DUTY 80%')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Cr',
+                        'amount'         => $excise_80,
+                        'line_narration' => 'Excise Duty 80% - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            // Excise Duty 20%
+            if ($excise_20 > 0) {
+                $l = AccountLedger::where('name', 'EXCISE DUTY 20%')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $excise_20,
+                        'line_narration' => 'Excise Duty 20% - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
             if ($case_purchase_amt > 0) {
 
                 $ledger = AccountLedger::where('name', 'CASH PURCHASE')->first();
@@ -461,7 +492,7 @@ class PurchaseController extends Controller
                     VoucherLine::create([
                         'voucher_id'     => $voucher->id,
                         'ledger_id'      => $l->id,
-                        'dc'             => 'Dr',
+                        'dc'             => 'Cr',
                         'amount'         => $permit,
                         'line_narration' => 'Permit Fee - ' . $request->bill_no,
                     ]);
@@ -791,7 +822,7 @@ class PurchaseController extends Controller
                 'permit_fee' => $request->permit_fee,
                 'rsgsm_purchase' => $request->rsgsm_purchase,
                 'loading_charges' => $request->loading_charges ?? 0,
-                 'itp_value' => $request->itp_value,
+                'itp_value' => $request->itp_value,
                 'updated_by' => Auth::id(),
             ]);
 
