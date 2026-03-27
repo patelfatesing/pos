@@ -208,6 +208,7 @@
                         d.type = $('#commission_user_id').val();
                         d.branch_id = {{ $id }};
                         d.shift_id = {{ $shift_id }};
+                        d.verify = @json($verify);
                     }
                 },
 

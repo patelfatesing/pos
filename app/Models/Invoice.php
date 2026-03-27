@@ -36,7 +36,9 @@ class Invoice extends Model
         'paid_credit',
         'invoice_status',
         'edit_in',
-        'sales_type'
+        'sales_type',
+        'shift_id',
+        'admin_status'
     ];
 
     protected $casts = [

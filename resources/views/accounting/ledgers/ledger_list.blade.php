@@ -189,7 +189,7 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="ledger-title">
                     <h4 class="mb-0">Ledger Vouchers — {{ $ledger->name }}</h4>
-                    <p><small id="dateRangeLabel">{{ $start }} to {{ $end }}</small></p>
+                    
                 </div>
                 <h5 class="title-table">LIQUOR HUB</h5>
                 <div class="controls">
@@ -258,9 +258,7 @@
 <script>
     window.onload = function() {
 
-        let start = '{{ $start }}';
-        let end = '{{ $end }}';
-
+     
         let table = $('#vouchersTable').DataTable({
             processing: true,
             serverSide: false,
@@ -268,10 +266,9 @@
             pageLength: 50,
 
             ajax: {
-                url: "{{ route('accounting.ledgers.vouchers.data', $ledger->id) }}",
+                url: "{{ route('accounting.ledgers.vouchers.data1', $ledger->id) }}",
                 data: function(d) {
-                    d.start_date = start;
-                    d.end_date = end;
+                  
                 },
                 dataSrc: function(json) {
 
@@ -367,4 +364,4 @@
         });
     };
 </script>
-@endsection
+@endsectiona

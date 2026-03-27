@@ -1,5 +1,4 @@
 @extends('layouts.backend.datatable_layouts')
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 @section('page-content')
     <!-- Wrapper Start -->
     <div class="wrapper">
@@ -34,7 +33,7 @@
                                                         History</span></a>
                                             </li>
                                             <li class="nav-item">
-                                                <a class="nav-link" id="pills-profile-tab-fill" data-toggle="pill"
+                                                <a class="nav-link" id="pills-contact-tab-fill" data-toggle="pill"
                                                     href="#pills-contact-fill" role="tab" aria-controls="pills-profile"
                                                     aria-selected="false"><span class="text-dark">Credit
                                                         History</span></a>
@@ -217,15 +216,16 @@
             }
         });
 
+        // ================= TRANSACTION HISTORY =================
         if ($.fn.DataTable.isDataTable('#cust_party_his_table')) {
-            $('#cust_party_his_table').DataTable().clear().destroy();
+            $('#cust_party_his_table').DataTable().destroy();
         }
 
         $('#cust_party_his_table').DataTable({
             pageLength: 10,
-            responsive: true,
             processing: true,
             serverSide: true,
+            responsive: true,
             ajax: {
                 url: '{{ url('party-users/get-commission-data') }}',
                 type: 'POST',
@@ -234,82 +234,57 @@
                 }
             },
             columns: [{
-                    data: 'invoice_number',
-                    name: 'invoice_number'
+                    data: 'invoice_number'
                 },
                 {
-                    data: 'invoice_date',
-                    name: 'invoice_date'
+                    data: 'invoice_date'
                 },
                 {
-                    data: 'credit_amount',
-                    name: 'credit_amount'
+                    data: 'credit_amount'
                 },
                 {
-                    data: 'invoice_total',
-                    name: 'invoice_total'
+                    data: 'invoice_total'
                 },
                 {
                     data: 'image_path',
-                    name: 'image_path',
-                    render: function(data, type, row) {
-                        if (data != '') {
-                            return `<span class="badge bg-danger">
-                                <a href="#" onClick="showPhoto(${row.transaction_id})" style="color:white;">Show</a>
-                            </span>`;
-                        } else {
-                            return `<span class="badge bg-success">Paid</span>`;
-                        }
-                    },
                     orderable: false,
-                    searchable: false
+                    searchable: false,
+                    render: function(data, type, row) {
+                        return data ?
+                            `<span class="badge bg-danger" onclick="showPhoto(${row.transaction_id})" style="cursor:pointer;">Show</span>` :
+                            `<span class="badge bg-success">Paid</span>`;
+                    }
                 },
                 {
                     data: 'status',
-                    name: 'status',
+                    orderable: false,
+                    searchable: false,
                     render: function(data, type, row) {
-
-                        console.log(row);
-                        if (row.credit_amount === '0.00') {
-                            return `<span class="badge bg-info">
-                                <a href="#" style="color:white;"> - </a>
-                            </span>`;
-                        } else if (row.credit_amount != '0.00' && row.status == 'unpaid') {
-                            return `<span class="badge bg-danger">
-                                <a href="#" onClick="payCredit(${row.commission_id})" style="color:white;">Unpaid</a>
-                            </span>`;
+                        if (parseFloat(row.credit_amount) === 0) {
+                            return `<span class="badge bg-info">-</span>`;
+                        } else if (row.status === 'unpaid') {
+                            return `<span class="badge bg-danger" onclick="payCredit(${row.commission_id})" style="cursor:pointer;">Unpaid</span>`;
                         } else {
                             return `<span class="badge bg-success">Paid</span>`;
                         }
-                    },
-                    orderable: false,
-                    searchable: false
+                    }
                 }
             ],
-            aoColumnDefs: [{
-                bSortable: false,
-                aTargets: [3, 4] // make "action" column unsortable
-            }],
             order: [
-                [2, 'desc']
-            ], // 🟢 Sort by created_at DESC by default
-            dom: "Bfrtip",
-            buttons: ['pageLength'],
-            lengthMenu: [
-                [10, 25, 50],
-                ['10 rows', '25 rows', '50 rows']
+                [1, 'desc']
             ]
         });
 
+        // ================= CREDIT HISTORY =================
         if ($.fn.DataTable.isDataTable('#credit_history_table')) {
-            $('#credit_history_table').DataTable().clear().destroy();
+            $('#credit_history_table').DataTable().destroy();
         }
 
         $('#credit_history_table').DataTable({
             pageLength: 10,
-            responsive: true,
             processing: true,
             serverSide: true,
+            responsive: true,
             ajax: {
                 url: '{{ url('party-users/get-credit-history') }}',
                 type: 'POST',
@@ -318,75 +293,42 @@
                 }
             },
             columns: [{
-                    data: 'invoice_number',
-                    name: 'invoice_number'
+                    data: 'invoice_number'
                 },
-
                 {
                     data: 'invoice_date',
-                    name: 'invoice_date',
                     render: function(data, type, row) {
-                        if (row.invoice_date == null) {
-
-                            return row.created_at;
-                        } else {
-                            return row.invoice_date;
-                        }
-                    },
+                        return data ?? row.created_at;
+                    }
                 },
                 {
-                    data: 'credit_amount',
-                    name: 'credit_amount'
+                    data: 'credit_amount'
                 },
                 {
-                    data: 'debit_amount',
-                    name: 'debit_amount'
-                },
+                    data: 'debit_amount'
+                }
             ],
-            aoColumnDefs: [{
-                bSortable: false,
-                aTargets: [1] // make "action" column unsortable
-            }],
             order: [
                 [1, 'desc']
-            ], // 🟢 Sort by created_at DESC by default
-            dom: "Bfrtip",
-            buttons: ['pageLength'],
-            lengthMenu: [
-                [10, 25, 50],
-                ['10 rows', '25 rows', '50 rows']
             ]
         });
+
     });
 
+    // ================= FUNCTIONS =================
 
-    function showPhoto(party_user_id, invoice_id = '') {
-
+    function showPhoto(id) {
         $.ajax({
-            url: '/cust-trasaction-photo/view/' + party_user_id,
+            url: '/cust-trasaction-photo/view/' + id,
             type: 'GET',
-            data: {
-                'imageType': "Party",
-                'invoice_id': invoice_id
-            },
-
             success: function(response) {
-                // Assuming the response is a JSON with customer_photo and product_photo
-
                 $('#partyCustPhotoModalContent').html(response);
-                // $('#partyCustPhotoShowModal').modal('show');
-                var myModal = new bootstrap.Modal(document.getElementById('partyCustPhotoShowModal'));
-                myModal.show();
-            },
-            error: function() {
-                alert('Photos.Not Found');
+                new bootstrap.Modal(document.getElementById('partyCustPhotoShowModal')).show();
             }
         });
     }
 
-
-    function payCredit(commissionId) {
-        // Example action, replace with your real logic
-        swal("Payment Triggered", `Commission ID: ${commissionId}`, "info");
+    function payCredit(id) {
+        alert("Pay Credit ID: " + id);
     }
 </script>

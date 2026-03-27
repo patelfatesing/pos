@@ -26,11 +26,14 @@
                         <a href="{{ route('shift-manage.view', ['id' => $invoice->branch_id, 'shift_id' => $shift_id]) }}"
                             class="btn btn-secondary">Back</a>
                     @else
-                        <a href="{{ route('sales.sales.list') }}" class="btn btn-secondary">Back</a>
+                        {{-- <a href="{{ route('sales.sales.list') }}" class="btn btn-secondary">Back</a> --}}
+                        <button onclick="window.history.back()" class="btn btn-secondary">
+                            Back
+                        </button>
                     @endif
                 </div>
                 <div class="row">
-                    
+
                     <div class="col-lg-12">
                         <div class="card card-block card-stretch card-height print rounded">
                             <div class="card-header d-flex justify-content-between bg-primary header-invoice">
@@ -171,10 +174,24 @@
                                                                 <h6 class="mb-0">{{ $item['name'] }}</h6>
                                                             </td>
                                                             <td class="text-center">{{ $item['quantity'] }}</td>
-                                                           <td class="text-center">
-                                                                ₹{{ number_format($item['mrp'], 2) }}</td>
                                                             <td class="text-center">
-                                                                <b>₹{{ number_format($item['price'] * $item['quantity'], 2) }}</b>
+                                                                @if ($item['mrp'] > $item['price'])
+                                                                    <span
+                                                                        style="text-decoration: line-through; color: #999;">
+                                                                        ₹{{ number_format($item['mrp'], 2) }}
+                                                                    </span>
+                                                                    <br>
+                                                                    <span class="text-success font-weight-bold">
+                                                                        ₹{{ number_format($item['price'], 2) }}
+                                                                    </span>
+                                                                @else
+                                                                    <span class="font-weight-bold">
+                                                                        ₹{{ number_format($item['price'], 2) }}
+                                                                    </span>
+                                                                @endif
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <b>₹{{ $item['price'] }}</b>
                                                             </td>
                                                         </tr>
                                                     @endforeach

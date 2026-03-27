@@ -16,7 +16,9 @@ class StockTransfer extends Model
         'status',
         'transfer_by',
         'transferred_at',
-        'transfer_number'
+        'transfer_number',
+        'admin_status',
+        'from_shift_id'
     ];
     
     public function request()

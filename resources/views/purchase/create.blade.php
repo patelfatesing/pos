@@ -392,6 +392,26 @@
                                                                             value="{{ old('composite_fee_excise') }}" />
                                                                     </div>
                                                                 </div>
+                                                                <!-- ✅ NEW 80/20 (ONLY VENDOR 2) -->
+                                                                <div class="col-md-6 excise-duty-80-20 d-none">
+                                                                    <div class="form-group">
+                                                                        <label>Excise Duty 80%</label>
+                                                                        <input type="number" step="0.01"
+                                                                            class="form-control" name="excise_duty_80"
+                                                                            id="excise_duty_80"
+                                                                            value="{{ old('excise_duty_80') }}">
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="col-md-6 excise-duty-80-20 d-none">
+                                                                    <div class="form-group">
+                                                                        <label>Excise Duty 20%</label>
+                                                                        <input type="number" step="0.01"
+                                                                            class="form-control" name="excise_duty_20"
+                                                                            id="excise_duty_20"
+                                                                            value="{{ old('excise_duty_20') }}">
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -414,7 +434,7 @@
                                             </div>
 
                                             {{-- RIGHT: BILLING DETAILS (must be right side) --}}
-                                            <div class="col-lg-4 offset-lg-4" id="billing-column">
+                                            <div class="col-lg-4 ml-auto" id="billing-column">
                                                 <div class="or-detail rounded">
                                                     <div class="p-3">
                                                         <h5 class="mb-3">Billing Details</h5>
@@ -582,14 +602,14 @@
                 const rate = parseFloat($row.find('input[name*="[rate]"]').val()) || 0;
                 const qty = parseFloat($row.find('input[name*="[qnt]"]').val()) || 0;
 
-                const amount = rate * qty;
+                const amount = round2(rate * qty);
 
-                $row.find('input[name*="[amount]"]').val(amount);
+                $row.find('input[name*="[amount]"]').val(amount.toFixed(2));
 
                 total += amount;
             });
 
-            $('#total').text(total.toFixed(2));
+            $('#total').text(Math.round(total));
             $(".total_amt").val(total);
             $('.total_val').val(total);
 
@@ -626,6 +646,23 @@
             const rsgsm_purchase = parseInt($('#rsgsm_purchase').val()) || 0;
             const aed = parseInt($('#aed_to_be_paid').val()) || 0;
             const loading = parseInt($('#loading_charges').val()) || 0; // ✅ NEW
+            const excise80 = parseFloat($('#excise_duty_80').val()) || 0;
+            const excise20 = parseFloat($('#excise_duty_20').val()) || 0;
+
+            // let additionalCharges =
+            //     excise +
+            //     compVat +
+            //     surcharge +
+            //     tcs +
+            //     aed +
+            //     loading +
+            //     vat +
+            //     surcharge_on_vat +
+            //     blf +
+            //     permit_fee +
+            //     rsgsm_purchase +
+            //     excise20 - // ✅ ADD
+            //     excise80; // ❌ SUBTRACT
 
             let additionalCharges =
                 excise +
@@ -633,12 +670,11 @@
                 surcharge +
                 tcs +
                 aed +
-                loading + // ✅ include loading charges
+                loading +
                 vat +
                 surcharge_on_vat +
-                blf +
-                permit_fee +
-                rsgsm_purchase;
+                rsgsm_purchase +
+                excise20; // ❌ SUBTRACT
 
             let grandTotal = baseTotal + additionalCharges;
 
@@ -696,122 +732,41 @@
         }
 
         function onVendorChange(vendorId) {
+
             $('.vendor-fields').addClass('d-none');
             $('.vendor-common').hide();
             $('.excise-section').addClass('d-none');
+            $('.excise-duty-80-20').addClass('d-none');
 
-            $('#excise_fee, #composition_vat, #surcharge_on_ca, #aed_to_be_paid').val(0);
-            $('#vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase').val(0);
-            $('.pur_dis, .pur_amt').val(0);
-
-            $('#permit_fee_excise, #vend_fee_excise, #composite_fee_excise').val(0);
-            $('#excise_total_amount').text('₹0');
-            $('.excise_total_amount').val('0');
-
-            const $billingCol = $('#billing-column');
-
-            const oldValues = {
-                excise_fee: "{{ old('excise_fee') }}",
-                composition_vat: "{{ old('composition_vat') }}",
-                surcharge_on_ca: "{{ old('surcharge_on_ca') }}",
-                aed_to_be_paid: "{{ old('aed_to_be_paid') }}",
-                guarantee_fulfilled: "{{ old('guarantee_fulfilled') }}",
-
-                vat: "{{ old('vat') }}",
-                surcharge_on_vat: "{{ old('surcharge_on_vat') }}",
-                blf: "{{ old('blf') }}",
-                permit_fee: "{{ old('permit_fee') }}",
-                rsgsm_purchase: "{{ old('rsgsm_purchase') }}",
-
-                permit_fee_excise: "{{ old('permit_fee_excise') }}",
-                vend_fee_excise: "{{ old('vend_fee_excise') }}",
-                composite_fee_excise: "{{ old('composite_fee_excise') }}",
-                excise_total_amount: "{{ old('excise_total_amount') }}",
-
-                case_purchase_per: "{{ old('case_purchase_per') }}",
-                case_purchase_amt: "{{ old('case_purchase_amt') }}",
-
-                tcs: "{{ old('tcs') }}"
-            };
-
-            // SHOW LICENSE LEDGER ONLY FOR VENDOR 1 & 2
+            // Show excise for vendor 1 & 2
             if (vendorId === '1' || vendorId === '2') {
                 $('#license-ledger-box').removeClass('d-none');
+                $('.excise-section').removeClass('d-none');
             } else {
                 $('#license-ledger-box').addClass('d-none');
             }
 
-            // SHOW LICENSE LEDGER ONLY FOR VENDOR 1 & 2
-            // if (vendorId === '1' || vendorId === '2') {
-            //     $('#license-ledger-box-div').removeClass('d-none');
-            // } else {
-            //     $('#license-ledger-box-div').addClass('d-none');
-            // }
-
-
             if (vendorId === '1') {
-                // Vendor 1: three columns -> Billing no offset, excise visible
-                $billingCol.removeClass('offset-lg-4').addClass('offset-lg-0');
 
-                $('.excise-section').removeClass('d-none');
                 $('#vendor-1-fields').removeClass('d-none');
                 $('.vendor-common').show();
 
-                if (oldValues.permit_fee_excise) $('#permit_fee_excise').val(oldValues.permit_fee_excise);
-                if (oldValues.vend_fee_excise) $('#vend_fee_excise').val(oldValues.vend_fee_excise);
-                if (oldValues.composite_fee_excise) $('#composite_fee_excise').val(oldValues.composite_fee_excise);
-
-                if (oldValues.excise_fee) $('#excise_fee').val(oldValues.excise_fee);
-                if (oldValues.composition_vat) $('#composition_vat').val(oldValues.composition_vat);
-                if (oldValues.surcharge_on_ca) $('#surcharge_on_ca').val(oldValues.surcharge_on_ca);
-                if (oldValues.aed_to_be_paid) $('#aed_to_be_paid').val(oldValues.aed_to_be_paid);
-                if (oldValues.guarantee_fulfilled) $('#guarantee_fulfilled').val(oldValues.guarantee_fulfilled);
-
-                if (oldValues.excise_total_amount) {
-                    $('#excise_total_amount').text('₹' + parseInt(oldValues.excise_total_amount));
-                    $('.excise_total_amount').val(parseInt(oldValues.excise_total_amount));
-                }
-
-                updateExciseSection(); // also sets excise_fee
+                updateExciseSection();
 
             } else if (vendorId === '2') {
-                // Vendor 2: excise hidden, Billing right side
-                $billingCol.removeClass('offset-lg-0').addClass('offset-lg-4');
 
                 $('#vendor-2-fields').removeClass('d-none');
-
-                if (oldValues.vat) $('#vat').val(oldValues.vat);
-                if (oldValues.surcharge_on_vat) $('#surcharge_on_vat').val(oldValues.surcharge_on_vat);
-                if (oldValues.blf) $('#blf').val(oldValues.blf);
-                if (oldValues.permit_fee) $('#permit_fee').val(oldValues.permit_fee);
-                if (oldValues.rsgsm_purchase) $('#rsgsm_purchase').val(oldValues.rsgsm_purchase);
-
                 $('.vendor-common').show();
+
+                // ✅ show only vendor 2
+                $('.excise-duty-80-20').removeClass('d-none');
+
             } else if (vendorId) {
-                // Other vendors: excise hidden, show cash purchase, Billing right
-                $billingCol.removeClass('offset-lg-0').addClass('offset-lg-4');
 
                 $('#vendor-others-fields').removeClass('d-none');
-                if (oldValues.case_purchase_per) $('.pur_dis').val(oldValues.case_purchase_per);
-                if (oldValues.case_purchase_amt) $('.pur_amt').val(oldValues.case_purchase_amt);
-            } else {
-                // No vendor selected -> Billing right, excise hidden
-                $billingCol.removeClass('offset-lg-0').addClass('offset-lg-4');
+
             }
 
-            if (oldValues.tcs) $('#tcs').val(oldValues.tcs);
-
-            // Adjust Billing position based on visible columns
-            // const licenseVisible = !$('#license-ledger-box-div').hasClass('d-none');
-            // const exciseVisible = !$('#excise-section-div').hasClass('d-none');
-
-            // if (licenseVisible && !exciseVisible) {
-            //     $('#billing-column').removeClass('offset-lg-0').addClass('offset-lg-4');
-            // } else if (licenseVisible && exciseVisible) {
-            //     $('#billing-column').removeClass('offset-lg-4').addClass('offset-lg-0');
-            // } else {
-            //     $('#billing-column').removeClass('offset-lg-0').addClass('offset-lg-4');
-            // }
             calculateProductTotals();
             updateBillingTotal();
         }
@@ -898,7 +853,8 @@
                     row.find('.rate').val(data.cost_price);
 
                     const qty = row.find('.qnt').val() || 1;
-                    row.find('.amount').val(qty * data.cost_price);
+                    const amount = round2(qty * data.cost_price);
+                    row.find('.amount').val(amount.toFixed(2));
 
                     calculateProductTotals();
                     updateBillingTotal();
@@ -1039,7 +995,7 @@
                 const mrp = formatNumber(data.mrp) ?? 0;
                 const rate = formatNumber(data.cost_price) ?? 0;
                 const qty = 1;
-                const amount = rate * qty;
+                const amount = round2(rate * qty);
 
                 let existingRow = null;
 
@@ -1149,7 +1105,10 @@
 
                 const rate = qty > 0 ? amount / qty : 0;
 
-                $row.find('input[name*="[rate]"]').val(rate.toFixed(2));
+                // ✅ Update ONLY rate
+                $row.find('input[name*="[rate]"]').val(rate.toFixed(4));
+
+                // ❌ DO NOT CHANGE AMOUNT AGAIN
 
                 calculateProductTotals();
                 updateBillingTotal();
@@ -1321,6 +1280,14 @@
 
                 }
             });
+        }
+
+        $(document).on('input', '#excise_duty_80, #excise_duty_20', function() {
+            updateBillingTotal();
+        });
+
+        function round2(num) {
+            return Math.round((parseFloat(num) || 0) * 100) / 100;
         }
     </script>
 

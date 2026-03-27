@@ -14,7 +14,10 @@ use App\Models\CreditHistory;
 use App\Models\DailyProductStock;
 use App\Models\Branch;
 use App\Models\User;
+use App\Models\StockRequest;
+use App\Models\StockTransfer;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\InvoiceActivityLog;
 
 class ShiftManageController extends Controller
 {
@@ -241,6 +244,11 @@ class ShiftManageController extends Controller
 
     public function view($id, $shift_id, Request $request)
     {
+        $verify = '';
+        if (isset($_GET['verify'])) {
+            $verify = $_GET['verify'];
+        }
+
         $shift = ShiftClosing::findOrFail($shift_id);
         $branch = Branch::findOrFail($id);
         $branch_name = $branch->name;
@@ -263,7 +271,8 @@ class ShiftManageController extends Controller
             'branch_name',
             'id',
             'partyUsers',
-            'commissionUsers'
+            'commissionUsers',
+            'verify'
         ));
     }
 
@@ -310,6 +319,11 @@ class ShiftManageController extends Controller
 
         if (!empty($request->branch_id)) {
             $query->where('invoices.branch_id', $request->branch_id);
+        }
+
+        $verify = '';
+        if (!empty($request->verify)) {
+            $verify = "?verify=" . $request->verify;
         }
 
         if (!empty($request->shift_id)) {
@@ -398,7 +412,7 @@ class ShiftManageController extends Controller
             $showViewHistoryButton = $invoice->edit_in === 'yes';
 
             $data[] = [
-                'invoice_number' => '<a href="' . url('/view-invoice/' . $invoice->id) . '" class="badge badge-success">' . $invoice->invoice_number . '</a>',
+                'invoice_number' => '<a href="' . url('/view-invoice/' . $invoice->id) . $verify . '" class="badge badge-success">' . $invoice->invoice_number . '</a>',
                 'status' => $invoice->status,
                 'sub_total' => $invoice->sub_total,
                 'total' => $invoice->total,
@@ -412,7 +426,7 @@ class ShiftManageController extends Controller
                 'commission_user' => $invoice->commission_user ?? 'N/A',
                 'action' => '
                         ' . ($showEditButton ? '
-                            <a href="' . url('/sales/edit-sales/' . $invoice->id) . '" class="btn btn-sm btn-success mb-1" title="Edit Invoice">
+                            <a href="' . url('/sales/edit-sales/' . $invoice->id) . $verify . '" class="btn btn-sm btn-success mb-1" title="Edit Invoice">
                                 <i class="fa fa-edit"></i>
                             </a>
                         ' : '') . '
@@ -771,16 +785,56 @@ class ShiftManageController extends Controller
             });
         }
 
+        // ✅ Reusable function
+        $checkStatus = function ($model) use ($id) {
+
+            $query = $model::where('shift_id', $id);
+
+            // ✅ If no records → consider as verified
+            if (!$query->exists()) {
+                return 'verify';
+            }
+
+            return $query->where('admin_status', 'unverify')->exists()
+                ? 'unverify'
+                : 'verify';
+        };
+
+        // ✅ Apply to all models
+        // ✅ Apply to all models (with shift_id)
+        $finalAdminStatusReq = $checkStatus(StockRequest::class);
+        $finalAdminStatusTra = $checkStatus(StockTransfer::class);
+        $finalAdminStatusInv = $checkStatus(Invoice::class);
+
+        // ✅ Shift has no shift_id → use id
+        $finalAdminStatusShift = ShiftClosing::where('id', $id)
+            ->where('admin_status', 'unverify')
+            ->exists()
+            ? 'unverify'
+            : 'verify';
+
+        // ✅ OPTIONAL: Overall shift status
+        $finalShiftStatus = (
+            $finalAdminStatusReq === 'verify' &&
+            $finalAdminStatusTra === 'verify' &&
+            $finalAdminStatusInv === 'verify' &&
+            $finalAdminStatusShift === 'verify'
+        ) ? 'verify' : 'unverify';
+        // dd($finalAdminStatusTra);
         $rawStockData = $rawStockQuery->get();
 
         return view('shift_manage.stock_details', compact(
+            'id',
             'rawStockData',
             'subcategories',
             'shift',
             'branch_name',
             'subcategoryId',
             'searchKeyword',
-            'id'
+            'finalAdminStatusTra',
+            'finalAdminStatusReq',
+            'finalAdminStatusInv',
+            'finalShiftStatus'
         ));
     }
 
@@ -854,5 +908,125 @@ class ShiftManageController extends Controller
         ))->setPaper('A4', 'landscape');
 
         return $pdf->download('stock-summary.pdf');
+    }
+
+    public function verifyStatus(Request $request)
+    {
+        $type = $request->type;
+        $status = $request->status;
+        $shift_id = $request->shift_id;
+
+        DB::beginTransaction();
+
+        try {
+
+            if ($type === 'sales') {
+                $updated = Invoice::where('shift_id', $shift_id)
+                    ->update(['admin_status' => $status]);
+
+                \Log::info('Invoice Updated: ' . $updated);
+            }
+
+            if ($type === 'transfer') {
+                $updated = StockTransfer::where('shift_id', $shift_id)
+                    ->update(['admin_status' => $status]);
+
+                \Log::info('Transfer Updated: ' . $updated);
+            }
+
+            if ($type === 'request') {
+                $updated = StockRequest::where('shift_id', $shift_id)
+                    ->update(['admin_status' => $status]);
+
+                \Log::info('Request Updated: ' . $updated);
+            }
+
+            // ✅ Re-check status
+            $hasUnverified =
+                Invoice::where('shift_id', $shift_id)->where('admin_status', 'unverify')->exists() ||
+                StockTransfer::where('shift_id', $shift_id)->where('admin_status', 'unverify')->exists() ||
+                StockRequest::where('shift_id', $shift_id)->where('admin_status', 'unverify')->exists();
+
+            ShiftClosing::where('id', $shift_id)->update([
+                'admin_status' => $hasUnverified ? 'unverify' : 'verify'
+            ]);
+
+            DB::commit();
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function verifyAll(Request $request)
+    {
+        $shift_id = $request->shift_id;
+        $status = $request->status;
+
+        DB::beginTransaction();
+
+        try {
+
+            // ✅ Update all modules
+            Invoice::where('shift_id', $shift_id)
+                ->update(['admin_status' => $status]);
+
+            StockTransfer::where('shift_id', $shift_id)
+                ->update(['admin_status' => $status]);
+
+            StockRequest::where('shift_id', $shift_id)
+                ->update(['admin_status' => $status]);
+
+            // ✅ Update shift itself
+            ShiftClosing::where('id', $shift_id)
+                ->update(['admin_status' => $status]);
+
+            DB::commit();
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updatePhysical(Request $request)
+    {
+        $stock = DailyProductStock::findOrFail($request->stock_id);
+
+        $qty = (float)$request->physical;
+
+        // SAME LOGIC AS YOUR save()
+        $sales_plus = $stock->opening_stock + $stock->added_stock;
+        $sales_minus = $stock->transferred_stock + $stock->sold_stock + $qty;
+
+        $one_time_sale = $sales_plus - $sales_minus;
+
+        $oldPhysical = $stock->physical_stock;
+
+        // ✅ APPLY SAME UPDATE
+        $stock->physical_stock = $qty;
+        $stock->sold_stock = $stock->sold_stock + $one_time_sale;
+        $stock->closing_stock = $stock->closing_stock - $one_time_sale;
+        $stock->difference_in_stock = $stock->physical_stock - $stock->closing_stock;
+
+        $stock->save();
+
+        
+        return response()->json([
+            'difference' => $stock->difference_in_stock,
+            'closing' => $stock->closing_stock,
+            'sold' => $stock->sold_stock
+        ]);
     }
 }

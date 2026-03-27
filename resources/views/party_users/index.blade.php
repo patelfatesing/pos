@@ -111,9 +111,12 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
             });
 
             const table = $('#party_users_table').DataTable({
-                processing: true,
-                serverSide: true,
+                pagelength: 10,
                 responsive: true,
+                processing: true,
+                ordering: true,
+                bLengthChange: true,
+                serverSide: true,
                 language: {
                     search: "",
                     lengthMenu: "_MENU_"

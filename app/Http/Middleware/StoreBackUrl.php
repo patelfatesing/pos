@@ -13,20 +13,35 @@ class StoreBackUrl
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle($request, Closure $next)
     {
-        if ($request->isMethod('get')) {
-
-            $history = session('url_history', []);
-            $current = url()->full();
-
-            if (empty($history) || end($history) != $current) {
-                $history[] = $current;
-            }
-
-            session(['url_history' => $history]);
+        if (!$request->ajax()) {
+            session(['previous_url' => url()->current()]);
         }
 
         return $next($request);
     }
+
+    // public function handle($request, Closure $next)
+    // {
+    //     if (!$request->ajax() && !$request->isMethod('post')) {
+
+    //         $history = session()->get('url_history', []);
+
+    //         // Add current URL
+    //         $current = url()->current();
+
+    //         // Avoid duplicate consecutive URLs
+    //         if (empty($history) || end($history) !== $current) {
+    //             $history[] = $current;
+    //         }
+
+    //         // Keep only last 10 URLs (optional limit)
+    //         $history = array_slice($history, -10);
+
+    //         session(['url_history' => $history]);
+    //     }
+
+    //     return $next($request);
+    // }
 }

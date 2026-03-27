@@ -520,7 +520,7 @@ class StockController extends Controller
                         Approved
                     </a>';
                 }
-                $action .= '<a class="badge bg-success mr-2" title="Edit" href="' . url('/stock-transfer/edit/' . $requestItem->id) . '">
+                $action .= '<a class="badge bg-success mr-2" title="Edit" href="' . url('/stock-request/edit/' . $requestItem->id) . '">
                 <i class="ri-pencil-line"></i></a>';
                 $action .= '</div>';
             } elseif ($requestItem->status === 'rejected') {
@@ -553,6 +553,254 @@ class StockController extends Controller
             'recordsFiltered' => $recordsFiltered,
             'data' => $records
         ]);
+    }
+
+    public function editApproved($id)
+    {
+        $stockRequest = StockRequest::with(['branch', 'items.product'])->findOrFail($id);
+
+        $sourceId = $stockRequest->branch->id;
+
+        $allBranches = Branch::select('id', 'name')
+            ->where('id', '!=', $sourceId)
+            ->get()
+            ->keyBy('id');
+
+        // ✅ GET APPROVED DATA
+        $approvedData = StockRequestApprove::where('stock_request_id', $id)
+            ->get()
+            ->keyBy(function ($item) {
+                return $item->product_id . '_' . $item->source_store_id;
+            });
+
+        $flattened = [];
+
+        foreach ($allBranches as $branchId => $branch) {
+            foreach ($stockRequest->items as $resItems) {
+
+                $productId = $resItems->product_id;
+                $requestedQty = $resItems->quantity ?? 0;
+
+                if ($requestedQty <= 0) continue;
+
+                $product = $resItems->product;
+
+                $inventoryQty = Inventory::where('product_id', $productId)
+                    ->where('store_id', $branchId)
+                    ->value('quantity');
+
+                $inventoryQty = $inventoryQty ?? 0;
+
+                // ✅ SAFE APPROVED QTY
+                $key = $productId . '_' . $branchId;
+
+                $approvedQty = $approvedData->has($key)
+                    ? $approvedData[$key]->approved_quantity
+                    : 0;
+
+                $flattened[] = [
+                    'product_id' => $productId,
+                    'product_name' => $product->name ?? 'N/A',
+                    'store_id' => $branchId,
+                    'store_name' => $branch->name,
+                    'requested_qty' => $requestedQty,
+                    'store_ava_quantity' => $inventoryQty,
+                    'approved_qty' => $approvedQty, // ✅ IMPORTANT
+                ];
+            }
+        }
+
+        return view('stocks.editRequest', compact('stockRequest', 'flattened', 'sourceId'));
+    }
+
+    public function updateApproved(Request $request, $id)
+    {
+        $request->validate([
+            'items' => 'required|array',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $stockRequest = StockRequest::with('items')->findOrFail($id);
+            $from_store_id = $request->from_store_id;
+
+            if ($stockRequest->status !== 'approved') {
+                return back()->with('error', 'Only approved request can be edited.');
+            }
+
+            /*
+        |--------------------------------------------------------------------------
+        | 🔴 STEP 1: REVERSE OLD APPROVAL
+        |--------------------------------------------------------------------------
+        */
+
+            $oldApprovals = StockRequestApprove::where('stock_request_id', $id)->get();
+
+            foreach ($oldApprovals as $old) {
+
+                $product_id = $old->product_id;
+                $qty = $old->approved_quantity;
+                $to_store_id = $old->source_store_id;
+
+                // 🔁 Reverse inventory (destination → source)
+                $inventories = Inventory::where('product_id', $product_id)
+                    ->where('store_id', $from_store_id)
+                    ->orderBy('expiry_date')
+                    ->get();
+
+                $remaining = $qty;
+
+                foreach ($inventories as $inv) {
+                    if ($remaining <= 0) break;
+
+                    $deduct = min($inv->quantity, $remaining);
+
+                    $inv->quantity -= $deduct;
+                    $inv->save();
+
+                    $sourceInventory = Inventory::firstOrNew([
+                        'store_id' => $to_store_id,
+                        'product_id' => $product_id,
+                        'batch_no' => $inv->batch_no,
+                        'expiry_date' => $inv->expiry_date,
+                    ]);
+
+                    $sourceInventory->quantity += $deduct;
+                    $sourceInventory->save();
+
+                    $remaining -= $deduct;
+                }
+
+                // 🔴 Reverse DailyProductStock
+                $source_shift = ShiftClosing::where('branch_id', $to_store_id)
+                    ->where('status', 'pending')
+                    ->first();
+
+                $dest_shift = ShiftClosing::where('branch_id', $from_store_id)
+                    ->where('status', 'pending')
+                    ->first();
+
+                if ($source_shift) {
+                    reverseStockStatusChange($product_id, $to_store_id, $qty, 'transfer_stock', $source_shift->id);
+                }
+
+                if ($dest_shift) {
+                    reverseStockStatusChange($product_id, $from_store_id, $qty, 'add_stock', $dest_shift->id);
+                }
+
+                // 🔴 Delete transfer
+                StockTransfer::where('stock_request_id', $id)
+                    ->where('product_id', $product_id)
+                    ->where('to_branch_id', $to_store_id)
+                    ->delete();
+            }
+
+            // 🔴 Delete old approvals
+            StockRequestApprove::where('stock_request_id', $id)->delete();
+
+
+            /*
+        |--------------------------------------------------------------------------
+        | 🟢 STEP 2: APPLY NEW APPROVAL (SAME AS APPROVE)
+        |--------------------------------------------------------------------------
+        */
+
+            $transferNumber = 'TRF-' . now()->format('YmdHis') . '-' . strtoupper(Str::random(4));
+
+            $running_shift = ShiftClosing::where('branch_id', $stockRequest->requested_by)
+                ->where('status', 'pending')
+                ->first();
+
+            $transferredProductsBySource = [];
+
+            foreach ($request->items as $to_store_id => $products) {
+
+                foreach ($products as $product_id => $product_qty) {
+
+                    if (empty($product_qty)) continue;
+
+                    $inventories = Inventory::where('product_id', $product_id)
+                        ->where('store_id', $to_store_id)
+                        ->orderBy('expiry_date')
+                        ->get();
+
+                    $totalAvailable = $inventories->sum('quantity');
+
+                    if ($totalAvailable < $product_qty) {
+                        return back()->with('error', "Not enough stock for product ID: {$product_id}");
+                    }
+
+                    $remainingQty = $product_qty;
+
+                    foreach ($inventories as $inventory) {
+
+                        if ($remainingQty <= 0) break;
+
+                        $deducted = min($inventory->quantity, $remainingQty);
+
+                        $inventory->quantity -= $deducted;
+                        $inventory->save();
+
+                        $storeInventory = Inventory::firstOrNew([
+                            'store_id' => $stockRequest->requested_by,
+                            'location_id' => $from_store_id,
+                            'product_id' => $product_id,
+                            'batch_no' => $inventory->batch_no,
+                            'expiry_date' => $inventory->expiry_date,
+                        ]);
+
+                        $storeInventory->quantity += $deducted;
+                        $storeInventory->save();
+
+                        $remainingQty -= $deducted;
+                    }
+
+                    $transferredProductsBySource[$to_store_id][] = $product_id;
+
+                    $stockRequestItem = StockRequestItem::where('product_id', $product_id)
+                        ->where('stock_request_id', $id)
+                        ->first();
+
+                    StockRequestApprove::create([
+                        'stock_request_id' => $id,
+                        'stock_request_item_id' => optional($stockRequestItem)->id,
+                        'product_id' => $product_id,
+                        'source_store_id' => $to_store_id,
+                        'destination_store_id' => $from_store_id,
+                        'approved_quantity' => $product_qty,
+                        'approved_by' => Auth::id(),
+                        'approved_at' => now(),
+                    ]);
+
+                    StockTransfer::create([
+                        'stock_request_id' => $id,
+                        'transfer_number' => $transferNumber,
+                        'from_branch_id' => $from_store_id,
+                        'to_branch_id' => $to_store_id,
+                        'product_id' => $product_id,
+                        'quantity' => $product_qty,
+                        'status' => 'approved',
+                        'transfer_by' => Auth::id(),
+                        'transferred_at' => now(),
+                    ]);
+
+                    $des_shift = ShiftClosing::where('branch_id', $from_store_id)
+                        ->where('status', 'pending')
+                        ->first();
+
+                    stockStatusChange($product_id, $to_store_id, $product_qty, 'transfer_stock', $des_shift->id);
+                    stockStatusChange($product_id, $from_store_id, $product_qty, 'add_stock', $running_shift->id);
+                }
+            }
+
+            DB::commit();
+
+            return redirect()->route('stock.requestList')->with('success', 'Approved stock updated successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     public function showSendRequest(StockRequest $stockRequest)

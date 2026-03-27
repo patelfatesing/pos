@@ -86,7 +86,10 @@
                     </div>
                     <div>
                         <span class="mr-2">#{{ $branch_data->name }}</span>
-                        <a href="{{ route('sales.sales.list') }}" class="btn btn-secondary">Back</a>
+                        {{-- <a href="{{ route('sales.sales.list') }}" class="btn btn-secondary">Back</a> --}}
+                        <button onclick="window.history.back()" class="btn btn-secondary">
+                            Back
+                        </button>
                     </div>
                 </div>
 
@@ -98,6 +101,7 @@
                         <div class="card-body">
                             <div class="row g-2 align-items-center">
                                 <div class="col d-flex justify-content-end">
+
                                     @if ($invoice->branch_id == 1 && $invoice->partyUser)
                                         <span class="badge bg-info text-dark">Party:
                                             {{ $invoice->partyUser->first_name }}</span>
@@ -109,6 +113,7 @@
                             </div>
                         </div>
                     </div>
+                                                        <input type="hidden" name="verify" value="{{ $verify }}">
                     <div class="card">
                         <div class="card-body table-responsive">
                             <table class="table table-bordered" id="items-table">

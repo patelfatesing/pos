@@ -195,6 +195,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/stock-requests/{id}/reject', [StockController::class, 'reject'])
         ->name('stock-requests.reject');
     Route::get('/stock-requests/popup-details/{id}', [StockController::class, 'stockShow'])->name('stock.popupDetails');
+    Route::get('/stock-request/edit/{id}', [StockController::class, 'editApproved'])->name('stock.editApproved');
+    Route::post('/stock-request/update/{id}', [StockController::class, 'updateApproved'])->name('stock.updateApproved');
 
     Route::get('/stock/edit/{id}', [StockController::class, 'edit'])->name('stock.edit');
     Route::get('/stock/add-warehouse', [StockController::class, 'addWarehouse'])->name('addWarehouse');
@@ -203,7 +205,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/stock/get-send-request-data', [StockController::class, 'getSendRequestData'])->name('stock.getSendRequestData');
     Route::post('/stock/get-stock-request-details-approved', [StockController::class, 'getStockRequestDetailsApproved'])->name('stock.get-stock-request-details-approved');
     Route::post('/stock/get-stock-request-details', [StockController::class, 'getStockRequestDetails'])->name('stock.get-stock-request-details');
-
+    Route::post('/stock/update-physical', [ShiftManageController::class, 'updatePhysical'])->name('stock.update.physical');
     // Route::get('/stock/send-store-request-list', [StockController::class, 'showStoreSendRequest'])->name('stock.requestStoreSendList');
     // Route::post('/stock/get-send-store-request-data', [StockController::class, 'getStoreSendRequestData'])->name('stock.getSendStoreRequestData');
 
@@ -449,7 +451,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/shift-manage/print-shift/{id}', [ShiftManageController::class, 'printShift'])->name('purchase.print-shift');
     Route::get('/stock-summary-pdf/{id}', [ShiftManageController::class, 'stockDetailsPdf'])->name('shift-manage.stock-details-pdf');
     Route::post('/shift-manage/get-trasaction-data', [ShiftManageController::class, 'getData'])->name('shift-manage.get-trasaction-data');
-
+    Route::post('/shift/verify-status', [ShiftManageController::class, 'verifyStatus'])
+        ->name('shift.verify.status');
+    Route::post('/shift/verify-all', [ShiftManageController::class, 'verifyAll'])
+        ->name('shift.verify.all');
     Route::post('/holidays', [HolidayController::class, 'store'])
         ->name('holidays.store');
 
@@ -486,8 +491,7 @@ Route::middleware('auth')->group(function () {
         Route::get('profit-loss',  [Report2Controller::class, 'profitLoss'])->name('reports.pnl_tally.view');
         Route::post('getProfitLossData', [Report2Controller::class, 'getProfitLossData'])->name('reports.pnl_tally.data');
         Route::get('/reports/profit-loss/pdf', [Report2Controller::class, 'profitLossPdf'])->name('reports.profit-loss.pdf');
-        Route::get('day-book', [DayBookController::class, 'index'])
-            ->name('reports.day-book');
+        Route::get('day-book', [DayBookController::class, 'index'])->name('reports.day-book');
         // / NEW: voucher details (AJAX)
         Route::get(
             '/day-book/voucher/{id}',
@@ -570,6 +574,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/ledgers/update', [LedgerController::class, 'update'])->name('ledgers.update');
         Route::delete('/ledgers/delete/{id}', [LedgerController::class, 'destroy'])->name('ledgers.destroy');
         Route::get('/ledger/current-balance/{ledger}', [LedgerController::class, 'currentBalance'])->name('ledger.current.balance');
+        Route::get('/ledger/view/{id}', [LedgerController::class, 'ledgerView'])->name('ledgers.view');
+        Route::get('/ledger/{id}/data', [LedgerController::class, 'ledgerData'])->name('ledgers.vouchers.data1');
 
         Route::get('vouchers',        [VoucherController::class, 'index'])->name('vouchers.index');
         Route::get('vouchers/create', [VoucherController::class, 'create'])->name('vouchers.create');
@@ -583,13 +589,15 @@ Route::middleware('auth')->group(function () {
         Route::delete('/vouchers/delete/{id}', [VoucherController::class, 'destroy'])->name('vouchers.destroy');
         // routes/web.php
         Route::get('/vouchers/last-ref', [VoucherController::class, 'getLastRef'])->name('vouchers.last-ref');
-
-
+        Route::get('/vouchers/view/{id}', [VoucherController::class, 'voucherView']);
+        Route::get('/ledgers/{ledger}/particular-vouchers/data', [VoucherController::class, 'vouchersData'])
+            ->name('ledgers.particular.vouchers.data');
 
         // Ledger vouchers view
         Route::get('/ledgers/{ledger}/vouchers', [LedgerController::class, 'vouchers'])
             ->name('ledgers.vouchers');
-
+        Route::post('/vouchers/update-status', [VoucherController::class, 'updateStatus']);
+        Route::put('/vouchers/update-particular', [VoucherController::class, 'updateParticular'])->name('vouchers.update.particular');
         // Server-side AJAX data for vouchers
         Route::get('/ledgers/{ledger}/vouchers/data', [LedgerController::class, 'vouchersData'])
             ->name('ledgers.vouchers.data');
