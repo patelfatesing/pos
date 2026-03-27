@@ -145,7 +145,7 @@ class Shoppingcart extends Component
     public $select_product_id = null;
     public $sellProductStock = [];
     public $one_time_sales_time = '';
-
+    public $shift_id = '';
 
     // This method is triggered whenever the checkbox is checked or unchecked
     public function updatedUseCredit($value)
@@ -904,8 +904,6 @@ class Shoppingcart extends Component
                 }
             }
         }
-
-        
     }
 
     public function processRefund()
@@ -1792,6 +1790,7 @@ class Shoppingcart extends Component
                     'commission_amount' => $this->commissionAmount,
                     'party_amount' => $this->partyAmount,
                     'total' => $this->cashAmount,
+                    'shift_id' => $this->shift_id
                 ]
             );
             $warehouse_product_photo_path = session(auth()->id() . '_warehouse_product_photo_path', []);
@@ -2522,6 +2521,16 @@ class Shoppingcart extends Component
         $getNotification = getNotificationsByNotifyTo(auth()->id(), $branch_id, 10);
         $totals = $this->getTotals();
 
+        $shift = UserShift::where('user_id', auth()->id())
+            ->where('branch_id', $branch_id)
+            ->whereDate('end_time', today())
+            ->latest()
+            ->first();
+
+        if (!empty($shift)) {
+            $this->shift_id = $shift->id;
+        }
+
         return view('livewire.shoppingcart', [
             'itemCarts' => $itemCarts,
             'narrations' => $this->narrations,
@@ -2851,7 +2860,8 @@ class Shoppingcart extends Component
                     'party_amount' => $this->partyAmount,
                     'total' => $this->cashAmount,
                     'cash_break_id' => $cashBreakdown->id,
-                    'sales_type' => $saleType
+                    'sales_type' => $saleType,
+                    'shift_id' => $this->shift_id
                 ]
             );
 
@@ -3016,7 +3026,7 @@ class Shoppingcart extends Component
 
             $dr = collect($lines)->where('dc', 'Dr')->sum('amount');
             $cr = collect($lines)->where('dc', 'Cr')->sum('amount');
-           
+
             if (round($dr, 2) !== round($cr, 2)) {
                 throw new \Exception("Voucher not balanced: Dr={$dr} Cr={$cr}");
             }
@@ -3077,7 +3087,7 @@ class Shoppingcart extends Component
 
                 'lines'           => $lines,
             ];
-           
+
             // finally:
             $voucher = $this->posTransaction($payload);
 
@@ -3762,6 +3772,7 @@ class Shoppingcart extends Component
                     'party_amount' => $this->partyAmount,
                     'total' => $this->cashAmount,
                     'cash_break_id' => null,
+                    'shift_id' =>$this->shift_id
                 ]
             );
 

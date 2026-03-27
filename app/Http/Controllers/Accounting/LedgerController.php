@@ -135,12 +135,25 @@ class LedgerController extends Controller
                 ? '<span class="badge bg-success">Yes</span>'
                 : '<span class="badge bg-secondary">No</span>';
 
-            $viewUrl = route('accounting.ledgers.vouchers', $l->id);
+            // $viewUrl = route('accounting.ledgers.vouchers', $l->id);
+            $viewUrl = route('accounting.ledgers.view', $l->id);
 
             // Ledger name now clickable
             $nameLink = '<a href="' . e($viewUrl) . '" class="text-primary fw-bold">'
                 . e($l->name) .
                 '</a>';
+
+            // $nameLink = '<a href="' . e($viewUrl) . '" class="text-primary fw-bold">'
+            //     . e($l->name) .
+            //     '</a>';
+
+            $actions = '
+            <div class="d-flex align-items-center gap-1">
+             <a href="' . e($viewUrl) . '" class="btn btn-sm btn-info mr-1">View</a>
+              <a href="' . route('accounting.ledgers.edit', $l->id) . '" class="btn btn-sm btn-warning mr-1">Edit</a>
+              <button type="button" class="btn btn-sm btn-danger btn-delete" data-id="' . $l->id . '">Delete</button>
+            </div>
+        ';
 
             $actions = '
             <div class="d-flex align-items-center gap-1">
@@ -295,7 +308,7 @@ class LedgerController extends Controller
                 if ($v['gen_id'] != NULL) {
                     $editUrl = route('purchase.edit', $v['gen_id']);
                 } else {
-                     $line = $v->lines->where('ledger_id', $ledgerId)->first();
+                    $line = $v->lines->where('ledger_id', $ledgerId)->first();
                     $editUrl = route('accounting.vouchers.edit', $v['id']);
                 }
             } elseif ($v['voucher_type'] == 'Sales') {
@@ -369,6 +382,85 @@ class LedgerController extends Controller
         ]);
     }
 
+    public function ledgerData(Request $request, $ledgerId)
+    {
+        $ledger = AccountLedger::findOrFail($ledgerId);
+
+        // ================= FETCH ENTRIES =================
+        $entries = DB::table('voucher_lines as vl')
+            ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
+            ->where('vl.ledger_id', $ledgerId)
+            ->orderBy('v.voucher_date')
+            ->orderBy('v.id')
+            ->select(
+                'vl.*',
+                'v.voucher_date',
+                'v.voucher_type',
+                'v.id as voucher_id'
+            )
+            ->get();
+
+        $data = [];
+
+        foreach ($entries as $row) {
+
+            // 👉 MAIN ROW (Selected Ledger)
+            $data[] = [
+                'type'        => 'main',
+                'date'        => date('d-M-y', strtotime($row->voucher_date)),
+                'particulars' => $this->getOtherLedgerName($row->voucher_id, $ledgerId),
+                'vch_type'    => $row->voucher_type,
+                'vch_no'      => $row->voucher_id,
+                'debit'       => $row->dc == 'Dr' ? $row->amount : null,
+                'credit'      => $row->dc == 'Cr' ? $row->amount : null,
+                'edit_url'    => route('accounting.vouchers.edit', $row->voucher_id)
+            ];
+
+            // 👉 DETAIL ROWS (Other Ledgers)
+            $others = DB::table('voucher_lines as vl')
+                ->join('account_ledgers as al', 'al.id', '=', 'vl.ledger_id')
+                ->where('vl.voucher_id', $row->voucher_id)
+                ->where('vl.ledger_id', '!=', $ledgerId)
+                ->select('al.name', 'vl.dc', 'vl.amount')
+                ->get();
+
+            foreach ($others as $line) {
+                $data[] = [
+                    'type'        => 'detail',
+                    'particulars' => $line->name,
+                    'debit'       => $line->dc == 'Dr' ? $line->amount : null,
+                    'credit'      => $line->dc == 'Cr' ? $line->amount : null,
+                ];
+            }
+        }
+
+        // ================= OPENING =================
+        $opening = DB::table('voucher_lines as vl')
+            ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
+            ->where('vl.ledger_id', $ledgerId)
+            ->selectRaw("
+            SUM(CASE WHEN vl.dc='Dr' THEN amount ELSE 0 END) -
+            SUM(CASE WHEN vl.dc='Cr' THEN amount ELSE 0 END) as balance
+        ")
+            ->first();
+
+        // ================= PERIOD =================
+        $period = DB::table('voucher_lines as vl')
+            ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
+            ->where('vl.ledger_id', $ledgerId)
+            ->selectRaw("
+            SUM(CASE WHEN vl.dc='Dr' THEN amount ELSE 0 END) as total_debit,
+            SUM(CASE WHEN vl.dc='Cr' THEN amount ELSE 0 END) as total_credit
+        ")
+            ->first();
+
+        return response()->json([
+            'data'    => $data,
+            'opening' => $opening,
+            'period'  => $period
+        ]);
+    }
+
     // LedgerController.php
     public function currentBalance($ledgerId)
     {
@@ -383,5 +475,59 @@ class LedgerController extends Controller
             'balance' => number_format($balance),
             'type'    => $type
         ]);
+    }
+
+    private function getOtherLedgerName($voucherId, $ledgerId)
+    {
+        return DB::table('voucher_lines as vl')
+            ->join('account_ledgers as al', 'al.id', '=', 'vl.ledger_id')
+            ->where('vl.voucher_id', $voucherId)
+            ->where('vl.ledger_id', '!=', $ledgerId)
+            ->pluck('al.name')
+            ->implode(', ');
+    }
+
+    public function ledgerView($ledgerId)
+    {
+        $ledger = AccountLedger::findOrFail($ledgerId);
+
+        $entries = DB::table('voucher_lines as vl')
+            ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
+
+            ->join('account_ledgers as al', 'al.id', '=', 'vl.ledger_id')
+
+            ->join('voucher_lines as vl2', function ($join) {
+                $join->on('vl2.voucher_id', '=', 'v.id')
+                    ->whereColumn('vl2.id', '!=', 'vl.id');
+            })
+
+            ->join('account_ledgers as al2', 'al2.id', '=', 'vl2.ledger_id')
+
+            ->where('vl.ledger_id', $ledgerId)
+
+            ->select(
+                'v.id as voucher_id',
+                'v.voucher_date',
+                'v.voucher_type',
+                'v.ref_no',
+                'vl.dc',
+                'vl.amount',
+                DB::raw("GROUP_CONCAT(al2.name SEPARATOR ', ') as particulars")
+            )
+
+            ->groupBy(
+                'vl.id',
+                'v.id',
+                'v.voucher_date',
+                'v.voucher_type',
+                'v.ref_no',
+                'vl.dc',
+                'vl.amount'
+            )
+
+            ->orderBy('v.voucher_date')
+            ->get();
+
+        return view('accounting.ledgers.ledger_list', compact('ledger', 'entries'));
     }
 }

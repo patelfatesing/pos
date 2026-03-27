@@ -9,9 +9,9 @@
 
             <!-- Logo -->
             <div class="d-flex align-items-center logo-area">
-                <img src="{{ asset('assets/images/logo.png') }}" alt="Logo" class="img-fluid"
+                <img src="{{ asset('assets/images/logo_ic.png') }}" alt="Logo" class="img-fluid"
                     style="max-height: 40px;" />
-                {{-- <h4 class="logo-title m2-2 ml-2">LiquorHub</h4> --}}
+                <h4 class="logo-title light-logo">Liquor<span class="hub_ic">Hub</span></h4> 
             </div>
 
             <!-- Right Side -->
@@ -3177,6 +3177,45 @@
                 }));
             }
         }
+    });
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        Livewire.on('toggleFullscreen', () => {
+
+            let tableDiv = document.getElementById('table_product_div');
+
+            if (!document.fullscreenElement) {
+                // Fullscreen ON
+                document.documentElement.requestFullscreen();
+
+                if (tableDiv) {
+                    tableDiv.classList.add('full_product');
+                    tableDiv.classList.remove('min_product');
+                }
+
+            } else {
+                // Fullscreen OFF
+                document.exitFullscreen();
+
+                if (tableDiv) {
+                    tableDiv.classList.add('min_product');
+                    tableDiv.classList.remove('full_product');
+                }
+            }
+        });
+
+        // ✅ Handle ESC key
+        document.addEventListener("fullscreenchange", () => {
+            let tableDiv = document.getElementById('table_product_div');
+
+            if (!document.fullscreenElement && tableDiv) {
+                tableDiv.classList.add('min_product');
+                tableDiv.classList.remove('full_product');
+            }
+        });
+
     });
 
     // Optional: Show suggestions again on input focus

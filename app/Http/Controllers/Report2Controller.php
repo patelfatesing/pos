@@ -1974,9 +1974,14 @@ class Report2Controller extends Controller
             ? Carbon::parse($request->input('end_date'), $tz)->endOfDay()
             : $now->copy()->endOfDay();
 
+        $verify   = $request->filled('admin_status')
+            ?  $request->input('admin_status')
+            : 'verify';
+
         /* ---------- Sales from INVOICES (net), then less refunds (fallback source) ---------- */
         $salesAgg = DB::table('invoices as i')
             ->whereBetween('i.created_at', [$start, $end])
+            ->where('i.admin_status', $verify)
             ->when(Schema::hasColumn('invoices', 'status'), fn($q) => $q->where('i.status', '!=', 'Hold'))
             ->selectRaw('
             COALESCE(SUM(i.sub_total),0)         as sum_sub_total,
@@ -2017,6 +2022,7 @@ class Report2Controller extends Controller
                 ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
                 ->join('account_ledgers as l', 'l.id', '=', 'vl.ledger_id')
                 ->join('account_groups as g', 'g.id', '=', 'l.group_id')
+                ->where('v.admin_status', $verify)
                 ->whereBetween('v.voucher_date', [$start->toDateString(), $end->toDateString()])
                 ->when(Schema::hasColumn('account_ledgers', 'is_deleted'), fn($q) => $q->where('l.is_deleted', 0));
         }
@@ -2662,7 +2668,7 @@ class Report2Controller extends Controller
             ],
         ]);
     }
-    
+
     /* ===== Stock value helper (used above) ===== */
     private function valueStock(Carbon $targetDate, bool $useOpening, ?int $branchId): float
     {

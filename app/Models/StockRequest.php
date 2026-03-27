@@ -21,7 +21,9 @@ class StockRequest extends Model
         'created_by',
         'total_request_quantity',
         'rejected_at',
-        'reject_reason'
+        'reject_reason',
+        'admin_status',
+        'shift_id'
     ];
 
     protected $casts = [

@@ -19,7 +19,8 @@ class ShiftClosing extends Model
         'opening_cash',
         'created_at',
         'updated_at',
-        'closing_shift_time'
+        'closing_shift_time',
+        'admin_status'
     ];
 
     // Relationships

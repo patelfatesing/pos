@@ -1,5 +1,5 @@
 @extends('layouts.backend.layouts')
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -97,6 +97,11 @@
         .verify-box input:checked+span {
             font-weight: 700;
         }
+
+        td.text-start,
+        th.text-start {
+            text-align: left !important;
+        }
     </style>
 
     <div class="content-page">
@@ -147,27 +152,44 @@
                         </div>
 
                         <div class="d-flex align-items-center gap-3">
-
                             <div class="d-flex align-items-center gap-1 verify-box sales ml-2">
-                                <input type="checkbox" name="verify_sales" id="verify_sales">
-                                <span onclick="handleClick('sales')">✔ Sales</span>
+                                <input type="checkbox" onchange="changeVerifyStatus('sales', this.checked)"
+                                    {{ $finalAdminStatusInv == 'verify' ? 'checked' : '' }}>
+
+                                <span onclick="handleClick('sales')">
+                                    {!! $finalAdminStatusInv == 'verify' ? '✔ Sales' : '✖ Sales' !!}
+                                </span>
                             </div>
+
 
                             <div class="d-flex align-items-center gap-1 verify-box transfer ml-2">
-                                <input type="checkbox" name="verify_transfer" id="verify_transfer">
-                                <span onclick="handleClick('transfer')">✔ Transfer</span>
+                                <input type="checkbox" onchange="changeVerifyStatus('transfer', this.checked)"
+                                    {{ $finalAdminStatusTra == 'verify' ? 'checked' : '' }}>
+
+                                <span onclick="handleClick('transfer')">
+                                    {!! $finalAdminStatusTra == 'verify' ? '✔ Transfer' : '✖ Transfer' !!}
+                                </span>
                             </div>
+
 
                             <div class="d-flex align-items-center gap-1 verify-box request ml-2">
-                                <input type="checkbox" name="verify_request" id="verify_request">
-                                <span onclick="handleClick('request')">✔ Request</span>
+                                <input type="checkbox" onchange="changeVerifyStatus('request', this.checked)"
+                                    {{ $finalAdminStatusReq == 'verify' ? 'checked' : '' }}>
+
+                                <span onclick="handleClick('request')">
+                                    {!! $finalAdminStatusReq == 'verify' ? '✔ Request' : '✖ Request' !!}
+                                </span>
                             </div>
+
 
                             <div class="d-flex align-items-center gap-1 verify-box shift ml-2">
-                                <input type="checkbox" name="unverify_shift" id="unverify_shift">
-                                <span>✖ Shift</span>
-                            </div>
+                                <input type="checkbox" onchange="verifyFullShift(this.checked)"
+                                    {{ $finalShiftStatus == 'verify' ? 'checked' : '' }}>
 
+                                <span>
+                                    {!! $finalShiftStatus == 'verify' ? '✔ Shift' : '✖ Shift' !!}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -179,6 +201,7 @@
                     <table>
                         <thead>
                             <tr>
+                                <th>Sr No</th>
                                 <th>Product</th>
                                 <th>Category</th>
                                 <th>Opening</th>
@@ -198,7 +221,7 @@
                                 $totalOpening = $totalAdded = $totalTransferred = $totalSold = $totalClosing = 0;
                                 $totalPhysical = $totalDifference = $totalModifyAdd = $totalModifyRemove = 0;
                             @endphp
-
+                            @php $sr = 1; @endphp
                             @forelse ($rawStockData as $stock)
                                 @php
                                     $totalOpening += $stock->opening_stock;
@@ -213,6 +236,8 @@
                                 @endphp
 
                                 <tr class="{{ $stock->difference_in_stock != 0 ? 'highlight-diff' : '' }}">
+                                    <td>{{ $sr++ }}</td>
+
                                     <td class="text-start">{{ $stock->product->name ?? 'N/A' }}</td>
                                     <td>{{ $stock->product->subcategory->name ?? 'N/A' }}</td>
                                     <td>{{ $stock->opening_stock }}</td>
@@ -222,7 +247,12 @@
                                     <td>{{ $stock->modify_sale_add_qty }}</td>
                                     <td>{{ $stock->modify_sale_remove_qty }}</td>
                                     <td>{{ $stock->closing_stock }}</td>
-                                    <td>{{ $stock->physical_stock }}</td>
+                                    <td>
+                                        <input type="number" class="form-control form-control-sm physical-input"
+                                            value="{{ $stock->physical_stock }}"
+                                            data-product-id="{{ $stock->product_id }}" data-stock-id="{{ $stock->id }}"
+                                            style="width:90px; text-align:center;">
+                                    </td>
                                     <td>{{ $stock->difference_in_stock }}</td>
                                 </tr>
 
@@ -236,7 +266,7 @@
                         {{-- FIXED FOOTER --}}
                         <tfoot>
                             <tr class="fw-bold">
-                                <th colspan="2">TOTAL</th>
+                                <th colspan="3">TOTAL</th>
                                 <th>{{ $totalOpening }}</th>
                                 <th>{{ $totalAdded }}</th>
                                 <th>{{ $totalTransferred }}</th>
@@ -260,17 +290,139 @@
 @endsection
 
 <script>
+    function changeVerifyStatus(type, isChecked) {
+
+        let status = isChecked ? 'verify' : 'unverify';
+        let shift_id = "{{ $shift->id }}";
+
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Do you want to change the status?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, change it!",
+        }).then((result) => {
+
+            if (result.isConfirmed) {
+
+                $.ajax({
+                    type: "POST",
+                    url: "{{ route('shift.verify.status') }}",
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    data: {
+                        type: type,
+                        status: status,
+                        shift_id: shift_id
+                    },
+                    success: function(response) {
+                        Swal.fire("Success!", "Status updated.", "success")
+                            .then(() => location.reload());
+                    },
+                    error: function() {
+                        Swal.fire("Error!", "Something went wrong.", "error");
+                    }
+                });
+
+            } else {
+                location.reload(); // revert checkbox
+            }
+
+        });
+    }
+
+    function verifyFullShift(isChecked) {
+
+        let shift_id = "{{ $shift->id }}";
+        let status = isChecked ? 'verify' : 'unverify';
+
+        Swal.fire({
+            title: "⚠️ Are you sure?",
+            text: "This will verify ALL data (Sales, Transfer, Request, Shift).",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, verify all!",
+            cancelButtonText: "Cancel"
+        }).then((result) => {
+
+            if (result.isConfirmed) {
+
+                $.ajax({
+                    type: "POST",
+                    url: "{{ route('shift.verify.all') }}",
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    data: {
+                        shift_id: shift_id,
+                        status: status
+                    },
+                    success: function(response) {
+                        Swal.fire("Success!", "Shift fully verified.", "success")
+                            .then(() => location.reload());
+                    },
+                    error: function() {
+                        Swal.fire("Error!", "Something went wrong.", "error");
+                    }
+                });
+
+            } else {
+                location.reload(); // revert checkbox
+            }
+
+        });
+    }
+
     function handleClick(type) {
 
         let id = "{{ $id }}";
         let shift_id = "{{ $shift->id }}";
 
         if (type === 'sales') {
-            window.location.href = `/shift-manage/view/${id}/${shift_id}`;
+            window.location.href = `/shift-manage/view/${id}/${shift_id}?verify=yes`;
         } else if (type === 'transfer') {
-            window.location.href = "{{ route('stock-transfer.list') }}?branch_id="+id+"&shift_id="+shift_id;
+            window.location.href = "{{ route('stock-transfer.list') }}?branch_id=" + id + "&shift_id=" + shift_id +
+                "?verify=yes";
         } else if (type === 'request') {
-            window.location.href = "{{ route('stock.requestList') }}?branch_id="+id+"&shift_id="+shift_id;
-        } 
+            window.location.href = "{{ route('stock.requestList') }}?branch_id=" + id + "&shift_id=" + shift_id +
+                "?verify=yes";
+        }
     }
+
+    $(document).on('change', '.physical-input', function() {
+
+        let input = $(this);
+        let physical = input.val();
+        let product_id = input.data('product-id');
+        let stock_id = input.data('stock-id');
+
+        $.ajax({
+            url: "{{ route('stock.update.physical') }}",
+            type: "POST",
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                stock_id: stock_id,
+                product_id: product_id,
+                physical: physical
+            },
+            success: function(res) {
+
+                // Update difference column
+                input.closest('tr').find('td:last').text(res.difference);
+
+                // Highlight row if mismatch
+                if (res.difference != 0) {
+                    input.closest('tr').addClass('highlight-diff');
+                } else {
+                    input.closest('tr').removeClass('highlight-diff');
+                }
+
+                Swal.fire("Saved!", "Physical updated.", "success");
+            },
+            error: function() {
+                Swal.fire("Error!", "Update failed.", "error");
+            }
+        });
+    });
 </script>

@@ -42,8 +42,6 @@
 
     <div class="content-page">
         <div class="container-fluid">
-
-
             <div class="row align-items-center mb-2">
                 <div class="col-lg-12">
                     <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
@@ -98,6 +96,7 @@
                             <th class="text-end">Dr Total</th>
                             <th class="text-end">Cr Total</th>
                             <th>Status</th>
+                            <th>Verify Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -165,6 +164,12 @@
                         data: 'cr_total',
                         name: 'cr_total',
                         className: 'text-end'
+                    },
+                    {
+                        data: 'admin_status',
+                        name: 'status',
+                        orderable: false,
+                        searchable: false
                     },
                     {
                         data: 'status',

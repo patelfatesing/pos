@@ -124,9 +124,12 @@
                 <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
 
                     <h4 class="mb-0">Group Summary - {{ $group->name }}</h4>
-                    <a href="{{ session('back_url') ?? route('reports.pnl_tally.view') }}" class="btn btn-secondary">
+                    {{-- <a href="{{ session('back_url') ?? route('reports.pnl_tally.view') }}" class="btn btn-secondary">
                         Back
-                    </a>
+                    </a> --}}
+                    <button onclick="window.history.back()" class="btn btn-secondary">
+                        Back
+                    </button>
                 </div>
 
                 <div class="table-responsive mb-3">

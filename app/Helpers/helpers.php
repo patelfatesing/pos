@@ -110,6 +110,43 @@ if (!function_exists('updateUnreadNotificationsById')) {
     }
 }
 
+if (!function_exists('reverseStockStatusChange')) {
+
+    function reverseStockStatusChange($product_id, $branch_id, $qty, $type, $shift_id = "")
+    {
+        $existing = DailyProductStock::where('branch_id', $branch_id)
+            ->where('product_id', $product_id)
+            ->where('shift_id', $shift_id)
+            ->first();
+
+        if (!$existing) return;
+
+        if ($type == "add_stock") {
+            $existing->added_stock -= $qty;
+        }
+
+        if ($type == "transfer_stock") {
+            $existing->transferred_stock -= $qty;
+        }
+
+        if ($type == "sold_stock") {
+            $existing->sold_stock -= $qty;
+        }
+
+        if ($type == "add_modify_stock") {
+            $existing->modify_sale_remove_qty -= $qty;
+        }
+
+        // Prevent negative
+        $existing->added_stock = max(0, $existing->added_stock);
+        $existing->transferred_stock = max(0, $existing->transferred_stock);
+        $existing->sold_stock = max(0, $existing->sold_stock);
+        $existing->modify_sale_remove_qty = max(0, $existing->modify_sale_remove_qty);
+
+        $existing->save();
+    }
+}
+
 if (!function_exists('format_inr')) {
     function format_inr($amount)
     {
@@ -121,6 +158,25 @@ if (!function_exists('format_inr')) {
 
         $sign = $numericAmount < 0 ? '-' : '';
         return $sign . '₹' . number_format(abs($numericAmount), 0);
+    }
+}
+
+if (!function_exists('tallyBack')) {
+    function tallyBack($steps = 1)
+    {
+        $stack = session()->get('nav_stack', []);
+
+        // Remove current page
+        for ($i = 0; $i < $steps; $i++) {
+            array_pop($stack);
+        }
+
+        // Get previous
+        $url = end($stack) ?? route('dashboard');
+
+        session(['nav_stack' => $stack]);
+
+        return $url;
     }
 }
 
@@ -833,6 +889,18 @@ if (!function_exists('logActivity')) {
         } catch (\Exception $e) {
             \Log::error('Activity Log Error: ' . $e->getMessage());
         }
+    }
+}
+if (!function_exists('getOtherLedgerName')) {
+
+    function getOtherLedgerName($voucherId, $ledgerId)
+    {
+        return DB::table('voucher_lines as vl')
+            ->join('account_ledgers as al', 'al.id', '=', 'vl.ledger_id')
+            ->where('vl.voucher_id', $voucherId)
+            ->where('vl.ledger_id', '!=', $ledgerId)
+            ->pluck('al.name')
+            ->implode(', ');
     }
 }
 
