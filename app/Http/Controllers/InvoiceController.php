@@ -635,7 +635,7 @@ class InvoiceController extends Controller
 
     public function InsertSale(Request $request)
     {
-
+        
         $validated = $request->validate([
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|integer',

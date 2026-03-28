@@ -182,11 +182,11 @@
                                                                     </span>
                                                                     <br>
                                                                     <span class="text-success font-weight-bold">
-                                                                        ₹{{ number_format($item['price'], 2) }}
+                                                                        ₹{{ number_format($item['sell_price'], 2) }}
                                                                     </span>
                                                                 @else
                                                                     <span class="font-weight-bold">
-                                                                        ₹{{ number_format($item['price'], 2) }}
+                                                                        ₹{{ number_format($item['sell_price'], 2) }}
                                                                     </span>
                                                                 @endif
                                                             </td>
