@@ -352,7 +352,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{{ asset('assets/js/jquery-3.6.0.min.js')}}"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pusher/7.2.0/pusher.min.js"></script>
 <!-- SweetAlert2 -->
