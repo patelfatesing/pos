@@ -259,7 +259,7 @@
                                         <span class="sell_price">₹${price}</span>
                                     </div>
                                 </td>
-                                <td class="item-total"><b>₹${(price * qty)}</b></td>
+                                <td class="item-total"><b>₹${Math.round(price * qty)}</b></td>
                                 <td>
                                     <img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}" 
                                         class="btn btn-sm remove-item">
@@ -329,7 +329,7 @@
                     const disAmt = (sell_price - discount) * qty;
 
                     // ✅ UPDATE ROW TOTAL
-                    $(this).find('.item-total').html('<b>₹' + rowTotal + '</b>');
+                    $(this).find('.item-total').html('<b>₹' + Math.round(rowTotal) + '</b>');
 
                     // ✅ TOTALS
                     totalSellPrice += subtotal;
@@ -337,11 +337,11 @@
                     grandTotal += rowTotal;
                 });
 
-                $('#total').text(grandTotal);
+                $('#total').text(Math.round(grandTotal));
                 $('#grand-total').text(grandTotal);
                 
                 if (partyId || commissionId) {
-                    $('#discount-total').text('₹' + discountTotal);
+                    $('#discount-total').text('₹' + discountTotal.toFixed(2));
                 } else {
                     $('#discount-total').text('₹0');
                 }
@@ -424,7 +424,7 @@
                                                    
                                                 </div>
                                             </td>
-                                            <td class="item-total"><b>₹${(sell_price * qty)}</b></td>
+                                            <td class="item-total"><b>₹${Math.round(sell_price * qty)}</b></td>
                                             <td><img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}" class="btn btn-sm remove-item"></td>
                                         </tr>
                                     `;
@@ -459,7 +459,7 @@
                                             
                                         </div>
                                     </td>
-                                    <td class="item-total"><b>₹${(sell_price * qty)}</b></td>
+                                    <td class="item-total"><b>₹${Math.round(sell_price * qty)}</b></td>
                                     <td><img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}" class="btn btn-sm remove-item"></td>
                                 </tr>
                             `;
@@ -489,7 +489,7 @@
                                             <span class="sell_price">${sell_price}</span>
                                         </div>
                                     </td>
-                                    <td class="item-total"><b>₹${(sell_price * qty)}</b></td>
+                                    <td class="item-total"><b>₹${Math.round(sell_price * qty)}</b></td>
                                     <td><img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}" class="btn btn-sm remove-item"></td>
                                 </tr>
                             `;
