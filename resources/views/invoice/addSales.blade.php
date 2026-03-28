@@ -339,7 +339,7 @@
 
                 $('#total').text(Math.round(grandTotal));
                 $('#grand-total').text(grandTotal);
-                
+
                 if (partyId || commissionId) {
                     $('#discount-total').text('₹' + discountTotal.toFixed(2));
                 } else {
@@ -727,36 +727,52 @@
 
             // Handle radio button change event
             $('input[name="payment_method"]').on('change', function() {
+
                 const selectedPaymentMethod = $(this).val();
 
-                // Reset cash and UPI input fields
+                let total = parseFloat($('#grand-total').text()) || 0;
+
+                let partyId = $('#party-id').val();
+                let commissionId = $('#commission-id').val();
+                let creditPay = parseFloat($('#creditpay-input').val()) || 0;
+
+                // ✅ APPLY CREDIT IF PARTY/COMMISSION
+                if (partyId || commissionId) {
+                    total = total - creditPay;
+                }
+
+                // RESET
                 $('#cash-amount').val('');
                 $('#upi-amount').val('');
 
-                let get_total = $('#gr_total').val();
-
                 if (selectedPaymentMethod === 'cash') {
-                    // Show Cash field only and make it editable
-                    $('#cash-amount').val(get_total);
-                    $('#upi-amount').val('');
+
                     $('#cash-field').show();
                     $('#upi-field').hide();
+
+                    $('#cash-amount').val(total);
                     $('#cash-amount').prop('readonly', true);
+
                     $('#upi-amount').prop('readonly', true);
+
                 } else if (selectedPaymentMethod === 'online') {
-                    // Show UPI field only and make it editable
-                    $('#cash-amount').val('');
-                    $('#upi-amount').val(get_total);
+
                     $('#cash-field').hide();
                     $('#upi-field').show();
-                    $('#cash-amount').prop('readonly', true);
+
+                    $('#upi-amount').val(total);
                     $('#upi-amount').prop('readonly', true);
+
+                    $('#cash-amount').prop('readonly', true);
+
                 } else if (selectedPaymentMethod === 'cashupi') {
-                    // Show both fields and allow dynamic adjustment between them
-                    $('#cash-amount').val(get_total);
-                    $('#upi-amount').val('');
+
                     $('#cash-field').show();
                     $('#upi-field').show();
+
+                    $('#cash-amount').val(total);
+                    $('#upi-amount').val(0);
+
                     $('#cash-amount').prop('readonly', false);
                     $('#upi-amount').prop('readonly', false);
                 }
@@ -765,12 +781,13 @@
             // When Cash input changes
             $('#cash-amount').on('input', function() {
                 cashAmount = parseFloat($(this).val()) || 0;
-
+                alert(cashAmount);
                 // If both Cash + UPI are selected, update the total
                 if ($('#cash-upi-option').is(':checked')) {
                     let remainingAmount = grandTotal - cashAmount;
                     $('#upi-amount').val(remainingAmount >= 0 ? remainingAmount : 0);
                 }
+                updateTotals();
             });
 
             // When UPI input changes
@@ -782,6 +799,7 @@
                     let remainingAmount = grandTotal - upiAmount;
                     $('#cash-amount').val(remainingAmount >= 0 ? remainingAmount : 0);
                 }
+                updateTotals();
             });
         });
     </script>
