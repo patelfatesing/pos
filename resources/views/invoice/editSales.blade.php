@@ -2,7 +2,7 @@
 
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
- 
+
     <style>
         input[type=number] {
             width: 60px;
@@ -111,7 +111,7 @@
                             </div>
                         </div>
                     </div>
-                                                        <input type="hidden" name="verify" value="{{ $verify }}">
+                    <input type="hidden" name="verify" value="{{ $verify }}">
                     <div class="card">
                         <div class="card-body table-responsive">
                             <table class="table table-bordered" id="items-table">
@@ -134,7 +134,7 @@
                                     @foreach ($invoice->items as $i => $item)
                                         @php
                                             $product = $allProducts->where('id', $item['product_id'])->first();
-                                            // dd($product);
+
                                             // $basePrice = $product->mrp;
 
                                             $basePrice = $product->sell_price;
@@ -181,6 +181,12 @@
 
                                                 <input type="hidden" name="items[{{ $i }}][mrp]"
                                                     value="{{ $finalPrice }}">
+                                                <input type="hidden" name="items[{{ $i }}][price]"
+                                                    value="{{ number_format($finalPrice * $item['quantity'], 2) }}">
+                                                <input type="hidden" name="items[{{ $i }}][category]"
+                                                    value="{{ $product->category->name }}">
+                                                <input type="hidden" name="items[{{ $i }}][subcategory]"
+                                                    value="{{ $product->subcategory->name }}">
                                                 <input type="hidden" name="items[{{ $i }}][discount]"
                                                     value="{{ $partyDiscount }}">
                                             </td>
@@ -260,8 +266,8 @@
                                         <input type="hidden" id="total_discount" name="total_discount" value="0">
                                         <input type="hidden" id="ori_total_discount" name="ori_total_discount"
                                             value="0">
-                                        <input type="hidden" id="gr_total" name="total" value="0">
-                                        <input type="hidden" id="sub_total" name="sub_total" value="0">
+                                        <input type="hidden" id="gr_total" name="total" value="{{ $sub_total }}">
+                                        <input type="hidden" id="sub_total" name="sub_total" value="{{ $sub_total }}">
                                         <input type="hidden" id="ori_sub_total" name="ori_sub_total"
                                             value="{{ $sub_total }}">
                                         <input type="hidden" id="left_credit_id" value="0">
@@ -406,9 +412,12 @@
             $('#return-amt').text(returnAmt.toFixed(2));
             $('#grand-total').text(grandTotal.toFixed(2));
             $('#discount-total').text(discountTotal.toFixed(2));
-
+            $('#total').text(totalSellPrice.toFixed(2));
             $('#total_discount').val(discountTotal.toFixed(2));
             $('#gr_total').val(totalSellPrice.toFixed(2));
+
+            $('#total').text(totalSellPrice.toFixed(2));
+            $('#sub_total').val(grandTotal.toFixed(2)); // 🔥 FIX
         }
         // ADD NEW PRODUCT
         $('#add-product-btn').on('click', function() {

@@ -87,10 +87,21 @@ class InvoiceController extends Controller
     public function editSales($id)
     {
         $verify = request('verify');
-        
+
         $invoice = Invoice::with(['partyUser', 'commissionUser'])->find($id);
 
-        $allProducts = Product::select('id', 'name', 'mrp', 'discount_price', 'sell_price')->where('is_deleted', 'no')->get();
+        $allProducts = Product::select(
+            'id',
+            'name',
+            'mrp',
+            'discount_price',
+            'sell_price',
+            'category_id',
+            'subcategory_id'
+        )
+            ->where('is_deleted', 'no')
+            ->with(['category', 'subcategory'])
+            ->get();
 
         $commissionUser = Commissionuser::where('status', 'Active')->find($invoice->commission_user_id);
 
@@ -107,7 +118,7 @@ class InvoiceController extends Controller
         }
 
         $branch_data = Branch::find($invoice->branch_id);
-        
+
 
         return view('invoice.editSales', compact('verify', 'invoice', 'commissionUser', 'partyUser', 'allProducts', 'partyPrices', 'branch_data'));
     }
@@ -198,15 +209,26 @@ class InvoiceController extends Controller
 
     public function updateItems(Request $request, $id)
     {
+
         $invoice = Invoice::findOrFail($id);
 
         $validated = $request->validate([
             'items' => 'required|array|min:1',
+
             'items.*.product_id' => 'required|integer',
             'items.*.name' => 'required|string',
+
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.sell_price' => 'required|numeric|min:0',
             'items.*.mrp' => 'required|numeric|min:0',
+
+            // fix price (remove comma before validation)
+            'items.*.price' => 'nullable',
+
+            // fix category (string allow)
+            'items.*.category' => 'nullable|string',
+            'items.*.subcategory' => 'nullable|string',
+
             'creditpay' => 'nullable|numeric|min:0',
         ]);
 
@@ -232,7 +254,7 @@ class InvoiceController extends Controller
         if (!empty($request->verify)) {
             $verify = $request->verify;
         }
-        
+
         $invoiceShiftId = optional($invoiceShift)->id;
         $currentShiftId = optional($currentShift)->id;
 
@@ -635,7 +657,7 @@ class InvoiceController extends Controller
 
     public function InsertSale(Request $request)
     {
-        
+
         $validated = $request->validate([
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|integer',
