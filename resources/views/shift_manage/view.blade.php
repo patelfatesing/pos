@@ -11,7 +11,7 @@
                     <h4 class="mb-0">View Transaction - {{ $branch_name }}</h4>
                 </div>
 
-                <div class="col-md-5"></div>
+                <div class="col-md-4"></div>
 
                 <div class="col-md-2">
                     <div class="form-group mb-0">
@@ -34,7 +34,14 @@
                     </div>
                 </div>
 
-                <div class="col-md-1">
+                <div class="col-md-2">
+                    <a href="{{ route('sales.add-sales', ['branch_id' => $id, 'shift_id' => $shift_id]) }}"
+                        class="btn btn-primary-dark mr-2">
+                        <i class="fa fa-edit"></i> Add Trasaction
+                    </a>
+                </div>
+                <div  >
+
                     <a href="{{ route('shift-manage.list') }}" class="btn btn-secondary">Back</a>
                 </div>
             </div>

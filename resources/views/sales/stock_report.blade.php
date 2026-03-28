@@ -66,7 +66,7 @@
                                 <th>Branch</th>
                                 <th>Product</th>
                                 <th>Barcode</th>
-                                <th>Sub Category</th>
+                                <th>Category</th>
                                 <th>MRP</th>
                                 <th>Selling Price</th>
                                 <th>Cost Price</th>
@@ -88,7 +88,7 @@
                                 <th colspan="6" id="selling-total" class="text-left"></th>
                             </tr>
                             <tr>
-                                <th colspan="5" class="text-right">Purchase Total:</th>
+                                <th colspan="5" class="text-right">Total Stock Value:</th>
                                 <th colspan="6" id="purchase-total" class="text-left"></th>
                             </tr>
                         </tfoot>

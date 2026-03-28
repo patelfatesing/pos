@@ -14,8 +14,7 @@
                     <div class="card">
 
                         <div class="card-body">
-                            <form action="{{ route('vendor.store') }}" method="POST" enctype="multipart/form-data"
-                                data-toggle="validator">
+                            <form id="vendorForm" action="{{ route('vendor.store') }}" method="POST">
                                 @csrf
                                 <div class="row">
                                     <div class="col-lg-4">
@@ -26,6 +25,25 @@
                                             @error('name')
                                                 <span class="text-danger">{{ $message }}</span>
                                             @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <div class="form-group">
+                                            <label>Vendor Type</label>
+
+                                            <div>
+                                                <label>
+                                                    <input type="radio" name="type" value="local"
+                                                        {{ old('type', 'local') == 'local' ? 'checked' : '' }}>
+                                                    Local
+                                                </label>
+
+                                                <label class="ml-3">
+                                                    <input type="radio" name="type" value="main"
+                                                        {{ old('type') == 'main' ? 'checked' : '' }}>
+                                                    Main
+                                                </label>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -74,8 +92,13 @@
 
                                 </div>
 
-                                <button type="submit" class="btn btn-primary mr-2">Add Vendor</button>
-                                <button type="reset" class="btn btn-danger">Reset</button>
+                                <button type="button" onclick="submitForm()" class="btn btn-primary mr-2">
+                                    Add Vendor
+                                </button>
+                                <button type="button" onclick="resetForm()" class="btn btn-danger">
+                                    Reset
+                                </button>
+                                
                             </form>
                         </div>
                     </div>
@@ -84,4 +107,16 @@
             <!-- Page end -->
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+
+            form.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        });
+    </script>
 @endsection
