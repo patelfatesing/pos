@@ -121,8 +121,13 @@ class ShiftManageController extends Controller
             } else if ($row->status == "completed" || $row->status == "closing") {
                 $status = "Closed";
             }
-            $totalInvoicedAmount = \App\Models\Invoice::where('user_id', $row->user_id)
-                ->where('branch_id', $row->branch_id)->whereNotIn('status', ['Hold', 'resumed', 'archived'])
+
+            // $totalInvoicedAmount = \App\Models\Invoice::where('user_id', $row->user_id)
+            //     ->where('branch_id', $row->branch_id)->whereNotIn('status', ['Hold', 'resumed', 'archived'])
+            //     ->whereBetween('created_at', [$row->start_time, $endTime])
+            //     ->count();
+
+            $totalInvoicedAmount = \App\Models\Invoice::where('branch_id', $row->branch_id)->whereNotIn('status', ['Hold', 'resumed', 'archived'])
                 ->whereBetween('created_at', [$row->start_time, $endTime])
                 ->count();
             //$totalSales = $transactions->whereBetween('created_at', [$row->start_time, $endTime])->where('branch_id', $row->branch_id)->get();
@@ -471,7 +476,9 @@ class ShiftManageController extends Controller
                 ->first();
 
 
-            $invoices = Invoice::where(['user_id' => $shift->user_id])->where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->whereNotIn('status', ['Hold', 'resumed', 'archived', 'Returned'])->latest()->get();
+            $invoices = Invoice::where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->whereNotIn('status', ['Hold', 'resumed', 'archived', 'Returned'])->latest()->get();
+
+            // $invoices = Invoice::where(['user_id' => $shift->user_id])->where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->whereNotIn('status', ['Hold', 'resumed', 'archived', 'Returned'])->latest()->get();
             $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalRoundOf = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = $totalSalesQty = $totalPaidCredit = 0;
 
             $transaction_total = 0;
@@ -489,11 +496,12 @@ class ShiftManageController extends Controller
                         if (!empty($item['subcategory'])) {
 
                             $category =  Str::upper($item['subcategory'])  ?? 'Unknown';
-                            $amount = $item['price'] ?? 0;
+                            $amount = (float) str_replace(',', '', $item['price']) ?? 0;
 
                             if (!isset($categoryTotals['sales'][$category])) {
                                 $categoryTotals['sales'][$category] = 0;
                             }
+                            
 
                             $categoryTotals['sales'][$category] += $amount;
                             $totalSalesNew += $amount;
@@ -858,10 +866,14 @@ class ShiftManageController extends Controller
                 ')
                 ->first();
 
-            $totalTrasaction = \App\Models\Invoice::where('user_id', $shift->user_id)
-                ->where('branch_id', $shift->branch_id)->whereNotIn('status', ['Hold', 'resumed', 'archived'])
+            $totalTrasaction = \App\Models\Invoice::where('branch_id', $shift->branch_id)->whereNotIn('status', ['Hold', 'resumed', 'archived'])
                 ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
                 ->count();
+
+            // $totalTrasaction = \App\Models\Invoice::where('user_id', $shift->user_id)
+            //     ->where('branch_id', $shift->branch_id)->whereNotIn('status', ['Hold', 'resumed', 'archived'])
+            //     ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
+            //     ->count();
 
             $pdf = Pdf::loadView('shift_manage.shift_print', ['totalTrasaction' => $totalTrasaction, 'stockTotals' => $stockTotals, 'user_name' => $closeShift['user_name'], 'shift' => $closeShift['shift'], "categoryTotals" => $closeShift['categoryTotals'], "shiftcash" => $closeShift['shiftcash'], "closing_cash" => $closeShift['closing_cash'], 'cash_discrepancy' => $closeShift['cash_discrepancy'], 'closeShift' => $closeShift, 'branch_name' => $closeShift['branch_name']]);
             return $pdf->download('shift_report_' . Str::slug($shift->shift_no) . '.pdf');
@@ -1007,22 +1019,22 @@ class ShiftManageController extends Controller
         $qty = (float)$request->physical;
 
         // SAME LOGIC AS YOUR save()
-        $sales_plus = $stock->opening_stock + $stock->added_stock;
-        $sales_minus = $stock->transferred_stock + $stock->sold_stock + $qty;
+        // $sales_plus = $stock->opening_stock + $stock->added_stock;
+        // $sales_minus = $stock->transferred_stock + $stock->sold_stock + $qty;
 
-        $one_time_sale = $sales_plus - $sales_minus;
+        // $one_time_sale = $sales_plus - $sales_minus;
 
         $oldPhysical = $stock->physical_stock;
 
         // ✅ APPLY SAME UPDATE
         $stock->physical_stock = $qty;
-        $stock->sold_stock = $stock->sold_stock + $one_time_sale;
-        $stock->closing_stock = $stock->closing_stock - $one_time_sale;
-        $stock->difference_in_stock = $stock->physical_stock - $stock->closing_stock;
+        // $stock->sold_stock = $stock->sold_stock + $one_time_sale;
+        // $stock->closing_stock = $stock->closing_stock - $one_time_sale;
+        // $stock->difference_in_stock = $stock->physical_stock - $stock->closing_stock;
 
         $stock->save();
 
-        
+
         return response()->json([
             'difference' => $stock->difference_in_stock,
             'closing' => $stock->closing_stock,

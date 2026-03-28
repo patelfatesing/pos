@@ -244,6 +244,8 @@
                     let price = parseFloat(item.sell_price) || 0;
                     let mrp = parseFloat(item.mrp) || 0;
                     let discount = parseFloat(item.discount ?? price);
+                    let category = item.category;
+                    let subcategory = item.subcategory;
 
                     const row = `
                             <tr>
@@ -253,6 +255,8 @@
                                     <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
                                     <input type="hidden" name="items[${itemIndex}][sell_price]" value="${price}">
                                     <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
+                                    <input type="hidden" name="items[${itemIndex}][category]" value="${category}">
+                                    <input type="hidden" name="items[${itemIndex}][subcategory]" value="${subcategory}">
                                     <input type="hidden" name="items[${itemIndex}][price]" class="item_total_price" value="${Math.ceil(price * qty)}">
                                 </td>
                                 <td>
@@ -375,6 +379,8 @@
                 let discount = parseFloat(selected.data('discount'));
                 const sell_price = parseFloat(selected.data('sell_price'));
                 const qty = parseInt($('#new-product-qty').val()) || 1;
+                const category = selected.data('category');
+                const subcategory = selected.data('subcategory');
 
                 if (!productId || !qty) return alert('Select product and quantity.');
 
@@ -427,6 +433,8 @@
                                                 <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
                                                 <input type="hidden" name="items[${itemIndex}][sell_price]" value="${sell_price}">
                                                 <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
+                                                <input type="hidden" name="items[${itemIndex}][category]" value="${category}">
+                                                <input type="hidden" name="items[${itemIndex}][subcategory]" value="${subcategory}">
                                                 <input type="hidden" name="items[${itemIndex}][price]" class="item_total_price" value="${Math.ceil(sell_price * qty)}">
                                             </td>
                                             <td>
