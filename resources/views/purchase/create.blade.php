@@ -635,17 +635,17 @@
         function updateBillingTotal() {
             const baseTotal = parseInt($(".total_amt").val()) || 0;
 
-            const excise = parseInt($('#excise_fee').val()) || 0;
-            const compVat = parseInt($('#composition_vat').val()) || 0;
-            const surcharge = parseInt($('#surcharge_on_ca').val()) || 0;
-            const tcs = parseInt($('#tcs').val()) || 0;
-            const vat = parseInt($('#vat').val()) || 0;
-            const surcharge_on_vat = parseInt($('#surcharge_on_vat').val()) || 0;
-            const blf = parseInt($('#blf').val()) || 0;
-            const permit_fee = parseInt($('#permit_fee').val()) || 0;
-            const rsgsm_purchase = parseInt($('#rsgsm_purchase').val()) || 0;
-            const aed = parseInt($('#aed_to_be_paid').val()) || 0;
-            const loading = parseInt($('#loading_charges').val()) || 0; // ✅ NEW
+            const excise = parseFloat($('#excise_fee').val()) || 0;
+            const compVat = parseFloat($('#composition_vat').val()) || 0;
+            const surcharge = parseFloat($('#surcharge_on_ca').val()) || 0;
+            const tcs = parseFloat($('#tcs').val()) || 0;
+            const vat = parseFloat($('#vat').val()) || 0;
+            const surcharge_on_vat = parseFloat($('#surcharge_on_vat').val()) || 0;
+            const blf = parseFloat($('#blf').val()) || 0;
+            const permit_fee = parseFloat($('#permit_fee').val()) || 0;
+            const rsgsm_purchase = parseFloat($('#rsgsm_purchase').val()) || 0;
+            const aed = parseFloat($('#aed_to_be_paid').val()) || 0;
+            const loading = parseFloat($('#loading_charges').val()) || 0; // ✅ NEW
             const excise80 = parseFloat($('#excise_duty_80').val()) || 0;
             const excise20 = parseFloat($('#excise_duty_20').val()) || 0;
 
@@ -1289,6 +1289,30 @@
         function round2(num) {
             return Math.round((parseFloat(num) || 0) * 100) / 100;
         }
+
+        $('#vendor_id').on('change', function() {
+            const vendorId = $(this).val();
+
+            // if (!vendorId) {
+            //     $('#vendor_new_id').html('<option value="">-- Select Ledger Name --</option>');
+            //     return;
+            // }
+
+            // $.ajax({
+            //     url: '/purchase/get-ledgers-by-vendor/' + vendorId,
+            //     type: 'GET',
+            //     success: function(data) {
+
+            //         let options = '<option value="">-- Select Ledger Name --</option>';
+
+            //         data.forEach(function(ledger) {
+            //             options += `<option value="${ledger.id}">${ledger.name}</option>`;
+            //         });
+
+            //         $('#vendor_new_id').html(options);
+            //     }
+            // });
+        });
     </script>
 
 @endsection

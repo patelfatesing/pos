@@ -26,6 +26,7 @@
                                 <th>Phone</th>
                                 {{-- <th>GST Number</th> --}}
                                 <th>Status</th>
+                                <th>Type</th>
                                 <th>Created At</th>
                                 <th>Updated At</th>
                                 <th>Actions</th>
@@ -42,7 +43,6 @@
     <!-- Wrapper End -->
 
     <script>
-
         var pdfLogo = "";
         $(document).ready(function() {
             $.ajaxSetup({
@@ -82,6 +82,9 @@
                     // },
                     {
                         data: 'status'
+                    },
+                    {
+                        data: 'type'
                     },
                     {
                         data: 'created_at'
@@ -136,8 +139,7 @@
                                 doc.content[0].alignment = 'center';
 
                                 // MAKE TABLE WIDTH FULL PAGE
-                                doc.content[0].table.widths = ['auto', '*', '*', '*', '*'
-                                ];
+                                doc.content[0].table.widths = ['auto', '*', '*', '*', '*'];
 
                                 doc.styles.tableHeader.alignment = 'center';
 
@@ -203,7 +205,7 @@
         function delete_vendor(id) {
             Swal.fire({
                 title: "Are you sure?",
-                text: "This action cannot be undone!",
+                text: "This vendor us delete!",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: "Yes, delete it!",
@@ -214,7 +216,7 @@
                         url: "{{ route('vendor.destroy', ':id') }}".replace(':id', id),
                         success: function(response) {
                             $('#vendor_table').DataTable().ajax.reload();
-                            Swal.fire("Deleted!", "The party user has been deleted.", "success");
+                            Swal.fire("Deleted!", "The vendor has been deleted.", "success");
                         },
                         error: function(xhr) {
                             Swal.fire("Error!", "An error occurred while deleting.", "error");
@@ -257,7 +259,7 @@
             });
         }
 
-         function getBase64Image(url, callback) {
+        function getBase64Image(url, callback) {
             var img = new Image();
             img.crossOrigin = "Anonymous";
 

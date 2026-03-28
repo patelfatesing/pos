@@ -409,148 +409,91 @@
             }
         </style>
 
-        <div class="wrapper">
-            <div class="content-page create-voucher-page">
-                <div class="container-fluid">
-                    <div class="card avc_card">
+        <div class="content-page create-voucher-page">
+            <div class="container-fluid">
+                <div class="card avc_card">
 
-                        {{-- ================= CARD HEADER ================= --}}
-                        <div class="avc-header card-header d-flex justify-content-between align-items-center">
-                            <h4 class="mb-0">Accounting Voucher Creation</h4>
-                            <h5 class="title-table">LIQUOR HUB</h5>
-                            <div class="create-ledger-link">
-                                <a href="{{ route('accounting.ledgers.create', 'voucher') }}" target="_blank"
-                                    class="btn btn-secondary"> Create Ledger </a>
+                    {{-- ================= CARD HEADER ================= --}}
+                    <div class="avc-header card-header d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Accounting Voucher Creation</h4>
+                        <h5 class="title-table">LIQUOR HUB</h5>
+                        <div class="create-ledger-link">
+                            <a href="{{ route('accounting.ledgers.create', 'voucher') }}" target="_blank"
+                                class="btn btn-secondary"> Create Ledger </a>
 
-                                <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-secondary">
-                                    Go To List
-                                </a>
-                            </div>
+                            <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-secondary">
+                                Go To List
+                            </a>
                         </div>
+                    </div>
 
-                        <div class="card-body">
+                    <div class="card-body">
 
-                            @if ($errors->any())
-                                <div class="alert alert-danger">{{ $errors->first() }}</div>
-                            @endif
+                        @if ($errors->any())
+                            <div class="alert alert-danger">{{ $errors->first() }}</div>
+                        @endif
 
-                            <form action="{{ route('accounting.vouchers.store') }}" method="POST" id="voucherForm">
-                                @csrf
+                        <form action="{{ route('accounting.vouchers.store') }}" method="POST" id="voucherForm">
+                            @csrf
 
-                                {{-- REQUIRED BY EXISTING JS --}}
-                                <input type="hidden" name="voucher_type" id="voucher_type"
-                                    value="{{ old('voucher_type', 'Journal') }}">
+                            {{-- REQUIRED BY EXISTING JS --}}
+                            <input type="hidden" name="voucher_type" id="voucher_type"
+                                value="{{ old('voucher_type', 'Journal') }}">
 
-                                <div class="row g-3">
-                                    <div class="col-lg-10 voucher-table">
+                            <div class="row g-3">
+                                <div class="col-lg-10 voucher-table">
 
-                                        {{-- ================= TYPE + REF + DATE ================= --}}
-                                        <div class="tally-particulars_header">
-                                            <div class="voucher-type-box">
-                                                <span class="voucher-type-label" id="voucherTypeLabel">
-                                                    {{ old('voucher_type', 'Journal') }}
-                                                </span>
-                                                {{-- enable if needed --}}
-                                                <strong class="ms-2 ml-1">NO.</strong>
-                                                <span id="voucher_no">
-                                                    {{ old('ref_no', $lastVoucher ?? 'JN-0001') }}
-                                                </span>
-                                                <input type="hidden" name="ref_no" id="ref_no"
-                                                    value="{{ old('ref_no', $lastVoucher ?? 'JN-0001') }}">
-                                            </div>
-                                            <div class="voucher-date-box">
-                                                <input type="date" name="voucher_date"
-                                                    value="{{ old('voucher_date', now()->toDateString()) }}"
-                                                    class="voucher-date-input">
-                                                <div class="voucher-day">
-                                                    {{ \Carbon\Carbon::parse(old('voucher_date', now()->toDateString()))->format('l') }}
-                                                </div>
+                                    {{-- ================= TYPE + REF + DATE ================= --}}
+                                    <div class="tally-particulars_header">
+                                        <div class="voucher-type-box">
+                                            <span class="voucher-type-label" id="voucherTypeLabel">
+                                                {{ old('voucher_type', 'Journal') }}
+                                            </span>
+                                            {{-- enable if needed --}}
+                                            <strong class="ms-2 ml-1">NO.</strong>
+                                            <span id="voucher_no">
+                                                {{ old('ref_no', $lastVoucher ?? 'JN-0001') }}
+                                            </span>
+                                            <input type="hidden" name="ref_no" id="ref_no"
+                                                value="{{ old('ref_no', $lastVoucher ?? 'JN-0001') }}">
+                                        </div>
+                                        <div class="voucher-date-box">
+                                            <input type="date" name="voucher_date"
+                                                value="{{ old('voucher_date', now()->toDateString()) }}"
+                                                class="voucher-date-input">
+                                            <div class="voucher-day">
+                                                {{ \Carbon\Carbon::parse(old('voucher_date', now()->toDateString()))->format('l') }}
                                             </div>
                                         </div>
+                                    </div>
 
 
-                                        {{-- ================= ENTRY TABLE ================= --}}
-                                        <div class="table-wrapper">
-                                            <table id="linesTable">
-                                                <thead>
-                                                    <tr>
-                                                        <th width="5%"></th>
-                                                        <th width="70%">Particulars</th>
-                                                        {{-- <th class="text-end" width="15%"></th> --}}
-                                                        {{-- <th width="15%">Amount</th> --}}
-                                                        <th class="text-end min-w-100">Debit</th>
-                                                        <th class="text-end min-w-100">Credit</th>
-                                                        <th class="remove_badge"></th>
-                                                    </tr>
-                                                </thead>
+                                    {{-- ================= ENTRY TABLE ================= --}}
+                                    <div class="table-wrapper">
+                                        <table id="linesTable">
+                                            <thead>
+                                                <tr>
+                                                    <th width="5%"></th>
+                                                    <th width="70%">Particulars</th>
+                                                    {{-- <th class="text-end" width="15%"></th> --}}
+                                                    {{-- <th width="15%">Amount</th> --}}
+                                                    <th class="text-end min-w-100">Debit</th>
+                                                    <th class="text-end min-w-100">Credit</th>
+                                                    <th class="remove_badge"></th>
+                                                </tr>
+                                            </thead>
 
-                                                <tbody>
-                                                    @php $oldLines = old('lines', []); @endphp
-                                                    @if ($oldLines)
-                                                        @foreach ($oldLines as $i => $line)
-                                                            <tr class="line">
-                                                                <td width="5%">
-                                                                    <input type="hidden"
-                                                                        name="lines[{{ $i }}][amount]"
-                                                                        class="amount">
-                                                                    <select name="lines[{{ $i }}][dc]"
-                                                                        class="dc-select">
-                                                                        <option value="Dr"
-                                                                            {{ ($line['dc'] ?? '') == 'Dr' ? 'selected' : '' }}>
-                                                                            By
-                                                                        </option>
-                                                                        <option value="Cr"
-                                                                            {{ ($line['dc'] ?? '') == 'Cr' ? 'selected' : '' }}>
-                                                                            To
-                                                                        </option>
-                                                                    </select>
-                                                                </td>
-
-                                                                <td width="70%">
-                                                                    <select name="lines[{{ $i }}][ledger_id]"
-                                                                        class="ledger">
-                                                                        <option value="">Select Ledger</option>
-                                                                        @foreach ($ledgers as $l)
-                                                                            <option value="{{ $l->id }}"
-                                                                                data-group-id="{{ $l->group_id }}"
-                                                                                {{ ($line['ledger_id'] ?? '') == $l->id ? 'selected' : '' }}>
-                                                                                {{ $l->name }}
-                                                                            </option>
-                                                                        @endforeach
-                                                                    </select>
-                                                                </td>
-                                                                <td class="text-end min-w-100">
-                                                                    <input type="number" class="dr-input text-end"
-                                                                        value="{{ ($line['dc'] ?? '') === 'Dr' ? $line['amount'] : '' }}">
-                                                                </td>
-
-                                                                <td class="text-end min-w-100">
-                                                                    <input type="number" class="cr-input text-end"
-                                                                        value="{{ ($line['dc'] ?? '') === 'Cr' ? $line['amount'] : '' }}">
-                                                                </td>
-
-                                                                <td class="text-center remove_badge">
-                                                                    <span class="remove"
-                                                                        {{ $loop->count == 1 ? 'style=display:none' : '' }}><i
-                                                                            class="fa-solid fa-xmark"></i></span>
-                                                                </td>
-                                                            </tr>
-
-                                                            @if (!empty($line['ledger_id']) && !empty($line['cur_balance_text']))
-                                                                <tr class="cur-bal-row ml-4">
-                                                                    <td colspan="3"
-                                                                        style="padding-left:50px;font-style:italic;">
-                                                                        {{ $line['cur_balance_text'] }}
-                                                                    </td>
-                                                                </tr>
-                                                            @endif
-                                                        @endforeach
-                                                    @else
+                                            <tbody>
+                                                @php $oldLines = old('lines', []); @endphp
+                                                @if ($oldLines)
+                                                    @foreach ($oldLines as $i => $line)
                                                         <tr class="line">
                                                             <td width="5%">
-                                                                <input type="hidden" name="lines[0][amount]"
+                                                                <input type="hidden"
+                                                                    name="lines[{{ $i }}][amount]"
                                                                     class="amount">
-                                                                <select name="lines[0][dc]" class="dc-select">
+                                                                <select name="lines[{{ $i }}][dc]"
+                                                                    class="dc-select">
                                                                     <option value="Dr"
                                                                         {{ ($line['dc'] ?? '') == 'Dr' ? 'selected' : '' }}>
                                                                         By
@@ -561,18 +504,20 @@
                                                                     </option>
                                                                 </select>
                                                             </td>
+
                                                             <td width="70%">
-                                                                <select name="lines[0][ledger_id]" class="ledger">
+                                                                <select name="lines[{{ $i }}][ledger_id]"
+                                                                    class="ledger">
                                                                     <option value="">Select Ledger</option>
                                                                     @foreach ($ledgers as $l)
                                                                         <option value="{{ $l->id }}"
-                                                                            data-group-id="{{ $l->group_id }}">
+                                                                            data-group-id="{{ $l->group_id }}"
+                                                                            {{ ($line['ledger_id'] ?? '') == $l->id ? 'selected' : '' }}>
                                                                             {{ $l->name }}
                                                                         </option>
                                                                     @endforeach
                                                                 </select>
                                                             </td>
-
                                                             <td class="text-end min-w-100">
                                                                 <input type="number" class="dr-input text-end"
                                                                     value="{{ ($line['dc'] ?? '') === 'Dr' ? $line['amount'] : '' }}">
@@ -583,77 +528,128 @@
                                                                     value="{{ ($line['dc'] ?? '') === 'Cr' ? $line['amount'] : '' }}">
                                                             </td>
 
-
                                                             <td class="text-center remove_badge">
-                                                                <span class="remove" style="display:none;"><i
+                                                                <span class="remove"
+                                                                    {{ $loop->count == 1 ? 'style=display:none' : '' }}><i
                                                                         class="fa-solid fa-xmark"></i></span>
                                                             </td>
                                                         </tr>
-                                                    @endif
 
-                                                </tbody>
-
-                                                <tfoot>
-                                                    <tr class="">
-                                                        <td colspan="2">
-                                                            <div class="">
-                                                                Narration :
-                                                                <input type="text" name="narration" class="">
-                                                            </div>
+                                                        @if (!empty($line['ledger_id']) && !empty($line['cur_balance_text']))
+                                                            <tr class="cur-bal-row ml-4">
+                                                                <td colspan="3"
+                                                                    style="padding-left:50px;font-style:italic;">
+                                                                    {{ $line['cur_balance_text'] }}
+                                                                </td>
+                                                            </tr>
+                                                        @endif
+                                                    @endforeach
+                                                @else
+                                                    <tr class="line">
+                                                        <td width="5%">
+                                                            <input type="hidden" name="lines[0][amount]" class="amount">
+                                                            <select name="lines[0][dc]" class="dc-select">
+                                                                <option value="Dr"
+                                                                    {{ ($line['dc'] ?? '') == 'Dr' ? 'selected' : '' }}>
+                                                                    By
+                                                                </option>
+                                                                <option value="Cr"
+                                                                    {{ ($line['dc'] ?? '') == 'Cr' ? 'selected' : '' }}>
+                                                                    To
+                                                                </option>
+                                                            </select>
+                                                        </td>
+                                                        <td width="70%">
+                                                            <select name="lines[0][ledger_id]" class="ledger">
+                                                                <option value="">Select Ledger</option>
+                                                                @foreach ($ledgers as $l)
+                                                                    <option value="{{ $l->id }}"
+                                                                        data-group-id="{{ $l->group_id }}">
+                                                                        {{ $l->name }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
                                                         </td>
 
-                                                        <td class="text-end min-w-100"
-                                                            style="border-top:1px solid #ccc;font-weight:bold; border-bottom: 1px solid #ccc;">
-                                                            <div
-                                                                style="border-bottom: 1px solid #ccc; text-align: center;">
-                                                                <span id="totalDrText">0.00</span>
-                                                            </div>
+                                                        <td class="text-end min-w-100">
+                                                            <input type="number" class="dr-input text-end"
+                                                                value="{{ ($line['dc'] ?? '') === 'Dr' ? $line['amount'] : '' }}">
                                                         </td>
 
-                                                        <td class="text-end min-w-100"
-                                                            style="border-top:1px solid #ccc;font-weight:bold; border-bottom: 1px solid #ccc;">
-                                                            <div style="border-bottom: 1px solid #ccc;"><span
-                                                                    id="totalCrText">0.00</span></div>
+                                                        <td class="text-end min-w-100">
+                                                            <input type="number" class="cr-input text-end"
+                                                                value="{{ ($line['dc'] ?? '') === 'Cr' ? $line['amount'] : '' }}">
                                                         </td>
-                                                        <td class="remove_badge"></td>
-                                                        {{-- keep hidden for logic --}}
-                                                        <td style="display:none">
-                                                            <input type="text" id="totalDr" readonly>
-                                                            <input type="text" id="totalCr" readonly>
+
+
+                                                        <td class="text-center remove_badge">
+                                                            <span class="remove" style="display:none;"><i
+                                                                    class="fa-solid fa-xmark"></i></span>
                                                         </td>
                                                     </tr>
-                                                </tfoot>
+                                                @endif
 
-                                            </table>
-                                        </div>
-                                        {{-- ================= NARRATION ================= --}}
+                                            </tbody>
+
+                                            <tfoot>
+                                                <tr class="">
+                                                    <td colspan="2">
+                                                        <div class="">
+                                                            Narration :
+                                                            <input type="text" name="narration" class="">
+                                                        </div>
+                                                    </td>
+
+                                                    <td class="text-end min-w-100"
+                                                        style="border-top:1px solid #ccc;font-weight:bold; border-bottom: 1px solid #ccc;">
+                                                        <div style="border-bottom: 1px solid #ccc; text-align: center;">
+                                                            <span id="totalDrText">0.00</span>
+                                                        </div>
+                                                    </td>
+
+                                                    <td class="text-end min-w-100"
+                                                        style="border-top:1px solid #ccc;font-weight:bold; border-bottom: 1px solid #ccc;">
+                                                        <div style="border-bottom: 1px solid #ccc;"><span
+                                                                id="totalCrText">0.00</span></div>
+                                                    </td>
+                                                    <td class="remove_badge"></td>
+                                                    {{-- keep hidden for logic --}}
+                                                    <td style="display:none">
+                                                        <input type="text" id="totalDr" readonly>
+                                                        <input type="text" id="totalCr" readonly>
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+
+                                        </table>
+                                    </div>
+                                    {{-- ================= NARRATION ================= --}}
 
 
-                                        {{-- ================= SUBMIT ================= --}}
-                                        <div class="sticky-actions mt-3">
-                                            {{-- <div class="create-ledger-link">
+                                    {{-- ================= SUBMIT ================= --}}
+                                    <div class="sticky-actions mt-3">
+                                        {{-- <div class="create-ledger-link">
                                                 <a href="{{ route('accounting.ledgers.create', 'voucher') }}"
                                                     target="_blank" class="btn btn-secondary btn-sm"> Create Ledger </a>
                                             </div> --}}
-                                            <button class="btn btn-success" id="btnSubmit">
-                                                Create Voucher
-                                            </button>
-                                        </div>
-
+                                        <button class="btn btn-success" id="btnSubmit">
+                                            Create Voucher
+                                        </button>
                                     </div>
 
-                                    {{-- ================= RIGHT SIDE TYPE PANEL ================= --}}
-                                    <div class="col-lg-2 col-md-4">
-                                        <div class="type-pills-vertical" id="voucherTypePanel" aria-label="Voucher Type">
-                                            @foreach (['Journal', 'Payment', 'Receipt', 'Contra', 'Purchase'] as $t)
-                                                <button type="button" class="btn btn-outline-primary me-1 mb-1 type-pill"
-                                                    data-type="{{ $t }}">{{ $t }}</button>
-                                            @endforeach
-                                        </div>
+                                </div>
+
+                                {{-- ================= RIGHT SIDE TYPE PANEL ================= --}}
+                                <div class="col-lg-2 col-md-4">
+                                    <div class="type-pills-vertical" id="voucherTypePanel" aria-label="Voucher Type">
+                                        @foreach (['Journal', 'Payment', 'Receipt', 'Contra', 'Purchase'] as $t)
+                                            <button type="button" class="btn btn-outline-primary me-1 mb-1 type-pill"
+                                                data-type="{{ $t }}">{{ $t }}</button>
+                                        @endforeach
                                     </div>
                                 </div>
-                            </form>
-                        </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -755,7 +751,7 @@
                     },
 
                     Payment: {
-                        Dr: [13, 14, 5, 6,19],
+                        Dr: [13, 14, 5, 6, 19],
                         Cr: [17, 18, 20]
                     },
 
