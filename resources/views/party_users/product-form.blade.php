@@ -103,11 +103,11 @@
                                                         <td>{{ number_format($product->mrp, 0) }}</td>
                                                         <td>{{ number_format($product->sell_price, 0) }}</td>
                                                         <td>
-                                                            <input type="number" step="1"
+                                                            <input type="number" step="0.1"
                                                                 name="items[{{ $product->id }}][cust_discount_price]"
                                                                 value="{{ old(
                                                                     'items.' . $product->id . '.cust_discount_price',
-                                                                    $product->cust_discount_price == 0 ? (int) $product->mrp : (int) $product->cust_discount_price,
+                                                                    $product->cust_discount_price == 0 ? (float) $product->mrp : (float) $product->cust_discount_price,
                                                                 ) }}"
                                                                 class="form-control @error('items.' . $product->id . '.cust_discount_price') is-invalid @enderror"
                                                                 placeholder="Enter discount price">

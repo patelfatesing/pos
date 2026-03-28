@@ -341,7 +341,7 @@ class PartyUserController extends Controller
 
     public function custPriceChange(Request $request)
     {
-
+    
         $validated = $request->validate([
             'cust_user_id' => 'required|exists:party_users,id',
             'items' => 'required|array',
