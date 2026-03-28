@@ -444,7 +444,7 @@
                                                             <td
                                                                 wire:click="setActiveItem({{ $item->id }}, {{ $item->product->id }})">
 
-                                                                {{ $this->quantities[$item->id] }}
+                                                                {{ $this->quantities[$item->id] }} pc
                                                                 {{ $one_time_transaction && $item->sold_stock > 0 ? ' Sold(' . $item->sold_stock . ')' : '' }}
                                                             </td>
                                                             <td
