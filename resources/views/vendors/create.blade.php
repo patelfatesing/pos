@@ -98,7 +98,7 @@
                                 <button type="button" onclick="resetForm()" class="btn btn-danger">
                                     Reset
                                 </button>
-                                
+
                             </form>
                         </div>
                     </div>
@@ -108,15 +108,8 @@
         </div>
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.querySelector('form');
-
-            form.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    return false;
-                }
-            });
-        });
+        function submitForm() {
+            document.getElementById('vendorForm').submit();
+        }
     </script>
 @endsection

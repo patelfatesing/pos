@@ -2,7 +2,6 @@
 
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
@@ -39,6 +38,15 @@
 
         #add-product-btn {
             white-space: nowrap;
+        }
+
+        #payment-fields {
+            display: flex;
+            gap: 10px;
+        }
+
+        #payment-fields .payment-input {
+            flex: 1;
         }
     </style>
 
@@ -159,7 +167,7 @@
                                         <div class="mb-2 d-flex justify-content-between">
                                             <h6>Credit Used (Invoice)</h6>
                                             <p>₹<input type="number" name="creditpay" id="creditpay-input" min="0"
-                                                    step="1" class="form-control d-inline-block"
+                                                    step="0.1" class="form-control d-inline-block"
                                                     style="width: 120px; display: inline;">
                                                 <small id="creditpay-error" class="text-danger d-block"
                                                     style="display:none;"></small>
@@ -217,6 +225,9 @@
     </div>
 
     <script>
+        function submitForm() {
+            document.getElementById('vendorForm').submit();
+        }
         let oldItems = @json(old('items', []));
 
         $(document).ready(function() {
@@ -242,6 +253,7 @@
                                     <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
                                     <input type="hidden" name="items[${itemIndex}][sell_price]" value="${price}">
                                     <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
+                                    <input type="hidden" name="items[${itemIndex}][price]" class="item_total_price" value="${Math.ceil(price * qty)}">
                                 </td>
                                 <td>
                                     <input type="number" name="items[${itemIndex}][quantity]" 
@@ -253,13 +265,11 @@
                                 </td>
                                 <td>
                                     <div class="price-stack">
-                                        
-                                        
                                         <span class="discount">₹${discount}</span>
                                         <span class="sell_price">₹${price}</span>
                                     </div>
                                 </td>
-                                <td class="item-total"><b>₹${Math.round(price * qty)}</b></td>
+                                <td class="item-total"><b>₹${Math.ceil(price * qty)}</b></td>
                                 <td>
                                     <img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}" 
                                         class="btn btn-sm remove-item">
@@ -329,7 +339,9 @@
                     const disAmt = (sell_price - discount) * qty;
 
                     // ✅ UPDATE ROW TOTAL
-                    $(this).find('.item-total').html('<b>₹' + Math.round(rowTotal) + '</b>');
+                    $(this).find('.item-total').html('<b>₹' + Math.ceil(rowTotal) + '</b>');
+                    $(this).find('.item_total_price').val(Math.ceil(rowTotal));
+
 
                     // ✅ TOTALS
                     totalSellPrice += subtotal;
@@ -337,8 +349,8 @@
                     grandTotal += rowTotal;
                 });
 
-                $('#total').text(Math.round(grandTotal));
-                $('#grand-total').text(grandTotal);
+                $('#total').text(Math.ceil(grandTotal));
+                $('#grand-total').text(Math.ceil(grandTotal));
 
                 if (partyId || commissionId) {
                     $('#discount-total').text('₹' + discountTotal.toFixed(2));
@@ -350,7 +362,7 @@
                 $('#gr_total').val(totalSellPrice);
                 $('#sub_total').val(grandTotal);
 
-                $('#cash-amount').val(grandTotal);
+                $('#cash-amount').val(Math.ceil(grandTotal));
             }
 
             // Add product to the invoice
@@ -415,16 +427,17 @@
                                                 <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
                                                 <input type="hidden" name="items[${itemIndex}][sell_price]" value="${sell_price}">
                                                 <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
+                                                <input type="hidden" name="items[${itemIndex}][price]" class="item_total_price" value="${Math.ceil(sell_price * qty)}">
                                             </td>
                                             <td>
                                                 <div class="price-stack">
                                                      
                                                     <span class="discount">₹${discount}</span>
-                                                    <span class="sell_price">₹${sell_price}</span>
+                                                    <span class="mrp">₹${sell_price}</span>
                                                    
                                                 </div>
                                             </td>
-                                            <td class="item-total"><b>₹${Math.round(sell_price * qty)}</b></td>
+                                            <td class="item-total"><b>₹${Math.ceil(sell_price * qty)}</b></td>
                                             <td><img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}" class="btn btn-sm remove-item"></td>
                                         </tr>
                                     `;
@@ -450,6 +463,7 @@
                                         <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
                                         <input type="hidden" name="items[${itemIndex}][sell_price]" value="${sell_price}">
                                         <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
+                                        <input type="hidden" name="items[${itemIndex}][price]" class="item_total_price" value="${Math.ceil(sell_price * qty)}">
                                     </td>
                                     <td>
                                         <div class="price-stack">
@@ -459,7 +473,7 @@
                                             
                                         </div>
                                     </td>
-                                    <td class="item-total"><b>₹${Math.round(sell_price * qty)}</b></td>
+                                    <td class="item-total"><b>₹${Math.ceil(sell_price * qty)}</b></td>
                                     <td><img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}" class="btn btn-sm remove-item"></td>
                                 </tr>
                             `;
@@ -483,13 +497,14 @@
                                         <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
                                         <input type="hidden" name="items[${itemIndex}][sell_price]" value="${sell_price}">
                                         <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
+                                        <input type="hidden" name="items[${itemIndex}][price]" class="item_total_price" value="${Math.ceil(sell_price * qty)}">
                                     </td>
                                     <td>
                                         <div class="price-stack">
                                             <span class="sell_price">${sell_price}</span>
                                         </div>
                                     </td>
-                                    <td class="item-total"><b>₹${Math.round(sell_price * qty)}</b></td>
+                                    <td class="item-total"><b>₹${Math.ceil(sell_price * qty)}</b></td>
                                     <td><img src="{{ asset('external/delete24dp1f1f1ffill0wght400grad0opsz2414471-7kar.svg') }}" class="btn btn-sm remove-item"></td>
                                 </tr>
                             `;
@@ -528,9 +543,11 @@
                     $('#upi-amount').val(remainingAmount >= 0 ? remainingAmount : 0);
                 } else if (selectedPaymentMethod === 'cashupi') {
                     let remainingAmount = grandTotal - entered;
+                    remainingAmount = Math.ceil(remainingAmount);
                     $('#cash-amount').val(remainingAmount >= 0 ? remainingAmount : 0);
                 } else {
                     let remainingAmount = grandTotal - entered;
+                    remainingAmount = Math.ceil(remainingAmount);
                     $('#cash-amount').val(remainingAmount >= 0 ? remainingAmount : 0);
                 }
 
@@ -750,7 +767,7 @@
                     $('#cash-field').show();
                     $('#upi-field').hide();
 
-                    $('#cash-amount').val(total);
+                    $('#cash-amount').val(Math.ceil(total));
                     $('#cash-amount').prop('readonly', true);
 
                     $('#upi-amount').prop('readonly', true);
@@ -770,7 +787,7 @@
                     $('#cash-field').show();
                     $('#upi-field').show();
 
-                    $('#cash-amount').val(total);
+                    $('#cash-amount').val(Math.ceil(total));
                     $('#upi-amount').val(0);
 
                     $('#cash-amount').prop('readonly', false);
@@ -779,27 +796,29 @@
             });
 
             // When Cash input changes
+            // When Cash input changes
             $('#cash-amount').on('input', function() {
-                cashAmount = parseFloat($(this).val()) || 0;
-                alert(cashAmount);
-                // If both Cash + UPI are selected, update the total
+                let cash = parseFloat($(this).val()) || 0;
+
                 if ($('#cash-upi-option').is(':checked')) {
-                    let remainingAmount = grandTotal - cashAmount;
-                    $('#upi-amount').val(remainingAmount >= 0 ? remainingAmount : 0);
+                    let total = parseFloat($('#grand-total').text()) || 0;
+
+                    let upi = total - cash;
+                    $('#upi-amount').val(upi >= 0 ? Math.ceil(upi) : 0);
                 }
-                updateTotals();
             });
 
             // When UPI input changes
+            // When UPI input changes
             $('#upi-amount').on('input', function() {
-                upiAmount = parseFloat($(this).val()) || 0;
+                let upi = parseFloat($(this).val()) || 0;
 
-                // If both Cash + UPI are selected, update the total
                 if ($('#cash-upi-option').is(':checked')) {
-                    let remainingAmount = grandTotal - upiAmount;
-                    $('#cash-amount').val(remainingAmount >= 0 ? remainingAmount : 0);
+                    let total = parseFloat($('#grand-total').text()) || 0;
+
+                    let cash = total - upi;
+                    $('#cash-amount').val(cash >= 0 ? Math.ceil(cash) : 0);
                 }
-                updateTotals();
             });
         });
     </script>
