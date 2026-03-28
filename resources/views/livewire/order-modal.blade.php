@@ -2,7 +2,7 @@
     <!-- Trigger Button -->
     <div class="" wire:click="openModal" title="Sales History" style="cursor: pointer;">
         <button type="button" class="btn btn-default p-1 m-0 border-0 bg-transparent">
-            <img src="{{ asset('public/external/orderhistory14471-2h8.svg') }}" alt="Sales History Icon"/>
+            <img src="{{ asset('public/external/orderhistory14471-2h8.svg') }}" alt="Sales History Icon" />
         </button>
         <span class="ic-txt">Sales History</span>
     </div>
@@ -50,6 +50,8 @@
                                         <tbody>
                                             @php
                                                 $j = 1;
+                                                $totalQty = 0;
+                                                $totalAmount = 0;
                                             @endphp
                                             @foreach ($orders as $index => $order)
                                                 <tr>
@@ -82,10 +84,22 @@
                                                 </tr>
                                             @endforeach
                                         </tbody>
+                                        <tfoot>
+                                            <tr class="table-secondary fw-bold">
+                                                <td colspan="5" class="text-end">Total</td>
+                                                <td>{{ $totalQty }}</td>
+                                                <td>{{ format_inr($totalAmount) }}</td>
+                                                <td></td>
+                                            </tr>
+                                        </tfoot>
                                     </table>
                                 @else
                                     <p class="text-muted">No Paid Orders found.</p>
                                 @endif
+                            </div>
+                            <!-- Pagination -->
+                            <div class="d-flex justify-content-center pagination-tab">
+                                {{ $orders->links() }}
                             </div>
 
                             <!-- Refunded Orders Tab -->
@@ -105,6 +119,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            
                                             @foreach ($refunds as $index => $refund)
                                                 @php $order = $refund->invoice; @endphp
                                                 <tr class="table-warning">
