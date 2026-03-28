@@ -490,7 +490,7 @@ class SalesReportController extends Controller
             }
 
             if ($request->category_id) {
-                $query->where('products.category_id', $request->category_id);
+                $query->where('products.subcategory_id', $request->category_id);
             }
 
             if ($request->subcategory_id) {

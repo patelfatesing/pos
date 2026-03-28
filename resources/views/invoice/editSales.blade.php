@@ -103,10 +103,10 @@
                                 <div class="col d-flex justify-content-end">
 
                                     @if ($invoice->branch_id == 1 && $invoice->partyUser)
-                                        <span class="badge bg-info text-dark">Party:
+                                        <span class="badge bg-success text-dark">Party:
                                             {{ $invoice->partyUser->first_name }}</span>
                                     @elseif (!empty($invoice->commission_user_id) && $invoice->commissionUser)
-                                        <span class="badge bg-warning text-dark">Commission:
+                                        <span class="badge bg-success text-dark">Commission:
                                             {{ $invoice->commissionUser->first_name }}</span>
                                     @endif
                                 </div>

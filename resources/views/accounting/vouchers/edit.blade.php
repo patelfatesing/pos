@@ -1,592 +1,645 @@
 @extends('layouts.backend.layouts')
 
 @section('page-content')
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
-<style>
-    /* ================= TALLY STYLE ================= */
-    #linesTable {
-        width: 100%;
-        font-family: monospace;
-        height: calc(100vh - 350px);
-    }
-
-    #linesTable tbody {
-        height: 100%;
-        vertical-align: top;
-    }
-
-    #linesTable thead,
-    #linesTable tfoot,
-    #linesTable tbody tr {
-        display: table;
-        width: 100%;
-        table-layout: fixed;
-    }
-
-    #linesTable thead th {
-        border-top: 4px solid #a7a3a3;
-        border-bottom: 3px solid #bbb8b8;
-        font-weight: bold;
-        margin-left: 10px;
-    }
-
-    #linesTable tfoot td {
-        /* border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; */
-        font-weight: bold;
-    }
-
-    #linesTable td {
-        vertical-align: middle;
-        font-size: 14px;
-        line-height: 1.7;
-    }
-
-    #linesTable select,
-    #linesTable input {
-        border: none;
-        background: transparent;
-        box-shadow: none;
-    }
-
-    #linesTable select:focus,
-    #linesTable input:focus {
-        outline: none;
-    }
-
-    #linesTable tbody tr.line:hover {
-        background: #F3E6A1;
-    }
-
-    .voucher-header {
-        background: #32bdea;
-        color: #fff;
-        font-weight: bold;
-        padding: 6px;
-    }
-
-    .voucher-type-label {
-        background: #32bdea;
-        color: #fff;
-        font-weight: bold;
-        font-size: 14px;
-        padding: 4px 30px;
-        display: inline-block;
-    }
-
-    .voucher-type-box {
-        font-size: 13px;
-        line-height: 17px;
-    }
-
-    .remove {
-        cursor: pointer;
-        color: #c0392b;
-        font-weight: bold;
-        font-size: 18px;
-        padding: 4px 8px;
-        border-radius: 4px;
-    }
-
-    .remove:hover {
-        background-color: #ffe6e6;
-        color: #ff0000;
-    }
-
-    .sticky-actions {
-        position: sticky;
-        bottom: 0;
-        background: #fff;
-        padding: 10px;
-        border-top: 1px solid #ddd;
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 10px;
-    }
-
-    /* Right-side voucher type panel */
-    .type-pills-vertical {
-        position: sticky;
-        top: 1.25rem;
-        display: flex;
-        flex-direction: column;
-        gap: .4rem;
-        background: #fff;
-        border: 1px solid #ddd;
-        padding: .5rem;
-    }
-
-    .type-pills-vertical .btn {
-        padding: 0.1rem 0.75rem;
-    }
-
-    .type-pills-vertical .btn.active {
-        background: #32bdea;
-        color: #fff;
-    }
-
-    .btn-outline-primary {
-        color: #000;
-        background-color: #fff;
-        border-color: #000;
-        text-align: center;
-        border-radius: 0;
-        box-shadow: 2px 2px 4px #ccc;
-    }
-
-    /* ================= REMOVE DROPDOWN ICON (TALLY STYLE) ================= */
-    /* Chrome, Edge, Safari */
-    .text-end {
-        text-align: right;
-    }
-
-    #linesTable select,
-    #linesTable select:focus {
-        -webkit-appearance: none;
-        appearance: none;
-        background-image: none !important;
-        padding-right: 4px;
-        padding-left: 5px;
-        /* small spacing like Tally */
-    }
-
-    /* Firefox */
-    #linesTable select {
-        -moz-appearance: none;
-    }
-
-    /* IE / old Edge */
-    #linesTable select::-ms-expand {
-        display: none;
-    }
-
-    /* ================= REMOVE DATE ICON (TALLY STYLE) ================= */
-    /* Chrome, Edge, Safari */
-    input[type="date"]::-webkit-calendar-picker-indicator {
-        display: none;
-        -webkit-appearance: none;
-    }
-
-    /* Firefox */
-    input[type="date"] {
-        appearance: none;
-        -moz-appearance: textfield;
-    }
-
-    /* Prevent extra padding caused by hidden icon */
-    input[type="date"] {
-        padding-right: 0;
-    }
-
-    /* ================= VOUCHER DATE (IMAGE STYLE) ================= */
-    .voucher-date-box {
-        text-align: right;
-        line-height: 1.2;
-    }
-
-    .voucher-date-input {
-        border: none;
-        background: transparent;
-        font-weight: bold;
-        font-size: 13px;
-        line-height: 1;
-        text-align: right;
-        padding: 0;
-    }
-
-    /* remove calendar icon (already discussed, safe to repeat) */
-    .voucher-date-input::-webkit-calendar-picker-indicator {
-        display: none;
-    }
-
-    .voucher-day {
-        font-size: 13px;
-        color: #5a5a8a;
-        font-weight: normal;
-        line-height: 1;
-        margin-top: 2px;
-    }
-
-    #linesTable tfoot tr:first-child td {
-        padding-top: 5px;
-        border-top: 1px solid #ccc;
-    }
-
-    /* ================= TALLY ACCOUNT HEADER ================= */
-    .tally-account-box {
-        font-family: monospace;
-        font-size: 15px;
-    }
-
-    .tally-account-box td {
-        padding: 2px 4px;
-        vertical-align: middle;
-    }
-
-    .tally-particulars-header {
-        font-family: monospace;
-        font-weight: bold;
-        padding: 4px 6px;
-        border-top: 1px solid #999;
-        border-bottom: 1px solid #999;
-        margin-bottom: 4px;
-    }
-
-    /* ================= TALLY STYLE SELECT (NO ARROW) ================= */
-    /* Chrome, Edge, Safari */
-    .account-ledger,
-    .account-ledger:focus {
-        -webkit-appearance: none;
-        appearance: none;
-        background-image: none !important;
-        border: none;
-        padding-left: 5px;
-        padding-right: 0;
-        font-family: monospace;
-        font-weight: bold;
-    }
-
-    /* Firefox */
-    .account-ledger {
-        -moz-appearance: none;
-    }
-
-    /* Old Edge / IE */
-    .account-ledger::-ms-expand {
-        display: none;
-    }
-
-    /* Tally-style disabled amount box */
-    .dr-input:disabled,
-    .cr-input:disabled {
-        color: #999;
-        cursor: not-allowed;
-    }
-
-    .hidden-amount {
-        display: none !important;
-    }
-
-    /* Remove number input arrows - Chrome, Edge, Safari */
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-
-    /* Remove number input arrows - Firefox */
-    input[type=number] {
-        -moz-appearance: textfield;
-    }
-
-    .cur-bal-row {
-        color: #444;
-        font-style: italic;
-    }
-
-    .dc-select {
-        border: none;
-        background: transparent;
-        font-family: monospace;
-        font-weight: bold;
-        width: 55px;
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        cursor: pointer;
-    }
-
-    .dc-select:disabled {
-        color: #555;
-        cursor: not-allowed;
-    }
-
-    /* ================= DR / CR INPUT HIGHLIGHT ================= */
-    /* Hover effect */
-    .dr-input:hover,
-    .cr-input:hover {
-        background-color: #fff6cc !important;
-        border: 1px solid #010101 !important;
-        cursor: text !important;
-    }
-
-    /* Focus (cursor inside) */
-    .dr-input:focus,
-    .cr-input:focus {
-        background-color: #fff1a8 !important;
-        border: 1px solid #010101 !important;
-        outline: none !important;
-        box-shadow: 0 0 2px rgba(201, 168, 0, 0.6) !important;
-    }
-
-    /* Smooth transition */
-    .dr-input,
-    .cr-input {
-        transition: background-color 0.15s ease, border 0.15s ease, box-shadow 0.15s ease !important;
-    }
-
-    .dr-input {
-        width: 100px !important;
-    }
-
-    .cr-input {
-        width: 100px !important;
-    }
-
-    .dc-select.locked {
-        pointer-events: none;
-        background: transparent;
-    }
-
-    .avc_card .card-body,
-    .card .card-header.avc-header {
-        padding: .5rem .9rem;
-    }
-
-    .card .card-header.avc-header {
-        background: #528da1;
-        border-top-left-radius: 10px;
-        border-top-right-radius: 10px;
-        color: #fff;
-    }
-
-    .avc-header h4 {
-        font-size: 15px;
-    }
-
-    .avc-header .btn-secondary {
-        padding: 4px 8px;
-        font-size: 12px;
-    }
-
-    .voucher-table .cmn-table td {
-        font-size: 13px;
-        line-height: 1.2;
-    }
-
-    .content-page.create-voucher-page {
-        min-height: 100%;
-        padding: 90px 0 0;
-    }
-
-    .min-w-100 {
-        width: 100px;
-    }
-
-    .tally-particulars_header {
-        margin-bottom: 10px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .create-ledger-link .btn-sm {
-        padding: 0.375rem 0.75rem;
-        font-size: 16px;
-        line-height: 1.3;
-        font-size: 16px;
-        line-height: 1.5;
-    }
-
-    #linesTable .remove_badge {
-        padding: 0;
-        width: 0px;
-    }
-
-    .remove_badge .remove {
-        position: relative;
-        left: 2px;
-        padding: 2px;
-    }
-
-    .title-table {
-        font-size: 14px;
-        font-weight: bold;
-        margin: 0;
-        min-width: 30%;
-    }
-</style>
-
-<div class="content-page">
-    <div class="container-fluid">
-        <div class="card">
-
-            <div class="avc-header card-header d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">Accounting Voucher update</h4>
-                <h5 class="title-table">LIQUOR HUB</h5>
-                <!-- <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-secondary">
-                    Go To List
-                </a> -->
-                <button onclick="window.history.back()" class="btn btn-secondary">
-                    ← Back
-                </button>
-            </div>
-
-            <div class="card-body">
-
-                <form action="{{ route('accounting.vouchers.update') }}" method="POST" id="voucherForm">
-                    @csrf
-                    @method('PUT')
-                    <div class="row g-3">
-
-                        <div class="col-lg-10 voucher-table">
-                            <input type="hidden" name="id" id="id" value="{{ $voucher->id }}">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+
+    <style>
+        /* ================= TALLY STYLE ================= */
+        #linesTable {
+            width: 100%;
+            font-family: monospace;
+            height: calc(100vh - 350px);
+        }
+
+        #linesTable tbody {
+            height: 100%;
+            vertical-align: top;
+        }
+
+        #linesTable thead,
+        #linesTable tfoot,
+        #linesTable tbody tr {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        #linesTable thead th {
+            border-top: 4px solid #a7a3a3;
+            border-bottom: 3px solid #bbb8b8;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        #linesTable tfoot td {
+            /* border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; */
+            font-weight: bold;
+        }
+
+        #linesTable td {
+            vertical-align: middle;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        #linesTable select,
+        #linesTable input {
+            border: none;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        #linesTable select:focus,
+        #linesTable input:focus {
+            outline: none;
+        }
+
+        #linesTable tbody tr.line:hover {
+            background: #F3E6A1;
+        }
+
+        .voucher-header {
+            background: #32bdea;
+            color: #fff;
+            font-weight: bold;
+            padding: 6px;
+        }
+
+        .voucher-type-label {
+            background: #32bdea;
+            color: #fff;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 4px 30px;
+            display: inline-block;
+        }
+
+        .voucher-type-box {
+            font-size: 13px;
+            line-height: 17px;
+        }
+
+        .remove {
+            cursor: pointer;
+            color: #c0392b;
+            font-weight: bold;
+            font-size: 18px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .remove:hover {
+            background-color: #ffe6e6;
+            color: #ff0000;
+        }
+
+        .sticky-actions {
+            position: sticky;
+            bottom: 0;
+            background: #fff;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Right-side voucher type panel */
+        .type-pills-vertical {
+            position: sticky;
+            top: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: .4rem;
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: .5rem;
+        }
+
+        .type-pills-vertical .btn {
+            padding: 0.1rem 0.75rem;
+        }
+
+        .type-pills-vertical .btn.active {
+            background: #32bdea;
+            color: #fff;
+        }
+
+        .btn-outline-primary {
+            color: #000;
+            background-color: #fff;
+            border-color: #000;
+            text-align: center;
+            border-radius: 0;
+            box-shadow: 2px 2px 4px #ccc;
+        }
+
+        /* ================= REMOVE DROPDOWN ICON (TALLY STYLE) ================= */
+        /* Chrome, Edge, Safari */
+        .text-end {
+            text-align: right;
+        }
+
+        #linesTable select,
+        #linesTable select:focus {
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: none !important;
+            padding-right: 4px;
+            padding-left: 5px;
+            /* small spacing like Tally */
+        }
+
+        /* Firefox */
+        #linesTable select {
+            -moz-appearance: none;
+        }
+
+        /* IE / old Edge */
+        #linesTable select::-ms-expand {
+            display: none;
+        }
+
+        /* ================= REMOVE DATE ICON (TALLY STYLE) ================= */
+        /* Chrome, Edge, Safari */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            display: none;
+            -webkit-appearance: none;
+        }
+
+        /* Firefox */
+        input[type="date"] {
+            appearance: none;
+            -moz-appearance: textfield;
+        }
+
+        /* Prevent extra padding caused by hidden icon */
+        input[type="date"] {
+            padding-right: 0;
+        }
+
+        /* ================= VOUCHER DATE (IMAGE STYLE) ================= */
+        .voucher-date-box {
+            text-align: right;
+            line-height: 1.2;
+        }
+
+        .voucher-date-input {
+            border: none;
+            background: transparent;
+            font-weight: bold;
+            font-size: 13px;
+            line-height: 1;
+            text-align: right;
+            padding: 0;
+        }
+
+        /* remove calendar icon (already discussed, safe to repeat) */
+        .voucher-date-input::-webkit-calendar-picker-indicator {
+            display: none;
+        }
+
+        .voucher-day {
+            font-size: 13px;
+            color: #5a5a8a;
+            font-weight: normal;
+            line-height: 1;
+            margin-top: 2px;
+        }
+
+        #linesTable tfoot tr:first-child td {
+            padding-top: 5px;
+            border-top: 1px solid #ccc;
+        }
+
+        /* ================= TALLY ACCOUNT HEADER ================= */
+        .tally-account-box {
+            font-family: monospace;
+            font-size: 15px;
+        }
+
+        .tally-account-box td {
+            padding: 2px 4px;
+            vertical-align: middle;
+        }
+
+        .tally-particulars-header {
+            font-family: monospace;
+            font-weight: bold;
+            padding: 4px 6px;
+            border-top: 1px solid #999;
+            border-bottom: 1px solid #999;
+            margin-bottom: 4px;
+        }
+
+        /* ================= TALLY STYLE SELECT (NO ARROW) ================= */
+        /* Chrome, Edge, Safari */
+        .account-ledger,
+        .account-ledger:focus {
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: none !important;
+            border: none;
+            padding-left: 5px;
+            padding-right: 0;
+            font-family: monospace;
+            font-weight: bold;
+        }
+
+        /* Firefox */
+        .account-ledger {
+            -moz-appearance: none;
+        }
+
+        /* Old Edge / IE */
+        .account-ledger::-ms-expand {
+            display: none;
+        }
+
+        /* Tally-style disabled amount box */
+        .dr-input:disabled,
+        .cr-input:disabled {
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .hidden-amount {
+            display: none !important;
+        }
+
+        /* Remove number input arrows - Chrome, Edge, Safari */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Remove number input arrows - Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .cur-bal-row {
+            color: #444;
+            font-style: italic;
+        }
+
+        .dc-select {
+            border: none;
+            background: transparent;
+            font-family: monospace;
+            font-weight: bold;
+            width: 55px;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            cursor: pointer;
+        }
+
+        .dc-select:disabled {
+            color: #555;
+            cursor: not-allowed;
+        }
+
+        /* ================= DR / CR INPUT HIGHLIGHT ================= */
+        /* Hover effect */
+        .dr-input:hover,
+        .cr-input:hover {
+            background-color: #fff6cc !important;
+            border: 1px solid #010101 !important;
+            cursor: text !important;
+        }
+
+        /* Focus (cursor inside) */
+        .dr-input:focus,
+        .cr-input:focus {
+            background-color: #fff1a8 !important;
+            border: 1px solid #010101 !important;
+            outline: none !important;
+            box-shadow: 0 0 2px rgba(201, 168, 0, 0.6) !important;
+        }
+
+        /* Smooth transition */
+        .dr-input,
+        .cr-input {
+            transition: background-color 0.15s ease, border 0.15s ease, box-shadow 0.15s ease !important;
+        }
+
+        .dr-input {
+            width: 100px !important;
+        }
+
+        .cr-input {
+            width: 100px !important;
+        }
+
+        .dc-select.locked {
+            pointer-events: none;
+            background: transparent;
+        }
+
+        .avc_card .card-body,
+        .card .card-header.avc-header {
+            padding: .5rem .9rem;
+        }
+
+        .card .card-header.avc-header {
+            background: #528da1;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            color: #fff;
+        }
+
+        .avc-header h4 {
+            font-size: 15px;
+        }
+
+        .avc-header .btn-secondary {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        .voucher-table .cmn-table td {
+            font-size: 13px;
+            line-height: 1.2;
+        }
+
+        .content-page.create-voucher-page {
+            min-height: 100%;
+            padding: 90px 0 0;
+        }
+
+        .min-w-100 {
+            width: 100px;
+        }
+
+        .tally-particulars_header {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .create-ledger-link .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 16px;
+            line-height: 1.3;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        #linesTable .remove_badge {
+            padding: 0;
+            width: 0px;
+        }
+
+        .remove_badge .remove {
+            position: relative;
+            left: 2px;
+            padding: 2px;
+        }
+
+        .title-table {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 0;
+            min-width: 30%;
+        }
+    </style>
+
+
+    <div class="wrapper">
+        <div class="content-page create-voucher-page">
+            <div class="container-fluid">
+
+                <div class="card avc_card">
+
+                    {{-- ================= HEADER ================= --}}
+                    <div class="avc-header card-header d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Accounting Voucher Update</h4>
+                        <h5 class="title-table">LIQUOR HUB</h5>
+
+                        <div class="create-ledger-link">
+                            <a href="{{ route('accounting.ledgers.create', 'voucher') }}" target="_blank"
+                                class="btn btn-secondary">Create Ledger</a>
+
+                            <button onclick="window.history.back()" class="btn btn-secondary">
+                                ← Back
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+
+                        <form action="{{ route('accounting.vouchers.update', $voucher->id) }}" method="POST"
+                            id="voucherForm">
+                            @csrf
+                            @method('PUT')
+
                             <input type="hidden" name="voucher_type" id="voucher_type"
                                 value="{{ $voucher->voucher_type }}">
 
-                            {{-- HEADER --}}
-                            <table width="100%" class="mb-3">
-                                <tr>
-                                    <td width="80%">
-                                        <span class="voucher-type-label" id="voucherTypeLabel">
-                                            {{ $voucher->voucher_type }}
-                                        </span>
-                                        <strong class="ms-2">NO.</strong>
-                                        <span>{{ $voucher->ref_no }}</span>
-                                        <input type="hidden" name="ref_no" value="{{ $voucher->ref_no }}">
-                                    </td>
-                                    <td width="20%" class="text-end">
-                                        <input type="date" name="voucher_date"
-                                            value="{{ $voucher->voucher_date->format('Y-m-d') }}"
-                                            class="voucher-date-input">
-                                    </td>
-                                </tr>
-                            </table>
+                            <div class="row g-3">
 
-                            {{-- ================= TABLE ================= --}}
-                            <table id="linesTable">
-                                <thead>
-                                    <tr>
-                                        <th width="5%"></th>
-                                        <th width="70%">Particulars</th>
-                                        <th width="10%" class="text-end">Debit</th>
-                                        <th width="10%" class="text-end">Credit</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
+                                <div class="col-lg-10 voucher-table">
 
-                                <tbody>
+                                    {{-- ================= TYPE + REF + DATE ================= --}}
+                                    <div class="tally-particulars_header">
+                                        <div class="voucher-type-box">
 
-                                    @foreach ($voucher->lines as $i => $line)
-                                    <tr class="line">
-                                        <td>
-                                            <input type="hidden" name="lines[{{ $i }}][amount]"
-                                                class="amount" value="{{ $line->amount }}">
-                                            <select name="lines[{{ $i }}][dc]" class="dc-select">
-                                                <option value="Dr" {{ $line->dc == 'Dr' ? 'selected' : '' }}>By
-                                                </option>
-                                                <option value="Cr" {{ $line->dc == 'Cr' ? 'selected' : '' }}>To
-                                                </option>
-                                            </select>
-                                        </td>
+                                            <span class="voucher-type-label" id="voucherTypeLabel">
+                                                {{ $voucher->voucher_type }}
+                                            </span>
 
-                                        <td>
-                                            <select name="lines[{{ $i }}][ledger_id]" class="ledger">
-                                                <option value="">Select Ledger</option>
-                                                @foreach ($ledgers as $l)
-                                                <option value="{{ $l->id }}"
-                                                    {{ $l->id == $line->ledger_id ? 'selected' : '' }}>
-                                                    {{ $l->name }}
-                                                </option>
+                                            <strong class="ms-2 ml-1">NO.</strong>
+
+                                            <span id="voucher_no">
+                                                {{ $voucher->ref_no }}
+                                            </span>
+
+                                            <input type="hidden" name="ref_no" id="ref_no"
+                                                value="{{ $voucher->ref_no }}">
+                                        </div>
+
+                                        <div class="voucher-date-box">
+                                            <input type="date" name="voucher_date"
+                                                value="{{ $voucher->voucher_date->format('Y-m-d') }}"
+                                                class="voucher-date-input">
+
+                                            <div class="voucher-day">
+                                                {{ \Carbon\Carbon::parse($voucher->voucher_date)->format('l') }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- ================= TABLE ================= --}}
+                                    <div class="table-wrapper">
+
+                                        <table id="linesTable">
+                                            <thead>
+                                                <tr>
+                                                    <th width="5%"></th>
+                                                    <th width="70%">Particulars</th>
+                                                    <th class="text-end min-w-100">Debit</th>
+                                                    <th class="text-end min-w-100">Credit</th>
+                                                    <th class="remove_badge"></th>
+                                                </tr>
+                                            </thead>
+
+                                            <tbody>
+
+                                                @foreach ($voucher->lines as $i => $line)
+                                                    <tr class="line">
+
+                                                        <td width="5%">
+                                                            <input type="hidden" name="lines[{{ $i }}][amount]"
+                                                                class="amount" value="{{ $line->amount }}">
+
+                                                            <select name="lines[{{ $i }}][dc]"
+                                                                class="dc-select">
+                                                                <option value="Dr" {{ $line->dc == 'Dr' ? 'selected' : '' }}>
+                                                                    By</option>
+                                                                <option value="Cr" {{ $line->dc == 'Cr' ? 'selected' : '' }}>
+                                                                    To</option>
+                                                            </select>
+                                                        </td>
+
+                                                        <td width="70%">
+                                                            <select name="lines[{{ $i }}][ledger_id]"
+                                                                class="ledger">
+                                                                <option value="">Select Ledger</option>
+                                                                @foreach ($ledgers as $l)
+                                                                    <option value="{{ $l->id }}"
+                                                                        data-group-id="{{ $l->group_id }}"
+                                                                        {{ $l->id == $line->ledger_id ? 'selected' : '' }}>
+                                                                        {{ $l->name }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                        </td>
+
+                                                        <td class="text-end min-w-100">
+                                                            <input type="number" class="dr-input text-end"
+                                                                value="{{ $line->dc == 'Dr' ? $line->amount : '' }}">
+                                                        </td>
+
+                                                        <td class="text-end min-w-100">
+                                                            <input type="number" class="cr-input text-end"
+                                                                value="{{ $line->dc == 'Cr' ? $line->amount : '' }}">
+                                                        </td>
+
+                                                        <td class="text-center remove_badge">
+                                                            <span class="remove {{ $loop->count == 1 ? 'd-none' : '' }}">
+                                                                <i class="fa-solid fa-xmark"></i>
+                                                            </span>
+                                                        </td>
+
+                                                    </tr>
                                                 @endforeach
-                                            </select>
-                                        </td>
 
-                                        <td>
-                                            <input type="number" class="dr-input"
-                                                value="{{ $line->dc == 'Dr' ? $line->amount : '' }}">
-                                        </td>
+                                            </tbody>
 
-                                        <td>
-                                            <input type="number" class="cr-input"
-                                                value="{{ $line->dc == 'Cr' ? $line->amount : '' }}">
-                                        </td>
+                                            <tfoot>
+                                                <tr>
+                                                    <td colspan="2">
+                                                        Narration :
+                                                        <input type="text" name="narration"
+                                                            value="{{ $voucher->narration }}">
+                                                    </td>
 
-                                        <td>
-                                            <span class="remove"><i class="fa fa-times"></i></span>
-                                        </td>
-                                    </tr>
-                                    @endforeach
+                                                    <td class="text-end min-w-100"
+                                                        style="border-top:1px solid #ccc;font-weight:bold;border-bottom:1px solid #ccc;">
+                                                        <div style="border-bottom:1px solid #ccc;text-align:center;">
+                                                            <span id="totalDrText">0.00</span>
+                                                        </div>
+                                                    </td>
 
-                                </tbody>
+                                                    <td class="text-end min-w-100"
+                                                        style="border-top:1px solid #ccc;font-weight:bold;border-bottom:1px solid #ccc;">
+                                                        <div style="border-bottom:1px solid #ccc;">
+                                                            <span id="totalCrText">0.00</span>
+                                                        </div>
+                                                    </td>
 
-                                <tfoot>
-                                    <tr>
-                                        <td></td>
-                                        <td><b>Narration</b></td>
-                                        <td><span id="totalDrText">0.00</span></td>
-                                        <td><span id="totalCrText">0.00</span></td>
-                                        <td></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                        <div class="col-lg-2 col-md-4">
+                                                    <td></td>
+                                                </tr>
+                                            </tfoot>
 
-                            <div class="type-pills-vertical" id="voucherTypePanel">
+                                        </table>
 
-                                @foreach (['Journal', 'Payment', 'Receipt', 'Contra', 'Purchase'] as $t)
-                                <button type="button"
-                                    class="btn btn-outline-primary me-1 mb-1 type-pill
-                {{ $voucher->voucher_type == $t ? 'active' : '' }}"
-                                    data-type="{{ $t }}">
+                                    </div>
 
-                                    {{ $t }}
+                                    {{-- ================= SUBMIT ================= --}}
+                                    <div class="sticky-actions mt-3">
+                                        <button class="btn btn-success" id="btnSubmit">
+                                            Update Voucher
+                                        </button>
+                                    </div>
 
-                                </button>
-                                @endforeach
+                                </div>
+
+                                {{-- ================= RIGHT PANEL ================= --}}
+                                <div class="col-lg-2 col-md-4">
+                                    <div class="type-pills-vertical" id="voucherTypePanel">
+
+                                        @foreach (['Journal', 'Payment', 'Receipt', 'Contra', 'Purchase'] as $t)
+                                            <button type="button"
+                                                class="btn btn-outline-primary me-1 mb-1 type-pill {{ $voucher->voucher_type == $t ? 'active' : '' }}"
+                                                data-type="{{ $t }}">
+                                                {{ $t }}
+                                            </button>
+                                        @endforeach
+
+                                    </div>
+                                </div>
 
                             </div>
+                        </form>
 
-                        </div>
                     </div>
-                    <div class="mt-3">
-                        <button class="btn btn-success" id="btnSubmit">Update Voucher</button>
-                    </div>
-
-                </form>
-
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    let lineIndex = {
-        {
-            count($voucher - > lines)
+
+    <script>
+        let lineIndex = {
+            {
+                count($voucher - > lines)
+            }
+        };
+
+        function syncAmountInputs(row) {
+            const dc = row.find('.dc-select').val();
+            row.find('.dr-input, .cr-input').addClass('hidden-amount');
+
+            if (dc === 'Dr') row.find('.dr-input').removeClass('hidden-amount');
+            if (dc === 'Cr') row.find('.cr-input').removeClass('hidden-amount');
         }
-    };
 
-    function syncAmountInputs(row) {
-        const dc = row.find('.dc-select').val();
-        row.find('.dr-input, .cr-input').addClass('hidden-amount');
+        function updateTotals() {
+            let dr = 0,
+                cr = 0;
 
-        if (dc === 'Dr') row.find('.dr-input').removeClass('hidden-amount');
-        if (dc === 'Cr') row.find('.cr-input').removeClass('hidden-amount');
-    }
+            $('#linesTable tbody tr').each(function() {
+                dr += parseFloat($(this).find('.dr-input').val()) || 0;
+                cr += parseFloat($(this).find('.cr-input').val()) || 0;
+            });
 
-    function updateTotals() {
-        let dr = 0,
-            cr = 0;
+            $('#totalDrText').text(dr.toFixed(2));
+            $('#totalCrText').text(cr.toFixed(2));
+        }
 
-        $('#linesTable tbody tr').each(function() {
-            dr += parseFloat($(this).find('.dr-input').val()) || 0;
-            cr += parseFloat($(this).find('.cr-input').val()) || 0;
-        });
+        /* ================= ADD AUTO BALANCING ROW ================= */
 
-        $('#totalDrText').text(dr.toFixed(2));
-        $('#totalCrText').text(cr.toFixed(2));
-    }
+        function addAutoRow(dc, amount) {
+            if (amount <= 0) return;
 
-    /* ================= ADD AUTO BALANCING ROW ================= */
-
-    function addAutoRow(dc, amount) {
-        if (amount <= 0) return;
-
-        const row = `
+            const row = `
                     <tr class="line auto-row">
                         <td>
                             <input type="hidden" name="lines[${lineIndex}][amount]" class="amount" value="${amount}">
@@ -618,113 +671,113 @@
                         </td>
                     </tr>`;
 
-        $('#linesTable tbody').append(row);
-        syncAmountInputs($('#linesTable tbody tr:last'));
-        updateTotals();
-        lineIndex++;
-    }
-
-    /* ================= PREVENT ENTER SUBMIT ================= */
-
-    $('#voucherForm').on('keydown', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            return false;
+            $('#linesTable tbody').append(row);
+            syncAmountInputs($('#linesTable tbody tr:last'));
+            updateTotals();
+            lineIndex++;
         }
-    });
 
-    /* ================= DOCUMENT READY ================= */
+        /* ================= PREVENT ENTER SUBMIT ================= */
 
-    $(document).ready(function() {
-
-        // Initial sync
-        $('#linesTable tbody tr').each(function() {
-            syncAmountInputs($(this));
+        $('#voucherForm').on('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                return false;
+            }
         });
 
-        updateTotals();
+        /* ================= DOCUMENT READY ================= */
 
-        $(document).on('focus', '.dr-input, .cr-input', function() {
-            $(this).data('old', parseFloat(this.value) || 0);
-        });
+        $(document).ready(function() {
 
-        $(document).on('blur', '.dr-input, .cr-input', function() {
+            // Initial sync
+            $('#linesTable tbody tr').each(function() {
+                syncAmountInputs($(this));
+            });
 
-            const row = $(this).closest('tr');
-            if (row.hasClass('auto-row')) return;
+            updateTotals();
 
-            const isDr = $(this).hasClass('dr-input');
-            const oldVal = parseFloat($(this).data('old')) || 0;
-            const newVal = parseFloat(this.value) || 0;
-            const diff = newVal - oldVal;
+            $(document).on('focus', '.dr-input, .cr-input', function() {
+                $(this).data('old', parseFloat(this.value) || 0);
+            });
 
-            if (diff === 0) return;
+            $(document).on('blur', '.dr-input, .cr-input', function() {
 
-            // Update own hidden amount
-            row.find('.amount').val(newVal);
+                const row = $(this).closest('tr');
+                if (row.hasClass('auto-row')) return;
 
-            // ===== FIND NEXT ROW (TALLY STYLE) =====
-            let nextRow = row.next('tr.line');
+                const isDr = $(this).hasClass('dr-input');
+                const oldVal = parseFloat($(this).data('old')) || 0;
+                const newVal = parseFloat(this.value) || 0;
+                const diff = newVal - oldVal;
 
-            const applyDc = isDr ?
-                (diff > 0 ? 'Cr' : 'Dr') :
-                (diff > 0 ? 'Dr' : 'Cr');
+                if (diff === 0) return;
 
-            const absDiff = Math.abs(diff);
+                // Update own hidden amount
+                row.find('.amount').val(newVal);
 
-            if (nextRow.length) {
-                // === APPLY TO EXISTING NEXT ROW ===
+                // ===== FIND NEXT ROW (TALLY STYLE) =====
+                let nextRow = row.next('tr.line');
 
-                const drInput = nextRow.find('.dr-input');
-                const crInput = nextRow.find('.cr-input');
+                const applyDc = isDr ?
+                    (diff > 0 ? 'Cr' : 'Dr') :
+                    (diff > 0 ? 'Dr' : 'Cr');
 
-                if (applyDc === 'Dr') {
-                    drInput.val((parseFloat(drInput.val()) || 0) + absDiff);
-                    crInput.val('');
+                const absDiff = Math.abs(diff);
+
+                if (nextRow.length) {
+                    // === APPLY TO EXISTING NEXT ROW ===
+
+                    const drInput = nextRow.find('.dr-input');
+                    const crInput = nextRow.find('.cr-input');
+
+                    if (applyDc === 'Dr') {
+                        drInput.val((parseFloat(drInput.val()) || 0) + absDiff);
+                        crInput.val('');
+                    } else {
+                        crInput.val((parseFloat(crInput.val()) || 0) + absDiff);
+                        drInput.val('');
+                    }
+
+                    nextRow.find('.dc-select').val(applyDc);
+                    nextRow.find('.amount').val(absDiff);
+                    syncAmountInputs(nextRow);
+
                 } else {
-                    crInput.val((parseFloat(crInput.val()) || 0) + absDiff);
-                    drInput.val('');
+                    // === NO NEXT ROW → CREATE ONE ===
+                    addAutoRow(applyDc, absDiff);
                 }
 
-                nextRow.find('.dc-select').val(applyDc);
-                nextRow.find('.amount').val(absDiff);
-                syncAmountInputs(nextRow);
+                updateTotals();
+            });
 
-            } else {
-                // === NO NEXT ROW → CREATE ONE ===
-                addAutoRow(applyDc, absDiff);
-            }
 
-            updateTotals();
+            /* DC change */
+            $(document).on('change', '.dc-select', function() {
+                const row = $(this).closest('tr');
+                row.find('.dr-input, .cr-input').val('');
+                row.find('.amount').val(0);
+                syncAmountInputs(row);
+                updateTotals();
+            });
+
+            /* Remove row */
+            $(document).on('click', '.remove', function() {
+                $(this).closest('tr').remove();
+                updateTotals();
+            });
         });
 
+        $(document).on('click', '.type-pill', function() {
 
-        /* DC change */
-        $(document).on('change', '.dc-select', function() {
-            const row = $(this).closest('tr');
-            row.find('.dr-input, .cr-input').val('');
-            row.find('.amount').val(0);
-            syncAmountInputs(row);
-            updateTotals();
+            const type = $(this).data('type');
+
+            $('#voucher_type').val(type);
+            $('#voucherTypeLabel').text(type);
+
+            $('.type-pill').removeClass('active');
+            $(this).addClass('active');
+
         });
-
-        /* Remove row */
-        $(document).on('click', '.remove', function() {
-            $(this).closest('tr').remove();
-            updateTotals();
-        });
-    });
-
-    $(document).on('click', '.type-pill', function() {
-
-        const type = $(this).data('type');
-
-        $('#voucher_type').val(type);
-        $('#voucherTypeLabel').text(type);
-
-        $('.type-pill').removeClass('active');
-        $(this).addClass('active');
-
-    });
-</script>
+    </script>
 @endsection

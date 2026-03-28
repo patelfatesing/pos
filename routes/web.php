@@ -359,7 +359,7 @@ Route::middleware('auth')->group(function () {
     // routes/web.php
     Route::get('/purchase/{purchase}/edit', [PurchaseController::class, 'edit'])->name('purchase.edit');
     Route::put('/purchase/{purchase}', [PurchaseController::class, 'update'])->name('purchase.update');
-
+    Route::get('/purchase/get-ledgers-by-vendor/{vendorId}', [PurchaseController::class, 'getLedgersByVendor']);
 
     Route::get('/popup/form/{type}', [NotificationController::class, 'loadForm']);
     Route::get('/notifications/index', [NotificationController::class, 'index'])->name('notifications.index');

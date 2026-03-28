@@ -36,7 +36,7 @@ class PurchaseController extends Controller
      */
     public function create(Request $request)
     {
-        $vendors = VendorList::where('is_active', 1)->get();
+        $vendors = VendorList::where('is_active', 1)->where('type', 'main')->get();
         $products = Product::select('id', 'name')->where('is_deleted', 'no')->get();
         $expMainCategory = ExpenseCategory::where('expense_type_id', 1)->get();
         $purchaseLedger = PurchaseLedger::where('is_active', 'Yes')->get();
@@ -45,7 +45,8 @@ class PurchaseController extends Controller
         $subcategoryId = request()->subcategory_id ?? null;
 
         $purchaseGroupNames = ['Purchase Ledger', 'Purchase Ledgers', 'Purchase Accounts'];
-        $vendorGroupNames = ['Sundry Creditors', 'Sundry Debtors'];
+        // $vendorGroupNames = ['Sundry Creditors', 'Sundry Debtors'];
+        $vendorGroupNames = ['Sundry Creditors'];
 
         $ledgers = \DB::table('account_ledgers as l')
             ->join('account_groups as g', 'g.id', '=', 'l.group_id')
@@ -1064,6 +1065,30 @@ class PurchaseController extends Controller
             ->first();
 
         return json_decode($record);
+    }
+
+    public function getLedgersByVendor($vendorId)
+    {
+        // Vendor 3 → Only Sundry Creditors
+        if ($vendorId == 3) {
+            $ledgers = AccountLedger::where('name', 'Sundry Creditors')->get();
+
+            return response()->json($ledgers);
+        }
+
+        // Get vendor
+        $vendor = \App\Models\VendorList::find($vendorId);
+
+        if (!$vendor) {
+            return response()->json([]);
+        }
+
+        // Vendor 1 & 2 → match by name BUT exclude Sundry Creditors
+        $ledgers = AccountLedger::where('name', 'LIKE', '%' . $vendor->name . '%')
+            ->where('name', '!=', 'Sundry Creditors')
+            ->get();
+
+        return response()->json($ledgers);
     }
 
     public function getProductByBarcode(string $barcode)
