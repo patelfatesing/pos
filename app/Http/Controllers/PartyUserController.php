@@ -174,6 +174,7 @@ class PartyUserController extends Controller
         // if ($request->hasFile('photo')) {
         //     $data['photo'] = $request->file('photo')->store('party_user_photos', 'public');
         // }
+        $data['left_credit'] = $request->credit_points;
         $PartyUser = PartyUser::create($data);
         if ($request->hasFile('photo')) {
             $extension = $request->file('photo')->getClientOriginalExtension();

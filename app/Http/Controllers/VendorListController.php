@@ -129,7 +129,7 @@ class VendorListController extends Controller
         // Ledger validation (same as your code)
         $ledgerData = [
             'name'            => $vendor->name,   // ledger name = vendor name
-            'group_id'        => 5,               // example: Sundry Creditors group
+            'group_id'        => 20,               // example: Sundry Creditors group
             'branch_id'       => null,
             'opening_balance' => 0,
             'opening_type'    => 'Dr',

@@ -36,7 +36,7 @@ class PurchaseController extends Controller
      */
     public function create(Request $request)
     {
-        $vendors = VendorList::where('is_active', 1)->where('type', 'main')->get();
+        $vendors = VendorList::where('is_active', 1)->get();
         $products = Product::select('id', 'name')->where('is_deleted', 'no')->get();
         $expMainCategory = ExpenseCategory::where('expense_type_id', 1)->get();
         $purchaseLedger = PurchaseLedger::where('is_active', 'Yes')->get();
