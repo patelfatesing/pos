@@ -189,6 +189,9 @@
                                                     value="{{ $product->subcategory->name }}">
                                                 <input type="hidden" name="items[{{ $i }}][discount]"
                                                     value="{{ $partyDiscount }}">
+                                                <input type="hidden" name="items[{{ $i }}][discount_price]"
+                                                    value="{{ $finalPrice }}">
+                                                
                                             </td>
                                             <td>
                                                 <div class="qty-wrapper">
@@ -266,7 +269,7 @@
                                         <input type="hidden" id="total_discount" name="total_discount" value="0">
                                         <input type="hidden" id="ori_total_discount" name="ori_total_discount"
                                             value="0">
-                                        <input type="hidden" id="gr_total" name="total" value="{{ $sub_total }}">
+                                        <input type="hidden" id="gr_total" name="total" value="{{ $total }}">
                                         <input type="hidden" id="sub_total" name="sub_total" value="{{ $sub_total }}">
                                         <input type="hidden" id="ori_sub_total" name="ori_sub_total"
                                             value="{{ $sub_total }}">
@@ -412,12 +415,11 @@
             $('#return-amt').text(returnAmt.toFixed(2));
             $('#grand-total').text(grandTotal.toFixed(2));
             $('#discount-total').text(discountTotal.toFixed(2));
-            $('#total').text(totalSellPrice.toFixed(2));
             $('#total_discount').val(discountTotal.toFixed(2));
-            $('#gr_total').val(totalSellPrice.toFixed(2));
+            $('#gr_total').val(grandTotal.toFixed(2));
 
             $('#total').text(totalSellPrice.toFixed(2));
-            $('#sub_total').val(grandTotal.toFixed(2)); // 🔥 FIX
+            $('#sub_total').val(totalSellPrice.toFixed(2)); // 🔥 FIX
         }
         // ADD NEW PRODUCT
         $('#add-product-btn').on('click', function() {
@@ -474,6 +476,7 @@
                             <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
                             <input type="hidden" name="items[${itemIndex}][mrp]" value="${sell_price}">
                             <input type="hidden" name="items[${itemIndex}][discount]" value="${discount}">
+                            <input type="hidden" name="items[${itemIndex}][discount_price]" value="${mrp}">
                         </td>
                        <td>
                                 <div class="d-flex align-items-center gap-1">

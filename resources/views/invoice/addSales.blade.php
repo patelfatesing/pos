@@ -257,6 +257,7 @@
                                     <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
                                     <input type="hidden" name="items[${itemIndex}][sell_price]" value="${price}">
                                     <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
+                                    <input type="hidden" name="items[${itemIndex}][discount_price]" value="${mrp}">
                                     <input type="hidden" name="items[${itemIndex}][category]" value="${category}">
                                     <input type="hidden" name="items[${itemIndex}][subcategory]" value="${subcategory}">
                                     <input type="hidden" name="items[${itemIndex}][price]" class="item_total_price" value="${Math.ceil(price * qty)}">
@@ -436,6 +437,7 @@
                                                 <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
                                                 <input type="hidden" name="items[${itemIndex}][sell_price]" value="${sell_price}">
                                                 <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
+                                                <input type="hidden" name="items[${itemIndex}][discount_price]" value="${mrp}">
                                                 <input type="hidden" name="items[${itemIndex}][category]" value="${category}">
                                                 <input type="hidden" name="items[${itemIndex}][subcategory]" value="${subcategory}">
                                                 <input type="hidden" name="items[${itemIndex}][price]" class="item_total_price" value="${Math.ceil(sell_price * qty)}">
@@ -474,6 +476,7 @@
                                         <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
                                         <input type="hidden" name="items[${itemIndex}][sell_price]" value="${sell_price}">
                                         <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
+                                        <input type="hidden" name="items[${itemIndex}][discount_price]" value="${mrp}">
                                          <input type="hidden" name="items[${itemIndex}][category]" value="${category}">
                                                 <input type="hidden" name="items[${itemIndex}][subcategory]" value="${subcategory}">
                                                 
@@ -511,6 +514,7 @@
                                         <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
                                         <input type="hidden" name="items[${itemIndex}][sell_price]" value="${sell_price}">
                                         <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
+                                        <input type="hidden" name="items[${itemIndex}][discount_price]" value="${mrp}">
                                           <input type="hidden" name="items[${itemIndex}][category]" value="${category}">
                                                 <input type="hidden" name="items[${itemIndex}][subcategory]" value="${subcategory}">
                                         <input type="hidden" name="items[${itemIndex}][price]" class="item_total_price" value="${Math.ceil(sell_price * qty)}">

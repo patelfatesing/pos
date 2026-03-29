@@ -239,7 +239,7 @@ class InvoiceController extends Controller
             // fix category (string allow)
             'items.*.category' => 'nullable|string',
             'items.*.subcategory' => 'nullable|string',
-
+            'items.*.discount_price' => 'nullable|string',
             'creditpay' => 'nullable|numeric|min:0',
         ]);
 
@@ -396,7 +396,7 @@ class InvoiceController extends Controller
         // 💾 Final Invoice Update
         $invoice->items = $validated['items'];
         $invoice->creditpay = $newCredit;
-        $invoice->sub_total = $subTotal;
+        $invoice->sub_total = $request->sub_total;
         $invoice->total_item_total = $subTotal;
         $invoice->total_item_qty = $totalQty;
         $invoice->total = $request->total;
@@ -668,7 +668,7 @@ class InvoiceController extends Controller
 
     public function InsertSale(Request $request)
     {
-    
+
         $validated = $request->validate([
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|integer',
@@ -676,6 +676,7 @@ class InvoiceController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.sell_price' => 'required|numeric|min:0',
             'items.*.mrp' => 'required|numeric|min:0',
+            'items.*.discount_price' => 'nullable|string',
             'creditpay' => 'nullable|numeric|min:0',
         ]);
 

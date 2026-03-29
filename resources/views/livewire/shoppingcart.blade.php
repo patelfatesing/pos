@@ -11,7 +11,7 @@
             <div class="d-flex align-items-center logo-area">
                 <img src="{{ asset('assets/images/logo_ic.png') }}" alt="Logo" class="img-fluid"
                     style="max-height: 40px;" />
-                <h4 class="logo-title light-logo">Liquor<span class="hub_ic">Hub</span></h4> 
+                <h4 class="logo-title light-logo">Liquor<span class="hub_ic">Hub</span></h4>
             </div>
 
             <!-- Right Side -->
@@ -634,14 +634,33 @@
                                                 <span> {{ __('messages.void_sales') }}</span>
                                             </button>
                                         </div>
-                                        <div class="col-12">
-                                            <button type="button" class="btn btn-deafult btn-cash-upi w-100 px-3"
-                                                wire:click="cashupitoggleBox">
-                                                <span> Cash + UPI</span>
-                                                <img src="{{ asset('external/right4471-5iuh.svg') }}" alt="Right"
-                                                    style="height: 18px;" class="float-end">
-                                            </button>
-                                        </div>
+                                        @if ($branch_id == 1)
+                                            <div class="col-6">
+                                                <button type="button" class="btn btn-deafult btn-cash-upi w-100 px-3"
+                                                    wire:click="cashupitoggleBox">
+                                                    <span> Credit</span>
+                                                   
+                                                </button>
+                                            </div>
+
+                                            <div class="col-6">
+                                                <button type="button" class="btn btn-deafult btn-cash-upi w-100 px-3"
+                                                    wire:click="cashupitoggleBox">
+                                                    <span> Cash + UPI</span>
+                                                    <img src="{{ asset('external/right4471-5iuh.svg') }}"
+                                                        alt="Right" style="height: 18px;" class="float-end">
+                                                </button>
+                                            </div>
+                                        @else
+                                            <div class="col-12">
+                                                <button type="button" class="btn btn-deafult btn-cash-upi w-100 px-3"
+                                                    wire:click="cashupitoggleBox">
+                                                    <span> Cash + UPI</span>
+                                                    <img src="{{ asset('external/right4471-5iuh.svg') }}"
+                                                        alt="Right" style="height: 18px;" class="float-end">
+                                                </button>
+                                            </div>
+                                        @endif
                                     @endif
 
                                     @if (!empty($this->selectedSalesReturn))
@@ -3180,7 +3199,7 @@
     });
 
 
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function() {
 
         Livewire.on('toggleFullscreen', () => {
 
