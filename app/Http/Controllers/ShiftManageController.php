@@ -479,7 +479,7 @@ class ShiftManageController extends Controller
             $invoices = Invoice::where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->whereNotIn('status', ['Hold', 'resumed', 'archived', 'Returned'])->latest()->get();
 
             // $invoices = Invoice::where(['user_id' => $shift->user_id])->where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->whereNotIn('status', ['Hold', 'resumed', 'archived', 'Returned'])->latest()->get();
-            $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalRoundOf = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = $totalSalesQty = $totalPaidCredit = 0;
+            $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalRoundOf = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = $totalSalesQty = $totalPaidCredit = $totalCreditPaid = 0;
 
             $transaction_total = 0;
             $totalSalesNew = 0;
@@ -516,6 +516,7 @@ class ShiftManageController extends Controller
                 $discountTotal += (!empty($invoice->party_amount) && is_numeric($invoice->party_amount)) ? (int)$invoice->party_amount : 0;
 
                 $totalCashPaid += (!empty($invoice->cash_amount) && is_numeric($invoice->cash_amount)) ? (int)$invoice->cash_amount : 0;
+                $totalCreditPaid += (!empty($invoice->creditpay) && is_numeric($invoice->creditpay)) ? (int)$invoice->creditpay : 0;
 
                 $totalSubTotal += (!empty($invoice->total)) ? parseCurrency($invoice->total) : 0;
                 $totalUpiPaid  += (!empty($invoice->upi_amount)  && is_numeric($invoice->upi_amount)) ? (int)$invoice->upi_amount  : 0;
@@ -561,10 +562,11 @@ class ShiftManageController extends Controller
                 ->where('branch_id', $shift->branch_id)->whereBetween('created_at', [$shift->start_time, $shift->end_time])->sum('amount');
             $categoryTotals['payment']['CASH'] = $totalCashPaid;
             $categoryTotals['payment']['UPI PAYMENT'] =  ($totalUpiPaid + $totalOnlinePaid);
+            $categoryTotals['payment']['CREDIT'] =  ($totalCreditPaid);
             // $categoryTotals['payment']['totalSalesQty'] =  $totalSalesQty;
             // $categoryTotals['payment']['transactionTotal'] =  $transaction_total;
 
-            $categoryTotals['payment']['TOTAL'] = $totalCashPaid + ($totalUpiPaid + $totalOnlinePaid);
+            $categoryTotals['payment']['TOTAL'] = $totalCashPaid + ($totalUpiPaid + $totalOnlinePaid) + $totalCreditPaid;
             $categoryTotals['summary']['OPENING CASH'] = @$shift->opening_cash;
             $categoryTotals['summary']['CASH ADDED'] = @$cashAdded;
 

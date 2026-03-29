@@ -1,5 +1,5 @@
 @extends('layouts.backend.layouts')
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{{ asset('assets/js/jquery-3.6.0.min.js') }}"></script>
 @section('page-content')
     <!-- Wrapper Start -->
     <div class="wrapper">
@@ -81,64 +81,64 @@
     <!-- Wrapper End-->
     <script>
         let itemIndex = 1;
-    
-        document.getElementById('add-item').addEventListener('click', function () {
+
+        document.getElementById('add-item').addEventListener('click', function() {
             // Clone the first item-row
             const row = document.querySelector('.item-row').cloneNode(true);
-    
+
             // Update the name attributes for the cloned row
             row.querySelectorAll('select, input').forEach(el => {
                 const name = el.getAttribute('name');
                 const updatedName = name.replace(/\[\d+\]/, `[${itemIndex}]`);
                 el.setAttribute('name', updatedName);
-    
+
                 // Clear the value for inputs
                 if (el.tagName === 'INPUT') el.value = '';
             });
-    
+
             // Clear the availability-container for the cloned row
             const container = row.querySelector('.availability-container');
             container.innerHTML = '';
-    
+
             // Append the cloned row to the product-items container
             document.getElementById('product-items').appendChild(row);
-    
+
             // Increment the item index
             itemIndex++;
         });
-    
-        document.addEventListener('click', function (e) {
+
+        document.addEventListener('click', function(e) {
             if (e.target && e.target.classList.contains('remove-item')) {
                 if (document.querySelectorAll('.item-row').length > 1) {
                     e.target.closest('.item-row').remove();
                 }
             }
         });
-    
-        $(document).ready(function () {
+
+        $(document).ready(function() {
             // Event listener for product selection change
-            $(document).on('change', '.product-select', function () {
+            $(document).on('change', '.product-select', function() {
                 const productId = $(this).val();
                 const itemRow = $(this).closest('.item-row');
                 const container = itemRow.find('.availability-container');
                 const indexMatch = $(this).attr('name').match(/\[(\d+)\]/);
                 const itemIndex = indexMatch ? indexMatch[1] : 0;
-    
+
                 if (productId) {
                     // AJAX request to fetch product availability
                     $.ajax({
                         url: "{{ url('/products/availability') }}/" + productId,
                         type: "GET",
                         dataType: "json",
-                        success: function (data) {
+                        success: function(data) {
                             // console.log(data);
-    
+
                             let html = `<div class="row">`;
-    
-                            $.each(data, function (branchName, availableQty,id) {
-                                console.log(branchName,'1');
-                                console.log(availableQty,'22');
-                                console.log(id,'33');
+
+                            $.each(data, function(branchName, availableQty, id) {
+                                console.log(branchName, '1');
+                                console.log(availableQty, '22');
+                                console.log(id, '33');
                                 html += `
                                     <div class="col-md-6 mb-2">
                                         <div class="form-check">
@@ -157,11 +157,11 @@
                                     </div>
                                 `;
                             });
-    
+
                             html += '</div>';
                             container.html(html);
                         },
-                        error: function () {
+                        error: function() {
                             container.html(
                                 '<span class="text-danger">Failed to load availability. Please try again.</span>'
                             );
@@ -171,29 +171,30 @@
                     container.empty(); // Clear container if no product is selected
                 }
             });
-    
+
             // Enable/disable quantity input based on checkbox selection
-            $(document).on('change', '.branch-checkbox', function () {
-                const quantityInput = $(this).closest('.col-md-6').next('.col-md-6').find('.branch-quantity');
+            $(document).on('change', '.branch-checkbox', function() {
+                const quantityInput = $(this).closest('.col-md-6').next('.col-md-6').find(
+                    '.branch-quantity');
                 if ($(this).is(':checked')) {
                     quantityInput.prop('disabled', false);
                 } else {
                     quantityInput.prop('disabled', true).val(''); // Clear value when disabled
                 }
             });
-    
+
             // Validate branch quantities
-            $(document).on('input', '.branch-quantity', function () {
+            $(document).on('input', '.branch-quantity', function() {
                 const itemRow = $(this).closest('.item-row');
                 const totalRequestedQty = parseInt(itemRow.find('input[name$="[quantity]"]').val()) || 0;
                 let totalBranchQty = 0;
-    
+
                 // Calculate the total quantity across all branches
-                itemRow.find('.branch-quantity').each(function () {
+                itemRow.find('.branch-quantity').each(function() {
                     const branchQty = parseInt($(this).val()) || 0;
                     totalBranchQty += branchQty;
                 });
-    
+
                 // Check if the total branch quantity exceeds the requested quantity
                 if (totalBranchQty > totalRequestedQty) {
                     alert('The total quantity across branches cannot exceed the requested quantity.');
@@ -203,14 +204,14 @@
         });
 
 
- // Validate branch quantities
- $(document).on('input', '.branch-quantity', function () {
+        // Validate branch quantities
+        $(document).on('input', '.branch-quantity', function() {
             const itemRow = $(this).closest('.item-row');
             const totalRequestedQty = parseInt(itemRow.find('input[name$="[quantity]"]').val()) || 0;
             let totalBranchQty = 0;
 
             // Calculate the total quantity across all branches
-            itemRow.find('.branch-quantity').each(function () {
+            itemRow.find('.branch-quantity').each(function() {
                 const branchQty = parseInt($(this).val()) || 0;
                 totalBranchQty += branchQty;
             });
@@ -223,12 +224,12 @@
         });
 
         // Form submission validation
-        $('form').on('submit', function (e) {
+        $('form').on('submit', function(e) {
             let isValid = true;
             let hasSelectedProduct = false;
 
             // Validate each product row
-            $('.item-row').each(function () {
+            $('.item-row').each(function() {
                 const productSelect = $(this).find('.product-select');
                 const quantityInput = $(this).find('input[name$="[quantity]"]');
                 const totalRequestedQty = parseInt(quantityInput.val()) || 0;
@@ -247,7 +248,7 @@
 
                 // Validate branch quantities
                 let totalBranchQty = 0;
-                $(this).find('.branch-quantity').each(function () {
+                $(this).find('.branch-quantity').each(function() {
                     const branchQty = parseInt($(this).val()) || 0;
                     if ($(this).prop('disabled') === false && branchQty <= 0) {
                         alert('Branch quantities must be greater than zero.');
