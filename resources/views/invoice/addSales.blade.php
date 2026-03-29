@@ -71,7 +71,9 @@
                                         @foreach ($allProducts as $product)
                                             <option value="{{ $product->id }}" data-name="{{ $product->name }}"
                                                 data-mrp="{{ $product->mrp }}" data-sell_price="{{ $product->sell_price }}"
-                                                data-discount="{{ $product->discount_price }}">
+                                                data-discount="{{ $product->discount_price }}"
+                                                data-category="{{ $product->category->name }}"
+                                                data-subcategory="{{ $product->subcategory->name }}">
                                                 {{ $product->name }}
                                             </option>
                                         @endforeach
@@ -142,8 +144,8 @@
                                 <div class="p-3">
                                     <h5 class="mb-3">Order Details</h5>
                                     <input type="hidden" id="total_discount" name="total_discount" value="0">
-                                    <input type="hidden" id="gr_total" name="total" value="0">
-                                    <input type="hidden" id="sub_total" name="sub_total" value="0">
+                                    <input type="hidden" id="gr_total" name="sub_total" value="0">
+                                    <input type="hidden" id="sub_total" name="total" value="0">
                                     <input type="hidden" id="left_credit_id" value="0">
 
                                     <div class="mb-2 d-flex justify-content-between">
@@ -353,7 +355,7 @@
                     grandTotal += rowTotal;
                 });
 
-                $('#total').text(Math.ceil(grandTotal));
+                $('#total').text(Math.ceil(totalSellPrice));
                 $('#grand-total').text(Math.ceil(grandTotal));
 
                 if (partyId || commissionId) {
@@ -364,6 +366,7 @@
 
                 $('#total_discount').val(discountTotal);
                 $('#gr_total').val(totalSellPrice);
+                
                 $('#sub_total').val(grandTotal);
 
                 $('#cash-amount').val(Math.ceil(grandTotal));
@@ -471,6 +474,9 @@
                                         <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
                                         <input type="hidden" name="items[${itemIndex}][sell_price]" value="${sell_price}">
                                         <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
+                                         <input type="hidden" name="items[${itemIndex}][category]" value="${category}">
+                                                <input type="hidden" name="items[${itemIndex}][subcategory]" value="${subcategory}">
+                                                
                                         <input type="hidden" name="items[${itemIndex}][price]" class="item_total_price" value="${Math.ceil(sell_price * qty)}">
                                     </td>
                                     <td>
@@ -505,6 +511,8 @@
                                         <input type="hidden" name="items[${itemIndex}][name]" value="${name}">
                                         <input type="hidden" name="items[${itemIndex}][sell_price]" value="${sell_price}">
                                         <input type="hidden" name="items[${itemIndex}][mrp]" value="${mrp}">
+                                          <input type="hidden" name="items[${itemIndex}][category]" value="${category}">
+                                                <input type="hidden" name="items[${itemIndex}][subcategory]" value="${subcategory}">
                                         <input type="hidden" name="items[${itemIndex}][price]" class="item_total_price" value="${Math.ceil(sell_price * qty)}">
                                     </td>
                                     <td>

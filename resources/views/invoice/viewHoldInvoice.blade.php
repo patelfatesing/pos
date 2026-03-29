@@ -3,7 +3,7 @@
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ asset('assets/js/jquery-3.6.0.min.js') }}"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <style>
         @media print {
@@ -122,7 +122,7 @@
                                                         @php
                                                             $item['price'] = $item['mrp'] * $item['quantity'];
                                                             $total += (float) $item['price'];
-                                                            
+
                                                         @endphp
                                                         <tr>
                                                             <th class="text-center" scope="row">{{ $i + 1 }}
@@ -192,9 +192,7 @@
                                                 <h3 class="text-primary font-weight-700">
                                                     @if ($invoice->roundof > 0)
                                                         @php
-                                                            $cleanTotal = floatval(
-                                                                str_replace(',', '', $total ?? 0),
-                                                            );
+                                                            $cleanTotal = floatval(str_replace(',', '', $total ?? 0));
                                                             $cleanRoundof = floatval(
                                                                 str_replace(',', '', $invoice->roundof ?? 0),
                                                             );
@@ -221,9 +219,7 @@
                                                         ₹{{ number_format($grandTotal, 2) }}
                                                     @else
                                                         @php
-                                                            $cleanTotal = floatval(
-                                                                str_replace(',', '', $total ?? 0),
-                                                            );
+                                                            $cleanTotal = floatval(str_replace(',', '', $total ?? 0));
 
                                                             $commission_amount = floatval(
                                                                 str_replace(',', '', $invoice->commission_amount ?? 0),

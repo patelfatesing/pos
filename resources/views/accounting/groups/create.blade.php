@@ -1,5 +1,4 @@
 @extends('layouts.backend.layouts')
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 @section('page-content')
     <div class="wrapper">
         <div class="content-page">
@@ -14,7 +13,7 @@
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="card">
-                        
+
                             <div class="card-body">
                                 @if ($errors->any())
                                     <div class="alert alert-danger">{{ $errors->first() }}</div>

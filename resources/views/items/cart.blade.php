@@ -1,7 +1,7 @@
 @extends('layouts.backend.cart')
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
-<script src="../assets/js/jquery-3.6.0.min.js"></script>
+<script src="{{ asset('assets/js/jquery-3.6.0.min.js')}}"></script>
 <!-- Bootstrap 5 CSS ddd-->
 
 <!-- Bootstrap 5 JS with Popper included -->

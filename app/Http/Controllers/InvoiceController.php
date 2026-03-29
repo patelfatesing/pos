@@ -126,7 +126,18 @@ class InvoiceController extends Controller
     public function addSales($branchId, $shift_id)
     {
 
-        $allProducts = Product::select('id', 'name', 'mrp', 'discount_price', 'sell_price')->where('is_deleted', 'no')->get();
+        $allProducts = Product::select(
+            'id',
+            'name',
+            'mrp',
+            'discount_price',
+            'sell_price',
+            'category_id',
+            'subcategory_id'
+        )
+            ->where('is_deleted', 'no')
+            ->with(['category', 'subcategory'])
+            ->get();
 
         $Shift_data = ShiftClosing::find($shift_id);
         $branch_data = Branch::find($branchId);
@@ -657,7 +668,7 @@ class InvoiceController extends Controller
 
     public function InsertSale(Request $request)
     {
-
+    
         $validated = $request->validate([
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|integer',
