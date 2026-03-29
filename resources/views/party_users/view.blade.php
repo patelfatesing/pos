@@ -1,5 +1,4 @@
 @extends('layouts.backend.datatable_layouts')
-<script src="{{ asset('assets/js/jquery-3.6.0.min.js')}}"></script>
 @section('page-content')
     <div class="content-page">
         <div class="container-fluid add-form-list">
@@ -204,7 +203,7 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
-
+            alert('asasdasd');
             const customer_id = {{ $partyUser->id }};
 
             $.ajaxSetup({

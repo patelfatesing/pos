@@ -190,8 +190,10 @@ class ShiftCloseModal extends Component
         $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = $totalRoundOf = $totalPaidCredit = 0;
 
         $this->categoryTotals = [];
-        $this->totalInvoicedAmount = \App\Models\Invoice::where('user_id', auth()->user()->id)
-            ->where('branch_id', $branch_id)
+        // $this->totalInvoicedAmount = \App\Models\Invoice::where('user_id', auth()->user()->id)
+        //     ->where('branch_id', $branch_id)
+        //     ->sum('total');
+        $this->totalInvoicedAmount = \App\Models\Invoice::where('branch_id', $branch_id)
             ->sum('total');
         // ✅ Initialize totals to 0 for all expected categories
 
@@ -212,7 +214,8 @@ class ShiftCloseModal extends Component
             ->first();
 
         // $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->where('status', '!=', 'Hold')->where('invoice_number', 'not like', '%Hold%')->latest()->get();
-        $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->whereNotIn('status', ['Hold', 'resumed', 'archived', 'Returned'])->latest()->get();
+        $invoices = Invoice::where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->whereNotIn('status', ['Hold', 'resumed', 'archived', 'Returned'])->latest()->get();
+        //  $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->whereNotIn('status', ['Hold', 'resumed', 'archived', 'Returned'])->latest()->get();
         $totalSalesNew = 0;
         foreach ($invoices as $invoice) {
             $items = $invoice->items; // decode items from longtext JSON
@@ -230,7 +233,7 @@ class ShiftCloseModal extends Component
                     if (!empty($item['subcategory'])) {
 
                         $category =  Str::upper($item['subcategory'])  ?? 'Unknown';
-                        $amount = $item['price'] ?? 0;
+                        $amount = (float) str_replace(',', '', $item['price']) ?? 0;
 
                         if (!isset($this->categoryTotals['sales'][$category])) {
                             $this->categoryTotals['sales'][$category] = 0;

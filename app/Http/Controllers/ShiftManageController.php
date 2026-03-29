@@ -486,7 +486,7 @@ class ShiftManageController extends Controller
             foreach ($invoices as $invoice) {
                 $transaction_total += $transaction_total;
                 $items = $invoice->items; // decode items from longtext JSON
-
+  
                 if (is_string($items)) {
                     $items = json_decode($items, true); // decode if not already an array
                 }
@@ -509,7 +509,7 @@ class ShiftManageController extends Controller
                         $totalSalesQty += $item['quantity'] ?? 0;
                     }
                 }
-
+  
                 $closing_sales = @$categoryTotals['sales'];
                 // $discountTotal += ($invoice->commission_amount ?? 0) + ($invoice->party_amount ?? 0);
                 $discountTotal += (!empty($invoice->commission_amount) && is_numeric($invoice->commission_amount)) ? (int)$invoice->commission_amount : 0;
@@ -541,6 +541,7 @@ class ShiftManageController extends Controller
                 }
             }
 
+            
             $creditCollacted = \DB::table('credit_collections')
                 ->selectRaw('
             SUM(cash_amount) as collacted_cash_amount,
