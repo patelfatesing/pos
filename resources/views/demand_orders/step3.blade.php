@@ -14,7 +14,7 @@
                 <div class="row">
                     <div class="col-sm-12 col-lg-12">
                         <div class="iq-card">
-                            
+
                             <div class="iq-card-body">
                                 <form action="{{ route('demand-order.step3') }}" method="POST">
                                     @csrf
@@ -96,7 +96,7 @@
                                                         @endphp
                                                         @foreach ($selectedProducts as $item)
                                                             @php
-                                                           
+
                                                                 $product = $item['product_details'];
                                                                 $srNo++;
                                                             @endphp
@@ -172,7 +172,7 @@
     <!-- Wrapper End -->
 @endsection
 
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="{{ asset('assets/js/jquery-3.7.1.min.js') }}"></script>
 <script>
     $(document).ready(function() {
 

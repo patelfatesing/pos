@@ -19,7 +19,7 @@
                 <div class="row">
                     <div class="col-sm-12 col-lg-12">
                         <div class="iq-card">
-                          
+
                             <div class="iq-card-body">
                                 <form id="form-wizard1" class="text-center mt-4">
                                     <ul id="top-tab-list" class="p-0">
@@ -74,4 +74,4 @@
 
         <!-- Wrapper End -->
     @endsection
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="{{ asset('assets/js/jquery-3.7.1.min.js') }}"></script>

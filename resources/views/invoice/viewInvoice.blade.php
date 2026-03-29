@@ -175,14 +175,14 @@
                                                             </td>
                                                             <td class="text-center">{{ $item['quantity'] }}</td>
                                                             <td class="text-center">
-                                                                @if ($item['mrp'] > $item['price'])
+                                                                @if ($item['sell_price'] > $item['mrp'])
                                                                     <span
                                                                         style="text-decoration: line-through; color: #999;">
-                                                                        ₹{{ number_format($item['mrp'], 2) }}
+                                                                        ₹{{ number_format($item['sell_price'], 2) }}
                                                                     </span>
                                                                     <br>
                                                                     <span class="text-success font-weight-bold">
-                                                                        ₹{{ number_format($item['sell_price'], 2) }}
+                                                                       ₹{{ number_format((float) str_replace(',', '', $item['mrp']), 2) }}
                                                                     </span>
                                                                 @else
                                                                     <span class="font-weight-bold">
