@@ -937,6 +937,8 @@ class Shoppingcart extends Component
                     'quantity' => $item->quantity,
                     'price' => $item->net_amount,
                     'mrp' => $item->mrp,
+                    'sell_price' => $item->product->discount_price,
+                    'discount_price' => $item->product->discount_price,
                 ]),
                 'cash_amount' => $this->cashAmount,
                 'status' => 'Refunded',
@@ -1783,6 +1785,8 @@ class Shoppingcart extends Component
                         'subcategory' => $item->product->subcategory->name,
                         'price' => $item->net_amount,
                         'mrp' => $item->mrp,
+                        'sell_price' => $item->product->discount_price,
+                        'discount_price' => $item->product->discount_price,
                     ]),
                     'sub_total' => $this->cashAmount,
                     'tax' => $this->tax,
@@ -2844,6 +2848,8 @@ class Shoppingcart extends Component
                         'subcategory' => $item->product->subcategory->name,
                         'price' => $item->net_amount,
                         'mrp' => $item->mrp,
+                        'sell_price' => $item->product->discount_price,
+                        'discount_price' => $item->product->discount_price,
                     ]),
                     'total_item_qty' => $totalQuantity,
                     'total_item_total' => $total_item_total,
@@ -3373,7 +3379,8 @@ class Shoppingcart extends Component
                 'subcategory' => $item->product->subcategory->name,
                 'price' => $item->net_amount,
                 'mrp' => $item->mrp,
-
+                'sell_price' => $item->product->discount_price,
+                'discount_price' => $item->product->discount_price,
             ];
         })->toArray();
         $invoiceItems = $lastInvoice->items;
@@ -3598,7 +3605,8 @@ class Shoppingcart extends Component
                 'subcategory' => $item->product->subcategory->name,
                 'price' => $item->net_amount,
                 'mrp' => $item->mrp,
-
+                'sell_price' => $item->product->discount_price,
+                'discount_price' => $item->product->discount_price,
             ]),
             'refund_credit_amount' => $this->creditPay,
             'store_id' => $branch_id,
@@ -3756,6 +3764,8 @@ class Shoppingcart extends Component
                         'subcategory' => $item->product->subcategory->name,
                         'price' => $item->net_amount,
                         'mrp' => $item->mrp,
+                        'sell_price' => $item->product->discount_price,
+                        'discount_price' => $item->product->discount_price,
                     ]),
                     'total_item_qty' => $totalQuantity,
                     'total_item_total' => $total_item_total,
@@ -3772,7 +3782,7 @@ class Shoppingcart extends Component
                     'party_amount' => $this->partyAmount,
                     'total' => $this->cashAmount,
                     'cash_break_id' => null,
-                    'shift_id' =>$this->shift_id
+                    'shift_id' => $this->shift_id
                 ]
             );
 

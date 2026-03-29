@@ -168,8 +168,7 @@
     <!-- Wrapper End -->
 @endsection
 
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script></script>
+<script src="{{ asset('assets/js/jquery-3.7.1.min.js') }}"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

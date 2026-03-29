@@ -1,9 +1,7 @@
 @extends('layouts.backend.layouts')
 
 @section('page-content')
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
-
+    <script src="{{ asset('assets/js/jquery-3.7.1.min.js') }}"></script>
     <style>
         /* ================= TALLY STYLE ================= */
         #linesTable {
@@ -500,9 +498,11 @@
 
                                                             <select name="lines[{{ $i }}][dc]"
                                                                 class="dc-select">
-                                                                <option value="Dr" {{ $line->dc == 'Dr' ? 'selected' : '' }}>
+                                                                <option value="Dr"
+                                                                    {{ $line->dc == 'Dr' ? 'selected' : '' }}>
                                                                     By</option>
-                                                                <option value="Cr" {{ $line->dc == 'Cr' ? 'selected' : '' }}>
+                                                                <option value="Cr"
+                                                                    {{ $line->dc == 'Cr' ? 'selected' : '' }}>
                                                                     To</option>
                                                             </select>
                                                         </td>

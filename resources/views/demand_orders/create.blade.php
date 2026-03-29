@@ -69,8 +69,8 @@
                                                         <select name="product_select" id="product_select"
                                                             class="form-control">
                                                             <option value="">-- Select Product --</option>
-                                                            <option value="7">Last 
-                                                                
+                                                            <option value="7">Last
+
                                                             </option>
                                                         </select>
                                                         @error('product_select')
@@ -188,12 +188,10 @@
             </div>
         </div>
     </div>
-
-
     <!-- Wrapper End -->
 @endsection
 
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="{{ asset('assets/js/jquery-3.7.1.min.js') }}"></script>
 <script>
     $(document).ready(function() {
 
