@@ -732,12 +732,14 @@
 
         function onVendorChange(vendorId) {
 
+            const subcatId = $('#subcategories').val();
+
             $('.vendor-fields').addClass('d-none');
             $('.vendor-common').hide();
             $('.excise-section').addClass('d-none');
             $('.excise-duty-80-20').addClass('d-none');
 
-            // Show excise for vendor 1 & 2
+            // Show excise section for vendor 1 & 2
             if (vendorId === '1' || vendorId === '2') {
                 $('#license-ledger-box').removeClass('d-none');
                 $('.excise-section').removeClass('d-none');
@@ -750,20 +752,33 @@
                 $('#vendor-1-fields').removeClass('d-none');
                 $('.vendor-common').show();
 
-                updateExciseSection();
+                // ✅ ONLY show excise fee fields
+                $('#permit_fee_excise').closest('.col-md-6').removeClass('d-none');
+                $('#vend_fee_excise').closest('.col-md-6').removeClass('d-none');
+                $('#composite_fee_excise').closest('.col-md-12').removeClass('d-none');
+
+                $('.excise-duty-80-20').addClass('d-none');
 
             } else if (vendorId === '2') {
 
                 $('#vendor-2-fields').removeClass('d-none');
                 $('.vendor-common').show();
 
-                // ✅ show only vendor 2
-                $('.excise-duty-80-20').removeClass('d-none');
+                // ✅ Hide normal excise fields
+                $('#permit_fee_excise').closest('.col-md-6').addClass('d-none');
+                $('#vend_fee_excise').closest('.col-md-6').addClass('d-none');
+                $('#composite_fee_excise').closest('.col-md-12').addClass('d-none');
+
+                // ✅ Show ONLY when subcategory = 3
+                if (subcatId === '3') {
+                    $('.excise-duty-80-20').removeClass('d-none');
+                } else {
+                    $('.excise-duty-80-20').addClass('d-none');
+                }
 
             } else if (vendorId) {
 
                 $('#vendor-others-fields').removeClass('d-none');
-
             }
 
             calculateProductTotals();
@@ -928,6 +943,8 @@
         $('#subcategories').on('change', function() {
 
             const subcatId = $(this).val();
+            const vendorId = $('#vendor_id').val();
+            onVendorChange(vendorId); // 🔥 re-run logic
             if (!subcatId) return;
 
             $.ajax({

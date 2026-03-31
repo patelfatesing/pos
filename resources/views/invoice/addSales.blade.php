@@ -188,6 +188,10 @@
                                             <input type="radio" id="cash-upi-option" name="payment_method"
                                                 value="cashupi">
                                             <label for="cash-upi-option">Cash + UPI</label>
+                                                <input type="radio" id="credit-option" name="payment_method" value="credit"
+                                            >
+                                            
+<label for="credit-option">Credit</label>
                                         </div>
                                     </div>
 
@@ -639,6 +643,14 @@
                 // Existing credit validation
                 const creditLimit = $("#left_credit_id").val();
                 const creditPay = parseFloat($('input[name="creditpay"]').val()) || 0;
+                const paymentMethod = $('input[name="payment_method"]:checked').val();
+                const grandTotal = parseFloat($('#grand-total').text()) || 0;
+
+                if (paymentMethod === 'credit' && creditPay < grandTotal) {
+                    e.preventDefault();
+                    Swal.fire("Error", "Full amount must be paid via credit.", "error");
+                    return false;
+                }
 
                 if (creditPay > creditLimit) {
                     e.preventDefault();
@@ -773,7 +785,7 @@
                 let commissionId = $('#commission-id').val();
                 let creditPay = parseFloat($('#creditpay-input').val()) || 0;
 
-                // ✅ APPLY CREDIT IF PARTY/COMMISSION
+                // Apply credit deduction
                 if (partyId || commissionId) {
                     total = total - creditPay;
                 }
@@ -790,19 +802,17 @@
                     $('#cash-amount').val(Math.ceil(total));
                     $('#cash-amount').prop('readonly', true);
 
-                    $('#upi-amount').prop('readonly', true);
-
-                } else if (selectedPaymentMethod === 'online') {
+                } 
+                else if (selectedPaymentMethod === 'online') {
 
                     $('#cash-field').hide();
                     $('#upi-field').show();
 
-                    $('#upi-amount').val(total);
+                    $('#upi-amount').val(Math.ceil(total));
                     $('#upi-amount').prop('readonly', true);
 
-                    $('#cash-amount').prop('readonly', true);
-
-                } else if (selectedPaymentMethod === 'cashupi') {
+                } 
+                else if (selectedPaymentMethod === 'cashupi') {
 
                     $('#cash-field').show();
                     $('#upi-field').show();
@@ -812,6 +822,26 @@
 
                     $('#cash-amount').prop('readonly', false);
                     $('#upi-amount').prop('readonly', false);
+                } 
+                else if (selectedPaymentMethod === 'credit') {
+
+                    // ✅ CREDIT FULL PAYMENT
+
+                    $('#cash-field').hide();
+                    $('#upi-field').hide();
+
+                    // Set full credit
+                    $('#creditpay-input').val(Math.ceil(total));
+
+                    // Optional: lock input
+                    $('#creditpay-input').prop('readonly', true);
+                }
+
+            });
+
+            $('input[name="payment_method"]').on('change', function () {
+                if ($(this).val() !== 'credit') {
+                    $('#creditpay-input').prop('readonly', false);
                 }
             });
 

@@ -40,7 +40,7 @@
                         <i class="fa fa-edit"></i> Add Trasaction
                     </a>
                 </div>
-                <div  >
+                <div>
 
                     <a href="{{ route('shift-manage.list') }}" class="btn btn-secondary">Back</a>
                 </div>
@@ -90,6 +90,29 @@
                 </table>
             </div>
 
+        </div>
+    </div>
+
+    <!-- Invoice History Modal -->
+    <div class="modal fade" id="invoiceHistoryModal" tabindex="-1" aria-labelledby="invoiceHistoryModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+            
+                <div class="modal-header">
+                    <h5 class="modal-title" id="lowLevelModalLabel">Invoice Activity History</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body" id="invoice-history-content">
+                    <div class="text-center p-4">
+                        <span class="spinner-border text-secondary"></span>
+                        <p>Loading...</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
@@ -296,6 +319,28 @@
             // FILTER EVENTS
             $('#party_user_id, #commission_user_id').change(function() {
                 table.draw();
+            });
+
+            // Attach event using delegation
+            $(document).on('click', '.view-history-btn', function() {
+                const invoiceId = $(this).data('invoice-id');
+
+                var myModal = new bootstrap.Modal(document.getElementById('invoiceHistoryModal'));
+                myModal.show();
+
+                $('#invoice-history-content').html(`
+                    <div class="text-center p-4">
+                        <span class="spinner-border text-secondary"></span>
+                        <p>Loading...</p>
+                    </div>
+                `);
+
+                $.get('{{ url('invoice') }}/' + invoiceId + '/history', function(response) {
+                    $('#invoice-history-content').html(response);
+                }).fail(function() {
+                    $('#invoice-history-content').html(
+                        `<p class="text-danger">Failed to load history.</p>`);
+                });
             });
 
         });

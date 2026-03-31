@@ -206,10 +206,10 @@ class ShiftCloseModal extends Component
             ->first();
         $this->creditCollacted = \DB::table('credit_collections')
             ->selectRaw('
-        SUM(cash_amount) as collacted_cash_amount,
-        SUM(online_amount) as collacted_online_amount,
-        SUM(upi_amount) as collacted_upi_amount
-        ')
+                SUM(cash_amount) as collacted_cash_amount,
+                SUM(online_amount) as collacted_online_amount,
+                SUM(upi_amount) as collacted_upi_amount
+                ')
             ->whereBetween('created_at', [$start_date, $end_date])
             ->first();
 
@@ -285,6 +285,7 @@ class ShiftCloseModal extends Component
                 }
             }
         }
+
         $this->todayCash = $totalPaid;
         $this->categoryTotals['sales']["TOTAL"] = $totalSalesNew;
         $cashAdded = CashBreakdown::where('user_id', auth()->id())
@@ -507,8 +508,9 @@ class ShiftCloseModal extends Component
                                 'quantity' => $one_time_sale,
                                 'category' => optional($productData->category)->name,
                                 'subcategory' => optional($productData->subcategory)->name,
-                                'price' => $productData->sell_price,
-                                'mrp' => $productData->mrp
+                                'price' => $one_time_sale * $productData->sell_price,
+                                'mrp' => $productData->mrp,
+                                'sell_price' => $productData->sell_price
                             ];
 
                             $sale_total += $one_time_sale * $productData->sell_price;
@@ -564,9 +566,9 @@ class ShiftCloseModal extends Component
                 'tax'                => 0,
                 'sales_type'         => 'one_time',
                 'created_at' => now()->format('Y-m-d H:i:s'),
-                'updated_at' => now()->format('Y-m-d H:i:s')
+                'updated_at' => now()->format('Y-m-d H:i:s'),
+                'shift_id' => $this->currentShift->id
             ]);
-
 
             $query = DailyProductStock::with('product')
                 ->where('branch_id', $branch_id)

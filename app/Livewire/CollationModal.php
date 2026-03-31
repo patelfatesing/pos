@@ -319,6 +319,13 @@ class CollationModal extends Component
             ]);
         }
 
+        $case_amt = 0;
+        if (!$this->inOutStatus) {
+            $case_amt = $collectedAmount;
+        } else {
+            $case_amt = $totalIn - $totalOut;
+        }
+
         // Optional: log this as a payment/collection entry
         \App\Models\CreditCollection::create([
             'party_user_id' => $user->id,
@@ -327,7 +334,7 @@ class CollationModal extends Component
             'amount' => $collectedAmount,
             'upi_amount' => $this->upiAmount,
             'online_amount' => $this->onlineAmount,
-            'cash_amount' => $totalIn - $totalOut,
+            'cash_amount' => $case_amt,
             'collected_by' => auth()->id(),
             'note_data' => json_encode($this->cashNotes),
             'created_at' => now(),

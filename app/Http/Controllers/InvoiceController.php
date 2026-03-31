@@ -453,7 +453,7 @@ class InvoiceController extends Controller
 
         // UPI
         if ($upiPaid > 0) {
-            $branchData = Branch::where('id', $branchId)
+            $branchData = Branch::where('branches.id', $branchId)
                 ->leftJoin('account_ledgers', 'branches.bank_ledger_id', '=', 'account_ledgers.id')
                 ->select('account_ledgers.name as bank_ledger_name')
                 ->first();

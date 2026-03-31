@@ -637,9 +637,8 @@
                                         @if ($branch_id == 1)
                                             <div class="col-6">
                                                 <button type="button" class="btn btn-deafult btn-cash-upi w-100 px-3"
-                                                    wire:click="cashupitoggleBox">
+                                                    wire:click="creditoggleBox">
                                                     <span> Credit</span>
-                                                   
                                                 </button>
                                             </div>
 
@@ -647,8 +646,8 @@
                                                 <button type="button" class="btn btn-deafult btn-cash-upi w-100 px-3"
                                                     wire:click="cashupitoggleBox">
                                                     <span> Cash + UPI</span>
-                                                    <img src="{{ asset('external/right4471-5iuh.svg') }}"
-                                                        alt="Right" style="height: 18px;" class="float-end">
+                                                    {{-- <img src="{{ asset('external/right4471-5iuh.svg') }}"
+                                                        alt="Right" style="height: 18px;" class="float-end"> --}}
                                                 </button>
                                             </div>
                                         @else
@@ -697,11 +696,22 @@
                         <div class="row text-center align-items-center">
                             <div class="col-4 border-end fs-4 fw-bold tbody-txt text-custom-blue">
                                 {{ $this->cartCount }}</div>
-                            <div class="col-4 border-end fs-4 fw-bold tbody-txt text-custom-blue">@php
+                              
+                            <div class="col-4 border-end fs-4 fw-bold tbody-txt text-custom-blue">
+                            @php
+                                if($this->paymentType == 'credit'){
+                                   
+                                $this->roundedTotal =
+                                    (float) $this->creditPay -
+                                    round($this->cartItemTotalSum); 
+                                }else{
+
                                 $this->roundedTotal =
                                     (float) $this->cashAmount +
                                     (float) $this->creditPay -
                                     round($this->cartItemTotalSum);
+                                }
+
                             @endphp
                                 {{ $this->roundedTotal }}
                                 <input type="hidden" id="roundedTotal" value="{{ $this->roundedTotal }}"
@@ -2017,6 +2027,108 @@
         </div>
     </div>
 
+    <div wire:ignore.self class="modal fade" id="creditModal" tabindex="-1" aria-labelledby="creditModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+
+                <div class="modal-header custom-modal-header">
+                    <span class="cash-summary-text61 modal-title">{{ $this->headertitle }}
+                        {{ __('messages.summary') }}</span>
+                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="cashupi-payment">
+                        <form onsubmit="event.preventDefault(); " class="needs-validation" novalidate>
+
+
+                            <div class="cash-summary-frame282">
+                                <div class="d-flex justify-content-between ">
+                                    {{ __('messages.subtotal') }}
+                                    <span>{{ format_inr($sub_total) }}</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between ">
+                                    {{ __('messages.commission_deduction') }}
+                                    <span>- {{ format_inr($partyAmount) }}</span>
+                                </div>
+                                @php
+                                    $availableCredit =
+                                        ($this->partyUserDetails->credit_points ?? 0) -
+                                        ($this->partyUserDetails->use_credit ?? 0);
+                                @endphp
+                                @if ($availableCredit < $this->cashAmount)
+                                    <p class="text-danger fw-bold mt-2">
+                                        Credit limit exceeded. Please use another payment method.
+                                    </p>
+                                @endif
+                               
+                                <div class="d-flex justify-content-between align-items-center credit-note">
+                                    <label class="mb-0">
+                                        {{ __('messages.credit') }}
+                                    </label>
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-primary fs-6 me-2">
+                                            {{ __('messages.available_credit') }}:
+                                            {{ number_format(($this->partyUserDetails->credit_points ?? 0) - ($this->partyUserDetails->use_credit ?? 0), 2) }}
+                                        </span>
+                                        <input type="number" value="{{ $cashAmount }}" disabled
+                                            class="form-control" style="width: 100px;" />
+                                        <input type="hidden" value="{{ $cashAmount }}" name="credit_amount"
+                                            class="form-control" style="width: 100px;" />
+                                    </div>
+                                </div>
+
+
+                                {{-- @endif --}}
+                                <div class="d-flex justify-content-between">
+                                    {{ __('messages.tendered_amount') }}
+                                    <span>{{ format_inr($this->cashAmount) }}</span>
+
+                                </div>
+                            </div>
+                            <p id="result" class="mt-3 fw-bold text-success"></p>
+                            <div class="row align-items-end">
+                                <div class="col-md-3">
+                                    <input type="hidden" wire-model="paymentType">
+                                    <input type="hidden" id="actualCash"
+                                        class="border rounded w-full p-2 bg-gray-100"
+                                        value="{{ $this->cashAmount }}" readonly>
+                                    @php
+                                        $this->cash = $totalAmount;
+                                        $this->upi = $this->cashAmount - $totalAmount;
+
+                                    @endphp
+
+                                </div>
+
+                                <div class="col-md-3 offset-md-6">
+
+                                    @if (!$inOutStatus && $availableCredit >= $this->cashAmount)
+                                        <button id="paymentSubmit"
+                                            class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
+                                            wire:click="checkoutCredit" wire:loading.attr="disabled"
+                                            wire:target="checkoutCredit">
+
+                                            <span wire:loading.remove wire:target="checkoutCredit">
+                                                {{ __('messages.submit') }}
+                                            </span>
+                                            <span wire:loading wire:target="checkoutCredit">
+                                                Loading...
+                                            </span>
+                                        </button>
+                                    @endif
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div wire:ignore.self class="modal fade" id="stockDetailsModal" tabindex="-1"
         aria-labelledby="stockDetailsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -2309,6 +2421,11 @@
         modal.show();
     });
 
+    window.addEventListener('credit-modal', event => {
+        const modal = new bootstrap.Modal(document.getElementById('creditModal'));
+        modal.show();
+    });
+
     window.addEventListener('stock-status-modal', event => {
         const modal = new bootstrap.Modal(document.getElementById('stockDetailsModal'));
         modal.show();
@@ -2349,6 +2466,22 @@
 
     window.addEventListener('hide-cash-upi-modal', event => {
         const modalEl = document.getElementById('caseUpiModal');
+        const modal = new bootstrap.Modal(modalEl);
+        modal.hide();
+        // Hide modal element
+        modalEl.style.display = 'none';
+        modalEl.classList.remove('show');
+        modalEl.setAttribute('aria-hidden', 'true');
+        // Remove backdrop manually
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => backdrop.remove());
+        // Remove 'modal-open' class from body to restore scroll
+        document.body.classList.remove('modal-open');
+        document.body.style.paddingRight = '';
+    });
+
+        window.addEventListener('hide-credit-modal', event => {
+        const modalEl = document.getElementById('creditModal');
         const modal = new bootstrap.Modal(modalEl);
         modal.hide();
         // Hide modal element

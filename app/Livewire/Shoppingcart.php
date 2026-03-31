@@ -776,6 +776,50 @@ class Shoppingcart extends Component
         }
     }
 
+    public function creditoggleBox()
+    {
+        $this->dispatch('setNotes');
+
+        $partyUserImage = PartyUserImage::where('party_user_id', $this->selectedPartyUser)->where('type', 'hold')->first(["image_path", "product_image_path"]);
+        if (!empty($partyUserImage)) {
+            $this->issavehold = true;
+        }
+
+        $warehouse_product_photo_path = session(auth()->id() . '_warehouse_product_photo_path', []);
+        $warehouse_customer_photo_path = session(auth()->id() . '_warehouse_customer_photo_path', []);
+        if (empty($this->selectedPartyUser) && (empty($partyUserImage))) {
+            $this->dispatch('notiffication-error', ['message' => 'Please selecte party customer.']);
+        } else if (empty($partyUserImage->image_path) && empty($partyUserImage->product_image_path) && $this->removeCrossHold == true) {
+            $this->dispatch('notiffication-error', ['message' => 'Ple2ase upload both product,customer images first.']);
+        } else if ((empty($warehouse_product_photo_path) || empty($warehouse_customer_photo_path)) && $this->removeCrossHold == false) {
+            $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
+        } else {
+
+            if (!empty($this->cartitems->toArray())) {
+                $this->showBox = false;
+                $this->showOnline = false;
+                $this->shoeCashUpi = true;
+                $this->paymentType = "credit";
+                $this->headertitle = "Credit";
+                $this->total = $this->cashAmount;
+                $this->useCredit = false;
+                $this->showCheckbox = false;
+
+                $this->useCredit = $this->cashAmount;
+                $this->creditPay = $this->cashAmount;
+                $this->partyUserDetails = Partyuser::where('status', 'Active')->where('is_delete', '!=', 'Yes')->find($this->selectedPartyUser);
+                if ($this->selectedSalesReturn) {
+                    $this->creditPay = $this->selectedSalesReturn->creditpay;
+                    $this->creditPayChanged();
+                }
+
+                $this->dispatch('credit-modal');
+            } else {
+                $this->dispatch('notiffication-error', ['message' => 'Add minimum one product.']);
+            }
+        }
+    }
+
     public function stockStatus($id)
     {
 
@@ -2864,6 +2908,586 @@ class Shoppingcart extends Component
                     'invoice_status' => ($this->creditPay == 0) ? "paid" : "unpaid",
                     'commission_amount' => $this->commissionAmount,
                     'party_amount' => $this->partyAmount,
+                    'total' => $this->cashAmount + $this->creditPay,
+                    'cash_break_id' => $cashBreakdown->id,
+                    'sales_type' => $saleType,
+                    'shift_id' => $this->shift_id
+                ]
+            );
+
+            // ------------------- POS VOUCHER BUILD -------------------
+
+            $branchId = $branch_id;
+
+            // 0) Init
+            $lines              = [];
+            $cashLedgerId       = null;
+            $customer_ledger_id = null;
+
+            // ============= 1) Tenders (Cash + UPI) =============
+
+            $cashPaid = round((float) $this->cash, 2);       // from your POS screen
+            $upiPaid  = round((float) $this->upi, 2);        // from your POS screen
+
+            // cash
+            if ($cashPaid > 0) {
+                $cashLedger = AccountLedger::where('name', 'CASH')->firstOrFail();
+                $cashLedgerId = $cashLedger->id;
+
+                $lines[] = [
+                    'ledger_id'      => (int) $cashLedgerId,
+                    'dc'             => 'Dr',
+                    'amount'         => $cashPaid,
+                    'line_narration' => 'Cash received',
+                ];
+            }
+
+            // upi
+            if ($upiPaid > 0) {
+                $branchData = Branch::where('branches.id', $branch_id)
+                    ->leftJoin('account_ledgers', 'branches.bank_ledger_id', '=', 'account_ledgers.id')
+                    ->select(
+                        'account_ledgers.name as bank_ledger_name'
+                    )
+                    ->firstOrFail();
+
+                $upiLedger = AccountLedger::where('name', $branchData->bank_ledger_name)->firstOrFail();
+
+                // $upiLedger = AccountLedger::where('name', 'UPI Payments')->firstOrFail();
+
+                $lines[] = [
+                    'ledger_id'      => (int) $upiLedger->id,
+                    'dc'             => 'Dr',
+                    'amount'         => $upiPaid,
+                    'line_narration' => 'UPI received',
+                ];
+            }
+
+            // HQ-only credit (branch 1 only)
+            $creditUsed = ($branchId == 1) ? round((float) $this->creditPay, 2) : 0;
+
+            // ============= 2) Customer Ledger Resolution =============
+            // Party may exist for ANY branch, but creditPay only used for branch 1
+
+            if (!empty($partyUser)) {
+                $customerLedger = AccountLedger::where('name', $partyUser->first_name)->first();
+                if ($customerLedger) {
+                    $customer_ledger_id = $customerLedger->id;
+                } else {
+
+                    $customerLedger = AccountLedger::create([
+                        'name'        => $partyUser->first_name,
+                        'group_name'  => 'Sundry Debtors', // IMPORTANT for Tally
+                        'group_id' => 19,
+                        'opening_balance' => 0,
+                        'debit_credit'    => 'Dr',
+                        'created_by'      => auth()->id(),
+                    ]);
+
+                    $party_customer_ledger_id = $customerLedger->id;
+                    \Log::info('Auto-created Party Ledger: ' . $customerLedger->name);
+                }
+            }
+
+            // Dr Customer only when branch 1 + credit used + ledger exists
+            if ($branchId == 1 && $creditUsed > 0 && $customer_ledger_id) {
+                $lines[] = [
+                    'ledger_id'      => (int) $customer_ledger_id,
+                    'dc'             => 'Dr',
+                    'amount'         => $creditUsed,
+                    'line_narration' => 'Credit to customer',
+                ];
+            }
+
+            // Total tender = cash + upi + HQ credit
+            $totalTender = $cashPaid + $upiPaid + $creditUsed;
+
+            // ============= 3) Discount =============
+
+            if ($branchId == 1) {
+                // HO – party discount
+                $discountAmt = round((float) $this->partyAmount, 2);
+            } else {
+                // Other branches – commission discount
+                $discountAmt = round((float) $this->commissionAmount, 2);
+            }
+
+            if ($discountAmt > 0) {
+                $discountLedger = AccountLedger::where('name', 'Discount Allowed')->firstOrFail();
+
+                $lines[] = [
+                    'ledger_id'      => (int) $discountLedger->id,
+                    'dc'             => 'Dr',
+                    'amount'         => $discountAmt,
+                    'line_narration' => 'Discount allowed',
+                ];
+            }
+
+            // ============= 4) Sales Ledger (HO vs Branch) =============
+
+            $totalSale = round((float) $this->sub_total, 2);         // e.g. 600
+            $netAmount = $totalSale - $discountAmt;                  // e.g. 600 - 95 = 505
+
+            if ($branchId == 1) {
+                $salesLedger = AccountLedger::where('name', 'WAREHOUSE')->firstOrFail();
+            } else {
+                $branch      = Branch::findOrFail($branchId);
+                $salesLedger = AccountLedger::where('name', $branch->name)->firstOrFail();
+            }
+            $sales_ledger_id = $salesLedger->id;
+
+            // ============= 5) Round Off =============
+
+            // how much actually collected (cash + upi + HQ credit) vs net bill
+            $roundOff = round($totalTender - $netAmount, 2);    // e.g. 510 - 505 = +5
+
+            $roundLedger = AccountLedger::where('name', 'Round Off')->first();
+
+            // Round Off Dr (we got LESS than net → expense)
+            if ($roundOff < 0 && $roundLedger) {
+                $lines[] = [
+                    'ledger_id'      => (int) $roundLedger->id,
+                    'dc'             => 'Dr',
+                    'amount'         => abs($roundOff),
+                    'line_narration' => 'Round Off (-)',
+                ];
+            }
+
+            // Round Off Cr (we got MORE than net → income)
+            if ($roundOff > 0 && $roundLedger) {
+                $lines[] = [
+                    'ledger_id'      => (int) $roundLedger->id,
+                    'dc'             => 'Cr',
+                    'amount'         => $roundOff,
+                    'line_narration' => 'Round Off (+)',
+                ];
+            }
+
+            // ============= 6) Sales Cr =============
+
+            $lines[] = [
+                'ledger_id'      => (int) $sales_ledger_id,
+                'dc'             => 'Cr',
+                'amount'         => $totalSale,
+                'line_narration' => 'Sales: items',
+            ];
+
+            // ============= 7) Dr / Cr Check =============
+
+            $dr = collect($lines)->where('dc', 'Dr')->sum('amount');
+            $cr = collect($lines)->where('dc', 'Cr')->sum('amount');
+
+            if (round($dr, 2) !== round($cr, 2)) {
+                throw new \Exception("Voucher not balanced: Dr={$dr} Cr={$cr}");
+            }
+
+            // ============= 8) Ref No: POS-{branch}-{0001} =============
+
+            $prefix = "POS-" . $branchId . "-";
+
+            $lastRef = Voucher::where('voucher_type', 'Sales')
+                ->where('branch_id', $branchId)
+                ->where('ref_no', 'like', $prefix . '%')
+                ->orderBy('id', 'desc')
+                ->value('ref_no');
+
+            if (!$lastRef) {
+                $nextNumber = 1;
+            } else {
+                $num        = (int) str_replace($prefix, '', $lastRef);
+                $nextNumber = $num + 1;
+            }
+
+            $nextRef = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+            // ============= 9) Mode for header (for info only) =============
+
+            $mode = null;
+            if ($cashPaid > 0 && $upiPaid > 0) {
+                // $mode = 'cashupi';
+                $mode = 'cash';
+            } elseif ($cashPaid > 0) {
+                $mode = 'cash';
+            } elseif ($upiPaid > 0) {
+                $mode = 'upi';
+            }
+
+            // party_ledger_id: if partyUser selected (any branch), link it
+            $partyLedgerId = $customer_ledger_id ?: null;
+
+            // ============= 10) Payload =============
+
+            $payload = [
+                'voucher_date'    => Carbon::now()->format('Y-m-d'),
+                'voucher_type'    => 'Sales',
+                'branch_id'       => $branchId,
+                'ref_no'          => $nextRef,
+                'narration'       => 'Counter sale',
+
+                // party can exist for any branch, but credit only branch 1
+                'party_ledger_id' => $partyLedgerId,
+
+                'mode'            => $mode,
+                'cash_ledger_id'  => $cashLedgerId,      // null if no cash
+
+                'sub_total'       => $totalSale,
+                'discount'        => $discountAmt,
+                'tax'             => 0,
+                'grand_total'     => $netAmount + max(0, $roundOff),
+
+                'lines'           => $lines,
+            ];
+
+            // finally:
+            $voucher = $this->posTransaction($payload);
+
+            \Log::info('Invoice Created: ' . json_encode($invoice, true));
+            InvoiceHistory::logFromInvoice($invoice, 'created', auth()->id());
+
+            if ($this->selectedPartyUser) {
+                $partyUserImage = PartyUserImage::where('party_user_id', $this->selectedPartyUser)->where('transaction_id', $invoice->id)->where('type', 'hold')->first(["image_path", "product_image_path"]);
+                if (!empty($partyUserImage->image_path) && !empty($partyUserImage->product_image_path)) {
+                    $warehouse_product_photo_path = $partyUserImage->product_image_path;
+                    $warehouse_customer_photo_path = $partyUserImage->image_path;
+                } else {
+
+                    $warehouse_product_photo_path = session(auth()->id() . '_warehouse_product_photo_path', "");
+                    $warehouse_customer_photo_path = session(auth()->id() . '_warehouse_customer_photo_path', "");
+                }
+                $userImgName = basename($warehouse_customer_photo_path);
+                $productImgName = basename($warehouse_product_photo_path);
+                // Define source and destination paths
+                //$sourcePath = 'uploaded_photos/' . $image['filename'];
+                $destinationProductPath = 'uploaded_photos/' . $invoice_number_to_use . '/' . $productImgName;
+                $destinationUserPath = 'uploaded_photos/' . $invoice_number_to_use . '/' . $userImgName;
+
+                if (Storage::disk('public')->exists($warehouse_product_photo_path)) {
+                    Storage::disk('public')->move($warehouse_product_photo_path, $destinationUserPath);
+                }
+                if (Storage::disk('public')->exists($warehouse_customer_photo_path)) {
+                    Storage::disk('public')->move($warehouse_customer_photo_path, $destinationProductPath);
+                }
+                // Save the updated image path (in the order folder) to the database
+                $partyUserImage = PartyUserImage::updateOrCreate(
+                    [
+                        'party_user_id' => $invoice->party_user_id,
+                        'transaction_id' => $invoice->id,
+                    ],
+                    [
+                        'type' => '',
+                        'image_path' => $destinationUserPath,
+                        'image_name' => '',
+                        'product_image_path' => $destinationProductPath,
+                    ]
+                );
+
+                \Log::info('Party Img Created: ' . json_encode($partyUserImage, true));
+                // Optional: clear the session images
+                session()->forget(auth()->id() . '_warehouse_product_photo_path', []);
+                session()->forget(auth()->id() . '_warehouse_customer_photo_path', []);
+            } else if ($this->selectedCommissionUser) {
+                $commissionUserImage = CommissionUserImage::where('commission_user_id', $this->selectedCommissionUser)->where('type', 'hold')->first(["image_path", "product_image_path"]);
+
+                if (!empty($commissionUserImage->image_path) && !empty($commissionUserImage->product_image_path)) {
+
+                    $cashier_product_photo_path = $commissionUserImage->product_image_path;
+                    $cashier_customer_photo_path = $commissionUserImage->image_path;
+                } else {
+
+                    $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
+                    $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
+                }
+                if (!empty($cashier_product_photo_path) && !empty($cashier_customer_photo_path)) {
+
+                    $userImgName = basename($cashier_customer_photo_path) ?? '';
+                    $productImgName = basename($cashier_product_photo_path) ?? '';
+                    // Define source and destination paths
+                    //$sourcePath = 'uploaded_photos/' . $image['filename'];
+                    $destinationProductPath = 'uploaded_photos/' . $invoice_number_to_use . '/' . $productImgName;
+                    $destinationUserPath = 'uploaded_photos/' . $invoice_number_to_use . '/' . $userImgName;
+                    if (Storage::disk('public')->exists($cashier_customer_photo_path)) {
+                        Storage::disk('public')->move($cashier_customer_photo_path, $destinationUserPath);
+                    }
+                    if (Storage::disk('public')->exists($cashier_product_photo_path)) {
+                        Storage::disk('public')->move($cashier_product_photo_path, $destinationProductPath);
+                    }
+                    $commissionUserImage = CommissionUserImage::updateOrCreate(
+                        [
+                            'commission_user_id' => $invoice->commission_user_id,
+                            'transaction_id' => $invoice->id,
+                        ],
+                        [
+                            'type' => '',
+                            'image_path' => $destinationUserPath,
+                            'image_name' => '',
+                            'product_image_path' => $destinationProductPath,
+                        ]
+                    );
+                    \Log::info('Commission Img Created: ' . json_encode($commissionUserImage, true));
+                    session()->forget(auth()->id() . '_cashier_product_photo_path', []);
+                    session()->forget(auth()->id() . '_cashier_customer_photo_path', []);
+                }
+            }
+            // Retrieve session data
+
+
+            // Clear session
+            session()->forget('checkout_images');
+            if (!empty($commissionUser->id)) {
+
+                $discountHistory = DiscountHistory::create([
+                    'invoice_id' => $invoice->id,
+                    'discount_amount' => $this->commissionAmount,
+                    'total_amount' => $this->cashAmount,
+                    'total_purchase_items' => $totalQuantity,
+                    'commission_user_id' => $commissionUser->id ?? null,
+                    'store_id' => $branch_id,
+                    'created_by' => auth()->id(),
+                ]);
+                \Log::info('DiscountHistory Created: ' . json_encode($discountHistory, true));
+            }
+
+            if (!empty($partyUser->id) && $this->creditPay > 0) {
+
+                $creditHistory = CreditHistory::create([
+                    'invoice_id' => $invoice->id,
+                    'credit_amount' => $this->creditPay,
+                    'total_amount' => $this->cashAmount,
+                    'total_purchase_items' => $totalQuantity,
+                    'party_user_id' => $partyUser->id ?? null,
+                    'store_id' => $branch_id,
+                    'created_by' => auth()->id(),
+                    'status' => 'unpaid'
+                ]);
+                \Log::info('CreditHistory Created: ' . json_encode($creditHistory, true));
+            }
+
+            $this->resetModalData();
+
+            $first_name = (!empty($partyUser->first_name)) ? $partyUser->first_name : @$commissionUser->first_name;
+            $this->dispatch('resetHoldPic');
+            $this->dispatch('hide-open-cash-modal');
+            $this->dispatch('hide-online-cash-modal');
+            $this->dispatch('hide-cash-upi-modal');
+            $pdf = App::make('dompdf.wrapper');
+            $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => @$first_name, "ref_no" => $invoice->ref_no, "hold_date" => $invoice->hold_date]);
+            $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
+            $pdf->save($pdfPath);
+            $this->dispatch('focus-barcode');
+
+            if (auth()->user()->hasRole('warehouse')) {
+                $this->invoiceData = $invoice;
+                // $this->dispatch('triggerPrint');
+                // Generate PDF and store it in local storage
+                //  $this->dispatch('triggerPrint', [
+                //     'pdfPath' => route('print.pdf', $invoice->invoice_number)
+                // ]);
+
+                // Trigger print via browser event
+                $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/' . $invoice->invoice_number . '.pdf')]);
+            } else {
+                $this->dispatch('order-saved');
+            }
+
+            if ($voucher && $invoice) {
+                $voucher->gen_id = $invoice->id;
+                $voucher->save();
+            }
+
+            DB::commit();
+            //Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->delete();
+
+            //return redirect()->route('invoice.show', $invoice->id);
+            Cart::where('user_id', auth()->user()->id)
+                ->where('status', '!=', Cart::STATUS_HOLD)
+                ->delete();
+            $this->dispatch('loader-stop');
+            $this->activeItemId = null;
+            $this->activeProductId = null;
+            session()->forget(['current_party_id', 'current_commission_id']);
+            $this->dispatch('resetHoldPic');
+            $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'cashAmount', 'shoeCashUpi', 'showBox', 'quantities', 'cartCount', 'selectedSalesReturn', 'selectedPartyUser', 'selectedCommissionUser', 'paymentType', 'creditPay', 'partyAmount', 'commissionAmount', 'sub_total', 'tax', 'totalBreakdown', 'useCredit', 'showCheckbox', 'roundedTotal', 'removeCrossHold', 'cashNotes');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            // ✅ Add this for logging
+            Log::error('Transaction failed when creating user and wallet', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+
+            ]);
+            $this->dispatch('loader-stop');
+            // 🔔 Flash message for Laravel Blade
+            $this->dispatch('notiffication-error', ['message' => 'Something went wrong']);
+
+            //  return redirect()->back()->with('success', 'Withdraw amount successful.');
+
+        }
+    }
+
+    public function checkoutCredit()
+    {
+        try {
+            $this->dispatch('loader-start'); // ✅ Livewire v3
+            DB::beginTransaction();
+
+
+            if (!auth()->user()->hasRole('warehouse')) {
+                if (!empty($this->selectedCommissionUser)) {
+
+                    $custImg = "";
+                    if (!empty($this->selectedCommissionUser)) {
+                        $custImg = CommissionUserImage::where('commission_user_id', $this->selectedCommissionUser)->where('type', 'hold')->first(["image_path", "product_image_path"]);
+                    }
+
+                    $cashier_product_photo_path = session(auth()->id() . '_cashier_product_photo_path', []);
+                    $cashier_customer_photo_path = session(auth()->id() . '_cashier_customer_photo_path', []);
+                    if (empty($custImg->image_path) && empty($custImg->product_image_path) && $this->removeCrossHold == true) {
+                        $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
+                        return;
+                    } else if ((empty($cashier_product_photo_path) || empty($cashier_customer_photo_path)) && $this->removeCrossHold == false) {
+                        $this->dispatch('notiffication-error', ['message' => 'Please upload both product,customer images first.']);
+                        return;
+                    }
+                }
+            }
+
+            $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
+            $partyUser = PartyUser::where('status', 'Active')->where('is_delete', 'No')->find($this->selectedPartyUser);
+            if (!empty($partyUser)) {
+                $partyUser->use_credit = (int)$partyUser->use_credit + (int)$this->creditPay;
+                $partyUser->left_credit = (int)$partyUser->credit_points - (int)$partyUser->use_credit;
+                $partyUser->save();
+            }
+
+            $cartitems = $this->cartitems;
+
+            // Group by product ID and sum total quantity
+            $groupedProducts = [];
+
+            foreach ($this->cartitems as $cartitem) {
+
+                $productId = $cartitem->product_id;
+                if (!isset($groupedProducts[$productId])) {
+                    $groupedProducts[$productId] = 0;
+                }
+                $groupedProducts[$productId] += $cartitem->quantity;
+            }
+
+            $arr_low_stock = [];
+            // Loop through each product group and deduct from inventories
+            foreach ($groupedProducts as $productId => $totalQuantity) {
+                $product = $this->cartitems->firstWhere('product_id', $productId)->product;
+                $inventories = $product->inventories;
+                $totalQuantityNew = $inventories->sum('quantity') - $totalQuantity;
+                $inventory = $product->inventorie;
+                if ($totalQuantityNew <= $inventory->low_level_qty) {
+
+                    $arr_low_stock[$productId] = $productId;
+                }
+
+                stockStatusChange($inventory->product->id, $branch_id, $totalQuantity, 'sold_stock', $this->shift->id);
+                \Log::info('Stock Status Changed for Product ID: ' . $inventory->product->id . ' Branch ID: ' . $branch_id . ' Quantity: ' . $totalQuantity);
+
+                if (isset($inventories[0]) && $inventories[0]->quantity >= $totalQuantity) {
+                    // Deduct only from the first inventory if it has enough quantity
+                    $inventories[0]->quantity -= $totalQuantity;
+                    $inventories[0]->save();
+                } else {
+                    // Deduct from all inventories if the first one doesn't have enough
+                    foreach ($inventories as $inventory) {
+                        if ($totalQuantity <= 0) {
+                            break;
+                        }
+
+                        if ($inventory->quantity > 0) {
+                            $deductQty = min($totalQuantity, $inventory->quantity);
+                            $inventory->quantity -= $deductQty;
+                            $inventory->save();
+                            $totalQuantity -= $deductQty;
+                        }
+                    }
+                }
+            }
+
+            if (!empty($arr_low_stock)) {
+
+                $arr['product_id'] =  implode(',', array_values($arr_low_stock));
+                $arr['store_id'] =  (string) $branch_id;
+
+                $branch_name = (!empty(auth()->user()->userinfo->branch->name)) ? auth()->user()->userinfo->branch->name : "";
+
+                sendNotification('low_stock', 'Some products are having low level stocks', $branch_id, auth()->id(), json_encode($arr));
+                sendNotification('low_stock', 'Some products are having low level stocks in ' . $branch_name . ' Store', null, auth()->id(), json_encode($arr));
+            }
+
+            // 💾 Save cash breakdown
+            $cashBreakdownCash = $this->cashAmount;
+            $cashBreakdown = \App\Models\CashBreakdown::create([
+                'user_id' => auth()->id(),
+                'branch_id' => $branch_id,
+                'denominations' => '',
+                'total' => $cashBreakdownCash,
+            ]);
+
+            \Log::info('Cash Breakdown Created: ' . json_encode($cashBreakdown, true));
+            $totalQuantity = $cartitems->sum(fn($item) => $item->quantity);
+            $total_item_total = $cartitems->sum(fn($item) => $item->net_amount);
+            $invoice_number = Invoice::generateInvoiceNumber();
+            // Check if an invoice with 'Resumed' status exists for this user/branch
+            $resumedInvoice = Invoice::where('user_id', auth()->id())
+                ->where('branch_id', $branch_id)
+                ->where('status', 'Resumed')
+                ->first();
+
+            // If found, use its invoice number; otherwise, use the default/new invoice number
+            $invoice_number_to_use = $resumedInvoice->invoice_number ?? $invoice_number;
+
+            $saleType = 'normal';
+
+            if ($this->one_time_transaction) {
+                $saleType = 'one_time';
+            }
+
+            $invoice = Invoice::updateOrCreate(
+                [
+                    'invoice_number' => $invoice_number_to_use,
+                    'user_id' => auth()->id(),
+                    'branch_id' => $branch_id,
+                ],
+                [
+                    'user_id' => auth()->id(),
+                    'branch_id' => $branch_id,
+                    'roundof' => $this->roundedTotal,
+                    'invoice_number' => $invoice_number_to_use,
+                    'commission_user_id' => $commissionUser->id ?? null,
+                    'party_user_id' => $partyUser->id ?? null,
+                    'payment_mode' => $this->paymentType,
+                    'items' => $cartitems->map(fn($item) => [
+                        'product_id' => $item->product->id,
+                        'name' => $item->product->name,
+                        'quantity' => $item->quantity,
+                        'category' => $item->product->category->name,
+                        'subcategory' => $item->product->subcategory->name,
+                        'price' => $item->net_amount,
+                        'mrp' => $item->mrp,
+                        'sell_price' => $item->product->discount_price,
+                        'discount_price' => $item->product->discount_price,
+                    ]),
+                    'total_item_qty' => $totalQuantity,
+                    'total_item_total' => $total_item_total,
+                    'upi_amount' => 0,
+                    'change_amount' => $this->cashPayChangeAmt,
+                    'creditpay' => $this->creditPay,
+                    'cash_amount' => $this->cash,
+                    // 'sub_total' => $this->cashAmount,
+                    'sub_total' => $this->sub_total,
+                    'tax' => $this->tax,
+                    'status' => "Paid",
+                    'invoice_status' => ($this->creditPay == 0) ? "paid" : "unpaid",
+                    'commission_amount' => $this->commissionAmount,
+                    'party_amount' => $this->partyAmount,
                     'total' => $this->cashAmount,
                     'cash_break_id' => $cashBreakdown->id,
                     'sales_type' => $saleType,
@@ -3225,6 +3849,7 @@ class Shoppingcart extends Component
             $this->dispatch('hide-open-cash-modal');
             $this->dispatch('hide-online-cash-modal');
             $this->dispatch('hide-cash-upi-modal');
+            $this->dispatch('hide-credit-modal');
             $pdf = App::make('dompdf.wrapper');
             $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => @$first_name, "ref_no" => $invoice->ref_no, "hold_date" => $invoice->hold_date]);
             $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
@@ -3780,7 +4405,7 @@ class Shoppingcart extends Component
                     'invoice_status' => ($this->creditPay == 0) ? "paid" : "unpaid",
                     'commission_amount' => $this->commissionAmount,
                     'party_amount' => $this->partyAmount,
-                    'total' => $this->cashAmount,
+                    'total' => $this->cashAmount + $this->creditPay,
                     'cash_break_id' => null,
                     'shift_id' => $this->shift_id
                 ]
@@ -4413,245 +5038,6 @@ class Shoppingcart extends Component
         return $currentTime->format('H:i:s') >= $savedTime->format('H:i:s');
     }
 
-    // public function checkout()
-    // {
-    //     if (!empty($this->commissionAmount)) {
-    //         $this->total = $this->total - $this->commissionAmount;
-    //     }
-    //     if (!empty($this->partyAmount)) {
-    //         $this->total = $this->total - $this->partyAmount;
-    //     }
-    //     $commissionUser = CommissionUser::find($this->selectedCommissionUser);
-    //     $partyUser = PartyUser::find($this->selectedPartyUser);
-    //     $cartitems = $this->cartitems;
-    //     foreach ($cartitems as $key => $cartitem) {
-    //         $product = $cartitem->product->inventorie;
-    //         if ($product) {
-    //             $product->quantity -= $cartitem->quantity;
-    //             $product->save();
-    //         }
-    //     }
-    //     $invoice_number = 'INV-' . strtoupper(Str::random(8));
-
-    //     $invoice = Invoice::create([
-    //         'invoice_number' => $invoice_number,
-    //         'commission_user_id' => $commissionUser->id ?? null,
-    //         'party_user_id' => $partyUser->id ?? null,
-    //         'items' => $cartitems->map(fn($item) => [
-    //             'name' => $item->product->name,
-    //             'quantity' => $item->quantity,
-    //             'price' => $item->product->sell_price,
-    //         ]),
-    //         'sub_total' => $this->sub_total,
-    //         'tax' => $this->tax,
-    //         'commission_amount' => $this->commissionAmount,
-    //         'party_amount' => $this->partyAmount,
-    //         'total' => $this->total,
-    //     ]);
-
-    //     // Clear cart if needed
-    //     // Cart::clear();
-
-    //     return redirect()->route('invoice.show', $invoice->id);
-    // }
-
-    // public function checkout()
-    // {
-    //     $this->validate([
-    //         'cashNotes' => 'required',
-
-    //     ]);
-
-    //     if (!empty($this->commissionAmount)) {
-    //         $this->total -= $this->commissionAmount;
-    //     }
-    //     if (!empty($this->partyAmount)) {
-    //         $this->total -= $this->partyAmount;
-    //     }
-
-    //     $commissionUser = CommissionUser::find($this->selectedCommissionUser);
-    //     $partyUser = PartyUser::find($this->selectedPartyUser);
-    //     $cartitems = $this->cartitems;
-
-    //     foreach ($cartitems as $key => $cartitem) {
-    //         $product = $cartitem->product->inventorie;
-    //         if ($product && $product->quantity>0) {
-    //             $product->quantity -= $cartitem->quantity;
-    //             $product->save();
-    //         }
-    //     }
-
-    //     $cashNotes = json_encode($this->cashNotes) ?? [];
-
-    //     $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
-    //     // 💾 Save cash breakdown
-    //     $cashBreakdown = \App\Models\CashBreakdown::create([
-    //         'user_id' => auth()->id(),
-    //         'branch_id' => $branch_id,
-    //         'denominations' => $cashNotes,
-    //         'total' => $this->total,
-    //     ]);
-
-    //     $invoice_number = 'INV-' . strtoupper(Str::random(8));
-    //     if(!empty($commissionUser)){
-    //         $address = $commissionUser->address ?? null;
-    //     }else  if(!empty($partyUser)){
-    //         $address = $partyUser->address ?? null;
-    //     }
-    //     if($this->paymentType=="cash"){
-    //         $this->cash=$this->cashPaTenderyAmt;
-    //         $this->upi=0;
-
-    //     }
-
-    //     $invoice = Invoice::create([
-    //         'user_id' => auth()->id(),
-    //         'branch_id' => $branch_id,
-    //         'invoice_number' => $invoice_number,
-    //         'commission_user_id' => $commissionUser->id ?? null,
-    //         'party_user_id' => $partyUser->id ?? null,
-    //         'items' => $cartitems->map(fn($item) => [
-    //             'name' => $item->product->name,
-    //             'quantity' => $item->quantity,
-    //             'category'=> $item->product->category->name,
-    //             'price' => $item->product->sell_price,
-    //         ]),
-    //         'upi_amount' => $this->upi,
-    //         'cash_amount' => $this->cash,
-    //         'sub_total' => $this->sub_total,
-    //         'tax' => $this->tax,
-    //         'status'=>"Paid",
-    //         'commission_amount' => $this->commissionAmount,
-    //         'party_amount' => $this->partyAmount,
-    //         'total' => $this->total,
-    //         'cash_break_id' => $cashBreakdown->id,
-    //         //'billing_address'=> $address,
-    //     ]);
-    //     // ✅ Set invoice data for the view
-    //     $this->invoiceData = $invoice;
-    //     // ✅ Trigger print via browser event
-    //     $this->dispatch('triggerPrint');
-    //     //return redirect()->route('invoice.show', $invoice->id);
-    //     Cart::where('user_id', auth()->user()->id)
-    //         ->where('status', '!=', Cart::STATUS_HOLD)
-    //         ->delete();
-    //     $this->reset('searchTerm', 'searchResults', 'showSuggestions');
-
-    // }
-
-    // public function calculateBreakdown()
-    // {
-    //     $remaining = $this->cashAmount;
-    //     $this->totalBreakdown = [];
-
-    //     foreach ($this->noteDenominations as $note => $count) {
-    //         $breakdown = $note * (int)$count;
-    //         $remaining -= $breakdown;
-
-    //         $this->totalBreakdown[$note] = $breakdown;
-    //     }
-
-    //     $this->remainingAmount = $remaining;
-    // }
-
-
-    // public function loadHoldTransactions()
-    // {
-    //     $this->holdTransactions = Cart::where('user_id', auth()->user()->id)->where('status', Cart::STATUS_HOLD)->get();
-    // }
-
-    // public function resumeTransaction($id)
-    // {
-    //     $transaction = Cart::where('user_id', auth()->user()->id)->where('status', Cart::STATUS_HOLD)->first();
-    //     $transaction->status =Cart::STATUS_PENDING;
-    //     $transaction->save();
-
-    //     $this->loadHoldTransactions(); // refresh list
-    //     session()->flash('message', 'Transaction resumed!');
-    // }
-
-    // public function addToCartBarCode()
-    // {
-    //     if (!$this->selectedProduct) return;
-    //     $currentProduct = collect($this->cartitems)->firstWhere('product_id', $this->selectedProduct->id);
-    //     $currentQty = $currentProduct ? $currentProduct->quantity : 0;
-    //     $currentQty = $currentQty + 1;
-    //     $totalQuantity = $this->selectedSalesReturn ? collect($this->selectedSalesReturn->items)->sum('quantity') : 0;
-    //     if (!empty($this->selectedSalesReturn) && $this->cartCount >= $totalQuantity) {
-    //         $this->dispatch('notiffication-error', [
-    //             'message' => 'Adding more items is not allowed in a refund transaction.'
-    //         ]);
-    //         return;
-    //     }
-
-    //     // Fetch product with inventory
-
-    //     $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
-
-    //     $product = Product::select('products.*', 'inventory_summary.total_quantity')
-    //         ->leftJoin(DB::raw('(
-    //                 SELECT product_id, SUM(quantity) as total_quantity
-    //                 FROM inventories where store_id = ' . $branch_id . '
-    //                 GROUP BY product_id
-    //             ) as inventory_summary'), 'products.id', '=', 'inventory_summary.product_id')
-    //         ->where('products.id', $this->selectedProduct->id)
-    //         ->first();
-
-    //     if ($currentQty > $product['total_quantity']) {
-    //         $this->dispatch('notiffication-error', ['message' => 'Product is out of stock and cannot be added to cart.']);
-    //         return;
-    //     }
-
-    //     // $item = Cart::where('product_id', $id)
-    //     // ->where('user_id', auth()->id())
-    //     // ->where('status', Cart::STATUS_PENDING)
-    //     // ->first();
-    //     //  if (!empty($item)) {
-    //     //     $item->quantity = $item->quantity + 1;
-    //     //     $item->save();
-    //     // }else{
-    //     //     $item=new Cart();
-    //     //     $item->user_id = auth()->user()->id;
-    //     //     $item->product_id = $id;
-    //     //     $item->save();
-
-    //     // }
-    //     $user = Partyuser::where('status', 'Active')->where('is_delete', 'No')->find($this->selectedPartyUser);
-    //     if (!empty($user)) {
-    //         $myCart = $user->credit_points;
-    //     } else {
-    //         $myCart = 0;
-    //     }
-    //     $item = Cart::where('product_id', $this->selectedProduct->id)
-    //         ->where('user_id', auth()->id())
-    //         ->where('status', Cart::STATUS_PENDING)
-    //         ->first();
-    //     if (!empty($item)) {
-    //         $this->incrementQty($item->id);
-    //     } else {
-    //         $item = new Cart();
-    //         $item->user_id = auth()->user()->id;
-    //         $item->product_id = $this->selectedProduct->id;
-    //         $item->mrp = $product->sell_price;
-    //         $item->amount = $product->sell_price - $myCart;
-    //         $item->discount = $myCart;
-    //         $item->net_amount = $product->sell_price - $myCart;
-    //         $item->save();
-    //     }
-
-    //     $this->finalDiscountParty();
-    //     if ($this->selectedCommissionUser) {
-    //         $this->commissionAmount = $this->finalDiscountPartyAmount;
-    //     } else {
-    //         $this->partyAmount = $this->finalDiscountPartyAmount;
-    //     }
-
-    //     // $this->updateQty($item->id);
-    //     $this->dispatch('updateNewProductDetails');
-    //     $this->reset('searchTerm', 'searchResults', 'showSuggestions', 'search');
-    //     //  session()->flash('success', 'Product added to the cart successfully');
-    //     // $this->dispatch('notiffication-sucess', ['message' => 'Product added to the cart successfully']);
-    // }
 
     public function checkShiftStatus()
     {
