@@ -45,6 +45,13 @@ class StockTransferController extends Controller
     {
         $categories = Category::all();
 
+        $shift_id = isset($_GET['shift_id']);
+
+        $shift = '';
+        if (!empty($shift_id)) {
+            $shift = ShiftClosing::findOrFail($shift_id);
+        }
+
         $stores = Branch::where('is_deleted', 'no')->get();
         $products = Product::all();
         $data = User::with('userInfo')
@@ -52,7 +59,7 @@ class StockTransferController extends Controller
             ->where('is_deleted', 'no')
             ->firstOrFail();
 
-        return view('stocks_transfer.create', compact('stores', 'products', 'data', 'categories'));
+        return view('stocks_transfer.create', compact('stores', 'products', 'data', 'categories', 'shift_id', 'shift'));
     }
 
     public function getData(Request $request)
@@ -207,7 +214,6 @@ class StockTransferController extends Controller
 
     public function store(Request $request)
     {
-
         try {
             // Validate basic form inputs
             $validated = $request->validate([
@@ -225,33 +231,74 @@ class StockTransferController extends Controller
                 'items.*.quantity.min' => 'Quantity must be at least 1.',
             ]);
 
+            $shift_id = $request->shift_id;
+            $shift_date = $request->date;
+
             // Validate from and to store are different
             if ($request->from_store_id == $request->to_store_id) {
                 return back()->withErrors(['to_store_id' => 'The destination store must be different from the source store.'])->withInput();
             }
 
-            $running_shift = ShiftClosing::where('branch_id', $request->to_store_id)
-                ->where('status', 'pending')
-                ->first();
+            $prefix = 'TF';
+            if (empty($shift_id)) {
 
 
-            if (!$running_shift) {            // null  ➔ destination store not open
-                return back()
-                    ->withErrors(['to_store_id' => 'The destination store is not open.'])
-                    ->withInput();
+                $running_shift = ShiftClosing::where('branch_id', $request->to_store_id)
+                    ->where('status', 'pending')
+                    ->first();
+
+
+                if (!$running_shift) {            // null  ➔ destination store not open
+                    return back()
+                        ->withErrors(['to_store_id' => 'The destination store is not open.'])
+                        ->withInput();
+                }
+
+                $running_shift_form = ShiftClosing::where('branch_id', $request->to_store_id)
+                    ->where('status', 'pending')
+                    ->first();
+
+
+                if (!$running_shift_form) {            // null  ➔ destination store not open
+                    return back()
+                        ->withErrors(['from_store_id' => 'The from store is not open.'])
+                        ->withInput();
+                }
+
+
+                $datePart = now()->format('ymd'); // e.g., 250607
+
+                $currentShiftFrom = UserShift::where('branch_id', $request->from_store_id)
+                    ->where('status', 'pending')
+                    ->latest()
+                    ->first();
+
+                $currentShiftTo = UserShift::where('branch_id', $request->to_store_id)
+                    ->where('status', 'pending')
+                    ->latest()
+                    ->first();
+            } else {
+
+                $shift_date = Carbon::parse($request->date)->toDateString();
+                $currentShiftTo = UserShift::where('branch_id', $request->to_store_id)
+                    ->whereDate('start_time', $shift_date)
+                    ->latest()
+                    ->first();
+
+                $currentShiftFrom = UserShift::where('branch_id', $request->from_store_id)
+                    ->whereDate('start_time', $shift_date)
+                    ->latest()
+                    ->first();
+
+                if (!$currentShiftFrom || !$currentShiftTo) {
+                    DB::rollback();
+                    return back()->with('error', 'Shift not found for selected date.');
+                }
+                $datePart = Carbon::parse($shift_date)->format('ymd');
             }
 
-            $running_shift_form = ShiftClosing::where('branch_id', $request->to_store_id)
-                ->where('status', 'pending')
-                ->first();
-
-
-            if (!$running_shift_form) {            // null  ➔ destination store not open
-                return back()
-                    ->withErrors(['from_store_id' => 'The from store is not open.'])
-                    ->withInput();
-            }
-
+            $randomPart = str_pad(random_int(1, 99), 2, '0', STR_PAD_LEFT); // e.g., 06
+            $transferNumber = "{$prefix}-{$datePart}-{$randomPart}";
 
             // Step 1: Pre-check inventory levels
             $errors = [];
@@ -273,15 +320,9 @@ class StockTransferController extends Controller
             // Step 2: Begin transaction and do actual stock transfer
             DB::beginTransaction();
 
-            $prefix = 'TF';
-            $datePart = now()->format('ymd'); // e.g., 250607
-            $randomPart = str_pad(random_int(1, 99), 2, '0', STR_PAD_LEFT); // e.g., 06
-
-            $transferNumber = "{$prefix}-{$datePart}-{$randomPart}";
-
-            $today = Carbon::today();
 
 
+            $affectedProducts = [];
             $arr_low_stock = [];
             foreach ($request->items as $item) {
 
@@ -327,27 +368,37 @@ class StockTransferController extends Controller
                     $remainingQty -= $deductQty;
                 }
 
-                $currentShiftFrom = UserShift::whereDate('start_time', $today)->where(['branch_id' => $request->from_store_id])->where(['status' => "pending"])->first();
-                $currentShiftTo = UserShift::whereDate('start_time', $today)->where(['branch_id' => $request->to_store_id])->where(['status' => "pending"])->first();
 
-                stockStatusChange($item['product_id'], $request->from_store_id, $item['quantity'], 'transfer_stock', $currentShiftFrom->id);
-                stockStatusChange($item['product_id'], $request->to_store_id, $item['quantity'], 'add_stock', $currentShiftTo->id);
+                stockStatusChange($item['product_id'], $request->from_store_id, $item['quantity'], 'transfer_stock', $currentShiftFrom->id, '', $shift_date);
+                stockStatusChange($item['product_id'], $request->to_store_id, $item['quantity'], 'add_stock', $currentShiftTo->id, '', $shift_date);
 
-                // ✅ ONLY ONCE PER PRODUCT
                 StockTransfer::create([
                     'stock_request_id' => $request->request_id ?? null,
                     'transfer_number' => $transferNumber,
                     'from_branch_id' => $request->from_store_id,
                     'to_branch_id' => $request->to_store_id,
                     'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'], // full qty
+                    'quantity' => $item['quantity'],
                     'status' => 'approved',
                     'transfer_by' => Auth::id(),
                     'transferred_at' => now(),
-                    'shift_id' => $running_shift->id,
-                    'from_shift_id=>'
+
+                    // ✅ FIXED (MOST IMPORTANT)
+                    'shift_id' => $currentShiftTo->id,
+                    'from_shift_id' => $currentShiftFrom->id,
                 ]);
+
+                $affectedProducts[] = $item['product_id'];
             }
+
+            $recalculateDate = $shift_date
+                ? Carbon::parse($shift_date)->toDateString()
+                : now()->toDateString();
+
+                foreach (array_unique($affectedProducts) as $pid) {
+                    recalculateStockFromDateTransfer($pid, $request->from_store_id, $recalculateDate);
+                    recalculateStockFromDateTransfer($pid, $request->to_store_id, $recalculateDate);
+                }
 
             // =========================
             // 🔥 PREPARE LOG DATA

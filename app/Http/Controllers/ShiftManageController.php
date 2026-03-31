@@ -311,10 +311,10 @@ class ShiftManageController extends Controller
 
         // Date filter
         if ($request->start_date && $request->end_date) {
-            $query->whereBetween('invoices.created_at', [
-                Carbon::parse($request->start_date)->startOfDay(),
-                Carbon::parse($request->end_date)->endOfDay(),
-            ]);
+            // $query->whereBetween('invoices.created_at', [
+            //     Carbon::parse($request->start_date)->startOfDay(),
+            //     Carbon::parse($request->end_date)->endOfDay(),
+            // ]);
         }
 
         // Filter for last 7 days
@@ -333,8 +333,9 @@ class ShiftManageController extends Controller
 
         if (!empty($request->shift_id)) {
             $shift = ShiftClosing::findOrFail($request->shift_id);
+            $query->where('invoices.shift_id',$request->shift_id);
 
-            $query->whereBetween('invoices.created_at', [$shift->start_time, $shift->end_time]);
+            // $query->whereBetween('invoices.created_at', [$shift->start_time, $shift->end_time]);
         }
 
 
@@ -486,7 +487,7 @@ class ShiftManageController extends Controller
             foreach ($invoices as $invoice) {
                 $transaction_total += $transaction_total;
                 $items = $invoice->items; // decode items from longtext JSON
-  
+
                 if (is_string($items)) {
                     $items = json_decode($items, true); // decode if not already an array
                 }
@@ -501,7 +502,7 @@ class ShiftManageController extends Controller
                             if (!isset($categoryTotals['sales'][$category])) {
                                 $categoryTotals['sales'][$category] = 0;
                             }
-                            
+
 
                             $categoryTotals['sales'][$category] += $amount;
                             $totalSalesNew += $amount;
@@ -509,7 +510,7 @@ class ShiftManageController extends Controller
                         $totalSalesQty += $item['quantity'] ?? 0;
                     }
                 }
-  
+
                 $closing_sales = @$categoryTotals['sales'];
                 // $discountTotal += ($invoice->commission_amount ?? 0) + ($invoice->party_amount ?? 0);
                 $discountTotal += (!empty($invoice->commission_amount) && is_numeric($invoice->commission_amount)) ? (int)$invoice->commission_amount : 0;
@@ -541,7 +542,7 @@ class ShiftManageController extends Controller
                 }
             }
 
-            
+
             $creditCollacted = \DB::table('credit_collections')
                 ->selectRaw('
             SUM(cash_amount) as collacted_cash_amount,

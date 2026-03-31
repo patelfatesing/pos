@@ -291,56 +291,105 @@ if (!function_exists('stockStatusChange')) {
 
         if ($type == "transfer_stock") {
 
+            if (empty($shift_id)) {
+                throw new Exception("Shift ID is required for transfer stock");
+            }
+
             $existing = DailyProductStock::where('branch_id', $branch_id)
                 ->where('product_id', $product_id)
-                // ->whereDate('date', $date)
                 ->where('shift_id', $shift_id)
                 ->first();
 
-            if (! empty($existing)) {
+            if ($existing) {
+
                 $existing->transferred_stock += $qty;
-                $existing->closing_stock = closingStock($existing->opening_stock, $existing->added_stock, $existing->transferred_stock, $existing->sold_stock);
-                $existing->save();
             } else {
 
-                $running_shift = ShiftClosing::where('branch_id', $branch_id)
-                    ->where('status', 'pending')
+                // ✅ Get previous closing as opening
+                $lastStock = DailyProductStock::where('branch_id', $branch_id)
+                    ->where('product_id', $product_id)
+                    ->where('shift_id', '<', $shift_id)
+                    ->orderBy('shift_id', 'desc')
                     ->first();
 
+                $openingStock = $lastStock->closing_stock ?? 0;
 
-                if (!empty($running_shift)) {
+                $existing = DailyProductStock::create([
+                    'branch_id' => $branch_id,
+                    'product_id' => $product_id,
+                    'shift_id' => $shift_id,
+                    'date' => $date,
 
-                    $existing_ck = DailyProductStock::where('branch_id', $branch_id)
-                        ->where('shift_id', $running_shift->id)
-                        ->where('product_id', $product_id)
-                        ->first();
-
-                    if (!empty($existing_ck)) {
-                        $existing_ck->transferred_stock += $qty;
-                        $existing_ck->shift_id = $running_shift->id;
-                        $existing_ck->closing_stock = closingStock($existing_ck->opening_stock, $existing_ck->added_stock, $existing_ck->transferred_stock, $existing_ck->sold_stock);
-                        $existing_ck->save();
-                    } else {
-                        DailyProductStock::create([
-                            'branch_id' => $branch_id,
-                            'product_id' => $product_id,
-                            'date' => $date,
-                            'opening_stock' => $qty,
-                            'closing_stock' => $qty,
-                            'shift_id' => $running_shift->id
-                        ]);
-                    }
-                } else {
-                    DailyProductStock::create([
-                        'branch_id' => $branch_id,
-                        'product_id' => $product_id,
-                        'date' => $date,
-                        'opening_stock' => $qty,
-                        'closing_stock' => $qty,
-                    ]);
-                }
+                    'opening_stock' => $openingStock,
+                    'added_stock' => 0,
+                    'transferred_stock' => $qty,
+                    'sold_stock' => 0,
+                ]);
             }
+
+            // ✅ ALWAYS calculate closing
+            $existing->closing_stock = closingStock(
+                $existing->opening_stock,
+                $existing->added_stock,
+                $existing->transferred_stock,
+                $existing->sold_stock
+            );
+
+            $existing->save();
         }
+        
+        // if ($type == "transfer_stock") {
+
+        //     $existing = DailyProductStock::where('branch_id', $branch_id)
+        //         ->where('product_id', $product_id)
+        //         // ->whereDate('date', $date)
+        //         ->where('shift_id', $shift_id)
+        //         ->first();
+
+        //     if (! empty($existing)) {
+        //         $existing->transferred_stock += $qty;
+        //         $existing->closing_stock = closingStock($existing->opening_stock, $existing->added_stock, $existing->transferred_stock, $existing->sold_stock);
+        //         $existing->save();
+        //     } else {
+
+        //         $running_shift = ShiftClosing::where('branch_id', $branch_id)
+        //             ->where('status', 'pending')
+        //             ->first();
+
+
+        //         if (!empty($running_shift)) {
+
+        //             $existing_ck = DailyProductStock::where('branch_id', $branch_id)
+        //                 ->where('shift_id', $running_shift->id)
+        //                 ->where('product_id', $product_id)
+        //                 ->first();
+
+        //             if (!empty($existing_ck)) {
+        //                 $existing_ck->transferred_stock += $qty;
+        //                 $existing_ck->shift_id = $running_shift->id;
+        //                 $existing_ck->closing_stock = closingStock($existing_ck->opening_stock, $existing_ck->added_stock, $existing_ck->transferred_stock, $existing_ck->sold_stock);
+        //                 $existing_ck->save();
+        //             } else {
+        //                 DailyProductStock::create([
+        //                     'branch_id' => $branch_id,
+        //                     'product_id' => $product_id,
+        //                     'date' => $date,
+        //                     'opening_stock' => $qty,
+        //                     'closing_stock' => $qty,
+        //                     'shift_id' => $running_shift->id
+        //                 ]);
+        //             }
+        //         } else {
+        //             DailyProductStock::create([
+        //                 'branch_id' => $branch_id,
+        //                 'product_id' => $product_id,
+        //                 'date' => $date,
+        //                 'opening_stock' => $qty,
+        //                 'closing_stock' => $qty,
+        //             ]);
+        //         }
+        //     }
+        // }
 
         if ($type == "sold_stock") {
 
@@ -815,6 +864,71 @@ if (!function_exists('updateInventoryStock')) {
     }
 }
 
+if (!function_exists('recalculateStockFromDateTransfer')) {
+    function recalculateStockFromDateTransfer($product_id, $branch_id, $fromDate)
+    {
+        $startShift = ShiftClosing::where('branch_id', $branch_id)
+            ->whereDate('start_time', '<=', $fromDate)
+            ->where(function ($q) use ($fromDate) {
+                $q->whereDate('end_time', '>=', $fromDate)
+                    ->orWhereNull('end_time');
+            })
+            ->first();
+
+        if (!$startShift) {
+            return;
+        }
+
+        $stocks = DailyProductStock::where('product_id', $product_id)
+            ->where('branch_id', $branch_id)
+            ->where('shift_id', '>=', $startShift->id)
+            ->orderBy('shift_id', 'asc')
+            ->get();
+
+        $prevClosing = null;
+
+        foreach ($stocks as $index => $stock) {
+
+            // ✅ FIRST SHIFT
+            if ($index == 0) {
+                $prevClosing = $stock->closing_stock;
+
+                $stock->physical_stock = $stock->closing_stock;
+                $stock->difference_in_stock = 0;
+
+                $stock->save();
+                continue;
+            }
+
+            // ✅ SET OPENING FROM PREVIOUS SHIFT
+            $stock->opening_stock = $prevClosing;
+
+            $stock->sold_stock = max(0, $stock->sold_stock);
+
+            $finalSold = $stock->sold_stock
+                + $stock->modify_sale_add_qty
+                - $stock->modify_sale_remove_qty;
+
+            // ✅ IMPORTANT: transfer_stock is OUT
+            $stock->closing_stock =
+                $stock->opening_stock
+                + $stock->added_stock
+                - $stock->transferred_stock   // 🔥 FIX (minus)
+                - $finalSold;
+
+            $stock->physical_stock = $stock->closing_stock;
+
+            $stock->difference_in_stock =
+                $stock->physical_stock - $stock->closing_stock;
+
+            $stock->save();
+
+            // ✅ UPDATE CHAIN
+            $prevClosing = $stock->closing_stock;
+        }
+    }
+}
+
 if (!function_exists('stockStatusChangeNew')) {
     function stockStatusChangeNew($product_id, $branch_id, $qty, $type, $shift_id)
     {
@@ -891,6 +1005,7 @@ if (!function_exists('logActivity')) {
         }
     }
 }
+
 if (!function_exists('getOtherLedgerName')) {
 
     function getOtherLedgerName($voucherId, $ledgerId)

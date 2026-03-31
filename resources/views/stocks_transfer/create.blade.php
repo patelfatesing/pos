@@ -50,6 +50,22 @@
                                 <form id="transferForm" action="{{ route('stock-transfer.store') }}" method="POST">
                                     @csrf
                                     <div class="row">
+                                         @if($shift_id != "")
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Day</label>
+                                            <input type="date"
+                                                value="{{ \Carbon\Carbon::parse($shift->start_time)->format('Y-m-d') }}"
+                                                class="form-control" disabled>
+                                            @error('name')
+                                            <span class="text-danger">{{ $message }}</span>
+                                            @enderror
+                                            <input type="hidden" value="{{$shift_id}}" name="shift_id">
+                                            <input type="hidden" value="{{$shift->start_time}}" name="date">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6"></div>
+                                    @endif
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>From Store *</label>
