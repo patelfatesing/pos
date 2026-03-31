@@ -191,7 +191,7 @@
                                                     value="{{ $partyDiscount }}">
                                                 <input type="hidden" name="items[{{ $i }}][discount_price]"
                                                     value="{{ $finalPrice }}">
-                                                
+
                                             </td>
                                             <td>
                                                 <div class="qty-wrapper">
@@ -325,6 +325,9 @@
                                                 <input type="radio" id="cash-upi-option" name="payment_method"
                                                     value="cashupi" @if ($invoice->payment_mode == 'cashupi') checked @endif>
                                                 <label for="cash-upi-option">Cash + UPI</label>
+                                                <input type="radio" id="credit-option" name="payment_method"
+                                                    value="credit" @if ($invoice->payment_mode == 'credit') checked @endif>
+                                                <label for="credit-option">Credit</label>
                                             </div>
                                         </div>
 
@@ -391,36 +394,44 @@
 
                 const qty = parseFloat($(this).find('.qty-input').val()) || 0;
 
-                // IMPORTANT: always use sell price as base
                 const price = parseFloat($(this).find('.qty-input').data('price')) || 0;
                 const discount = parseFloat($(this).find('.qty-input').data('discount')) || price;
 
                 const finalPrice = discount > 0 ? discount : price;
 
-                totalSellPrice += price * qty;
-
                 const rowTotal = finalPrice * qty;
 
+                // ✅ APPLY SAME ROUNDING
+                const roundedRowTotal = Math.ceil(rowTotal);
+
                 // Update row total
-                $(this).find('.item-total').html('<b>₹' + rowTotal.toFixed(2) + '</b>');
+                $(this).find('.item-total').html('<b>₹' + roundedRowTotal + '</b>');
 
-                grandTotal += rowTotal;
+                grandTotal += roundedRowTotal;
 
+                totalSellPrice += Math.ceil(price * qty);
                 discountTotal += (price - finalPrice) * qty;
             });
+
+            // ✅ ROUND TOTALS SAME AS ADD PAGE
+            grandTotal = Math.ceil(grandTotal);
+            totalSellPrice = Math.ceil(totalSellPrice);
 
             // Prevent negative return
             let returnAmt = Math.max(0, ori_sub_total - grandTotal);
 
-            $('#return-amt').text(returnAmt.toFixed(2));
-            $('#grand-total').text(grandTotal.toFixed(2));
+            $('#return-amt').text(Math.ceil(returnAmt));
+            $('#grand-total').text(grandTotal);
             $('#discount-total').text(discountTotal.toFixed(2));
-            $('#total_discount').val(discountTotal.toFixed(2));
-            $('#gr_total').val(grandTotal.toFixed(2));
 
-            $('#total').text(totalSellPrice.toFixed(2));
-            $('#sub_total').val(totalSellPrice.toFixed(2)); // 🔥 FIX
+            $('#total_discount').val(discountTotal.toFixed(2));
+            $('#gr_total').val(grandTotal);
+
+            $('#total').text(totalSellPrice);
+            $('#sub_total').val(totalSellPrice);
         }
+
+
         // ADD NEW PRODUCT
         $('#add-product-btn').on('click', function() {
             const selected = $('#new-product-id option:selected');
@@ -652,6 +663,7 @@
                 $('#cash-amount').prop('readonly', false);
                 $('#upi-amount').prop('readonly', false);
             }
+            updatePaymentFields();
         });
 
         // When Cash input changes
@@ -695,5 +707,73 @@
                 updateQtyWithCheck($input, qty);
             }
         });
+
+        function updatePaymentFields() {
+
+            const method = $('input[name="payment_method"]:checked').val();
+
+            let grandTotal = parseFloat($('#grand-total').text()) || 0;
+            let creditPay = parseFloat($('#creditpay-input').val()) || 0;
+
+            grandTotal = Math.ceil(grandTotal);
+
+            // RESET
+            $('#cash-amount').val('');
+            $('#upi-amount').val('');
+
+            // 👉 CASH
+            if (method === 'cash') {
+
+                let payable = grandTotal - creditPay;
+                payable = payable < 0 ? 0 : payable;
+
+                $('#cash-field').show();
+                $('#upi-field').hide();
+
+                $('#cash-amount').val(payable);
+                $('#cash-amount').prop('readonly', true);
+            }
+
+            // 👉 UPI
+            else if (method === 'online') {
+
+                let payable = grandTotal - creditPay;
+                payable = payable < 0 ? 0 : payable;
+
+                $('#cash-field').hide();
+                $('#upi-field').show();
+
+                $('#upi-amount').val(payable);
+                $('#upi-amount').prop('readonly', true);
+            }
+
+            // 👉 CASH + UPI
+            else if (method === 'cashupi') {
+
+                let payable = grandTotal - creditPay;
+                payable = payable < 0 ? 0 : payable;
+
+                $('#cash-field').show();
+                $('#upi-field').show();
+
+                $('#cash-amount').val(payable);
+                $('#upi-amount').val(0);
+
+                $('#cash-amount').prop('readonly', false);
+                $('#upi-amount').prop('readonly', false);
+            }
+
+            // 👉 CREDIT (FULL PAYMENT)
+            else if (method === 'credit') {
+
+                $('#cash-field').hide();
+                $('#upi-field').hide();
+
+                // ✅ Always full amount
+                $('#creditpay-input').val(grandTotal);
+
+                $('#creditpay-input').prop('readonly', true);
+            }
+        }
     </script>
 @endsection

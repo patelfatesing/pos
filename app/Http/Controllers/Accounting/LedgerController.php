@@ -411,8 +411,8 @@ class LedgerController extends Controller
                 'particulars' => $this->getOtherLedgerName($row->voucher_id, $ledgerId),
                 'vch_type'    => $row->voucher_type,
                 'vch_no'      => $row->voucher_id,
-                'debit'       => $row->dc == 'Dr' ? $row->amount : null,
-                'credit'      => $row->dc == 'Cr' ? $row->amount : null,
+                'debit'       => $row->dc == 'Dr' ? $row->amount : 0,
+                'credit'      => $row->dc == 'Cr' ? $row->amount : 0,
                 'edit_url'    => route('accounting.vouchers.edit', $row->voucher_id)
             ];
 
@@ -428,8 +428,8 @@ class LedgerController extends Controller
                 $data[] = [
                     'type'        => 'detail',
                     'particulars' => $line->name,
-                    'debit'       => $line->dc == 'Dr' ? $line->amount : null,
-                    'credit'      => $line->dc == 'Cr' ? $line->amount : null,
+                    'debit'       => $line->dc == 'Dr' ? $line->amount : 0,
+                    'credit'      => $line->dc == 'Cr' ? $line->amount : 0,
                 ];
             }
         }

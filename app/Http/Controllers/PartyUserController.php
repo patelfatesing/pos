@@ -223,22 +223,35 @@ class PartyUserController extends Controller
             'address' => 'nullable|string|max:255',
             'credit_points' => 'required|numeric|min:0|max:99999999.99',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-
         ]);
+
+        // 🔥 Calculate difference
+        $oldCredit = $Partyuser->credit_points;
+        $newCredit = $data['credit_points'];
+
+        $difference = $newCredit - $oldCredit;
+
+        // ✅ Update left_credit based on difference
+        $data['left_credit'] = $Partyuser->left_credit + $difference;
+
+        // ❗ Prevent negative left_credit
+        if ($data['left_credit'] < 0) {
+            $data['left_credit'] = 0;
+        }
 
         // Handle photo upload
         if ($request->hasFile('photo')) {
-            // Delete old photo if exists
             if ($Partyuser->photo) {
                 \Storage::disk('public')->delete($Partyuser->photo);
             }
-            $extension = $request->file('photo')->getClientOriginalExtension();
-            $filename = $Partyuser->id . '_partyuser' . '.' . $extension;
-            $data['updated_by'] = Auth::id();
 
-            // Store new photo
+            $extension = $request->file('photo')->getClientOriginalExtension();
+            $filename = $Partyuser->id . '_partyuser.' . $extension;
+
             $data['photo'] = $request->file('photo')->storeAs('party_user_photos', $filename, 'public');
         }
+
+        $data['updated_by'] = auth()->id();
 
         $Partyuser->update($data);
 
@@ -342,7 +355,7 @@ class PartyUserController extends Controller
 
     public function custPriceChange(Request $request)
     {
-    
+
         $validated = $request->validate([
             'cust_user_id' => 'required|exists:party_users,id',
             'items' => 'required|array',

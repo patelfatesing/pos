@@ -712,8 +712,8 @@ class VoucherController extends Controller
 
         foreach ($voucher->lines as $line) {
 
-            $debit  = null;
-            $credit = null;
+            $debit  = 0;
+            $credit = 0;
 
             if ($line->dc === 'Dr') {
                 $debit = (float) $line->amount;
