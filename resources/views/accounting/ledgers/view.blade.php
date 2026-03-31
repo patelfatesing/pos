@@ -5,9 +5,7 @@
     }
 </style>
 @section('page-content')
-    <!-- Wrapper Start -->
-    <div class="wrapper">
-
+    
         <div class="content-page">
             <div class="container-fluid add-form-list">
                 <div class="row">
