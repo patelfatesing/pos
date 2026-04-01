@@ -220,23 +220,16 @@ class InvoiceController extends Controller
 
     public function updateItems(Request $request, $id)
     {
-
         $invoice = Invoice::findOrFail($id);
 
         $validated = $request->validate([
             'items' => 'required|array|min:1',
-
             'items.*.product_id' => 'required|integer',
             'items.*.name' => 'required|string',
-
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.sell_price' => 'required|numeric|min:0',
             'items.*.mrp' => 'required|numeric|min:0',
-
-            // fix price (remove comma before validation)
             'items.*.price' => 'nullable',
-
-            // fix category (string allow)
             'items.*.category' => 'nullable|string',
             'items.*.subcategory' => 'nullable|string',
             'items.*.discount_price' => 'nullable|string',
@@ -246,33 +239,17 @@ class InvoiceController extends Controller
         $currentItems = collect($invoice->items);
         $newItems = collect($validated['items']);
 
-        $invoiceTime = $invoice->created_at;
         $branchId = $invoice->branch_id;
-        $invoiceDate = $invoiceTime->toDateString();
-        $currentDate = now()->toDateString();
+        $invoiceDate = $invoice->created_at->toDateString();
 
         $invoiceShift = ShiftClosing::where('branch_id', $branchId)
-            ->where('start_time', '<=', $invoiceTime)
-            ->where('end_time', '>=', $invoiceTime)
+            ->where('start_time', '<=', $invoice->created_at)
+            ->where('end_time', '>=', $invoice->created_at)
             ->first();
-
-        $currentShift = ShiftClosing::where('branch_id', $branchId)
-            ->where('start_time', '<=', now())
-            ->where('end_time', '>=', now())
-            ->first();
-
-        $verify = '';
-        if (!empty($request->verify)) {
-            $verify = $request->verify;
-        }
 
         $invoiceShiftId = optional($invoiceShift)->id;
-        $currentShiftId = optional($currentShift)->id;
 
-        // 🔥 ADD THIS
         $affectedProducts = [];
-
-        // Totals
         $subTotal = 0;
         $totalQty = 0;
         $total = 0;
@@ -282,7 +259,6 @@ class InvoiceController extends Controller
             $productId = $item['product_id'];
             $newQty = (int) $item['quantity'];
 
-            // 🔴 TRACK PRODUCTS
             $affectedProducts[] = $productId;
 
             $newMRP = (float) $item['mrp'];
@@ -294,7 +270,6 @@ class InvoiceController extends Controller
 
             $old = $currentItems->firstWhere('product_id', $productId);
             $oldQty = $old ? (int) $old['quantity'] : 0;
-            $oldMRP = $old['mrp'] ?? 0;
 
             // ================= NEW PRODUCT =================
             if (!$old) {
@@ -305,8 +280,19 @@ class InvoiceController extends Controller
                     stockStatusChangeNew($productId, $branchId, $newQty, 'sold_stock', $invoiceShiftId);
                 }
 
+                // ✅ LOG
+                InvoiceActivityLog::create([
+                    'invoice_id' => $invoice->id,
+                    'action' => 'item_added',
+                    'description' => "Added product ID {$productId} qty {$newQty}",
+                    'old_data' => null,
+                    'new_data' => $item,
+                    'user_id' => auth()->id(),
+                ]);
+
                 continue;
             }
+
             // ================= QTY INCREASE =================
             if ($newQty > $oldQty) {
 
@@ -317,6 +303,16 @@ class InvoiceController extends Controller
                 if ($invoiceShiftId) {
                     stockStatusChangeNew($productId, $branchId, $diff, 'sold_stock', $invoiceShiftId);
                 }
+
+                // ✅ LOG
+                InvoiceActivityLog::create([
+                    'invoice_id' => $invoice->id,
+                    'action' => 'qty_increased',
+                    'description' => "Product {$productId} qty increased {$oldQty} → {$newQty}",
+                    'old_data' => ['quantity' => $oldQty],
+                    'new_data' => ['quantity' => $newQty],
+                    'user_id' => auth()->id(),
+                ]);
             }
 
             // ================= QTY DECREASE =================
@@ -329,321 +325,75 @@ class InvoiceController extends Controller
                 if ($invoiceShiftId) {
                     stockStatusChangeNew($productId, $branchId, $diff, 'refunded_order', $invoiceShiftId);
                 }
+
+                // ✅ LOG
+                InvoiceActivityLog::create([
+                    'invoice_id' => $invoice->id,
+                    'action' => 'qty_decreased',
+                    'description' => "Product {$productId} qty decreased {$oldQty} → {$newQty}",
+                    'old_data' => ['quantity' => $oldQty],
+                    'new_data' => ['quantity' => $newQty],
+                    'user_id' => auth()->id(),
+                ]);
             }
         }
 
         // ================= REMOVED ITEMS =================
-        $currentItems->each(function ($item) use ($newItems, $branchId, $invoiceShiftId, &$affectedProducts) {
+        $currentItems->each(function ($item) use ($newItems, $branchId, $invoiceShiftId, $invoice) {
 
             if (!$newItems->contains('product_id', $item['product_id'])) {
-
-                $affectedProducts[] = $item['product_id'];
 
                 updateInventoryStock($item['product_id'], $branchId, $item['quantity'], 'refund');
 
                 if ($invoiceShiftId) {
                     stockStatusChange($item['product_id'], $branchId, $item['quantity'], 'refunded_order', $invoiceShiftId);
                 }
+
+                // ✅ LOG
+                InvoiceActivityLog::create([
+                    'invoice_id' => $invoice->id,
+                    'action' => 'item_removed',
+                    'description' => "Removed product ID {$item['product_id']} qty {$item['quantity']}",
+                    'old_data' => $item,
+                    'new_data' => null,
+                    'user_id' => auth()->id(),
+                ]);
             }
         });
 
-        // 🔥🔥🔥 IMPORTANT FIX
         foreach (array_unique($affectedProducts) as $pid) {
             recalculateStockFromDate($pid, $branchId, $invoiceDate);
         }
 
-        // ================= REST YOUR CODE SAME =================
-
-        // 💳 Credit change (Only for store_id = 1)
+        // ================= CREDIT LOG =================
         $oldCredit = $invoice->creditpay ?? 0;
         $newCredit = $request->creditpay ?? 0;
 
         if ($oldCredit != $newCredit && $branchId == 1) {
-            $diff = $newCredit - $oldCredit;
-
-            // echo "Old Credit: {$oldCredit}, New Credit: {$newCredit}, Diff: {$diff}";
-            // dd('sdf');
-
-            $change = $diff > 0 ? "increased" : "decreased";
-            $msg = "Credit {$change} from ₹{$oldCredit} to ₹{$newCredit}";
-
-
-
-            $partyUser = PartyUser::where('status', 'Active')
-                ->where('is_delete', 'No')
-                ->where('id', $invoice->party_user_id) // use the foreign key
-                ->first();
-
-            if (!empty($partyUser)) {
-
-                $partyUser->left_credit -= $diff;
-                $partyUser->use_credit += $diff;
-
-                // dd($partyUser);
-                $partyUser->save();
-            }
 
             InvoiceActivityLog::create([
                 'invoice_id' => $invoice->id,
                 'action' => 'credit_change',
-                'description' => $msg,
+                'description' => "Credit changed {$oldCredit} → {$newCredit}",
                 'old_data' => ['creditpay' => $oldCredit],
                 'new_data' => ['creditpay' => $newCredit],
                 'user_id' => auth()->id(),
             ]);
         }
 
-        // 💾 Final Invoice Update
+        // ================= SAVE =================
         $invoice->items = $validated['items'];
         $invoice->creditpay = $newCredit;
         $invoice->sub_total = $request->sub_total;
         $invoice->total_item_total = $subTotal;
         $invoice->total_item_qty = $totalQty;
         $invoice->total = $request->total;
-        $invoice->cash_amount = $subTotal;
-        $invoice->change_amount = $subTotal;
-
-
-        if ($branchId == 1) {
-            $invoice->party_amount = $request->total_discount;
-        } else {
-            $invoice->commission_amount = $request->total_discount;
-        }
-
-        $invoice->invoice_status = $newCredit > 0 ? 'unpaid' : 'paid';
-        $invoice->edit_in = 'yes';
         $invoice->save();
 
-        // ================= DELETE OLD VOUCHER =================
-
-        $oldVoucher = Voucher::where('gen_id', $invoice->id)
-            ->where('voucher_type', 'Sales')
-            ->first();
-
-        if ($oldVoucher) {
-            DB::table('voucher_lines')->where('voucher_id', $oldVoucher->id)->delete();
-            $oldVoucher->delete();
-        }
-
-        // ================= BUILD NEW VOUCHER =================
-
-        $branchId = $invoice->branch_id;
-
-        $lines = [];
-        $cashLedgerId = null;
-        $customer_ledger_id = null;
-
-        // ===== PAYMENT =====
-        $cashPaid = round((float) $invoice->cash_amount, 2);
-        $upiPaid  = round((float) $invoice->upi_amount, 2);
-        $creditUsed = ($branchId == 1) ? round((float) $invoice->creditpay, 2) : 0;
-
-        // CASH
-        if ($cashPaid > 0) {
-            $cashLedger = AccountLedger::where('name', 'CASH')->firstOrFail();
-            $cashLedgerId = $cashLedger->id;
-
-            $lines[] = [
-                'ledger_id' => $cashLedgerId,
-                'dc' => 'Dr',
-                'amount' => $cashPaid,
-                'line_narration' => 'Cash received',
-            ];
-        }
-
-        // UPI
-        if ($upiPaid > 0) {
-            $branchData = Branch::where('branches.id', $branchId)
-                ->leftJoin('account_ledgers', 'branches.bank_ledger_id', '=', 'account_ledgers.id')
-                ->select('account_ledgers.name as bank_ledger_name')
-                ->first();
-
-            $upiLedger = AccountLedger::where('name', $branchData->bank_ledger_name)->firstOrFail();
-
-            $lines[] = [
-                'ledger_id' => $upiLedger->id,
-                'dc' => 'Dr',
-                'amount' => $upiPaid,
-                'line_narration' => 'UPI received',
-            ];
-        }
-
-        // CUSTOMER LEDGER
-        if ($invoice->party_user_id) {
-
-            $partyUser = PartyUser::find($invoice->party_user_id);
-
-            if ($partyUser) {
-
-                $ledger = AccountLedger::where('name', $partyUser->first_name)->first();
-
-                if (!$ledger) {
-                    $ledger = AccountLedger::create([
-                        'name' => $partyUser->first_name,
-                        'group_name' => 'Sundry Debtors',
-                        'opening_balance' => 0,
-                        'debit_credit' => 'Dr',
-                        'branch_id' => $branchId,
-                        'group_id' => 19,
-                        'created_by' => auth()->id(),
-                    ]);
-                }
-
-                $customer_ledger_id = $ledger->id;
-            }
-        }
-
-        // CREDIT
-        if ($branchId == 1 && $creditUsed > 0 && $customer_ledger_id) {
-            $lines[] = [
-                'ledger_id' => $customer_ledger_id,
-                'dc' => 'Dr',
-                'amount' => $creditUsed,
-                'line_narration' => 'Credit to customer',
-            ];
-        }
-
-        // ===== DISCOUNT =====
-        $discountAmt = ($branchId == 1)
-            ? round((float) $invoice->party_amount, 2)
-            : round((float) $invoice->commission_amount, 2);
-
-        if ($discountAmt > 0) {
-            $discountLedger = AccountLedger::where('name', 'Discount Allowed')->firstOrFail();
-
-            $lines[] = [
-                'ledger_id' => $discountLedger->id,
-                'dc' => 'Dr',
-                'amount' => $discountAmt,
-                'line_narration' => 'Discount allowed',
-            ];
-        }
-
-        // ===== SALES =====
-        $totalSale = round((float) $invoice->sub_total, 2);
-        $netAmount = $totalSale - $discountAmt;
-
-        if ($branchId == 1) {
-            $salesLedger = AccountLedger::where('name', 'WAREHOUSE')->firstOrFail();
-        } else {
-            $branch = Branch::find($branchId);
-            $salesLedger = AccountLedger::where('name', $branch->name)->firstOrFail();
-        }
-
-        $sales_ledger_id = $salesLedger->id;
-
-        // ===== ROUND OFF =====
-        $totalTender = $cashPaid + $upiPaid + $creditUsed;
-        $roundOff = round($totalTender - $netAmount, 2);
-
-        $roundLedger = AccountLedger::where('name', 'Round Off')->first();
-
-        if ($roundOff < 0 && $roundLedger) {
-            $lines[] = [
-                'ledger_id' => $roundLedger->id,
-                'dc' => 'Dr',
-                'amount' => abs($roundOff),
-                'line_narration' => 'Round Off (-)',
-            ];
-        }
-
-        if ($roundOff > 0 && $roundLedger) {
-            $lines[] = [
-                'ledger_id' => $roundLedger->id,
-                'dc' => 'Cr',
-                'amount' => $roundOff,
-                'line_narration' => 'Round Off (+)',
-            ];
-        }
-
-        // SALES CR
-        $lines[] = [
-            'ledger_id' => $sales_ledger_id,
-            'dc' => 'Cr',
-            'amount' => $totalSale,
-            'line_narration' => 'Sales',
-        ];
-
-        // ===== BALANCE CHECK =====
-        $dr = collect($lines)->where('dc', 'Dr')->sum('amount');
-        $cr = collect($lines)->where('dc', 'Cr')->sum('amount');
-
-        if (round($dr, 2) !== round($cr, 2)) {
-            throw new \Exception("Voucher not balanced: Dr={$dr} Cr={$cr}");
-        }
-
-        // ===== REF NO =====
-        $prefix = "POS-" . $branchId . "-";
-
-        $lastRef = Voucher::where('voucher_type', 'Sales')
-            ->where('branch_id', $branchId)
-            ->where('ref_no', 'like', $prefix . '%')
-            ->orderBy('id', 'desc')
-            ->value('ref_no');
-
-        $nextNumber = $lastRef ? ((int) str_replace($prefix, '', $lastRef)) + 1 : 1;
-        $nextRef = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
-
-        // ===== PAYLOAD =====
-        $payload = [
-            'voucher_date' => now()->format('Y-m-d'),
-            'voucher_type' => 'Sales',
-            'branch_id' => $branchId,
-            'ref_no' => $nextRef,
-            'narration' => 'Edited Sale',
-            'party_ledger_id' => $customer_ledger_id,
-            'mode' => 'cash',
-            'cash_ledger_id' => $cashLedgerId,
-            'sub_total' => $totalSale,
-            'discount' => $discountAmt,
-            'tax' => 0,
-            'grand_total' => $netAmount + max(0, $roundOff),
-            'lines' => $lines,
-        ];
-
-        // CREATE NEW
-        $voucher = $this->posTransaction($payload);
-
-        // LINK
-        if ($voucher) {
-            $voucher->gen_id = $invoice->id;
-            $voucher->save();
-        }
-
-        $cust_name = '';
-        if ($invoice->party_user_id  != "") {
-
-            $partyUser = PartyUser::where('status', 'Active')
-                ->where('is_delete', 'No')
-                ->where('id', $invoice->id) // use the foreign key
-                ->first();
-            $cust_name = $partyUser->first_name ?? '';
-        }
-
-        if ($invoice->commission_user_id != "") {
-            $commissionUser = Commissionuser::where('status', 'Active')
-                ->where('is_deleted', 'No')
-                ->where('id', $invoice->commission_user_id) // use the foreign key
-                ->first();
-
-            $cust_name = $commissionUser->first_name ?? '';
-        }
-
-        $pdf = App::make('dompdf.wrapper');
-
-        $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $newItems, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => $cust_name, "ref_no" => '', "hold_date" => '']);
-        $pdfPath = storage_path('app/public/invoices/edit_' . $invoice->invoice_number . '.pdf');
-        $pdf->save($pdfPath);
-
-        if ($verify == 'yes') {
-            $shiftId = $invoice->shift_id;
-            $branchId = $invoice->branch_id;
-            return redirect()->to('/shift-manage/stock-details/' . $shiftId)
-                ->with('success', 'Invoice items updated successfully.');
-        } else {
-            return redirect()->route('sales.sales.list')
-                ->with('success', 'Invoice items updated successfully.');
-        }
+        return redirect()->route('shift-manage.view', [
+            'id' => $invoice->branch_id,
+            'shift_id' => $invoice->shift_id
+        ])->with('success', 'Invoice updated with logs ✅');
     }
 
     public function fetchHistory($id)
@@ -1115,7 +865,11 @@ class InvoiceController extends Controller
             // \Log::info('Invoice Created: ', $invoice->toArray());
             // InvoiceHistory::logFromInvoice($invoice, 'created', Auth::id());
             DB::commit();
-            return redirect()->route('sales.sales.list')->with('success', 'Invoice items updated successfully.');
+
+            return redirect()->route('shift-manage.view', [
+                'id' => $branch_id, // or $branch_id or whatever your id is
+                'shift_id' => $request->shift_id
+            ])->with('success', 'Invoice items updated successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Transaction failed when creating user and wallet', [
