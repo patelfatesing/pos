@@ -18,6 +18,7 @@ use App\Models\StockRequest;
 use App\Models\StockTransfer;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\InvoiceActivityLog;
+use App\Models\Accounting\Voucher;
 
 class ShiftManageController extends Controller
 {
@@ -80,6 +81,10 @@ class ShiftManageController extends Controller
             $query->where('shift_closings.user_id', $request->user_id);
         }
 
+        if (auth()->user()->role_id == 1) {
+            $query->where('admin_status', 'verify');
+        }
+
         if (!empty($searchValue)) {
             $query->where(function ($q) use ($searchValue) {
                 $q->where('branches.name', 'like', '%' . $searchValue . '%')
@@ -127,11 +132,16 @@ class ShiftManageController extends Controller
             //     ->whereBetween('created_at', [$row->start_time, $endTime])
             //     ->count();
 
-            $totalInvoicedAmount = \App\Models\Invoice::where('branch_id', $row->branch_id)->whereNotIn('status', ['Hold', 'resumed', 'archived'])
-                ->whereBetween('created_at', [$row->start_time, $endTime])
-                ->count();
-            //$totalSales = $transactions->whereBetween('created_at', [$row->start_time, $endTime])->where('branch_id', $row->branch_id)->get();
+            $invoiceQuery = \App\Models\Invoice::where('branch_id', $row->branch_id)
+                ->whereNotIn('status', ['Hold', 'resumed', 'archived'])
+                ->whereBetween('created_at', [$row->start_time, $endTime]);
 
+            // ✅ Apply same logic as invoice list
+            if (auth()->user()->role_id == 1) {
+                $invoiceQuery->where('admin_status', 'verify');
+            }
+
+            $totalInvoicedAmount = $invoiceQuery->count();
 
             // $endTime = $row->end_time ? Carbon::parse($row->end_time) : null;
             $now = Carbon::now();
@@ -319,7 +329,12 @@ class ShiftManageController extends Controller
         }
 
         // Filter for last 7 days
-        $query->where('invoices.created_at', '>=', Carbon::now()->subDays(7));
+        // $query->where('invoices.created_at', '>=', Carbon::now()->subDays(7));
+
+        // Role-based filter
+        if (auth()->user()->role_id == 1) {
+            $query->where('invoices.admin_status', 'verify');
+        }
 
         $query->where('invoices.status', '!=', 'Hold');
 
@@ -334,7 +349,7 @@ class ShiftManageController extends Controller
 
         if (!empty($request->shift_id)) {
             $shift = ShiftClosing::findOrFail($request->shift_id);
-            $query->where('invoices.shift_id',$request->shift_id);
+            $query->where('invoices.shift_id', $request->shift_id);
 
             // $query->whereBetween('invoices.created_at', [$shift->start_time, $shift->end_time]);
         }
@@ -943,10 +958,18 @@ class ShiftManageController extends Controller
         try {
 
             if ($type === 'sales') {
-                $updated = Invoice::where('shift_id', $shift_id)
+                // Get invoice IDs
+                $invoiceIds = Invoice::where('shift_id', $shift_id)->pluck('id');
+
+                // Update invoices
+                Invoice::whereIn('id', $invoiceIds)
                     ->update(['admin_status' => $status]);
 
-                \Log::info('Invoice Updated: ' . $updated);
+                // Update vouchers (ONLY Sales type)
+                Voucher::whereIn('gen_id', $invoiceIds)
+                    ->where('voucher_type', 'Sales')
+                    ->update(['admin_status' => $status]);
+                \Log::info('Invoice Updated: ' . $invoiceIds);
             }
 
             if ($type === 'transfer') {
@@ -996,7 +1019,16 @@ class ShiftManageController extends Controller
         try {
 
             // ✅ Update all modules
-            Invoice::where('shift_id', $shift_id)
+
+            $invoiceIds = Invoice::where('shift_id', $shift_id)->pluck('id');
+
+            // Update invoices
+            Invoice::whereIn('id', $invoiceIds)
+                ->update(['admin_status' => $status]);
+
+            // Update vouchers (ONLY Sales type)
+            Voucher::whereIn('gen_id', $invoiceIds)
+                ->where('voucher_type', 'Sales')
                 ->update(['admin_status' => $status]);
 
             StockTransfer::where('shift_id', $shift_id)

@@ -5,14 +5,15 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid add-form-list">
-
-                <!-- Header -->
-                <div class="row mb-3">
-                    <div class="col-12 d-flex justify-content-between">
-                        <h4>Edit Stock Transfer</h4>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Edit Stock Transfer</h4>
+                    </div>
+                    <div>
                         <a href="{{ route('stock-transfer.list') }}" class="btn btn-secondary">Back</a>
                     </div>
                 </div>
+              
 
                 <div class="card">
                     <div class="card-body">
@@ -166,11 +167,11 @@
                                 <h5>Total Quantity: <span id="total-quantity">0</span></h5>
                             </div>
 
-                            <div class="d-flex justify-content-end mb-3">
+                            {{-- <div class="d-flex justify-content-end mb-3">
                                 <button type="button" id="add-item" class="btn btn-secondary">
                                     + Add Product
                                 </button>
-                            </div>
+                            </div> --}}
 
                             <div>
                                 <button type="submit" id="submitBtn" class="btn btn-primary">

@@ -107,7 +107,6 @@
         </div>
     </div>
 
-
     <script>
         $(function() {
             $.ajaxSetup({
@@ -131,6 +130,10 @@
                         d.voucher_type = $('#typeFilter').val() || '';
                     }
                 },
+                 lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
                 dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'f l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
                 initComplete: function() {
                     $('.dataTables_filter input').attr("placeholder", "Search List...");

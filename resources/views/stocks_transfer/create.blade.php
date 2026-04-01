@@ -5,18 +5,15 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid add-form-list">
-                <div class="row align-items-center mb-3">
-                    <div class="col-lg-12">
-                        <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
-                            <div>
-                                <h4 class="mb-0">Stock Transfer Store to Store</h4>
-                            </div>
-                            <div>
-                                <a href="{{ route('stock-transfer.list') }}" class="btn btn-secondary">Back</a>
-                            </div>
-                        </div>
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Stock Transfer Store to Store</h4>
+                    </div>
+                    <div>
+                        <a href="{{ route('stock-transfer.list') }}" class="btn btn-secondary">Back</a>
                     </div>
                 </div>
+
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="card">
@@ -25,14 +22,14 @@
                                 @if (session('success'))
                                     <div class="alert alert-success alert-dismissible fade show">
                                         {{ session('success') }}
-                                       
+
                                     </div>
                                 @endif
 
                                 @if (session('error'))
                                     <div class="alert alert-danger alert-dismissible fade show">
                                         {{ session('error') }}
-                                       
+
                                     </div>
                                 @endif
 
@@ -43,29 +40,29 @@
                                                 <li>{{ $error }}</li>
                                             @endforeach
                                         </ul>
-                                       
+
                                     </div>
                                 @endif
 
                                 <form id="transferForm" action="{{ route('stock-transfer.store') }}" method="POST">
                                     @csrf
                                     <div class="row">
-                                         @if($shift_id != "")
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Day</label>
-                                            <input type="date"
-                                                value="{{ \Carbon\Carbon::parse($shift->start_time)->format('Y-m-d') }}"
-                                                class="form-control" disabled>
-                                            @error('name')
-                                            <span class="text-danger">{{ $message }}</span>
-                                            @enderror
-                                            <input type="hidden" value="{{$shift_id}}" name="shift_id">
-                                            <input type="hidden" value="{{$shift->start_time}}" name="date">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6"></div>
-                                    @endif
+                                        @if ($shift_id != '')
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Day</label>
+                                                    <input type="date"
+                                                        value="{{ \Carbon\Carbon::parse($shift->start_time)->format('Y-m-d') }}"
+                                                        class="form-control" disabled>
+                                                    @error('name')
+                                                        <span class="text-danger">{{ $message }}</span>
+                                                    @enderror
+                                                    <input type="hidden" value="{{ $shift_id }}" name="shift_id">
+                                                    <input type="hidden" value="{{ $shift->start_time }}" name="date">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6"></div>
+                                        @endif
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>From Store *</label>

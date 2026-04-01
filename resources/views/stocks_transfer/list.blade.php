@@ -11,7 +11,6 @@
                         <h4 class="mb-0">Stock Transfers </h4>
                     </div>
                     <div>
-                        @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'stock-transfer'))
                         @if($branch_id != "" && $shift_id != "")
                         <a href="{{ route('stock-transfer.craete-transfer') }}?branch_id={{$branch_id}}&shift_id={{$shift_id}}" class="btn btn-primary">
                             <i class="fas fa-plus"></i> New Transfer
@@ -22,7 +21,7 @@
                         </a>
                         @endif
 
-                        @endif
+                       
                     </div>
                 </div>
             </div>
@@ -31,7 +30,6 @@
 
         <div class="row">
             <div class="col-12">
-
                 <div class="table-responsive rounded">
                     <table class="table table-striped table-bordered nowrap" id="stock-transfers-table">
                         <thead class="bg-white">
