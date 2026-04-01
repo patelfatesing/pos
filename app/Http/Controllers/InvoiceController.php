@@ -668,7 +668,6 @@ class InvoiceController extends Controller
 
     public function InsertSale(Request $request)
     {
-
         $validated = $request->validate([
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|integer',
@@ -893,6 +892,7 @@ class InvoiceController extends Controller
                 'sales_type'         => 'admin_sale',
                 'created_at'         => $created_at,
                 'updated_at'         => $created_at,
+                'shift_id'           => $request->shift_id
             ]);
 
             // ================= POS VOUCHER BUILD =================
