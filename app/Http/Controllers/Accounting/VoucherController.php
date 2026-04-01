@@ -49,7 +49,7 @@ class VoucherController extends Controller
                 DB::raw("ROUND(SUM(CASE WHEN l.dc='Dr' THEN l.amount ELSE 0 END),2) as dr_total"),
                 DB::raw("ROUND(SUM(CASE WHEN l.dc='Cr' THEN l.amount ELSE 0 END),2) as cr_total"),
             ])
-            ->groupBy('v.id', 'v.voucher_date', 'v.voucher_type', 'v.ref_no', 'v.narration', 'b.name','v.admin_status');
+            ->groupBy('v.id', 'v.voucher_date', 'v.voucher_type', 'v.ref_no', 'v.narration', 'b.name', 'v.admin_status');
 
         $recordsTotal = (clone $base)->count();
 
@@ -65,6 +65,10 @@ class VoucherController extends Controller
         // Voucher Type Filter
         if ($request->filled('voucher_type')) {
             $base->where('v.voucher_type', $request->voucher_type);
+        }
+
+        if (auth()->user()->role_id == 1) {
+            $base->where('admin_status', 'verify');
         }
 
         $recordsFiltered = (clone $base)->count();
@@ -100,8 +104,22 @@ class VoucherController extends Controller
             $base->where('created_by', $userId);
         }
 
-        $rows = $base->orderBy($orderBy, $orderDirection)
-            ->offset($start)->limit($length)->get();
+
+        if ($request->order) {
+            $orderColumnIndex = $request->order[0]['column'];
+            $orderDir = $request->order[0]['dir'] ?? 'desc';
+            $orderColumn = $columns[$orderColumnIndex] ?? 'v.created_at';
+            $base->orderBy($orderColumn, $orderDir);
+        } else {
+            $base->orderBy('v.created_at', 'desc');
+        }
+
+        // Pagination
+        if ($request->length > 0) {
+            $base->skip($request->start)->take($request->length);
+        }
+
+        $rows = $base->get();
 
         $data = $rows->map(function ($r) {
             $ok = (float)$r->dr_total === (float)$r->cr_total;
@@ -118,13 +136,13 @@ class VoucherController extends Controller
 
             // View button (only verified OR admin)
             if ($r->admin_status === 'verify') {
-                $actions .= '<a href="' . e($viewUrl) . '" class="btn btn-sm btn-primary mr-1">
+                $actions .= '<span class="badge bg-primary mr-1">
                     Verify
-                 </a>';
-            } else {
-                $actions .= '<span class="badge bg-warning mr-1">
-                    Unverified
                  </span>';
+            } else {
+                $actions .= '<a href="' . e($viewUrl) . '" class="btn btn-sm btn-warning mr-1">
+                    Unverified
+                 </a>';
             }
 
             $actions1 = '<div class="d-flex align-items-center gap-1">';

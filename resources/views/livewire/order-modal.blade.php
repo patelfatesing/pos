@@ -54,6 +54,10 @@
                                                 $totalAmount = 0;
                                             @endphp
                                             @foreach ($orders as $index => $order)
+                                                @php
+                                                    $totalQty += $order->total_item_qty;
+                                                @endphp
+
                                                 <tr>
                                                     <td>{{ $j++ }}</td>
                                                     <td>{{ $order->invoice_number }}</td>
@@ -68,10 +72,23 @@
                                                     <td>{{ $order->payment_mode == 'online' ? 'UPI' : $order->payment_mode }}
                                                     </td>
                                                     <td>{{ $order->total_item_qty }}</td>
-                                                    @if ($order->creditpay + @$order->party_amount + @$order->commission_amount == $order->sub_total)
-                                                        <td>{{ format_inr($order->creditpay) }}</td>
+                                                    @php
+                                                        $creditpay = (float) ($order->creditpay ?? 0);
+                                                        $party_amount = (float) ($order->party_amount ?? 0);
+                                                        $commission_amount = (float) ($order->commission_amount ?? 0);
+                                                        $sub_total = (float) ($order->sub_total ?? 0);
+                                                    @endphp
+
+                                                    @if ($creditpay + $party_amount + $commission_amount == $sub_total)
+                                                        <td>{{ format_inr($creditpay) }}</td>
+                                                        @php
+                                                            $totalAmount += $creditpay;
+                                                        @endphp
                                                     @else
-                                                        <td>{{ format_inr($order->total) }}</td>
+                                                        <td>{{ format_inr((float) ($order->total ?? 0)) }}</td>
+                                                        @php
+                                                            $totalAmount += (float) ($order->total ?? 0);
+                                                        @endphp
                                                     @endif
                                                     <td class="text-center">
 
@@ -119,7 +136,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            
+
                                             @foreach ($refunds as $index => $refund)
                                                 @php $order = $refund->invoice; @endphp
                                                 <tr class="table-warning">

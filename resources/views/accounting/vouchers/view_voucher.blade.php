@@ -233,10 +233,9 @@
                         @endif
 
                         <!-- Back Button -->
-                        <a href="{{ request('redirect') ?? route('accounting.ledgers.list') }}"
-                            class="btn btn-secondary btn-sm">
-                            ← Back
-                        </a>
+                        <button onclick="window.history.back()" class="btn btn-secondary">
+                            Back
+                        </button>
 
                     </div>
                 </div>

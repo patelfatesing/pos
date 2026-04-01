@@ -19,7 +19,7 @@ $roleId = auth()->user()->role_id;
                     <a href="{{ route('stock.requestList') }}" class="btn btn-secondary">Back</a>
                 </div>
             </div>
-            
+
             <div class="card mb-4">
                 <div class="card-body">
                     <div class="row">
@@ -75,7 +75,11 @@ $roleId = auth()->user()->role_id;
                                     @php
                                         $grouped = collect($flattened)->groupBy('product_id');
                                     @endphp
-
+                                    @if ($errors->any())
+                                        <div class="alert alert-danger">
+                                            {{ $errors->first() }}
+                                        </div>
+                                    @endif
                                     @foreach ($grouped as $productId => $entries)
                                         @php
                                             $first = $entries->first();
