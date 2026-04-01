@@ -1186,17 +1186,20 @@ class ReportController extends Controller
         $tz    = config('app.timezone', 'Asia/Kolkata');
         $start = $request->filled('start_date')
             ? Carbon::parse($request->input('start_date'), $tz)->startOfDay()
-            : Carbon::now($tz)->startOfMonth();
+            : null;
+
         $end   = $request->filled('end_date')
             ? Carbon::parse($request->input('end_date'), $tz)->endOfDay()
-            : Carbon::now($tz)->endOfMonth();
+            : null;
 
         // ---------- Base query (filters, no search yet) ----------
         $base = DB::table('credit_histories as ch')
             ->leftJoin('party_users as pu', 'pu.id', '=', 'ch.party_user_id')
             ->leftJoin('branches as b', 'b.id', '=', 'ch.store_id')
             ->leftJoin('invoices as i', 'i.id', '=', 'ch.invoice_id')
-            ->whereBetween('ch.created_at', [$start, $end])
+            ->when($start && $end, function ($q) use ($start, $end) {
+                $q->whereBetween('ch.created_at', [$start, $end]);
+            })
             ->when($branchId,    fn($q, $v) => $q->where('ch.store_id', $v))
             ->when($partyUserId, fn($q, $v) => $q->where('ch.party_user_id', $v))
             ->when($status !== '', fn($q) => $q->where('ch.status', request('status')))
