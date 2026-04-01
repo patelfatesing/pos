@@ -98,7 +98,7 @@
         aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-            
+
                 <div class="modal-header">
                     <h5 class="modal-title" id="lowLevelModalLabel">Invoice Activity History</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -121,6 +121,7 @@
 @section('scripts')
     <script>
         let pdfLogo = "";
+        let isWarehouse = @json($branch_name === 'WAREHOUSE');
 
         function formatNumber(val) {
             val = parseFloat(val || 0);
@@ -315,6 +316,14 @@
                     $('#item_count_total').html(items);
                 }
             });
+
+            if (isWarehouse) {
+                table.column(2).visible(false); // Commission
+                table.column(3).visible(false);
+            } else {
+                table.column(4).visible(false); // Party
+                table.column(5).visible(false);
+            }
 
             // FILTER EVENTS
             $('#party_user_id, #commission_user_id').change(function() {

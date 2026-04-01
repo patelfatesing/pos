@@ -299,6 +299,7 @@ class ShiftManageController extends Controller
                 'invoices.total',
                 'invoices.items',
                 'invoices.branch_id',
+                'invoices.sales_type',
                 'branches.name as branch_name',
                 'invoices.created_at',
                 'invoices.commission_user_id',
@@ -444,6 +445,11 @@ class ShiftManageController extends Controller
                                     title="View History">
                                 📝 View History
                             </button>
+                        ' : '') . '
+                        ' . ($invoice->sales_type == "admin_sale" ? '
+                            <span class="text-danger ms-2 fw-bold" style="font-size:12px;">
+                                (Admin)
+                            </span>
                         ' : '') . '
                     ',
             ];
