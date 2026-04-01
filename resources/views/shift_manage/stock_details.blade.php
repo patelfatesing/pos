@@ -188,13 +188,13 @@
                                 {{ $finalShiftStatus == 'verify' ? 'checked' : '' }}>
 
                             <span>
-                                {!! $finalShiftStatus == 'verify' ? '✔ Shift' : '✖ Shift' !!}
+                                {!! $finalShiftStatus == 'verify' ? '✔ Shift Verify' : '✖ Shift Verify' !!}
                             </span>
                         </div>
                     </div>
                     @else
                     <div class="pull-right">
-                        
+
                         <div class="d-flex gap-1 verify-box shift ml-2 pull-right">
                             <span>
                                 Shift Open
@@ -301,6 +301,10 @@
 @endsection
 
 <script>
+    let salesStatus = "{{ $finalAdminStatusInv }}";
+    let transferStatus = "{{ $finalAdminStatusTra }}";
+    let requestStatus = "{{ $finalAdminStatusReq }}";
+
     function changeVerifyStatus(type, isChecked) {
 
         let status = isChecked ? 'verify' : 'unverify';
@@ -348,12 +352,31 @@
         let shift_id = "{{ $shift->id }}";
         let status = isChecked ? 'verify' : 'unverify';
 
+        // ✅ CHECK BEFORE VERIFY
+        if (status === 'verify') {
+
+            if (salesStatus !== 'verify' || transferStatus !== 'verify' || requestStatus !== 'verify') {
+
+                Swal.fire({
+                    icon: "warning",
+                    title: "Verification Required",
+                    text: "Please verify Sales, Transfer and Request first!"
+                });
+
+                // ❌ revert checkbox (NO reload)
+                document.querySelector('.verify-box.shift input').checked = false;
+
+                return;
+            }
+        }
+
+        // ✅ CONFIRMATION
         Swal.fire({
             title: "⚠️ Are you sure?",
-            text: "This will verify ALL data (Sales, Transfer, Request, Shift).",
+            text: "Do you want to verify full shift?",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonText: "Yes, verify all!",
+            confirmButtonText: "Yes, verify!",
             cancelButtonText: "Cancel"
         }).then((result) => {
 
@@ -370,16 +393,35 @@
                         status: status
                     },
                     success: function(response) {
-                        Swal.fire("Success!", "Shift fully verified.", "success")
-                            .then(() => location.reload());
+
+                        Swal.fire({
+                            icon: "success",
+                            title: "Verified!",
+                            text: "Shift fully verified"
+                        });
+
+                        // ✅ update local status (no reload)
+                        salesStatus = 'verify';
+                        transferStatus = 'verify';
+                        requestStatus = 'verify';
+
                     },
                     error: function() {
-                        Swal.fire("Error!", "Something went wrong.", "error");
+
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error!",
+                            text: "Something went wrong"
+                        });
+
+                        // ❌ revert checkbox
+                        document.querySelector('.verify-box.shift input').checked = false;
                     }
                 });
 
             } else {
-                location.reload(); // revert checkbox
+                // ❌ user cancelled → revert checkbox
+                document.querySelector('.verify-box.shift input').checked = false;
             }
 
         });
