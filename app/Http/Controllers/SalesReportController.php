@@ -74,6 +74,10 @@ class SalesReportController extends Controller
         if (!empty($request->branch_id)) {
             $query->where('invoices.branch_id', $request->branch_id);
         }
+        
+        if (auth()->user()->role_id == 1) {
+            $query->where('invoices.admin_status', 'verify');
+        }
 
         $totalRecords = $query->count();
 

@@ -520,8 +520,8 @@ class StockController extends Controller
                         Approved
                     </a>';
                 }
-                $action .= '<a class="badge bg-success mr-2" title="Edit" href="' . url('/stock-request/edit/' . $requestItem->id) . '">
-                <i class="ri-pencil-line"></i></a>';
+                // $action .= '<a class="badge bg-success mr-2" title="Edit" href="' . url('/stock-request/edit/' . $requestItem->id) . '">
+                // <i class="ri-pencil-line"></i></a>';
                 $action .= '</div>';
             } elseif ($requestItem->status === 'rejected') {
 
@@ -905,10 +905,247 @@ class StockController extends Controller
 
     public function approve(Request $request, $id)
     {
-
-        // dd($request->all());
         $request->validate([
-            'items' => 'required|array',
+            'items' => ['required', 'array', function ($attribute, $value, $fail) {
+
+                if (empty($value)) {
+                    $fail('At least one item is required.');
+                    return;
+                }
+
+                $hasValid = false;
+
+                foreach ($value as $storeItems) {
+                    foreach ($storeItems as $qty) {
+                        if (!empty($qty) && $qty > 0) {
+                            $hasValid = true;
+                            break 2;
+                        }
+                    }
+                }
+
+                if (!$hasValid) {
+                    $fail('At least one item quantity must be greater than 0.');
+                }
+            }],
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $stockRequest = StockRequest::with('items')->findOrFail($id);
+            $from_store_id = $request->from_store_id;
+
+            if ($stockRequest->status !== 'pending') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Request already processed.'
+                ]);
+            }
+
+            $running_shift = ShiftClosing::where('branch_id', $stockRequest->requested_by)
+                ->where('status', 'pending')
+                ->first();
+
+            if (!$running_shift) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'The destination store is not open.'
+                ]);
+            }
+
+            $transferredProductsBySource = [];
+
+            // ✅ LOOP PER TO STORE
+            foreach ($request->items as $to_store_id => $products) {
+
+                // ✅ UNIQUE TRANSFER NUMBER PER TO BRANCH
+                $transferNumber = 'TRF-' . now()->format('YmdHis') . '-' . $to_store_id . '-' . strtoupper(Str::random(3));
+
+                foreach ($products as $product_id => $product_qty) {
+
+                    if (empty($product_qty)) {
+                        $stockItem = StockRequestItem::where('product_id', $product_id)
+                            ->where('stock_request_id', $id)
+                            ->first();
+
+                        if ($stockItem) {
+                            $stockItem->quantity = 0;
+                            $stockItem->save();
+                        }
+                        continue;
+                    }
+
+                    // ✅ CHECK INVENTORY
+                    $inventories = Inventory::where('product_id', $product_id)
+                        ->where('store_id', $to_store_id)
+                        ->orderBy('expiry_date')
+                        ->get();
+
+                    $totalAvailable = $inventories->sum('quantity');
+
+                    if ($totalAvailable < $product_qty) {
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => "Not enough stock for product ID: {$product_id}"
+                        ]);
+                    }
+
+                    $remainingQty = $product_qty;
+
+                    foreach ($inventories as $inventory) {
+                        if ($remainingQty <= 0) break;
+
+                        $deducted = min($inventory->quantity, $remainingQty);
+
+                        // Deduct from source
+                        $inventory->quantity -= $deducted;
+                        $inventory->save();
+
+                        // Add to destination
+                        $storeInventory = Inventory::firstOrNew([
+                            'store_id' => $stockRequest->requested_by,
+                            'location_id' => $from_store_id,
+                            'product_id' => $product_id,
+                            'batch_no' => $inventory->batch_no,
+                            'expiry_date' => $inventory->expiry_date,
+                        ]);
+
+                        $storeInventory->quantity += $deducted;
+                        $storeInventory->save();
+
+                        $remainingQty -= $deducted;
+                    }
+
+                    // ✅ TRACK PRODUCTS PER STORE
+                    if (!isset($transferredProductsBySource[$to_store_id])) {
+                        $transferredProductsBySource[$to_store_id] = [];
+                    }
+
+                    if (!in_array($product_id, $transferredProductsBySource[$to_store_id])) {
+                        $transferredProductsBySource[$to_store_id][] = $product_id;
+                    }
+
+                    // ✅ SAVE APPROVAL
+                    $stockRequestItem = StockRequestItem::where('product_id', $product_id)
+                        ->where('stock_request_id', $id)
+                        ->first();
+
+                    StockRequestApprove::create([
+                        'stock_request_id' => $id,
+                        'stock_request_item_id' => optional($stockRequestItem)->id,
+                        'product_id' => $product_id,
+                        'source_store_id' => $to_store_id,
+                        'destination_store_id' => $from_store_id,
+                        'approved_quantity' => $product_qty,
+                        'approved_by' => Auth::id(),
+                        'approved_at' => now(),
+                    ]);
+
+                    // ✅ SAVE TRANSFER (GROUPED BY TO STORE)
+                    StockTransfer::create([
+                        'stock_request_id' => $id,
+                        'transfer_number' => $transferNumber,
+                        'from_branch_id' => $from_store_id,
+                        'to_branch_id' => $to_store_id,
+                        'product_id' => $product_id,
+                        'quantity' => $product_qty,
+                        'status' => 'approved',
+                        'transfer_by' => Auth::id(),
+                        'transferred_at' => now(),
+                    ]);
+
+                    // ✅ SHIFT UPDATE
+                    $des_shift = ShiftClosing::where('branch_id', $from_store_id)
+                        ->where('status', 'pending')
+                        ->first();
+
+                    stockStatusChange($product_id, $to_store_id, $product_qty, 'transfer_stock', $des_shift->id);
+                    stockStatusChange($product_id, $from_store_id, $product_qty, 'add_stock', $running_shift->id);
+                }
+            }
+
+            // ✅ ADMIN NOTIFICATION
+            sendNotification(
+                'approved_stock',
+                'Stock request has been approved by Admin',
+                $from_store_id,
+                Auth::id(),
+                json_encode([
+                    'id' => (string) $stockRequest->id,
+                    'store_id' => (string) $from_store_id,
+                    'type' => 'approved_stock',
+                    'req_id' => $id
+                ])
+            );
+
+            // ✅ STORE NOTIFICATION
+            foreach ($transferredProductsBySource as $to_store_id => $productIds) {
+                sendNotification(
+                    'transfer_stock',
+                    'Product are transferred successfully by Admin',
+                    $to_store_id,
+                    Auth::id(),
+                    json_encode([
+                        'id' => (string) $stockRequest->id,
+                        'type' => 'approved_stock',
+                        'req_id' => $id,
+                        'store_id' => (string) $to_store_id,
+                        'products' => implode(',', $productIds),
+                        'from_store' => Branch::find($to_store_id)->name,
+                        'to_store' => Branch::find($from_store_id)->name
+                    ])
+                );
+            }
+
+            // ✅ FINAL UPDATE
+            $stockRequest->update([
+                'status' => 'approved',
+                'approved_by' => Auth::id(),
+                'approved_at' => now()
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('stock.requestList')
+                ->with('success', 'Stock request has been approved successfully.');
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function approve_old(Request $request, $id)
+    {
+
+        $request->validate([
+            'items' => ['required', 'array', function ($attribute, $value, $fail) {
+
+                if (empty($value)) {
+                    $fail('At least one item is required.');
+                    return;
+                }
+
+                $hasValid = false;
+
+                foreach ($value as $storeItems) {
+                    foreach ($storeItems as $qty) {
+                        if (!empty($qty) && $qty > 0) {
+                            $hasValid = true;
+                            break 2;
+                        }
+                    }
+                }
+
+                if (!$hasValid) {
+                    $fail('At least one item quantity must be greater than 0.');
+                }
+            }],
         ]);
 
         DB::beginTransaction();
