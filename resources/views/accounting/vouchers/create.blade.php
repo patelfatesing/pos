@@ -657,11 +657,7 @@
 
     {{-- ================= SYNC LABEL WITH EXISTING JS ================= --}}
     <script>
-        const HAS_OLD_VALUES = {
-            {
-                old('lines') ? 'true' : 'false'
-            }
-        };
+        const HAS_OLD_VALUES = {{old('lines') ? 'true' : 'false'}};
 
         $(document).on('click', '.type-pill', function() {
             $('#voucherTypeLabel').text($(this).data('type'));
