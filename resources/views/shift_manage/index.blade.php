@@ -38,7 +38,7 @@
                 </div>
 
                 <div class="col-md-2 mb-2">
-                    <button class="btn btn-primary w-100" id="shiftSearch">Search</button>
+                    <button class="btn btn-success w-100" id="shiftSearch">Search</button>
                 </div>
                 <div class="col-md-2 mb-2">
                     <button class="btn btn-secondary w-100" id="shiftReset">Reset</button>
@@ -51,15 +51,13 @@
                     <thead class="bg-white text-uppercase">
                         <tr class="ligth ligth-data">
                             <th>Shift No</th>
-                            <th>Store</th>
                             <th>User</th>
-                            <th>Shift Start</th>
-                            <th>Shift End</th>
+                            
                             <th>Opening Cash</th>
                             <th>Closing Cash</th>
                             <th>Status</th>
-                            <th>Total Sales</th>
-                            <th>Difference</th>
+                            {{-- <th>Total Sales</th>
+                            <th>Difference</th> --}}
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -67,12 +65,12 @@
                     </tbody>
                     <tfoot>
                         <tr style="font-weight:bold;background:#f8f9fa;">
-                            <th colspan="5" class="text-end">Total :</th>
+                            <th colspan="2" class="text-end">Total :</th>
                             <th id="ft_opening_cash">₹0.00</th>
                             <th id="ft_closing_cash">₹0.00</th>
                             <th></th>
-                            <th id="ft_total_sales">0.00</th>
-                            <th id="ft_difference">₹0.00</th>
+                            {{-- <th id="ft_total_sales">0.00</th>
+                            <th id="ft_difference">₹0.00</th> --}}
                             <th></th>
                         </tr>
                     </tfoot>
@@ -205,7 +203,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
             const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0'); // months are 0-indexed
+            const month = String(today.getMonth() + 30).padStart(2, '0'); // months are 0-indexed
             const day = String(today.getDate()).padStart(2, '0');
 
             const localDate = `${year}-${month}-${day}`;
@@ -254,26 +252,26 @@
                         name: 'shift_no',
                         orderable: false
                     },
-                    {
-                        data: 'branch_name',
-                        name: 'branch_name',
-                        orderable: false
-                    },
+                    // {
+                    //     data: 'branch_name',
+                    //     name: 'branch_name',
+                    //     orderable: false
+                    // },
                     {
                         data: 'user_name',
                         name: 'user_name',
                         orderable: false
                     },
-                    {
-                        data: 'start_time',
-                        name: 'start_time',
-                        orderable: false
-                    },
-                    {
-                        data: 'end_time',
-                        name: 'end_time',
-                        orderable: false
-                    },
+                    // {
+                    //     data: 'start_time',
+                    //     name: 'start_time',
+                    //     orderable: false
+                    // },
+                    // {
+                    //     data: 'end_time',
+                    //     name: 'end_time',
+                    //     orderable: false
+                    // },
                     {
                         data: 'opening_cash',
                         name: 'opening_cash',
@@ -293,17 +291,16 @@
                         name: 'status',
                         orderable: false
                     },
-
-                    {
-                        data: 'total_transaction',
-                        name: 'total_transaction',
-                        orderable: false
-                    },
-                    {
-                        data: 'difference',
-                        name: 'difference',
-                        orderable: false
-                    },
+                    // {
+                    //     data: 'total_transaction',
+                    //     name: 'total_transaction',
+                    //     orderable: false
+                    // },
+                    // {
+                    //     data: 'difference',
+                    //     name: 'difference',
+                    //     orderable: false
+                    // },
                     {
                         data: 'action',
                         name: 'action',
@@ -319,37 +316,37 @@
                         parseFloat(v.replace(/[₹,]/g, '')) || 0 :
                         typeof v === 'number' ? v : 0;
 
-                    let openingTotal = api.column(5, {
+                    let openingTotal = api.column(2, {
                             page: 'current'
                         })
                         .data().reduce((a, b) => intVal(a) + intVal(b), 0);
 
-                    let closingTotal = api.column(6, {
+                    let closingTotal = api.column(3, {
                             page: 'current'
                         })
                         .data().reduce((a, b) => intVal(a) + intVal(b), 0);
 
-                    let salesTotal = api.column(8, {
-                            page: 'current'
-                        })
-                        .data().reduce((a, b) => intVal(a) + intVal(b), 0);
+                    // let salesTotal = api.column(8, {
+                    //         page: 'current'
+                    //     })
+                    //     .data().reduce((a, b) => intVal(a) + intVal(b), 0);
 
-                    let diffTotal = api.column(9, {
-                            page: 'current'
-                        })
-                        .data().reduce((a, b) => intVal(a) + intVal(b), 0);
+                    // let diffTotal = api.column(9, {
+                    //         page: 'current'
+                    //     })
+                        // .data().reduce((a, b) => intVal(a) + intVal(b), 0);
 
                     $('#ft_opening_cash').html('₹' + openingTotal);
                     $('#ft_closing_cash').html('₹' + closingTotal);
-                    $('#ft_total_sales').html('' + salesTotal);
-                    $('#ft_difference').html('₹' + diffTotal);
+                    // $('#ft_total_sales').html('' + salesTotal);
+                    // $('#ft_difference').html('₹' + diffTotal);
                 },
                 aoColumnDefs: [{
                     bSortable: false,
-                    aTargets: [1, 2, 3, 4, 5, 6, 7] // make "action" column unsortable
+                    aTargets: [2, 3, 4, 5] // make "action" column unsortable
                 }],
                 order: [
-                    [3, 'desc']
+                    [2, 'desc']
                 ], // Default order on shift_start DESC
 
                 lengthMenu: [
@@ -378,7 +375,7 @@
                             pageSize: 'A4',
 
                             exportOptions: {
-                                columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+                                columns: [0, 1, 2, 3, 4,5]
                             },
 
                             customize: function(doc) {

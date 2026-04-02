@@ -45,6 +45,10 @@ class Invoice extends Model
         'items' => 'array',
         'total' => 'float',
         'roundof' => 'float',
+        'sub_total' => 'float',
+        'tax' => 'float',
+        'party_amount' => 'float',
+        'commission_amount' => 'float',
     ];
 
     public function user()
@@ -52,9 +56,14 @@ class Invoice extends Model
         return $this->belongsTo(User::class);
     }
 
+    // public function branch()
+    // {
+    //     return $this->belongsTo(Branch::class);
+    // }
+
     public function branch()
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(\App\Models\Branch::class, 'branch_id');
     }
 
     public function commissionUser()
@@ -139,9 +148,9 @@ class Invoice extends Model
         // return $newNumber; 
     }
 
-    public static function generateInvoiceNumberNew($branch_id,$start_time): string
+    public static function generateInvoiceNumberNew($branch_id, $start_time): string
     {
-      
+
         $branch_data = Branch::find($branch_id);
         $today = Carbon::parse($start_time)->format('ymd'); // e.g., 20250516
         $prefix = "";
@@ -180,7 +189,6 @@ class Invoice extends Model
         $invoiceNumber = $datePrefix . '-' . str_pad($nextNumber, 2, '0', STR_PAD_LEFT);
 
         return $invoiceNumber;
-        
     }
 
     public function activityLogs()

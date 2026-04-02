@@ -11,7 +11,7 @@ class Branch extends Model
     // Explicitly specify the table name
     protected $table = 'branches';
 
-    protected $fillable = ['name', 'address', 'description', 'is_active', 'is_deleted', 'is_warehouser', 'in_out_enable', 'one_time_sales', 'created_by', 'updated_by','bank_ledger_id'];
+    protected $fillable = ['name', 'address', 'description', 'is_active', 'is_deleted', 'is_warehouser', 'in_out_enable', 'one_time_sales', 'created_by', 'updated_by', 'bank_ledger_id'];
 
     public function users()
     {
@@ -41,5 +41,10 @@ class Branch extends Model
     public function destinationApprovals()
     {
         return $this->hasMany(StockRequestApprove::class, 'destination_store_id');
+    }
+    
+    public function invoices()
+    {
+        return $this->hasMany(\App\Models\Invoice::class, 'branch_id');
     }
 }

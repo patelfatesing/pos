@@ -1,6 +1,7 @@
-@extends('layouts.backend.layouts')
+@extends('layouts.backend.datatable_layouts')
 
 @section('page-content')
+
     <style>
         /* ===== SAME STYLE AS LEDGER PAGE ===== */
         .tally-top-grid {
@@ -115,6 +116,10 @@
             background: #f5d210 !important;
             font-weight: bold;
         }
+        #gs_period:hover {
+    text-decoration: underline;
+    color: #007bff;
+}
     </style>
 
     <div class="wrapper">
@@ -141,7 +146,11 @@
                                 <div>{{ $group->name }}</div>
                                 <div><b>{{ config('app.name') }}</b></div>
                                 <div>
-                                    {{ request('start_date') }} to {{ request('end_date') }}
+                                    <span id="gs_period" style="cursor:pointer;">
+                                        {{ request('start_date') }} to {{ request('end_date') }}
+                                    </span>
+
+                                    <input type="text" id="gs_daterange" style="position:absolute; opacity:0;">
                                 </div>
                             </div>
 
@@ -204,4 +213,47 @@
             </div>
         </div>
     </div>
+@endsection
+@section('scripts')
+
+<script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+
+<script>
+$(document).ready(function () {
+
+    let start = "{{ request('start_date') }}";
+    let end   = "{{ request('end_date') }}";
+
+    const groupId = "{{ $group->id }}";
+
+    // ✅ init picker
+    $('#gs_daterange').daterangepicker({
+        startDate: moment(start),
+        endDate: moment(end),
+        locale: { format: 'YYYY-MM-DD' }
+    });
+
+    // ✅ click label → open picker
+    $('#gs_period').on('click', function () {
+        $('#gs_daterange').data('daterangepicker').show();
+    });
+
+    // ✅ on select → redirect (NO AJAX)
+    $('#gs_daterange').on('apply.daterangepicker', function(ev, picker) {
+
+        start = picker.startDate.format('YYYY-MM-DD');
+        end   = picker.endDate.format('YYYY-MM-DD');
+
+        // update label instantly
+        $('#gs_period').text(start + ' to ' + end);
+
+        // ✅ redirect with params
+        const url = `/reports/group-summary/${groupId}?start_date=${start}&end_date=${end}`;
+
+        window.location.href = url;
+    });
+
+});
+</script>
 @endsection

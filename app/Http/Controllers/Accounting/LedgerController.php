@@ -404,19 +404,19 @@ class LedgerController extends Controller
 
         foreach ($entries as $row) {
 
-            // 👉 MAIN ROW (Selected Ledger)
+            // 👉 MAIN ROW
             $data[] = [
                 'type'        => 'main',
                 'date'        => date('d-M-y', strtotime($row->voucher_date)),
                 'particulars' => $this->getOtherLedgerName($row->voucher_id, $ledgerId),
                 'vch_type'    => $row->voucher_type,
                 'vch_no'      => $row->voucher_id,
-                'debit'       => $row->dc == 'Dr' ? $row->amount : 0,
-                'credit'      => $row->dc == 'Cr' ? $row->amount : 0,
+                'debit'       => $row->dc == 'Dr' ? (float)$row->amount : 0,
+                'credit'      => $row->dc == 'Cr' ? (float)$row->amount : 0,
                 'edit_url'    => route('accounting.vouchers.edit', $row->voucher_id)
             ];
 
-            // 👉 DETAIL ROWS (Other Ledgers)
+            // 👉 DETAIL ROWS
             $others = DB::table('voucher_lines as vl')
                 ->join('account_ledgers as al', 'al.id', '=', 'vl.ledger_id')
                 ->where('vl.voucher_id', $row->voucher_id)
@@ -428,8 +428,8 @@ class LedgerController extends Controller
                 $data[] = [
                     'type'        => 'detail',
                     'particulars' => $line->name,
-                    'debit'       => $line->dc == 'Dr' ? $line->amount : 0,
-                    'credit'      => $line->dc == 'Cr' ? $line->amount : 0,
+                    'debit'       => $line->dc == 'Dr' ? (float)$line->amount : 0,
+                    'credit'      => $line->dc == 'Cr' ? (float)$line->amount : 0,
                 ];
             }
         }
@@ -439,8 +439,8 @@ class LedgerController extends Controller
             ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
             ->where('vl.ledger_id', $ledgerId)
             ->selectRaw("
-            SUM(CASE WHEN vl.dc='Dr' THEN amount ELSE 0 END) -
-            SUM(CASE WHEN vl.dc='Cr' THEN amount ELSE 0 END) as balance
+            COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0) -
+            COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0) as balance
         ")
             ->first();
 
@@ -449,15 +449,23 @@ class LedgerController extends Controller
             ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
             ->where('vl.ledger_id', $ledgerId)
             ->selectRaw("
-            SUM(CASE WHEN vl.dc='Dr' THEN amount ELSE 0 END) as total_debit,
-            SUM(CASE WHEN vl.dc='Cr' THEN amount ELSE 0 END) as total_credit
+            COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0) as total_debit,
+            COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0) as total_credit
         ")
             ->first();
 
+        // ================= RESPONSE =================
         return response()->json([
-            'data'    => $data,
-            'opening' => $opening,
-            'period'  => $period
+            'data' => $data,
+
+            'opening' => [
+                'balance' => (float) ($opening->balance ?? 0)
+            ],
+
+            'period' => [
+                'total_debit'  => (float) ($period->total_debit ?? 0),
+                'total_credit' => (float) ($period->total_credit ?? 0)
+            ]
         ]);
     }
 

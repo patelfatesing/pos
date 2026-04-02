@@ -161,8 +161,12 @@
         font-size: 14px;
         line-height: 1.2;
     }
+    .btn-success{
+        padding: 4px 8px;
+            font-size: 12px;
+    }
 
-    .controls .btn {
+    /* .controls .btn {
         background: #fff;
         border: 1px solid #ccc;
         color: #333;
@@ -172,7 +176,7 @@
         background: #32BDEA;
         border: 1px solid #32BDEA;
         color: #fff;
-    }
+    } */
 
     div.dataTables_wrapper {
         min-height: calc(100vh - 350px);
@@ -181,7 +185,7 @@
 @endsection
 
 @section('page-content')
-<div class="wrapper">
+
     <div class="content-page accounting-ledgers-page">
         <div class="container-fluid">
 
@@ -189,15 +193,15 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="ledger-title">
                     <h4 class="mb-0">Ledger Vouchers — {{ $ledger->name }}</h4>
-                    
+           
                 </div>
                 <h5 class="title-table">LIQUOR HUB</h5>
                 <div class="controls">
-                    <a href="{{ route('accounting.vouchers.create') }}" class="btn btn-outline-light btn-sm">
+                    <a href="{{ route('accounting.vouchers.create') }}" class="btn btn-success btn-sm">
                         Add Voucher
                     </a>
 
-                    <button id="printBtn" class="btn btn-outline-warning btn-sm">Print</button>
+                    <button id="printBtn" class="btn btn-success btn-sm">Print</button>
 
                     <!-- <a href="{{ tallyBack() }}"
                         class="btn btn-secondary add-list">
@@ -248,7 +252,7 @@
 
         </div>
     </div>
-</div>
+
 @endsection
 
 @section('scripts')

@@ -344,7 +344,7 @@
         }
 
         .card .card-header.avc-header {
-            background: #528da1;
+            background: #AFBEFA;
             border-top-left-radius: 10px;
             border-top-right-radius: 10px;
             color: #fff;
@@ -354,7 +354,7 @@
             font-size: 15px;
         }
 
-        .avc-header .btn-secondary {
+        .avc-header .btn-sucess.btn-sm {
             padding: 4px 8px;
             font-size: 12px;
         }
@@ -422,10 +422,10 @@
 
                         <div class="create-ledger-link">
                             <a href="{{ route('accounting.ledgers.create', 'voucher') }}" target="_blank"
-                                class="btn btn-secondary">Create Ledger</a>
+                                class="btn btn-success btn-sm">Create Ledger</a>
 
                             <button onclick="window.history.back()" class="btn btn-secondary">
-                                ← Back
+                            Back
                             </button>
                         </div>
                     </div>
@@ -585,7 +585,7 @@
                                 <div class="col-lg-2 col-md-4">
                                     <div class="type-pills-vertical" id="voucherTypePanel">
 
-                                        @foreach (['Journal', 'Payment', 'Receipt', 'Contra', 'Purchase'] as $t)
+                                        @foreach (['Journal', 'Payment', 'Receipt', 'Contra'] as $t)
                                             <button type="button"
                                                 class="btn btn-outline-primary me-1 mb-1 type-pill {{ $voucher->voucher_type == $t ? 'active' : '' }}"
                                                 data-type="{{ $t }}">
@@ -605,13 +605,8 @@
         </div>
     </div>
 
-
     <script>
-        let lineIndex = {
-            {
-                count($voucher - > lines)
-            }
-        };
+        let lineIndex = {{count($voucher->lines)}};
 
         function syncAmountInputs(row) {
             const dc = row.find('.dc-select').val();
