@@ -43,6 +43,7 @@ use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\CreditHistoryController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Report2Controller;
+use App\Http\Controllers\ReportTallyController;
 use App\Http\Controllers\PurchaseLedgerController;
 use App\Http\Controllers\Accounting\GroupController;
 use App\Http\Controllers\Accounting\LedgerController;
@@ -282,6 +283,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/invoice/{id}/history', [InvoiceController::class, 'fetchHistory'])->name('invoice.fetchHistory');
     Route::get('/party-customer-discount/{partyUserId}', [InvoiceController::class, 'getPartyCustomerDiscount'])->name('partyCustomerDiscount');
     Route::post('/sales/invoice/insert-sale', [InvoiceController::class, 'InsertSale'])->name('sales.invoice.insert-sale');
+    Route::get('/invoice/view-modal/{id}', [InvoiceController::class, 'invoiceModal']);
 
     Route::get('/pack-size/list', [PackSizeController::class, 'index'])->name('packsize.list');
     Route::post('/pack-size/get-data', [PackSizeController::class, 'getData'])->name('packsize.getData');
@@ -385,6 +387,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/sales/fetch-commission-data', [SalesReportController::class, 'commissionInvoicesReport'])->name('sales.fetch-commission-data');
     Route::get('/sales-img-view/{id}', [SalesReportController::class, 'show'])->name('sales.img.view');
 
+    Route::get('sales/sales-report-new', [SalesReportController::class, 'salasListReport'])->name('sales.salas-report');
+
     Route::get('/exp-category/list', [ExpenseCategoryController::class, 'index'])->name('exp_category.list');
     Route::post('/exp-category/get-data', [ExpenseCategoryController::class, 'getData'])->name('exp_category.getData');
     Route::get('/exp-category/create', [ExpenseCategoryController::class, 'create'])->name('exp_category.create');
@@ -445,6 +449,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/shift-manage/get-data', [ShiftManageController::class, 'getShiftClosingsData'])->name('shift-manage.getData');
     Route::post('shift-manage/invoices-by-branch', [ShiftManageController::class, 'getInvoicesByBranch'])->name('shift-manage.invoices-by-branch');
     Route::post('shift-manage/close-shift/{id}', [ShiftManageController::class, 'closeShift'])->name('shift-manage.close-shift');
+    Route::post('shift-manage/close-shift-model/{id}', [ShiftManageController::class, 'closeShiftModel'])->name('shift-manage.close-shift-model');
     Route::get('/shift-manage/{id}', [ShiftManageController::class, 'showPhoto'])->name('shift-manage.photo');
     Route::get('/shift-manage/view/{id}/{shift_id}', [ShiftManageController::class, 'view'])->name('shift-manage.view');
     Route::get('/shift-manage/stock-details/{id}', [ShiftManageController::class, 'stockDetails'])->name('shift-manage.stock-details');
@@ -488,15 +493,11 @@ Route::middleware('auth')->group(function () {
         Route::get('customer-outstanding',          [ReportController::class, 'customerOutstandingPage'])->name('reports.customer_outstanding.page');
         Route::post('customer-outstanding/get-data', [ReportController::class, 'getCustomerOutstandingData'])->name('reports.customer_outstanding.get_data');
 
-        Route::get('profit-loss',  [Report2Controller::class, 'profitLoss'])->name('reports.pnl_tally.view');
-        Route::post('getProfitLossData', [Report2Controller::class, 'getProfitLossData'])->name('reports.pnl_tally.data');
-        Route::get('/reports/profit-loss/pdf', [Report2Controller::class, 'profitLossPdf'])->name('reports.profit-loss.pdf');
+        Route::get('profit-loss',  [ReportTallyController::class, 'profitLoss'])->name('reports.pnl_tally.view');
+        Route::post('getProfitLossData', [ReportTallyController::class, 'getProfitLossData'])->name('reports.pnl_tally.data');
+        Route::get('/reports/profit-loss/pdf', [ReportTallyController::class, 'profitLossPdf'])->name('reports.profit-loss.pdf');
         Route::get('day-book', [DayBookController::class, 'index'])->name('reports.day-book');
-        // / NEW: voucher details (AJAX)
-        Route::get(
-            '/day-book/voucher/{id}',
-            [DayBookController::class, 'showVoucher']
-        )->name('reports.day-book.voucher.show');
+        Route::get('/day-book/voucher/{id}',[DayBookController::class, 'showVoucher'])->name('reports.day-book.voucher.show');
 
         Route::get('product-wise',  [Report2Controller::class, 'productWise'])->name('reports.discount.product.view');
         Route::post('product-wise-data', [Report2Controller::class, 'getProductWiseData'])->name('reports.discount.product.data');

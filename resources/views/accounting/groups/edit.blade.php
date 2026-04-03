@@ -54,7 +54,7 @@
                 </div>
 
                 <div class="mt-3">
-                  <button class="btn btn-primary">Update Group</button>
+                  <button class="btn btn-success">Update Group</button>
                   <button type="reset" class="btn btn-danger">Reset</button>
                 </div>
               </form>

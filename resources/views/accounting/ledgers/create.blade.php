@@ -77,7 +77,7 @@
                                         </div>
                                     </div>
                                     <div class="mt-3">
-                                        <button class="btn btn-primary">Create Ledger</button>
+                                        <button class="btn btn-success">Create Ledger</button>
                                         <button type="reset" class="btn btn-danger">Reset</button>
                                     </div>
                                 </form>

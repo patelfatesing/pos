@@ -703,6 +703,231 @@ class ShiftManageController extends Controller
         ], 200);
     }
 
+    public function closeShiftModel($id, $return = "htmlfile")
+    {
+        $shift = ShiftClosing::findOrFail($id);
+
+        $user_data = User::select('name')->where('id', $shift->user_id)->firstOrFail();
+        $branch_data = Branch::select('name', 'in_out_enable')->where('id', $shift->branch_id)->firstOrFail();
+        $branch_name = $branch_data->name;
+        $user_name = $user_data->name;
+        $in_out_enable = $branch_data->in_out_enable;
+
+        if (!$shift->closing_shift_time) {
+
+            $categoryTotals = [];
+            $totals = CreditHistory::whereBetween('created_at', [$shift->start_time, $shift->end_time])
+                ->where('store_id', $shift->branch_id)
+                ->where('transaction_kind', '!=', 'collact_credit')
+                ->selectRaw('SUM(credit_amount) as credit_total, SUM(debit_amount) as debit_total')
+                ->first();
+
+
+            $invoices = Invoice::where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->whereNotIn('status', ['Hold', 'resumed', 'archived', 'Returned'])->latest()->get();
+
+            // $invoices = Invoice::where(['user_id' => $shift->user_id])->where(['branch_id' => $shift->branch_id])->whereBetween('created_at', [$shift->start_time, $shift->end_time])->whereNotIn('status', ['Hold', 'resumed', 'archived', 'Returned'])->latest()->get();
+            $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalRoundOf = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = $totalSalesQty = $totalPaidCredit = $totalCreditPaid = 0;
+
+            $transaction_total = 0;
+            $totalSalesNew = 0;
+            foreach ($invoices as $invoice) {
+                $transaction_total += $transaction_total;
+                $items = $invoice->items; // decode items from longtext JSON
+
+                if (is_string($items)) {
+                    $items = json_decode($items, true); // decode if not already an array
+                }
+
+                if (is_array($items)) {
+                    foreach ($items as $item) {
+                        if (!empty($item['subcategory'])) {
+
+                            $category =  Str::upper($item['subcategory'])  ?? 'Unknown';
+                            $amount = (float) str_replace(',', '', $item['price']) ?? 0;
+
+                            if (!isset($categoryTotals['sales'][$category])) {
+                                $categoryTotals['sales'][$category] = 0;
+                            }
+
+
+                            $categoryTotals['sales'][$category] += $amount;
+                            $totalSalesNew += $amount;
+                        }
+                        $totalSalesQty += $item['quantity'] ?? 0;
+                    }
+                }
+
+                $closing_sales = @$categoryTotals['sales'];
+                // $discountTotal += ($invoice->commission_amount ?? 0) + ($invoice->party_amount ?? 0);
+                $discountTotal += (!empty($invoice->commission_amount) && is_numeric($invoice->commission_amount)) ? (int)$invoice->commission_amount : 0;
+                $discountTotal += (!empty($invoice->party_amount) && is_numeric($invoice->party_amount)) ? (int)$invoice->party_amount : 0;
+
+                $totalCashPaid += (!empty($invoice->cash_amount) && is_numeric($invoice->cash_amount)) ? (int)$invoice->cash_amount : 0;
+                $totalCreditPaid += (!empty($invoice->creditpay) && is_numeric($invoice->creditpay)) ? (int)$invoice->creditpay : 0;
+
+                $totalSubTotal += (!empty($invoice->total)) ? parseCurrency($invoice->total) : 0;
+                $totalUpiPaid  += (!empty($invoice->upi_amount)  && is_numeric($invoice->upi_amount)) ? (int)$invoice->upi_amount  : 0;
+                $totalOnlinePaid  += (!empty($invoice->online_amount)  && is_numeric($invoice->online_amount)) ? (int)$invoice->online_amount  : 0;
+                $totalRoundOf  += (!empty($invoice->roundof)  && is_numeric($invoice->roundof)) ? (int)$invoice->roundof  : 0;
+                $totalPaidCredit  += (!empty($invoice->paid_credit)  && is_numeric($invoice->paid_credit)) ? (int)$invoice->paid_credit  : 0;
+                if ($invoice->status == "Returned") {
+                    $totalRefundReturn += floatval(str_replace(',', '', $invoice->total));
+                }
+
+                $totalCreditPay  += (!empty($invoice->creditpay)  && is_numeric($invoice->creditpay)) ? (int)$invoice->creditpay  : 0;
+
+                $totalSales    += (!empty($invoice->sub_total)   && is_numeric($invoice->sub_total)) ? (int)$invoice->sub_total : 0;
+                $totalPaid     += (!empty($invoice->total)       && is_numeric($invoice->total)) ? (int)$invoice->total : 0;
+                if ($invoice->status == "Refunded") {
+                    $refund = Refund::where('invoice_id', $invoice->id)
+                        ->where('user_id', $shift->user_id)
+                        ->first();
+                    if ($refund) {
+                        $totalRefund     += (!empty($refund->amount)       && is_numeric($refund->amount)) ? (int)$refund->amount : 0;
+                    }
+                }
+            }
+
+
+            $creditCollacted = \DB::table('credit_collections')
+                ->selectRaw('
+            SUM(cash_amount) as collacted_cash_amount,
+            SUM(online_amount) as collacted_online_amount,
+            SUM(upi_amount) as collacted_upi_amount
+            ')
+                ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
+                ->first();
+
+            $todayCash = $totalPaid;
+            $categoryTotals['sales']["TOTAL"] = $totalSalesNew;
+
+            $cashAdded = CashBreakdown::where('user_id', $shift->user_id)
+                ->where('branch_id', $shift->branch_id)
+                ->where('type',  'add cash')
+                ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
+                ->sum('total');
+            $totalWith = \App\Models\WithdrawCash::where('user_id',  $shift->user_id)
+                ->where('branch_id', $shift->branch_id)->whereBetween('created_at', [$shift->start_time, $shift->end_time])->sum('amount');
+            $categoryTotals['payment']['CASH'] = $totalCashPaid;
+            $categoryTotals['payment']['UPI PAYMENT'] =  ($totalUpiPaid + $totalOnlinePaid);
+            $categoryTotals['payment']['CREDIT'] =  ($totalCreditPaid);
+            // $categoryTotals['payment']['totalSalesQty'] =  $totalSalesQty;
+            // $categoryTotals['payment']['transactionTotal'] =  $transaction_total;
+
+            $categoryTotals['payment']['TOTAL'] = $totalCashPaid + ($totalUpiPaid + $totalOnlinePaid) + $totalCreditPaid;
+            $categoryTotals['summary']['OPENING CASH'] = @$shift->opening_cash;
+            $categoryTotals['summary']['CASH ADDED'] = @$cashAdded;
+
+            $categoryTotals['summary']['TOTAL SALES'] = $totals->credit_total - $totalPaidCredit + $totalSubTotal + $discountTotal - $totalRefundReturn - $totalRoundOf;
+
+
+            $categoryTotals['summary']['DISCOUNT'] = $discountTotal * (-1);
+            $categoryTotals['summary']['WITHDRAWAL PAYMENT'] = $totalWith * (-1);
+            $categoryTotals['summary']['UPI PAYMENT'] = ($totalUpiPaid + $totalOnlinePaid) * (-1);
+            $categoryTotals['summary']['ROUND OFF'] = $totalRoundOf;
+            $categoryTotals['summary']['CREDIT'] = $totals->credit_total * (-1);
+            $categoryTotals['summary']['REFUND_CREDIT'] = $totals->debit_total;
+            //$categoryTotals['summary']['ONLINE PAYMENT'] = $totalOnlinePaid * (-1);
+            if (!empty($creditCollacted->collacted_cash_amount))
+                $categoryTotals['summary']['CREDIT COLLACTED BY CASH'] = $creditCollacted->collacted_cash_amount;
+            // $categoryTotals['summary']['REFUND'] += $totalRefundReturn *(-1);
+
+            $categoryTotals['summary']['TOTAL'] = $categoryTotals['summary']['CASH ADDED'] + $categoryTotals['summary']['OPENING CASH'] + $categoryTotals['summary']['TOTAL SALES'] + $categoryTotals['summary']['DISCOUNT'] + $categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $categoryTotals['summary']['UPI PAYMENT'] + @$categoryTotals['summary']['REFUND'] +
+                @$categoryTotals['summary']['ONLINE PAYMENT'] + @$categoryTotals['summary']['CREDIT COLLACTED BY CASH'] + $totalRoundOf + $categoryTotals['summary']['CREDIT'] + $totalRefundReturn + @$creditCollacted->collacted_cash_amount;
+
+            $categoryTotals['summary']['REFUND'] = $totalRefund * (-1) + $totalRefundReturn * (-1);
+            //$categoryTotals['summary']['REFUND RETURN'] = $totalRefundReturn*(-1);
+            //$categoryTotals['summary']['CREDIT'] = $totals->debit_total;
+
+            // if (!empty($categoryTotals['summary']['REFUND_CREDIT'])) {
+            //     $categoryTotals['summary']['REFUND_CREDIT'] = (int)$categoryTotals['summary']['REFUND_CREDIT'] * (-1);
+            // }
+
+            $cashBreakdowns = CashBreakdown::where('user_id', $shift->user_id)
+                ->where('branch_id', $shift->branch_id)
+                ->where('type', '!=', 'Returned')
+                ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
+                ->get();
+
+            $noteCount = [];
+
+            foreach ($cashBreakdowns as $breakdown) {
+                $denominations1 = json_decode($breakdown->denominations, true);
+                // echo "<pre>";
+                // print_r($denominations1);
+                if (is_array($denominations1)) {
+                    // Handle array of objects: [{"10":{"in":"0"}},{"20":{"in":"0"}},...]
+                    if (array_keys($denominations1) === range(0, count($denominations1) - 1)) {
+                        foreach ($denominations1 as $item) {
+                            if (is_array($item)) {
+                                foreach ($item as $noteValue => $action) {
+                                    if (isset($action['in'])) {
+                                        if (!isset($noteCount[$noteValue])) {
+                                            $noteCount[$noteValue] = 0;
+                                        }
+                                        $noteCount[$noteValue] += (int)$action['in'];
+                                    }
+                                    if (isset($action['out'])) {
+                                        if (!isset($noteCount[$noteValue])) {
+                                            $noteCount[$noteValue] = 0;
+                                        }
+                                        $noteCount[$noteValue] -= (int)$action['out'];
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        // Handle object with nested arrays: {"5":{"500":{"in":4}}, "3":{"100":{"out":1}}}
+                        foreach ($denominations1 as $outer) {
+                            if (is_array($outer)) {
+                                foreach ($outer as $noteValue => $action) {
+                                    if (isset($action['in'])) {
+                                        if (!isset($noteCount[$noteValue])) {
+                                            $noteCount[$noteValue] = 0;
+                                        }
+                                        $noteCount[$noteValue] += (int)$action['in'];
+                                    }
+                                    if (isset($action['out'])) {
+                                        if (!isset($noteCount[$noteValue])) {
+                                            $noteCount[$noteValue] = 0;
+                                        }
+                                        $noteCount[$noteValue] -= (int)$action['out'];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            $totalOpeningStock = DailyProductStock::where('shift_id', $id)
+                ->sum('opening_stock');
+
+            $shiftcash = $noteCount;
+            $closing_cash = $shift->closing_cash;
+            $cash_discrepancy = $shift->cash_discrepancy;
+
+            // Render a Blade view and pass any needed data
+            $html = view('shift_manage.closed_model', ['opening_stock' => $totalOpeningStock, 'user_name' => $user_name, 'shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy, 'branch_name' => $branch_name, 'in_out_enable' => $in_out_enable])->render();
+            if ($return == "html") {
+                return  ['user_name' => $user_name, 'shift' => $shift, "categoryTotals" => $categoryTotals, "shiftcash" => $shiftcash, "closing_cash" => $closing_cash, 'cash_discrepancy' => $cash_discrepancy, 'branch_name' => $branch_name, 'in_out_enable' => $in_out_enable];
+            } else {
+
+                return response()->json([
+                    'message' => 'Shift closed successfully',
+                    'html' => $html,
+                    'code' => 200
+                ]);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Shift already closed',
+            'code' => 400
+
+        ], 200);
+    }
+
     public function view_old($id, $shift_id, Request $request)
     {
         $perPage = $request->input('per_page', 10);

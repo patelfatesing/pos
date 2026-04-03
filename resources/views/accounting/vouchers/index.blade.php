@@ -49,13 +49,13 @@
                             <h4 class="mb-0">Vouchers</h4>
                         </div>
                         <div class="ml-auto">
-                            <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-info btn-icon"
+                            <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-success btn-icon"
                                 title="Reload the list">
                                 <i class="las la-sync"></i>
                                 <span class="d-none d-sm-inline">Refresh</span>
                             </a>
                             @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'accounting-voucher-create'))
-                                <a href="{{ route('accounting.vouchers.create') }}" class="btn btn-primary btn-icon"
+                                <a href="{{ route('accounting.vouchers.create') }}" class="btn btn-success btn-icon"
                                     title="Create voucher">
                                     <i class="las la-plus"></i>
                                     <span class="d-none d-sm-inline">Create</span>

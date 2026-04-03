@@ -1,28 +1,14 @@
 @extends('layouts.backend.datatable_layouts')
 
 @section('styles')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
     <style>
         .bs-card {
             border: 1px solid #e5e7eb;
             border-radius: 8px;
             padding: 12px;
             background: #fff
-        }
-
-        .bs-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px
-        }
-
-        .bs-title {
-            font-weight: 700;
-            font-size: 18px
-        }
-
-        .bs-sub {
-            color: #6b7280
         }
 
         .two-col {
@@ -44,7 +30,6 @@
 
         table.bs th {
             font-weight: 700;
-            text-transform: uppercase;
             font-size: 12px;
             color: #6b7280
         }
@@ -58,28 +43,14 @@
             border-top: 2px solid #111
         }
 
-        .child-row td {
-            padding-top: 2px;
-            padding-bottom: 2px
+        #bs_period {
+            cursor: pointer;
+            font-size: 13px;
         }
 
-        .child-label {
-            padding-left: 22px;
-            position: relative
-        }
-
-        .child-label:before {
-            content: "•";
-            position: absolute;
-            left: 10px;
-            top: 0;
-            color: #9ca3af
-        }
-
-        @media(max-width:768px) {
-            .two-col {
-                grid-template-columns: 1fr
-            }
+        #bs_period:hover {
+            text-decoration: underline;
+            color: #007bff;
         }
     </style>
 @endsection
@@ -88,23 +59,25 @@
     <div class="wrapper">
         <div class="content-page">
             <div class="container-fluid">
-                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
-                    <div>
-                        <h4 class="mb-0">Balance Sheet</h4>
-                    </div>
+
+                <div class="card-header d-flex justify-content-between">
+                    <h4>Balance Sheet</h4>
                     <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
                 </div>
+
                 <div class="bs-card">
 
-
-                    <div class="d-flex align-items-center gap-2 mb-2" id="bs_filters">
-                        <input type="date" id="bs_start" class="form-control form-control-sm" style="max-width:170px">
-                        <input type="date" id="bs_end" class="form-control form-control-sm mr-2"
-                            style="max-width:170px">
-                        <button id="bs_apply" class="btn btn-primary btn-sm">Apply</button>
+                    <!-- ✅ TALLY STYLE DATE -->
+                    <div class="mb-2">
+                        <span id="bs_period"></span>
                     </div>
 
+                    <!-- hidden daterange -->
+                    <input type="text" id="bs_daterange" style="position:absolute; opacity:0;">
+
                     <div class="two-col">
+
+                        <!-- Liabilities -->
                         <div>
                             <div class="text-muted mb-1" id="lbl_liab">Liabilities</div>
                             <table class="bs" id="tbl_liabilities">
@@ -124,6 +97,7 @@
                             </table>
                         </div>
 
+                        <!-- Assets -->
                         <div>
                             <div class="text-muted mb-1" id="lbl_assets">Assets</div>
                             <table class="bs" id="tbl_assets">
@@ -142,6 +116,7 @@
                                 </tfoot>
                             </table>
                         </div>
+
                     </div>
 
                 </div>
@@ -151,107 +126,104 @@
 @endsection
 
 @section('scripts')
-    <script>
-        (function() {
-            const $ = (id) => document.getElementById(id);
-            const fmtDate = d => {
-                const t = new Date(d);
-                const z = new Date(t.getTime() - t.getTimezoneOffset() * 60000);
-                return z.toISOString().slice(0, 10);
-            };
+    <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
-            const today = fmtDate(new Date());
-            const firstOfMonth = (() => {
-                const d = new Date();
-                d.setDate(1);
-                return fmtDate(d);
-            })();
+    <script>
+        $(document).ready(function() {
 
             const CSRF = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
-            $('bs_start').value = firstOfMonth;
-            $('bs_end').value = today;
+            let start = moment().startOf('month').format('YYYY-MM-DD');
+            let end = moment().format('YYYY-MM-DD');
 
-            function setHeader(asOf, period) {
-                const el = $('bs_asof');
-                if (el) {
-                    el.textContent = `As at ${asOf} (Period: ${period})`;
+            // ✅ init picker AFTER DOM ready
+            $('#bs_daterange').daterangepicker({
+                startDate: moment(start),
+                endDate: moment(end),
+                locale: {
+                    format: 'YYYY-MM-DD'
                 }
+            });
+
+            // ✅ click label → open picker (SAFE CHECK)
+            $('#bs_period').on('click', function() {
+
+                const picker = $('#bs_daterange').data('daterangepicker');
+
+                if (picker) {
+                    picker.show();
+                } else {
+                    console.error('DateRangePicker not initialized');
+                }
+            });
+
+            function updateHeader() {
+                $('#bs_period').text(start + ' to ' + end);
             }
 
             function clearTbody(tbody) {
                 while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
             }
 
-            function appendRow(tbody, label, amount) {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${label}</td>
-                    <td class="amount">${amount ?? '0.00'}</td>
-                `;
-                tbody.appendChild(tr);
+            function renderSide(selector, rows) {
+                const tbody = document.querySelector(selector);
+                clearTbody(tbody);
+
+                (rows || []).forEach(r => {
+
+                    const url = `/reports/group-summary/${r.id}?start_date=${start}&end_date=${end}`;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                <td><a href="${url}" style="color:#2563eb">${r.label}</a></td>
+                <td class="amount">${r.amount ?? '0.00'}</td>
+            `;
+                    tbody.appendChild(tr);
+                });
             }
 
-                function renderSide(selector, rows) {
-                    const tbody = document.querySelector(selector);
-                    clearTbody(tbody);
-
-                    (rows || []).forEach(r => {
-
-                        const url = `/reports/group-summary/${r.id}?start_date=${$('bs_start').value}&end_date=${$('bs_end').value}`;
-
-                        const tr = document.createElement('tr');
-
-                        tr.innerHTML = `
-                            <td>
-                                <a href="${url}" style="color:#2563eb;text-decoration:none;">
-                                    ${r.label}
-                                </a>
-                            </td>
-                            <td class="amount">${r.amount ?? '0.00'}</td>
-                        `;
-
-                        tbody.appendChild(tr);
-                    });
-                }
-
             function refresh() {
-                const payload = {
-                    start_date: $('bs_start').value,
-                    end_date: $('bs_end').value,
-                    _ts: Date.now()
-                };
 
                 fetch("{{ route('reports.balance-sheet.data') }}", {
                         method: 'POST',
                         headers: {
-                            'Accept': 'application/json',
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': CSRF
                         },
-                        body: JSON.stringify(payload)
+                        body: JSON.stringify({
+                            start_date: start,
+                            end_date: end
+                        })
                     })
                     .then(r => r.json())
                     .then(j => {
-                        setHeader(j.header.as_of, j.header.period);
 
-                        $('lbl_liab').textContent = j.liabilities.title;
-                        $('lbl_assets').textContent = j.assets.title;
+                        $('#lbl_liab').text(j.liabilities.title);
+                        $('#lbl_assets').text(j.assets.title);
 
                         renderSide('#tbl_liabilities tbody', j.liabilities.rows);
                         renderSide('#tbl_assets tbody', j.assets.rows);
 
-                        $('liab_total').textContent = j.liabilities.total;
-                        $('asset_total').textContent = j.assets.total;
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        alert('Failed to load Balance Sheet.');
+                        $('#liab_total').text(j.liabilities.total);
+                        $('#asset_total').text(j.assets.total);
                     });
             }
 
-            $('bs_apply').addEventListener('click', refresh);
+            // ✅ auto apply
+            $('#bs_daterange').on('apply.daterangepicker', function(ev, picker) {
+
+                start = picker.startDate.format('YYYY-MM-DD');
+                end = picker.endDate.format('YYYY-MM-DD');
+
+                updateHeader();
+                refresh();
+            });
+
+            // init
+            updateHeader();
             refresh();
-        })();
+
+        });
     </script>
 @endsection

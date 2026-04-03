@@ -57,7 +57,9 @@
                     <div>
                         <h4 class="mb-0">Add Transaction - #{{ $branch_data->name }}</h4>
                     </div>
-                    <a href="{{ route('sales.sales.list') }}" class="btn btn-secondary">Back</a>
+                    <button onclick="window.history.back()" class="btn btn-secondary">
+                        Back
+                    </button>
                 </div>
 
                 <form id="invoice-items-form" method="POST" action="{{ route('sales.invoice.insert-sale') }}">
@@ -80,6 +82,7 @@
                                     </select>
                                 </div>
                                 <input type="hidden" name="branch_id" value="{{ $branch_data->id }}">
+                                <input type="hidden" name="type" value="{{ $type }}">
                                 <input type="hidden" name="shift_id" value="{{ $Shift_data->id }}">
                                 <div class="col-md-1">
                                     <input type="number" min="1" id="new-product-qty" class="form-control"
@@ -188,10 +191,10 @@
                                             <input type="radio" id="cash-upi-option" name="payment_method"
                                                 value="cashupi">
                                             <label for="cash-upi-option">Cash + UPI</label>
-                                                <input type="radio" id="credit-option" name="payment_method" value="credit"
-                                            >
-                                            
-<label for="credit-option">Credit</label>
+                                            <input type="radio" id="credit-option" name="payment_method"
+                                                value="credit">
+
+                                            <label for="credit-option">Credit</label>
                                         </div>
                                     </div>
 
@@ -371,7 +374,7 @@
 
                 $('#total_discount').val(discountTotal);
                 $('#gr_total').val(totalSellPrice);
-                
+
                 $('#sub_total').val(grandTotal);
 
                 $('#cash-amount').val(Math.ceil(grandTotal));
@@ -802,8 +805,7 @@
                     $('#cash-amount').val(Math.ceil(total));
                     $('#cash-amount').prop('readonly', true);
 
-                } 
-                else if (selectedPaymentMethod === 'online') {
+                } else if (selectedPaymentMethod === 'online') {
 
                     $('#cash-field').hide();
                     $('#upi-field').show();
@@ -811,8 +813,7 @@
                     $('#upi-amount').val(Math.ceil(total));
                     $('#upi-amount').prop('readonly', true);
 
-                } 
-                else if (selectedPaymentMethod === 'cashupi') {
+                } else if (selectedPaymentMethod === 'cashupi') {
 
                     $('#cash-field').show();
                     $('#upi-field').show();
@@ -822,8 +823,7 @@
 
                     $('#cash-amount').prop('readonly', false);
                     $('#upi-amount').prop('readonly', false);
-                } 
-                else if (selectedPaymentMethod === 'credit') {
+                } else if (selectedPaymentMethod === 'credit') {
 
                     // ✅ CREDIT FULL PAYMENT
 
@@ -839,7 +839,7 @@
 
             });
 
-            $('input[name="payment_method"]').on('change', function () {
+            $('input[name="payment_method"]').on('change', function() {
                 if ($(this).val() !== 'credit') {
                     $('#creditpay-input').prop('readonly', false);
                 }

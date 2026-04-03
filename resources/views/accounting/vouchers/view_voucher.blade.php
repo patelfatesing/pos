@@ -161,7 +161,7 @@
         }
 
         .controls .btn {
-            background: #fff;
+            /* background: #fff; */
             border: 1px solid #ccc;
             color: #333;
         }
@@ -210,11 +210,11 @@
                     <div class="controls d-flex align-items-center gap-2 flex-nowrap">
                         @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'accounting-voucher-create'))
                             <!-- Add Voucher -->
-                            <a href="{{ route('accounting.vouchers.create') }}" class="btn btn-outline-light btn-sm">
+                            <a href="{{ route('accounting.vouchers.create') }}" class="btn btn-success btn-sm">
                                 Add Voucher
                             </a>
                         @endif
-                        @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'shift-verify'))
+                        {{-- @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'shift-verify')) --}}
                             <!-- Verify Checkbox -->
                             <div class="d-flex align-items-center gap-1 verify-box voucher">
                                 <input type="checkbox"
@@ -225,7 +225,7 @@
                                     ✔ Verify
                                 </span>
                             </div>
-                        @endif
+                        {{-- @endif --}}
                         @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'accounting-voucher-edit'))
                             <a href="{{ $editUrl }}" class="btn btn-warning btn-sm">
                                 <i class="fas fa-edit"></i> Edit
