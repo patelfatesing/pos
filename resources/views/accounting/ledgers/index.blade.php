@@ -14,7 +14,7 @@
                         </div>
                         <div class="ml-auto">
                             @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'accounting-ledgers-create'))
-                                <a href="{{ route('accounting.ledgers.create') }}" class="btn btn-primary">
+                                <a href="{{ route('accounting.ledgers.create') }}" class="btn btn-success">
                                     <i class="las la-plus me-1"></i> Add Ledger
                                 </a>
                             @endif

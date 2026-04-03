@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Branch;
 use App\Models\PartyUserImage;
 use App\Models\CommissionUserImage;
+use App\Models\Product;
+use App\Models\Partyuser;
+use App\Models\Commissionuser;
 use Illuminate\Support\Facades\Log;
 
 class SalesReportController extends Controller
@@ -28,9 +31,9 @@ class SalesReportController extends Controller
         return view('sales.sales-list', compact('branches'));
     }
 
-     public function salasListReport(Request $request)
+    public function salasListReport(Request $request)
     {
-        $query = Invoice::with('branch');
+        $query = Invoice::with('branch', 'commissionUser', 'partyUser');
 
         // 🔥 BRANCH FILTER (always applied if exists)
         if (!empty($request->branch_id)) {
@@ -70,8 +73,19 @@ class SalesReportController extends Controller
         }
 
         $branches = Branch::all();
+        $allProducts = Product::select('id', 'name', 'mrp', 'discount_price', 'sell_price', 'category_id', 'subcategory_id')
+            ->where('is_deleted', 'no')
+            ->with(['category', 'subcategory'])
+            ->get();
 
-        return view('sales.sales_report', compact('grouped', 'branches'));
+        $partyUsers = Partyuser::where('status', 'Active')
+            ->get();
+
+        $commissionUsers = Commissionuser::where('is_active', '1')
+            ->get();
+
+
+        return view('sales.sales_report', compact('grouped', 'branches', 'allProducts', 'partyUsers', 'commissionUsers'));
     }
 
     public function getData(Request $request)
@@ -118,7 +132,7 @@ class SalesReportController extends Controller
         if (!empty($request->branch_id)) {
             $query->where('invoices.branch_id', $request->branch_id);
         }
-        
+
         if (auth()->user()->role_id == 1) {
             $query->where('invoices.admin_status', 'verify');
         }

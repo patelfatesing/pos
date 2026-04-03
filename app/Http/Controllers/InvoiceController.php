@@ -84,6 +84,17 @@ class InvoiceController extends Controller
         return view('invoice.viewInvoice', compact('invoice', 'commissionUser', 'partyUser', 'shift_id'));
     }
 
+    public function invoiceModal($id,$shift_id = '')
+    {
+        $invoice = Invoice::findOrFail($id);
+        $commissionUser = Commissionuser::where('status', 'Active')->find($invoice->commission_user_id);
+
+        $partyUser = Partyuser::where('id', $invoice->party_user_id)
+            ->where('status', 'Active')
+            ->first();
+        return view('invoice.viewInvoiceModal', compact('invoice', 'commissionUser', 'partyUser', 'shift_id'));
+    }
+
     public function editSales($id)
     {
         $verify = request('verify');
@@ -118,9 +129,9 @@ class InvoiceController extends Controller
         }
 
         $branch_data = Branch::find($invoice->branch_id);
+        $type = request('type');
 
-
-        return view('invoice.editSales', compact('verify', 'invoice', 'commissionUser', 'partyUser', 'allProducts', 'partyPrices', 'branch_data'));
+        return view('invoice.editSales', compact('type', 'verify', 'invoice', 'commissionUser', 'partyUser', 'allProducts', 'partyPrices', 'branch_data'));
     }
 
     public function addSales($branchId, $shift_id)
@@ -148,7 +159,9 @@ class InvoiceController extends Controller
         $commissionUsers = Commissionuser::where('is_active', '1')
             ->get();
 
-        return view('invoice.addSales', compact('branch_data', 'Shift_data', 'partyUsers', 'allProducts', 'commissionUsers'));
+        $type = request('type');
+
+        return view('invoice.addSales', compact('branch_data', 'Shift_data', 'partyUsers', 'allProducts', 'commissionUsers', 'type'));
     }
 
     public function viewHoldInvoice(Invoice $invoice, $shift_id)
@@ -390,10 +403,15 @@ class InvoiceController extends Controller
         $invoice->total = $request->total;
         $invoice->save();
 
-        return redirect()->route('shift-manage.view', [
-            'id' => $invoice->branch_id,
-            'shift_id' => $invoice->shift_id
-        ])->with('success', 'Invoice updated with logs ✅');
+        if ($request->type == 'admin_sale') {
+            return redirect()->route('sales.salas-report')->with('success', 'Invoice items updated successfully.');
+        } else {
+
+            return redirect()->route('shift-manage.view', [
+                'id' => $invoice->branch_id,
+                'shift_id' => $invoice->shift_id
+            ])->with('success', 'Invoice updated with logs ✅');
+        }
     }
 
     public function fetchHistory($id)
@@ -865,11 +883,14 @@ class InvoiceController extends Controller
             // \Log::info('Invoice Created: ', $invoice->toArray());
             // InvoiceHistory::logFromInvoice($invoice, 'created', Auth::id());
             DB::commit();
-
-            return redirect()->route('shift-manage.view', [
-                'id' => $branch_id, // or $branch_id or whatever your id is
-                'shift_id' => $request->shift_id
-            ])->with('success', 'Invoice items updated successfully.');
+            if ($request->type == 'admin_sale') {
+                return redirect()->route('sales.salas-report')->with('success', 'Invoice items updated successfully.');
+            } else {
+                return redirect()->route('shift-manage.view', [
+                    'id' => $branch_id, // or $branch_id or whatever your id is
+                    'shift_id' => $request->shift_id
+                ])->with('success', 'Invoice items updated successfully.');
+            }
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Transaction failed when creating user and wallet', [

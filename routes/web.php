@@ -283,6 +283,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/invoice/{id}/history', [InvoiceController::class, 'fetchHistory'])->name('invoice.fetchHistory');
     Route::get('/party-customer-discount/{partyUserId}', [InvoiceController::class, 'getPartyCustomerDiscount'])->name('partyCustomerDiscount');
     Route::post('/sales/invoice/insert-sale', [InvoiceController::class, 'InsertSale'])->name('sales.invoice.insert-sale');
+    Route::get('/invoice/view-modal/{id}', [InvoiceController::class, 'invoiceModal']);
 
     Route::get('/pack-size/list', [PackSizeController::class, 'index'])->name('packsize.list');
     Route::post('/pack-size/get-data', [PackSizeController::class, 'getData'])->name('packsize.getData');
@@ -448,6 +449,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/shift-manage/get-data', [ShiftManageController::class, 'getShiftClosingsData'])->name('shift-manage.getData');
     Route::post('shift-manage/invoices-by-branch', [ShiftManageController::class, 'getInvoicesByBranch'])->name('shift-manage.invoices-by-branch');
     Route::post('shift-manage/close-shift/{id}', [ShiftManageController::class, 'closeShift'])->name('shift-manage.close-shift');
+    Route::post('shift-manage/close-shift-model/{id}', [ShiftManageController::class, 'closeShiftModel'])->name('shift-manage.close-shift-model');
     Route::get('/shift-manage/{id}', [ShiftManageController::class, 'showPhoto'])->name('shift-manage.photo');
     Route::get('/shift-manage/view/{id}/{shift_id}', [ShiftManageController::class, 'view'])->name('shift-manage.view');
     Route::get('/shift-manage/stock-details/{id}', [ShiftManageController::class, 'stockDetails'])->name('shift-manage.stock-details');
