@@ -11,7 +11,7 @@
                         <h4 class="mb-0">Account Groups</h4>
                     </div>
                     @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'accounting-groups-create'))
-                        <a href="{{ route('accounting.groups.create') }}" class="btn btn-primary">
+                        <a href="{{ route('accounting.groups.create') }}" class="btn btn-success">
                             <i class="las la-plus me-1"></i> Add Group
                         </a>
                     @endif

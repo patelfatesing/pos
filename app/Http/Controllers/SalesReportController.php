@@ -9,11 +9,12 @@ use App\Models\Invoice;
 use Carbon\Carbon;
 use App\Models\Inventory;
 use Illuminate\Support\Facades\DB;
-use App\Events\DrawerOpened;
-use App\Events\NewCreditTransaction;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Branch;
 use App\Models\PartyUserImage;
 use App\Models\CommissionUserImage;
+use App\Models\Product;
+use App\Models\Partyuser;
+use App\Models\Commissionuser;
 use Illuminate\Support\Facades\Log;
 
 class SalesReportController extends Controller
@@ -28,6 +29,63 @@ class SalesReportController extends Controller
     {
         $branches = DB::table('branches')->get(); // Adjust if you use a model
         return view('sales.sales-list', compact('branches'));
+    }
+
+    public function salasListReport(Request $request)
+    {
+        $query = Invoice::with('branch', 'commissionUser', 'partyUser');
+
+        // 🔥 BRANCH FILTER (always applied if exists)
+        if (!empty($request->branch_id)) {
+            $query->where('branch_id', $request->branch_id);
+        }
+
+        // 🔥 DATE FILTER LOGIC
+        if (!empty($request->date_range) && str_contains($request->date_range, ' - ')) {
+
+            [$start, $end] = explode(' - ', $request->date_range);
+
+            $startDate = Carbon::parse($start)->startOfDay();
+            $endDate   = Carbon::parse($end)->endOfDay();
+
+            $query->whereBetween('created_at', [$startDate, $endDate]);
+        } else {
+
+            // ✅ DEFAULT → TODAY ONLY
+            $query->whereDate('created_at', Carbon::today());
+        }
+
+        // 🔥 SHIFT FILTER (optional)
+        if (!empty($request->shift_id)) {
+            $query->where('shift_id', $request->shift_id);
+        }
+
+        $invoices = $query->get();
+
+        // 🔥 GROUP BY BRANCH + DATE
+        $grouped = $invoices->groupBy(function ($item) {
+            return $item->branch_id . '_' . Carbon::parse($item->created_at)->format('Y-m-d');
+        });
+
+        // AJAX
+        if ($request->ajax()) {
+            return view('sales.partials.store-data', compact('grouped'))->render();
+        }
+
+        $branches = Branch::all();
+        $allProducts = Product::select('id', 'name', 'mrp', 'discount_price', 'sell_price', 'category_id', 'subcategory_id')
+            ->where('is_deleted', 'no')
+            ->with(['category', 'subcategory'])
+            ->get();
+
+        $partyUsers = Partyuser::where('status', 'Active')
+            ->get();
+
+        $commissionUsers = Commissionuser::where('is_active', '1')
+            ->get();
+
+
+        return view('sales.sales_report', compact('grouped', 'branches', 'allProducts', 'partyUsers', 'commissionUsers'));
     }
 
     public function getData(Request $request)
@@ -74,7 +132,7 @@ class SalesReportController extends Controller
         if (!empty($request->branch_id)) {
             $query->where('invoices.branch_id', $request->branch_id);
         }
-        
+
         if (auth()->user()->role_id == 1) {
             $query->where('invoices.admin_status', 'verify');
         }

@@ -20197,7 +20197,7 @@ i { vertical-align: middle; }
   thead tr th, table.dataTable td, table.dataTable th { line-height: 16px; font-size: 14px; }
 }
 /* Newly Css */
-.card-header { padding: .5rem .9rem; background: #528da1; border-top-left-radius: 10px; border-top-right-radius: 10px; color: #fff; }
+.card-header { padding: .5rem .9rem; background: #AFBEFA; border-top-left-radius: 10px; border-top-right-radius: 10px; color: #fff; }
 .title-table { font-size: 14px; font-weight: bold; margin: 0; min-width: 30%; }
 .card-header h4 { font-size: 20px; line-height: 24px; }
 .accounting-ledgers-page .add-list.btn { padding: 4px 8px; font-size: 12px; }
@@ -20208,7 +20208,7 @@ body.sidebar-main .iq-sidebar-logo { transform: translateX(-80px); }
 .dataTable tbody tr:nth-child(odd) { background-color: #ffffff; } 
 .dataTable thead tr th:first-child,
 .dataTable tbody tr td:first-child { text-align: center; } 
-.dataTable tbody tr:nth-child(even) { background-color: #f1f1f1; }
+/* .dataTable tbody tr:nth-child(even) { background-color: #f1f1f1; } */
 .dataTables_filter::after { top: 50%; transform: translateY(-50%); }
 .dataTables_filter label { margin: 0px;}
 .dataTables_filter input { min-height: 40px; }

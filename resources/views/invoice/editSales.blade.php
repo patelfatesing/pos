@@ -111,6 +111,7 @@
                             </div>
                         </div>
                     </div>
+                    <input type="hidden" name="type" value="{{ $type }}">
                     <input type="hidden" name="verify" value="{{ $verify }}">
                     <div class="card">
                         <div class="card-body table-responsive">

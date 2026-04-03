@@ -1,0 +1,202 @@
+       <div class="container-fluid">
+           <div class="card-header d-flex flex-wrap align-items-center justify-content-between mb-3">
+               <div>
+                   <h4 class="mb-0">Transaction Invoice Details</h4>
+               </div>
+               <div class="invoice-btn">
+
+                   @if ($invoice->party_user_id != '')
+                       <button onClick="showPhoto({{ $invoice->id }},'',{{ $invoice->party_user_id }})"
+                           class="btn btn-success mr-2">
+                           <i class="ri-eye-line mr-0"></i> View Photos
+                       </button>
+                   @endif
+                   @if ($invoice->commission_user_id != '')
+                       <button onClick="showPhoto({{ $invoice->id }},{{ $invoice->commission_user_id }},'')"
+                           class="btn btn-success mr-2">
+                           <i class="ri-eye-line mr-0"></i> View Photos
+                       </button>
+                   @endif
+
+
+
+                   <button class="btn btn-success mr-2 view-pdf" data-invoice="{{ $invoice->invoice_number }}">
+                       <i class="las la-print"></i> View Invoice
+                   </button>
+                   <a href="{{ route('invoice.download', $invoice->id) }}" class="btn btn-success">
+                       <i class="las la-file-download"></i> Download Invoice
+                   </a>
+               </div>
+           </div>
+           <div class="row">
+
+               <div class="col-lg-12">
+                   <div class="card card-block card-stretch card-height print rounded">
+
+                       <div class="card-body">
+
+
+                           <div class="row">
+                               <div class="col-sm-12">
+                                   <h5 class="mb-3">Transaction Summary</h5>
+                                   <div class="table-responsive-sm">
+                                       <table class="table">
+                                           <thead>
+                                               <tr>
+                                                   <th class="text-center" scope="col">#</th>
+                                                   <th scope="col">Item</th>
+                                                   <th class="text-center" scope="col">Quantity</th>
+                                                   <th class="text-center" scope="col">Price</th>
+                                                   <th class="text-center" scope="col">Totals</th>
+                                               </tr>
+                                           </thead>
+                                           <tbody>
+                                               @foreach ($invoice->items as $i => $item)
+                                                   <tr>
+                                                       <th class="text-center" scope="row">
+                                                           {{ $i + 1 }}
+                                                       </th>
+                                                       <td>
+                                                           <h6 class="mb-0">{{ $item['name'] }}</h6>
+                                                       </td>
+                                                       <td class="text-center">{{ $item['quantity'] }}
+                                                       </td>
+                                                       <td class="text-center">
+                                                           @if ($item['sell_price'] > $item['mrp'])
+                                                               <span
+                                                                   style="text-decoration: line-through; color: #999;">
+                                                                   ₹{{ number_format($item['sell_price'], 2) }}
+                                                               </span>
+                                                               <br>
+                                                               <span class="text-success font-weight-bold">
+                                                                   ₹{{ number_format((float) str_replace(',', '', $item['mrp']), 2) }}
+                                                               </span>
+                                                           @else
+                                                               <span class="font-weight-bold">
+                                                                   ₹{{ number_format($item['sell_price'], 2) }}
+                                                               </span>
+                                                           @endif
+                                                       </td>
+                                                       <td class="text-center">
+                                                           <b>₹{{ $item['price'] }}</b>
+                                                       </td>
+                                                   </tr>
+                                               @endforeach
+                                           </tbody>
+                                       </table>
+                                   </div>
+                               </div>
+                           </div>
+                           <div class="row mt-4 mb-3">
+                               <div class="offset-lg-8 col-lg-4">
+                                   <div class="or-detail rounded">
+                                       <div class="p-3">
+                                           <h5 class="mb-3">Transaction Details</h5>
+                                           <div class="mb-2 d-flex justify-content-between">
+                                               <h6 class="mb-0">Payment Mode:</h6>
+                                               <p class="mb-0">{{ $invoice->payment_mode }}</p>
+                                           </div>
+                                           <div class="mb-2 d-flex justify-content-between">
+                                               <h6>Credit: </h6>
+
+                                               @if ($invoice->creditpay != '')
+                                                   <p> ₹{{ number_format($invoice->creditpay, 2) }}
+                                                   </p>
+                                               @else
+                                                   <p>-</p>
+                                               @endif
+                                           </div>
+
+                                           <div class="mb-2 d-flex justify-content-between">
+                                               <h6 class="mb-0">Sub Total:</h6>
+                                               <p class="mb-0">
+                                                   ₹{{ number_format($invoice->sub_total, 2) }}</p>
+
+                                           </div>
+                                           @if ($invoice->commission_amount > 0)
+                                               <div class="mb-2 d-flex justify-content-between">
+                                                   <h6>Commission Deduction: </h6>
+                                                   <p>- ₹{{ number_format($invoice->commission_amount, 2) }}
+                                                   </p>
+                                               </div>
+                                           @endif
+                                           @if ($invoice->party_amount > 0)
+                                               <div class="mb-2 d-flex justify-content-between">
+                                                   <h6>Party Deduction: </h6>
+                                                   <p>- ₹{{ number_format($invoice->party_amount, 2) }}
+                                                   </p>
+                                               </div>
+                                           @endif
+                                           @if ($invoice->roundof > 0)
+                                               <div class="mb-2 d-flex justify-content-between">
+                                                   <h6>Round off: </h6>
+                                                   <p> ₹{{ number_format($invoice->roundof, 2) }}</p>
+                                               </div>
+                                           @endif
+                                       </div>
+                                       <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
+                                           <h6>Total</h6>
+                                           <h3 class="text-primary font-weight-700">
+                                               @if ($invoice->roundof > 0)
+                                                   @php
+                                                       $cleanTotal = floatval(
+                                                           str_replace(',', '', $invoice->sub_total ?? 0),
+                                                       );
+                                                       $cleanRoundof = floatval(
+                                                           str_replace(',', '', $invoice->roundof ?? 0),
+                                                       );
+
+                                                       $commisson = 0;
+                                                       if ($invoice->commission_amount > 0) {
+                                                           $commisson = floatval(
+                                                               str_replace(',', '', $invoice->commission_amount ?? 0),
+                                                           );
+                                                       }
+
+                                                       if ($invoice->party_amount > 0) {
+                                                           $commisson = floatval(
+                                                               str_replace(',', '', $invoice->party_amount ?? 0),
+                                                           );
+                                                       }
+
+                                                       $grandTotal = $cleanTotal - $commisson + $cleanRoundof;
+                                                   @endphp
+                                                   ₹{{ number_format($grandTotal, 2) }}
+                                               @else
+                                                   @php
+                                                       $cleanTotal = floatval(
+                                                           str_replace(',', '', $invoice->sub_total ?? 0),
+                                                       );
+
+                                                       $commission_amount = floatval(
+                                                           str_replace(',', '', $invoice->commission_amount ?? 0),
+                                                       );
+
+                                                       $commisson = 0;
+                                                       if ($invoice->commission_amount > 0) {
+                                                           $commisson = floatval(
+                                                               str_replace(',', '', $invoice->commission_amount ?? 0),
+                                                           );
+                                                       }
+
+                                                       if ($invoice->party_amount > 0) {
+                                                           $commisson = floatval(
+                                                               str_replace(',', '', $invoice->party_amount ?? 0),
+                                                           );
+                                                       }
+
+                                                       $grandTotal = $cleanTotal - $commisson;
+                                                   @endphp
+                                                   ₹{{ number_format($grandTotal, 2) }}
+                                               @endif
+                                           </h3>
+                                       </div>
+                                   </div>
+                               </div>
+                           </div>
+
+                       </div>
+                   </div>
+               </div>
+           </div>
+       </div>

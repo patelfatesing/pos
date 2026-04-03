@@ -1,7 +1,6 @@
 @extends('layouts.backend.datatable_layouts')
 
 @section('page-content')
-
     <div class="content-page">
         <div class="container-fluid">
             <!-- Page Header -->
@@ -49,17 +48,19 @@
                                     <th>Product</th>
                                     <th>Store</th>
                                     <th>In-Stock</th>
-                                    <th>Cost Price</th>
-                                    <th>Discount Price</th>
-                                    <th>Batch No</th>
-                                    <th>Barcode</th>
                                     <th>Sales Price</th>
-                                    <th>Expiry Date</th>
                                     <th>Stock Low Level</th>
                                     <th>Last updated</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="3" style="text-align:right">Total:</th>
+                                    <th id="total_stock" class="text-center"></th>
+                                    <th colspan="3"></th>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>
@@ -145,6 +146,20 @@
                 initComplete: function() {
                     $('.dataTables_filter input').attr("placeholder", "Search List...");
                 },
+                footerCallback: function(row, data, start, end, display) {
+                    var api = this.api();
+
+                    var total = api
+                        .column(3, {
+                            search: 'applied'
+                        }) // In-Stock column index
+                        .data()
+                        .reduce(function(a, b) {
+                            return parseFloat(a) + parseFloat(b);
+                        }, 0);
+
+                    $('#total_stock').html(total);
+                },
                 aoColumns: [{
                         data: null,
                         name: 'sr_no',
@@ -166,34 +181,34 @@
                         orderable: false,
                         className: "text-center"
                     },
-                    {
-                        data: 'cost_price',
-                        orderable: false,
-                        className: "text-center"
-                    },
-                    {
-                        data: 'discount_price',
-                        orderable: false,
-                        className: "text-center"
-                    },
-                    {
-                        data: 'batch_no',
-                        orderable: false
-                    },
+                    // {
+                    //     data: 'cost_price',
+                    //     orderable: false,
+                    //     className: "text-center"
+                    // },
+                    // {
+                    //     data: 'discount_price',
+                    //     orderable: false,
+                    //     className: "text-center"
+                    // },
+                    // {
+                    //     data: 'batch_no',
+                    //     orderable: false
+                    // },
 
-                    {
-                        data: 'barcode',
-                        orderable: false
-                    },
+                    // {
+                    //     data: 'barcode',
+                    //     orderable: false
+                    // },
                     {
                         data: 'sell_price',
                         orderable: false,
                         className: "text-center"
                     },
-                    {
-                        data: 'expiry_date',
-                        orderable: true
-                    },
+                    // {
+                    //     data: 'expiry_date',
+                    //     orderable: true
+                    // },
                     {
                         data: 'reorder_level',
                         orderable: false,
@@ -205,7 +220,7 @@
                     }
                 ],
                 columnDefs: [{
-                        width: "20%",
+                        width: "3%",
                         targets: 0
                     },
                     {
@@ -225,21 +240,17 @@
                         targets: 4
                     },
                     {
-                        width: "7%",
+                        width: "5%",
                         targets: 5
                     },
                     {
-                        width: "7%",
+                        width: "5%",
                         targets: 6
-                    },
-                    {
-                        width: "10%",
-                        targets: 7
                     }
                 ],
                 autoWidth: false,
                 order: [
-                    [10, 'desc']
+                    [6, 'desc']
                 ], // Order by updated_at
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
@@ -252,11 +263,25 @@
                     autoClose: true,
                     buttons: [{
                             extend: 'excelHtml5',
-                            text: '<i class="fa fa-file-excel-o"></i> Excel',
+                            text: 'Excel',
                             title: 'Stock Inventory',
                             filename: 'stock_inventory',
-                            exportOptions: {
-                                columns: ':visible'
+
+                            customize: function(xlsx) {
+                                var sheet = xlsx.xl.worksheets['sheet1.xml'];
+
+                                var total = $('#total_stock').text();
+
+                                var lastRow = $('row', sheet).length + 1;
+
+                                var totalRow = `
+                                        <row r="${lastRow}">
+                                            <c t="inlineStr" r="A${lastRow}"><is><t>Total</t></is></c>
+                                            <c t="inlineStr" r="D${lastRow}"><is><t>${total}</t></is></c>
+                                        </row>
+                                    `;
+
+                                $('sheetData', sheet).append(totalRow);
                             }
                         },
                         {
@@ -267,78 +292,87 @@
                             pageSize: 'A4',
 
                             exportOptions: {
-                                columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                                columns: [0, 1, 2, 3, 4, 5, 6]
                             },
 
                             customize: function(doc) {
 
-                                // REMOVE default title
                                 doc.content.splice(0, 1);
+                                var total = $('#total_stock').text();
 
-                                doc.styles.tableHeader.alignment = 'center';
-
+                                // Add total row at end
                                 var tableBody = doc.content[0].table.body;
 
-                                for (var i = 1; i < tableBody.length; i++) {
-                                    tableBody[i][0].alignment = 'center';
-                                    tableBody[i][3].alignment = 'center';
-                                    tableBody[i][4].alignment = 'center';
-                                    tableBody[i][5].alignment = 'center';
-                                    tableBody[i][6].alignment = 'center';
-                                    tableBody[i][7].alignment = 'center';
-                                    tableBody[i][8].alignment = 'center';
-                                    tableBody[i][10].alignment = 'center';
+                                tableBody.push([{
+                                        text: 'Total',
+                                        colSpan: 3,
+                                        alignment: 'right',
+                                        bold: true
+                                    }, {}, {},
+                                    {
+                                        text: total,
+                                        alignment: 'center',
+                                        bold: true
+                                    },
+                                    {}, {}, {}
+                                ]);
+
+
+                                var headerColumns = [];
+
+                                // ✅ Only add image if available
+                                if (pdfLogo && pdfLogo !== "") {
+                                    headerColumns.push({
+                                        width: '33%',
+                                        columns: [{
+                                                image: pdfLogo,
+                                                width: 30
+                                            },
+                                            {
+                                                text: 'LiquorHub',
+                                                fontSize: 11,
+                                                bold: true,
+                                                margin: [5, 8, 0, 0]
+                                            }
+                                        ]
+                                    });
+                                } else {
+                                    headerColumns.push({
+                                        width: '33%',
+                                        text: 'LiquorHub',
+                                        fontSize: 11,
+                                        bold: true,
+                                        margin: [0, 8, 0, 0]
+                                    });
                                 }
 
-                                // HEADER
-                                doc.content.unshift({
-
-                                    margin: [0, 0, 0, 12],
-
-                                    columns: [
-
-                                        {
-                                            width: '33%',
-                                            columns: [{
-                                                    image: pdfLogo,
-                                                    width: 30
-                                                },
-                                                {
-                                                    text: 'LiquorHub',
-                                                    fontSize: 11,
-                                                    bold: true,
-                                                    margin: [5, 8, 0, 0]
-                                                }
-                                            ]
-                                        },
-
-                                        {
-                                            width: '34%',
-                                            text: 'Stock Inventory Report',
-                                            alignment: 'center',
-                                            fontSize: 16,
-                                            bold: true,
-                                            margin: [0, 8, 0, 0]
-                                        },
-
-                                        {
-                                            width: '33%',
-                                            text: 'Generated: ' + new Date()
-                                                .toLocaleString(),
-                                            alignment: 'right',
-                                            fontSize: 9,
-                                            margin: [0, 8, 0, 0]
-                                        }
-
-                                    ]
+                                headerColumns.push({
+                                    width: '34%',
+                                    text: 'Stock Inventory Report',
+                                    alignment: 'center',
+                                    fontSize: 16,
+                                    bold: true,
+                                    margin: [0, 8, 0, 0]
                                 });
 
-                                doc.styles.tableHeader.fontSize = 10;
-                                doc.defaultStyle.fontSize = 9;
+                                headerColumns.push({
+                                    width: '33%',
+                                    text: 'Generated: ' + new Date()
+                                        .toLocaleString(),
+                                    alignment: 'right',
+                                    fontSize: 9,
+                                    margin: [0, 8, 0, 0]
+                                });
+
+                                doc.content.unshift({
+                                    margin: [0, 0, 0, 12],
+                                    columns: headerColumns
+                                });
                             }
                         }
                     ]
-                }]
+                }],
+
             });
 
             // Change store filter

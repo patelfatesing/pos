@@ -1,163 +1,163 @@
-@extends('layouts.backend.layouts')
+@extends('layouts.backend.datatable_layouts')
 
 @section('page-content')
-<style>
-    /* ===== TALLY COLUMN HEADER ===== */
-    .tally-top-grid {
-        display: flex;
-        align-items: center;
-        border: 1px solid #aaa;
-        border-top: 0;
-        border-bottom: none;
-    }
+    <style>
+        /* ===== TALLY COLUMN HEADER ===== */
+        .tally-top-grid {
+            display: flex;
+            align-items: center;
+            border: 1px solid #aaa;
+            border-top: 0;
+            border-bottom: none;
+        }
 
-    .content-page.ledger-monthly-page {
-        padding: 90px 0 0;
-    }
+        .content-page.ledger-monthly-page {
+            padding: 90px 0 0;
+        }
 
-    .ledger-monthly-page .card-header {
-        padding: .5rem .9rem;
-    }
+        .ledger-monthly-page .card-header {
+            padding: .5rem .9rem;
+        }
 
-    .ledger-monthly-page .add-list.btn {
-        padding: 4px 8px;
-        font-size: 12px;
-    }
+        .ledger-monthly-page .add-list.btn {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
 
-    /* LEFT */
-    .left-head {
-        padding: 6px;
-        font-weight: bold;
-        font-size: 16px;
-        letter-spacing: 1.5px;
-    }
+        /* LEFT */
+        .left-head {
+            padding: 6px;
+            font-weight: bold;
+            font-size: 16px;
+            letter-spacing: 1.5px;
+        }
 
-    /* RIGHT WRAPPER */
-    .right-head {
-        border-left: 1px solid #aaa;
-        display: block;
-        margin-left: auto;
-        width: 35%;
-        max-width: 525px;
-    }
+        /* RIGHT WRAPPER */
+        .right-head {
+            border-left: 1px solid #aaa;
+            display: block;
+            margin-left: auto;
+            width: 35%;
+            max-width: 525px;
+        }
 
-    /* LEDGER INFO (TOP) */
-    .ledger-info {
-        text-align: center;
-        padding: 4px 0;
-        border-bottom: 1px solid #aaa;
-        line-height: 1.4;
-    }
+        /* LEDGER INFO (TOP) */
+        .ledger-info {
+            text-align: center;
+            padding: 4px 0;
+            border-bottom: 1px solid #aaa;
+            line-height: 1.4;
+        }
 
-    /* BOTTOM AREA */
-    .right-bottom {
-        display: flex;
-    }
+        /* BOTTOM AREA */
+        .right-bottom {
+            display: flex;
+        }
 
-    /* TRANSACTIONS */
-    .txn-head {
-        border-right: 1px solid #aaa;
-        width: 350px;
-    }
+        /* TRANSACTIONS */
+        .txn-head {
+            border-right: 1px solid #aaa;
+            width: 350px;
+        }
 
-    .txn-title {
-        text-align: center;
-        font-weight: bold;
-        border-bottom: 1px solid #aaa;
-        padding: 4px 0;
-    }
+        .txn-title {
+            text-align: center;
+            font-weight: bold;
+            border-bottom: 1px solid #aaa;
+            padding: 4px 0;
+        }
 
-    .txn-cols {
-        display: flex;
-    }
+        .txn-cols {
+            display: flex;
+        }
 
-    .txn-cols div {
-        flex: 1;
-        text-align: center;
-        padding: 4px 0;
-        border-right: 1px solid #aaa;
-    }
+        .txn-cols div {
+            flex: 1;
+            text-align: center;
+            padding: 4px 0;
+            border-right: 1px solid #aaa;
+        }
 
-    .txn-cols div:last-child {
-        border-right: none;
-    }
+        .txn-cols div:last-child {
+            border-right: none;
+        }
 
-    /* CLOSING */
-    .closing-head {
-        text-align: center;
-        font-weight: bold;
-        padding: 6px 0;
-        width: 175px;
-    }
+        /* CLOSING */
+        .closing-head {
+            text-align: center;
+            font-weight: bold;
+            padding: 6px 0;
+            width: 175px;
+        }
 
-    /* ===== TALLY TABLE ===== */
-    /* ===== TABLE OUTER BORDER (MATCH HEADER) ===== */
-    .tally-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-family: "Courier New", monospace;
-        border: 1px solid #aaa;
-    }
+        /* ===== TALLY TABLE ===== */
+        /* ===== TABLE OUTER BORDER (MATCH HEADER) ===== */
+        .tally-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: "Courier New", monospace;
+            border: 1px solid #aaa;
+        }
 
-    /* COLUMN WIDTHS (MUST MATCH HEADER GRID) */
-    .col-particulars {
-        width: 65%;
-    }
+        /* COLUMN WIDTHS (MUST MATCH HEADER GRID) */
+        .col-particulars {
+            width: 65%;
+        }
 
-    .col-dr,
-    .col-cr,
-    .col-closing {
-        width: 175px;
-    }
+        .col-dr,
+        .col-cr,
+        .col-closing {
+            width: 175px;
+        }
 
-    /* OPENING BALANCE */
-    .opening-row {
-        font-weight: bold;
-    }
+        /* OPENING BALANCE */
+        .opening-row {
+            font-weight: bold;
+        }
 
-    /* HOVER */
-    .tally-table tr:hover {
-        background: #fff3b0;
-    }
+        /* HOVER */
+        .tally-table tr:hover {
+            background: #fff3b0;
+        }
 
-    .tally-table td {
-        font-size: 14px;
-        line-height: 27px;
-        padding-top: 0;
-        padding-bottom: 0;
-    }
+        .tally-table td {
+            font-size: 14px;
+            line-height: 27px;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
 
-    /* ACTIVE ROW (TALLY YELLOW BAR) */
-    .active-row {
-        background: #f5d210 !important;
-        font-weight: bold;
-    }
+        /* ACTIVE ROW (TALLY YELLOW BAR) */
+        .active-row {
+            background: #f5d210 !important;
+            font-weight: bold;
+        }
 
-    .opening-row .col-particulars {
-        font-style: italic;
-    }
+        .opening-row .col-particulars {
+            font-style: italic;
+        }
 
-    /* LINKS */
-    .tally-table a {
-        color: #000;
-        text-decoration: none;
-    }
+        /* LINKS */
+        .tally-table a {
+            color: #000;
+            text-decoration: none;
+        }
 
-    .tally-table a:hover {
-        text-decoration: underline;
-    }
+        .tally-table a:hover {
+            text-decoration: underline;
+        }
 
-    /* LEFT SIDE SPACING (PARTICULARS) */
-    .col-particulars {
-        padding-left: 10px;
-    }
+        /* LEFT SIDE SPACING (PARTICULARS) */
+        .col-particulars {
+            padding-left: 10px;
+        }
 
-    /* RIGHT SIDE SPACING (CLOSING BALANCE) */
-    .col-closing {
-        padding-right: 10px;
-    }
-</style>
-<div class="wrapper">
+        /* RIGHT SIDE SPACING (CLOSING BALANCE) */
+        .col-closing {
+            padding-right: 10px;
+        }
+    </style>
+
     <div class="content-page ledger-monthly-page">
         <div class="container-fluid">
             <div class="row">
@@ -165,12 +165,8 @@
                     <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
                         <h4 class="mb-0">Ledger Monthly Summary - {{ $ledger->name }}</h4>
                         <h5 class="title-table">Liqure HUB</h5>
-
-                        <!-- <a href="{{ tallyBack() }}" class="btn btn-secondary add-list">
-                            ← Back
-                        </a> -->
                         <button onclick="window.history.back()" class="btn btn-secondary">
-                                ← Back
+                            Back
                         </button>
                     </div>
                     <div class="col-lg-12 p-0">
@@ -182,7 +178,12 @@
                                     <div class="ledger-info">
                                         <div>{{ $ledger->name }}</div>
                                         <div><b>{{ config('app.name') }}</b></div>
-                                        <div>For {{ \Carbon\Carbon::parse($months[0]['from'])->format('d-M-Y') }}</div>
+                                        <div>
+                                            <span id="lm_period" style="cursor:pointer;">
+                                                {{ request('start_date') }} to {{ request('end_date') }}
+                                            </span>
+                                        </div>
+                                        <input type="text" id="lm_daterange" style="position:absolute; opacity:0;">
                                     </div>
 
                                     <div class="right-bottom">
@@ -217,25 +218,25 @@
 
                                     {{-- MONTH ROWS --}}
                                     @foreach ($months as $m)
-                                    <tr class="{{ $loop->first ? 'active-row' : '' }}">
-                                        <td class="col-particulars">
-                                            <a
-                                                href="{{ route('accounting.ledgers.vouchers', [
-                                                            'ledger' => $ledgerId,
-                                                            'start_date' => $m['from'],
-                                                            'end_date' => $m['to'],
-                                                        ]) }}">
-                                                {{ $m['month'] }}
-                                            </a>
-                                        </td>
+                                        <tr class="{{ $loop->first ? 'active-row' : '' }}">
+                                            <td class="col-particulars">
+                                                <a
+                                                    href="{{ route('accounting.ledgers.vouchers', [
+                                                        'ledger' => $ledgerId,
+                                                        'start_date' => $m['from'],
+                                                        'end_date' => $m['to'],
+                                                    ]) }}">
+                                                    {{ $m['month'] }}
+                                                </a>
+                                            </td>
 
-                                        <td class="col-dr text-right">{{ number_format($m['dr'], 2) }}</td>
-                                        <td class="col-cr text-right">{{ number_format($m['cr'], 2) }}</td>
-                                        <td class="col-closing text-right">
-                                            {{ number_format(abs($m['closing']), 2) }}
-                                            {{ $m['closing'] >= 0 ? 'Dr' : 'Cr' }}
-                                        </td>
-                                    </tr>
+                                            <td class="col-dr text-right">{{ number_format($m['dr'], 2) }}</td>
+                                            <td class="col-cr text-right">{{ number_format($m['cr'], 2) }}</td>
+                                            <td class="col-closing text-right">
+                                                {{ number_format(abs($m['closing']), 2) }}
+                                                {{ $m['closing'] >= 0 ? 'Dr' : 'Cr' }}
+                                            </td>
+                                        </tr>
                                     @endforeach
                                 </tbody>
                             </table>
@@ -246,4 +247,47 @@
             </div>
         </div>
     </div>
-    @endsection
+@endsection
+@section('scripts')
+    <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+
+            let start = "{{ request('start_date') }}";
+            let end = "{{ request('end_date') }}";
+
+            const ledgerId = "{{ $ledgerId }}";
+
+            if (!start) start = moment().startOf('month').format('YYYY-MM-DD');
+            if (!end) end = moment().format('YYYY-MM-DD');
+
+            $('#lm_daterange').daterangepicker({
+                startDate: moment(start),
+                endDate: moment(end),
+                locale: {
+                    format: 'YYYY-MM-DD'
+                }
+            });
+
+            $('#lm_period').on('click', function() {
+                $('#lm_daterange').data('daterangepicker').show();
+            });
+
+            $('#lm_daterange').on('apply.daterangepicker', function(ev, picker) {
+
+                start = picker.startDate.format('YYYY-MM-DD');
+                end = picker.endDate.format('YYYY-MM-DD');
+
+                $('#lm_period').text(start + ' to ' + end);
+
+                // ✅ CORRECT URL
+                const url = `/reports/monthly/${ledgerId}?start_date=${start}&end_date=${end}`;
+
+                window.location.href = url;
+            });
+
+        });
+    </script>
+@endsection

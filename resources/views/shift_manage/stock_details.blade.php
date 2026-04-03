@@ -173,14 +173,14 @@
                         </div>
 
 
-                        <div class="d-flex align-items-center gap-1 verify-box request ml-2">
+                        <!-- <div class="d-flex align-items-center gap-1 verify-box request ml-2">
                             <input type="checkbox" onchange="changeVerifyStatus('request', this.checked)"
                                 {{ $finalAdminStatusReq == 'verify' ? 'checked' : '' }}>
 
                             <span onclick="handleClick('request')">
                                 {!! $finalAdminStatusReq == 'verify' ? '✔ Request' : '✖ Request' !!}
                             </span>
-                        </div>
+                        </div> -->
 
 
                         <div class="d-flex align-items-center gap-1 verify-box shift ml-2">

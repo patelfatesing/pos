@@ -1,4 +1,4 @@
-    @extends('layouts.backend.layouts')
+    @extends('layouts.backend.datatable_layouts')
 
     @section('page-content')
     <script src="{{ asset('assets/js/jquery-3.7.1.min.js') }}"></script>
@@ -345,7 +345,7 @@
         }
 
         .card .card-header.avc-header {
-            background: #528da1;
+            background: #AFBEFA;
             border-top-left-radius: 10px;
             border-top-right-radius: 10px;
             color: #fff;
@@ -356,8 +356,8 @@
         }
 
         .avc-header .btn-secondary {
-            padding: 4px 8px;
-            font-size: 12px;
+            /* padding: 4px 8px;
+            font-size: 12px; */
         }
 
         .voucher-table .cmn-table td {
@@ -419,9 +419,9 @@
                     <h5 class="title-table">LIQUOR HUB</h5>
                     <div class="create-ledger-link">
                         <a href="{{ route('accounting.ledgers.create', 'voucher') }}" target="_blank"
-                            class="btn btn-secondary"> Create Ledger </a>
+                            class="btn btn-success btn-sm"> Create Ledger </a>
 
-                        <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-secondary">
+                        <a href="{{ route('accounting.vouchers.index') }}" class="btn btn-secondary btn-sm">
                             Go To List
                         </a>
                     </div>
