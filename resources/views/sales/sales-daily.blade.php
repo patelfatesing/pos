@@ -36,7 +36,7 @@
                         </select>
                     </div>
                     <div class="col-md-3 mb-2">
-                        <button class="btn  w-100" id="filter">Search</button>
+                        <button class="btn btn-success w-100" id="filter">Search</button>
                     </div>
                 </div>
 
