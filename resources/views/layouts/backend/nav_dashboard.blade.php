@@ -251,7 +251,7 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                                 </div>
                                             </a>
                                         </div>
-                                        <a class="right-ic btn btn-primary btn-block position-relative p-2"
+                                        <a class="right-ic btn btn-success btn-block position-relative p-2"
                                             href="#" role="button">
                                             View All
                                         </a>
@@ -284,11 +284,11 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
                                         <div id="showAllWrapper" class="text-center mt-2 mb-2"
                                             style="display: none;">
                                             <a href="{{ route('notifications.index') }}"
-                                                class="btn btn-sm btn-primary">Show All</a>
+                                                class="btn btn-sm btn-success">Show All</a>
                                         </div>
 
 
-                                        {{-- <a class="right-ic btn btn-primary btn-block position-relative p-2"
+                                        {{-- <a class="right-ic btn btn-success btn-block position-relative p-2"
                                             href="#" role="button">
                                             View All
                                         </a> --}}

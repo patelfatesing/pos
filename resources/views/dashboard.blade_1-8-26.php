@@ -523,7 +523,7 @@
                                 <div class="card-header-toolbar d-flex align-items-center">
                                     <div>
                                         <a href="javascript:void(0)"
-                                            class="btn btn-primary view-btn font-size-14"
+                                            class="btn btn-success view-btn font-size-14"
                                             onclick="window.location.href='{{ route('reports.best_selling.view') }}'">
                                             View All
                                         </a>

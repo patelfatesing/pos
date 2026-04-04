@@ -147,7 +147,7 @@
                                         </div>
                                         <!-- Submit to go to next step -->
                                         <button type="submit"
-                                            class="btn btn-primary next action-button float-right">Next</button>
+                                            class="btn btn-success next action-button float-right">Next</button>
 
                                         <!-- Use a link to go to the previous step -->
                                         <a href="{{ route('demand-order.step1') }}"

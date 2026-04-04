@@ -54,7 +54,7 @@
                                </div>
                             </div>
                          </div>
-                         <button type="submit" class="btn btn-primary">Sign Up</button>
+                         <button type="submit" class="btn btn-success">Sign Up</button>
                          <p class="mt-3">
                             Already have an Account <a href="auth-sign-in.html" class="text-primary">Sign In</a>
                          </p>

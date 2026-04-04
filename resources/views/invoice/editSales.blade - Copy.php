@@ -77,7 +77,7 @@
                                         placeholder="Qty">
                                 </div>
                                 <div class="col-md-2">
-                                    <button type="button" class="btn btn-primary" id="add-product-btn">Add Item</button>
+                                    <button type="button" class="btn btn-success" id="add-product-btn">Add Item</button>
                                 </div>
                                 <div class="col-md-2">
                                     @if ($invoice->branch_id == 1 && $invoice->partyUser)

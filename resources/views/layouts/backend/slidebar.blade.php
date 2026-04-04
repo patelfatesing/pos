@@ -291,7 +291,7 @@
                     </ul>
                 </li>
                 @if (canAccess(auth()->user()->role_id, 'expense'))
-                    <li class=" ">
+                    {{-- <li class=" ">
                         <a href="#expenses" class="collapsed" data-toggle="collapse" aria-expanded="false">
 
                             <svg class="svg-icon" id="p-dash16" width="20" height="20"
@@ -313,7 +313,7 @@
                             </li>
                            
                         </ul>
-                    </li>
+                    </li> --}}
                 @endif
                 @if (canAccess(auth()->user()->role_id, 'reports'))
                     <li class="">

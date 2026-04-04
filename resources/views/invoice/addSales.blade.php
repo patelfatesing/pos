@@ -89,7 +89,7 @@
                                         placeholder="Qty">
                                 </div>
                                 <div class="col-md-1">
-                                    <button type="button" class="btn btn-primary mr-2" id="add-product-btn">
+                                    <button type="button" class="btn btn-success mr-2" id="add-product-btn">
                                         Add Item
                                     </button>
                                 </div>

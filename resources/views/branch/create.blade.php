@@ -72,7 +72,7 @@
                                     </div>
                                     <div class="col-md-6 mt-4">
                                         <div class="form-group mt-2">
-                                            <button type="submit" class="btn btn-primary mr-2" id="resetBtn">Add
+                                            <button type="submit" class="btn btn-success mr-2" id="resetBtn">Add
                                                 Store</button>
                                             <button type="reset" class="btn btn-danger">Reset</button>
                                         </div>

@@ -11,7 +11,7 @@
                             <h4 class="mb-0">Users List</h4>
                         </div>
                         @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'users-create'))
-                            <a href="{{ route('users.create') }}" class="btn btn-primary add-list">
+                            <a href="{{ route('users.create') }}" class="btn btn-success add-list">
                                 <i class="las la-plus mr-3"></i>Create New User
                             </a>
                         @endif
@@ -85,7 +85,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Update Password</button>
+                        <button type="submit" class="btn btn-success">Update Password</button>
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     </div>
                 </div>

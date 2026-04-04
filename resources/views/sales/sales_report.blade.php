@@ -11,22 +11,81 @@
     }
 
     .store-row:hover {
-    background: #eef2f7 !important;
-}
+        background: #eef2f7 !important;
+    }
 
-.sales-row {
-    transition: all 0.2s ease;
-}
+    .sales-row {
+        transition: all 0.2s ease;
+    }
 
-.table td, .table th {
-    vertical-align: middle;
-    font-size: 14px;
-}
+    .table td,
+    .table th {
+        vertical-align: middle;
+        font-size: 14px;
+    }
 
-.badge.bg-light {
-    border: 1px solid #ddd;
-    padding: 6px 8px;
-}
+    .badge.bg-light {
+        border: 1px solid #ddd;
+        padding: 6px 8px;
+    }
+
+    /* Switch container */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 20px;
+    }
+
+    /* Hide default checkbox */
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    /* Slider */
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .3s;
+    }
+
+    /* Circle */
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 14px;
+        width: 14px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .3s;
+    }
+
+    /* Checked state */
+    .switch input:checked+.slider {
+        background-color: #28a745;
+        /* green */
+    }
+
+    .switch input:checked+.slider:before {
+        transform: translateX(18px);
+    }
+
+    /* Rounded */
+    .slider.round {
+        border-radius: 20px;
+    }
+
+    .slider.round:before {
+        border-radius: 50%;
+    }
 </style>
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -247,6 +306,7 @@
                         shift_id: window.selectedShiftId
                     },
                     success: function(data) {
+                        console.log('sdf');
                         $('#storeData').html(data);
                     }
                 });
@@ -380,6 +440,89 @@
                     alert('Photos not found.');
                 }
             });
+        }
+
+        function changeVerifyStatus(type, shift_id, isChecked) {
+
+            let status = isChecked ? 'verify' : 'unverify';
+
+            Swal.fire({
+                title: "Are you sure?",
+                text: "Do you want to change the status?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, change it!",
+            }).then((result) => {
+
+                if (result.isConfirmed) {
+
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ route('shift.verify.status') }}",
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        data: {
+                            type: type,
+                            status: status,
+                            shift_id: shift_id
+                        },
+                        success: function(response) {
+                            Swal.fire("Success!", "Updated", "success")
+                                .then(() => location.reload());
+                        }
+                    });
+
+                } else {
+                    location.reload();
+                }
+
+            });
+        }
+
+        function verifyFullShift(shift_id, isChecked) {
+
+            let status = isChecked ? 'verify' : 'unverify';
+
+            Swal.fire({
+                title: "Verify Full Shift?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes",
+            }).then((result) => {
+
+                if (result.isConfirmed) {
+
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ route('shift.verify.all') }}",
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        data: {
+                            shift_id: shift_id,
+                            status: status
+                        },
+                        success: function(response) {
+                            Swal.fire("Done!", "Shift Verified", "success")
+                                .then(() => location.reload());
+                        }
+                    });
+
+                }
+            });
+        }
+
+        function handleClick(type, shift_id, branch_id) {
+
+            if (type === 'transfer') {
+
+                window.location.href = "{{ route('stock-transfer.list') }}" +
+                    "?branch_id=" + branch_id +
+                    "&shift_id=" + shift_id +
+                    "&verify=yes" +
+                    "&type=admin";
+            }
         }
     </script>
 @endsection

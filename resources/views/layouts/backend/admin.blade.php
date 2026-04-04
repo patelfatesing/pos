@@ -259,7 +259,7 @@
                     </ul>
                 </li>
 
-                <li class=" ">
+                {{-- <li class=" ">
                     <a href="#expenses" class="collapsed" data-toggle="collapse" aria-expanded="false">
 
                         <svg class="svg-icon" id="p-dash16" width="20" height="20"
@@ -284,7 +284,7 @@
                             </a>
                         </li>
                     </ul>
-                </li>
+                </li> --}}
                 <li class="">
                     <a href="{{ route('reports.list') }}" class="">
                         <svg class="svg-icon" id="p-dash7" width="20" height="20"

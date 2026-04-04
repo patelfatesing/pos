@@ -597,7 +597,7 @@ $categoryImages = [
                             <div class="card-header-toolbar d-flex align-items-center gap-2">
 
                                 <div class="mr-3">
-                                    <a href="{{ route('reports.best_selling.view') }}" class="btn btn-primary">
+                                    <a href="{{ route('reports.best_selling.view') }}" class="btn btn-success">
                                         View All
                                     </a>
                                 </div>
@@ -625,6 +625,7 @@ $categoryImages = [
                         </div>
                     </div>
                     <div id="topProductsWrapper">
+                        <p class="text-center text-muted">Loading...</p>
                         @foreach($data['top_and_worst_product']['top'] as $category => $product)
                         @if($product)
                         <div class="card card-block card-stretch card-height-helf mb-3">
@@ -659,7 +660,7 @@ $categoryImages = [
                             </div>
                             <div class="card-header-toolbar d-flex align-items-center">
                                 <div class="mr-3">
-                                    <a href="{{ route('reports.worst_selling.view') }}" class="btn btn-primary">
+                                    <a href="{{ route('reports.worst_selling.view') }}" class="btn btn-success">
                                         View All
                                     </a>
                                 </div>
@@ -687,6 +688,7 @@ $categoryImages = [
                         </div>
                     </div>
                     <div id="worstProductsWrapper">
+                        <p class="text-center text-muted">Loading...</p>
                         @foreach($data['top_and_worst_product']['worst'] as $category => $product)
                         @if($product)
                         <div class="card card-block card-stretch card-height-helf mb-3">
@@ -937,6 +939,10 @@ $categoryImages = [
     /* ===================== INIT ===================== */
     document.addEventListener('DOMContentLoaded', () => {
         if (!window.ApexCharts) return console.error('ApexCharts not loaded');
+
+        const currentFy = @json(request('fy') ?? $data['current_fy']);
+        updateTopProducts(currentFy);
+        updateWorstProducts(currentFy);
 
         /* Sales Trend */
         charts.sales = createLineChart(

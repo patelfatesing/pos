@@ -31,9 +31,10 @@ class SalesReportController extends Controller
         return view('sales.sales-list', compact('branches'));
     }
 
-    public function salasListReport(Request $request)
+    public function salasListReport1(Request $request)
     {
-        $query = Invoice::with('branch', 'commissionUser', 'partyUser');
+        $query = Invoice::with('branch', 'commissionUser', 'partyUser', 'shift')
+            ->where('status', '!=', 'Hold');
 
         // 🔥 BRANCH FILTER (always applied if exists)
         if (!empty($request->branch_id)) {
@@ -64,8 +65,59 @@ class SalesReportController extends Controller
 
         // 🔥 GROUP BY BRANCH + DATE
         $grouped = $invoices->groupBy(function ($item) {
-            return $item->branch_id . '_' . Carbon::parse($item->created_at)->format('Y-m-d');
+            return $item->branch_id . '_'
+                . \Carbon\Carbon::parse($item->created_at)->format('Y-m-d')
+                . '_'
+                . $item->shift_id;
         });
+
+
+        $shiftStatuses = [];
+
+        foreach ($grouped as $key => $sales) {
+
+            $first = $sales->first();
+            $shiftId = $first->shift_id;
+
+            // 🔁 reusable function
+            $checkStatus = function ($model) use ($shiftId) {
+
+                $query = $model::where('shift_id', $shiftId);
+
+                if (!$query->exists()) {
+                    return 'verify';
+                }
+
+                return $query->where('admin_status', 'unverify')->exists()
+                    ? 'unverify'
+                    : 'verify';
+            };
+
+            $finalAdminStatusReq = $checkStatus(\App\Models\StockRequest::class);
+            $finalAdminStatusTra = $checkStatus(\App\Models\StockTransfer::class);
+            $finalAdminStatusInv = $checkStatus(\App\Models\Invoice::class);
+
+            $finalAdminStatusShift = \App\Models\ShiftClosing::where('id', $shiftId)
+                ->where('admin_status', 'unverify')
+                ->exists()
+                ? 'unverify'
+                : 'verify';
+
+            $finalShiftStatus = (
+                $finalAdminStatusReq === 'verify' &&
+                $finalAdminStatusTra === 'verify' &&
+                $finalAdminStatusInv === 'verify' &&
+                $finalAdminStatusShift === 'verify'
+            ) ? 'verify' : 'unverify';
+
+            // ✅ store by shift_id
+            $shiftStatuses[$shiftId] = [
+                'inv' => $finalAdminStatusInv,
+                'tra' => $finalAdminStatusTra,
+                'req' => $finalAdminStatusReq,
+                'shift' => $finalShiftStatus,
+            ];
+        }
 
         // AJAX
         if ($request->ajax()) {
@@ -85,7 +137,227 @@ class SalesReportController extends Controller
             ->get();
 
 
-        return view('sales.sales_report', compact('grouped', 'branches', 'allProducts', 'partyUsers', 'commissionUsers'));
+        return view('sales.sales_report', compact('grouped', 'branches', 'allProducts', 'partyUsers', 'commissionUsers', 'shiftStatuses'));
+    }
+
+    public function salasListReport(Request $request)
+    {
+        $shiftQuery = \App\Models\ShiftClosing::query();
+
+        if (!empty($request->date_range) && str_contains($request->date_range, ' - ')) {
+
+            [$start, $end] = explode(' - ', $request->date_range);
+
+            $startDate = \Carbon\Carbon::parse($start)->startOfDay();
+            $endDate   = \Carbon\Carbon::parse($end)->endOfDay();
+
+            $shiftQuery->whereBetween('created_at', [$startDate, $endDate]);
+        } else {
+            // ✅ IMPORTANT FIX
+            $shiftQuery->whereDate('created_at', \Carbon\Carbon::today());
+        }
+
+        if (!empty($request->shift_id)) {
+            $shiftQuery->where('id', $request->shift_id);
+        }
+
+        $shiftIds = $shiftQuery->pluck('id')->toArray();
+
+        $query = \App\Models\Invoice::with('branch', 'commissionUser', 'partyUser', 'shift')
+            ->where('status', '!=', 'Hold')
+            ->whereIn('shift_id', $shiftIds);
+
+        // 🔥 SAME FILTERS (NO CHANGE)
+        if (!empty($request->branch_id)) {
+            $query->where('branch_id', $request->branch_id);
+        }
+
+        if (!empty($request->date_range) && str_contains($request->date_range, ' - ')) {
+
+            [$start, $end] = explode(' - ', $request->date_range);
+
+            $startDate = \Carbon\Carbon::parse($start)->startOfDay();
+            $endDate   = \Carbon\Carbon::parse($end)->endOfDay();
+
+            $query->whereBetween('created_at', [$startDate, $endDate]);
+        } else {
+            $query->whereDate('created_at', \Carbon\Carbon::today());
+        }
+
+        if (!empty($request->shift_id)) {
+            $query->where('shift_id', $request->shift_id);
+        }
+
+        $invoices = $query->get();
+
+        // 🔥 SAME GROUPING (100% SAME)
+        $grouped = $invoices->groupBy(function ($item) {
+            return $item->branch_id . '_'
+                . \Carbon\Carbon::parse($item->created_at)->format('Y-m-d')
+                . '_'
+                . $item->shift_id;
+        });
+
+
+        // ✅ ADD EMPTY SHIFTS (NO INVOICE CASE)
+        foreach ($shiftIds as $shiftId) {
+
+            $exists = $grouped->contains(function ($items) use ($shiftId) {
+                return optional($items->first())->shift_id == $shiftId;
+            });
+
+            if (!$exists) {
+
+                $shift = \App\Models\ShiftClosing::with('branch')->find($shiftId);
+
+                if ($shift) {
+
+                    $key = $shift->branch_id . '_'
+                        . \Carbon\Carbon::parse($shift->created_at)->format('Y-m-d')
+                        . '_'
+                        . $shift->id;
+
+                    // 🔥 dummy invoice (IMPORTANT)
+                    $dummy = collect([
+                        (object)[
+                            'id' => null,
+                            'branch_id' => $shift->branch_id,
+                            'shift_id' => $shift->id,
+                            'created_at' => $shift->created_at,
+                            'total' => 0,
+                            'sub_total' => 0,
+                            'party_amount' => 0,
+                            'commission_amount' => 0,
+                            'branch' => $shift->branch,
+                            'shift' => $shift,
+                            'partyUser' => null,
+                            'commissionUser' => null,
+                        ]
+                    ]);
+
+                    $grouped->put($key, $dummy);
+                }
+            }
+        }
+
+        // 🔥 SAME STATUS LOGIC (UNCHANGED)
+        $shiftStatuses = [];
+
+        foreach ($grouped as $key => $sales) {
+
+            $first = $sales->first();
+            $shiftId = $first->shift_id;
+
+            $checkStatus = function ($model) use ($shiftId) {
+
+                $query = $model::where('shift_id', $shiftId);
+
+                if (!$query->exists()) {
+                    return 'verify';
+                }
+
+                return $query->where('admin_status', 'unverify')->exists()
+                    ? 'unverify'
+                    : 'verify';
+            };
+
+            $finalAdminStatusReq = $checkStatus(\App\Models\StockRequest::class);
+            $finalAdminStatusTra = $checkStatus(\App\Models\StockTransfer::class);
+            $finalAdminStatusInv = $checkStatus(\App\Models\Invoice::class);
+
+            $finalAdminStatusShift = \App\Models\ShiftClosing::where('id', $shiftId)
+                ->where('admin_status', 'unverify')
+                ->exists()
+                ? 'unverify'
+                : 'verify';
+
+            $finalShiftStatus = (
+                $finalAdminStatusReq === 'verify' &&
+                $finalAdminStatusTra === 'verify' &&
+                $finalAdminStatusInv === 'verify' &&
+                $finalAdminStatusShift === 'verify'
+            ) ? 'verify' : 'unverify';
+
+            $shiftStatuses[$shiftId] = [
+                'inv' => $finalAdminStatusInv,
+                'tra' => $finalAdminStatusTra,
+                'req' => $finalAdminStatusReq,
+                'shift' => $finalShiftStatus,
+            ];
+        }
+
+        // AJAX
+        if ($request->ajax()) {
+            return view('sales.partials.store-data', compact('grouped', 'shiftStatuses'))->render();
+        }
+
+        // OTHER DATA (UNCHANGED)
+        $branches = \App\Models\Branch::all();
+
+        $allProducts = \App\Models\Product::select(
+            'id',
+            'name',
+            'mrp',
+            'discount_price',
+            'sell_price',
+            'category_id',
+            'subcategory_id'
+        )
+            ->where('is_deleted', 'no')
+            ->with(['category', 'subcategory'])
+            ->get();
+
+        $partyUsers = \App\Models\Partyuser::where('status', 'Active')->get();
+        $commissionUsers = \App\Models\Commissionuser::where('is_active', '1')->get();
+
+        return view('sales.sales_report', compact(
+            'grouped',
+            'branches',
+            'allProducts',
+            'partyUsers',
+            'commissionUsers',
+            'shiftStatuses'
+        ));
+    }
+
+    function getShiftStatuses($shiftId)
+    {
+        $checkStatus = function ($model) use ($shiftId) {
+
+            $query = $model::where('shift_id', $shiftId);
+
+            if (!$query->exists()) {
+                return 'verify';
+            }
+
+            return $query->where('admin_status', 'unverify')->exists()
+                ? 'unverify'
+                : 'verify';
+        };
+
+        $finalAdminStatusReq = $checkStatus(\App\Models\StockRequest::class);
+        $finalAdminStatusTra = $checkStatus(\App\Models\StockTransfer::class);
+        $finalAdminStatusInv = $checkStatus(\App\Models\Invoice::class);
+
+        $finalAdminStatusShift = \App\Models\ShiftClosing::where('id', $shiftId)
+            ->where('admin_status', 'unverify')
+            ->exists()
+            ? 'unverify'
+            : 'verify';
+
+        $finalShiftStatus = (
+            $finalAdminStatusReq === 'verify' &&
+            $finalAdminStatusTra === 'verify' &&
+            $finalAdminStatusInv === 'verify' &&
+            $finalAdminStatusShift === 'verify'
+        ) ? 'verify' : 'unverify';
+
+        return [
+            'req' => $finalAdminStatusReq,
+            'tra' => $finalAdminStatusTra,
+            'inv' => $finalAdminStatusInv,
+            'shift' => $finalShiftStatus,
+        ];
     }
 
     public function getData(Request $request)

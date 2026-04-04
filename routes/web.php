@@ -372,7 +372,7 @@ Route::middleware('auth')->group(function () {
 
     // routes/web.php
     Route::get('sales/sales-list', [SalesReportController::class, 'salasList'])->name('sales.sales.list');
-    Route::get('sales/sales-report', [SalesReportController::class, 'index'])->name('sales.report');
+    Route::get('sales/sales-report-old', [SalesReportController::class, 'index'])->name('sales.report');
     Route::post('sales-report/data', [SalesReportController::class, 'getSalesReportData'])->name('sales.report.data');
     Route::post('sales/get-data', [SalesReportController::class, 'getData'])->name('sales.get.data');
     Route::get('/store-sales-summary', [SalesReportController::class, 'storeSummary'])->name('store-sales-summary');
@@ -387,7 +387,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/sales/fetch-commission-data', [SalesReportController::class, 'commissionInvoicesReport'])->name('sales.fetch-commission-data');
     Route::get('/sales-img-view/{id}', [SalesReportController::class, 'show'])->name('sales.img.view');
 
-    Route::get('sales/sales-report-new', [SalesReportController::class, 'salasListReport'])->name('sales.salas-report');
+    Route::get('sales/sales-report', [SalesReportController::class, 'salasListReport'])->name('sales.salas-report');
 
     Route::get('/exp-category/list', [ExpenseCategoryController::class, 'index'])->name('exp_category.list');
     Route::post('/exp-category/get-data', [ExpenseCategoryController::class, 'getData'])->name('exp_category.getData');

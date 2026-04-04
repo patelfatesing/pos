@@ -139,7 +139,7 @@
                                                 </div>
                                             </a>
                                         </div>
-                                        <a class="right-ic btn btn-primary btn-block position-relative p-2"
+                                        <a class="right-ic btn btn-success btn-block position-relative p-2"
                                             href="#" role="button">
                                             View All
                                         </a>
@@ -214,7 +214,7 @@
                                                 </div>
                                             </a>
                                         </div>
-                                        <a class="right-ic btn btn-primary btn-block position-relative p-2"
+                                        <a class="right-ic btn btn-success btn-block position-relative p-2"
                                             href="#" role="button">
                                             View All
                                         </a>

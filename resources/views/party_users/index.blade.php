@@ -11,7 +11,7 @@
                         <h4 class="mb-0">Party Customer List</h4>
                     </div>
                     @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'party-customer-create'))
-                        <a href="{{ route('party-users.create') }}" class="btn btn-primary add-list">
+                        <a href="{{ route('party-users.create') }}" class="btn btn-success add-list">
                             <i class="las la-plus mr-3"></i>Create New Party Customer
                         </a>
                     @endif
@@ -92,7 +92,7 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save changes</button>
+                        <button type="submit" class="btn btn-success">Save changes</button>
                     </div>
                 </form>
             </div>

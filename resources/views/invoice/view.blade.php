@@ -22,10 +22,10 @@
                             <h4 class="card-title mb-0">Invoice #{{ $invoice->invoice_number }}</h4>
                         </div>
                         <div class="invoice-btn">
-                            <button onclick="window.print()" class="btn btn-primary-dark mr-2">
+                            <button onclick="window.print()" class="btn btn-success-dark mr-2">
                                 <i class="las la-print"></i> Print
                             </button>
-                            <a href="{{ route('invoice.download', $invoice->id) }}" class="btn btn-primary-dark">
+                            <a href="{{ route('invoice.download', $invoice->id) }}" class="btn btn-success-dark">
                                 <i class="las la-file-download"></i> PDF
                             </a>
                         </div>

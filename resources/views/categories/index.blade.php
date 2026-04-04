@@ -11,7 +11,7 @@
                     <h4 class="mb-0">Categories List</h4>
                 </div>
                 @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'categories-create'))
-                    <button class="btn btn-primary add-list" data-toggle="modal" data-target="#addCategoryModal">
+                    <button class="btn btn-success add-list" data-toggle="modal" data-target="#addCategoryModal">
                         <i class="las la-plus mr-3"></i>Create New Category
                     </button>
                 @endif
@@ -61,7 +61,7 @@
                             <span class="text-danger error-name"></span>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Add Category</button>
+                        <button type="submit" class="btn btn-success">Add Category</button>
                         <button type="reset" class="btn btn-danger">Reset</button>
 
                     </form>
@@ -94,7 +94,7 @@
                             <span class="text-danger error-edit-name"></span>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Update Category</button>
+                        <button type="submit" class="btn btn-success">Update Category</button>
                     </form>
                 </div>
 

@@ -9,7 +9,7 @@
                 <div>
                     <h4 class="mb-0">Demand Order List</h4>
                 </div>
-                <a href="{{ route('demand-order.step1') }}" class="btn btn-primary add-list">
+                <a href="{{ route('demand-order.step1') }}" class="btn btn-success add-list">
                     <i class="las la-plus mr-3"></i>Add Demand Order
                 </a>
             </div>

@@ -231,7 +231,7 @@
             </div>
 
             <div class="text-end mt-3">
-                <button class="btn btn-primary">Save Changes</button>
+                <button class="btn btn-success">Save Changes</button>
             </div>
         </form>
 

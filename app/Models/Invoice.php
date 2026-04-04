@@ -91,6 +91,11 @@ class Invoice extends Model
         return $this->hasMany(Refund::class);
     }
 
+    public function shift()
+    {
+        return $this->belongsTo(ShiftClosing::class);
+    }
+
     public static function generateInvoiceNumber($type = ""): string
     {
         $today = Carbon::now()->format('ymd'); // e.g., 20250516
