@@ -175,7 +175,7 @@
 
                                             </div>
                                         </div>
-                                        <button type="submit" class="btn btn-primary float-right">Next</button>
+                                        <button type="submit" class="btn btn-success float-right">Next</button>
 
                                     </fieldset>
 

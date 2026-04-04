@@ -875,7 +875,7 @@ class StockController extends Controller
 
         foreach ($data as $requestItem) {
             $action = "";
-            $action .= "<a href='" . $url . "/stock/view/" . $requestItem->id . "' class='btn btn-sm btn-primary'>View</a> ";
+            $action .= "<a href='" . $url . "/stock/view/" . $requestItem->id . "' class='btn btn-sm btn-success'>View</a> ";
             // $action .= "<form method='POST' action='" . $url . "/stock/view/" . $requestItem->id . "' style='display:inline;'>"
             //          . csrf_field() . method_field('DELETE')
             //          . "<button class='btn btn-sm btn-danger' onclick='return confirm(\"Are you sure?\")'>Delete</button></form>";

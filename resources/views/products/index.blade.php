@@ -13,12 +13,12 @@
                         </div>
                         <div class="ml-auto">
                             @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'product-import'))
-                                <a href="{{ route('products.import') }}" class="btn btn-primary pull-right add-list">
+                                <a href="{{ route('products.import') }}" class="btn btn-success pull-right add-list">
                                     <i class="las la-file-import me-1"></i>Import Product
                                 </a>
                             @endif
                             @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'product-create'))
-                                <a href="{{ route('products.create') }}" class="btn btn-primary pull-right add-list ml-2">
+                                <a href="{{ route('products.create') }}" class="btn btn-success pull-right add-list ml-2">
                                     <i class="las la-plus me-1"></i>Create New Product
                                 </a>
                             @endif
@@ -125,7 +125,7 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save changes</button>
+                        <button type="submit" class="btn btn-success">Save changes</button>
                     </div>
                 </form>
             </div>

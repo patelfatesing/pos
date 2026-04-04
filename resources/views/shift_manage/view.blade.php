@@ -36,7 +36,7 @@
 
                 <div class="col-md-2">
                     <a href="{{ route('sales.add-sales', ['branch_id' => $id, 'shift_id' => $shift_id]) }}"
-                        class="btn btn-primary-dark mr-2">
+                        class="btn btn-success mr-2">
                         <i class="fa fa-edit"></i> Add Trasaction
                     </a>
                 </div>

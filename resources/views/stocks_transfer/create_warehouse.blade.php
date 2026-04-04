@@ -68,7 +68,7 @@
                                         <textarea name="notes" id="notes" class="form-control"></textarea>
                                     </div>
 
-                                    <button type="submit" class="btn btn-primary">Submit Request</button>
+                                    <button type="submit" class="btn ">Submit Request</button>
                                 </form>
                             </div>
                         </div>

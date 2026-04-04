@@ -10,7 +10,7 @@
                     <h4 class="mb-0">Vendor List</h4>
                 </div>
                 @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'vendor-create'))
-                    <a href="{{ route('vendor.create') }}" class="btn btn-primary add-list">
+                    <a href="{{ route('vendor.create') }}" class="btn btn-success add-list">
                         <i class="las la-plus mr-3"></i>Add New Vendor
                     </a>
                 @endif

@@ -143,7 +143,7 @@
                             value="{{ request('search') }}">
                     </div>
                     <div class="col-md-3">
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn ">
                             🔍 Search
                         </button>
                         <a href="{{ route('shift-manage.stock-details', $shift->id) }}" class="btn btn-secondary">

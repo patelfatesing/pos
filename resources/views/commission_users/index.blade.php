@@ -12,7 +12,7 @@
                     <h4 class="mb-0">Commission Customer List</h4>
                 </div>
                 @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'commission-customer-create'))
-                    <a href="{{ route('commission-users.create') }}" class="btn btn-primary add-list">
+                    <a href="{{ route('commission-users.create') }}" class="btn btn-success add-list">
                         <i class="las la-plus mr-3"></i>Create New Commission Customer
                     </a>
                 @endif

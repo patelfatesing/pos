@@ -32,8 +32,13 @@ class StockTransferController extends Controller
             $shift_id = $_GET['shift_id'];
         }
 
+        $type = '';
+        if (isset($_GET['type'])) {
+            $type = $_GET['type'];
+        }
+
         if (auth()->user()->role_id == 1 || canDo(auth()->user()->role_id, 'stock-transfer-list')) {
-            return view('stocks_transfer.list', compact('branch_id', 'shift_id'));
+            return view('stocks_transfer.list', compact('branch_id', 'shift_id', 'type'));
         } else {
             return view('errors.403', [
                 'message' => 'You do not have permission to view this stock request.'
@@ -176,7 +181,7 @@ class StockTransferController extends Controller
                         href="' . route('stock-transfer.view', $transfer->transfer_number) . '"><i class="ri-eye-line mr-0"></i></a>';
 
 
-            $action .= '<a class="badge bg-success mr-2" title="Edit" href="' . url('/stock-transfer/edit/' . $transfer->id) . '">
+            $action .= '<a class="badge bg-success mr-2" title="Edit" href="' . url('/stock-transfer/edit/' . $transfer->id) . '?type=admin">
                 <i class="ri-pencil-line"></i></a>';
             $action .= '</div>';
 
@@ -247,7 +252,6 @@ class StockTransferController extends Controller
 
             $prefix = 'TF';
             if (empty($shift_id)) {
-
 
                 $running_shift = ShiftClosing::where('branch_id', $request->to_store_id)
                     ->where('status', 'pending')
@@ -459,7 +463,12 @@ class StockTransferController extends Controller
 
             DB::commit();
 
-            return redirect()->route('inventories.list')->with('success', 'Stock has been transferred successfully.');
+            if ($request->type == 'admin') {
+                return redirect()->route('sales.salas-report')
+                    ->with('success', 'Transfer updated successfully');
+            } else {
+                return redirect()->route('inventories.list')->with('success', 'Stock has been transferred successfully.');
+            }
         } catch (\Illuminate\Validation\ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
@@ -686,8 +695,13 @@ class StockTransferController extends Controller
 
             DB::commit();
 
-            return redirect()->route('stock-transfer.list')
-                ->with('success', 'Transfer updated successfully');
+            if ($request->type == 'admin') {
+                return redirect()->route('sales.salas-report')
+                    ->with('success', 'Transfer updated successfully');
+            } else {
+                return redirect()->route('stock-transfer.list')
+                    ->with('success', 'Transfer updated successfully');
+            }
         } catch (\Exception $e) {
 
             DB::rollback();

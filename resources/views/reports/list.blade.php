@@ -46,7 +46,7 @@
                                     'slug' => 'balance-sheet',
                                     'route' => route('reports.balance-sheet'),
                                 ],
-                                ['name' => 'Sales Report', 'slug' => 'sales-report', 'route' => route('sales.report')],
+                                ['name' => 'Sales Report', 'slug' => 'sales-report', 'route' => route('sales.salas-report')],
                                 ['name' => 'Sales List', 'slug' => 'sales-list', 'route' => route('sales.sales.list')],
                                 [
                                     'name' => 'Stock Summary',

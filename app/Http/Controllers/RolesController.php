@@ -61,7 +61,7 @@ class RolesController extends Controller
 
             if ($role->name != "admin" && $role->name != "cashier" && $role->name != "warehouse") {
                 $action = "<a href='" . $url . "/roles/edit/" . $role->id . "' class='btn btn-info mr-2'>Edit</a>";
-            } // $action .= "<a href='" . $url . "/roles/view/" . $role->id . "' class='btn btn-primary mr-2'>View</a>";
+            } // $action .= "<a href='" . $url . "/roles/view/" . $role->id . "' class='btn btn-success mr-2'>View</a>";
             // $action .= '<button type="button" onclick="delete_role(' . $role->id . ')" class="btn btn-danger ml-2">Delete</button>';
 
             if (!$isAssigned) {

@@ -57,7 +57,7 @@
                                         <a href="{{ route('demand-order.list') }}"
                                             class="btn btn-dark previous action-button-previous float-right mr-3">Complete</a>
                                         {{-- <a href="{{ $pdfPath }}" download
-                                            class="btn btn-primary next action-button ">
+                                            class="btn btn-success next action-button ">
                                             <i class="ri-download-2-line"></i> Download PDF
                                         </a> --}}
 

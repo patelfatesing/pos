@@ -12,7 +12,7 @@
                         <h4 class="mb-0">Sub Categories List</h4>
                     </div>
                     @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'sub-categories-create'))
-                        <button class="btn btn-primary add-list" data-toggle="modal" data-target="#addSubCategoryModal">
+                        <button class="btn btn-success add-list" data-toggle="modal" data-target="#addSubCategoryModal">
                             <i class="las la-plus mr-3"></i>Create New Sub Category
                         </button>
                     @endif
@@ -77,7 +77,7 @@
                             <span class="text-danger error-category_id"></span>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Add Sub Category</button>
+                        <button type="submit" class="btn btn-success">Add Sub Category</button>
                         <button type="reset" class="btn btn-danger">Reset</button>
 
                     </form>
@@ -122,7 +122,7 @@
                             <span class="text-danger error-edit-category_id"></span>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Update Sub Category</button>
+                        <button type="submit" class="btn btn-success">Update Sub Category</button>
 
                     </form>
 

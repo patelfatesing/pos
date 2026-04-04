@@ -9,7 +9,7 @@
                     <div>
                         <h4 class="mb-0">Expense Category List</h4>
                     </div>
-                    <a href="#" onclick="add_exp_category()" class="btn btn-primary add-list">
+                    <a href="#" onclick="add_exp_category()" class="btn btn-success add-list">
                         <i class="las la-plus mr-3"></i>Create New Expense Category
                     </a>
                 </div>
@@ -89,7 +89,7 @@
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="submit" class="btn btn-success">Save</button>
                     </div>
                 </form>
             </div>

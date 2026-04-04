@@ -137,7 +137,7 @@ class VoucherController extends Controller
             // View button (only verified OR admin)
             if ($r->admin_status === 'verify') {
                
-                $actions .= '<a href="' . e($viewUrl) . '" class="btn btn-sm btn-primary mr-1">
+                $actions .= '<a href="' . e($viewUrl) . '" class="btn btn-sm btn-success mr-1">
                     Verify
                  </a>';
             } else {

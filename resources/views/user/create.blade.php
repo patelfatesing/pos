@@ -143,7 +143,7 @@
                                     </div>
                                 </div>
                                 <button type="submit"
-                                    class="btn btn-primary mr-2">{{ __('messages.create_new_user') }}</button>
+                                    class="btn btn-success mr-2">{{ __('messages.create_new_user') }}</button>
                                 <button type="reset" class="btn btn-danger">Reset</button>
                             </form>
                         </div>

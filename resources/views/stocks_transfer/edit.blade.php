@@ -10,10 +10,12 @@
                         <h4 class="mb-0">Edit Stock Transfer</h4>
                     </div>
                     <div>
-                        <a href="{{ route('stock-transfer.list') }}" class="btn btn-secondary">Back</a>
+                        <button onclick="window.history.back()" class="btn btn-secondary">
+                            Back
+                        </button>
                     </div>
                 </div>
-              
+
 
                 <div class="card">
                     <div class="card-body">
@@ -52,7 +54,7 @@
                                         @endforeach
                                     </select>
                                 </div>
-
+                                <input type="hidden" name="type" value="{{ request('type') }}">
                                 <!-- To Store -->
                                 <div class="col-md-6">
                                     <label>To Store *</label>
@@ -174,7 +176,7 @@
                             </div> --}}
 
                             <div>
-                                <button type="submit" id="submitBtn" class="btn btn-primary">
+                                <button type="submit" id="submitBtn" class="btn btn-success">
                                     Update Transfer
                                 </button>
                             </div>

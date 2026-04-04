@@ -10,7 +10,9 @@
                         <h4 class="mb-0">Stock Transfer Store to Store</h4>
                     </div>
                     <div>
-                        <a href="{{ route('stock-transfer.list') }}" class="btn btn-secondary">Back</a>
+                        <button onclick="window.history.back()" class="btn btn-secondary">
+                            Back
+                        </button>
                     </div>
                 </div>
 
@@ -63,6 +65,7 @@
                                             </div>
                                             <div class="col-md-6"></div>
                                         @endif
+                                         <input type="hidden" name="type" value="{{ request('type') }}">
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>From Store *</label>
@@ -174,9 +177,6 @@
                                                                     @endforeach
                                                                 </select>
                                                             </td>
-
-
-
                                                             <td>
                                                                 <div class="availability-container small text-muted"></div>
                                                             </td>
@@ -238,7 +238,7 @@
 
                                     <div class="row mt-3">
                                         <div class="col-12">
-                                            <button type="submit" id="submitBtn" class="btn btn-primary">Submit
+                                            <button type="submit" id="submitBtn" class="btn btn-success">Submit
                                                 Transfer</button>
                                             <button type="reset" class="btn btn-danger">Reset</button>
                                         </div>

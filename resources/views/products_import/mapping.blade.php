@@ -63,7 +63,7 @@
                                         <div class="row mt-3">
                                             <div class="col-12">
                                                 <button type="submit" id="submitBtn"
-                                                    class="btn btn-primary">Upload</button>
+                                                    class="btn btn-success">Upload</button>
                                                 <button type="reset" class="btn btn-danger">Reset</button>
                                             </div>
                                         </div>

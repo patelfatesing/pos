@@ -33,4 +33,12 @@ class ShiftClosing extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    // app/Models/ShiftClosing.php
+
+    public function invoices()
+    {
+        return $this->hasMany(\App\Models\Invoice::class, 'shift_id');
+    }
+
 }

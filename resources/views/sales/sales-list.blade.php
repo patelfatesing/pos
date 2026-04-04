@@ -29,7 +29,7 @@
                     </select>
                 </div>
                 <div class="col-md-3 mb-2">
-                    <button class="btn btn-primary w-100" id="storeSearch">Search</button>
+                    <button class="btn "storeSearch">Search</button>
                 </div>
             </div>
 

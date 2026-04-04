@@ -66,7 +66,7 @@
         </div>
 
         <!-- Buttons -->
-        <button type="submit" class="btn btn-primary mr-2">Save</button>
+        <button type="submit" class="btn btn-success mr-2">Save</button>
         <button type="reset" class="btn btn-danger">Reset</button>
 
         @if (session('status') === 'profile-updated')

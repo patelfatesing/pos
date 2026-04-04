@@ -12,7 +12,7 @@
                 You do not have permission to access this page.
             </p>
 
-            <a href="{{ route('dashboard') }}" class="btn btn-primary mt-3">
+            <a href="{{ route('dashboard') }}" class="btn btn-success mt-3">
                 <i class="las la-home"></i> Go to Home
             </a>
 

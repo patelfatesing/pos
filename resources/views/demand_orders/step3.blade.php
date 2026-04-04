@@ -154,7 +154,7 @@
                                         </div>
 
                                         <button type="submit"
-                                            class="btn btn-primary next action-button float-right">Submit</button>
+                                            class="btn btn-success next action-button float-right">Submit</button>
                                         <a href="{{ route('demand-order.step2') }}"
                                             class="btn btn-dark previous action-button-previous float-right mr-3">Previous</a>
                                     </fieldset>

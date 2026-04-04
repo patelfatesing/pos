@@ -34,7 +34,7 @@
                                <a href="auth-recoverpw.html" class="text-primary float-right">Forgot Password?</a>
                             </div>
                          </div>
-                         <button type="submit" class="btn btn-primary">Sign In</button>
+                         <button type="submit" class="btn btn-success">Sign In</button>
                          <p class="mt-3">
                             Create an Account <a href="auth-sign-up.html" class="text-primary">Sign Up</a>
                          </p>

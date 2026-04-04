@@ -83,7 +83,7 @@
                                                 </div>
                                             </div> -->
                                 </div>
-                                <button type="submit" class="btn btn-primary mr-2">Update Store</button>
+                                <button type="submit" class="btn btn-success mr-2">Update Store</button>
                                 <button type="reset" class="btn btn-danger" id="resetBtn">Reset</button>
                             </form>
                         </div>
