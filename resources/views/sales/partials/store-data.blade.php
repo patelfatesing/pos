@@ -5,14 +5,15 @@
 @if ($grouped->count() > 0)
     @foreach ($grouped as $key => $sales)
         @php
-            // dd($sales);
+          
             $first = $sales->first();
             $date = \Carbon\Carbon::parse($first->created_at)->format('d-m-Y');
 
             // MAIN TOTAL
             $groupTotal = $sales->sum(fn($i) => (float) str_replace(',', '', $i->total));
+            $groupTotal += $sales->grand_total;
             $status = $shiftStatuses[$first->shift_id] ?? null;
-            // dd($status);
+          
         @endphp
         @php
             $grandTotal += $groupTotal;
@@ -184,10 +185,41 @@
                                 <td>Total</td>
                                 <td>{{ number_format($discount, 2) }}</td>
                                 <td>{{ number_format($subTotal, 2) }}</td>
-                                <td>₹{{ number_format($total, 2) }}</td>
+                                @php
+                                    $tt = $total+ $sales->grand_total;
+
+                                @endphp
+                                <td>₹{{ number_format($tt,2) }}</td>
                                 <td></td>
                             </tr>
                         </tfoot>
+                        @if($first->branch->id == 1)
+                        <tr style="background:#fff3cd; font-weight:600;">
+                            <td colspan="3" class="text-end">+ Credit Collection</td>
+                            <td>₹{{ number_format($sales->credit_collection ?? 0, 2) }}</td>
+                            <td></td>
+                        </tr>
+                        @endif
+
+                        <tr style="background:#d1ecf1; font-weight:600;">
+                            <td colspan="3" class="text-end">+ Cash In Hand</td>
+                            <td>₹{{ number_format($sales->total_cash_in_hand ?? 0, 2) }}</td>
+                            <td></td>
+                        </tr>
+
+                        <tr style="background:#f8d7da; font-weight:600;">
+                            <td colspan="3" class="text-end">- Withdraw</td>
+                            <td>₹{{ number_format($sales->total_withdraw ?? 0, 2) }}</td>
+                            <td></td>
+                        </tr>
+
+                        {{-- <tr style="background:#e2e3e5; font-weight:700;">
+                            <td colspan="3" class="text-end">Final Shift Total</td>
+                            <td>
+                                ₹{{ number_format($total + ($shiftOthersTotal['grand_total'] ?? 0), 2) }}
+                            </td>
+                            <td></td>
+                        </tr> --}}
 
                     </table>
                 </div>
@@ -196,7 +228,7 @@
         </tr>
     @endforeach
     <tr style="background:#e9ecef; font-weight:700;">
-        <td class="ps-3">
+        <td class="ps-3" colspan="1">
             GRAND TOTAL
         </td>
         <td class="text-end pe-3">

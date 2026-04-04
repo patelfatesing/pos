@@ -18,7 +18,8 @@ class CreditCollection extends Model
         'payment_method',
         'upi_amount',
         'online_amount',
-        'cash_amount'
+        'cash_amount',
+        'shift_id'
     ];
 
     protected $casts = [
