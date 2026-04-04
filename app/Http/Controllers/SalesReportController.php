@@ -242,11 +242,47 @@ class SalesReportController extends Controller
 
         // 🔥 SAME STATUS LOGIC (UNCHANGED)
         $shiftStatuses = [];
+        $shiftOthersTotal = [];
 
         foreach ($grouped as $key => $sales) {
 
             $first = $sales->first();
+            $shift = $first->shift; //
             $shiftId = $first->shift_id;
+
+
+            // ✅ Withdraw
+            $totalWith = \App\Models\WithdrawCash::where('branch_id', $shift->branch_id)
+                ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
+                ->sum('amount');
+
+            // ✅ Cash In Hand
+            $cashInHand = \App\Models\CashBreakdown::where('branch_id', $shift->branch_id)
+                ->where('type', 'cashinhand')
+                // ->where('shift_id', $shift->id)
+                ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
+                ->sum('total');
+
+            // ✅ Credit Collection (BEST)
+            $creditCollection = \DB::table('credit_collections as cc')
+                ->join('cash_breakdowns as cb', 'cc.cash_break_id', '=', 'cb.id')
+                ->where('cc.shift_id', $shift->id)
+                ->sum('cc.amount');
+
+            // ✅ Final
+            $extraTotal = $creditCollection + $cashInHand - $totalWith;
+
+            $sales->total_withdraw = $totalWith;
+            $sales->credit_collection = $creditCollection;
+            $sales->total_cash_in_hand = $cashInHand;
+            $sales->grand_total = $extraTotal;
+
+            $extraTotal =
+                ($creditCollection ?? 0)
+                + ($cashInHand ?? 0)
+                - ($totalWith ?? 0); // withdraw minus (money going out)
+
+
 
             $checkStatus = function ($model) use ($shiftId) {
 

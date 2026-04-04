@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB; // ✅ CORRECT
 use App\Models\Branch;
 use App\Models\Accounting\AccountLedger;
 use App\Models\Accounting\Voucher;
+use App\Models\UserShift;
 
 class CollationModal extends Component
 {
@@ -36,6 +37,7 @@ class CollationModal extends Component
     public $totalCollected = 0;
     public $search = '';
     public $inOutStatus = false;
+    public $shift_id = '';
 
     public function updatingSearch()
     {
@@ -316,6 +318,7 @@ class CollationModal extends Component
                 'branch_id' => $branch_id,
                 'denominations' => json_encode($denominations),
                 'total' => $collectedAmount,
+                'shift_id' => $this->shift_id,
             ]);
         }
 
@@ -338,6 +341,7 @@ class CollationModal extends Component
             'collected_by' => auth()->id(),
             'note_data' => json_encode($this->cashNotes),
             'created_at' => now(),
+            'shift_id' => $this->shift_id,
         ]);
 
         CreditHistory::create(
@@ -520,6 +524,15 @@ class CollationModal extends Component
 
         $store = Branch::select('in_out_enable', 'one_time_sales')->findOrFail($branch_id);
         $this->inOutStatus = $store->in_out_enable;
+        $shift = UserShift::where('user_id', auth()->id())
+            ->where('branch_id', $branch_id)
+            ->whereDate('end_time', today())
+            ->latest()
+            ->first();
+
+        if (!empty($shift)) {
+            $this->shift_id = $shift->id;
+        }
 
         return view('livewire.collation-modal', [
             'partyUsers' => $partyUsers

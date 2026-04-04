@@ -13,8 +13,8 @@ class CashBreakdown extends Model
         'branch_id',
         'denominations',
         'total',
-        'type'
-
+        'type',
+        'shift_id'
     ];
 
     protected $casts = [
