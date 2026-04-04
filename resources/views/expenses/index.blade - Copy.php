@@ -12,7 +12,7 @@
                     <div>
                         <h4 class="mb-3">Expense List</h4>
                     </div>
-                    <a href="{{ route('exp.create') }}" class="btn btn-primary add-list">
+                    <a href="{{ route('exp.create') }}" class="btn btn-success add-list">
                         <i class="las la-plus mr-2"></i> Add New Expense
                     </a>
                 </div>

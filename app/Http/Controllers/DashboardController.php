@@ -539,7 +539,6 @@ class DashboardController extends Controller
         $financialYearIncomeAmount = $this->incomeExpenseFinancialChartData('Sales', $currentFYData);
         $financialYearExpenseAmount = $this->incomeExpenseFinancialChartData('Purchase', $currentFYData);
         $pieChart = $this->getPieChartData($currentFYData);
-        $topAndWorstProducts = $this->getTopAndWorstProductsByCategory(request('fy'));
 
         $revenueAndCost = $this->getRevenueCostByFinancialYear(request('fy'));
 
@@ -560,7 +559,7 @@ class DashboardController extends Controller
             'current_fy'   => $currentFYData,
             'pie_branch_name'   => $pieChart['labels'],
             'pie_total_item_qty'   => $pieChart['series'],
-            'top_and_worst_product'   => $topAndWorstProducts,
+            'top_and_worst_product'   => ['top' => [], 'worst' => []],
             'revenue_value'   => $revenueAndCost['series'][0]['data'],
             'cost_value'   => $revenueAndCost['series'][1]['data'],
             'sales'         => $totalSales + $total_creditpay,
@@ -713,7 +712,6 @@ class DashboardController extends Controller
         $financialYearIncomeAmount = $this->incomeExpenseFinancialChartData('Sales', $currentFYData);
         $financialYearExpenseAmount = $this->incomeExpenseFinancialChartData('Purchase', $currentFYData);
         $pieChart = $this->getPieChartData($currentFYData);
-        $topAndWorstProducts = $this->getTopAndWorstProductsByCategory(request('fy'));
 
         return [
             'store'         => $store->name,
@@ -738,7 +736,7 @@ class DashboardController extends Controller
             'current_fy'   => $currentFYData,
             'pie_branch_name'   => $pieChart['labels'],
             'pie_total_item_qty'   => $pieChart['series'],
-            'top_and_worst_product'   => $topAndWorstProducts,
+            'top_and_worst_product'   => ['top' => [], 'worst' => []],
         ];
 
         // Example: Fetch orders/sales for this store
@@ -1074,7 +1072,7 @@ class DashboardController extends Controller
     WITH RECURSIVE seq(n) AS (
         SELECT 0
         UNION ALL
-        SELECT n + 1 FROM seq
+        SELECT n + 1 FROM seq WHERE n < 499
     )
     SELECT 
         JSON_UNQUOTE(JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].subcategory'))) AS subcategory,
@@ -1091,7 +1089,7 @@ class DashboardController extends Controller
     JOIN products p 
         ON p.id = JSON_EXTRACT(i.items, CONCAT('$[', seq.n, '].product_id'))
     WHERE i.created_at BETWEEN ? AND ?
-    AND seq.n < 500  -- LIMIT OUTSIDE CTE
+    AND i.status NOT IN ('Hold', 'resumed', 'archived')
     GROUP BY subcategory, product_id, p.name
 ", [$fyStart, $fyEnd]);
 

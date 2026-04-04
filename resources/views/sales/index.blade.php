@@ -71,7 +71,7 @@
                                         <option value="{{ $branch->id }}">{{ $branch->name }}</option>
                                     @endforeach
                                 </select>
-                                <button id="filter" class="btn btn-primary btn-sm">Filter</button>
+                                <button id="filter" class="btn  btn-sm">Filter</button>
                                 <button id="reset" class="btn btn-outline-secondary btn-sm">Reset</button>
                             </div>
 

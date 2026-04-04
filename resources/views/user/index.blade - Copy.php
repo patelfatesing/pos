@@ -16,7 +16,7 @@
                             <div>
                                 <h2 class="mb-3">Users List</h2>
                             </div>
-                            <a href="{{ route('users.create') }}" class="btn btn-primary add-list">
+                            <a href="{{ route('users.create') }}" class="btn btn-success add-list">
                                 <i class="las la-plus mr-3"></i>Create New User
                             </a>
                         </div>
@@ -90,7 +90,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Update Password</button>
+                        <button type="submit" class="btn btn-success">Update Password</button>
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     </div>
                 </div>

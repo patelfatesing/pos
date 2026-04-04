@@ -94,7 +94,7 @@
                                     </div>
                                 </div>
 
-                                <button type="button" onclick="submitForm()" class="btn btn-primary">
+                                <button type="button" onclick="submitForm()" class="btn btn-success">
                                     Update Vendor
                                 </button>
                                 <button type="button" onclick="resetForm()" class="btn btn-danger">

@@ -11,7 +11,7 @@
                     <h4 class="mb-0">Pack Size List</h4>
                 </div>
                 @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'pack-size-create'))
-                    <button class="btn btn-primary add-list" data-toggle="modal" data-target="#packSizeModal">
+                    <button class="btn btn-success add-list" data-toggle="modal" data-target="#packSizeModal">
                         <i class="las la-plus mr-3"></i>Create New Pack Size
                     </button>
                 @endif
@@ -68,7 +68,7 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Add Pack Size</button>
+                        <button type="submit" class="btn btn-success">Add Pack Size</button>
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                     </div>
 

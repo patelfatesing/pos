@@ -10,7 +10,7 @@
                 <div>
                     <h4 class="mb-0">Purchase Invoice</h4>
                 </div>
-                <a href="{{ route('purchase.create') }}" class="btn btn-primary add-list">
+                <a href="{{ route('purchase.create') }}" class="btn btn-success add-list">
                     <i class="las la-plus mr-3"></i>Add New Purchase Invoice
                 </a>
             </div>

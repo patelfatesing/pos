@@ -33,7 +33,7 @@
                     <h4 class="mb-0">Store List</h4>
                 </div>
                 @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'store-manage'))
-                    <a href="{{ route('branch.create') }}" class="btn btn-primary add-list">
+                    <a href="{{ route('branch.create') }}" class="btn btn-success add-list">
                         <i class="las la-plus mr-3"></i>Create New Store
                     </a>
                 @endif
@@ -96,7 +96,7 @@
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save changes</button>
+                        <button type="submit" class="btn btn-success">Save changes</button>
                     </div>
                 </form>
             </div>
@@ -154,7 +154,7 @@
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary" id="holidaySaveBtn">Save</button>
+                        <button type="submit" class="btn btn-success" id="holidaySaveBtn">Save</button>
                     </div>
                 </form>
             </div>
@@ -191,7 +191,7 @@
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary" id="addOneTimeSaveBtn">Save</button>
+                        <button type="submit" class="btn btn-success" id="addOneTimeSaveBtn">Save</button>
                     </div>
                 </form>
             </div>

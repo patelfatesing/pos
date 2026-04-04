@@ -13,7 +13,6 @@
                         <div class="col-md-2 pr-0">
                             <form class="pull-right mt-3" action="" method="GET" style="display: inline;">
                                 <select name="id" id="id" class="form-control" onchange="this.form.submit()">
-                                    <option value="">All Subcategories</option>
                                     @foreach ($partyUserAll as $party)
                                         <option value="{{ $party->id }}"
                                             {{ $partyUser->id == $party->id ? 'selected' : '' }}>

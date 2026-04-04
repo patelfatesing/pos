@@ -196,7 +196,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <button type="submit" class="btn btn-primary mr-2">Add Product</button>
+                                    <button type="submit" class="btn  mr-2">Add Product</button>
                                     <button type="reset" class="btn btn-danger">Reset</button>
                                 </form>
                             </div>

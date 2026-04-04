@@ -47,7 +47,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <button type="submit" class="btn btn-primary mr-2">Add Sub Category</button>
+                                    <button type="submit" class="btn btn-success mr-2">Add Sub Category</button>
                                     <button type="reset" class="btn btn-danger">Reset</button>
                                 </form>
                             </div>

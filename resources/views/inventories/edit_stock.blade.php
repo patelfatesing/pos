@@ -176,7 +176,7 @@
                                         
                                         
                                     </div>
-                                    <button type="submit" class="btn btn-primary mr-2">Add Stock</button>
+                                    <button type="submit" class="btn btn-success mr-2">Add Stock</button>
                                     <button type="reset" class="btn btn-danger">Reset</button>
                                 </form>
                             </div>

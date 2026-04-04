@@ -92,7 +92,7 @@
 
                                 </div>
 
-                                <button type="button" onclick="submitForm()" class="btn btn-primary mr-2">
+                                <button type="button" onclick="submitForm()" class="btn btn-success mr-2">
                                     Add Vendor
                                 </button>
                                 <button type="button" onclick="resetForm()" class="btn btn-danger">

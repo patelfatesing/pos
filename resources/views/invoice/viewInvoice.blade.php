@@ -44,45 +44,45 @@
 
                                     @if ($showEditButton)
                                         <a href="{{ route('sales.edit-sales', $invoice->id) }}"
-                                            class="btn btn-primary-dark">
+                                            class="btn btn-success-dark">
                                             <i class="fa fa-edit"></i>
                                         </a>
                                     @endif
 
                                     @if ($invoice->party_user_id != '')
                                         <button onClick="showPhoto({{ $invoice->id }},'',{{ $invoice->party_user_id }})"
-                                            class="btn btn-primary-dark mr-2">
+                                            class="btn btn-success-dark mr-2">
                                             <i class="ri-eye-line mr-0"></i> View Photos
                                         </button>
                                     @endif
                                     @if ($invoice->commission_user_id != '')
                                         <button
                                             onClick="showPhoto({{ $invoice->id }},{{ $invoice->commission_user_id }},'')"
-                                            class="btn btn-primary-dark mr-2">
+                                            class="btn btn-success-dark mr-2">
                                             <i class="ri-eye-line mr-0"></i> View Photos
                                         </button>
                                     @endif
 
                                     @if ($invoice->edit_in == 'yes')
-                                        <button class="btn btn-primary-dark mr-2" data-toggle="modal"
+                                        <button class="btn btn-success-dark mr-2" data-toggle="modal"
                                             data-target="#editPdfModal">
                                             <i class="las la-print"></i>Edit View Invoice
                                         </button>
-                                        <button class="btn btn-primary-dark mr-2" data-toggle="modal"
+                                        <button class="btn btn-success-dark mr-2" data-toggle="modal"
                                             data-target="#pdfModal">
                                             <i class="las la-print"></i>Original View Invoice
                                         </button>
                                     @else
-                                        {{-- <button class="btn btn-primary-dark mr-2" data-toggle="modal"
+                                        {{-- <button class="btn btn-success-dark mr-2" data-toggle="modal"
                                             data-target="#pdfModal">
                                             <i class="las la-print"></i>View Invoice
                                         </button> --}}
                                     @endif
 
-                                    <button class="btn btn-primary-dark mr-2" data-toggle="modal" data-target="#pdfModal">
+                                    <button class="btn btn-success-dark mr-2" data-toggle="modal" data-target="#pdfModal">
                                         <i class="las la-print"></i>View Invoice
                                     </button>
-                                    <a href="{{ route('invoice.download', $invoice->id) }}" class="btn btn-primary-dark">
+                                    <a href="{{ route('invoice.download', $invoice->id) }}" class="btn btn-success-dark">
                                         <i class="las la-file-download"></i> Download Invoice
                                     </a>
                                 </div>

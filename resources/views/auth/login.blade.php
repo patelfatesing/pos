@@ -48,7 +48,7 @@
                             </div>
                             <a href="{{ route('password.request') }}" class="text-primary small">Forgot Password?</a>
                         </div>
-                        <button type="submit" class="btn btn-primary btn-block font-weight-bold">Login</button>
+                        <button type="submit" class="btn btn-success btn-block font-weight-bold">Login</button>
                         {{-- <p class="mt-3 text-center">Create an Account <a href="auth-sign-up.html" class="text-primary">Sign Up</a></p> --}}
                     </form>
                 </div>

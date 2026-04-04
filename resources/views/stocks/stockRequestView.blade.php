@@ -113,7 +113,7 @@
                                         </tbody>
                                     </table>
 
-                                    <button type="submit" class="btn btn-primary">Add Stocs</button> <!-- 🆕 -->
+                                    <button type="submit" class="btn btn-success"> </button> <!-- 🆕 -->
                                 </div>
                             </div>
 
@@ -144,7 +144,7 @@
 
                             </tbody>
                         </table>
-                        <button type="submit" class="btn btn-primary">Add Stocs</button> <!-- 🆕 -->
+                        <button type="submit" class="btn </button> <!-- 🆕 -->
 
                     </div>
                 </div>
@@ -182,7 +182,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Approve</button>
+                        <button type="submit" class="btn button>
                     </div>
                 </form>
             </div>
