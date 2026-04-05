@@ -230,6 +230,8 @@ class SalesReportController extends Controller
                             'commission_amount' => 0,
                             'branch' => $shift->branch,
                             'shift' => $shift,
+                            'admin_status'=>$shift->admin_status,
+                            'super_admin_status'=>$shift->super_admin_status,
                             'partyUser' => null,
                             'commissionUser' => null,
                         ]

@@ -38,7 +38,8 @@ class Invoice extends Model
         'edit_in',
         'sales_type',
         'shift_id',
-        'admin_status'
+        'admin_status',
+        'super_admin_status'
     ];
 
     protected $casts = [

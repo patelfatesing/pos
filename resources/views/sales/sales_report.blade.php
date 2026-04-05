@@ -448,7 +448,7 @@
 
             Swal.fire({
                 title: "Are you sure?",
-                text: "Do you want to change the status?",
+                text: "Are you sure want to all sales " + status + "?",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: "Yes, change it!",
@@ -485,7 +485,7 @@
             let status = isChecked ? 'verify' : 'unverify';
 
             Swal.fire({
-                title: "Verify Full Shift?",
+                title: "Are you sure want to "+status+" Full Shift?",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: "Yes",
@@ -506,6 +506,39 @@
                         success: function(response) {
                             Swal.fire("Done!", "Shift Verified", "success")
                                 .then(() => location.reload());
+                        }
+                    });
+
+                }
+            });
+        }
+
+        function verifyInvoice(invoice_id, isChecked) {
+
+            let status = isChecked ? 'verify' : 'unverify';
+
+            Swal.fire({
+                title: "Are you sure you want to "+status+" this invoice?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes",
+            }).then((result) => {
+
+                if (result.isConfirmed) {
+
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ route('shift.verify.invoice') }}",
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        data: {
+                            invoice_id: invoice_id,
+                            status: status
+                        },
+                        success: function(response) {
+                            Swal.fire("Done!", "Invoice has been Verified", "success")
+                                .then(() => '');
                         }
                     });
 

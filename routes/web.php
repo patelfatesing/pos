@@ -456,8 +456,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/shift-manage/print-shift/{id}', [ShiftManageController::class, 'printShift'])->name('purchase.print-shift');
     Route::get('/stock-summary-pdf/{id}', [ShiftManageController::class, 'stockDetailsPdf'])->name('shift-manage.stock-details-pdf');
     Route::post('/shift-manage/get-trasaction-data', [ShiftManageController::class, 'getData'])->name('shift-manage.get-trasaction-data');
-    Route::post('/shift/verify-status', [ShiftManageController::class, 'verifyStatus'])
-        ->name('shift.verify.status');
+    Route::post('/shift/verify-status', [ShiftManageController::class, 'verifyStatus'])->name('shift.verify.status');
+    Route::post('/shift/verify-invoice', [ShiftManageController::class, 'verifyInvoice'])->name('shift.verify.invoice');
     Route::post('/shift/verify-all', [ShiftManageController::class, 'verifyAll'])
         ->name('shift.verify.all');
     Route::post('/holidays', [HolidayController::class, 'store'])
