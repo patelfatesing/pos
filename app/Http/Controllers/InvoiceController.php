@@ -100,7 +100,12 @@ class InvoiceController extends Controller
         $verify = request('verify');
 
         $invoice = Invoice::with(['partyUser', 'commissionUser'])->find($id);
-
+        if ($invoice->party_user_id != "") {
+            $invoice->partyUser = Partyuser::where('id', $invoice->party_user_id)
+                ->where('status', 'Active')
+                ->first();
+                // dd($invoice->partyUser);
+        }
         $allProducts = Product::select(
             'id',
             'name',
@@ -421,14 +426,14 @@ class InvoiceController extends Controller
             $invoice->cash_amount = 0;
             $invoice->upi_amount = 0;
             $invoice->online_amount = 0;
-            $invoice->creditpay =$newCredit;
+            $invoice->creditpay = $newCredit;
         }
 
         $invoice->total_item_total = $subTotal;
         $invoice->total_item_qty = $totalQty;
         $invoice->total = $request->total;
         $invoice->edit_in = 'yes';
-         $invoice->payment_mode = $request->payment_method;
+        $invoice->payment_mode = $request->payment_method;
         $invoice->save();
 
         if ($request->type == 'admin_sale') {
