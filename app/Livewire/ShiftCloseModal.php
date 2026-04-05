@@ -827,9 +827,11 @@ class ShiftCloseModal extends Component
                 ->first();
 
             if ($shift->physical_stock_added == 0) {
+                $this->dispatch('loader-stop');
                 $this->dispatch('notiffication-error', ['message' => 'Please add physical sales first']);
                 return;
             } else if (!$shift) {
+                $this->dispatch('loader-stop');
                 $this->addError('shift', 'No active shift found for this user.');
                 return;
             }
