@@ -427,6 +427,7 @@ class InvoiceController extends Controller
         $invoice->total_item_total = $subTotal;
         $invoice->total_item_qty = $totalQty;
         $invoice->total = $request->total;
+        $invoice->sub_total = $request->sub_total;
         $invoice->edit_in = 'yes';
          $invoice->payment_mode = $request->payment_method;
         $invoice->save();
