@@ -337,7 +337,7 @@
                                             <div id="cash-field" class="payment-input">
                                                 <h6>Cash</h6>
                                                 <input type="number" id="cash-amount" class="form-control"
-                                                    min="0" step="1" readonly name="cash_amount">
+                                                    min="0" step="1" readonly name="cash_amount" value="{{ $invoice->cash_amount }}">
                                             </div>
 
                                             <div id="upi-field" class="payment-input" style="display: none;">
@@ -405,6 +405,12 @@
                 // ✅ APPLY SAME ROUNDING
                 const roundedRowTotal = Math.ceil(rowTotal);
 
+                // ✅ Update visible total
+                $(this).find('.item-total').html('<b>₹' + roundedRowTotal + '</b>');
+
+                // ✅ 🔥 UPDATE HIDDEN PRICE FIELD
+                $(this).find('input[name*="[price]"]').val(roundedRowTotal);
+
                 // Update row total
                 $(this).find('.item-total').html('<b>₹' + roundedRowTotal + '</b>');
 
@@ -412,6 +418,7 @@
 
                 totalSellPrice += Math.ceil(price * qty);
                 discountTotal += (price - finalPrice) * qty;
+                
             });
 
             // ✅ ROUND TOTALS SAME AS ADD PAGE
@@ -430,6 +437,7 @@
 
             $('#total').text(totalSellPrice);
             $('#sub_total').val(totalSellPrice);
+             updatePaymentFields(); 
         }
 
 

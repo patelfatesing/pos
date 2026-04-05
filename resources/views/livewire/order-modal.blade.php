@@ -73,21 +73,47 @@
                                                     </td>
                                                     <td>{{ $order->total_item_qty }}</td>
                                                     @php
-                                                        $creditpay = (float) ($order->creditpay ?? 0);
-                                                        $party_amount = (float) ($order->party_amount ?? 0);
-                                                        $commission_amount = (float) ($order->commission_amount ?? 0);
-                                                        $sub_total = (float) ($order->sub_total ?? 0);
+                                                        $creditpay = (float) str_replace(
+                                                            ',',
+                                                            '',
+                                                            $order->creditpay ?? 0,
+                                                        );
+                                                        $party_amount = (float) str_replace(
+                                                            ',',
+                                                            '',
+                                                            $order->party_amount ?? 0,
+                                                        );
+                                                        $commission_amount = (float) str_replace(
+                                                            ',',
+                                                            '',
+                                                            $order->commission_amount ?? 0,
+                                                        );
+                                                        $sub_total = (float) str_replace(
+                                                            ',',
+                                                            '',
+                                                            $order->sub_total ?? 0,
+                                                        );
                                                     @endphp
 
                                                     @if ($creditpay + $party_amount + $commission_amount == $sub_total)
                                                         <td>{{ format_inr($creditpay) }}</td>
+
                                                         @php
                                                             $totalAmount += $creditpay;
                                                         @endphp
                                                     @else
-                                                        <td>{{ format_inr((float) ($order->total ?? 0)) }}</td>
                                                         @php
-                                                            $totalAmount += (float) ($order->total ?? 0);
+                                                            $orderTotal = (float) str_replace(
+                                                                ',',
+                                                                '',
+                                                                $order->total ?? 0,
+                                                            );
+                                                        @endphp
+
+                                                        <td>{{ format_inr($orderTotal) }}</td>
+
+                                                        @php
+                                                            $totalAmount += $orderTotal;
                                                         @endphp
                                                     @endif
                                                     <td class="text-center">
