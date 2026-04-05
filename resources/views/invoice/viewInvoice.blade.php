@@ -49,7 +49,7 @@
                                         </a>
                                     @endif
 
-                                    @if ($invoice->party_user_id != '')
+                                    @if ($invoice->party_user_id != '' && $invoice->sales_type != 'admin_sale')
                                         <button onClick="showPhoto({{ $invoice->id }},'',{{ $invoice->party_user_id }})"
                                             class="btn btn-success-dark mr-2">
                                             <i class="ri-eye-line mr-0"></i> View Photos
@@ -182,7 +182,7 @@
                                                                     </span>
                                                                     <br>
                                                                     <span class="text-success font-weight-bold">
-                                                                       ₹{{ number_format((float) str_replace(',', '', $item['mrp']), 2) }}
+                                                                        ₹{{ number_format((float) str_replace(',', '', $item['mrp']), 2) }}
                                                                     </span>
                                                                 @else
                                                                     <span class="font-weight-bold">
@@ -305,7 +305,7 @@
 
                                                             $grandTotal = $cleanTotal - $commisson;
                                                         @endphp
-                                                        ₹{{ number_format($grandTotal, 2) }}
+                                                        ₹{{ floatval(str_replace(',', '', $invoice->total ?? 0)) }}
                                                     @endif
                                                 </h3>
                                             </div>
