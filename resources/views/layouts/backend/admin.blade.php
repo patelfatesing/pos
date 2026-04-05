@@ -109,7 +109,7 @@
                 </li>
 
                 <li class=" ">
-                    <a href="#people" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                    <a href="{{ route('users.list') }}" class="">
                         <svg class="svg-icon" id="p-dash8" width="20" height="20"
                             xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -126,18 +126,14 @@
                             <path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
                         </svg>
                     </a>
-                    <ul id="people" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
-                        {{-- <li class="">
-                            <a href="../backend/page-list-customers.html">
-                                <i class="las la-minus"></i><span>Customers</span>
-                            </a>
-                        </li> --}}
+                    {{-- <ul id="people" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                        
                         <li class="">
                             <a href="{{ route('users.list') }}">
                                 <i class="las la-minus"></i><span>Users</span>
                             </a>
                         </li>
-                    </ul>
+                    </ul> --}}
                 </li>
 
                 <li class=" ">
@@ -341,7 +337,7 @@
                 </li> --}}
 
                 <li class=" ">
-                    <a href="#return" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                    <a href="{{ route('roles.list') }}" class="">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
@@ -354,13 +350,13 @@
                             <path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
                         </svg>
                     </a>
-                    <ul id="return" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                    {{-- <ul id="return" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                         <li class="">
                             <a href="{{ route('roles.list') }}">
                                 <i class="las la-minus"></i><span>Roles Manage</span>
                             </a>
                         </li>
-                    </ul>
+                    </ul> --}}
                 </li>
 
             </ul>
