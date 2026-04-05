@@ -169,8 +169,12 @@ class ShiftCloseModal extends Component
         $date = \Carbon\Carbon::parse($this->currentShift->start_time)->toDateString();
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
-        $archived = Invoice::whereDate('created_at', $date)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "hold"])->update(['status' => 'archived']);
-
+        // $archived = Invoice::whereDate('created_at', $date)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "hold"])->update(['status' => 'archived']);
+        $archived = Invoice::whereDate('created_at', $date)
+            // ->where(['user_id' => auth()->user()->id])
+            ->where(['branch_id' => $branch_id])
+            ->where(['status' => "hold"])
+            ->delete();
         $this->dispatch('notiffication-sucess', ['message' => 'Hold removed. You can now close the shift.']);
     }
 
