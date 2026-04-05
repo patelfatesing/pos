@@ -84,7 +84,7 @@ class InvoiceController extends Controller
         return view('invoice.viewInvoice', compact('invoice', 'commissionUser', 'partyUser', 'shift_id'));
     }
 
-    public function invoiceModal($id,$shift_id = '')
+    public function invoiceModal($id, $shift_id = '')
     {
         $invoice = Invoice::findOrFail($id);
         $commissionUser = Commissionuser::where('status', 'Active')->find($invoice->commission_user_id);
@@ -234,6 +234,8 @@ class InvoiceController extends Controller
     public function updateItems(Request $request, $id)
     {
         $invoice = Invoice::findOrFail($id);
+
+        // dd($request->all());
 
         $validated = $request->validate([
             'items' => 'required|array|min:1',
@@ -397,10 +399,36 @@ class InvoiceController extends Controller
         // ================= SAVE =================
         $invoice->items = $validated['items'];
         $invoice->creditpay = $newCredit;
-        $invoice->sub_total = $request->sub_total;
+        if ($branchId == 1) {
+            $invoice->party_amount = $request->total_discount ?? 0;
+        } else {
+            $invoice->commission_amount = $request->total_discount ?? 0;
+        }
+
+        if ($request->payment_method == 'cashupi') {
+            $invoice->cash_amount = $request->cash_amount;
+            $invoice->upi_amount = $request->upi_amount;
+            $invoice->online_amount = 0;
+        } elseif ($request->payment_method == 'cash') {
+            $invoice->cash_amount = $request->cash_amount;
+            $invoice->upi_amount = 0;
+            $invoice->online_amount = 0;
+        } elseif ($request->payment_method == 'online') {
+            $invoice->cash_amount = 0;
+            $invoice->upi_amount = $request->upi_amount;
+            $invoice->online_amount = 0;
+        } elseif ($request->payment_method == 'credit') {
+            $invoice->cash_amount = 0;
+            $invoice->upi_amount = 0;
+            $invoice->online_amount = 0;
+            $invoice->creditpay =$newCredit;
+        }
+
         $invoice->total_item_total = $subTotal;
         $invoice->total_item_qty = $totalQty;
         $invoice->total = $request->total;
+        $invoice->edit_in = 'yes';
+         $invoice->payment_mode = $request->payment_method;
         $invoice->save();
 
         if ($request->type == 'admin_sale') {
