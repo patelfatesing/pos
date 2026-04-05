@@ -1334,7 +1334,7 @@ class ShiftManageController extends Controller
         // $stock->sold_stock = $stock->sold_stock + $one_time_sale;
         $stock->closing_stock = $qty;
         $stock->difference_in_stock = 0;
-
+        $stock->edit_data = 'yes';
         $stock->save();
 
 

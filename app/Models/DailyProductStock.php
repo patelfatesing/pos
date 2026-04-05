@@ -22,6 +22,7 @@ class DailyProductStock extends Model
         'difference_in_stock',
         'modify_sale_add_qty',
         'modify_sale_remove_qty',
+        'edit_data'
     ];
 
     protected $dates = ['date'];
