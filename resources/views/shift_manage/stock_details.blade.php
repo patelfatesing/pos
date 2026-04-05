@@ -259,7 +259,7 @@
                             <td>{{ $stock->modify_sale_remove_qty }}</td>
                             <td>{{ $stock->closing_stock }}</td>
                             <td>
-                                <input type="number" class="form-control form-control-sm physical-input"
+                                <input type="number" class="form-control form-control-sm physical-input" {{ $shift->status == 'pending' ? 'disabled' : '' }}
                                     value="{{ $stock->physical_stock }}"
                                     data-product-id="{{ $stock->product_id }}" data-stock-id="{{ $stock->id }}"
                                     style="width:90px; text-align:center;">
@@ -472,6 +472,7 @@
                 }
 
                 Swal.fire("Saved!", "Physical updated.", "success");
+                location.reload();
             },
             error: function() {
                 Swal.fire("Error!", "Update failed.", "error");

@@ -336,7 +336,7 @@ class ShiftManageController extends Controller
             $query->where('invoices.admin_status', 'verify');
         }
 
-        $query->where('invoices.status', '!=', 'Hold');
+        // $query->where('invoices.status', '!=', 'Hold');
 
         if (!empty($request->branch_id)) {
             $query->where('invoices.branch_id', $request->branch_id);
@@ -1332,8 +1332,8 @@ class ShiftManageController extends Controller
         // ✅ APPLY SAME UPDATE
         $stock->physical_stock = $qty;
         // $stock->sold_stock = $stock->sold_stock + $one_time_sale;
-        // $stock->closing_stock = $stock->closing_stock - $one_time_sale;
-        // $stock->difference_in_stock = $stock->physical_stock - $stock->closing_stock;
+        $stock->closing_stock = $qty;
+        $stock->difference_in_stock = 0;
 
         $stock->save();
 
