@@ -195,7 +195,8 @@
                                                  <tr>
                                                      <td class="text-start fw-bold">Discrepancy Cash</td>
                                                      <td class="text-end">
-                                                         {{ $cash_discrepancy ?? 0 }}
+                                                         {{ format_inr($categoryTotals['summary']['TOTAL'] - ($closing_cash ?? 0)) }}
+                                                         {{-- {{ $cash_discrepancy ?? 0 }} --}}
                                                      </td>
                                                  </tr>
 
