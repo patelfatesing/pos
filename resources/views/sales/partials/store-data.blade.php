@@ -5,7 +5,7 @@
 @if ($grouped->count() > 0)
     @foreach ($grouped as $key => $sales)
         @php
-          
+
             $first = $sales->first();
             $date = \Carbon\Carbon::parse($first->created_at)->format('d-m-Y');
 
@@ -13,7 +13,7 @@
             $groupTotal = $sales->sum(fn($i) => (float) str_replace(',', '', $i->total));
             $groupTotal += $sales->grand_total;
             $status = $shiftStatuses[$first->shift_id] ?? null;
-          
+
         @endphp
         @php
             $grandTotal += $groupTotal;
@@ -144,8 +144,8 @@
                                     $discount += $rowDiscount;
                                 @endphp
 
-                                <tr style="border-bottom:1px solid #f1f1f1;">
-
+                                <tr style="border-bottom:1px solid #f1f1f1;"
+                                    class="{{ $sale->admin_status == 'verify' ? 'table-success' : 'table-warning' }}">
                                     @if ($sale->branch_id == 1)
                                         <td>
                                             {{ $sale->partyUser->first_name ?? '-' }}
@@ -164,16 +164,25 @@
                                         ₹{{ number_format($rowTotal, 2) }}
                                     </td>
 
-                                    <td class="text-end">
-                                        <a class="badge bg-light text-dark" href="javascript:void(0)"
+                                    <td class="text-end d-flex align-items-center justify-content-end gap-2">
+
+                                        <a class="badge bg-light text-dark mr-1" href="javascript:void(0)"
                                             onclick="openInvoiceModal({{ $sale->id }})">
                                             <i class="ri-eye-line"></i>
                                         </a>
 
-                                        <a class="badge bg-light text-dark ml-2 view-invoices"
+                                        <a class="badge bg-light text-dark view-invoices mr-1"
                                             href="{{ url('/sales/edit-sales/' . $sale->id) }}?type=admin_sale">
                                             <i class="fa fa-edit"></i>
                                         </a>
+
+                                        {{-- <label class="switch m-0">
+                                            <input type="checkbox" 
+                                                onchange="verifyInvoice({{ $sale->id }}, this.checked)"
+                                                {{ ($sale->admin_status) == 'verify' ? 'checked' : '' }}>
+                                            <span class="slider round"></span>
+                                        </label> --}}
+
                                     </td>
                                 </tr>
                             @endforeach
@@ -186,19 +195,19 @@
                                 <td>{{ number_format($discount, 2) }}</td>
                                 <td>{{ number_format($subTotal, 2) }}</td>
                                 @php
-                                    $tt = $total+ $sales->grand_total;
+                                    $tt = $total + $sales->grand_total;
 
                                 @endphp
-                                <td>₹{{ number_format($tt,2) }}</td>
+                                <td>₹{{ number_format($tt, 2) }}</td>
                                 <td></td>
                             </tr>
                         </tfoot>
-                        @if($first->branch->id == 1)
-                        <tr style="background:#fff3cd; font-weight:600;">
-                            <td colspan="3" class="text-end">+ Credit Collection</td>
-                            <td>₹{{ number_format($sales->credit_collection ?? 0, 2) }}</td>
-                            <td></td>
-                        </tr>
+                        @if ($first->branch->id == 1)
+                            <tr style="background:#fff3cd; font-weight:600;">
+                                <td colspan="3" class="text-end">+ Credit Collection</td>
+                                <td>₹{{ number_format($sales->credit_collection ?? 0, 2) }}</td>
+                                <td></td>
+                            </tr>
                         @endif
 
                         <tr style="background:#d1ecf1; font-weight:600;">

@@ -1279,6 +1279,42 @@ class ShiftManageController extends Controller
         }
     }
 
+    public function verifyInvoice(Request $request)
+    {
+        $status = $request->status;
+        $invoice_id = $request->invoice_id;
+
+        DB::beginTransaction();
+
+        try {
+
+            // Update invoices
+            Invoice::where('id', $invoice_id)
+                ->update(['admin_status' => $status]);
+
+            // Update vouchers (ONLY Sales type)
+            Voucher::where('gen_id', $invoice_id)
+                ->where('voucher_type', 'Sales')
+                ->update(['admin_status' => $status]);
+            \Log::info('Invoice Updated: ' . $invoice_id);
+
+
+            // Invoice::where('shift_id', $shift_id)->where('admin_status', 'unverify')->exists();
+
+            DB::commit();
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
     public function updatePhysical(Request $request)
     {
         $stock = DailyProductStock::findOrFail($request->stock_id);

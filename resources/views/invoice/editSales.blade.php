@@ -98,7 +98,7 @@
                     <div class="card mb-3">
                         <div class="card-body">
                             <div class="row g-2 align-items-center">
-                                <div class="col d-flex justify-content-end">
+                                <div class="col d-flex justify-content-start">
 
                                     @if ($invoice->branch_id == 1 && $invoice->partyUser)
                                         <span class="badge bg-success text-dark">Party:
@@ -107,6 +107,16 @@
                                         <span class="badge bg-success text-dark">Commission:
                                             {{ $invoice->commissionUser->first_name }}</span>
                                     @endif
+                                </div>
+
+                                <div class="col d-flex justify-content-end">
+
+                                    <label class="switch m-0">
+                                        <input type="checkbox" onchange="verifyInvoice({{ $invoice->id }}, this.checked)"
+                                            {{ $invoice->admin_status == 'verify' ? 'checked' : '' }}>
+                                        <span class="slider round"></span>
+                                    </label>
+
                                 </div>
                             </div>
                         </div>
@@ -271,7 +281,8 @@
                                         <input type="hidden" id="ori_total_discount" name="ori_total_discount"
                                             value="0">
                                         <input type="hidden" id="gr_total" name="total" value="{{ $total }}">
-                                        <input type="hidden" id="sub_total" name="sub_total" value="{{ $sub_total }}">
+                                        <input type="hidden" id="sub_total" name="sub_total"
+                                            value="{{ $sub_total }}">
                                         <input type="hidden" id="ori_sub_total" name="ori_sub_total"
                                             value="{{ $sub_total }}">
                                         <input type="hidden" id="left_credit_id" value="0">
@@ -337,7 +348,8 @@
                                             <div id="cash-field" class="payment-input">
                                                 <h6>Cash</h6>
                                                 <input type="number" id="cash-amount" class="form-control"
-                                                    min="0" step="1" readonly name="cash_amount" value="{{ $invoice->cash_amount }}">
+                                                    min="0" step="1" readonly name="cash_amount"
+                                                    value="{{ $invoice->cash_amount }}">
                                             </div>
 
                                             <div id="upi-field" class="payment-input" style="display: none;">
@@ -363,7 +375,8 @@
 
                         <div class="d-flex justify-content-end mt-3 total-summary mb-3">
                             <div>
-
+                                <button type="button" onclick="verifyInvoice({{ $invoice->id }}, this.checked)"
+                                    class="btn btn-success">Verify Sale</button>
                                 <button type="submit" class="btn btn-success">Save Invoice Items</button>
                             </div>
                         </div>
@@ -418,7 +431,7 @@
 
                 totalSellPrice += Math.ceil(price * qty);
                 discountTotal += (price - finalPrice) * qty;
-                
+
             });
 
             // ✅ ROUND TOTALS SAME AS ADD PAGE
@@ -437,7 +450,7 @@
 
             $('#total').text(totalSellPrice);
             $('#sub_total').val(totalSellPrice);
-             updatePaymentFields(); 
+            updatePaymentFields();
         }
 
 
@@ -783,6 +796,41 @@
 
                 $('#creditpay-input').prop('readonly', true);
             }
+        }
+
+        function verifyInvoice(invoice_id, isChecked) {
+
+            let status = isChecked ? 'verify' : 'unverify';
+
+            Swal.fire({
+                title: "Are you sure you want to " + status + " this invoice?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes",
+            }).then((result) => {
+
+                if (result.isConfirmed) {
+
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ route('shift.verify.invoice') }}",
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        data: {
+                            invoice_id: invoice_id,
+                            status: status
+                        },
+                        success: function(response) {
+                            Swal.fire("Done!", "Invoice has been Verified", "success")
+                                .then(() => {
+                                     window.location.href = "/sales/sales-report";
+                                });
+                        }
+                    });
+
+                }
+            });
         }
     </script>
 @endsection
