@@ -2984,7 +2984,7 @@ class Shoppingcart extends Component
                         'created_by'      => auth()->id(),
                     ]);
 
-                    $party_customer_ledger_id = $customerLedger->id;
+                    $customer_ledger_id = $customerLedger->id;
                     \Log::info('Auto-created Party Ledger: ' . $customerLedger->name);
                 }
             }
@@ -3564,7 +3564,7 @@ class Shoppingcart extends Component
                         'created_by'      => auth()->id(),
                     ]);
 
-                    $party_customer_ledger_id = $customerLedger->id;
+                    $customer_ledger_id = $customerLedger->id;
                     \Log::info('Auto-created Party Ledger: ' . $customerLedger->name);
                 }
             }
