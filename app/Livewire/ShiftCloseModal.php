@@ -436,6 +436,8 @@ class ShiftCloseModal extends Component
 
     public function save()
     {
+
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
         if (!$this->no_sale_product) {
             // Only run these validations if no_sale_product is NOT checked
             if (empty($this->products)) {
@@ -451,6 +453,10 @@ class ShiftCloseModal extends Component
                 ]);
                 return;
             }
+        } else {
+            Invoice::where('branch_id', $branch_id)
+                ->where('status', 'Hold')
+                ->delete();
         }
 
         $filename = '';
@@ -464,7 +470,7 @@ class ShiftCloseModal extends Component
             // Example: PhysicalStock::create([... , 'image_path' => $filename]);
         }
 
-        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
 
         $sale_total = 0;
         $data = []; // ✅ initialize BEFORE loop
@@ -701,6 +707,7 @@ class ShiftCloseModal extends Component
                 ->exists();
 
             if ($holdInvoiceExists) {
+                $this->dispatch('loader-stop');
                 DB::rollBack();
                 $this->dispatch('close-shift-error');
                 return;
