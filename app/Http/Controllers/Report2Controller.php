@@ -1972,7 +1972,9 @@ class Report2Controller extends Controller
                 $join->on('v.id', '=', 'vl.voucher_id')
                     ->whereBetween('v.voucher_date', [$start, $end]);
             })
-
+            ->when(auth()->user()->role_id === 1, function ($q) {
+                $q->where('v.super_admin_status', 'verify');
+            })
             ->whereIn('l.group_id', $groupIds)
 
             ->selectRaw("
@@ -2047,6 +2049,9 @@ class Report2Controller extends Controller
             ->join('account_ledgers as l', 'l.id', '=', 'vl.ledger_id')
             ->join('account_groups as g', 'g.id', '=', 'l.group_id')
             ->whereDate("v.$vDateCol", '<=', $end->toDateString())
+            ->when(auth()->user()->role_id === 1, function ($q) {
+                $q->where('v.super_admin_status', 'verify');
+            })
             ->selectRaw('
             l.id as ledger_id,
             l.name as ledger_name,

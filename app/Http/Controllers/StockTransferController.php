@@ -287,6 +287,11 @@ class StockTransferController extends Controller
                     ->where('status', 'pending')
                     ->latest()
                     ->first();
+
+                if (!$currentShiftFrom || !$currentShiftTo) {
+                    DB::rollback();
+                    return back()->with('error', 'Shift not found for selected date.');
+                }
             } else {
 
                 $shift_date = Carbon::parse($request->date)->toDateString();

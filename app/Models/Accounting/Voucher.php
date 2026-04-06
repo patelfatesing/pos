@@ -33,7 +33,8 @@ class Voucher extends Model
         'tax',
         'grand_total',
         'admin_status',
-        'shift_id'
+        'shift_id',
+        'super_admin_status'
     ];
 
     protected $casts = [

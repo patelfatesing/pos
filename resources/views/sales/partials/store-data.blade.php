@@ -1,6 +1,5 @@
 @php
     $grandTotal = 0;
-
 @endphp
 @if ($grouped->count() > 0)
     @foreach ($grouped as $key => $sales)
@@ -43,8 +42,125 @@
                         @if ($first->shift->status == 'completed')
                             <div class="d-flex align-items-center gap-3">
 
+
+                                <div class="verify-box d-flex align-items-center justify-content-between px-3 py-2">
+
+                                    @if (auth()->user()->role_id == 1)
+                                        <!-- LEFT: LABEL -->
+                                        <div class="fw-semibold text-dark mt-2 mr-1">
+                                            Sub Admin
+                                        </div>
+                                    @endif
+
+                                    <!-- RIGHT: STATUS -->
+                                    <div class="d-flex align-items-center gap-4">
+
+                                        <!-- SALES -->
+                                        <div class="verify-item text-center mr-2">
+                                            <small class="text-muted d-block mb-1">Sales</small>
+
+                                            <label class="switch small-switch">
+                                                <input type="checkbox"
+                                                    onchange="changeVerifyStatus('sales', {{ $first->shift_id }}, this.checked,'sub_admin')"
+                                                    {{ ($status['admin']['inv'] ?? '') == 'verify' ? 'checked' : '' }}>
+                                                <span class="slider round"></span>
+                                            </label>
+                                        </div>
+
+                                        <!-- TRANSFER -->
+                                        <div class="verify-item text-center mr-2">
+                                            <small class="text-muted d-block mb-1">
+                                                <a href="javascript:void(0)" class="text-primary mb-2 mr-2 ml-1"
+                                                    onclick="handleClick('transfer', {{ $first->shift_id }}, {{ $first->branch->id }})">
+                                                    Transfer
+                                                </a>
+                                            </small>
+
+                                            <label class="switch small-switch">
+                                                <input type="checkbox"
+                                                    onchange="changeVerifyStatus('transfer', {{ $first->shift_id }}, this.checked,'sub_admin')"
+                                                    {{ ($status['admin']['tra'] ?? '') == 'verify' ? 'checked' : '' }}>
+                                                <span class="slider round"></span>
+                                            </label>
+                                        </div>
+
+                                        <!-- SHIFT -->
+                                        <div class="verify-item text-center">
+                                            <small class="text-muted d-block mb-1">Shift</small>
+
+                                            <label class="switch small-switch">
+                                                <input type="checkbox"
+                                                    onchange="verifyFullShift({{ $first->shift_id }}, this.checked,'sub_admin')"
+                                                    {{ ($status['admin']['shift'] ?? '') == 'verify' ? 'checked' : '' }}>
+                                                <span class="slider round"></span>
+                                            </label>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+
+                                @if (auth()->user()->role_id == 1)
+                                    <div class="verify-box d-flex align-items-center justify-content-between px-3 py-2">
+
+                                        <!-- LEFT: LABEL -->
+                                        <div class="fw-semibold text-dark mt-2 mr-1">
+                                            Admin
+                                        </div>
+
+                                        <!-- RIGHT: STATUS -->
+                                        <div class="d-flex align-items-center gap-4">
+
+                                            <!-- SALES -->
+                                            <div class="verify-item text-center mr-2">
+                                                <small class="text-muted d-block mb-1">Sales</small>
+
+                                                <label class="switch small-switch">
+                                                    <input type="checkbox"
+                                                        onchange="changeVerifyStatus('sales', {{ $first->shift_id }}, this.checked,'super_admin')"
+                                                        {{ ($status['super_admin']['inv'] ?? '') == 'verify' ? 'checked' : '' }}
+                                                        {{ ($status['admin']['inv'] ?? '') != 'verify' ? 'disabled' : '' }}>
+                                                    <span class="slider round"></span>
+                                                </label>
+                                            </div>
+
+                                            <!-- TRANSFER -->
+                                            <div class="verify-item text-center mr-2">
+                                                <small class="text-muted d-block mb-1">
+                                                    <a href="javascript:void(0)" class="text-primary mb-2 mr-2 ml-1"
+                                                        onclick="handleClick('transfer', {{ $first->shift_id }}, {{ $first->branch->id }})">
+                                                        Transfer
+                                                    </a>
+                                                </small>
+
+                                                <label class="switch small-switch">
+                                                    <input type="checkbox"
+                                                        onchange="changeVerifyStatus('transfer', {{ $first->shift_id }}, this.checked, this.checked,'super_admin')"
+                                                        {{ ($status['super_admin']['tra'] ?? '') == 'verify' ? 'checked' : '' }}
+                                                        {{ ($status['admin']['tra'] ?? '') != 'verify' ? 'disabled' : '' }}>
+                                                    <span class="slider round"></span>
+
+                                                </label>
+                                            </div>
+
+                                            <!-- SHIFT -->
+                                            <div class="verify-item text-center">
+                                                <small class="text-muted d-block mb-1">Shift</small>
+
+                                                <label class="switch small-switch">
+                                                    <input type="checkbox"
+                                                        onchange="verifyFullShift({{ $first->shift_id }}, this.checked,'super_admin')"
+                                                        {{ ($status['super_admin']['shift'] ?? '') == 'verify' ? 'checked' : '' }}
+                                                        {{ ($status['admin']['shift'] ?? '') != 'verify' ? 'disabled' : '' }}>
+                                                    <span class="slider round"></span>
+                                                </label>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                @endif
                                 <!-- SALES -->
-                                <label class="switch">
+                                {{-- <label class="switch">
                                     <input type="checkbox"
                                         onchange="changeVerifyStatus('sales', {{ $first->shift_id }}, this.checked)"
                                         {{ ($status['inv'] ?? '') == 'verify' ? 'checked' : '' }}>
@@ -73,7 +189,7 @@
                                         {{ ($status['shift'] ?? '') == 'verify' ? 'checked' : '' }}>
                                     <span class="slider round"></span>
                                 </label>
-                                <span class="mb-2 mr-2 ml-1">Shift</span>
+                                <span class="mb-2 mr-2 ml-1">Shift</span> --}}
 
                             </div>
                         @else
@@ -144,8 +260,7 @@
                                     $discount += $rowDiscount;
                                 @endphp
 
-                                <tr style="border-bottom:1px solid #f1f1f1;"
-                                    class="{{ $sale->admin_status == 'verify' ? 'table-success' : 'table-warning' }}">
+                                <tr style="border-bottom:1px solid #f1f1f1;" class="">
                                     @if ($sale->branch_id == 1)
                                         <td>
                                             {{ $sale->partyUser->first_name ?? '-' }}
@@ -166,6 +281,14 @@
 
                                     <td class="text-end d-flex align-items-center justify-content-end gap-2">
 
+                                        @if ($sale->admin_status == 'verify')
+                                            <div
+                                                class="custom-control custom-checkbox custom-checkbox-color-check custom-control-inline">
+                                                <input type="checkbox" class="custom-control-input bg-success"
+                                                    id="customCheck-2" checked="">
+                                                <label class="custom-control-label" for="customCheck-2"></label>
+                                            </div>
+                                        @endif
                                         <a class="badge bg-light text-dark mr-1" href="javascript:void(0)"
                                             onclick="openInvoiceModal({{ $sale->id }})">
                                             <i class="ri-eye-line"></i>
@@ -176,15 +299,19 @@
                                             <i class="fa fa-edit"></i>
                                         </a>
 
-                                        {{-- <label class="switch m-0">
-                                            <input type="checkbox" 
-                                                onchange="verifyInvoice({{ $sale->id }}, this.checked)"
-                                                {{ ($sale->admin_status) == 'verify' ? 'checked' : '' }}>
-                                            <span class="slider round"></span>
-                                        </label> --}}
+
 
                                     </td>
                                 </tr>
+                                @if ($loop->last)
+                                    <tr style="background:#e2e3e5; font-weight:700;">
+                                        <td>Sub Total</td>
+                                        <td>{{ number_format($discount, 2) }}</td>
+                                        <td>{{ number_format($subTotal, 2) }}</td>
+                                        <td>₹{{ number_format($total, 2) }}</td>
+                                        <td></td>
+                                    </tr>
+                                @endif
                             @endforeach
                         </tbody>
 

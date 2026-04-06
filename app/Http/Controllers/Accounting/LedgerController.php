@@ -287,15 +287,16 @@ class LedgerController extends Controller
         if ($ledger->opening_type === 'Cr') {
             $opening *= -1;
         }
-
+    
         $vouchers = Voucher::with(['lines.ledger'])
+            ->when(auth()->user()->role_id === 1, function ($q) {
+                $q->where('vouchers.super_admin_status', 'verify');
+            })
             ->whereBetween('voucher_date', [$start, $end])
             ->whereHas('lines', fn($q) => $q->where('ledger_id', $ledgerId))
             ->orderBy('voucher_date')
             ->orderBy('id')
             ->get();
-
-
 
         $rows = [];
         $totalDebit  = 0.0;
