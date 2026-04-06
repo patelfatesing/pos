@@ -27,7 +27,6 @@ use App\Models\PartyCustomerProductsPrice;
 use App\Models\CommissionUserImage;
 use App\Models\PartyUserImage;
 use App\Models\DailyProductStock;
-use App\Models\ExpenseCategory;
 use Illuminate\Support\Facades\Storage;
 use App\Models\SubCategory;
 use App\Models\Accounting\AccountLedger;
@@ -1596,9 +1595,6 @@ class Shoppingcart extends Component
         //     ->whereDate('date', Carbon::today())
         //     ->get();
 
-        // $this->narrations = ExpenseCategory::where('status', 1)
-        //     ->pluck('name', 'id')  // assuming the column name is `name`
-        //     ->toArray();
 
         // Adjust names if your COA uses a different label
         $rootNames = ['Indirect Expenses', 'Indirect Expense', 'Expense - Indirect'];
@@ -1832,7 +1828,7 @@ class Shoppingcart extends Component
                         'sell_price' => $item->product->discount_price,
                         'discount_price' => $item->product->discount_price,
                     ]),
-                    'sub_total' => $this->cashAmount,
+                    'sub_total' => $item->mrp*$item->quantity,
                     'tax' => $this->tax,
                     'status' => "Hold",
                     'commission_amount' => $this->commissionAmount,
