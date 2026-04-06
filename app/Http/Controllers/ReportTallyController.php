@@ -34,7 +34,12 @@ class ReportTallyController extends Controller
             ? \Carbon\Carbon::parse($request->input('end_date'), $tz)->endOfDay()
             : $now->copy()->endOfDay();
 
+        if (auth()->user()->role_id === 1) {
+            $verify = $request->input('super_admin_status', 'verify');
+        }
+
         $verify = $request->input('admin_status', 'verify');
+
 
         /* ================= BASE QUERY ================= */
         $linesBase = DB::table('voucher_lines as vl')

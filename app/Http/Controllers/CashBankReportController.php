@@ -113,10 +113,16 @@ class CashBankReportController extends Controller
                     ->join('vouchers', 'vouchers.id', '=', 'voucher_lines.voucher_id')
                     ->where('voucher_lines.ledger_id', $ledger->id)
                     ->whereDate('vouchers.voucher_date', '<=', $date)
+
+                    // ✅ Role-based condition
+                    ->when(auth()->user()->role_id === 1, function ($q) {
+                        $q->where('vouchers.super_admin_status', 'verify');
+                    })
+
                     ->selectRaw("
-                    SUM(CASE WHEN dc = 'Dr' THEN amount ELSE 0 END) as dr,
-                    SUM(CASE WHEN dc = 'Cr' THEN amount ELSE 0 END) as cr
-                ")
+                            SUM(CASE WHEN dc = 'Dr' THEN amount ELSE 0 END) as dr,
+                            SUM(CASE WHEN dc = 'Cr' THEN amount ELSE 0 END) as cr
+                        ")
                     ->first();
 
                 $balance = $opening
@@ -189,6 +195,10 @@ class CashBankReportController extends Controller
             $txn = DB::table('voucher_lines')
                 ->join('vouchers', 'vouchers.id', '=', 'voucher_lines.voucher_id')
                 ->where('voucher_lines.ledger_id', $ledgerId)
+                // ✅ Role-based condition
+                ->when(auth()->user()->role_id === 1, function ($q) {
+                    $q->where('vouchers.super_admin_status', 'verify');
+                })
                 ->whereBetween('vouchers.voucher_date', [$from, $to])
                 ->selectRaw("
                 SUM(CASE WHEN LOWER(dc)='dr' THEN amount ELSE 0 END) AS dr,

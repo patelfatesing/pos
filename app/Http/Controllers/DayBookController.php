@@ -38,15 +38,17 @@ class DayBookController extends Controller
 
         $branchId    = $request->input('branch_id');
         $voucherType = $request->input('voucher_type');
-        $verify   = $request->filled('admin_status')
-            ?  $request->input('admin_status')
-            : 'verify';
 
         $vouchers = Voucher::with(['lines.ledger'])
             ->whereBetween('voucher_date', [$from, $to])
             ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
             ->when($voucherType, fn($q) => $q->where('voucher_type', $voucherType))
-            ->where('admin_status', $verify)
+
+            // ✅ Role-based condition
+            ->when(auth()->user()->role_id === 1, function ($q) {
+                $q->where('super_admin_status', 'verify');
+            })
+
             ->orderBy('voucher_date')
             ->orderBy('id')
             ->get();
