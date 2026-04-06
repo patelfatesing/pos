@@ -1177,48 +1177,56 @@ class ShiftManageController extends Controller
         $type = $request->type;
         $status = $request->status;
         $shift_id = $request->shift_id;
+        $role = $request->role; // 👈 important
+
+        // ✅ Decide column based on role
+        $column = $role === 'super_admin' ? 'super_admin_status' : 'admin_status';
 
         DB::beginTransaction();
 
         try {
 
             if ($type === 'sales') {
-                // Get invoice IDs
+
                 $invoiceIds = Invoice::where('shift_id', $shift_id)->pluck('id');
 
-                // Update invoices
+                // ✅ Update invoices
                 Invoice::whereIn('id', $invoiceIds)
-                    ->update(['admin_status' => $status]);
+                    ->update([$column => $status]);
 
-                // Update vouchers (ONLY Sales type)
+                // ✅ Update vouchers
                 Voucher::whereIn('gen_id', $invoiceIds)
                     ->where('voucher_type', 'Sales')
-                    ->update(['admin_status' => $status]);
-                \Log::info('Invoice Updated: ' . $invoiceIds);
+                    ->update([$column => $status]);
+
+                \Log::info("Invoice Updated ($column): " . $invoiceIds);
             }
 
             if ($type === 'transfer') {
+
                 $updated = StockTransfer::where('shift_id', $shift_id)
-                    ->update(['admin_status' => $status]);
+                    ->update([$column => $status]);
 
-                \Log::info('Transfer Updated: ' . $updated);
+                \Log::info("Transfer Updated ($column): " . $updated);
             }
 
-            if ($type === 'request') {
-                $updated = StockRequest::where('shift_id', $shift_id)
-                    ->update(['admin_status' => $status]);
+            // if ($type === 'request') {
 
-                \Log::info('Request Updated: ' . $updated);
-            }
+            //     $updated = StockRequest::where('shift_id', $shift_id)
+            //         ->update([$column => $status]);
 
-            // ✅ Re-check status
+            //     \Log::info("Request Updated ($column): " . $updated);
+            // }
+
+            // ✅ Re-check ONLY for same role column
             $hasUnverified =
-                Invoice::where('shift_id', $shift_id)->where('admin_status', 'unverify')->exists() ||
-                StockTransfer::where('shift_id', $shift_id)->where('admin_status', 'unverify')->exists() ||
-                StockRequest::where('shift_id', $shift_id)->where('admin_status', 'unverify')->exists();
+                Invoice::where('shift_id', $shift_id)->where($column, 'unverify')->exists() ||
+                StockTransfer::where('shift_id', $shift_id)->where($column, 'unverify')->exists();
+                //|| StockRequest::where('shift_id', $shift_id)->where($column, 'unverify')->exists();
 
+            // ✅ Update shift closing
             ShiftClosing::where('id', $shift_id)->update([
-                'admin_status' => $hasUnverified ? 'unverify' : 'verify'
+                $column => $hasUnverified ? 'unverify' : 'verify'
             ]);
 
             DB::commit();
@@ -1238,33 +1246,38 @@ class ShiftManageController extends Controller
     {
         $shift_id = $request->shift_id;
         $status = $request->status;
+        $role = $request->role;
+
+        // ✅ Decide column
+        $column = $role === 'super_admin' ? 'super_admin_status' : 'admin_status';
 
         DB::beginTransaction();
 
         try {
 
-            // ✅ Update all modules
-
+            // ✅ Invoice IDs
             $invoiceIds = Invoice::where('shift_id', $shift_id)->pluck('id');
 
-            // Update invoices
+            // ✅ Update Invoices
             Invoice::whereIn('id', $invoiceIds)
-                ->update(['admin_status' => $status]);
+                ->update([$column => $status]);
 
-            // Update vouchers (ONLY Sales type)
+            // ✅ Update Vouchers
             Voucher::whereIn('gen_id', $invoiceIds)
                 ->where('voucher_type', 'Sales')
-                ->update(['admin_status' => $status]);
+                ->update([$column => $status]);
 
+            // ✅ Transfer
             StockTransfer::where('shift_id', $shift_id)
-                ->update(['admin_status' => $status]);
+                ->update([$column => $status]);
 
-            StockRequest::where('shift_id', $shift_id)
-                ->update(['admin_status' => $status]);
+            // ✅ Request
+            // StockRequest::where('shift_id', $shift_id)
+            //     ->update([$column => $status]);
 
-            // ✅ Update shift itself
+            // ✅ Shift Closing
             ShiftClosing::where('id', $shift_id)
-                ->update(['admin_status' => $status]);
+                ->update([$column => $status]);
 
             DB::commit();
 
@@ -1279,27 +1292,30 @@ class ShiftManageController extends Controller
         }
     }
 
+
     public function verifyInvoice(Request $request)
     {
-        $status = $request->status;
+        $status     = $request->status;
         $invoice_id = $request->invoice_id;
+        $type       = $request->type ?? 'admin'; // admin OR super_admin
 
         DB::beginTransaction();
 
         try {
 
-            // Update invoices
-            Invoice::where('id', $invoice_id)
-                ->update(['admin_status' => $status]);
+            // ✅ Decide column dynamically
+            $column = ($type === 'super_admin') ? 'super_admin_status' : 'admin_status';
 
-            // Update vouchers (ONLY Sales type)
+            // ✅ Update Invoice
+            Invoice::where('id', $invoice_id)
+                ->update([$column => $status]);
+
+            // ✅ Update Voucher (Sales only)
             Voucher::where('gen_id', $invoice_id)
                 ->where('voucher_type', 'Sales')
-                ->update(['admin_status' => $status]);
-            \Log::info('Invoice Updated: ' . $invoice_id);
+                ->update([$column => $status]);
 
-
-            // Invoice::where('shift_id', $shift_id)->where('admin_status', 'unverify')->exists();
+            \Log::info("Invoice Updated: {$invoice_id} | Type: {$column} | Status: {$status}");
 
             DB::commit();
 

@@ -110,13 +110,14 @@
                                 </div>
 
                                 <div class="col d-flex justify-content-end">
-
-                                    <label class="switch m-0">
-                                        <input type="checkbox" onchange="verifyInvoice({{ $invoice->id }}, this.checked)"
-                                            {{ $invoice->admin_status == 'verify' ? 'checked' : '' }}>
-                                        <span class="slider round"></span>
-                                    </label>
-
+                                    @if($invoice->admin_status == 'verify')
+                                    <div
+                                        class="custom-control custom-checkbox custom-checkbox-color-check custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input bg-success" id="customCheck-2"
+                                            checked="">
+                                        <label class="custom-control-label" for="customCheck-2"></label>
+                                    </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -375,7 +376,9 @@
 
                         <div class="d-flex justify-content-end mt-3 total-summary mb-3">
                             <div>
-                                <button type="button" onclick="verifyInvoice({{ $invoice->id }}, this.checked)"
+
+                                <button type="button"
+                                    onclick="verifyInvoice({{ $invoice->id }}, '{{ $invoice->admin_status == 'verify' ? 'verify' : 'unverify' }}', '{{ auth()->user()->role_id == 1 ? 'super_admin' : 'sub_admin' }}')"
                                     class="btn btn-success">Verify Sale</button>
                                 <button type="submit" class="btn btn-success">Save Invoice Items</button>
                             </div>
@@ -650,6 +653,7 @@
                 updateTotals();
             });
         }
+
         // Handle radio button change event
         $('input[name="payment_method"]').on('change', function() {
             const selectedPaymentMethod = $(this).val();
@@ -798,7 +802,7 @@
             }
         }
 
-        function verifyInvoice(invoice_id, isChecked) {
+        function verifyInvoice(invoice_id, isChecked, role) {
 
             let status = isChecked ? 'verify' : 'unverify';
 
@@ -819,12 +823,13 @@
                         },
                         data: {
                             invoice_id: invoice_id,
-                            status: status
+                            status: status,
+                            type: role
                         },
                         success: function(response) {
                             Swal.fire("Done!", "Invoice has been Verified", "success")
                                 .then(() => {
-                                     window.location.href = "/sales/sales-report";
+                                    window.location.href = "/sales/sales-report";
                                 });
                         }
                     });

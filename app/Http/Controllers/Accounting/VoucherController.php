@@ -45,11 +45,12 @@ class VoucherController extends Controller
                 'v.ref_no',
                 'v.narration',
                 'v.admin_status',
+                'v.super_admin_status',
                 DB::raw('COALESCE(b.name, "-") as branch_name'),
                 DB::raw("ROUND(SUM(CASE WHEN l.dc='Dr' THEN l.amount ELSE 0 END),2) as dr_total"),
                 DB::raw("ROUND(SUM(CASE WHEN l.dc='Cr' THEN l.amount ELSE 0 END),2) as cr_total"),
             ])
-            ->groupBy('v.id', 'v.voucher_date', 'v.voucher_type', 'v.ref_no', 'v.narration', 'b.name', 'v.admin_status');
+            ->groupBy('v.id', 'v.voucher_date', 'v.voucher_type', 'v.ref_no', 'v.narration', 'b.name', 'v.admin_status', 'v.super_admin_status');
 
         $recordsTotal = (clone $base)->count();
 
@@ -68,7 +69,7 @@ class VoucherController extends Controller
         }
 
         if (auth()->user()->role_id == 1) {
-            $base->where('admin_status', 'verify');
+            $base->where('super_admin_status', 'verify');
         }
 
         $recordsFiltered = (clone $base)->count();
@@ -135,8 +136,8 @@ class VoucherController extends Controller
             $actions = '<div class="d-flex align-items-center gap-1">';
 
             // View button (only verified OR admin)
-            if ($r->admin_status === 'verify') {
-               
+            if ($r->super_admin_status === 'verify') {
+
                 $actions .= '<a href="' . e($viewUrl) . '" class="btn btn-sm btn-success mr-1">
                     Verify
                  </a>';
@@ -145,6 +146,17 @@ class VoucherController extends Controller
                     Unverified
                  </a>';
             }
+
+            // if ($r->admin_status === 'verify') {
+
+            //     $actions .= '<a href="' . e($viewUrl) . '" class="btn btn-sm btn-success mr-1">
+            //         Verify
+            //      </a>';
+            // } else {
+            //     $actions .= '<a href="' . e($viewUrl) . '" class="btn btn-sm btn-warning mr-1">
+            //         Unverified
+            //      </a>';
+            // }
 
             $actions1 = '<div class="d-flex align-items-center gap-1">';
 

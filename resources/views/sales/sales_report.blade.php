@@ -442,7 +442,7 @@
             });
         }
 
-        function changeVerifyStatus(type, shift_id, isChecked) {
+        function changeVerifyStatus(type, shift_id, isChecked,role) {
 
             let status = isChecked ? 'verify' : 'unverify';
 
@@ -465,11 +465,12 @@
                         data: {
                             type: type,
                             status: status,
-                            shift_id: shift_id
+                            shift_id: shift_id,
+                            role: role
                         },
                         success: function(response) {
-                            Swal.fire("Success!", "Updated", "success")
-                                .then(() => location.reload());
+                            Swal.fire("Success!", "Sales has been Updated", "success")
+                                .then();
                         }
                     });
 
@@ -480,7 +481,7 @@
             });
         }
 
-        function verifyFullShift(shift_id, isChecked) {
+        function verifyFullShift(shift_id, isChecked,role) {
 
             let status = isChecked ? 'verify' : 'unverify';
 
@@ -501,17 +502,23 @@
                         },
                         data: {
                             shift_id: shift_id,
-                            status: status
+                            status: status,
+                            role: role
                         },
                         success: function(response) {
-                            Swal.fire("Done!", "Shift Verified", "success")
-                                .then(() => location.reload());
+                            Swal.fire("Done!", "Shift has been Verified", "success")
+                                .then();
                         }
                     });
 
                 }
             });
         }
+
+        // success: function(response) {
+        //                     Swal.fire("Done!", "Shift Verified", "success")
+        //                         .then(() => location.reload());
+        //                 }
 
         function verifyInvoice(invoice_id, isChecked) {
 

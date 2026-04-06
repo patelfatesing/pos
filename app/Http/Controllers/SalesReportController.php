@@ -31,115 +31,6 @@ class SalesReportController extends Controller
         return view('sales.sales-list', compact('branches'));
     }
 
-    public function salasListReport1(Request $request)
-    {
-        $query = Invoice::with('branch', 'commissionUser', 'partyUser', 'shift')
-            ->where('status', '!=', 'Hold');
-
-        // 🔥 BRANCH FILTER (always applied if exists)
-        if (!empty($request->branch_id)) {
-            $query->where('branch_id', $request->branch_id);
-        }
-
-        // 🔥 DATE FILTER LOGIC
-        if (!empty($request->date_range) && str_contains($request->date_range, ' - ')) {
-
-            [$start, $end] = explode(' - ', $request->date_range);
-
-            $startDate = Carbon::parse($start)->startOfDay();
-            $endDate   = Carbon::parse($end)->endOfDay();
-
-            $query->whereBetween('created_at', [$startDate, $endDate]);
-        } else {
-
-            // ✅ DEFAULT → TODAY ONLY
-            $query->whereDate('created_at', Carbon::today());
-        }
-
-        // 🔥 SHIFT FILTER (optional)
-        if (!empty($request->shift_id)) {
-            $query->where('shift_id', $request->shift_id);
-        }
-
-        $invoices = $query->get();
-
-        // 🔥 GROUP BY BRANCH + DATE
-        $grouped = $invoices->groupBy(function ($item) {
-            return $item->branch_id . '_'
-                . \Carbon\Carbon::parse($item->created_at)->format('Y-m-d')
-                . '_'
-                . $item->shift_id;
-        });
-
-
-        $shiftStatuses = [];
-
-        foreach ($grouped as $key => $sales) {
-
-            $first = $sales->first();
-            $shiftId = $first->shift_id;
-
-            // 🔁 reusable function
-            $checkStatus = function ($model) use ($shiftId) {
-
-                $query = $model::where('shift_id', $shiftId);
-
-                if (!$query->exists()) {
-                    return 'verify';
-                }
-
-                return $query->where('admin_status', 'unverify')->exists()
-                    ? 'unverify'
-                    : 'verify';
-            };
-
-            $finalAdminStatusReq = $checkStatus(\App\Models\StockRequest::class);
-            $finalAdminStatusTra = $checkStatus(\App\Models\StockTransfer::class);
-            $finalAdminStatusInv = $checkStatus(\App\Models\Invoice::class);
-
-            $finalAdminStatusShift = \App\Models\ShiftClosing::where('id', $shiftId)
-                ->where('admin_status', 'unverify')
-                ->exists()
-                ? 'unverify'
-                : 'verify';
-
-            $finalShiftStatus = (
-                $finalAdminStatusReq === 'verify' &&
-                $finalAdminStatusTra === 'verify' &&
-                $finalAdminStatusInv === 'verify' &&
-                $finalAdminStatusShift === 'verify'
-            ) ? 'verify' : 'unverify';
-
-            // ✅ store by shift_id
-            $shiftStatuses[$shiftId] = [
-                'inv' => $finalAdminStatusInv,
-                'tra' => $finalAdminStatusTra,
-                'req' => $finalAdminStatusReq,
-                'shift' => $finalShiftStatus,
-            ];
-        }
-
-        // AJAX
-        if ($request->ajax()) {
-            return view('sales.partials.store-data', compact('grouped'))->render();
-        }
-
-        $branches = Branch::all();
-        $allProducts = Product::select('id', 'name', 'mrp', 'discount_price', 'sell_price', 'category_id', 'subcategory_id')
-            ->where('is_deleted', 'no')
-            ->with(['category', 'subcategory'])
-            ->get();
-
-        $partyUsers = Partyuser::where('status', 'Active')
-            ->get();
-
-        $commissionUsers = Commissionuser::where('is_active', '1')
-            ->get();
-
-
-        return view('sales.sales_report', compact('grouped', 'branches', 'allProducts', 'partyUsers', 'commissionUsers', 'shiftStatuses'));
-    }
-
     public function salasListReport(Request $request)
     {
         $shiftQuery = \App\Models\ShiftClosing::query();
@@ -159,6 +50,10 @@ class SalesReportController extends Controller
 
         if (!empty($request->shift_id)) {
             $shiftQuery->where('id', $request->shift_id);
+        }
+
+        if (auth()->user()->role_id == 1) { // non-admin users should only see their shifts
+            // $shiftQuery->where('admin_status', 'verify');
         }
 
         $shiftIds = $shiftQuery->pluck('id')->toArray();
@@ -230,8 +125,8 @@ class SalesReportController extends Controller
                             'commission_amount' => 0,
                             'branch' => $shift->branch,
                             'shift' => $shift,
-                            'admin_status'=>$shift->admin_status,
-                            'super_admin_status'=>$shift->super_admin_status,
+                            'admin_status' => $shift->admin_status,
+                            'super_admin_status' => $shift->super_admin_status,
                             'partyUser' => null,
                             'commissionUser' => null,
                         ]
@@ -284,9 +179,7 @@ class SalesReportController extends Controller
                 + ($cashInHand ?? 0)
                 - ($totalWith ?? 0); // withdraw minus (money going out)
 
-
-
-            $checkStatus = function ($model) use ($shiftId) {
+            $checkStatus = function ($model, $column) use ($shiftId) {
 
                 $query = $model::where('shift_id', $shiftId);
 
@@ -294,34 +187,84 @@ class SalesReportController extends Controller
                     return 'verify';
                 }
 
-                return $query->where('admin_status', 'unverify')->exists()
+                return $query->where($column, 'unverify')->exists()
                     ? 'unverify'
                     : 'verify';
             };
 
-            $finalAdminStatusReq = $checkStatus(\App\Models\StockRequest::class);
-            $finalAdminStatusTra = $checkStatus(\App\Models\StockTransfer::class);
-            $finalAdminStatusInv = $checkStatus(\App\Models\Invoice::class);
+            $checkStatus = function ($model, $column) use ($shiftId) {
 
-            $finalAdminStatusShift = \App\Models\ShiftClosing::where('id', $shiftId)
-                ->where('admin_status', 'unverify')
-                ->exists()
-                ? 'unverify'
-                : 'verify';
+                $query = $model::where('shift_id', $shiftId);
 
-            $finalShiftStatus = (
-                $finalAdminStatusReq === 'verify' &&
-                $finalAdminStatusTra === 'verify' &&
-                $finalAdminStatusInv === 'verify' &&
-                $finalAdminStatusShift === 'verify'
-            ) ? 'verify' : 'unverify';
+                if (!$query->exists()) {
+                    return 'verify';
+                }
+
+                return $query->where($column, 'unverify')->exists()
+                    ? 'unverify'
+                    : 'verify';
+            };
 
             $shiftStatuses[$shiftId] = [
-                'inv' => $finalAdminStatusInv,
-                'tra' => $finalAdminStatusTra,
-                'req' => $finalAdminStatusReq,
-                'shift' => $finalShiftStatus,
+
+                // ✅ ADMIN
+                'admin' => [
+                    'inv' => $checkStatus(\App\Models\Invoice::class, 'admin_status'),
+                    'tra' => $checkStatus(\App\Models\StockTransfer::class, 'admin_status'),
+                    'req' => $checkStatus(\App\Models\StockRequest::class, 'admin_status'),
+                    'shift' => \App\Models\ShiftClosing::where('id', $shiftId)
+                        ->where('admin_status', 'unverify')
+                        ->exists() ? 'unverify' : 'verify',
+                ],
+
+                // ✅ SUPER ADMIN
+                'super_admin' => [
+                    'inv' => $checkStatus(\App\Models\Invoice::class, 'super_admin_status'),
+                    'tra' => $checkStatus(\App\Models\StockTransfer::class, 'super_admin_status'),
+                    'req' => $checkStatus(\App\Models\StockRequest::class, 'super_admin_status'),
+                    'shift' => \App\Models\ShiftClosing::where('id', $shiftId)
+                        ->where('super_admin_status', 'unverify')
+                        ->exists() ? 'unverify' : 'verify',
+                ],
             ];
+
+
+            // $checkStatus = function ($model) use ($shiftId) {
+
+            //     $query = $model::where('shift_id', $shiftId);
+
+            //     if (!$query->exists()) {
+            //         return 'verify';
+            //     }
+
+            //     return $query->where('admin_status', 'unverify')->exists()
+            //         ? 'unverify'
+            //         : 'verify';
+            // };
+
+            // $finalAdminStatusReq = $checkStatus(\App\Models\StockRequest::class);
+            // $finalAdminStatusTra = $checkStatus(\App\Models\StockTransfer::class);
+            // $finalAdminStatusInv = $checkStatus(\App\Models\Invoice::class);
+
+            // $finalAdminStatusShift = \App\Models\ShiftClosing::where('id', $shiftId)
+            //     ->where('admin_status', 'unverify')
+            //     ->exists()
+            //     ? 'unverify'
+            //     : 'verify';
+
+            // $finalShiftStatus = (
+            //     $finalAdminStatusReq === 'verify' &&
+            //     $finalAdminStatusTra === 'verify' &&
+            //     $finalAdminStatusInv === 'verify' &&
+            //     $finalAdminStatusShift === 'verify'
+            // ) ? 'verify' : 'unverify';
+
+            // $shiftStatuses[$shiftId] = [
+            //     'inv' => $finalAdminStatusInv,
+            //     'tra' => $finalAdminStatusTra,
+            //     'req' => $finalAdminStatusReq,
+            //     'shift' => $finalShiftStatus,
+            // ];
         }
 
         // AJAX
@@ -332,28 +275,9 @@ class SalesReportController extends Controller
         // OTHER DATA (UNCHANGED)
         $branches = \App\Models\Branch::all();
 
-        $allProducts = \App\Models\Product::select(
-            'id',
-            'name',
-            'mrp',
-            'discount_price',
-            'sell_price',
-            'category_id',
-            'subcategory_id'
-        )
-            ->where('is_deleted', 'no')
-            ->with(['category', 'subcategory'])
-            ->get();
-
-        $partyUsers = \App\Models\Partyuser::where('status', 'Active')->get();
-        $commissionUsers = \App\Models\Commissionuser::where('is_active', '1')->get();
-
         return view('sales.sales_report', compact(
             'grouped',
             'branches',
-            'allProducts',
-            'partyUsers',
-            'commissionUsers',
             'shiftStatuses'
         ));
     }
@@ -550,6 +474,115 @@ class SalesReportController extends Controller
             'recordsFiltered' => $filteredRecords,
             'data' => $data,
         ]);
+    }
+
+    public function salasListReport1(Request $request)
+    {
+        $query = Invoice::with('branch', 'commissionUser', 'partyUser', 'shift')
+            ->where('status', '!=', 'Hold');
+
+        // 🔥 BRANCH FILTER (always applied if exists)
+        if (!empty($request->branch_id)) {
+            $query->where('branch_id', $request->branch_id);
+        }
+
+        // 🔥 DATE FILTER LOGIC
+        if (!empty($request->date_range) && str_contains($request->date_range, ' - ')) {
+
+            [$start, $end] = explode(' - ', $request->date_range);
+
+            $startDate = Carbon::parse($start)->startOfDay();
+            $endDate   = Carbon::parse($end)->endOfDay();
+
+            $query->whereBetween('created_at', [$startDate, $endDate]);
+        } else {
+
+            // ✅ DEFAULT → TODAY ONLY
+            $query->whereDate('created_at', Carbon::today());
+        }
+
+        // 🔥 SHIFT FILTER (optional)
+        if (!empty($request->shift_id)) {
+            $query->where('shift_id', $request->shift_id);
+        }
+
+        $invoices = $query->get();
+
+        // 🔥 GROUP BY BRANCH + DATE
+        $grouped = $invoices->groupBy(function ($item) {
+            return $item->branch_id . '_'
+                . \Carbon\Carbon::parse($item->created_at)->format('Y-m-d')
+                . '_'
+                . $item->shift_id;
+        });
+
+
+        $shiftStatuses = [];
+
+        foreach ($grouped as $key => $sales) {
+
+            $first = $sales->first();
+            $shiftId = $first->shift_id;
+
+            // 🔁 reusable function
+            $checkStatus = function ($model) use ($shiftId) {
+
+                $query = $model::where('shift_id', $shiftId);
+
+                if (!$query->exists()) {
+                    return 'verify';
+                }
+
+                return $query->where('admin_status', 'unverify')->exists()
+                    ? 'unverify'
+                    : 'verify';
+            };
+
+            $finalAdminStatusReq = $checkStatus(\App\Models\StockRequest::class);
+            $finalAdminStatusTra = $checkStatus(\App\Models\StockTransfer::class);
+            $finalAdminStatusInv = $checkStatus(\App\Models\Invoice::class);
+
+            $finalAdminStatusShift = \App\Models\ShiftClosing::where('id', $shiftId)
+                ->where('admin_status', 'unverify')
+                ->exists()
+                ? 'unverify'
+                : 'verify';
+
+            $finalShiftStatus = (
+                $finalAdminStatusReq === 'verify' &&
+                $finalAdminStatusTra === 'verify' &&
+                $finalAdminStatusInv === 'verify' &&
+                $finalAdminStatusShift === 'verify'
+            ) ? 'verify' : 'unverify';
+
+            // ✅ store by shift_id
+            $shiftStatuses[$shiftId] = [
+                'inv' => $finalAdminStatusInv,
+                'tra' => $finalAdminStatusTra,
+                'req' => $finalAdminStatusReq,
+                'shift' => $finalShiftStatus,
+            ];
+        }
+
+        // AJAX
+        if ($request->ajax()) {
+            return view('sales.partials.store-data', compact('grouped'))->render();
+        }
+
+        $branches = Branch::all();
+        $allProducts = Product::select('id', 'name', 'mrp', 'discount_price', 'sell_price', 'category_id', 'subcategory_id')
+            ->where('is_deleted', 'no')
+            ->with(['category', 'subcategory'])
+            ->get();
+
+        $partyUsers = Partyuser::where('status', 'Active')
+            ->get();
+
+        $commissionUsers = Commissionuser::where('is_active', '1')
+            ->get();
+
+
+        return view('sales.sales_report', compact('grouped', 'branches', 'allProducts', 'partyUsers', 'commissionUsers', 'shiftStatuses'));
     }
 
     public function show($id, Request $request)
