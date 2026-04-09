@@ -106,6 +106,9 @@ class InvoiceController extends Controller
                 ->first();
                 // dd($invoice->partyUser);
         }
+
+
+        
         $allProducts = Product::select(
             'id',
             'name',
