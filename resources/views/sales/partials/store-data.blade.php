@@ -177,8 +177,12 @@
                                 </label>
 
                                 <!-- CLICKABLE LINK (separate, safe) -->
-                                <a href="javascript:void(0)" class="text-primary mb-2 mr-2 ml-1"
+                                {{-- <a href="javascript:void(0)" class="text-primary mb-2 mr-2 ml-1"
                                     onclick="handleClick('transfer', {{ $first->shift_id }}, {{ $first->branch->id }})">
+                                    Transfer
+                                </a> --}}
+                                <a href="javascript:void(0)" class="text-primary mb-2 mr-2 ml-1"
+                                    onclick="openTransferModal({{ $first->shift_id }}, {{ $first->branch->id }})">
                                     Transfer
                                 </a>
 
@@ -207,13 +211,7 @@
                             View
                         </a>
 
-                        <a href="{{ route('sales.add-sales', [
-                            'branch_id' => $first->branch->id,
-                            'shift_id' => $first->shift_id,
-                        ]) . '?type=admin_sale' }}"
-                            class="btn btn-sm btn-success mr-2">
-                            +
-                        </a>
+                       
 
                     </div>
                 </div>

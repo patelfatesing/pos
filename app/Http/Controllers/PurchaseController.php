@@ -300,7 +300,8 @@ class PurchaseController extends Controller
                 'discount'        => 0,
                 'tax'             => $vat + $surVat,
                 'grand_total'     => $grandAmount,
-                'admin_status'   => 'verify'
+                'admin_status'   => 'verify',
+                'super_admin_status'   => 'verify'
             ]);
 
             // 3.3 Dr Purchase (basic goods)
