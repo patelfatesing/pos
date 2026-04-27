@@ -160,6 +160,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/store/delete', [BranchController::class, 'destroy'])->name('branch.destroy');
     Route::post('/store/status-change', [BranchController::class, 'statusChange'])->name('store.status-change');
     Route::post('/store/update-status', [BranchController::class, 'updateStatus'])->name('branch.update.status');
+    Route::post('/store/update-capture-status', [BranchController::class, 'updateCaptureStatus'])->name('branch.update.capture.status');
     Route::get('/get-available-notes', [BranchController::class, 'getAvailableNotes']);
     Route::post('/store/add-one-time-store', [BranchController::class, 'addOneTimeStore'])->name('branch.add.one.time.store');
 
