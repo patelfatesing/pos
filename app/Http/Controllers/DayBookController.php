@@ -37,7 +37,6 @@ class DayBookController extends Controller
     $from = Carbon::parse($date)->startOfDay();
     $to   = Carbon::parse($date)->endOfDay();
 
-<<<<<<< HEAD
         $branchId    = $request->input('branch_id');
         $voucherType = $request->input('voucher_type');
 
@@ -54,14 +53,6 @@ class DayBookController extends Controller
             ->orderBy('voucher_date')
             ->orderBy('id')
             ->get();
-=======
-    $branchId    = $request->input('branch_id');
-    $voucherType = $request->input('voucher_type');
-
-    $verify = $request->filled('admin_status')
-        ? $request->input('admin_status')
-        : 'verify';
->>>>>>> 355523d (changes in sale4)
 
     $vouchers = Voucher::with(['lines.ledger'])
         ->whereBetween('voucher_date', [$from, $to])
