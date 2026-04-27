@@ -95,6 +95,61 @@ class InvoiceController extends Controller
         return view('invoice.viewInvoiceModal', compact('invoice', 'commissionUser', 'partyUser', 'shift_id'));
     }
 
+    public function editSalesModal($id)
+    {
+        $verify = request('verify');
+
+        $invoice = Invoice::with(['partyUser', 'commissionUser'])->find($id);
+
+        if ($invoice->party_user_id != "") {
+            $invoice->partyUser = Partyuser::where('id', $invoice->party_user_id)
+                ->where('status', 'Active')
+                ->first();
+        }
+
+        $allProducts = Product::select(
+            'id',
+            'name',
+            'mrp',
+            'discount_price',
+            'sell_price',
+            'category_id',
+            'subcategory_id'
+        )
+            ->where('is_deleted', 'no')
+            ->with(['category', 'subcategory'])
+            ->get();
+
+        $commissionUser = Commissionuser::where('status', 'Active')
+            ->find($invoice->commission_user_id);
+
+        $partyUser = Partyuser::where('id', $invoice->party_user_id)
+            ->where('status', 'Active')
+            ->first();
+
+        $partyPrices = collect();
+        if ($invoice->branch_id == 1 && $invoice->party_user_id) {
+            $partyPrices = PartyCustomerProductsPrice::where('party_user_id', $invoice->party_user_id)
+                ->whereIn('product_id', $allProducts->pluck('id'))
+                ->get();
+        }
+
+        $branch_data = Branch::find($invoice->branch_id);
+        $type = request('type');
+
+        // ✅ IMPORTANT: return PARTIAL (no layout)
+        return view('invoice.partials.edit-sales-modal', compact(
+            'type',
+            'verify',
+            'invoice',
+            'commissionUser',
+            'partyUser',
+            'allProducts',
+            'partyPrices',
+            'branch_data'
+        ));
+    }
+
     public function editSales($id)
     {
         $verify = request('verify');
@@ -104,7 +159,7 @@ class InvoiceController extends Controller
             $invoice->partyUser = Partyuser::where('id', $invoice->party_user_id)
                 ->where('status', 'Active')
                 ->first();
-                // dd($invoice->partyUser);
+            // dd($invoice->partyUser);
         }
 
 
@@ -170,6 +225,40 @@ class InvoiceController extends Controller
         $type = request('type');
 
         return view('invoice.addSales', compact('branch_data', 'Shift_data', 'partyUsers', 'allProducts', 'commissionUsers', 'type'));
+    }
+
+    public function addSalesModal($branchId, $shift_id)
+    {
+        $allProducts = Product::select(
+            'id',
+            'name',
+            'mrp',
+            'discount_price',
+            'sell_price',
+            'category_id',
+            'subcategory_id'
+        )
+            ->where('is_deleted', 'no')
+            ->with(['category', 'subcategory'])
+            ->get();
+
+        $Shift_data = ShiftClosing::find($shift_id);
+        $branch_data = Branch::find($branchId);
+
+        $partyUsers = Partyuser::where('status', 'Active')->get();
+        $commissionUsers = Commissionuser::where('is_active', '1')->get();
+
+        $type = request('type');
+
+        // ✅ IMPORTANT: return PARTIAL (no layout)
+        return view('invoice.partials.add-sales-modal', compact(
+            'branch_data',
+            'Shift_data',
+            'partyUsers',
+            'allProducts',
+            'commissionUsers',
+            'type'
+        ));
     }
 
     public function viewHoldInvoice(Invoice $invoice, $shift_id)
@@ -243,8 +332,6 @@ class InvoiceController extends Controller
     {
         $invoice = Invoice::findOrFail($id);
 
-        // dd($request->all());
-
         $validated = $request->validate([
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|integer',
@@ -302,6 +389,8 @@ class InvoiceController extends Controller
                 if ($invoiceShiftId) {
                     stockStatusChangeNew($productId, $branchId, $newQty, 'sold_stock', $invoiceShiftId);
                 }
+                
+                $productName = $item['name'] ?? 'Unknown';
 
                 // ✅ LOG
                 InvoiceActivityLog::create([
@@ -327,11 +416,12 @@ class InvoiceController extends Controller
                     stockStatusChangeNew($productId, $branchId, $diff, 'sold_stock', $invoiceShiftId);
                 }
 
+                $productName = $item['name'] ?? 'Unknown';
                 // ✅ LOG
                 InvoiceActivityLog::create([
                     'invoice_id' => $invoice->id,
                     'action' => 'qty_increased',
-                    'description' => "Product {$productId} qty increased {$oldQty} → {$newQty}",
+                    'description' => "Product {$productName} (ID: {$productId}) qty increased {$oldQty} → {$newQty}",
                     'old_data' => ['quantity' => $oldQty],
                     'new_data' => ['quantity' => $newQty],
                     'user_id' => auth()->id(),
@@ -349,11 +439,12 @@ class InvoiceController extends Controller
                     stockStatusChangeNew($productId, $branchId, $diff, 'refunded_order', $invoiceShiftId);
                 }
 
+                $productName = $item['name'] ?? 'Unknown';
                 // ✅ LOG
                 InvoiceActivityLog::create([
                     'invoice_id' => $invoice->id,
                     'action' => 'qty_decreased',
-                    'description' => "Product {$productId} qty decreased {$oldQty} → {$newQty}",
+                    "description" => "Product {$productName} (ID: {$productId}) qty decreased {$oldQty} → {$newQty}",
                     'old_data' => ['quantity' => $oldQty],
                     'new_data' => ['quantity' => $newQty],
                     'user_id' => auth()->id(),
@@ -441,9 +532,24 @@ class InvoiceController extends Controller
         $invoice->save();
 
         if ($request->type == 'admin_sale') {
-            return redirect()->route('sales.salas-report')->with('success', 'Invoice items updated successfully.');
-        } else {
+            // ✅ FORCE JSON for modal (IMPORTANT)
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Invoice items updated successfully'
+                ]);
+            }
 
+            return redirect()->back()->with('success', 'Invoice items updated successfully');
+
+            // return redirect()->route('sales.salas-report')->with('success', 'Invoice items updated successfully.');
+        } else {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Invoice items updated successfully'
+                ]);
+            }
             return redirect()->route('shift-manage.view', [
                 'id' => $invoice->branch_id,
                 'shift_id' => $invoice->shift_id
@@ -920,11 +1026,19 @@ class InvoiceController extends Controller
             // \Log::info('Invoice Created: ', $invoice->toArray());
             // InvoiceHistory::logFromInvoice($invoice, 'created', Auth::id());
             DB::commit();
+            if ($request->ajax()) {
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Invoice saved successfully'
+                ]);
+            }
+
+            // fallback (normal page)
             if ($request->type == 'admin_sale') {
                 return redirect()->route('sales.salas-report')->with('success', 'Invoice items updated successfully.');
             } else {
                 return redirect()->route('shift-manage.view', [
-                    'id' => $branch_id, // or $branch_id or whatever your id is
+                    'id' => $branch_id,
                     'shift_id' => $request->shift_id
                 ])->with('success', 'Invoice items updated successfully.');
             }

@@ -51,6 +51,7 @@ use App\Http\Controllers\Accounting\VoucherController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\DayBookController;
 use App\Http\Controllers\CashBankReportController;
+use App\Http\Controllers\StockSummaryController;
 
 
 // Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
@@ -284,6 +285,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/party-customer-discount/{partyUserId}', [InvoiceController::class, 'getPartyCustomerDiscount'])->name('partyCustomerDiscount');
     Route::post('/sales/invoice/insert-sale', [InvoiceController::class, 'InsertSale'])->name('sales.invoice.insert-sale');
     Route::get('/invoice/view-modal/{id}', [InvoiceController::class, 'invoiceModal']);
+    Route::get('/sales/add-sales-modal/{branch}/{shift}', [InvoiceController::class, 'addSalesModal']);
+    Route::get('/sales/edit-sales-modal/{id}', [InvoiceController::class, 'editSalesModal']);
 
     Route::get('/pack-size/list', [PackSizeController::class, 'index'])->name('packsize.list');
     Route::post('/pack-size/get-data', [PackSizeController::class, 'getData'])->name('packsize.getData');
@@ -333,10 +336,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/stock-transfer/craete-transfer', [StockTransferController::class, 'craeteTransfer'])->name('stock-transfer.craete-transfer');
     Route::get('/stock-transfer/list', [StockTransferController::class, 'index'])->name('stock-transfer.list');
     Route::get('/stock-transfer/get-transfer-data', [StockTransferController::class, 'getTransferData'])->name('stock-transfer.get-transfer-data');
+        Route::get('/stock-transfer/get-transfer-data-new', [StockTransferController::class, 'getTransferDataNew'])->name('stock-transfer.get-transfer-data-new');
     Route::get('/stock-transfer/view/{id}', [StockTransferController::class, 'view'])->name('stock-transfer.view');
     Route::post('/stock-transfer/store', [StockTransferController::class, 'store'])->name('stock-transfer.store');
     Route::get('/stock-transfer/edit/{id}', [StockTransferController::class, 'edit'])->name('stock-transfer.edit');
     Route::post('/stock-transfer/{id}/update', [StockTransferController::class, 'update'])->name('stock-transfer.update');
+
+    Route::get('/stock-transfer/modal-list', [StockTransferController::class, 'modalList']);
+    Route::get('/transfer/modal/create', [StockTransferController::class, 'createTransferModal']);
+    Route::get('/transfer/modal/edit/{id}', [StockTransferController::class, 'editTransferModal']);
+    Route::get('/transfer/modal/view/{id}', [StockTransferController::class, 'viewTransferModal']);
 
     Route::get('/vendor/list', [VendorListController::class, 'index'])->name('vendor.list');
     Route::post('/vendor/get-data', [VendorListController::class, 'getData'])->name('vendor.getData');
@@ -388,7 +397,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/sales-img-view/{id}', [SalesReportController::class, 'show'])->name('sales.img.view');
 
     Route::get('sales/sales-report', [SalesReportController::class, 'salasListReport'])->name('sales.salas-report');
-
+    // Route::post('sales/get-single-shift-data', [SalesReportController::class, 'getSingleShiftData'])->name('sales.get-single-shift-data');
+    Route::get('sales/shift-single-data/{id}', [SalesReportController::class, 'getSingleShiftData']);
     Route::get('/exp-category/list', [ExpenseCategoryController::class, 'index'])->name('exp_category.list');
     Route::post('/exp-category/get-data', [ExpenseCategoryController::class, 'getData'])->name('exp_category.getData');
     Route::get('/exp-category/create', [ExpenseCategoryController::class, 'create'])->name('exp_category.create');
@@ -497,7 +507,7 @@ Route::middleware('auth')->group(function () {
         Route::post('getProfitLossData', [ReportTallyController::class, 'getProfitLossData'])->name('reports.pnl_tally.data');
         Route::get('/reports/profit-loss/pdf', [ReportTallyController::class, 'profitLossPdf'])->name('reports.profit-loss.pdf');
         Route::get('day-book', [DayBookController::class, 'index'])->name('reports.day-book');
-        Route::get('/day-book/voucher/{id}',[DayBookController::class, 'showVoucher'])->name('reports.day-book.voucher.show');
+        Route::get('/day-book/voucher/{id}', [DayBookController::class, 'showVoucher'])->name('reports.day-book.voucher.show');
 
         Route::get('product-wise',  [Report2Controller::class, 'productWise'])->name('reports.discount.product.view');
         Route::post('product-wise-data', [Report2Controller::class, 'getProductWiseData'])->name('reports.discount.product.data');
@@ -577,6 +587,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/ledger/current-balance/{ledger}', [LedgerController::class, 'currentBalance'])->name('ledger.current.balance');
         Route::get('/ledger/view/{id}', [LedgerController::class, 'ledgerView'])->name('ledgers.view');
         Route::get('/ledger/{id}/data', [LedgerController::class, 'ledgerData'])->name('ledgers.vouchers.data1');
+        
+        Route::get('/stock-summary', [StockSummaryController::class, 'stockSummary'])->name('stock.summary');
+        Route::get('/stock-summary-data', [StockSummaryController::class, 'stockSummaryData'])->name('stock.summary.data');
 
         Route::get('vouchers',        [VoucherController::class, 'index'])->name('vouchers.index');
         Route::get('vouchers/create', [VoucherController::class, 'create'])->name('vouchers.create');

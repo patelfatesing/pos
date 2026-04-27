@@ -249,39 +249,82 @@
             }
 
             function render(selector, rows) {
-                const tbody = document.querySelector(selector);
-                tbody.innerHTML = '';
+    const tbody = document.querySelector(selector);
+    tbody.innerHTML = '';
 
-                const startParam = encodeURIComponent(start);
-                const endParam = encodeURIComponent(end);
+    const startParam = encodeURIComponent(start);
+    const endParam = encodeURIComponent(end);
 
-                rows.forEach(r => {
+    function loop(data, level = 0) {
 
-                    let labelHtml = r.label || '';
+        data.forEach(r => {
 
-                    // ✅ detect group id properly
-                    let groupId = r.group_id ?? r.section_group_id ?? r.id ?? null;
+            let groupId = r.group_id ?? r.section_group_id ?? null;
 
-                    // ✅ create link ONLY if id exists
-                    if (groupId && r.label) {
+            let url = groupId
+                ? `/reports/group-summary/${groupId}?start_date=${startParam}&end_date=${endParam}`
+                : null;
 
-                        const url =
-                            `/reports/group-summary/${groupId}?start_date=${startParam}&end_date=${endParam}`;
+            let labelHtml = r.label;
 
-                        labelHtml = `<a href="${url}" style="color:#2563eb;text-decoration:none;">
-                            ${r.label}
-                         </a>`;
+            if (url) {
+                labelHtml = `<a href="${url}" style="color:#2563eb;text-decoration:none;">
+                    ${r.label}
+                </a>`;
+            }
+
+            const tr = document.createElement('tr');
+
+            tr.innerHTML = `
+                <td style="padding-left:${level * 20}px;">
+                    ${level === 0 ? '<strong>' + labelHtml + '</strong>' : labelHtml}
+                </td>
+                <td class="amount">
+                    ${level === 0 ? '<strong>' + r.amount + '</strong>' : r.amount}
+                </td>
+            `;
+
+            tbody.appendChild(tr);
+
+            if (r.children && r.children.length > 0) {
+
+                r.children.forEach(child => {
+
+                    let childUrl = child.ledger_id
+                        ? `/reports/ledger-summary/${child.ledger_id}?start_date=${startParam}&end_date=${endParam}`
+                        : (child.group_id
+                            ? `/reports/group-summary/${child.group_id}?start_date=${startParam}&end_date=${endParam}`
+                            : null);
+
+                    let childHtml = child.label;
+
+                    if (childUrl) {
+                        childHtml = `<a href="${childUrl}" style="color:#6b7280;text-decoration:none;">
+                            ${child.label}
+                        </a>`;
                     }
 
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${labelHtml}</td>
-                        <td class="amount">${r.amount || ''}</td>
+                    const childTr = document.createElement('tr');
+
+                    childTr.innerHTML = `
+                        <td style="padding-left:${(level + 1) * 20}px;">
+                            ↳ ${childHtml}
+                        </td>
+                        <td class="amount">${child.amount}</td>
                     `;
 
-                    tbody.appendChild(tr);
+                    tbody.appendChild(childTr);
+
+                    if (child.children) {
+                        loop(child.children, level + 2);
+                    }
                 });
             }
+        });
+    }
+
+    loop(rows);
+}
 
             // ✅ auto apply
             $('#pnl_daterange').on('apply.daterangepicker', function(ev, picker) {

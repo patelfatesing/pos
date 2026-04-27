@@ -86,6 +86,70 @@
     .slider.round:before {
         border-radius: 50%;
     }
+
+    .modal-backdrop.show:nth-of-type(2) {
+        z-index: 1060;
+    }
+
+    #invoiceModal {
+        z-index: 1070;
+    }
+
+    .badge:hover {
+        transform: scale(1.1);
+        transition: 0.2s;
+    }
+
+    .store-row td:nth-child(1),
+    .store-row td:nth-child(2) {
+        cursor: pointer;
+    }
+
+    /* Hide default switch */
+.custom-switch .custom-control-label::before {
+    display: none;
+}
+
+.custom-switch .custom-control-label::after {
+    display: none;
+}
+
+/* Pill base */
+.custom-switch-text .custom-control-label {
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    display: inline-block;
+    transition: 0.3s;
+}
+
+/* UNVERIFIED (default) */
+.verify-switch + .custom-control-label {
+    background: linear-gradient(135deg, #ff5722, #ff7043);
+}
+
+/* VERIFIED */
+.verify-switch:checked + .custom-control-label {
+    background: linear-gradient(135deg, #28a745, #43d67c);
+}
+
+/* Dynamic text */
+.verify-switch + .custom-control-label::after {
+    content: attr(data-off-label);
+}
+
+.verify-switch:checked + .custom-control-label::after {
+    content: attr(data-on-label);
+}
+
+/* Hover effect */
+.custom-control-label:hover {
+    opacity: 0.9;
+    transform: scale(1.05);
+}
+
 </style>
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -258,10 +322,149 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="storeRowModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Store Shift Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body" id="storeRowContent">
+                    Loading...
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addSalesModal">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="addSalesModalTitle">Add Sales</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body" id="addSalesContent">
+                    Loading...
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="transferModal">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="transferModalTitle">Transfer List</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+
+                <div class="modal-body" id="transferModalContent">
+                    Loading...
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="transferActionModal">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="transferActionTitle">Transfer</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+
+                <div class="modal-body" id="transferActionContent">
+                    Loading...
+                </div>
+
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
     <script>
+        $(document).on('click', '.store-row td:nth-child(1), .store-row td:nth-child(2)', function(e) {
+
+            // ❌ ignore clicks on buttons/links/switch
+            if ($(e.target).closest('a, button, input, label').length) {
+                return;
+            }
+
+            let row = $(this).closest('.store-row');
+            let shiftId = row.find('.open-shift').data('shift');
+
+            openShiftPopup(shiftId);
+        });
+
+        function openStorePopup(shiftId) {
+
+            $('#storeRowContent').html('Loading...');
+
+            $('#storeRowModal').modal('show');
+
+            $.ajax({
+                url: '{{ url('shift-manage/close-shift-model') }}/' + shiftId,
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+
+                    if (response.code != 200) {
+                        $('#storeRowContent').html('<div class="text-danger">' + response.message + '</div>');
+                    } else {
+                        $('#storeRowContent').html(response.html);
+                    }
+                },
+                error: function() {
+                    $('#storeRowContent').html('<div class="text-danger">Failed to load data</div>');
+                }
+            });
+        }
+
+        let currentShiftId = null;
+        let currentBranchId = null;
+
+        function openShiftPopup(shiftId) {
+
+            currentShiftId = shiftId; // 🔥 store it
+
+            $('#storeRowContent').html('Loading...');
+
+            const modal = new bootstrap.Modal(document.getElementById('storeRowModal'));
+            modal.show();
+
+            $.get('/sales/shift-single-data/' + shiftId, function(data) {
+                $('#storeRowContent').html(data);
+            });
+        }
+
+        function openAddSalesModal(branchId, shiftId) {
+
+            $('#addSalesContent').html('Loading...');
+
+            $('#addSalesModal').modal('show');
+
+            $.get('/sales/add-sales-modal/' + branchId + '/' + shiftId, function(data) {
+                $('#addSalesContent').html(data);
+            });
+        }
+
         $(document).ready(function() {
 
             $('#reportrange').daterangepicker({
@@ -323,13 +526,6 @@
                 loadData();
             });
 
-            // 🔥 ROW TOGGLE
-            $(document).on('click', '.store-row', function() {
-
-                let id = $(this).data('id');
-                $('#sales-' + id).toggleClass('d-none');
-            });
-
             // 🔥 VIEW BUTTON (EXPAND + OPTIONAL POPUP)
             $(document).on('click', '.view-row', function(e) {
 
@@ -386,15 +582,31 @@
 
         function openInvoiceModal(id) {
 
-            const modalElement = document.getElementById('invoiceModal');
-            const modal = new bootstrap.Modal(modalElement);
+            // ✅ Close store modal first
+            $('#storeRowModal').modal('hide');
 
-            modal.show();
+            // small delay (important)
+            setTimeout(function() {
 
-            $('#invoiceModalContent').html('Loading...');
+                $('#invoiceModal').modal('show');
 
-            $.get('/invoice/view-modal/' + id, function(data) {
-                $('#invoiceModalContent').html(data);
+                $('#invoiceModalContent').html('Loading...');
+
+                $.get('/invoice/view-modal/' + id, function(data) {
+                    $('#invoiceModalContent').html(data);
+                });
+
+            }, 300);
+        }
+
+        function editInvoiceModal(id) {
+            $('#addSalesModalTitle').text('Edit Sales'); // ✅ set title
+            $('#addSalesContent').html('Loading...');
+
+            $('#addSalesModal').modal('show'); // reuse same modal
+
+            $.get('/sales/edit-sales-modal/' + id, function(data) {
+                $('#addSalesContent').html(data);
             });
         }
 
@@ -486,7 +698,7 @@
             let status = isChecked ? 'verify' : 'unverify';
 
             Swal.fire({
-                title: "Are you sure want to "+status+" Full Shift?",
+                title: "Are you sure want to " + status + " Full Shift?",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: "Yes",
@@ -525,7 +737,7 @@
             let status = isChecked ? 'verify' : 'unverify';
 
             Swal.fire({
-                title: "Are you sure you want to "+status+" this invoice?",
+                title: "Are you sure you want to " + status + " this invoice?",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: "Yes",
@@ -563,6 +775,280 @@
                     "&verify=yes" +
                     "&type=admin";
             }
+        }
+
+        $(document).off('submit', '#invoice-items-form').on('submit', '#invoice-items-form', function(e) {
+
+            e.preventDefault(); // 🔥 MUST
+
+            let form = $(this);
+
+            let branchId = $('input[name="branch_id"]').val();
+            let partyId = $('#party-id').val();
+
+            // ✅ VALIDATION (MOVED HERE)
+            if (branchId == 1 && !partyId) {
+                Swal.fire("Validation Error", "Select Party Customer", "warning");
+                return false;
+            }
+
+            let btn = form.find('button[type="submit"]');
+            btn.prop('disabled', true).text('Saving...');
+
+            $.ajax({
+                url: form.attr('action'),
+                type: "POST",
+                data: form.serialize(),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+
+                    if (response.status) {
+
+                        // ✅ CLOSE MODAL
+                        $('#addSalesModal').modal('hide');
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Saved!',
+                            timer: 1200,
+                            showConfirmButton: false
+                        });
+
+                        // ✅ REFRESH SHIFT DATA
+                        refreshShiftPopup();
+
+                        if (typeof loadData === 'function') {
+                            loadData();
+                        }
+                    }
+                },
+                error: function(xhr) {
+                    console.log(xhr.responseText);
+                    Swal.fire("Error!", "Check console", "error");
+                },
+                complete: function() {
+                    btn.prop('disabled', false).text('Save Invoice Items');
+                }
+            });
+
+        });
+
+        $(document).off('submit', '#invoice-items-form').on('submit', '#invoice-items-form', function(e) {
+
+            e.preventDefault();
+
+            let form = $(this);
+
+            let btn = form.find('button[type="submit"]');
+            btn.prop('disabled', true).text('Saving...');
+
+            $.ajax({
+                url: form.attr('action'),
+                type: "POST",
+                data: form.serialize(),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                success: function(response) {
+
+                    if (response.status) {
+
+                        // ✅ CLOSE MODAL
+                        $('#addSalesModal').modal('hide');
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Updated!',
+                            timer: 1200,
+                            showConfirmButton: false
+                        });
+
+                        // ✅ REFRESH SHIFT
+                        refreshShiftPopup();
+                    }
+                },
+                error: function(xhr) {
+                    console.log(xhr.responseText);
+                    Swal.fire("Error!", "Check console", "error");
+                },
+                complete: function() {
+                    btn.prop('disabled', false).text('Save Invoice Items');
+                }
+            });
+
+        });
+
+        function refreshShiftPopup() {
+
+            if (!currentShiftId) return;
+
+            $('#storeRowContent').html('Loading...');
+
+            $.get('/sales/shift-single-data/' + currentShiftId, function(data) {
+                $('#storeRowContent').html(data);
+            });
+        }
+
+        function openTransferModal(shift_id, branch_id) {
+
+            // ✅ Set Title
+            $('#transferModalTitle').text('Transfer - Shift #' + shift_id);
+
+            // ✅ Show Modal
+            $('#transferModal').modal('show');
+
+            // ✅ Show loading
+            $('#transferModalContent').html('Loading...');
+
+            // ✅ Load view
+            $.get('/stock-transfer/modal-list', function(view) {
+
+                $('#transferModalContent').html(view);
+
+                // ✅ INIT DATATABLE AFTER LOAD
+                initTransferTable(branch_id, shift_id, 'admin');
+            });
+        }
+
+        function openCreateTransfer() {
+
+            // $('#transferModal').modal('hide'); // 👈 close list first
+
+            setTimeout(() => {
+
+                $('#transferActionModal').modal('show');
+
+                $('#transferActionContent').html('Loading...');
+
+                $.get('/transfer/modal/create', {
+                    branch_id: currentBranchId,
+                    shift_id: currentShiftId
+                }, function(data) {
+                    $('#transferActionContent').html(data);
+                });
+
+            }, 300);
+        }
+
+        function openEditTransfer(id) {
+
+            $('#transferActionTitle').text('Edit Transfer');
+
+            $('#transferActionContent').html('Loading...');
+
+            $('#transferActionModal').modal('show');
+
+            $.get('/transfer/modal/edit/' + id, function(data) {
+                $('#transferActionContent').html(data);
+            });
+        }
+
+        function openViewTransfer(id) {
+
+            $('#transferActionTitle').text('View Transfer');
+
+            // 🔥 clear before open
+            $('#transferActionContent').html('Loading...');
+
+            $('#transferActionModal').modal('show');
+
+            $.get('/transfer/modal/view/' + id, function(data) {
+                $('#transferActionContent').html(data);
+            });
+        }
+
+        $(document).off('submit', '#transferForm').on('submit', '#transferForm', function(e) {
+
+            e.preventDefault();
+
+            let form = $(this);
+            let btn = $('#submitBtn');
+
+            btn.prop('disabled', true).text('Processing...');
+
+            $.ajax({
+                url: form.attr('action'),
+                type: "POST",
+                data: form.serialize(),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+
+                success: function() {
+
+                    // ✅ CLOSE ADD/EDIT MODAL
+                    $('#transferActionModal').modal('hide');
+
+
+                    $('#transferModalContent').html('Loading...');
+
+                    $.get('/stock-transfer/modal-list', function(view) {
+
+                        $('#transferModalContent').html(view);
+
+                        // 🔥 RE-INIT DATATABLE
+                        initTransferTable(currentBranchId, currentShiftId, 'admin');
+
+                    });
+
+
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Transfer Added!',
+                        timer: 1200,
+                        showConfirmButton: false
+                    });
+                },
+
+                error: function(xhr) {
+
+                    let errors = xhr.responseJSON?.errors;
+
+                    if (errors) {
+                        let msg = Object.values(errors).flat().join("\n");
+                        alert(msg);
+                    } else {
+                        alert('Something went wrong');
+                    }
+                },
+
+                complete: function() {
+                    btn.prop('disabled', false).text('Submit Transfer');
+                }
+            });
+
+        });
+
+        $('#transferActionModal').on('hidden.bs.modal', function() {
+
+            // ✅ remove leftover focus
+            document.activeElement.blur();
+
+            // ✅ force focus to body
+            $('body').focus();
+
+        });
+
+        function loadTransferList() {
+
+            // ensure main modal is visible
+            $('#transferModal').modal('show');
+
+            $('#transferModalContent').html('Loading...');
+
+            $.get('/stock-transfer/modal-list', function(view) {
+
+                $('#transferModalContent').html(view);
+
+                // 🔥 reload datatable properly
+                setTimeout(function() {
+                    initTransferTable(currentBranchId, currentShiftId, 'admin');
+                }, 100);
+            });
         }
     </script>
 @endsection

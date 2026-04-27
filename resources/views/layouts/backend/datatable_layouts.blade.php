@@ -68,17 +68,17 @@
 
     @include('layouts.backend.footer')
 
-    <!-- Base Scripts -->
+    <!-- ✅ 1. jQuery FIRST -->
+    <script src="{{ asset('assets/js/jquery-3.7.1.min.js') }}"></script>
+
+    <!-- ✅ 2. Then Bootstrap / backend -->
     <script src="{{ asset('assets/js/script.js') }}"></script>
     <script src="{{ asset('assets/js/backend-bundle.min.js') }}"></script>
+
     <script src="{{ asset('assets/js/table-treeview.js') }}"></script>
     <script src="{{ asset('assets/js/customizer.js') }}"></script>
     <script async src="{{ asset('assets/js/chart-custom.js') }}"></script>
     <script src="{{ asset('assets/js/app.js') }}"></script>
-
-    <!-- External JS Libraries (correct order) -->
-    <!-- jQuery (must come first) -->
-    <script src="{{ asset('assets/js/jquery-3.7.1.min.js')}}"></script>
 
     <!-- Moment & Daterangepicker -->
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>

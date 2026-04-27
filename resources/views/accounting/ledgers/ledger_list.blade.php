@@ -192,10 +192,19 @@
             <!-- ================= HEADER ================= -->
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="ledger-title">
-                    <h4 class="mb-0">Ledger Vouchers — {{ $ledger->name }}</h4>
+                    <h4 class="mb-0">Ledger Vouchers</h4>
            
                 </div>
                 <h5 class="title-table">LIQUOR HUB</h5>
+                <div class="controls">
+                    <input type="text" id="daterange" class="form-control d-inline-block" style="width:210px" />
+                  </div>
+            </div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="ledger-title">
+                    <h4 class="mb-0">Ledger — {{ $ledger->name }}</h4>
+           
+                </div>
                 <div class="controls">
                     <a href="{{ route('accounting.vouchers.create') }}" class="btn btn-success btn-sm">
                         Add Voucher
@@ -203,10 +212,6 @@
 
                     <button id="printBtn" class="btn btn-success btn-sm">Print</button>
 
-                    <!-- <a href="{{ tallyBack() }}"
-                        class="btn btn-secondary add-list">
-                        ← Back
-                    </a> -->
                     <button onclick="window.history.back()" class="btn btn-secondary">
                         Back
                     </button>
@@ -260,112 +265,117 @@
 <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
 <script>
-    window.onload = function() {
+window.onload = function () {
 
-     
-        let table = $('#vouchersTable').DataTable({
-            processing: true,
-            serverSide: false,
-            ordering: false,
-            pageLength: 50,
+    let start = moment().subtract(29, 'days'); // last 30 days
+    let end = moment();
 
-            ajax: {
-                url: "{{ route('accounting.ledgers.vouchers.data1', $ledger->id) }}",
-                data: function(d) {
-                  
-                },
-                dataSrc: function(json) {
+    let table = $('#vouchersTable').DataTable({
+        processing: true,
+        serverSide: false,
+        ordering: false,
+        pageLength: 50,
 
-                    /* ---------- OPENING ---------- */
-                    const opening = json.opening || {
-                        balance: 0
-                    };
-                    $('#openingBalance').text(
-                        (opening.balance >= 0 ? 'Dr ' : 'Cr ') +
-                        Math.abs(opening.balance)
-                    );
+        ajax: {
+            url: "{{ route('accounting.ledgers.vouchers.data1', $ledger->id) }}",
+            data: function (d) {
 
-                    /* ---------- CURRENT ---------- */
-                    const period = json.period || {
-                        total_debit: 0,
-                        total_credit: 0
-                    };
-                    $('#currentTotal').text(
-                        'Dr ' + period.total_debit +
-                        ' | Cr ' + period.total_credit
-                    );
+                let range = $('#daterange').val();
 
-                    /* ---------- CLOSING ---------- */
-                    const closing =
-                        opening.balance +
-                        (period.total_debit - period.total_credit);
-
-                    $('#closingBalance').text(
-                        (closing >= 0 ? 'Dr ' : 'Cr ') +
-                        Math.abs(closing)
-                    );
-
-                    return json.data || [];
+                if (range) {
+                    let dates = range.split(' to ');
+                    d.from_date = dates[0];
+                    d.to_date = dates[1];
                 }
             },
 
-            columns: [{
-                    data: 'date',
-                    render: (d, t, r) => r.type === 'main' ? d : ''
-                },
-                {
-                    data: 'particulars',
-                    className: 'col-particulars',
-                    render: function(d, t, r) {
-                        if (r.type === 'detail') {
-                            return `<span style="padding-left:30px;">${d}</span>`;
-                        }
-                        return `<strong>${d}</strong>`;
-                    }
-                },
-                {
-                    data: 'vch_type',
-                    render: function(d, t, r) {
-                        if (r.type === 'main') {
-                            return `<a href="${r.edit_url}" 
-                       style="color:#007bff;text-decoration:none;">
-                        ${d}
-                    </a>`;
-                        }
-                        return '';
-                    }
-                },
-                {
-                    data: 'vch_no',
-                    render: (d, t, r) => r.type === 'main' ? d : ''
-                },
-                {
-                    data: 'debit',
-                    className: 'text-end',
-                    render: (d, t, r) =>
-                        r.type === 'main' && d !== null ?
-                        parseFloat(d) : ''
-                },
-                {
-                    data: 'credit',
-                    className: 'text-end',
-                    render: (d, t, r) =>
-                        r.type === 'main' && d !== null ?
-                        parseFloat(d) : ''
-                }
-            ],
-            createdRow: function(row, data) {
-                if (data.type === 'details_header') {
-                    $(row).css({
-                        color: '#555',
-                        background: '#f7f7f7'
-                    });
-                }
-                if (data.type === 'detail') {
-                    $(row).css('background', '#fafafa');
-                }
+            dataSrc: function (json) {
+
+                /* ---------- OPENING ---------- */
+                const opening = json.opening || { balance: 0 };
+                $('#openingBalance').text(
+                    (opening.balance >= 0 ? 'Dr ' : 'Cr ') +
+                    Math.abs(opening.balance)
+                );
+
+                /* ---------- CURRENT ---------- */
+                const period = json.period || { total_debit: 0, total_credit: 0 };
+                $('#currentTotal').text(
+                    'Dr ' + period.total_debit +
+                    ' | Cr ' + period.total_credit
+                );
+
+                /* ---------- CLOSING ---------- */
+                const closing = opening.balance + (period.total_debit - period.total_credit);
+
+                $('#closingBalance').text(
+                    (closing >= 0 ? 'Dr ' : 'Cr ') +
+                    Math.abs(closing)
+                );
+
+                return json.data || [];
             }
-        });
-    };
+        },
+
+        columns: [
+            { data: 'date', render: (d,t,r) => r.type === 'main' ? d : '' },
+            {
+                data: 'particulars',
+                className: 'col-particulars',
+                render: function (d, t, r) {
+                    if (r.type === 'detail') {
+                        return `<span style="padding-left:30px;">${d}</span>`;
+                    }
+                    return `<strong>${d}</strong>`;
+                }
+            },
+            {
+                data: 'vch_type',
+                render: function (d, t, r) {
+                    if (r.type === 'main') {
+                        return `<a href="${r.edit_url}" style="color:#007bff">${d}</a>`;
+                    }
+                    return '';
+                }
+            },
+            { data: 'vch_no', render: (d,t,r) => r.type === 'main' ? d : '' },
+            {
+                data: 'debit',
+                className: 'text-end',
+                render: (d,t,r) => r.type === 'main' ? parseFloat(d || 0) : ''
+            },
+            {
+                data: 'credit',
+                className: 'text-end',
+                render: (d,t,r) => r.type === 'main' ? parseFloat(d || 0) : ''
+            }
+        ]
+    });
+
+    // ✅ Date Range Picker
+    function cb(start, end) {
+        $('#daterange').val(
+            start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD')
+        );
+        table.ajax.reload();
+    }
+
+    $('#daterange').daterangepicker({
+        startDate: start,
+        endDate: end,
+        ranges: {
+            'Today': [moment(), moment()],
+            'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+            'This Month': [moment().startOf('month'), moment().endOf('month')],
+            'Last Month': [
+                moment().subtract(1,'month').startOf('month'),
+                moment().subtract(1,'month').endOf('month')
+            ]
+        }
+    }, cb);
+
+    cb(start, end); // default load
+};
 </script>
 @endsectiona
