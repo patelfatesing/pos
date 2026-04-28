@@ -1,5 +1,8 @@
 @extends('layouts.backend.datatable_layouts')
+<script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 @section('styles')
 @endsection
 
@@ -67,9 +70,10 @@
                                 <div class="card-header py-2">
                                     <strong>Day Book</strong>
                                     <h5 class="title-table">LIQUOR HUB</h5>
-                                    <span class="float-end small">
-                                        For {{ \Carbon\Carbon::parse($fromDate)->format('d-M-y') }}
-                                    </span>
+                                    <small id="dateLabel" style="cursor:pointer;">
+    For {{ \Carbon\Carbon::parse($from)->format('d-M-y') }}
+</small>
+<input type="text" id="singleDate" style="position:absolute; opacity:0; width:1px;" />
                                     <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
                                 </div>
 
@@ -163,6 +167,40 @@
 
 @section('scripts')
     <script>
+        $('#dateLabel').on('click', function () {
+    $('#singleDate').data('daterangepicker').show();
+});
+
+
+$(document).ready(function () {
+
+    let selectedDate = "{{ $from }}";
+
+    $('#singleDate').daterangepicker({
+        singleDatePicker: true,
+        showDropdowns: true,
+        autoApply: true, // ✅ auto close after select
+        startDate: selectedDate,
+        locale: {
+            format: 'YYYY-MM-DD'
+        }
+    });
+
+    // ✅ set default value in input
+    $('#singleDate').val(selectedDate);
+
+    // ✅ when date selected
+    $('#singleDate').on('apply.daterangepicker', function(ev, picker) {
+        let date = picker.startDate.format('YYYY-MM-DD');
+
+        $(this).val(date); // show selected date in input
+
+        // reload page
+        window.location.href = "?date=" + date;
+    });
+
+});
+
         $(document).on("click", ".open-voucher", function() {
             let id = $(this).data("id");
 

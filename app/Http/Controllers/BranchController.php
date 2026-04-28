@@ -192,7 +192,14 @@ class BranchController extends Controller
                 $action .= '<div class="custom-control custom-switch custom-control-inline">
                         <input type="checkbox" class="custom-control-input" id="customSwitch' . $store->id . '" ' . ($store->in_out_enable ? 'checked' : '') . ' data-store-id="' . $store->id . '">
                         <label class="custom-control-label" for="customSwitch' . $store->id . '">
-                            <span class="switch-label">' . ($store->in_out_enable ? 'Enabled' : 'Disabled') . '</span>
+                            <span class="switch-label">' . ($store->in_out_enable ? 'In/Out' : 'In/Out') . '</span>
+                        </label>
+                    </div>';
+
+                $action .= '<div class="custom-control custom-switch custom-control-inline">
+                        <input type="checkbox" class="custom-control-input capture-status-switch" id="captureSwitch' . $store->id . '" ' . ($store->is_capture ? 'checked' : '') . ' data-store-id="' . $store->id . '">
+                        <label class="custom-control-label" for="captureSwitch' . $store->id . '">
+                            <span class="switch-label">' . ($store->is_capture ? 'Capture' : 'Capture') . '</span>
                         </label>
                     </div>';
             }
@@ -279,6 +286,24 @@ class BranchController extends Controller
         return response()->json([
             'message' => 'Store status updated successfully.',
             'status' => $store->in_out_enable ? 'enable' : 'disable'
+        ]);
+    }
+
+    public function updateCaptureStatus(Request $request)
+    {
+        $request->validate([
+            'store_id' => 'required|exists:branches,id',
+            'is_capture' => 'required|boolean',
+        ]);
+
+        $store = Branch::findOrFail($request->store_id);
+        $store->is_capture = $request->is_capture;
+        $store->updated_by = auth()->id();
+        $store->save();
+
+        return response()->json([
+            'message' => 'Capture status updated successfully.',
+            'status' => $store->is_capture ? 'enable' : 'disable'
         ]);
     }
 

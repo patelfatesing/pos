@@ -61,26 +61,38 @@ class ReportTallyController extends Controller
             ->value('amt');
 
         /* ================= SALES GROUP ================= */
-        $salesChildren = (clone $linesBase)
-            ->where('g.nature', 'Income')
-            ->where('g.affects_gross', 1)
-            ->selectRaw("
-            g.id as gid,
-            g.name as gname,
-            COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0) -
-            COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0) as amt
-        ")
-            ->groupBy('g.id', 'g.name')
-            ->havingRaw('amt <> 0')
+       $salesChildren = DB::table('vouchers as v')
+            ->join('invoices as i', 'i.id', '=', 'v.gen_id')
+            ->where('v.admin_status', $verify)
+            ->whereBetween('v.voucher_date', [$start->toDateString(), $end->toDateString()])
+            ->where('v.voucher_type', 'Sales')
+            ->select('i.items')
             ->get()
-            ->map(fn($r) => [
-                'label' => $r->gname,
-                'amount' => number_format($r->amt, 2),
-                'group_id' => $r->gid
-            ])
+            ->flatMap(function ($row) {
+
+                $items = json_decode($row->items, true);
+
+                if (!is_array($items)) return [];
+
+                return collect($items)->map(function ($item) {
+                    return [
+                        'subcategory' => $item['subcategory'] ?? 'Others',
+                        'amount' => (float)($item['price'] ?? 0)
+                    ];
+                });
+            })
+            ->groupBy('subcategory')
+            ->map(function ($rows, $subcategory) {
+
+                $total = $rows->sum('amount');
+
+                return [
+                    'label' => $subcategory, // ✅ category name
+                    'amount' => number_format($total, 2)
+                ];
+            })
             ->values()
             ->all();
-
         /* ================= COMMON FUNCTION ================= */
         $groupWithLedger = function ($scope) use ($linesBase) {
 
@@ -140,15 +152,35 @@ class ReportTallyController extends Controller
         /* ================= SECTIONS ================= */
         $purchase = $groupWithLedger(fn($q) => $q->whereRaw("LOWER(g.name) like '%purchase%'"));
 
-        $direct = $groupWithLedger(
-            fn($q) => $q->where('g.nature', 'Expense')->where('g.affects_gross', 1)
-        );
+        $directRaw = $groupWithLedger(
+                fn($q) => $q->where('g.nature', 'Expense')->where('g.affects_gross', 1)
+            );
 
-        $indirect = $groupWithLedger(
-            fn($q) => $q->where('g.nature', 'Expense')
-                ->where(fn($w) => $w->where('g.affects_gross', 0)->orWhereNull('g.affects_gross'))
-        );
+            // ✅ FINAL DUPLICATE FIX (flatten)
+            $direct = [
+                'total' => $directRaw['total'],
+                'children' => collect($directRaw['children'])->flatMap(function ($item) {
 
+                    // अगर group है → उसके अंदर के ledger निकालो
+                    if (isset($item['children'])) {
+                        return $item['children'];
+                    }
+
+                    return [$item];
+                })->values()->all()
+            ];
+
+            $indirectRaw = $groupWithLedger(
+                fn($q) => $q->where('g.nature', 'Expense')
+                    ->where(fn($w) => $w->where('g.affects_gross', 0)->orWhereNull('g.affects_gross'))
+            );
+
+            $indirect = [
+                'total' => $indirectRaw['total'],
+                'children' => collect($indirectRaw['children'])->flatMap(fn($i) =>
+                    isset($i['children']) ? $i['children'] : [$i]
+                )->values()->all()
+            ];
         /* ================= STOCK ================= */
         $valueStock = function ($date, $isOpening = false) {
 
@@ -228,12 +260,12 @@ class ReportTallyController extends Controller
                 'cr' => [
                     'rows' => [
                         [
-                            'label' => 'Sales Accounts',
-                            'amount' => number_format($salesAccounts, 2),
-                            'children' => $salesChildren,
-                            'section' => 'sales',
-                            'section_group_id' => collect($salesChildren)->first()['group_id'] ?? null
-                        ],
+                    'label' => 'Sales Accounts',
+                    'amount' => number_format($salesAccounts, 2),
+                    'children' => $salesChildren,
+                    'section' => 'sales',
+                    'section_group_id' => $salesChildren[0]['group_id'] ?? null // ✅ FIX
+                ],
 
                         ['label' => 'Closing Stock', 'amount' => number_format($closingStock, 2)],
                         ['label' => 'Gross Loss c/o', 'amount' => number_format($grossLoss, 2)],

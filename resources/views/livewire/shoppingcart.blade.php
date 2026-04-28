@@ -295,18 +295,17 @@
 
                             <div class="col-12 col-md-3 party-customer">
                                 @if (!$one_time_transaction)
-                                    <div class="position-relative ">
-                                        <img class="down-arrow" src="{{ asset('external/vector4471-t8to.svg') }}"
-                                            alt="Icon">
+                                    <div class="position-relative" wire:ignore>
 
                                         @if (auth()->user()->hasRole('cashier'))
                                             <select id="commissionUser"
-                                                class="form-control rounded-pill pe-5 custom-border"
-                                                wire:model="selectedCommissionUser" wire:change="calculateCommission"
+                                                class="form-control custom-border w-100"
                                                 @if ($removeCrossHold || $this->selectedSalesReturn == true) disabled @endif>
                                                 <option value="">Select Commission Customer</option>
                                                 @foreach ($commissionUsers as $user)
-                                                    <option value="{{ $user->id }}">{{ $user->first_name }}
+                                                    <option value="{{ $user->id }}"
+                                                        {{ $selectedCommissionUser == $user->id ? 'selected' : '' }}>
+                                                        {{ $user->first_name }}
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -314,13 +313,13 @@
 
                                         @if (auth()->user()->hasRole('warehouse'))
                                             <select id="partyUser"
-                                                class="form-control rounded-pill pe-5 custom-border"
-                                                wire:model="selectedPartyUser" wire:change="calculateParty"
+                                                class="form-control custom-border w-100"
                                                 @if ($removeCrossHold || $this->selectedSalesReturn == true) disabled @endif>
-                                                <option value="">{{ __('messages.select_party_customer') }}
-                                                </option>
+                                                <option value="">{{ __('messages.select_party_customer') }}</option>
                                                 @foreach ($partyUsers as $user)
-                                                    <option value="{{ $user->id }}">{{ $user->first_name }}
+                                                    <option value="{{ $user->id }}"
+                                                        {{ $selectedPartyUser == $user->id ? 'selected' : '' }}>
+                                                        {{ $user->first_name }}
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -1954,11 +1953,10 @@
                                         class="border rounded w-full p-2 bg-gray-100"
                                         value="{{ $this->cashAmount }}" readonly>
                                     @php
-                                        $this->cash = $totalAmount;
-                                        $this->upi = $this->cashAmount - $totalAmount;
+                                        $this->cash = $totalAmount ?: '';
+                                        $this->upi = ($this->cashAmount - $totalAmount) ?: '';
 
                                     @endphp
-
                                     <label for="cash" class="form-label">Cash Amount</label>
                                     <!-- Input Field with Debounce and Max Value -->
                                     <input type="number" id="cashAmount" step="1"
@@ -2096,11 +2094,10 @@
                                         class="border rounded w-full p-2 bg-gray-100"
                                         value="{{ $this->cashAmount }}" readonly>
                                     @php
-                                        $this->cash = $totalAmount;
-                                        $this->upi = $this->cashAmount - $totalAmount;
+                                        $this->cash = $totalAmount ?: '';
+                                        $this->upi = ($this->cashAmount - $totalAmount) ?: '';
 
                                     @endphp
-
                                 </div>
 
                                 <div class="col-md-3 offset-md-6">
@@ -3947,6 +3944,49 @@
                 Livewire.dispatch('checkShiftStatus');
             });
         });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+        // Commission Customer (Cashier role)
+        if ($('#commissionUser').length) {
+            $('#commissionUser').select2({
+                placeholder: 'Select Commission Customer',
+                allowClear: true,
+                width: '100%',
+            });
+
+            // Restore selected value on load
+            const commVal = '{{ $selectedCommissionUser ?? "" }}';
+            if (commVal) $('#commissionUser').val(commVal).trigger('change.select2');
+
+            // Sync to Livewire on change
+            $('#commissionUser').on('change', function () {
+                const value = $(this).val() || '';
+                @this.set('selectedCommissionUser', value);
+                @this.call('calculateCommission');
+            });
+        }
+
+        // Party Customer (Warehouse role)
+        if ($('#partyUser').length) {
+            $('#partyUser').select2({
+                placeholder: '{{ __("messages.select_party_customer") }}',
+                allowClear: true,
+                width: '100%',
+            });
+
+            // Restore selected value on load
+            const partyVal = '{{ $selectedPartyUser ?? "" }}';
+            if (partyVal) $('#partyUser').val(partyVal).trigger('change.select2');
+
+            // Sync to Livewire on change
+            $('#partyUser').on('change', function () {
+                const value = $(this).val() || '';
+                @this.set('selectedPartyUser', value);
+                @this.call('calculateParty');
+            });
+        }
     });
 
     function toggleSidebar() {
