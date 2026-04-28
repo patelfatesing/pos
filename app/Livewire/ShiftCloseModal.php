@@ -27,6 +27,7 @@ use App\Models\ShiftClosing;
 use App\Models\Partyuser;
 use App\Models\Commissionuser;
 use App\Jobs\SendShiftCloseMailJob;
+use App\Models\Inventory;
 
 class ShiftCloseModal extends Component
 {
@@ -36,9 +37,9 @@ class ShiftCloseModal extends Component
     public $invoiceData;
     public $shft_id;
     public $totalInvoicedAmount = 0;
-    public $cash = 0;
+    public $cash = '';
     public $creditPay = 0;
-    public $upi = 0;
+    public $upi = '';
     public $updatingField = null;
     public $showCloseButton = false;
     public $buttonEnabled = false;
@@ -123,6 +124,11 @@ class ShiftCloseModal extends Component
     public $capturedImage;
     public $currentShift = "";
     public $no_sale_product = false;
+
+    // ✅ Non-warehouse grouped product UI
+    public $selectedCategory = 'BEER';
+    public $groupedProducts = [];
+
     protected $rules = [
         'closingCash' => 'required|numeric|min:0',
     ];
@@ -169,9 +175,7 @@ class ShiftCloseModal extends Component
         $date = \Carbon\Carbon::parse($this->currentShift->start_time)->toDateString();
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
-        // $archived = Invoice::whereDate('created_at', $date)->where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where(['status' => "hold"])->update(['status' => 'archived']);
         $archived = Invoice::whereDate('created_at', $date)
-            // ->where(['user_id' => auth()->user()->id])
             ->where(['branch_id' => $branch_id])
             ->where(['status' => "hold"])
             ->delete();
@@ -188,21 +192,16 @@ class ShiftCloseModal extends Component
 
         $this->currentShift = $this->currentShift;
         $this->shft_id = $this->currentShift->id ?? null;
-        // $this->currentShift = Shift::latest()->first();
         $this->branch_name = $this->currentShift->branch->name ?? 'Shop';
         $sales = ['DESI', 'BEER', 'ENGLISH'];
         $discountTotal = $totalSales = $totalPaid = $totalRefund = $totalCashPaid = $totalSubTotal = $totalCreditPay = $totalUpiPaid = $totalRefundReturn = $totalOnlinePaid = $totalRoundOf = $totalPaidCredit = 0;
 
         $this->categoryTotals = [];
-        // $this->totalInvoicedAmount = \App\Models\Invoice::where('user_id', auth()->user()->id)
-        //     ->where('branch_id', $branch_id)
-        //     ->sum('total');
         $this->totalInvoicedAmount = \App\Models\Invoice::where('branch_id', $branch_id)
             ->sum('total');
-        // ✅ Initialize totals to 0 for all expected categories
 
-        $start_date = @$this->currentShift->start_time; // your start date (set manually)
-        $end_date = @$this->currentShift->end_time; // today's date till end of day
+        $start_date = @$this->currentShift->start_time;
+        $end_date = @$this->currentShift->end_time;
         $totals = CreditHistory::whereBetween('created_at', [$start_date, $end_date])
             ->where('store_id', $branch_id)
             ->where('transaction_kind', '!=', 'collact_credit')
@@ -217,15 +216,13 @@ class ShiftCloseModal extends Component
             ->whereBetween('created_at', [$start_date, $end_date])
             ->first();
 
-        // $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->where('status', '!=', 'Hold')->where('invoice_number', 'not like', '%Hold%')->latest()->get();
         $invoices = Invoice::where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->whereNotIn('status', ['Hold', 'resumed', 'archived', 'Returned'])->latest()->get();
-        //  $invoices = Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->whereBetween('created_at', [$start_date, $end_date])->whereNotIn('status', ['Hold', 'resumed', 'archived', 'Returned'])->latest()->get();
         $totalSalesNew = 0;
         foreach ($invoices as $invoice) {
-            $items = $invoice->items; // decode items from longtext JSON
+            $items = $invoice->items;
 
             if (is_string($items)) {
-                $items = json_decode($items, true); // decode if not already an array
+                $items = json_decode($items, true);
             }
 
             if (!is_array($items)) {
@@ -250,7 +247,6 @@ class ShiftCloseModal extends Component
             }
 
             $this->closing_sales = @$this->categoryTotals['sales'];
-            // $discountTotal += ($invoice->commission_amount ?? 0) + ($invoice->party_amount ?? 0);
             $discountTotal += (!empty($invoice->commission_amount) && is_numeric($invoice->commission_amount)) ? (int)$invoice->commission_amount : 0;
             $discountTotal += (!empty($invoice->party_amount) && is_numeric($invoice->party_amount)) ? (int)$invoice->party_amount : 0;
 
@@ -266,20 +262,11 @@ class ShiftCloseModal extends Component
                 $totalRefundReturn += floatval(str_replace(',', '', $invoice->total));
             }
 
-
-
             $totalCreditPay  += (!empty($invoice->creditpay)  && is_numeric($invoice->creditpay)) ? (int)$invoice->creditpay  : 0;
 
             $totalSales    += (!empty($invoice->sub_total)   && is_numeric($invoice->sub_total)) ? (int)$invoice->sub_total : 0;
             $totalPaid     += (!empty($invoice->total)       && is_numeric($invoice->total)) ? (int)$invoice->total : 0;
-            // if ($invoice->status == "Refunded") {
-            //     $refund = Refund::where('invoice_id', $invoice->id)
-            //         ->where('user_id', auth()->id())
-            //         ->first();
-            //     if ($refund) {
-            //         $totalRefund     += (!empty($refund->amount)       && is_numeric($refund->amount)) ? (int)$refund->amount : 0;
-            //     }
-            // }
+
             $refunds = Refund::where('invoice_id', $invoice->id)
                 ->where('user_id', auth()->id())
                 ->get();
@@ -313,18 +300,11 @@ class ShiftCloseModal extends Component
         $this->categoryTotals['summary']['ROUND OFF'] = $totalRoundOf;
         $this->categoryTotals['summary']['CREDIT'] = $totals->credit_total * (-1);
         $this->categoryTotals['summary']['REFUND_CREDIT'] = $totals->debit_total;
-        //$this->categoryTotals['summary']['ONLINE PAYMENT'] = $totalOnlinePaid * (-1);
         if (!empty($this->creditCollacted->collacted_cash_amount))
             $this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] = @$this->creditCollacted->collacted_cash_amount;
-        // $this->categoryTotals['summary']['REFUND'] += $totalRefundReturn *(-1);
         $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['CASH ADDED'] + $this->categoryTotals['summary']['OPENING CASH'] + $this->categoryTotals['summary']['TOTAL SALES'] + $this->categoryTotals['summary']['DISCOUNT'] + $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $this->categoryTotals['summary']['UPI PAYMENT'] + @$this->categoryTotals['summary']['REFUND'] +
             @$this->categoryTotals['summary']['ONLINE PAYMENT'] + @$this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] + $totalRoundOf + $this->categoryTotals['summary']['CREDIT'] + $totalRefundReturn + $this->creditCollacted->collacted_cash_amount;
         $this->categoryTotals['summary']['REFUND'] = $totalRefund * (-1) + $totalRefundReturn * (-1);
-        //$this->categoryTotals['summary']['REFUND RETURN'] = $totalRefundReturn*(-1);
-
-        // if (!empty($this->categoryTotals['summary']['REFUND_CREDIT'])) {
-        //     $this->categoryTotals['summary']['REFUND_CREDIT'] = (int)$this->categoryTotals['summary']['REFUND_CREDIT'] * (-1);
-        // }
 
         $cashBreakdowns = CashBreakdown::where('user_id', auth()->id())
             ->where('branch_id', $branch_id)
@@ -338,7 +318,6 @@ class ShiftCloseModal extends Component
             $denominations1 = json_decode($breakdown->denominations, true);
 
             if (is_array($denominations1)) {
-                // Handle array of objects: [{"10":{"in":"0"}},{"20":{"in":"0"}},...]
                 if (array_keys($denominations1) === range(0, count($denominations1) - 1)) {
                     foreach ($denominations1 as $item) {
                         if (is_array($item)) {
@@ -359,7 +338,6 @@ class ShiftCloseModal extends Component
                         }
                     }
                 } else {
-                    // Handle object with nested arrays: {"5":{"500":{"in":4}}, "3":{"100":{"out":1}}}
                     foreach ($denominations1 as $outer) {
                         if (is_array($outer)) {
                             foreach ($outer as $noteValue => $action) {
@@ -382,7 +360,6 @@ class ShiftCloseModal extends Component
             }
         }
 
-        // Decode cash JSON to array
         $this->shiftcash = $noteCount;
         $this->availableNotes = json_encode($this->shiftcash);
 
@@ -417,30 +394,56 @@ class ShiftCloseModal extends Component
 
     public function addphysicalStock()
     {
-        //$branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
-
         if ($this->currentShift->physical_stock_added == 1) {
             $this->dispatch('notiffication-error', ['message' => 'Physical stock already added.']);
             return;
         }
         $this->showPhysicalModal = true;
         $this->dispatch('test');
-        //$this->getDataPhysicalStock();
-        // ✅ Initialize $this->products with default qty = 0
-        // foreach ($this->addstockStatus as $item) {
-        //     $this->products[$item['product_id']] = [
-        //         'qty' => 0
-        //     ];
-        // }
+
+        // ✅ Non-warehouse branch mate grouped products load karo
+        if ($this->branch_name != 'WAREHOUSE') {
+            $this->loadProducts();
+        }
+    }
+
+    /**
+     * ✅ Flatten products array from category-keyed structure (non-warehouse)
+     * or direct product_id-keyed structure (warehouse) into a flat
+     * [product_id => ['qty' => X]] array for processing.
+     */
+    private function getFlatProducts(): array
+    {
+        $flat = [];
+
+        foreach ($this->products as $key => $value) {
+            // Non-warehouse: products.{CATEGORY}.{product_id}.qty
+            if (is_array($value) && isset($value) && !isset($value['qty'])) {
+                foreach ($value as $product_id => $productData) {
+                    if (is_array($productData) && isset($productData['qty'])) {
+                        $flat[$product_id] = $productData;
+                    }
+                }
+            }
+            // Warehouse: products.{product_id}.qty
+            elseif (is_array($value) && isset($value['qty'])) {
+                $flat[$key] = $value;
+            }
+        }
+
+        return $flat;
     }
 
     public function save()
     {
 
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
+
+        // ✅ Flatten the products array regardless of warehouse / non-warehouse structure
+        $flatProducts = $this->getFlatProducts();
+
         if (!$this->no_sale_product) {
-            // Only run these validations if no_sale_product is NOT checked
-            if (empty($this->products)) {
+            if (empty($flatProducts)) {
                 $this->dispatch('notiffication-error', [
                     'message' => 'Please add qty of product'
                 ]);
@@ -461,22 +464,17 @@ class ShiftCloseModal extends Component
 
         $filename = '';
         if ($this->capturedImage) {
-            // Decode and store image
             $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $this->capturedImage));
             $filename = 'captured_images/' . uniqid() . '.jpg';
             Storage::disk('public')->put($filename, $imageData);
-
-            // Store path in DB (if needed)
-            // Example: PhysicalStock::create([... , 'image_path' => $filename]);
         }
 
-
-
         $sale_total = 0;
-        $data = []; // ✅ initialize BEFORE loop
-        if ($branch_id != 1) {
+        $data = [];
 
-            foreach ($this->products as $product_id => $product) {
+        if ($branch_id != 1) {
+            // ✅ NON-WAREHOUSE: use flattened products
+            foreach ($flatProducts as $product_id => $product) {
 
                 $dailyProductStock = DailyProductStock::where('branch_id', $branch_id)
                     ->where('product_id', $product_id)
@@ -485,16 +483,9 @@ class ShiftCloseModal extends Component
 
                 if (!empty($dailyProductStock)) {
 
-                    // $calculatedClosingStock = $dailyProductStock->opening_stock
-                    //     + $dailyProductStock->added_stock
-                    //     - $dailyProductStock->transferred_stock
-                    //     - $dailyProductStock->sold_stock;
-
                     if (isset($product['qty']) && is_numeric($product['qty']) && (float)$product['qty'] > 0) {
 
                         $qty = (float)$product['qty'];
-
-
 
                         $sales_plus = $dailyProductStock->opening_stock + $dailyProductStock->added_stock;
                         $sales_minus = $dailyProductStock->transferred_stock + $dailyProductStock->sold_stock + $qty;
@@ -511,7 +502,6 @@ class ShiftCloseModal extends Component
                         $productData = Product::with(['category', 'subcategory'])->findOrFail($product_id);
 
                         if ($one_time_sale > 0) {
-                            // ✅ PUSH instead of overwrite
                             $data[] = [
                                 'product_id' => $productData->id,
                                 'name' => $productData->name,
@@ -526,18 +516,6 @@ class ShiftCloseModal extends Component
                             $sale_total += $one_time_sale * $productData->sell_price;
                             $this->total_item_total += $one_time_sale * $productData->sell_price;
                         }
-
-                        // stockStatusChange($product_id, $branch_id, $qty, 'sold_stock', optional($this->currentShift)->id);
-
-                        // $existing = DailyProductStock::where('branch_id', $branch_id)
-                        //     ->where('product_id', $product_id)
-                        //     // ->whereDate('date', $date)
-                        //     ->where('shift_id', $this->currentShift->id)
-                        //     ->first();
-
-                        // $existing->sold_stock += $qty;
-                        // $existing->closing_stock = closingStock($existing->opening_stock, $existing->added_stock, $existing->transferred_stock, $existing->sold_stock);
-                        // $existing->save();
                     } else {
                         $dailyProductStock->physical_stock = $dailyProductStock->opening_stock;
                     }
@@ -608,20 +586,19 @@ class ShiftCloseModal extends Component
                 $dailyProductStock1->save();
             }
         } else {
-            foreach ($this->products as $product_id => $product) {
+            // ✅ WAREHOUSE: use flattened products (warehouse stores directly as product_id key, but getFlatProducts handles both)
+            foreach ($flatProducts as $product_id => $product) {
                 $dailyProductStock = DailyProductStock::where('branch_id', $branch_id)
                     ->where('product_id', $product_id)
                     ->where('shift_id', $this->currentShift->id)
                     ->first();
 
                 if (!empty($dailyProductStock)) {
-                    // Calculate closing stock
                     $calculatedClosingStock = $dailyProductStock->opening_stock
                         + $dailyProductStock->added_stock
                         - $dailyProductStock->transferred_stock
                         - $dailyProductStock->sold_stock;
 
-                    // Check if qty is numeric
                     if (isset($product['qty']) && is_numeric($product['qty']) && (float)$product['qty'] > 0) {
                         $qty = (float)$product['qty'];
 
@@ -629,8 +606,6 @@ class ShiftCloseModal extends Component
                         $dailyProductStock->closing_stock = $calculatedClosingStock;
                         $dailyProductStock->difference_in_stock = $calculatedClosingStock - $qty;
                     } else {
-                        // Don't override closing_stock and difference_in_stock
-
                         $dailyProductStock->physical_stock = $dailyProductStock->opening_stock;
                     }
 
@@ -662,7 +637,6 @@ class ShiftCloseModal extends Component
 
         $shift = UserShift::where('id', $this->currentShift->id)
             ->where('branch_id', $branch_id)
-            // ->whereBetween('created_at', [$this->currentShift->start_time, $this->currentShift->end_time])
             ->where('status', 'pending')
             ->update([
                 'physical_stock_added' => true,
@@ -694,7 +668,7 @@ class ShiftCloseModal extends Component
     {
         $this->validate();
         DB::beginTransaction();
-        $this->dispatch('loader-start'); // ✅ Livewire v3
+        $this->dispatch('loader-start');
 
         try {
 
@@ -722,7 +696,6 @@ class ShiftCloseModal extends Component
                 ->where('status', 'Paid')
                 ->chunk(100, function ($invoices) use (&$departments, &$customers, $branch_id) {
 
-                    // ✅ preload party users once per chunk
                     $partyUsers = PartyUser::whereIn('id', $invoices->pluck('party_user_id')->filter())
                         ->get()
                         ->keyBy('id');
@@ -830,7 +803,6 @@ class ShiftCloseModal extends Component
             ];
 
 
-            // Update shift data
             $shift = UserShift::where('user_id', $user_id)
                 ->where('branch_id', $branch_id)
                 ->where('status', 'pending')
@@ -862,16 +834,11 @@ class ShiftCloseModal extends Component
             $shift->closing_sales = json_encode($this->closing_sales);
             $shift->status = 'completed';
             $shift->save();
-            //  Invoice::where(['user_id' => $user_id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->delete();
-            $cartItems = Cart::where('user_id', $user_id)->delete(); // <-- get all matching rows
-            // Update user login status and logout
+            $cartItems = Cart::where('user_id', $user_id)->delete();
             $user = User::find($user_id);
             $user->is_login = 'No';
             $user->save();
 
-            // --------------------------------------
-            // PREPARE SUMMARY DATA FOR EMAIL
-            // --------------------------------------
             $summary = [
                 'OPENING CASH'                           => $this->categoryTotals['summary']['OPENING CASH'] ?? '₹0',
                 'CASH ADDED'                             => $this->categoryTotals['summary']['CASH ADDED'] ?? '₹0',
@@ -886,13 +853,8 @@ class ShiftCloseModal extends Component
                 'REFUND'                                 => $this->categoryTotals['summary']['REFUND'] ?? '₹0',
             ];
 
-            // --------------------------------------
-            // SEND EMAIL TO ADMIN
-            // --------------------------------------
-
             $branch_name = Branch::findOrFail($branch_id);
 
-            // ================= PDF 1 =================
             $shiftFileName = 'shift_' . time() . '.pdf';
             $shiftPdfPath = storage_path('app/public/' . $shiftFileName);
 
@@ -926,7 +888,6 @@ class ShiftCloseModal extends Component
 
     public function getStockStatus(): array
     {
-        // Example DB fetch, adapt to your DB structure
         return Product::select('name', 'quantity', 'price')->get()->toArray();
     }
 
@@ -961,26 +922,18 @@ class ShiftCloseModal extends Component
         } else {
             $query = DailyProductStock::with('product')
                 ->where('branch_id', $branch_id)
-                ->where('shift_id', optional($this->currentShift)->id)
-                ->where(function ($q) {
-                    // $q->where('sold_stock', '>', 0)
-                    //     ->orWhere('transferred_stock', '>', 0)
-                    //     ->orWhere('added_stock', '>', 0);
-                });
+                ->where('shift_id', optional($this->currentShift)->id);
         }
 
-
-        // Add search condition
         if ($this->search) {
             $query->whereHas('product', function ($q) {
-                $q->where('name', 'like', '%' . $this->search . '%')  // assuming product name is in `name`
-                    ->orWhere('sku', 'like', '%' . $this->search . '%'); // add other searchable fields if needed
+                $q->where('name', 'like', '%' . $this->search . '%')
+                    ->orWhere('sku', 'like', '%' . $this->search . '%');
             });
         }
 
         $rawStockData = $query->get()->toArray();
 
-        // Calculate closing stock
         $this->addstockStatus = array_map(function ($item) {
             $item['closing_stock'] =
                 $item['opening_stock'] +
@@ -992,27 +945,114 @@ class ShiftCloseModal extends Component
         }, $rawStockData);
     }
 
+    // ✅ Non-warehouse mate: category select
+    public function setCategory($category)
+    {
+        $this->selectedCategory = $category;
+        $this->loadProducts();
+    }
+
+    // ✅ Non-warehouse mate: selected category na sizes
+    public function getSizes()
+    {
+        switch ($this->selectedCategory) {
+            case 'IMFL':
+                return ['750ML', '375ML', '180ML', '500ML'];
+            case 'BEER':
+                return ['650ML', '500ML', '330ML'];
+            case 'CL_RML':
+                return ['180ML', '375ML', '750ML'];
+            default:
+                return [];
+        }
+    }
+
+    // ✅ Non-warehouse mate: products group by name x size
+    public function loadProducts()
+    {
+        $branch_id = auth()->user()->userinfo->branch->id ?? null;
+        $shift_id = $this->currentShift->id ?? null;
+
+        if (!$shift_id) return;
+
+        // 1. Get products from Inventory as per your current logic
+        $inventoryItems = Inventory::with('product')
+            ->where('store_id', $branch_id)
+            ->get();
+
+        // 2. Fetch all stock records for the current shift to avoid N+1 queries
+        $dailyStocks = DailyProductStock::where('branch_id', $branch_id)
+            ->where('shift_id', $shift_id)
+            ->get()
+            ->keyBy('product_id');
+
+        // 3. Filter based on selected category
+        $inventoryItems = $inventoryItems->filter(function ($item) {
+            $subcategory = $item->product->subcategory_id ?? null;
+            if ($this->selectedCategory == 'BEER') return $subcategory == 1;
+            if ($this->selectedCategory == 'IMFL') return $subcategory == 2;
+            if ($this->selectedCategory == 'CL_RML') return in_array($subcategory, [3, 4]);
+            return true;
+        });
+
+        $grouped = [];
+
+        foreach ($inventoryItems as $item) {
+            $product = $item->product;
+            if (!$product) continue;
+
+            // Clean name and size for grouping
+            $name = trim(preg_replace('/\s*\d+\s*ML/i', '', $product->name));
+            $size = strtoupper(str_replace(' ', '', $product->size ?? ''));
+
+            // Look up the dynamic values from the daily_stocks collection
+            $stockRecord = $dailyStocks->get($product->id);
+
+            if (!isset($grouped[$name])) {
+                $grouped[$name] = [
+                    'name' => $name,
+                    'sizes' => []
+                ];
+            }
+
+            $grouped[$name]['sizes'][$size] = [
+                'opening'    => $stockRecord->opening_stock ?? 0,
+                'sales'      => $stockRecord->sold_stock ?? 0,
+                'product_id' => $product->id
+            ];
+        }
+
+        $this->groupedProducts = $grouped;
+    }
+
     public function render()
     {
 
         $this->getDataPhysicalStock();
+
+        // ✅ Non-warehouse mate j grouped products load karo
+        if ($this->branch_name != 'WAREHOUSE') {
+            $this->loadProducts();
+        }
+
+        $this->commissionUsers = Commissionuser::where('is_active', 1)
+            ->where('is_deleted', '!=', 'Yes')
+            ->orderBy('first_name', 'asc')
+            ->get();
+
+        $this->partyUsers = Partyuser::where('status', 'Active')
+            ->where('is_delete', 'No')
+            ->orderBy('first_name', 'asc')
+            ->get();
 
         return view('livewire.shift-close-modal', [
             'dailyStockData' => $this->addstockStatus
         ]);
     }
 
-    //  public function rules()
-    // {
-    //     return [
-    //         'products.*.qty' => 'required|integer|min:1',
-    //     ];
-    // }
-
     public function save_19032026()
     {
         if (!$this->no_sale_product) {
-            // Only run these validations if no_sale_product is NOT checked
             if (empty($this->products)) {
                 $this->dispatch('notiffication-error', [
                     'message' => 'Please add qty of product'
@@ -1030,21 +1070,17 @@ class ShiftCloseModal extends Component
 
         $filename = '';
         if ($this->capturedImage) {
-            // Decode and store image
             $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $this->capturedImage));
             $filename = 'captured_images/' . uniqid() . '.jpg';
             Storage::disk('public')->put($filename, $imageData);
-
-            // Store path in DB (if needed)
-            // Example: PhysicalStock::create([... , 'image_path' => $filename]);
         }
 
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
+        $flatProducts = $this->getFlatProducts();
 
         $sale_total = 0;
-        foreach ($this->products as $product_id => $product) {
-
+        foreach ($flatProducts as $product_id => $product) {
 
             $dailyProductStock = DailyProductStock::where('branch_id', $branch_id)
                 ->where('product_id', $product_id)
@@ -1052,26 +1088,17 @@ class ShiftCloseModal extends Component
                 ->first();
 
             if (!empty($dailyProductStock)) {
-                // Calculate closing stock
-                // $sale_stock = $dailyProductStock->opening_stock + $dailyProductStock->added_stock
-                // echo "<pre>";
-                // print_r($dailyProductStock);
-
                 $calculatedClosingStock = $dailyProductStock->opening_stock
                     + $dailyProductStock->added_stock
                     - $dailyProductStock->transferred_stock
                     - $dailyProductStock->sold_stock;
 
-
-
-                // Check if qty is numeric
                 if (isset($product['qty']) && is_numeric($product['qty']) && (float)$product['qty'] > 0) {
                     $qty = (float)$product['qty'];
 
                     $dailyProductStock->physical_stock = $qty;
                     $dailyProductStock->closing_stock = $calculatedClosingStock;
                     $dailyProductStock->difference_in_stock = $calculatedClosingStock - $qty;
-
 
                     $sales_plus = $dailyProductStock->opening_stock + $dailyProductStock->added_stock;
                     $sales_minus = $dailyProductStock->transferred_stock + $dailyProductStock->sold_stock + $qty;
@@ -1080,15 +1107,13 @@ class ShiftCloseModal extends Component
                     $productData = Product::findOrFail($product_id);
                     $sale_total += $one_time_sale * $productData->sell_price;
                 } else {
-                    // Don't override closing_stock and difference_in_stock
-
                     $dailyProductStock->physical_stock = $dailyProductStock->opening_stock;
                 }
 
                 $dailyProductStock->save();
             }
         }
-        //  dd($sale_total);
+
         $query = DailyProductStock::with('product')
             ->where('branch_id', $branch_id)
             ->where('shift_id', optional($this->currentShift)->id)
@@ -1097,8 +1122,6 @@ class ShiftCloseModal extends Component
                     ->where('transferred_stock', 0)
                     ->where('added_stock', 0);
             });
-
-
 
         $rawStockData = $query->get();
 
@@ -1114,7 +1137,6 @@ class ShiftCloseModal extends Component
 
         $shift = UserShift::where('id', $this->currentShift->id)
             ->where('branch_id', $branch_id)
-            // ->whereBetween('created_at', [$this->currentShift->start_time, $this->currentShift->end_time])
             ->where('status', 'pending')
             ->update([
                 'physical_stock_added' => true,

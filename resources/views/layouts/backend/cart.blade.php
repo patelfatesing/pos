@@ -39,11 +39,53 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
+    <style>
+        .select2-container .select2-selection--single {
+            height: 38px !important;
+            border-radius: 50px !important;
+            border: 1px solid #dee2e6 !important;
+            padding: 4px 12px !important;
+            display: flex;
+            align-items: center;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 28px !important;
+            padding-left: 4px !important;
+            color: #333;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 36px !important;
+            right: 8px !important;
+        }
+
+        .select2-dropdown {
+            border-radius: 0.5rem !important;
+            border: 1px solid #dee2e6 !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 99999 !important;
+        }
+
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #0d6efd !important;
+        }
+
+        .select2-search--dropdown .select2-search__field {
+            border-radius: 4px !important;
+            border: 1px solid #dee2e6 !important;
+            padding: 6px 10px !important;
+        }
+    </style>
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
     @livewireStyles
 </head>
 
 <body>
     @yield('page-content')
+    
     <div class="modal fade bd-example-modal-lg" id="approveModal" tabindex="-1" role="dialog"
         aria-labelledby="approveModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
@@ -51,6 +93,11 @@
             </div>
         </div>
     </div>
+
+    <script async src="../assets/js/jquery-3.6.0.min.js"></script>
+
+    <!-- Select2 JS — after jQuery -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <!-- Backend Bundle JavaScript -->
     <script src="../assets/js/backend-bundle.min.js"></script>
@@ -66,9 +113,10 @@
 
     <!-- app JavaScript -->
     <script src="../assets/js/app.js"></script>
-    <script async src="../assets/js/jquery-3.6.0.min.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Add in the <head> section -->
+
+    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
@@ -186,6 +234,7 @@
     </script>
 
     @livewireScripts
+
     <!-- Global Loader -->
     <div id="custom-loader"
         class="d-none position-fixed top-0 start-0 w-100 h-100 bg-white bg-opacity-75 d-flex justify-content-center align-items-center"
@@ -196,5 +245,4 @@
     </div>
 
 </body>
-
 </html>

@@ -42,9 +42,9 @@ class Shoppingcart extends Component
 
     public $invoiceData;
     public $totalInvoicedAmount = 0;
-    public $cash = 0;
+    public $cash = '';
     public $creditPay = 0;
-    public $upi = 0;
+    public $upi = '';
     public $updatingField = null;
     public $showCloseButton = false;
     public $partImsgs = [];
@@ -136,6 +136,7 @@ class Shoppingcart extends Component
     public $activeProductId = null;
     public $notFoundMessage = ''; // Add this property to your component
     public $inOutStatus = false; // Add this property to your component
+    public $is_capture = false;
     public $subCategories;
     public $selectedSubCategory = null;
     public $selectedProduct = null;
@@ -1382,9 +1383,10 @@ class Shoppingcart extends Component
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 
 
-        $store = Branch::select('in_out_enable', 'one_time_sales')->findOrFail($branch_id);
+        $store = Branch::select('in_out_enable', 'one_time_sales', 'is_capture')->findOrFail($branch_id);
         $this->inOutStatus = $store->in_out_enable;
         $this->one_time_sales_time = $store->one_time_sales;
+        $this->is_capture = $store->is_capture;
         $current_party_id = session('current_party_id');
 
         if (!empty($current_party_id)) {
@@ -3250,19 +3252,21 @@ if ($branchId == 1) {
             $pdf->save($pdfPath);
             $this->dispatch('focus-barcode');
 
-            if (auth()->user()->hasRole('warehouse')) {
-                $this->invoiceData = $invoice;
-                // $this->dispatch('triggerPrint');
-                // Generate PDF and store it in local storage
-                //  $this->dispatch('triggerPrint', [
-                //     'pdfPath' => route('print.pdf', $invoice->invoice_number)
-                // ]);
+            // if (auth()->user()->hasRole('warehouse')) {
+            //     $this->invoiceData = $invoice;
+            //     // $this->dispatch('triggerPrint');
+            //     // Generate PDF and store it in local storage
+            //     //  $this->dispatch('triggerPrint', [
+            //     //     'pdfPath' => route('print.pdf', $invoice->invoice_number)
+            //     // ]);
 
-                // Trigger print via browser event
-                $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/' . $invoice->invoice_number . '.pdf')]);
-            } else {
-                $this->dispatch('order-saved');
-            }
+            //     // Trigger print via browser event
+            //     $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/' . $invoice->invoice_number . '.pdf')]);
+            // } else {
+            //     $this->dispatch('order-saved');
+            // }
+
+            $this->dispatch('order-saved');
 
             if ($voucher && $invoice) {
                 $voucher->gen_id = $invoice->id;
@@ -4811,8 +4815,8 @@ if ($branchId == 1) {
         // Reset relevant fields
         $this->showOnline = false;  // Reset modal visibility
         $this->showBox = true;      // Reset other state variables
-        $this->cash = 0;            // Reset cash value
-        $this->upi = 0;             // Reset upi value
+        $this->cash = '';            // Reset cash value
+        $this->upi = '';             // Reset upi value
         $this->paymentType = null;  // Reset payment type
         $this->total = 0;
     }
