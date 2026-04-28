@@ -43,61 +43,57 @@
                             <div class="d-flex align-items-center gap-3">
 
 
-                                <div class="verify-box d-flex align-items-center justify-content-between px-3 py-2">
+                                @if ($first->branch->id != 1)
+                                    <!-- NORMAL SUB ADMIN (OTHER BRANCH LOGIN) -->
+                                    <div class="verify-box d-flex align-items-center justify-content-between px-3 py-2">
 
-                                    @if (auth()->user()->role_id == 1)
-                                        <!-- LEFT: LABEL -->
                                         <div class="fw-semibold text-dark mt-2 mr-1">
                                             Sub Admin
                                         </div>
-                                    @endif
 
-                                    <!-- RIGHT: STATUS -->
-                                    <div class="d-flex align-items-center gap-4">
+                                        <div class="d-flex align-items-center gap-4">
+                                            <!-- SALES -->
+                                            <div class="verify-item text-center mr-2">
+                                                <small class="text-muted d-block mb-1">Sales</small>
+                                                <label class="switch small-switch">
+                                                    <input type="checkbox"
+                                                        onchange="changeVerifyStatus('sales', {{ $first->shift_id }}, this.checked,'sub_admin')"
+                                                        {{ ($status['admin']['inv'] ?? '') == 'verify' ? 'checked' : '' }}>
+                                                    <span class="slider round"></span>
+                                                </label>
+                                            </div>
 
-                                        <!-- SALES -->
-                                        <div class="verify-item text-center mr-2">
-                                            <small class="text-muted d-block mb-1">Sales</small>
+                                            <!-- TRANSFER -->
+                                            <div class="verify-item text-center mr-2">
+                                                <small class="text-muted d-block mb-1">Transfer</small>
+                                                <label class="switch small-switch">
+                                                    <input type="checkbox"
+                                                        onchange="changeVerifyStatus('transfer', {{ $first->shift_id }}, this.checked,'sub_admin')"
+                                                        {{ ($status['admin']['tra'] ?? '') == 'verify' ? 'checked' : '' }}>
+                                                    <span class="slider round"></span>
+                                                </label>
+                                            </div>
 
-                                            <label class="switch small-switch">
-                                                <input type="checkbox"
-                                                    onchange="changeVerifyStatus('sales', {{ $first->shift_id }}, this.checked,'sub_admin')"
-                                                    {{ ($status['admin']['inv'] ?? '') == 'verify' ? 'checked' : '' }}>
-                                                <span class="slider round"></span>
-                                            </label>
+                                            <!-- SHIFT -->
+                                            <div class="verify-item text-center">
+                                                <small class="text-muted d-block mb-1">Shift</small>
+                                                <label class="switch small-switch">
+                                                    <input type="checkbox"
+                                                        onchange="verifyFullShift({{ $first->shift_id }}, this.checked,'sub_admin')"
+                                                        {{ ($status['admin']['shift'] ?? '') == 'verify' ? 'checked' : '' }}>
+                                                    <span class="slider round"></span>
+                                                </label>
+                                            </div>
                                         </div>
-
-                                        <!-- TRANSFER -->
-                                        <div class="verify-item text-center mr-2">
-                                            <small class="text-muted d-block mb-1">
-                                                <a href="javascript:void(0)" class="text-primary mb-2 mr-2 ml-1"
-                                                    onclick="handleClick('transfer', {{ $first->shift_id }}, {{ $first->branch->id }})">
-                                                    Transfer
-                                                </a>
-                                            </small>
-
-                                            <label class="switch small-switch">
-                                                <input type="checkbox"
-                                                    onchange="changeVerifyStatus('transfer', {{ $first->shift_id }}, this.checked,'sub_admin')"
-                                                    {{ ($status['admin']['tra'] ?? '') == 'verify' ? 'checked' : '' }}>
-                                                <span class="slider round"></span>
-                                            </label>
-                                        </div>
-
-                                        <!-- SHIFT -->
-                                        <div class="verify-item text-center">
-                                            <small class="text-muted d-block mb-1">Shift</small>
-
-                                            <label class="switch small-switch">
-                                                <input type="checkbox"
-                                                    onchange="verifyFullShift({{ $first->shift_id }}, this.checked,'sub_admin')"
-                                                    {{ ($status['admin']['shift'] ?? '') == 'verify' ? 'checked' : '' }}>
-                                                <span class="slider round"></span>
-                                            </label>
-                                        </div>
-
                                     </div>
-                                </div>
+                                @endif
+
+                                @if ($first->branch->id == 1)
+                                    <button class="btn btn-sm btn-warning"
+                                        onclick="openSubAdminModal({{ $first->shift_id }})">
+                                        Sub Admin Verify
+                                    </button>
+                                @endif
 
 
                                 @if (auth()->user()->role_id == 1)
@@ -180,7 +176,7 @@
                                 {{-- <a href="javascript:void(0)" class="text-primary mb-2 mr-2 ml-1"
                                     onclick="handleClick('transfer', {{ $first->shift_id }}, {{ $first->branch->id }})">
                                     Transfer
-                                </a> --}}
+                                </a> 
                                 <a href="javascript:void(0)" class="text-primary mb-2 mr-2 ml-1"
                                     onclick="openTransferModal({{ $first->shift_id }}, {{ $first->branch->id }})">
                                     Transfer
@@ -211,7 +207,7 @@
                             View
                         </a>
 
-                       
+
 
                     </div>
                 </div>

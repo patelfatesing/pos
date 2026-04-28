@@ -106,50 +106,49 @@
     }
 
     /* Hide default switch */
-.custom-switch .custom-control-label::before {
-    display: none;
-}
+    .custom-switch .custom-control-label::before {
+        display: none;
+    }
 
-.custom-switch .custom-control-label::after {
-    display: none;
-}
+    .custom-switch .custom-control-label::after {
+        display: none;
+    }
 
-/* Pill base */
-.custom-switch-text .custom-control-label {
-    padding: 10px 20px;
-    border-radius: 30px;
-    font-weight: 600;
-    color: #fff;
-    cursor: pointer;
-    display: inline-block;
-    transition: 0.3s;
-}
+    /* Pill base */
+    .custom-switch-text .custom-control-label {
+        padding: 10px 20px;
+        border-radius: 30px;
+        font-weight: 600;
+        color: #fff;
+        cursor: pointer;
+        display: inline-block;
+        transition: 0.3s;
+    }
 
-/* UNVERIFIED (default) */
-.verify-switch + .custom-control-label {
-    background: linear-gradient(135deg, #ff5722, #ff7043);
-}
+    /* UNVERIFIED (default) */
+    .verify-switch+.custom-control-label {
+        background: linear-gradient(135deg, #ff5722, #ff7043);
+    }
 
-/* VERIFIED */
-.verify-switch:checked + .custom-control-label {
-    background: linear-gradient(135deg, #28a745, #43d67c);
-}
+    /* VERIFIED */
+    .verify-switch:checked+.custom-control-label {
+        background: linear-gradient(135deg, #28a745, #43d67c);
+    }
 
-/* Dynamic text */
-.verify-switch + .custom-control-label::after {
-    content: attr(data-off-label);
-}
+    /* Dynamic text */
+    .verify-switch+.custom-control-label::after {
+        content: attr(data-off-label);
+    }
 
-.verify-switch:checked + .custom-control-label::after {
-    content: attr(data-on-label);
-}
+    .verify-switch:checked+.custom-control-label::after {
+        content: attr(data-on-label);
+    }
 
-/* Hover effect */
-.custom-control-label:hover {
-    opacity: 0.9;
-    transform: scale(1.05);
-}
-
+    /* Hover effect */
+    .custom-control-label:hover {
+        opacity: 0.9;
+        transform: scale(1.05);
+    }
 </style>
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -216,7 +215,57 @@
         </div>
     </div>
 
+    <div class="modal fade" id="subAdminModal" tabindex="-1">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
 
+                <div class="modal-header">
+                    <h5 class="modal-title">Sub Admin Verification</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="verify-box">
+
+                        <!-- SALES -->
+                        <div class="verify-item text-center mb-3">
+                            <small class="text-muted d-block mb-1">Sales</small>
+                            <label class="switch">
+                                <input type="checkbox" id="modal_sales">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                        <!-- TRANSFER -->
+                        <div class="verify-item text-center mb-3">
+                            <small class="text-muted d-block mb-1">Transfer</small>
+                            <label class="switch">
+                                <input type="checkbox" id="modal_transfer">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                        <!-- SHIFT -->
+                        <div class="verify-item text-center">
+                            <small class="text-muted d-block mb-1">Shift</small>
+                            <label class="switch">
+                                <input type="checkbox" id="modal_shift">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-primary" onclick="saveSubAdminVerify()">Save</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
     <!-- MODAL -->
     <div class="modal fade" id="verifyModal">
         <div class="modal-dialog modal-lg">
@@ -654,7 +703,7 @@
             });
         }
 
-        function changeVerifyStatus(type, shift_id, isChecked,role) {
+        function changeVerifyStatus(type, shift_id, isChecked, role) {
 
             let status = isChecked ? 'verify' : 'unverify';
 
@@ -693,7 +742,7 @@
             });
         }
 
-        function verifyFullShift(shift_id, isChecked,role) {
+        function verifyFullShift(shift_id, isChecked, role) {
 
             let status = isChecked ? 'verify' : 'unverify';
 
@@ -1049,6 +1098,24 @@
                     initTransferTable(currentBranchId, currentShiftId, 'admin');
                 }, 100);
             });
+        }
+
+
+        function openSubAdminModal(shiftId) {
+            currentShiftId = shiftId;
+            $('#subAdminModal').modal('show');
+        }
+
+        function saveSubAdminVerify() {
+            let sales = document.getElementById('modal_sales').checked;
+            let transfer = document.getElementById('modal_transfer').checked;
+            let shift = document.getElementById('modal_shift').checked;
+
+            changeVerifyStatus('sales', currentShiftId, sales, 'sub_admin');
+            changeVerifyStatus('transfer', currentShiftId, transfer, 'sub_admin');
+            verifyFullShift(currentShiftId, shift, 'sub_admin');
+
+            $('#subAdminModal').modal('hide');
         }
     </script>
 @endsection
