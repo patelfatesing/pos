@@ -201,7 +201,7 @@
     <script>
         var pdfLogo = "";
         // Dynamically bind event for the custom switch
-        $(document).on('change', '.custom-control-input', function() {
+        $(document).on('change', '.custom-control-input:not(.capture-status-switch)', function() {
             var storeId = $(this).data('store-id'); // Get store ID from data attribute
             var isEnabled = $(this).prop('checked') ? 1 :
                 0; // Check if the switch is on (enabled) or off (disabled)
@@ -238,7 +238,7 @@
                                 showConfirmButton: false // Hide "OK" button
                             }).then(() => {
                                 // After alert closes, reload page or DataTable
-                                location.reload();
+                                // location.reload();
                                 $('#branch_table').DataTable().ajax.reload(null, false);
                             });
                         },
@@ -250,7 +250,52 @@
                     });
                 } else {
                     // If user cancels, we just log it
+                    $(this).prop('checked', !isEnabled);
                     console.log("Status change was cancelled.");
+                }
+            });
+        });
+
+        $(document).on('change', '.capture-status-switch', function() {
+            var storeId = $(this).data('store-id');
+            var isCapture = $(this).prop('checked') ? 1 : 0;
+
+            Swal.fire({
+                title: "Are you sure?",
+                text: "Do you want to change the capture status?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, change it!",
+                cancelButtonText: "No, cancel"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/store/update-capture-status',
+                        method: 'POST',
+                        data: {
+                            store_id: storeId,
+                            is_capture: isCapture,
+                            _token: $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(response) {
+                            Swal.fire({
+                                title: "Success!",
+                                text: "Capture status has been changed.",
+                                icon: "success",
+                                timer: 1000,
+                                timerProgressBar: true,
+                                showConfirmButton: false
+                            }).then(() => {
+                                $('#branch_table').DataTable().ajax.reload(null, false);
+                            });
+                        },
+                        error: function(error) {
+                            console.log("Error:", error);
+                            Swal.fire("Error!", "Something went wrong.", "error");
+                        }
+                    });
+                } else {
+                    $(this).prop('checked', !isCapture);
                 }
             });
         });
