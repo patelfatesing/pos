@@ -93,7 +93,7 @@
                     </button>
                     @if ($this->showYesterDayShiftTime == false && $this->shiftclosehidecross == false)
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
-                        wire:click="$set('showModal', false)"></button>
+                        wire:click="closeModal"></button>
                     @endif
                 </div>
 

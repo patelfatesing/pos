@@ -99,6 +99,18 @@ class CustomerCreditLedgerModal extends Component
         }, 'customer_ledger_' . now()->format('Ymd_His') . '.pdf');
     }
 
+    public function closeModal()
+    {
+        $this->showModal = false;
+        $this->dispatch('focus-barcode');
+    }
+
+    public function closeInvoiceModal()
+    {
+        $this->showInvoiceModal = false;
+        $this->dispatch('focus-barcode');
+    }
+
     public function openInvoiceModal($invoiceId)
     {
         $this->selectedInvoice = Invoice::with(['partyUser'])->find($invoiceId);

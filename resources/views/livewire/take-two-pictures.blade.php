@@ -1,9 +1,10 @@
 <div>
-
+    @if($is_capture)
     <button class="btn btn-default cameraBtnPdg" data-bs-toggle="modal" data-bs-target="#cameraModal"
         @if ($this->selectedSalesReturn == true) disabled @endif>
         <img src="{{ asset('external/camera114471-6eja.svg') }}" alt="Separator" class="cameraModalHht" />
     </button>
+    @endif
 
     <!-- Modal -->
     <div class="modal fade" id="cameraModal" tabindex="-1" aria-hidden="true" wire:ignore.self>
