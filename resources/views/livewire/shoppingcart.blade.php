@@ -2381,6 +2381,15 @@
         setTimeout(focusBarcode, 300);
     });
 
+    window.addEventListener('focus', () => {
+        setTimeout(focusBarcode, 300);
+    });
+
+    // Keep-alive focus: Ensure barcode is focused periodically if nothing else is
+    setInterval(() => {
+        focusBarcode();
+    }, 2000);
+
     // ✅ Livewire support
     document.addEventListener('livewire:init', () => {
         Livewire.on('focus-barcode', () => {
@@ -2583,7 +2592,7 @@
                     window.focus();
                     document.body.focus();
                     forceFocusBarcode();
-                }, 100);
+                }, 500);
 
                 // Show fullscreen button
                 needsFullscreen = true;
@@ -3114,6 +3123,7 @@
 
         }).then((result) => {
             $('#cashModal').modal('hide');
+            forceFocusBarcode();
             if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
                 // reloadWithFullscreen(); // Sets flag and reloads the page
                 // location.reload(); // reload after OK click or auto close
