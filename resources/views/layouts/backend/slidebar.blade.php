@@ -132,6 +132,11 @@
                                 </a>
                             </li>
                         @endif
+                                                <li class="">
+                            <a href="{{ route('sales.salas-report') }}">
+                                <i class="las la-minus"></i><span>Sales Report</span>
+                            </a>
+                        </li>
                     </ul>
                 </li>
 

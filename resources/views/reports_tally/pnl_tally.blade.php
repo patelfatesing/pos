@@ -249,82 +249,57 @@
             }
 
             function render(selector, rows) {
-    const tbody = document.querySelector(selector);
-    tbody.innerHTML = '';
 
-    const startParam = encodeURIComponent(start);
-    const endParam = encodeURIComponent(end);
+                const tbody = document.querySelector(selector);
+                tbody.innerHTML = '';
 
-    function loop(data, level = 0) {
+                const startParam = encodeURIComponent(start);
+                const endParam = encodeURIComponent(end);
 
-        data.forEach(r => {
+                function loop(data, level = 0) {
 
-            let groupId = r.group_id ?? r.section_group_id ?? null;
+                    data.forEach(r => {
 
-            let url = groupId
-                ? `/reports/group-summary/${groupId}?start_date=${startParam}&end_date=${endParam}`
-                : null;
+                        let url = null;
 
-            let labelHtml = r.label;
+                        // ✅ GROUP LINK
+                        if (r.group_id || r.section_group_id) {
+                            let gid = r.group_id ?? r.section_group_id;
+                            url = `/reports/group-summary/${gid}?start_date=${startParam}&end_date=${endParam}`;
+                        }
 
-            if (url) {
-                labelHtml = `<a href="${url}" style="color:#2563eb;text-decoration:none;">
-                    ${r.label}
-                </a>`;
-            }
+                        // ✅ LEDGER LINK
+                        if (r.ledger_id) {
+                            url =
+                                `/accounting/ledger/view/${r.ledger_id}?start_date=${startParam}&end_date=${endParam}`;
+                        }
 
-            const tr = document.createElement('tr');
+                        let labelHtml = url ?
+                            `<a href="${url}" style="color:#2563eb;text-decoration:none;">${r.label}</a>` :
+                            r.label;
 
-            tr.innerHTML = `
+                        const tr = document.createElement('tr');
+
+                        tr.innerHTML = `
                 <td style="padding-left:${level * 20}px;">
-                    ${level === 0 ? '<strong>' + labelHtml + '</strong>' : labelHtml}
+                    ${level === 0 ? '<strong>' + labelHtml + '</strong>' : '↳ ' + labelHtml}
                 </td>
                 <td class="amount">
                     ${level === 0 ? '<strong>' + r.amount + '</strong>' : r.amount}
                 </td>
             `;
 
-            tbody.appendChild(tr);
+                        tbody.appendChild(tr);
 
-            if (r.children && r.children.length > 0) {
+                        // ✅ recursion only (NO duplicate loop)
+                        if (r.children && r.children.length) {
+                            loop(r.children, level + 1);
+                        }
+                    });
+                }
 
-                r.children.forEach(child => {
-
-                    let childUrl = child.ledger_id
-                        ? `/reports/ledger-summary/${child.ledger_id}?start_date=${startParam}&end_date=${endParam}`
-                        : (child.group_id
-                            ? `/reports/group-summary/${child.group_id}?start_date=${startParam}&end_date=${endParam}`
-                            : null);
-
-                    let childHtml = child.label;
-
-                    if (childUrl) {
-                        childHtml = `<a href="${childUrl}" style="color:#6b7280;text-decoration:none;">
-                            ${child.label}
-                        </a>`;
-                    }
-
-                    const childTr = document.createElement('tr');
-
-                    childTr.innerHTML = `
-                        <td style="padding-left:${(level + 1) * 20}px;">
-                            ↳ ${childHtml}
-                        </td>
-                        <td class="amount">${child.amount}</td>
-                    `;
-
-                    tbody.appendChild(childTr);
-
-                    if (child.children) {
-                        loop(child.children, level + 2);
-                    }
-                });
+                loop(rows);
             }
-        });
-    }
-
-    loop(rows);
-}
 
             // ✅ auto apply
             $('#pnl_daterange').on('apply.daterangepicker', function(ev, picker) {
