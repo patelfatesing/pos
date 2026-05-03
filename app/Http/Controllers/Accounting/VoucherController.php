@@ -136,14 +136,21 @@ class VoucherController extends Controller
             $actions = '<div class="d-flex align-items-center gap-1">';
 
             // View button (only verified OR admin)
-            if ($r->super_admin_status === 'verify') {
+            if (auth()->user()->role_id !== 1) {
+                
+                  if ($r->super_admin_status === 'verify') {
 
-                $actions .= '<a href="' . e($viewUrl) . '" class="btn btn-sm btn-success mr-1">
+                    $actions .= '<a href="' . e($viewUrl) . '" class="btn btn-sm btn-success mr-1">
                     Verify
                  </a>';
-            } else {
-                $actions .= '<a href="' . e($viewUrl) . '" class="btn btn-sm btn-warning mr-1">
+                } else {
+                    $actions .= '<a href="' . e($viewUrl) . '" class="btn btn-sm btn-warning mr-1">
                     Unverified
+                 </a>';
+                }
+            } else {
+               $actions .= '<a href="' . e($viewUrl) . '" class="btn btn-sm btn-success mr-1">
+                    Verify
                  </a>';
             }
 
@@ -441,7 +448,6 @@ class VoucherController extends Controller
             'ledgers' => AccountLedger::all(),
         ]);
     }
-
 
     public function getLastRef(Request $request)
     {
@@ -866,6 +872,7 @@ class VoucherController extends Controller
         $voucher = Voucher::findOrFail($request->id);
 
         $voucher->admin_status = $request->status;
+         $voucher->super_admin_status = $request->status;
         $voucher->save();
 
         return response()->json(['success' => true]);

@@ -50,8 +50,8 @@
                                         @error('name')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
-                                        <input type="hidden" value="{{ $shift_id }}" name="shift_id">
-                                        <input type="hidden" value="{{ $shift->start_time }}" name="date">
+                                        <input type="hidden" value="{{ $shift_id }}" name="shift_id" id="shift_id_1">
+                                        <input type="hidden" value="{{ $shift->start_time }}" id="shift_date_1" name="date">
                                     </div>
                                 </div>
                                 <div class="col-md-6"></div>
@@ -134,6 +134,8 @@
                                     @enderror
                                 </div>
                             </div>
+                            <input type="hidden" id="shift_id_2" name="shift_id" value="{{ $shift_id }}">
+                            <input type="hidden" id="shift_date_2" name="shift_date">
                         </div>
 
                         <div class="table-responsive mb-3">
@@ -275,7 +277,6 @@
         }
     });
 
-
     // ✅ SUBCATEGORY → PRODUCT (LAST ROW ONLY)
     $(document).on('change', '#sub_category_ids', function() {
 
@@ -296,7 +297,6 @@
             });
         }
     });
-
 
     // ✅ ADD PRODUCT
     $(document).on('click', '#add-item', function() {
@@ -351,7 +351,6 @@
         }
     });
 
-
     // ✅ PRODUCT STOCK CHECK
     $(document).on('change', '.product-select', function() {
 
@@ -401,14 +400,12 @@
 
     $(document).on('input', 'input[name$="[quantity]"]', updateTotalQuantity);
 
-
     // ✅ SR NO
     function updateSrNo() {
         $('#productBody tr').each(function(i) {
             $(this).find('.sr-no').text(i + 1);
         });
     }
-
 
     // ✅ ADD BUTTON ONLY LAST ROW
     function updateAddButton() {

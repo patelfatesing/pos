@@ -3467,7 +3467,7 @@ if ($branchId == 1) {
                     'upi_amount' => 0,
                     'change_amount' => $this->cashPayChangeAmt,
                     'creditpay' => $this->creditPay,
-                    'cash_amount' => $this->cash,
+                     'cash_amount' => ($this->paymentType == 'credit') ? 0 : (float) ($this->cash ?: 0),
                     // 'sub_total' => $this->cashAmount,
                     'sub_total' => $this->sub_total,
                     'tax' => $this->tax,
