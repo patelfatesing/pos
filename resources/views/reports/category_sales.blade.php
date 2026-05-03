@@ -5,7 +5,7 @@
         <div class="container-fluid">
             <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
                 <div>
-                    <h4 class="mb-0">Category-wise / Subcategory-wise Sales</h4>
+                    <h4 class="mb-0">Category-wise Sales</h4>
                 </div>
                 <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
             </div>
@@ -27,19 +27,25 @@
                     <input type="date" id="end_date" class="form-control w-140" />
                 </div>
 
-                {{-- <div class="col-md-2">
-                        <select id="category_id" class="form-control">
-                            <option value="">All Categories</option>
-                            @foreach ($categories as $c)
-                                <option value="{{ $c->id }}">{{ $c->name }}</option>
-                            @endforeach
-                        </select>
-                    </div> --}}
+                <div class="col-md-2">
+                    <select id="group_by" class="form-control">
+                        <option value="subcategory">Category-wise</option>
+                        <option value="category">Main Category-wise</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select id="category_id" class="form-control">
+                        <option value="">All Main Categories</option>
+                        @foreach ($categories as $c)
+                            <option value="{{ $c->id }}">{{ $c->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="col-md-2">
                     <select id="sub_category_id" class="form-control">
-                        <option value="">All Subcategories</option>
+                            <option value="">All Categories</option>
                         @foreach ($subCategories as $sc)
-                            <option value="{{ $sc->id }}">{{ $sc->name }}</option>
+                            <option value="{{ $sc->id }}" data-category-id="{{ $sc->category_id }}">{{ $sc->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -61,6 +67,18 @@
                         </tr>
                     </thead>
                     <tbody></tbody>
+                    <tfoot class="bg-white">
+                        <tr>
+                            <th colspan="2" class="text-right">Total</th>
+                            <th id="total_qty"></th>
+                            <th id="total_gross"></th>
+                            <th id="total_discounts"></th>
+                            <th id="total_net_sales"></th>
+                            <th id="total_tax"></th>
+                            <th id="total_sales"></th>
+                            <th id="total_bills"></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
 
@@ -78,6 +96,34 @@
                 }
             });
 
+            const params = new URLSearchParams(window.location.search);
+            $('#branch_id').val(params.get('branch_id') || '');
+            $('#start_date').val(params.get('start_date') || '');
+            $('#end_date').val(params.get('end_date') || '');
+            $('#group_by').val(params.get('group_by') || 'subcategory');
+            $('#category_id').val(params.get('category_id') || '');
+            $('#sub_category_id').val(params.get('sub_category_id') || '');
+            const adminStatus = params.get('admin_status') || '';
+            const categoryName = params.get('category_name') || '';
+            const subCategoryName = params.get('sub_category_name') || '';
+            const dateSource = params.get('date_source') || '';
+
+            function syncSubCategoryOptions() {
+                const categoryId = $('#category_id').val();
+                $('#sub_category_id option').each(function() {
+                    const optionCategoryId = $(this).data('category-id');
+                    const show = !categoryId || !optionCategoryId || String(optionCategoryId) === String(categoryId);
+                    $(this).toggle(show);
+                });
+
+                const selected = $('#sub_category_id option:selected');
+                if (selected.length && !selected.is(':visible')) {
+                    $('#sub_category_id').val('');
+                }
+            }
+
+            syncSubCategoryOptions();
+
             const table = $('#category_sales_table').DataTable({
                 processing: true,
                 serverSide: true,
@@ -94,14 +140,15 @@
                         d.start_date = $('#start_date').val();
                         d.end_date = $('#end_date').val();
                         d.group_by = $('#group_by').val(); // category | subcategory
-                        d.category_id = $('#category_id').val();
-                        d.sub_category_id = $('#sub_category_id').val();
+                        d.category_id = categoryName ? '' : $('#category_id').val();
+                        d.sub_category_id = subCategoryName ? '' : $('#sub_category_id').val();
+                        d.admin_status = adminStatus;
+                        d.category_name = categoryName;
+                        d.sub_category_name = subCategoryName;
+                        d.date_source = dateSource;
                     }
                 },
                 dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'Bf l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
-                initComplete: function() {
-                    $('.dataTables_filter input').attr("placeholder", "Search List...");
-                },
                 columns: [{
                         data: 'sr_no',
                         orderable: false,
@@ -148,7 +195,7 @@
                     buttons: [{
                             extend: 'excelHtml5',
                             text: '<i class="fa fa-file-excel-o"></i> Excel',
-                            title: 'Category-wise / Subcategory-wise Sales Report',
+                            title: 'Category-wise Sales Report',
                             filename: 'category_sales_report',
                             exportOptions: {
                                 columns: ':visible'
@@ -210,7 +257,7 @@
                                         },
                                         {
                                             width: '34%',
-                                            text: 'Category-wise / Subcategory-wise Sales Report',
+                                            text: 'Category-wise Sales Report',
                                             alignment: 'center',
                                             fontSize: 16,
                                             bold: true,
@@ -234,11 +281,33 @@
                     ]
                 }],
                 initComplete: function() {
-                    $('#branch_id, #start_date, #end_date, #group_by, #category_id, #sub_category_id')
+                    $('.dataTables_filter input').attr("placeholder", "Search List...");
+
+                    $('#category_id').on('change', function() {
+                        syncSubCategoryOptions();
+                        table.ajax.reload();
+                    });
+
+                    $('#branch_id, #start_date, #end_date, #group_by, #sub_category_id')
                         .on('change', function() {
                             table.ajax.reload();
                         });
                 }
+            });
+
+            $('#category_sales_table').on('xhr.dt', function(e, settings, json) {
+                const totals = (json && json.totals) ? json.totals : {};
+                const format = value => Number(value || 0).toLocaleString('en-IN', {
+                    maximumFractionDigits: 0
+                });
+
+                $('#total_qty').text(format(totals.qty));
+                $('#total_gross').text(format(totals.gross));
+                $('#total_discounts').text(format(totals.discounts));
+                $('#total_net_sales').text(format(totals.net_sales));
+                $('#total_tax').text(format(totals.tax));
+                $('#total_sales').text(format(totals.total));
+                $('#total_bills').text(format(totals.bills));
             });
         });
 
