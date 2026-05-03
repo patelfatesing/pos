@@ -29,16 +29,17 @@ class DayBookController extends Controller
     }
 
     public function index(Request $request)
-{
-    $date = $request->filled('date')
-    ? $request->date
-    : now()->toDateString();
+    {
+        $date = $request->filled('date')
+            ? $request->date
+            : now()->toDateString();
 
-    $from = Carbon::parse($date)->startOfDay();
-    $to   = Carbon::parse($date)->endOfDay();
+        $from = Carbon::parse($date)->startOfDay();
+        $to   = Carbon::parse($date)->endOfDay();
 
         $branchId    = $request->input('branch_id');
         $voucherType = $request->input('voucher_type');
+        $verify = $request->input('verify'); // or 'admin_status'
 
         $vouchers = Voucher::with(['lines.ledger'])
             ->whereBetween('voucher_date', [$from, $to])
@@ -54,64 +55,64 @@ class DayBookController extends Controller
             ->orderBy('id')
             ->get();
 
-    $vouchers = Voucher::with(['lines.ledger'])
-        ->whereBetween('voucher_date', [$from, $to])
-        ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
-        ->when($voucherType, fn($q) => $q->where('voucher_type', $voucherType))
-        ->where('admin_status', $verify)
-        ->orderBy('voucher_date')
-        ->orderBy('id')
-        ->get();
+        $vouchers = Voucher::with(['lines.ledger'])
+            ->whereBetween('voucher_date', [$from, $to])
+            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($voucherType, fn($q) => $q->where('voucher_type', $voucherType))
+            ->where('admin_status', 'verify') // ✅ Only show verified vouchers
+            ->orderBy('voucher_date')
+            ->orderBy('id')
+            ->get();
 
 
-    $entries = collect();
+        $entries = collect();
 
-    foreach ($vouchers as $v) {
+        foreach ($vouchers as $v) {
 
-        $lines = $v->lines;
+            $lines = $v->lines;
 
-        $firstDc = match ($v->voucher_type) {
-            'Payment'  => 'Cr',
-            'Receipt'  => 'Dr',
-            'Sales'    => 'Dr',
-            'Purchase' => 'Cr',
-            default    => null,
-        };
+            $firstDc = match ($v->voucher_type) {
+                'Payment'  => 'Cr',
+                'Receipt'  => 'Dr',
+                'Sales'    => 'Dr',
+                'Purchase' => 'Cr',
+                default    => null,
+            };
 
-        $firstLine = $firstDc
-            ? $lines->firstWhere('dc', $firstDc)
-            : $lines->first();
+            $firstLine = $firstDc
+                ? $lines->firstWhere('dc', $firstDc)
+                : $lines->first();
 
-        if (!$firstLine) {
-            $firstLine = $lines->first();
+            if (!$firstLine) {
+                $firstLine = $lines->first();
+            }
+
+            if (!$firstLine) continue;
+
+            $entries->push([
+                'id' => $v->id,
+                'ledger_id'    => $v->id,
+                'date'         => $v->voucher_date,
+                'particulars'  => $firstLine->ledger->name ?? '---',
+                'voucher_type' => $v->voucher_type,
+                'voucher_no'   => $v->ref_no ?? $v->id,
+                'gen_id'       => $v->gen_id,
+                'debit'  => $firstLine->dc === 'Dr' ? $firstLine->amount : null,
+                'credit' => $firstLine->dc === 'Cr' ? $firstLine->amount : null,
+            ]);
         }
 
-        if (!$firstLine) continue;
+        $totalDebit  = $entries->sum('debit');
+        $totalCredit = $entries->sum('credit');
 
-        $entries->push([
-            'id' => $v->id,
-            'ledger_id'    => $v->id,
-            'date'         => $v->voucher_date,
-            'particulars'  => $firstLine->ledger->name ?? '---',
-            'voucher_type' => $v->voucher_type,
-            'voucher_no'   => $v->ref_no ?? $v->id,
-            'gen_id'       => $v->gen_id,
-            'debit'  => $firstLine->dc === 'Dr' ? $firstLine->amount : null,
-            'credit' => $firstLine->dc === 'Cr' ? $firstLine->amount : null,
-        ]);
+        return view('reports.day_book', compact(
+            'entries',
+            'from',
+            'to',
+            'totalDebit',
+            'totalCredit'
+        ));
     }
-
-    $totalDebit  = $entries->sum('debit');
-    $totalCredit = $entries->sum('credit');
-
-    return view('reports.day_book', compact(
-        'entries',
-        'from',
-        'to',
-        'totalDebit',
-        'totalCredit'
-    ));
-}
 
     /**
      * AJAX: return voucher detail HTML for modal.

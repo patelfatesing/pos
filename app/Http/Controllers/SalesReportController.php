@@ -210,13 +210,14 @@ class SalesReportController extends Controller
 
                 // ✅ ADMIN
                 'admin' => [
-                    'inv' => $checkStatus(\App\Models\Invoice::class, 'admin_status'),
-                    'tra' => $checkStatus(\App\Models\StockTransfer::class, 'admin_status'),
-                    'req' => $checkStatus(\App\Models\StockRequest::class, 'admin_status'),
+                    'inv' => $checkStatus(\App\Models\Invoice::class, 'super_admin_status'),
+                    'tra' => $checkStatus(\App\Models\StockTransfer::class, 'super_admin_status'),
+                    'req' => $checkStatus(\App\Models\StockRequest::class, 'super_admin_status'),
                     'shift' => \App\Models\ShiftClosing::where('id', $shiftId)
-                        ->where('admin_status', 'unverify')
+                        ->where('super_admin_status', 'unverify')
                         ->exists() ? 'unverify' : 'verify',
                 ],
+
 
                 // ✅ SUPER ADMIN
                 'sub_admin' => [

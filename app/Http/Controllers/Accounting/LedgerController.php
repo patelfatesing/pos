@@ -287,7 +287,7 @@ class LedgerController extends Controller
         if ($ledger->opening_type === 'Cr') {
             $opening *= -1;
         }
-    
+
         $vouchers = Voucher::with(['lines.ledger'])
             ->when(auth()->user()->role_id === 1, function ($q) {
                 $q->where('vouchers.super_admin_status', 'verify');
@@ -384,104 +384,104 @@ class LedgerController extends Controller
     }
 
 
-public function ledgerData(Request $request, $ledgerId)
-{
-    $ledger = AccountLedger::findOrFail($ledgerId);
+    public function ledgerData(Request $request, $ledgerId)
+    {
+        $ledger = AccountLedger::findOrFail($ledgerId);
 
-    // ================= DATE RANGE =================
-    $from = $request->from_date
-        ? Carbon::parse($request->from_date)->startOfDay()
-        : now()->subDays(29)->startOfDay();
+        // ================= DATE RANGE =================
+        $from = $request->from_date
+            ? Carbon::parse($request->from_date)->startOfDay()
+            : now()->subDays(29)->startOfDay();
 
-    $to = $request->to_date
-        ? Carbon::parse($request->to_date)->endOfDay()
-        : now()->endOfDay();
+        $to = $request->to_date
+            ? Carbon::parse($request->to_date)->endOfDay()
+            : now()->endOfDay();
 
-    // ================= FETCH ENTRIES =================
-    $entries = DB::table('voucher_lines as vl')
-        ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
-        ->where('vl.ledger_id', $ledgerId)
-        ->whereBetween('v.voucher_date', [$from, $to])
-        ->orderBy('v.voucher_date')
-        ->orderBy('v.id')
-        ->select(
-            'vl.*',
-            'v.voucher_date',
-            'v.voucher_type',
-            'v.id as voucher_id'
-        )
-        ->get();
-
-    $data = [];
-
-    foreach ($entries as $row) {
-
-        // MAIN ROW
-        $data[] = [
-            'type'        => 'main',
-            'date'        => date('d-M-y', strtotime($row->voucher_date)),
-            'particulars' => $this->getOtherLedgerName($row->voucher_id, $ledgerId),
-            'vch_type'    => $row->voucher_type,
-            'vch_no'      => $row->voucher_id,
-            'debit'       => $row->dc == 'Dr' ? (float)$row->amount : 0,
-            'credit'      => $row->dc == 'Cr' ? (float)$row->amount : 0,
-            'edit_url'    => route('accounting.vouchers.edit', $row->voucher_id)
-        ];
-
-        // DETAIL ROWS
-        $others = DB::table('voucher_lines as vl')
-            ->join('account_ledgers as al', 'al.id', '=', 'vl.ledger_id')
-            ->where('vl.voucher_id', $row->voucher_id)
-            ->where('vl.ledger_id', '!=', $ledgerId)
-            ->select('al.name', 'vl.dc', 'vl.amount')
+        // ================= FETCH ENTRIES =================
+        $entries = DB::table('voucher_lines as vl')
+            ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
+            ->where('vl.ledger_id', $ledgerId)
+            ->whereBetween('v.voucher_date', [$from, $to])
+            ->orderBy('v.voucher_date')
+            ->orderBy('v.id')
+            ->select(
+                'vl.*',
+                'v.voucher_date',
+                'v.voucher_type',
+                'v.id as voucher_id'
+            )
             ->get();
 
-        foreach ($others as $line) {
-            $data[] = [
-                'type'        => 'detail',
-                'particulars' => $line->name,
-                'debit'       => $line->dc == 'Dr' ? (float)$line->amount : 0,
-                'credit'      => $line->dc == 'Cr' ? (float)$line->amount : 0,
-            ];
-        }
-    }
+        $data = [];
 
-    // ================= OPENING (BEFORE FROM DATE) =================
-    $opening = DB::table('voucher_lines as vl')
-        ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
-        ->where('vl.ledger_id', $ledgerId)
-        ->whereDate('v.voucher_date', '<', $from)
-        ->selectRaw("
+        foreach ($entries as $row) {
+
+            // MAIN ROW
+            $data[] = [
+                'type'        => 'main',
+                'date'        => date('d-M-y', strtotime($row->voucher_date)),
+                'particulars' => $this->getOtherLedgerName($row->voucher_id, $ledgerId),
+                'vch_type'    => $row->voucher_type,
+                'vch_no'      => $row->voucher_id,
+                'debit'       => $row->dc == 'Dr' ? (float)$row->amount : 0,
+                'credit'      => $row->dc == 'Cr' ? (float)$row->amount : 0,
+                'edit_url'    => route('accounting.vouchers.edit', $row->voucher_id)
+            ];
+
+            // DETAIL ROWS
+            $others = DB::table('voucher_lines as vl')
+                ->join('account_ledgers as al', 'al.id', '=', 'vl.ledger_id')
+                ->where('vl.voucher_id', $row->voucher_id)
+                ->where('vl.ledger_id', '!=', $ledgerId)
+                ->select('al.name', 'vl.dc', 'vl.amount')
+                ->get();
+
+            foreach ($others as $line) {
+                $data[] = [
+                    'type'        => 'detail',
+                    'particulars' => $line->name,
+                    'debit'       => $line->dc == 'Dr' ? (float)$line->amount : 0,
+                    'credit'      => $line->dc == 'Cr' ? (float)$line->amount : 0,
+                ];
+            }
+        }
+
+        // ================= OPENING (BEFORE FROM DATE) =================
+        $opening = DB::table('voucher_lines as vl')
+            ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
+            ->where('vl.ledger_id', $ledgerId)
+            ->whereDate('v.voucher_date', '<', $from)
+            ->selectRaw("
             COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0) -
             COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0) as balance
         ")
-        ->first();
+            ->first();
 
-    // ================= PERIOD =================
-    $period = DB::table('voucher_lines as vl')
-        ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
-        ->where('vl.ledger_id', $ledgerId)
-        ->whereBetween('v.voucher_date', [$from, $to])
-        ->selectRaw("
+        // ================= PERIOD =================
+        $period = DB::table('voucher_lines as vl')
+            ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
+            ->where('vl.ledger_id', $ledgerId)
+            ->whereBetween('v.voucher_date', [$from, $to])
+            ->selectRaw("
             COALESCE(SUM(CASE WHEN vl.dc='Dr' THEN vl.amount ELSE 0 END),0) as total_debit,
             COALESCE(SUM(CASE WHEN vl.dc='Cr' THEN vl.amount ELSE 0 END),0) as total_credit
         ")
-        ->first();
+            ->first();
 
-    // ================= RESPONSE =================
-    return response()->json([
-        'data' => $data,
+        // ================= RESPONSE =================
+        return response()->json([
+            'data' => $data,
 
-        'opening' => [
-            'balance' => (float) ($opening->balance ?? 0)
-        ],
+            'opening' => [
+                'balance' => (float) ($opening->balance ?? 0)
+            ],
 
-        'period' => [
-            'total_debit'  => (float) ($period->total_debit ?? 0),
-            'total_credit' => (float) ($period->total_credit ?? 0)
-        ]
-    ]);
-}
+            'period' => [
+                'total_debit'  => (float) ($period->total_debit ?? 0),
+                'total_credit' => (float) ($period->total_credit ?? 0)
+            ]
+        ]);
+    }
 
     // LedgerController.php
     public function currentBalance($ledgerId)
@@ -509,13 +509,21 @@ public function ledgerData(Request $request, $ledgerId)
             ->implode(', ');
     }
 
-    public function ledgerView($ledgerId)
+    public function ledgerView(Request $request, $ledgerId)
     {
         $ledger = AccountLedger::findOrFail($ledgerId);
 
+        // ✅ GET DATE FROM URL (same as your P&L)
+        $start = $request->filled('start_date')
+            ? \Carbon\Carbon::parse($request->start_date)->startOfDay()
+            : null;
+
+        $end = $request->filled('end_date')
+            ? \Carbon\Carbon::parse($request->end_date)->endOfDay()
+            : null;
+
         $entries = DB::table('voucher_lines as vl')
             ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
-
             ->join('account_ledgers as al', 'al.id', '=', 'vl.ledger_id')
 
             ->join('voucher_lines as vl2', function ($join) {
@@ -526,6 +534,14 @@ public function ledgerData(Request $request, $ledgerId)
             ->join('account_ledgers as al2', 'al2.id', '=', 'vl2.ledger_id')
 
             ->where('vl.ledger_id', $ledgerId)
+
+            // ✅ APPLY DATE FILTER
+            ->when($start && $end, function ($q) use ($start, $end) {
+                $q->whereBetween('v.voucher_date', [
+                    $start->toDateString(),
+                    $end->toDateString()
+                ]);
+            })
 
             ->select(
                 'v.id as voucher_id',
@@ -550,6 +566,6 @@ public function ledgerData(Request $request, $ledgerId)
             ->orderBy('v.voucher_date')
             ->get();
 
-        return view('accounting.ledgers.ledger_list', compact('ledger', 'entries'));
+        return view('accounting.ledgers.ledger_list', compact('ledger', 'entries', 'start', 'end'));
     }
 }

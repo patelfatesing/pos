@@ -82,7 +82,11 @@ class StockTransferController extends Controller
 
     public function modalList(Request $request)
     {
-        return view('stocks_transfer.partials.transfer-list');
+        return view('stocks_transfer.partials.transfer-list', [
+            'branch_id' => $request->branch_id,
+            'shift_id'  => $request->shift_id,
+            'type'      => $request->type ?? 'admin',
+        ]);
     }
 
     public function getTransferData(Request $request)
@@ -279,7 +283,7 @@ class StockTransferController extends Controller
             // Extract only date from shift start_time
             $date = \Carbon\Carbon::parse($shift->start_time)->format('Y-m-d');
 
-            $query->whereDate('stock_transfers.transferred_at', $date);
+            $query->whereDate('stock_transfers.shift_id', $request->shift_id);
         }
 
         // Role-based filtering
@@ -352,7 +356,6 @@ class StockTransferController extends Controller
         ]);
     }
 
-
     public function view($transferNumber)
     {
         $stockTransfer = new StockTransfer();
@@ -371,7 +374,6 @@ class StockTransferController extends Controller
     public function store(Request $request)
     {
         try {
-
             $validated = $request->validate([
                 'from_store_id' => 'required|exists:branches,id',
                 'to_store_id' => 'required|exists:branches,id',
@@ -492,6 +494,7 @@ class StockTransferController extends Controller
                 Inventory::updateOrCreate(
                     [
                         'store_id' => $request->to_store_id,
+                        'location_id' => $request->to_store_id,
                         'product_id' => $item['product_id']
                     ],
                     [
@@ -507,6 +510,7 @@ class StockTransferController extends Controller
                     'quantity' => $item['quantity'],
                     'status' => 'approved',
                     'transfer_by' => Auth::id(),
+                    'shift_id' => $shift_id,
                     'transferred_at' => now()
                 ]);
             }
@@ -517,7 +521,8 @@ class StockTransferController extends Controller
             if ($request->expectsJson()) {
                 return response()->json([
                     'status' => true,
-                    'message' => 'Transfer created successfully'
+                    'message' => 'Transfer created successfully',
+                    'shift_id' => $shift_id
                 ]);
             }
 
@@ -766,15 +771,37 @@ class StockTransferController extends Controller
             DB::commit();
 
             if ($request->type == 'admin') {
+                // ✅ AJAX RESPONSE (MOST IMPORTANT)
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'status' => true,
+                        'message' => 'Transfer created successfully',
+                        'shift_id' => $transfer->shift_id
+                    ]);
+                }
                 return redirect()->route('sales.salas-report')
                     ->with('success', 'Transfer updated successfully');
             } else {
+                // ✅ AJAX RESPONSE (MOST IMPORTANT)
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'status' => true,
+                        'message' => 'Transfer created successfully',
+                        'shift_id' => $transfer->shift_id
+                    ]);
+                }
                 return redirect()->route('stock-transfer.list')
                     ->with('success', 'Transfer updated successfully');
             }
         } catch (\Exception $e) {
 
             DB::rollback();
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $e->getMessage()
+                ], 500);
+            }
 
             return back()->with('error', $e->getMessage())->withInput();
         }
