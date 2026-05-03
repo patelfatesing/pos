@@ -385,11 +385,18 @@ class TakeTwoPictures extends Component
      */
     public function render(): View
     {
+        $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : null;
+        if ($branch_id) {
+            $store = \App\Models\Branch::find($branch_id);
+            $this->is_capture = $store->is_capture ?? true;
+        }
+
         return view('livewire.take-two-pictures', [
             'canSave' => $this->areBothPhotosTaken(),
             'storedPhotos' => $this->hasStoredPhotos() ? $this->getStoredPhotoPaths() : null,
             'productPhotoUrl' => $this->getPhotoUrl('product'),
             'customerPhotoUrl' => $this->getPhotoUrl('customer'),
+            'is_capture' => $this->is_capture,
         ]);
     }
 }
