@@ -30,7 +30,7 @@
                     <div class="modal-header custom-modal-header">
                         <h5 class="modal-title">Customer Credit Ledger</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
-                            wire:click="$set('showModal', false)"></button>
+                            wire:click="closeModal"></button>
                     </div>
                     <div class="modal-body">
                         <!-- Date Range Filter -->
@@ -149,7 +149,7 @@
                         <h5 class="modal-title">
                             Invoice #{{ $selectedInvoice->invoice_number }}
                         </h5>
-                        <button type="button" class="btn-close" wire:click="$set('showInvoiceModal', false)">
+                        <button type="button" class="btn-close" wire:click="closeInvoiceModal">
                         </button>
                     </div>
 

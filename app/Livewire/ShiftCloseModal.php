@@ -651,11 +651,19 @@ class ShiftCloseModal extends Component
     public function closeStockModal()
     {
         $this->showStockModal = false;
+        $this->dispatch('focus-barcode');
     }
 
     public function closePhyStockModal()
     {
         $this->showPhysicalModal = false;
+        $this->dispatch('focus-barcode');
+    }
+
+    public function closeModal()
+    {
+        $this->showModal = false;
+        $this->dispatch('focus-barcode');
     }
 
     public function updatedClosingCash()

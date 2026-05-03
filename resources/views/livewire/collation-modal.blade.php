@@ -17,7 +17,7 @@
                     <div class="modal-header custom-modal-header">
                         <h5 class="modal-title">Collect Credit</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
-                            wire:click="$set('showModal', false)"></button>
+                            wire:click="closeModal"></button>
                     </div>
                     <div class="modal-body">
                         <!-- Search Box -->
@@ -102,7 +102,7 @@
                     <div class="modal-header custom-modal-header">
                         <h5 class="modal-title">Collect Credit for {{ $selectedUser?->first_name }}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
-                            wire:click="$set('showCollectModal', false)"></button>
+                            wire:click="closeCollectModal"></button>
                     </div>
                     <div class="modal-body">
 
