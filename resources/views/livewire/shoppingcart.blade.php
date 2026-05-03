@@ -2347,61 +2347,114 @@
     function focusBarcode() {
         const input = document.getElementById('barcodeInput');
         if (input) {
+            // Only focus if no other input/textarea/select is currently active
+            // OR if we are forcing it (like after a transaction)
+            const activeEl = document.activeElement;
+            const isInputActive = activeEl && (
+                activeEl.tagName === 'INPUT' || 
+                activeEl.tagName === 'TEXTAREA' || 
+                activeEl.tagName === 'SELECT' ||
+                activeEl.isContentEditable
+            );
+
+            // If we're already in an input, don't steal focus unless it's the barcode itself
+            if (!isInputActive || activeEl === input) {
+                input.focus();
+                // input.select(); // Optional: select text if any
+            }
+        }
+    }
+
+    // Force focus function for specific events
+    function forceFocusBarcode() {
+        const input = document.getElementById('barcodeInput');
+        if (input) {
             input.focus();
             input.select();
         }
     }
 
-    // ✅ Page load
-    // window.addEventListener('load', () => {
-    //     setTimeout(focusBarcode, 200);
-    // });
+    // ✅ Page load & Navigation
+    window.addEventListener('load', () => setTimeout(focusBarcode, 300));
+    window.addEventListener('pageshow', (event) => {
+        // focus even if page is loaded from cache (back button)
+        setTimeout(focusBarcode, 300);
+    });
+
+    window.addEventListener('focus', () => {
+        setTimeout(focusBarcode, 300);
+    });
+
+    // Keep-alive focus: Ensure barcode is focused periodically if nothing else is
+    setInterval(() => {
+        focusBarcode();
+    }, 2000);
 
     // ✅ Livewire support
-    // document.addEventListener('livewire:init', () => {
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('focus-barcode', () => {
+            setTimeout(forceFocusBarcode, 200);
+        });
 
-    //     Livewire.on('focus-barcode', () => {
-    //         setTimeout(focusBarcode, 100);
-    //     });
-
-    //     Livewire.hook('message.processed', () => {
-    //         focusBarcode();
-    //     });
-    // });
+        Livewire.hook('message.processed', () => {
+            // Auto-focus after each Livewire update, unless user is typing elsewhere
+            focusBarcode();
+        });
+        
+        // Handle wire:navigate (SPA)
+        document.addEventListener('livewire:navigated', () => {
+            setTimeout(focusBarcode, 300);
+        });
+    });
 
     // ✅ When user clicks ANYWHERE
-    // document.addEventListener('click', function(e) {
+    document.addEventListener('click', function(e) {
+        const barcode = document.getElementById('barcodeInput');
+        if (!barcode) return;
 
-    //     const barcode = document.getElementById('barcodeInput');
+        // If clicked on barcode → do nothing
+        if (e.target === barcode || barcode.contains(e.target)) return;
 
-    //     // If clicked on barcode → do nothing
-    //     if (e.target === barcode) return;
+        // If clicked on input/textarea/select → allow temporary typing
+        if (e.target.tagName === 'INPUT' ||
+            e.target.tagName === 'TEXTAREA' ||
+            e.target.tagName === 'SELECT' ||
+            e.target.isContentEditable) {
 
-    //     // If clicked on input/textarea/select → allow temporary typing
-    //     if (e.target.tagName === 'INPUT' ||
-    //         e.target.tagName === 'TEXTAREA' ||
-    //         e.target.tagName === 'SELECT') {
+            clearTimeout(barcodeFocusTimeout);
 
-    //         clearTimeout(barcodeFocusTimeout);
+            // ⏳ After 5 seconds of inactivity in other inputs → return focus to barcode
+            // Increased to 5s to be less annoying
+            barcodeFocusTimeout = setTimeout(() => {
+                focusBarcode();
+            }, 5000);
 
-    //         // ⏳ After 3 seconds → return focus to barcode
-    //         barcodeFocusTimeout = setTimeout(() => {
-    //             focusBarcode();
-    //         }, 3000);
-
-    //     } else {
-    //         // Clicked anywhere else → immediately focus barcode
-    //         focusBarcode();
-    //     }
-    // });
+        } else {
+            // Clicked anywhere else (empty space, buttons, etc.) → immediately focus barcode
+            // But wait a bit for any other actions (like modal opens) to finish
+            setTimeout(focusBarcode, 150);
+        }
+    });
 
     // ✅ If user stops typing anywhere → return focus
-    // document.addEventListener('keydown', function() {
-    //     clearTimeout(barcodeFocusTimeout);
-    //     barcodeFocusTimeout = setTimeout(() => {
-    //         focusBarcode();
-    //     }, 3000);
-    // });
+    document.addEventListener('keydown', function(e) {
+        // If it's the barcode input, don't restart the timer
+        const barcode = document.getElementById('barcodeInput');
+        if (e.target === barcode) {
+            clearTimeout(barcodeFocusTimeout);
+            return;
+        }
+
+        clearTimeout(barcodeFocusTimeout);
+        barcodeFocusTimeout = setTimeout(() => {
+            focusBarcode();
+        }, 5000);
+    });
+
+    // ✅ Focus when modals are closed
+    $(document).on('hidden.bs.modal', function () {
+        setTimeout(forceFocusBarcode, 300);
+    });
 
     window.addEventListener('open-cash-modal', event => {
         const modal = new bootstrap.Modal(document.getElementById('cashModal'));
@@ -2442,6 +2495,8 @@
         // Remove 'modal-open' class from body to restore scroll
         document.body.classList.remove('modal-open');
         document.body.style.paddingRight = '';
+        
+        forceFocusBarcode();
     });
 
     window.addEventListener('hide-online-cash-modal', event => {
@@ -2459,6 +2514,7 @@
         document.body.classList.remove('modal-open');
         document.body.style.paddingRight = '';
 
+        forceFocusBarcode();
     });
 
     window.addEventListener('hide-cash-upi-modal', event => {
@@ -2475,9 +2531,11 @@
         // Remove 'modal-open' class from body to restore scroll
         document.body.classList.remove('modal-open');
         document.body.style.paddingRight = '';
+
+        forceFocusBarcode();
     });
 
-        window.addEventListener('hide-credit-modal', event => {
+    window.addEventListener('hide-credit-modal', event => {
         const modalEl = document.getElementById('creditModal');
         const modal = new bootstrap.Modal(modalEl);
         modal.hide();
@@ -2491,6 +2549,8 @@
         // Remove 'modal-open' class from body to restore scroll
         document.body.classList.remove('modal-open');
         document.body.style.paddingRight = '';
+
+        forceFocusBarcode();
     });
 
     window.addEventListener('triggerPrint', event => {
@@ -2531,7 +2591,8 @@
                 setTimeout(() => {
                     window.focus();
                     document.body.focus();
-                }, 100);
+                    forceFocusBarcode();
+                }, 500);
 
                 // Show fullscreen button
                 needsFullscreen = true;
@@ -3062,6 +3123,7 @@
 
         }).then((result) => {
             $('#cashModal').modal('hide');
+            forceFocusBarcode();
             if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
                 // reloadWithFullscreen(); // Sets flag and reloads the page
                 // location.reload(); // reload after OK click or auto close
@@ -3141,9 +3203,11 @@
     window.addEventListener('close-hold-modal', function() {
         // Hide modal
         const modal = document.getElementById('holdTransactionsModal');
-        modal.style.display = 'none';
-        modal.classList.remove('show'); // Optional: remove show class
-        modal.setAttribute('aria-hidden', 'true');
+        if (modal) {
+            modal.style.display = 'none';
+            modal.classList.remove('show'); // Optional: remove show class
+            modal.setAttribute('aria-hidden', 'true');
+        }
 
         // Remove backdrop manually
         const backdrops = document.querySelectorAll('.modal-backdrop');
@@ -3152,6 +3216,8 @@
         // Optional: remove 'modal-open' class from body to restore scroll
         document.body.classList.remove('modal-open');
         document.body.style.paddingRight = '';
+
+        forceFocusBarcode();
     });
 
     function updateAmounts() {
