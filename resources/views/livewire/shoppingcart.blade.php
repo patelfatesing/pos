@@ -2554,6 +2554,8 @@
     });
 
     window.addEventListener('triggerPrint', event => {
+        $('#commissionUser').val(null).trigger('change');
+        $('#partyUser').val(null).trigger('change');
         // Hide preview or image if any
         const el = document.getElementsByClassName('lastsavepic')[0];
         if (el) {
@@ -3122,6 +3124,8 @@
             }
 
         }).then((result) => {
+            $('#commissionUser').val(null).trigger('change');
+            $('#partyUser').val(null).trigger('change');
             $('#cashModal').modal('hide');
             forceFocusBarcode();
             if (result.isConfirmed || result.dismiss === Swal.DismissReason.timer) {
