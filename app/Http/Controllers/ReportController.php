@@ -657,6 +657,15 @@ class ReportController extends Controller
             })->values();
         }
         $recordsFiltered = $rows->count();
+        $totals = [
+            'qty' => $rows->sum('qty'),
+            'gross' => $rows->sum('gross'),
+            'discounts' => $rows->sum('discounts'),
+            'net_sales' => $rows->sum('net_sales'),
+            'tax' => $rows->sum('tax'),
+            'total' => $rows->sum('total'),
+            'bills' => $rows->sum('bills'),
+        ];
 
         // Ordering
         $columns = [
@@ -714,6 +723,7 @@ class ReportController extends Controller
             'draw'            => (int)$request->draw,
             'recordsTotal'    => $totalRecords,
             'recordsFiltered' => $recordsFiltered,
+            'totals'          => $totals,
             'data'            => $data,
         ]);
     }
@@ -1340,7 +1350,14 @@ class ReportController extends Controller
         $branchId      = $request->integer('branch_id');
         $categoryId    = $request->integer('category_id');     // optional: pre-filter products by category
         $subCategoryId = $request->integer('sub_category_id'); // optional: pre-filter products by subcategory
-        $groupBy       = $request->input('group_by', 'category'); // 'category' | 'subcategory'
+        $categoryNameFilter = trim((string)$request->input('category_name', ''));
+        $subCategoryNameFilter = trim((string)$request->input('sub_category_name', ''));
+        $groupBy       = $request->input('group_by', 'subcategory'); // 'category' | 'subcategory'
+        if (!in_array($groupBy, ['category', 'subcategory'], true)) {
+            $groupBy = 'subcategory';
+        }
+        $adminStatus   = $request->input('admin_status');
+        $dateSource    = $request->input('date_source') === 'voucher' ? 'voucher' : 'invoice';
         $searchValue   = $request->input('search.value');
 
         $tz    = config('app.timezone', 'Asia/Kolkata');
@@ -1364,9 +1381,8 @@ class ReportController extends Controller
                 'c.name as category_name',
                 'sc.name as sub_category_name'
             )
-            ->where('p.is_active', 'yes')->where('p.is_deleted', 'no')
-            ->when($categoryId, fn($q, $v) => $q->where('p.category_id', $v))
-            ->when($subCategoryId, fn($q, $v) => $q->where('p.subcategory_id', $v))
+            ->when($categoryId && $categoryNameFilter === '', fn($q) => $q->where('p.category_id', $categoryId))
+            ->when($subCategoryId && $subCategoryNameFilter === '', fn($q) => $q->where('p.subcategory_id', $subCategoryId))
             ->get();
 
         $productMap = [];
@@ -1378,17 +1394,8 @@ class ReportController extends Controller
                 'sub_category_name' => $r->sub_category_name ?: 'Uncategorized',
             ];
         }
-        if (empty($productMap)) {
-            return response()->json([
-                'draw' => (int) $request->draw,
-                'recordsTotal' => 0,
-                'recordsFiltered' => 0,
-                'data' => [],
-            ]);
-        }
-
         /* ------------ Pull invoices ------------ */
-        $invoices = DB::table('invoices as i')
+        $invoiceQuery = DB::table('invoices as i')
             ->select(
                 'i.id',
                 'i.branch_id',
@@ -1401,15 +1408,38 @@ class ReportController extends Controller
                 'i.created_at'
             )
             ->where('i.status', '!=', 'Hold')
-            ->whereBetween('i.created_at', [$start, $end])
-            ->when($branchId, fn($q, $v) => $q->where('i.branch_id', $v))
-            ->get();
+            ->when($branchId, fn($q, $v) => $q->where('i.branch_id', $v));
+
+        if ($dateSource === 'voucher') {
+            $invoiceQuery
+                ->join('vouchers as v', 'v.gen_id', '=', 'i.id')
+                ->where('v.voucher_type', 'Sales')
+                ->when($adminStatus, fn($q, $v) => $q->where('v.admin_status', $v))
+                ->whereBetween('v.voucher_date', [$start->toDateString(), $end->toDateString()])
+                ->groupBy(
+                    'i.id',
+                    'i.branch_id',
+                    'i.items',
+                    'i.sub_total',
+                    'i.tax',
+                    'i.commission_amount',
+                    'i.party_amount',
+                    'i.status',
+                    'i.created_at'
+                );
+        } else {
+            $invoiceQuery
+                ->when($adminStatus, fn($q, $v) => $q->where('i.admin_status', $v))
+                ->whereBetween('i.created_at', [$start, $end]);
+        }
+
+        $invoices = $invoiceQuery->get();
 
         // Helper: compute qty & gross from JSON line
         $computeLineGross = function (array $it) {
             $qty = (float)($it['quantity'] ?? $it['qty'] ?? 0);
             $lineTotal = null;
-            foreach (['total', 'item_total', 'line_total', 'subtotal'] as $k) {
+            foreach (['total', 'item_total', 'line_total', 'subtotal', 'price'] as $k) {
                 if (isset($it[$k]) && is_numeric($it[$k])) {
                     $lineTotal = (float)$it[$k];
                     break;
@@ -1417,7 +1447,7 @@ class ReportController extends Controller
             }
             if ($lineTotal === null) {
                 $unit = null;
-                foreach (['price', 'sell_price', 'unit_price', 'mrp', 'rate'] as $k) {
+                foreach (['sell_price', 'unit_price', 'mrp', 'rate'] as $k) {
                     if (isset($it[$k]) && is_numeric($it[$k])) {
                         $unit = (float)$it[$k];
                         break;
@@ -1444,24 +1474,22 @@ class ReportController extends Controller
 
             foreach ($items as $it) {
                 $pid = (int)($it['product_id'] ?? 0);
-                if (!$pid || !isset($productMap[$pid])) continue;
+                $product = $productMap[$pid] ?? null;
 
                 [$qty, $gross] = $computeLineGross($it);
                 if ($qty <= 0 && $gross <= 0) continue;
 
-                // optional: narrow by explicit category/subcategory filter
-                if ($categoryId && $productMap[$pid]['category_id'] != $categoryId) continue;
-                if ($subCategoryId && $productMap[$pid]['subcategory_id'] != $subCategoryId) continue;
+                $catName = trim((string)($it['category'] ?? ($product['category_name'] ?? 'Uncategorized'))) ?: 'Uncategorized';
+                $subName = trim((string)($it['subcategory'] ?? ($product['sub_category_name'] ?? 'Uncategorized'))) ?: 'Uncategorized';
 
-                // Group id/name for this product
-                $catId   = (int) ($productMap[$pid]['category_id'] ?? 0);
-                $subId   = (int) ($productMap[$pid]['subcategory_id'] ?? 0);
-                $catName = $productMap[$pid]['category_name'] ?? 'Uncategorized';
-                $subName = $productMap[$pid]['sub_category_name'] ?? 'Uncategorized';
+                if ($categoryNameFilter !== '' && strcasecmp($catName, $categoryNameFilter) !== 0) continue;
+                if ($subCategoryNameFilter !== '' && strcasecmp($subName, $subCategoryNameFilter) !== 0) continue;
+                if ($categoryNameFilter === '' && $categoryId && (!$product || (int)$product['category_id'] !== $categoryId)) continue;
+                if ($subCategoryNameFilter === '' && $subCategoryId && (!$product || (int)$product['subcategory_id'] !== $subCategoryId)) continue;
 
-                $groupId   = $groupBy === 'subcategory' ? $subId   : $catId;
+                $groupId   = 0;
                 $groupName = $groupBy === 'subcategory' ? $subName : $catName;
-                $groupKey  = ($groupBy === 'subcategory' ? 'sub:' : 'cat:') . $groupId;
+                $groupKey  = ($groupBy === 'subcategory' ? 'sub:' : 'cat:') . mb_strtolower($groupName);
 
                 $lines[] = compact('groupId', 'groupName', 'groupKey', 'qty', 'gross');
                 $invoiceGross += $gross;

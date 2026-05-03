@@ -183,6 +183,7 @@
 
     <script>
         const PDF_BASE = @json(route('reports.profit-loss.pdf'));
+        const CATEGORY_SALES_URL = @json(route('reports.category_sales.page'));
 
         (function() {
 
@@ -274,9 +275,40 @@
                                 `/accounting/ledger/view/${r.ledger_id}?start_date=${startParam}&end_date=${endParam}`;
                         }
 
+                        if (r.report === 'category_sales') {
+                            const params = new URLSearchParams({
+                                start_date: start,
+                                end_date: end,
+                                admin_status: 'verify',
+                                date_source: 'voucher',
+                                group_by: r.group_by || 'category'
+                            });
+
+                            if (r.category_id) {
+                                params.set('category_id', r.category_id);
+                            }
+
+                            if (r.category_name) {
+                                params.set('category_name', r.category_name);
+                            }
+
+                            if (r.sub_category_id) {
+                                params.set('sub_category_id', r.sub_category_id);
+                                params.set('group_by', 'subcategory');
+                            }
+
+                            if (r.sub_category_name) {
+                                params.set('sub_category_name', r.sub_category_name);
+                                params.set('group_by', 'subcategory');
+                            }
+
+                            url = `${CATEGORY_SALES_URL}?${params.toString()}`;
+                        }
+
+                        const safeLabel = escapeHtml(r.label || '');
                         let labelHtml = url ?
-                            `<a href="${url}" style="color:#2563eb;text-decoration:none;">${r.label}</a>` :
-                            r.label;
+                            `<a href="${url}" style="color:#2563eb;text-decoration:none;">${safeLabel}</a>` :
+                            safeLabel;
 
                         const tr = document.createElement('tr');
 
@@ -302,6 +334,15 @@
             }
 
             // ✅ auto apply
+            function escapeHtml(text) {
+                return String(text)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
             $('#pnl_daterange').on('apply.daterangepicker', function(ev, picker) {
 
                 start = picker.startDate.format('YYYY-MM-DD');

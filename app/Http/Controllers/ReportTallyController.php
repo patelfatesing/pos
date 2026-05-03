@@ -154,7 +154,6 @@ class ReportTallyController extends Controller
             )->values()->all()
         ];
 
-        /* ================= SALES ================= */
         /* ================= SALES (CATEGORY-WISE) ================= */
         $salesAccounts = 0;
 
@@ -172,8 +171,10 @@ class ReportTallyController extends Controller
                 if (!is_array($items)) return [];
 
                 return collect($items)->map(function ($item) {
+                    $subCategoryName = trim((string)($item['subcategory'] ?? 'Others')) ?: 'Others';
+
                     return [
-                        'category' => $item['subcategory'] ?? 'Others',
+                        'category' => $subCategoryName ?: 'Others',
                         'amount'   => (float) ($item['price'] ?? 0),
                     ];
                 });
@@ -188,6 +189,9 @@ class ReportTallyController extends Controller
                 return [
                     'label' => $category,
                     'amount' => number_format($total, 2),
+                    'sub_category_name' => $category,
+                    'report' => 'category_sales',
+                    'group_by' => 'subcategory',
                 ];
             })
             ->values()
@@ -240,6 +244,8 @@ class ReportTallyController extends Controller
                         [
                             'label' => 'Sales Accounts',
                             'amount' => number_format($salesAccounts, 2),
+                            'report' => 'category_sales',
+                            'group_by' => 'subcategory',
                             'children' => $salesChildren // ✅ ADD THIS
                         ],
                         ['label' => 'Closing Stock', 'amount' => number_format($closingStock, 2)],
