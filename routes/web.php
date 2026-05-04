@@ -288,6 +288,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/invoice/view-modal/{id}', [InvoiceController::class, 'invoiceModal']);
     Route::get('/sales/add-sales-modal/{branch}/{shift}', [InvoiceController::class, 'addSalesModal']);
     Route::get('/sales/edit-sales-modal/{id}', [InvoiceController::class, 'editSalesModal']);
+    Route::get('/party/current-balance/{id}', [InvoiceController::class, 'partyBalance']);
+    Route::get('/ledger/balance-by-name', [LedgerController::class, 'balanceByName']);
 
     Route::get('/pack-size/list', [PackSizeController::class, 'index'])->name('packsize.list');
     Route::post('/pack-size/get-data', [PackSizeController::class, 'getData'])->name('packsize.getData');

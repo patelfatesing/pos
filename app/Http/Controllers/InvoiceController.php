@@ -163,7 +163,7 @@ class InvoiceController extends Controller
         }
 
 
-        
+
         $allProducts = Product::select(
             'id',
             'name',
@@ -389,7 +389,7 @@ class InvoiceController extends Controller
                 if ($invoiceShiftId) {
                     stockStatusChangeNew($productId, $branchId, $newQty, 'sold_stock', $invoiceShiftId);
                 }
-                
+
                 $productName = $item['name'] ?? 'Unknown';
 
                 // ✅ LOG
@@ -803,7 +803,9 @@ class InvoiceController extends Controller
                 'sales_type'         => 'admin_sale',
                 'created_at'         => $created_at,
                 'updated_at'         => $created_at,
-                'shift_id'           => $request->shift_id
+                'shift_id'           => $request->shift_id,
+                'admin_status'       => 'verify',
+                'super_admin_status' => (Auth::user()->role_id == 1) ? 'verify' : null,
             ]);
 
             // ================= POS VOUCHER BUILD =================
@@ -1193,6 +1195,41 @@ class InvoiceController extends Controller
             ]);
             throw $e;
         }
+    }
+
+    public function partyBalance(Request $request, $id)
+    {
+        // 1. Get customer
+        $party = DB::table('party_users')->where('id', $id)->first();
+
+        if (!$party) {
+            return response()->json([
+                'balance' => 0,
+                'type' => 'Dr'
+            ]);
+        }
+
+        // 2. Find ledger by name (IMPORTANT)
+        $ledger = DB::table('account_ledgers')
+            ->whereRaw('LOWER(name) = ?', [strtolower(trim($party->first_name))])
+            ->first();
+
+        if (!$ledger) {
+            return response()->json([
+                'balance' => 0,
+                'type' => 'Dr'
+            ]);
+        }
+
+        // 3. Get balance using your helper
+        $date = $request->date ?? now()->toDateString();
+
+        $balance = ledger_balance($ledger->id, null, $date);
+
+        return response()->json([
+            'balance' => (float) $balance['closing'],
+            'type' => $balance['closing_type']
+        ]);
     }
 
     public function editSales_old($id)

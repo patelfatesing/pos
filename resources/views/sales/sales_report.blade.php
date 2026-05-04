@@ -47,27 +47,6 @@
         cursor: pointer;
     }
 
-
-    .verify-single-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        padding: 2px 5px;
-        border-radius: 30px;
-        font-weight: bold;
-        color: #fff;
-        cursor: pointer;
-        transition: 0.3s;
-        min-width: 140px;
-    }
-
-    .verify-single-btn .icon {
-        background: rgba(212, 210, 210, 0.2);
-        padding: 4px 8px;
-        border-radius: 50%;
-    }
-
     .verify-single-btn.verified {
         background: #28a745;
     }
@@ -76,36 +55,20 @@
         background: #ff5722;
     }
 
-    .table span,
+    /* .table span,
     .table p {
         color: #dcdee4 !important;
-    }
+    } */
 
     /* hide checkbox */
     .verify-checkbox input {
         display: none;
     }
 
-    /* button style */
-    .verify-single-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        padding: 10px 18px;
-        border-radius: 30px;
-        font-weight: bold;
-        color: #fff;
-        cursor: pointer;
-        min-width: 130px;
-        background: #ff5722;
-        transition: 0.3s;
-    }
-
     /* icon */
     .verify-single-btn .icon {
         background: rgba(255, 255, 255, 0.2);
-        padding: 4px 8px;
+        padding: 1px 1px;
         border-radius: 50%;
     }
 
@@ -118,7 +81,7 @@
         align-items: center;
         justify-content: center;
         gap: 10px;
-        padding: 5px 5px;
+        padding: 2px 2px;
         border-radius: 30px;
         font-weight: bold;
         color: #fff;
@@ -136,14 +99,18 @@
         background: #ff5722;
     }
 
-    .verify-single-btn .icon {
-        background: rgba(255, 255, 255, 0.2);
-        padding: 4px 8px;
-        border-radius: 50%;
-    }
-
     .verify-single-btn {
         pointer-events: auto;
+    }
+
+    .verify-single-btn .text{
+       font-size: 12px;
+       color: #dcdee4 !important;
+    }
+
+    .verify-single-btn .icon{
+       font-size: 12px;
+       color: #dcdee4 !important;
     }
 
     .verify-checkbox input {
@@ -158,20 +125,6 @@
 
     .verify-checkbox input {
         display: none;
-    }
-
-    .verify-single-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 6px 14px;
-        border-radius: 25px;
-        font-weight: bold;
-        color: #fff;
-        cursor: pointer;
-        min-width: 120px;
-        transition: 0.3s;
     }
 
     .verify-single-btn.verified {
