@@ -1743,7 +1743,7 @@ class Shoppingcart extends Component
         $this->activeProductId = null;
         // Dispatch browser event or Livewire event
         $this->dispatch('notiffication-sucess', ['message' => 'Your transaction has been cleared.']);
-
+        $this->dispatch('reset-customer-selects');
         // Success message
         // session()->flash('message', 'Cart has been cleared.');
     }
@@ -3843,19 +3843,22 @@ if ($branchId == 1) {
             $pdf->save($pdfPath);
             $this->dispatch('focus-barcode');
 
-            if (auth()->user()->hasRole('warehouse')) {
-                $this->invoiceData = $invoice;
-                // $this->dispatch('triggerPrint');
-                // Generate PDF and store it in local storage
-                //  $this->dispatch('triggerPrint', [
-                //     'pdfPath' => route('print.pdf', $invoice->invoice_number)
-                // ]);
+            // if (auth()->user()->hasRole('warehouse')) {
+            //     $this->invoiceData = $invoice;
+            //     // $this->dispatch('triggerPrint');
+            //     // Generate PDF and store it in local storage
+            //     //  $this->dispatch('triggerPrint', [
+            //     //     'pdfPath' => route('print.pdf', $invoice->invoice_number)
+            //     // ]);
 
-                // Trigger print via browser event
-                $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/' . $invoice->invoice_number . '.pdf')]);
-            } else {
-                $this->dispatch('order-saved');
-            }
+            //     // Trigger print via browser event
+            //     $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/' . $invoice->invoice_number . '.pdf')]);
+            // } else {
+            //     $this->dispatch('order-saved');
+            // }
+
+            $this->dispatch('order-saved');
+
 
             if ($voucher && $invoice) {
                 $voucher->gen_id = $invoice->id;
@@ -4718,19 +4721,22 @@ if ($branchId == 1) {
             $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => $first_name, "ref_no" => $invoice->ref_no, "hold_date" => $invoice->hold_date]);
             $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
             $pdf->save($pdfPath);
-            if (auth()->user()->hasRole('warehouse')) {
-                $this->invoiceData = $invoice;
-                // $this->dispatch('triggerPrint');
-                // Generate PDF and store it in local storage
-                //  $this->dispatch('triggerPrint', [
-                //     'pdfPath' => route('print.pdf', $invoice->invoice_number)
-                // ]);
+            // if (auth()->user()->hasRole('warehouse')) {
+            //     $this->invoiceData = $invoice;
+            //     // $this->dispatch('triggerPrint');
+            //     // Generate PDF and store it in local storage
+            //     //  $this->dispatch('triggerPrint', [
+            //     //     'pdfPath' => route('print.pdf', $invoice->invoice_number)
+            //     // ]);
 
-                // Trigger print via browser event
-                $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/' . $invoice->invoice_number . '.pdf')]);
-            } else {
-                $this->dispatch('order-saved');
-            }
+            //     // Trigger print via browser event
+            //     $this->dispatch('triggerPrint', ['pdfPath' => asset('storage/invoices/' . $invoice->invoice_number . '.pdf')]);
+            // } else {
+            //     $this->dispatch('order-saved');
+            // }
+
+            $this->dispatch('order-saved');
+
             // Invoice::where(['user_id' => auth()->user()->id])->where(['branch_id' => $branch_id])->where('status', 'Hold')->delete();
 
             //return redirect()->route('invoice.show', $invoice->id);

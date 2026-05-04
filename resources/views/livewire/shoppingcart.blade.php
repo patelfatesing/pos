@@ -3101,6 +3101,10 @@
     });
 
     window.addEventListener('order-saved', event => {
+
+    $('#commissionUser').val(null).trigger('change');
+    $('#partyUser').val(null).trigger('change');
+    
         const {
             type,
             title,
@@ -4100,4 +4104,13 @@
         });
 
     });
+
+    window.addEventListener('reset-customer-selects', () => {
+    if ($('#commissionUser').length) {
+        $('#commissionUser').val(null).trigger('change');
+    }
+    if ($('#partyUser').length) {
+        $('#partyUser').val(null).trigger('change');
+    }
+});
 </script>
