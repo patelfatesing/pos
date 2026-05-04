@@ -104,7 +104,7 @@
                     <label class="switch m-0">
                         <input type="checkbox" onchange="verifyInvoice({{ $invoice->id }}, this.checked)"
                             {{ $invoice->admin_status == 'verify' ? 'checked' : '' }}>
-                        <span class="slider round"></span>
+                        <span class="slider round">Verify Sale</span>
                     </label>
 
                 </div>
@@ -358,8 +358,8 @@
 
         <div class="d-flex justify-content-end mt-3 total-summary mb-3">
             <div>
-                <button type="button" onclick="verifyInvoice({{ $invoice->id }}, this.checked)"
-                    class="btn btn-success">Verify Sale</button>
+                {{-- <button type="button" onclick="verifyInvoice({{ $invoice->id }}, this.checked)"
+                    class="btn btn-success">Verify Sale</button> --}}
                 <button type="submit" class="btn btn-success">Save Invoice Items</button>
             </div>
         </div>
@@ -433,7 +433,6 @@
         $('#sub_total').val(totalSellPrice);
         updatePaymentFields();
     }
-
 
     // ADD NEW PRODUCT
     $('#add-product-btn').on('click', function() {
@@ -805,7 +804,7 @@
                     success: function(response) {
                         Swal.fire("Done!", "Invoice has been Verified", "success")
                             .then(() => {
-                                window.location.href = "/sales/sales-report";
+                                // window.location.href = "/sales/sales-report";
                             });
                     }
                 });

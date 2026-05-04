@@ -383,7 +383,6 @@ class LedgerController extends Controller
         ]);
     }
 
-
     public function ledgerData(Request $request, $ledgerId)
     {
         $ledger = AccountLedger::findOrFail($ledgerId);
@@ -408,7 +407,9 @@ class LedgerController extends Controller
                 'vl.*',
                 'v.voucher_date',
                 'v.voucher_type',
-                'v.id as voucher_id'
+                'v.id as voucher_id',
+                'v.ref_no',
+                'v.gen_id'
             )
             ->get();
 
@@ -416,7 +417,23 @@ class LedgerController extends Controller
 
         foreach ($entries as $row) {
 
-            // MAIN ROW
+            // ================= EDIT URL =================
+            if ($row->voucher_type == 'Purchase') {
+
+                if (!empty($row->gen_id)) {
+                    $editUrl = route('purchase.edit', $row->gen_id);
+                } else {
+                    $editUrl = route('accounting.vouchers.edit', $row->voucher_id);
+                }
+            } elseif ($row->voucher_type == 'Sales') {
+
+                $editUrl = route('sales.edit-sales', $row->gen_id);
+            } else {
+
+                $editUrl = route('accounting.vouchers.edit', $row->voucher_id);
+            }
+
+            // ================= MAIN ROW =================
             $data[] = [
                 'type'        => 'main',
                 'date'        => date('d-M-y', strtotime($row->voucher_date)),
@@ -425,10 +442,10 @@ class LedgerController extends Controller
                 'vch_no'      => $row->voucher_id,
                 'debit'       => $row->dc == 'Dr' ? (float)$row->amount : 0,
                 'credit'      => $row->dc == 'Cr' ? (float)$row->amount : 0,
-                'edit_url'    => route('accounting.vouchers.edit', $row->voucher_id)
+                'edit_url'    => $editUrl,
             ];
 
-            // DETAIL ROWS
+            // ================= DETAIL ROWS =================
             $others = DB::table('voucher_lines as vl')
                 ->join('account_ledgers as al', 'al.id', '=', 'vl.ledger_id')
                 ->where('vl.voucher_id', $row->voucher_id)
@@ -446,7 +463,7 @@ class LedgerController extends Controller
             }
         }
 
-        // ================= OPENING (BEFORE FROM DATE) =================
+        // ================= OPENING =================
         $opening = DB::table('voucher_lines as vl')
             ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
             ->where('vl.ledger_id', $ledgerId)
@@ -468,14 +485,11 @@ class LedgerController extends Controller
         ")
             ->first();
 
-        // ================= RESPONSE =================
         return response()->json([
             'data' => $data,
-
             'opening' => [
                 'balance' => (float) ($opening->balance ?? 0)
             ],
-
             'period' => [
                 'total_debit'  => (float) ($period->total_debit ?? 0),
                 'total_credit' => (float) ($period->total_credit ?? 0)
@@ -484,18 +498,23 @@ class LedgerController extends Controller
     }
 
     // LedgerController.php
-    public function currentBalance($ledgerId)
+    public function currentBalance(Request $request, $id)
     {
-        $ledger = AccountLedger::findOrFail($ledgerId);
+        $date = $request->date ?? now()->toDateString();
+        $branchId = $request->branch_id ?? null;
 
-        // Example calculation (adjust as per your logic)
-        $balance = $ledger->opening_balance ?? 0;
-        // $type = $balance >= 0 ? 'Dr' : 'Cr';
-        $type = $ledger->opening_type;
+        $balance = ledger_balance($id, null, $date, $branchId);
+
+        if (!$balance) {
+            return response()->json([
+                'balance' => 0,
+                'type' => 'Dr'
+            ]);
+        }
 
         return response()->json([
-            'balance' => number_format($balance),
-            'type'    => $type
+            'balance' => number_format($balance['closing'], 2),
+            'type' => $balance['closing_type']
         ]);
     }
 
@@ -567,5 +586,28 @@ class LedgerController extends Controller
             ->get();
 
         return view('accounting.ledgers.ledger_list', compact('ledger', 'entries', 'start', 'end'));
+    }
+
+    public function balanceByName(Request $request)
+    {
+        $name = $request->name;
+
+        $ledger = DB::table('account_ledgers')
+            ->whereRaw('LOWER(name) = ?', [strtolower(trim($name))])
+            ->first();
+
+        if (!$ledger) {
+            return response()->json([
+                'balance' => 0,
+                'type' => 'Dr'
+            ]);
+        }
+
+        $balance = ledger_balance($ledger->id, null, now()->toDateString());
+
+        return response()->json([
+            'balance' => (float) $balance['closing'],
+            'type' => $balance['closing_type']
+        ]);
     }
 }

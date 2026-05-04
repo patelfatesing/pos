@@ -51,15 +51,15 @@
     <div>
         <h4 class="mb-0">Add Transaction - #{{ $branch_data->name }}</h4>
     </div>
-   
+
 </div>
 
 <form id="invoice-items-form" method="POST" action="{{ route('sales.invoice.insert-sale') }}">
     @csrf
     <div class="card mb-3">
         <div class="card-body">
-            <div class="row g-2 align-items-center">
-                <div class="col-md-4">
+            <div class="row align-items-center">
+                <div class="col-md-3">
                     <select id="new-product-id" class="form-control">
                         <option value="">Select Product</option>
                         @foreach ($allProducts as $product)
@@ -76,7 +76,7 @@
                 <input type="hidden" name="branch_id" value="{{ $branch_data->id }}">
                 <input type="hidden" name="type" value="{{ $type }}">
                 <input type="hidden" name="shift_id" value="{{ $Shift_data->id }}">
-                <div class="col-md-1">
+                <div class="col-md-1 mr-2">
                     <input type="number" min="1" id="new-product-qty" class="form-control" placeholder="Qty">
                 </div>
                 <div class="col-md-1">
@@ -84,9 +84,9 @@
                         Add Item
                     </button>
                 </div>
-                <div class="col-md-4 d-flex">
+                <div class="col-md-3 d-flex">
                 </div>
-                <div class="col-md-2 gap-2">
+                <div class="col-md-3">
                     @if ($branch_data->id == 1)
                         <select id="party-id" class="form-control" name="party_user_id">
                             <option value="">Select Party Customer</option>
@@ -108,6 +108,7 @@
                             @endforeach
                         </select>
                     @endif
+                    <p id="party-current-balance" style="font-style:italic;color:#555;"></p>
                 </div>
             </div>
         </div>
@@ -130,7 +131,6 @@
             </table>
         </div>
     </div>
-
 
     <div class="row mb-0">
         <div class="offset-lg-8 col-lg-4">
@@ -852,6 +852,32 @@
 
                 let cash = total - upi;
                 $('#cash-amount').val(cash >= 0 ? Math.ceil(cash) : 0);
+            }
+        });
+    });
+
+    $('#party-id').on('change', function() {
+
+        const partyUserId = $(this).val();
+
+        if (!partyUserId) {
+            $('#party-current-balance').text('');
+            return;
+        }
+
+        $.ajax({
+            url: "/party/current-balance/" + partyUserId,
+            type: "GET",
+            success: function(res) {
+
+                const balance = parseFloat(res.balance) || 0;
+
+                $('#party-current-balance').text(
+                    'Current Balance: ' +
+                    balance.toLocaleString('en-IN', {
+                        minimumFractionDigits: 2
+                    }) + ' ' + res.type
+                );
             }
         });
     });
