@@ -56,6 +56,12 @@
         #product_table td:nth-child(9) {
             width: 10%;
         }
+
+        .ledger-info {
+            font-size: 11px;
+            color: #6c757d;
+            font-style: italic;
+        }
     </style>
     @if (session('warehouse_error'))
         <script>
@@ -1328,6 +1334,64 @@
             //         $('#vendor_new_id').html(options);
             //     }
             // });
+        });
+
+
+
+        const ledgerMap = {
+            aed_to_be_paid: "AED TO BE PAID",
+            guarantee_fulfilled: "Guarantee Fulfilled",
+            loading_charges: "Loading Charges",
+            permit_fee_excise: "Permit Fee",
+            vend_fee_excise: "Vend Fee",
+            composite_fee_excise: "Composite Fee",
+            excise_fee: "EXCISE FEE",
+            composition_vat: "COMPOSITION VAT",
+            surcharge_on_ca: "SURCHARGE ON CA",
+            tcs: "TCS",
+            blf: "BLF",
+            vat: "VAT",
+            surcharge_on_vat: "SURCHARGE ON VAT"
+        };
+
+        $(document).ready(function() {
+
+            Object.keys(ledgerMap).forEach(function(id) {
+
+                const $input = $('#' + id);
+
+                if ($input.length) {
+
+                    // Add placeholder text first
+                    if ($input.next('.ledger-info').length === 0) {
+                        $input.after(`
+                    <small class="ledger-info" style="font-size:11px;color:#888;display:block;">
+                        Loading balance...
+                    </small>
+                `);
+                    }
+
+                    // Fetch balance
+                    $.ajax({
+                        url: "/ledger/balance-by-name",
+                        type: "GET",
+                        data: {
+                            name: ledgerMap[id]
+                        },
+                        success: function(res) {
+
+                            const balance = parseFloat(res.balance) || 0;
+
+                            const text = `
+    ${balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })} ${res.type}
+`;
+
+                            $input.next('.ledger-info').text(text);
+                        }
+                    });
+                }
+            });
+
         });
     </script>
 

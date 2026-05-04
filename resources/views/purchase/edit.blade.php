@@ -583,97 +583,28 @@
         const $billingCol = $('#billing-column');
 
         const oldValues = {
-            excise_fee: '{{ old(
-                '
-                        excise_fee ',
-                $purchase->excise_fee,
-            ) }}',
-            composition_vat: '{{ old(
-                '
-                        composition_vat ',
-                $purchase->composition_vat,
-            ) }}',
-            surcharge_on_ca: '{{ old(
-                '
-                        surcharge_on_ca ',
-                $purchase->surcharge_on_ca,
-            ) }}',
-            aed_to_be_paid: '{{ old(
-                '
-                        aed_to_be_paid ',
-                $purchase->aed_to_be_paid,
-            ) }}',
-            guarantee_fulfilled: '{{ old(
-                '
-                        guarantee_fulfilled ',
-                $purchase->guarantee_fulfilled,
-            ) }}',
+            excise_fee: '{{ old('excise_fee', $purchase->excise_fee) }}',
+            composition_vat: '{{ old('composition_vat', $purchase->composition_vat) }}',
+            surcharge_on_ca: '{{ old('surcharge_on_ca', $purchase->surcharge_on_ca) }}',
+            aed_to_be_paid: '{{ old('aed_to_be_paid', $purchase->aed_to_be_paid) }}',
+            guarantee_fulfilled: '{{ old('guarantee_fulfilled', $purchase->guarantee_fulfilled) }}',
 
-            vat: '{{ old(
-                '
-                        vat ',
-                $purchase->vat,
-            ) }}',
-            surcharge_on_vat: '{{ old(
-                '
-                        surcharge_on_vat ',
-                $purchase->surcharge_on_vat,
-            ) }}',
-            blf: '{{ old(
-                '
-                        blf ',
-                $purchase->blf,
-            ) }}',
-            permit_fee: '{{ old(
-                '
-                        permit_fee ',
-                $purchase->permit_fee,
-            ) }}',
-            rsgsm_purchase: '{{ old(
-                '
-                        rsgsm_purchase ',
-                $purchase->rsgsm_purchase,
-            ) }}',
+            vat: '{{ old('vat', $purchase->vat) }}',
+            surcharge_on_vat: '{{ old('surcharge_on_vat', $purchase->surcharge_on_vat) }}',
+            blf: '{{ old('blf', $purchase->blf) }}',
+            permit_fee: '{{ old('permit_fee', $purchase->permit_fee) }}',
+            rsgsm_purchase: '{{ old('rsgsm_purchase', $purchase->rsgsm_purchase) }}',
 
-            permit_fee_excise: '{{ old(
-                '
-                        permit_fee_excise ',
-                $purchase->permit_fee_excise,
-            ) }}',
-            vend_fee_excise: '{{ old(
-                '
-                        vend_fee_excise ',
-                $purchase->vend_fee_excise,
-            ) }}',
-            composite_fee_excise: '{{ old(
-                '
-                        composite_fee_excise ',
-                $purchase->composite_fee_excise,
-            ) }}',
-            excise_total_amount: '{{ old(
-                '
-                        excise_total_amount ',
-                $purchase->excise_total_amount,
-            ) }}',
+            permit_fee_excise: '{{ old('permit_fee_excise', $purchase->permit_fee_excise) }}',
+            vend_fee_excise: '{{ old('vend_fee_excise', $purchase->vend_fee_excise) }}',
+            composite_fee_excise: '{{ old('composite_fee_excise', $purchase->composite_fee_excise) }}',
+            excise_total_amount: '{{ old('excise_total_amount', $purchase->excise_total_amount) }}',
 
-            case_purchase_per: '{{ old(
-                '
-                        case_purchase_per ',
-                $purchase->case_purchase_per,
-            ) }}',
-            case_purchase_amt: '{{ old(
-                '
-                        case_purchase_amt ',
-                $purchase->case_purchase_amt,
-            ) }}',
+            case_purchase_per: '{{ old('case_purchase_per', $purchase->case_purchase_per) }}',
+            case_purchase_amt: '{{ old('case_purchase_amt', $purchase->case_purchase_amt) }}',
 
-            tcs: '{{ old(
-                '
-                        tcs ',
-                $purchase->tcs,
-            ) }}'
+            tcs: '{{ old('tcs', $purchase->tcs) }}'
         };
-
 
         // SHOW LICENSE LEDGER ONLY FOR VENDOR 1 & 2
         if (vendorId === '1' || vendorId === '2') {
@@ -1166,4 +1097,73 @@
         $('#product_table tbody').append(row);
 
     }
+
+    // ================= LEDGER BALANCE (EDIT + CREATE BOTH) =================
+
+    const ledgerMap = {
+        aed_to_be_paid: "AED TO BE PAID",
+        guarantee_fulfilled: "Guarantee Fulfilled",
+        loading_charges: "Loading Charges",
+        permit_fee_excise: "Permit Fee",
+        vend_fee_excise: "Vend Fee",
+        composite_fee_excise: "Composite Fee",
+        excise_fee: "EXCISE FEE",
+        composition_vat: "COMPOSITION VAT",
+        surcharge_on_ca: "SURCHARGE ON CA",
+        tcs: "TCS",
+        blf: "BLF",
+        vat: "VAT",
+        surcharge_on_vat: "SURCHARGE ON VAT"
+    };
+
+    function loadLedgerBalances() {
+
+        Object.keys(ledgerMap).forEach(function(id) {
+
+            const $input = $('#' + id);
+
+            if ($input.length) {
+
+                // add small text if not exists
+                if ($input.next('.ledger-info').length === 0) {
+                    $input.after(`
+                    <small class="ledger-info" style="font-size:11px;color:#888;display:block;">
+                        Loading...
+                    </small>
+                `);
+                }
+
+                // fetch balance
+                $.ajax({
+                    url: "/ledger/balance-by-name",
+                    type: "GET",
+                    data: {
+                        name: ledgerMap[id]
+                    },
+                    success: function(res) {
+
+                        const balance = parseFloat(res.balance) || 0;
+
+                        const text = balance.toLocaleString('en-IN', {
+                            minimumFractionDigits: 2
+                        }) + ' ' + res.type;
+
+                        $input.next('.ledger-info').text(text);
+                    }
+                });
+            }
+        });
+    }
+
+    // ✅ RUN ON PAGE LOAD (EDIT PAGE FIX)
+    $(document).ready(function() {
+        loadLedgerBalances();
+    });
+
+    // ✅ RUN AGAIN WHEN VENDOR CHANGES (IMPORTANT FOR EDIT)
+    $(document).on('change', '#vendor_id', function() {
+        setTimeout(function() {
+            loadLedgerBalances();
+        }, 300);
+    });
 </script>

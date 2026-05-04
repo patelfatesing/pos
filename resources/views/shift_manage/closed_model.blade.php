@@ -71,10 +71,6 @@
                                                      <h6 class="mb-0 text-white text-uppercase fw-bold">
                                                          {{ ucfirst($category) }}
                                                      </h6>
-
-                                                     <span class="badge bg-light text-dark fw-semibold">
-                                                         {{ $itemCount }} {{ $itemCount == 1 ? 'Item' : 'Items' }}
-                                                     </span>
                                                  </div>
 
                                                  {{-- Body --}}
@@ -146,10 +142,6 @@
                                      <h6 class="mb-0 text-white fw-bold text-uppercase">
                                          Shift Details
                                      </h6>
-
-                                     <span class="badge bg-light text-dark fw-semibold">
-                                         {{ $shift->id ?? 'Shift' }}
-                                     </span>
                                  </div>
 
                                  <div class="card-body p-3">

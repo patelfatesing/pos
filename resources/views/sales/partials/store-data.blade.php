@@ -162,7 +162,7 @@
 
                                                 <!-- HIDDEN OLD CHECKBOX -->
                                                 <input type="checkbox"
-                                                    onchange="changeVerifyStatus('sales', {{ $first->shift_id }}, this.checked,'super_admin')"
+                                                    onchange="handleVerifyChange(this, 'sales', {{ $first->shift_id }}, 'super_admin')"
                                                     {{ ($status['admin']['inv'] ?? '') == 'verify' ? 'checked' : '' }}
                                                     {{ ($status['sub_admin']['inv'] ?? '') != 'verify' ? 'disabled' : '' }}>
 
@@ -196,7 +196,7 @@
                                             <label class="verify-checkbox">
 
                                                 <input type="checkbox"
-                                                    onchange="changeVerifyStatus('transfer', {{ $first->shift_id }}, this.checked,'super_admin')"
+                                                    onchange="handleVerifyChange(this, 'transfer', {{ $first->shift_id }}, 'super_admin')"
                                                     {{ ($status['admin']['tra'] ?? '') == 'verify' ? 'checked' : '' }}
                                                     {{ ($status['sub_admin']['tra'] ?? '') != 'verify' ? 'disabled' : '' }}>
 
@@ -224,7 +224,8 @@
                                             <label class="verify-checkbox">
 
                                                 <input type="checkbox"
-                                                    onchange="verifyFullShift({{ $first->shift_id }}, this.checked,'super_admin')"
+                                                   `     onchange="handleShiftChange(this,  {{ $first->shift_id }}, 'super_admin')"
+                                                   
                                                     {{ ($status['admin']['shift'] ?? '') == 'verify' ? 'checked' : '' }}
                                                     {{ ($status['sub_admin']['shift'] ?? '') != 'verify' ? 'disabled' : '' }}>
 

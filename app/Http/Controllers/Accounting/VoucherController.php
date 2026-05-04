@@ -137,8 +137,8 @@ class VoucherController extends Controller
 
             // View button (only verified OR admin)
             if (auth()->user()->role_id !== 1) {
-                
-                  if ($r->super_admin_status === 'verify') {
+
+                if ($r->super_admin_status === 'verify') {
 
                     $actions .= '<a href="' . e($viewUrl) . '" class="btn btn-sm btn-success mr-1">
                     Verify
@@ -149,7 +149,7 @@ class VoucherController extends Controller
                  </a>';
                 }
             } else {
-               $actions .= '<a href="' . e($viewUrl) . '" class="btn btn-sm btn-success mr-1">
+                $actions .= '<a href="' . e($viewUrl) . '" class="btn btn-sm btn-success mr-1">
                     Verify
                  </a>';
             }
@@ -747,6 +747,22 @@ class VoucherController extends Controller
         $totalDebit  = 0;
         $totalCredit = 0;
 
+        // ================= EDIT URL SAME AS LEDGER =================
+        if ($voucher->voucher_type == 'Purchase') {
+
+            if (!empty($voucher->gen_id)) {
+                $editUrl = route('purchase.edit', $voucher->gen_id);
+            } else {
+                $editUrl = route('accounting.vouchers.edit', $voucher->id);
+            }
+        } elseif ($voucher->voucher_type == 'Sales') {
+
+            $editUrl = route('sales.edit-sales', $voucher->gen_id);
+        } else {
+
+            $editUrl = route('accounting.vouchers.edit', $voucher->id);
+        }
+
         foreach ($voucher->lines as $line) {
 
             $debit  = 0;
@@ -768,18 +784,15 @@ class VoucherController extends Controller
                 'vch_no'      => $voucher->ref_no,
                 'debit'       => $debit,
                 'credit'      => $credit,
-                'edit_url'    => route('accounting.vouchers.edit', $voucher->id),
+                'edit_url'    => $editUrl, // ✅ updated here
             ];
         }
 
         return response()->json([
             'data' => $rows,
-
-            // no opening in voucher view → keep 0
             'opening' => [
                 'balance' => 0
             ],
-
             'period' => [
                 'total_debit'  => $totalDebit,
                 'total_credit' => $totalCredit,
@@ -872,7 +885,7 @@ class VoucherController extends Controller
         $voucher = Voucher::findOrFail($request->id);
 
         $voucher->admin_status = $request->status;
-         $voucher->super_admin_status = $request->status;
+        $voucher->super_admin_status = $request->status;
         $voucher->save();
 
         return response()->json(['success' => true]);
