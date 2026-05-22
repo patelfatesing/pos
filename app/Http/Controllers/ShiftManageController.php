@@ -1222,7 +1222,7 @@ class ShiftManageController extends Controller
             $hasUnverified =
                 Invoice::where('shift_id', $shift_id)->where($column, 'unverify')->exists() ||
                 StockTransfer::where('shift_id', $shift_id)->where($column, 'unverify')->exists();
-                //|| StockRequest::where('shift_id', $shift_id)->where($column, 'unverify')->exists();
+            //|| StockRequest::where('shift_id', $shift_id)->where($column, 'unverify')->exists();
 
             // ✅ Update shift closing
             ShiftClosing::where('id', $shift_id)->update([
@@ -1298,13 +1298,14 @@ class ShiftManageController extends Controller
         $status     = $request->status;
         $invoice_id = $request->invoice_id;
         $type       = $request->type ?? 'admin'; // admin OR super_admin
+        $role       = $request->role;
 
         DB::beginTransaction();
 
         try {
 
             // ✅ Decide column dynamically
-            $column = ($type === 'super_admin') ? 'super_admin_status' : 'admin_status';
+            $column = ($role === 'super_admin') ? 'super_admin_status' : 'admin_status';
 
             // ✅ Update Invoice
             Invoice::where('id', $invoice_id)

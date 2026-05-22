@@ -1,4 +1,4 @@
-@extends('layouts.backend.layouts')
+@extends('layouts.backend.403')
 
 @section('page-content')
     <style>

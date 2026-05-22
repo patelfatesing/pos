@@ -6,7 +6,9 @@
         @php
 
             $first = $sales->first();
-            $date = \Carbon\Carbon::parse($first->created_at)->format('d-m-Y');
+            $startDate = \Carbon\Carbon::parse($first->shift->start_time)->format('d-m-Y');
+
+            $endDate = \Carbon\Carbon::parse($first->shift->end_time)->format('d-m-Y');
 
             // MAIN TOTAL
             $groupTotal = $sales->sum(fn($i) => (float) str_replace(',', '', $i->total));
@@ -24,7 +26,7 @@
             <td class="ps-3">
                 <strong>{{ $first->branch->name }}</strong>
                 <div class="text-muted" style="font-size:12px;">
-                    {{ $date }}
+                    {{ $startDate }}
                 </div>
             </td>
 
@@ -156,94 +158,100 @@
 
                                         <!-- SALES -->
                                         <div class="verify-item text-center mr-2">
-                                            <small class="text-muted d-block mb-1">Sales</small>
 
-                                            <label class="verify-checkbox">
-
-                                                <!-- HIDDEN OLD CHECKBOX -->
-                                                <input type="checkbox"
-                                                    onchange="handleVerifyChange(this, 'sales', {{ $first->shift_id }}, 'super_admin')"
-                                                    {{ ($status['admin']['inv'] ?? '') == 'verify' ? 'checked' : '' }}
-                                                    {{ ($status['sub_admin']['inv'] ?? '') != 'verify' ? 'disabled' : '' }}>
-
-                                                <!-- NEW BUTTON UI -->
-                                                <div class="verify-single-btn 
-                                                    {{ ($status['admin']['inv'] ?? '') == 'verify' ? 'verified' : 'unverified' }}
-                                                    {{ ($status['sub_admin']['inv'] ?? '') != 'verify' ? 'disabled-btn' : '' }}"
-                                                    onclick="triggerVerifyBtn(event, this, '{{ $status['admin']['inv'] ?? '' }}')">
-
-                                                    <span class="icon">
-                                                        {{ ($status['super_admin']['inv'] ?? '') == 'verify' ? '✔' : '✖' }}
-                                                    </span>
-
-                                                    <span class="text">
-                                                        {{ ($status['super_admin']['inv'] ?? '') == 'verify' ? 'VERIFIED' : 'UNVERIFIED' }}
-                                                    </span>
-                                                </div>
-
-                                            </label>
-                                        </div>
-
-                                        <!-- TRANSFER -->
-                                        <div class="verify-item text-center mr-2">
                                             <small class="text-muted d-block mb-1">
-                                                <a href="javascript:void(0)" class="text-primary"
-                                                    onclick="openTransferModal({{ $first->shift_id }}, {{ $first->branch->id }})">
-                                                    Transfer
-                                                </a>
+                                                Sales
                                             </small>
 
                                             <label class="verify-checkbox">
 
-                                                <input type="checkbox"
+                                                <input type="checkbox" id="main_sales_{{ $first->shift_id }}"
+                                                    onchange="handleVerifyChange(this, 'sales', {{ $first->shift_id }}, 'super_admin')"
+                                                    {{ ($status['admin']['inv'] ?? '') == 'verify' ? 'checked' : '' }}
+                                                    {{ ($status['sub_admin']['inv'] ?? '') != 'verify' ? 'disabled' : '' }}>
+
+                                                <div class="verify-single-btn {{ ($status['admin']['inv'] ?? '') == 'verify' ? 'verified' : 'unverified' }} {{ ($status['sub_admin']['inv'] ?? '') != 'verify' ? 'disabled-btn' : '' }}"
+                                                    onclick="triggerVerifyBtn(event, this, '{{ $status['admin']['inv'] ?? '' }}')">
+                                                    <span class="icon">
+                                                        {{ ($status['admin']['inv'] ?? '') == 'verify' ? '✔' : '✖' }}
+                                                    </span>
+
+                                                    <span class="text">
+                                                        {{ ($status['admin']['inv'] ?? '') == 'verify' ? 'VERIFIED' : 'UNVERIFIED' }}
+                                                    </span>
+
+                                                </div>
+
+                                            </label>
+
+                                        </div>
+
+                                        <!-- TRANSFER -->
+                                        <div class="verify-item text-center mr-2">
+
+                                            <small class="text-muted d-block mb-1">
+
+                                                <a href="javascript:void(0)" class="text-primary"
+                                                    onclick="openTransferModal({{ $first->shift_id }}, {{ $first->branch->id }})">
+
+                                                    Transfer
+
+                                                </a>
+
+                                            </small>
+
+                                            <label class="verify-checkbox">
+
+                                                <input type="checkbox" id="main_tra_{{ $first->shift_id }}"
                                                     onchange="handleVerifyChange(this, 'transfer', {{ $first->shift_id }}, 'super_admin')"
                                                     {{ ($status['admin']['tra'] ?? '') == 'verify' ? 'checked' : '' }}
                                                     {{ ($status['sub_admin']['tra'] ?? '') != 'verify' ? 'disabled' : '' }}>
 
-                                                <div class="verify-single-btn 
-                                                    {{ ($status['admin']['tra'] ?? '') == 'verify' ? 'verified' : 'unverified' }}
-                                                    {{ ($status['sub_admin']['tra'] ?? '') != 'verify' ? 'disabled-btn' : '' }}"
+                                                <div class="verify-single-btn {{ ($status['admin']['tra'] ?? '') == 'verify' ? 'verified' : 'unverified' }} {{ ($status['sub_admin']['tra'] ?? '') != 'verify' ? 'disabled-btn' : '' }}"
                                                     onclick="triggerVerifyBtn(event, this, '{{ $status['admin']['tra'] ?? '' }}')">
-
                                                     <span class="icon">
-                                                        {{ ($status['super_admin']['tra'] ?? '') == 'verify' ? '✔' : '✖' }}
+                                                        {{ ($status['admin']['tra'] ?? '') == 'verify' ? '✔' : '✖' }}
                                                     </span>
 
                                                     <span class="text">
-                                                        {{ ($status['super_admin']['tra'] ?? '') == 'verify' ? 'VERIFIED' : 'UNVERIFIED' }}
+                                                        {{ ($status['admin']['tra'] ?? '') == 'verify' ? 'VERIFIED' : 'UNVERIFIED' }}
                                                     </span>
+
                                                 </div>
 
                                             </label>
+
                                         </div>
 
                                         <!-- SHIFT -->
                                         <div class="verify-item text-center">
-                                            <small class="text-muted d-block mb-1">Shift</small>
+
+                                            <small class="text-muted d-block mb-1">
+                                                Shift
+                                            </small>
 
                                             <label class="verify-checkbox">
 
-                                                <input type="checkbox"
-                                                   `     onchange="handleShiftChange(this,  {{ $first->shift_id }}, 'super_admin')"
-                                                   
+                                                <input type="checkbox" id="main_shift_{{ $first->shift_id }}"
+                                                    onchange="handleShiftChange(this, {{ $first->shift_id }}, 'super_admin')"
                                                     {{ ($status['admin']['shift'] ?? '') == 'verify' ? 'checked' : '' }}
                                                     {{ ($status['sub_admin']['shift'] ?? '') != 'verify' ? 'disabled' : '' }}>
 
-                                                <div class="verify-single-btn 
-                                                    {{ ($status['admin']['shift'] ?? '') == 'verify' ? 'verified' : 'unverified' }}
-                                                    {{ ($status['sub_admin']['shift'] ?? '') != 'verify' ? 'disabled-btn' : '' }}"
+                                                <div class="verify-single-btn {{ ($status['admin']['shift'] ?? '') == 'verify' ? 'verified' : 'unverified' }} {{ ($status['sub_admin']['shift'] ?? '') != 'verify' ? 'disabled-btn' : '' }}"
                                                     onclick="triggerVerifyBtn(event, this, '{{ $status['admin']['shift'] ?? '' }}')">
 
                                                     <span class="icon">
-                                                        {{ ($status['super_admin']['shift'] ?? '') == 'verify' ? '✔' : '✖' }}
+                                                        {{ ($status['admin']['shift'] ?? '') == 'verify' ? '✔' : '✖' }}
                                                     </span>
 
                                                     <span class="text">
-                                                        {{ ($status['super_admin']['shift'] ?? '') == 'verify' ? 'VERIFIED' : 'UNVERIFIED' }}
+                                                        {{ ($status['admin']['shift'] ?? '') == 'verify' ? 'VERIFIED' : 'UNVERIFIED' }}
                                                     </span>
+
                                                 </div>
 
                                             </label>
+
                                         </div>
 
                                     </div>
