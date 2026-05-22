@@ -1182,6 +1182,42 @@
             let oldValue = !checkbox.checked;
 
             updateVerifyUI(checkbox);
+              // ====================================
+    // MAIN CHECKBOX ENABLE / DISABLE
+    // ====================================
+
+    let prefix = type === 'sales'
+        ? 'sales'
+        : type === 'transfer'
+        ? 'tra'
+        : 'shift';
+
+    let mainCheckbox = document.getElementById(
+        `main_${prefix}_${currentShiftId}`
+    );
+
+    if (mainCheckbox) {
+
+        // checked update
+        mainCheckbox.checked = checkbox.checked;
+
+        // enable disable
+        mainCheckbox.disabled = !checkbox.checked;
+
+        // class update
+        let btn = mainCheckbox.parentElement.querySelector('.verify-single-btn');
+
+        if (btn) {
+
+            btn.classList.toggle('verified', checkbox.checked);
+
+            btn.classList.toggle('unverified', !checkbox.checked);
+
+            btn.classList.toggle('disabled-btn', !checkbox.checked);
+        }
+    }
+
+    // ====================================
 
             if (type === 'shift') {
                 verifyFullShift(currentShiftId, checkbox.checked, 'sub_admin', checkbox, oldValue);
@@ -1242,6 +1278,7 @@
                 btn.classList.remove('unverified');
                 btn.querySelector('.icon').innerText = '✔';
                 btn.querySelector('.text').innerText = 'VERIFIED';
+                
             } else {
                 btn.classList.add('unverified');
                 btn.classList.remove('verified');

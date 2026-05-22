@@ -109,6 +109,7 @@ class ProductImportController extends Controller
 
     public function processImport(Request $request)
     {
+
         try {
             $request->validate([
                 'file_name' => 'required|string',
@@ -216,6 +217,7 @@ class ProductImportController extends Controller
 
                         $sku = Product::generateSku($brand, $batch_no, $pack_size, $product_l_id + 1);
 
+                       
                         $product = Product::create([
                             'name' => $name,
                             // 'brand' => $row[$mapping['brand']] ?? null,
@@ -228,7 +230,7 @@ class ProductImportController extends Controller
                             'sell_price' => $sale_price,
                             'mrp' => isset($mapping['mrp']) ? $row[$mapping['mrp']] : 0,
                             'reorder_level' => isset($mapping['min_stock_qty_set']) ? $row[$mapping['min_stock_qty_set']] : null,
-                            'discount_price' => isset($mapping['commssion_base_customer_sale_price']) ? $row[$mapping['commssion_base_customer_sale_price']] : null,
+                             'discount_price' => is_numeric($row[$mapping['commssion_base_customer_sale_price']] ?? null) ? $row[$mapping['commssion_base_customer_sale_price']] : null,
                             'discount_amt' => isset($mapping['commssion_margin']) ? $row[$mapping['commssion_margin']] : 0,
                         ]);
 

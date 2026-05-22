@@ -102,8 +102,13 @@
                 <div class="col d-flex justify-content-end">
 
                     <label class="switch m-0">
-                        <input type="checkbox" onchange="verifyInvoice({{ $invoice->id }}, this.checked)"
+                       @if(auth()->user()->role_id == 1)
+                        <input type="checkbox" onchange="verifyInvoice({{ $invoice->id }}, this.checked, 'super_admin')"
+                            {{ $invoice->super_admin_status == 'verify' ? 'checked' : '' }}>
+                            @else
+                        <input type="checkbox" onchange="verifyInvoice({{ $invoice->id }}, this.checked, 'admin')"
                             {{ $invoice->admin_status == 'verify' ? 'checked' : '' }}>
+                            @endif
                         <span class="slider round">Verify Sale</span>
                     </label>
 
@@ -778,7 +783,7 @@
         }
     }
 
-    function verifyInvoice(invoice_id, isChecked) {
+    function verifyInvoice(invoice_id, isChecked, role) {
 
         let status = isChecked ? 'verify' : 'unverify';
 
@@ -799,7 +804,8 @@
                     },
                     data: {
                         invoice_id: invoice_id,
-                        status: status
+                        status: status, 
+                        role: role
                     },
                     success: function(response) {
                         Swal.fire("Done!", "Invoice has been Verified", "success")

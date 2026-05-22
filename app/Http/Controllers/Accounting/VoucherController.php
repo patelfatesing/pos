@@ -24,179 +24,239 @@ class VoucherController extends Controller
     }
 
     public function getData(Request $request)
-    {
-        $draw   = (int) $request->input('draw', 1);
-        $start  = (int) $request->input('start', 0);
-        $length = (int) $request->input('length', 10);
+{
+    $draw   = (int) $request->input('draw', 1);
+    $start  = (int) $request->input('start', 0);
+    $length = (int) $request->input('length', 10);
 
-        $searchValue      = $request->input('search.value', '');
-        $orderColumnIndex = (int) $request->input('order.0.column', 0);
-        $orderColumn      = $request->input("columns.$orderColumnIndex.data", 'voucher_date');
-        $orderDirection   = $request->input('order.0.dir', 'asc') === 'desc' ? 'desc' : 'asc';
+    $searchValue = $request->input('search.value', '');
 
-        // Base with aggregates
-        $base = DB::table('vouchers as v')
-            ->leftJoin('branches as b', 'b.id', '=', 'v.branch_id')
-            ->leftJoin('voucher_lines as l', 'l.voucher_id', '=', 'v.id')
-            ->select([
-                'v.id',
-                'v.voucher_date',
-                'v.voucher_type',
-                'v.ref_no',
-                'v.narration',
-                'v.admin_status',
-                'v.super_admin_status',
-                DB::raw('COALESCE(b.name, "-") as branch_name'),
-                DB::raw("ROUND(SUM(CASE WHEN l.dc='Dr' THEN l.amount ELSE 0 END),2) as dr_total"),
-                DB::raw("ROUND(SUM(CASE WHEN l.dc='Cr' THEN l.amount ELSE 0 END),2) as cr_total"),
-            ])
-            ->groupBy('v.id', 'v.voucher_date', 'v.voucher_type', 'v.ref_no', 'v.narration', 'b.name', 'v.admin_status', 'v.super_admin_status');
+    // =========================
+    // BASE QUERY
+    // =========================
+    $base = DB::table('vouchers as v')
+        ->leftJoin('branches as b', 'b.id', '=', 'v.branch_id')
+        ->leftJoin('voucher_lines as l', 'l.voucher_id', '=', 'v.id')
+        ->select([
+            'v.id',
+            'v.voucher_date',
+            'v.voucher_type',
+            'v.ref_no',
+            'v.narration',
+            'v.admin_status',
+            'v.super_admin_status',
+            DB::raw('COALESCE(b.name, "-") as branch_name'),
+            DB::raw("ROUND(SUM(CASE WHEN l.dc='Dr' THEN l.amount ELSE 0 END),2) as dr_total"),
+            DB::raw("ROUND(SUM(CASE WHEN l.dc='Cr' THEN l.amount ELSE 0 END),2) as cr_total"),
+        ]);
 
-        $recordsTotal = (clone $base)->count();
+    // =========================
+    // FILTERS
+    // =========================
 
-        if ($searchValue !== '') {
-            $base->where(function ($q) use ($searchValue) {
-                $q->where('v.voucher_type', 'like', "%{$searchValue}%")
-                    ->orWhere('v.ref_no', 'like', "%{$searchValue}%")
-                    ->orWhere('v.narration', 'like', "%{$searchValue}%")
-                    ->orWhere('b.name', 'like', "%{$searchValue}%");
-            });
-        }
+    // Voucher Type Filter
+    if ($request->filled('voucher_type')) {
+        $base->where('v.voucher_type', $request->voucher_type);
+    }
 
-        // Voucher Type Filter
-        if ($request->filled('voucher_type')) {
-            $base->where('v.voucher_type', $request->voucher_type);
-        }
+    // Admin verify filter
+    if (auth()->user()->role_id == 1) {
+        $base->where('v.super_admin_status', 'verify');
+    }
 
-        if (auth()->user()->role_id == 1) {
-            $base->where('super_admin_status', 'verify');
-        }
+    // Permission check
+    $roleId = auth()->user()->role_id;
+    $userId = auth()->id();
 
-        $recordsFiltered = (clone $base)->count();
+    $listAccess = getAccess($roleId, 'accounting-voucher-manage');
 
-        $sortable = [
-            'voucher_date' => 'v.voucher_date',
-            'voucher_type' => 'v.voucher_type',
-            'ref_no'       => 'v.ref_no',
-            'branch_name'  => 'branch_name',
-            'dr_total'     => 'dr_total',
-            'cr_total'     => 'cr_total',
-        ];
-        $orderBy = $sortable[$orderColumn] ?? 'v.voucher_date';
-
-        $roleId = auth()->user()->role_id;
-
-        $userId = auth()->id();
-
-        $listAccess = getAccess($roleId, 'accounting-voucher-manage');
-
-        // ❌ No permission → return empty table
-        if (in_array($listAccess, ['none', 'no'])) {
-            return response()->json([
-                'draw' => $draw,
-                'recordsTotal' => 0,
-                'recordsFiltered' => 0,
-                'data' => []
-            ]);
-        }
-
-        // 👤 Own permission → only own products
-        if ($listAccess === 'own') {
-            $base->where('created_by', $userId);
-        }
-
-
-        if ($request->order) {
-            $orderColumnIndex = $request->order[0]['column'];
-            $orderDir = $request->order[0]['dir'] ?? 'desc';
-            $orderColumn = $columns[$orderColumnIndex] ?? 'v.created_at';
-            $base->orderBy($orderColumn, $orderDir);
-        } else {
-            $base->orderBy('v.created_at', 'desc');
-        }
-
-        // Pagination
-        if ($request->length > 0) {
-            $base->skip($request->start)->take($request->length);
-        }
-
-        $rows = $base->get();
-
-        $data = $rows->map(function ($r) {
-            $ok = (float)$r->dr_total === (float)$r->cr_total;
-            $status = $ok
-                ? '<span class="badge bg-success">Balanced</span>'
-                : '<span class="badge bg-danger">Unbalanced</span>';
-
-            $deleteUrl = route('accounting.vouchers.destroy', $r->id);
-            // $ownerId = $g->created_by;  // If available
-            // if (canDo($roleId, 'product-edit', $ownerId)) {
-            // }
-            $viewUrl = url('/accounting/vouchers/view/' . $r->id);
-            $actions = '<div class="d-flex align-items-center gap-1">';
-
-            // View button (only verified OR admin)
-            if (auth()->user()->role_id !== 1) {
-
-                if ($r->super_admin_status === 'verify') {
-
-                    $actions .= '<a href="' . e($viewUrl) . '" class="btn btn-sm btn-success mr-1">
-                    Verify
-                 </a>';
-                } else {
-                    $actions .= '<a href="' . e($viewUrl) . '" class="btn btn-sm btn-warning mr-1">
-                    Unverified
-                 </a>';
-                }
-            } else {
-                $actions .= '<a href="' . e($viewUrl) . '" class="btn btn-sm btn-success mr-1">
-                    Verify
-                 </a>';
-            }
-
-            // if ($r->admin_status === 'verify') {
-
-            //     $actions .= '<a href="' . e($viewUrl) . '" class="btn btn-sm btn-success mr-1">
-            //         Verify
-            //      </a>';
-            // } else {
-            //     $actions .= '<a href="' . e($viewUrl) . '" class="btn btn-sm btn-warning mr-1">
-            //         Unverified
-            //      </a>';
-            // }
-
-            $actions1 = '<div class="d-flex align-items-center gap-1">';
-
-            // Delete button (ALWAYS visible)
-            $actions1 .= '<form method="POST" action="' . e($deleteUrl) . '" class="d-inline-block frm-del">
-                ' . csrf_field() . method_field('DELETE') . '
-                <button type="button" class="btn btn-sm btn-danger btn-delete" data-id="' . (int)$r->id . '">
-                    Delete
-                </button>
-             </form>';
-
-            $actions1 .= '</div>';
-            return [
-                'voucher_date' => $r->voucher_date ? \Illuminate\Support\Carbon::parse($r->voucher_date)->format('Y-m-d') : '-',
-                'voucher_type' => e($r->voucher_type),
-                'ref_no'       => e($r->ref_no ?? '-'),
-                'branch'       => e($r->branch_name),
-                'narration'    => e(\Illuminate\Support\Str::limit($r->narration ?? '', 60)),
-                'dr_total'     => number_format((float)$r->dr_total, 2),
-                'cr_total'     => number_format((float)$r->cr_total, 2),
-                'status'       => $status,
-                'admin_status' => $actions,
-                'action'       => $actions1,
-            ];
-        });
-
+    if (in_array($listAccess, ['none', 'no'])) {
         return response()->json([
-            'draw'            => $draw,
-            'recordsTotal'    => $recordsTotal,
-            'recordsFiltered' => $recordsFiltered,
-            'data'            => $data,
+            'draw' => $draw,
+            'recordsTotal' => 0,
+            'recordsFiltered' => 0,
+            'data' => []
         ]);
     }
+
+    if ($listAccess === 'own') {
+        $base->where('v.created_by', $userId);
+    }
+
+    // =========================
+    // GROUP BY
+    // =========================
+    $groupBy = [
+        'v.id',
+        'v.voucher_date',
+        'v.voucher_type',
+        'v.ref_no',
+        'v.narration',
+        'b.name',
+        'v.admin_status',
+        'v.super_admin_status'
+    ];
+
+    $base->groupBy($groupBy);
+
+    // =========================
+    // TOTAL RECORDS
+    // =========================
+    $recordsTotal = (clone $base)->get()->count();
+
+    // =========================
+    // SEARCH
+    // =========================
+    if ($searchValue !== '') {
+
+        $base->where(function ($q) use ($searchValue) {
+
+            $q->where('v.voucher_type', 'like', "%{$searchValue}%")
+                ->orWhere('v.ref_no', 'like', "%{$searchValue}%")
+                ->orWhere('v.narration', 'like', "%{$searchValue}%")
+                ->orWhere('b.name', 'like', "%{$searchValue}%");
+        });
+    }
+
+    // =========================
+    // FILTERED RECORDS
+    // =========================
+    $recordsFiltered = (clone $base)->get()->count();
+
+    // =========================
+    // ORDERING
+    // =========================
+    $columns = [
+        0 => 'v.voucher_date',
+        1 => 'v.voucher_type',
+        2 => 'v.ref_no',
+        3 => 'branch_name',
+        4 => 'v.narration',
+        5 => 'dr_total',
+        6 => 'cr_total',
+    ];
+
+    $orderColumnIndex = $request->input('order.0.column', 0);
+
+    $orderDir = $request->input('order.0.dir', 'desc');
+
+    $orderColumn = $columns[$orderColumnIndex] ?? 'v.voucher_date';
+
+    $base->orderBy($orderColumn, $orderDir);
+
+    // =========================
+    // PAGINATION
+    // =========================
+    if ($length != -1) {
+
+        $base->offset($start)->limit($length);
+    }
+
+    $rows = $base->get();
+
+    // =========================
+    // DATA FORMAT
+    // =========================
+    $data = $rows->map(function ($r) {
+
+        $ok = (float)$r->dr_total === (float)$r->cr_total;
+
+        $status = $ok
+            ? '<span class="badge bg-success">Balanced</span>'
+            : '<span class="badge bg-danger">Unbalanced</span>';
+
+        $deleteUrl = route('accounting.vouchers.destroy', $r->id);
+
+        $viewUrl = url('/accounting/vouchers/view/' . $r->id);
+
+        $actions = '<div class="d-flex align-items-center gap-1">';
+
+        // Verify Button
+        if (auth()->user()->role_id !== 1) {
+
+            if ($r->super_admin_status === 'verify') {
+
+                $actions .= '
+                    <a href="' . e($viewUrl) . '" class="btn btn-sm btn-success mr-1">
+                        Verify
+                    </a>';
+            } else {
+
+                $actions .= '
+                    <a href="' . e($viewUrl) . '" class="btn btn-sm btn-warning mr-1">
+                        Unverified
+                    </a>';
+            }
+        } else {
+
+            $actions .= '
+                <a href="' . e($viewUrl) . '" class="btn btn-sm btn-success mr-1">
+                    Verify
+                </a>';
+        }
+
+        $actions .= '</div>';
+
+        // Delete Button
+        $actions1 = '
+            <div class="d-flex align-items-center gap-1">
+
+                <form method="POST"
+                      action="' . e($deleteUrl) . '"
+                      class="d-inline-block frm-del">
+
+                    ' . csrf_field() . '
+
+                    ' . method_field('DELETE') . '
+
+                    <button type="button"
+                            class="btn btn-sm btn-danger btn-delete"
+                            data-id="' . (int)$r->id . '">
+
+                        Delete
+
+                    </button>
+
+                </form>
+
+            </div>';
+
+        return [
+
+            'voucher_date' => $r->voucher_date
+                ? \Illuminate\Support\Carbon::parse($r->voucher_date)->format('Y-m-d')
+                : '-',
+
+            'voucher_type' => e($r->voucher_type),
+
+            'ref_no' => e($r->ref_no ?? '-'),
+
+            'branch' => e($r->branch_name),
+
+            'narration' => e(\Illuminate\Support\Str::limit($r->narration ?? '', 60)),
+
+            'dr_total' => number_format((float)$r->dr_total, 2),
+
+            'cr_total' => number_format((float)$r->cr_total, 2),
+
+            'status' => $status,
+
+            'admin_status' => $actions,
+
+            'action' => $actions1,
+        ];
+    });
+
+    // =========================
+    // RESPONSE
+    // =========================
+    return response()->json([
+        'draw' => $draw,
+        'recordsTotal' => $recordsTotal,
+        'recordsFiltered' => $recordsFiltered,
+        'data' => $data,
+    ]);
+}
 
     public function create()
     {

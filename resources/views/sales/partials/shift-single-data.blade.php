@@ -1,112 +1,231 @@
 @foreach ($grouped as $key => $sales)
+
     @php
         $first = $sales->first();
+
+        $subTotal = 0;
+        $total = 0;
+        $discount = 0;
     @endphp
 
     <div class="mb-3 border rounded p-2">
-        @php
-            $subTotal = 0;
-            $total = 0;
-            $discount = 0;
-        @endphp
+
+        {{-- HEADER --}}
         <div class="d-flex justify-content-between align-items-center mb-2">
 
             <h6 class="mb-0">
-                {{ $first->branch->name }}
-                ({{ \Carbon\Carbon::parse($first->created_at)->format('d-m-Y') }})
+                {{ $shift->branch->name ?? '-' }}
+                ({{ \Carbon\Carbon::parse($shift->created_at)->format('d-m-Y') }})
             </h6>
 
+            <a href="javascript:void(0)"
+                class="btn btn-success"
+                onclick="openAddSalesModal({{ $shift->branch_id }}, {{ $shift->id }})">
 
-            <a href="javascript:void(0)" class="btn btn-success"
-                onclick="openAddSalesModal({{ $first->branch->id }}, {{ $first->shift_id }})">
                 + Add Sales
+
             </a>
+
         </div>
+
         <div class="table-responsive">
+
             <table class="table table-sm mb-0">
 
+                {{-- TABLE HEADER --}}
                 <thead style="background:#f1f3f5;">
+
                     <tr>
-                        @if ($first->branch->id == 1)
+
+                        @if (($shift->branch_id ?? 0) == 1)
                             <th>Party User</th>
                         @else
                             <th>Commission User</th>
                         @endif
+
                         <th>Discount</th>
                         <th>Sub Total</th>
                         <th>Total</th>
                         <th class="text-end">Action</th>
+
                     </tr>
+
                 </thead>
 
+                {{-- TABLE BODY --}}
                 <tbody>
-                    @foreach ($sales as $sale)
+
+                    @forelse ($sales as $sale)
+
                         @php
-                            $rowTotal = (float) str_replace(',', '', $sale->total);
-                            $rowSubTotal = (float) $sale->sub_total;
-                            $rowDiscount = (float) $sale->party_amount + (float) $sale->commission_amount;
+
+                            $rowTotal = (float) str_replace(',', '', $sale->total ?? 0);
+
+                            $rowSubTotal = (float) ($sale->sub_total ?? 0);
+
+                            $rowDiscount =
+                                (float) ($sale->party_amount ?? 0)
+                                + (float) ($sale->commission_amount ?? 0);
 
                             $total += $rowTotal;
+
                             $subTotal += $rowSubTotal;
+
                             $discount += $rowDiscount;
+
                         @endphp
 
-                        <tr class="{{ $sale->admin_status == 'verify' ? 'table-success' : 'table-warning' }}">
+                        <tr class="{{ ($sale->admin_status ?? '') == 'verify'
+                            ? 'table-success'
+                            : 'table-warning' }}">
 
+                            {{-- USER --}}
                             <td>
-                                {{ $sale->branch_id == 1 ? $sale->partyUser->first_name ?? '-' : $sale->commissionUser->first_name ?? '-' }}
+
+                                @if (($sale->branch_id ?? 0) == 1)
+
+                                    {{ $sale->partyUser->first_name ?? '-' }}
+
+                                @else
+
+                                    {{ $sale->commissionUser->first_name ?? '-' }}
+
+                                @endif
+
                             </td>
 
-                            <td>{{ $rowDiscount }}</td>
-                            <td>{{ number_format($rowSubTotal, 2) }}</td>
-                            <td>₹{{ number_format($rowTotal, 2) }}</td>
+                            {{-- DISCOUNT --}}
+                            <td>
+                                {{ number_format($rowDiscount, 2) }}
+                            </td>
 
+                            {{-- SUB TOTAL --}}
+                            <td>
+                                {{ number_format($rowSubTotal, 2) }}
+                            </td>
+
+                            {{-- TOTAL --}}
+                            <td>
+                                ₹{{ number_format($rowTotal, 2) }}
+                            </td>
+
+                            {{-- ACTION --}}
                             <td class="text-end">
+
                                 <div class="d-flex justify-content-end">
 
-                                    <a class="badge bg-light text-dark mr-1"
-                                        onclick="openInvoiceModal({{ $sale->id }})">
-                                        <i class="fa fa-eye"></i>
-                                    </a>
+                                    @if ($sale->id)
 
-                                    <a class="badge bg-warning text-dark"
-                                        onclick="editInvoiceModal({{ $sale->id }})">
-                                        <i class="fa fa-edit"></i>
-                                    </a>
+                                        {{-- VIEW --}}
+                                        <a class="badge bg-light text-dark mr-1"
+                                            onclick="openInvoiceModal({{ $sale->id }})">
+
+                                            <i class="fa fa-eye"></i>
+
+                                        </a>
+
+                                        {{-- EDIT --}}
+                                        <a class="badge bg-warning text-dark"
+                                            onclick="editInvoiceModal({{ $sale->id }})">
+
+                                            <i class="fa fa-edit"></i>
+
+                                        </a>
+
+                                    @endif
 
                                 </div>
+
                             </td>
 
                         </tr>
-                    @endforeach
+
+                    @empty
+
+                        {{-- EMPTY SALES --}}
+                        <tr>
+
+                            <td colspan="5"
+                                class="text-center text-muted py-4">
+
+                                No Sales Found
+
+                            </td>
+
+                        </tr>
+
+                    @endforelse
+
                 </tbody>
 
+                {{-- FOOTER --}}
                 <tfoot>
-                    <tr>
+
+                    {{-- TOTAL --}}
+                    <tr style="background:#f8f9fa;font-weight:bold;">
+
                         <td>Total</td>
-                        <td>{{ number_format($discount, 2) }}</td>
-                        <td>{{ number_format($subTotal, 2) }}</td>
+
                         <td>
-                            ₹{{ number_format($total + $sales->grand_total, 2) }}
+                            {{ number_format($discount, 2) }}
                         </td>
+
+                        <td>
+                            {{ number_format($subTotal, 2) }}
+                        </td>
+
+                        <td>
+                            ₹{{ number_format($total + ($sales->grand_total ?? 0), 2) }}
+                        </td>
+
                         <td></td>
+
                     </tr>
+
+                    {{-- CASH IN HAND --}}
+                    <tr style="background:#d1ecf1;">
+
+                        <td colspan="3" class="text-end">
+
+                            + Cash In Hand
+
+                        </td>
+
+                        <td>
+
+                            ₹{{ number_format($sales->total_cash_in_hand ?? 0, 2) }}
+
+                        </td>
+
+                        <td></td>
+
+                    </tr>
+
+                    {{-- WITHDRAW --}}
+                    <tr style="background:#f8d7da;">
+
+                        <td colspan="3" class="text-end">
+
+                            - Withdraw
+
+                        </td>
+
+                        <td>
+
+                            ₹{{ number_format($sales->total_withdraw ?? 0, 2) }}
+
+                        </td>
+
+                        <td></td>
+
+                    </tr>
+
                 </tfoot>
 
-                <tr style="background:#d1ecf1;">
-                    <td colspan="3" class="text-end">+ Cash In Hand</td>
-                    <td>₹{{ number_format($sales->total_cash_in_hand ?? 0, 2) }}</td>
-                    <td></td>
-                </tr>
-
-                <tr style="background:#f8d7da;">
-                    <td colspan="3" class="text-end">- Withdraw</td>
-                    <td>₹{{ number_format($sales->total_withdraw ?? 0, 2) }}</td>
-                    <td></td>
-                </tr>
-
             </table>
+
         </div>
 
     </div>
+
 @endforeach
