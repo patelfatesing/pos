@@ -33,8 +33,13 @@ class SalesReportController extends Controller
 
     public function salasListReport(Request $request)
     {
-        $shiftQuery = \App\Models\ShiftClosing::query();
+        // =====================================================
+        // SHIFT QUERY
+        // =====================================================
 
+        $shiftQuery = \App\Models\ShiftClosing::with('branch');
+
+        // ✅ DATE RANGE FILTER ONLY SHIFT TABLE
         if (!empty($request->date_range) && str_contains($request->date_range, ' - ')) {
 
             [$start, $end] = explode(' - ', $request->date_range);
@@ -44,278 +49,90 @@ class SalesReportController extends Controller
 
             $shiftQuery->whereBetween('created_at', [$startDate, $endDate]);
         } else {
-            // ✅ IMPORTANT FIX
-            $shiftQuery->whereDate('created_at', \Carbon\Carbon::today());
+
+            $shiftQuery->whereDate(
+                'created_at',
+                \Carbon\Carbon::today()
+            );
         }
 
+        // ✅ SHIFT FILTER
         if (!empty($request->shift_id)) {
+
             $shiftQuery->where('id', $request->shift_id);
         }
 
-        if (auth()->user()->role_id == 1) { // non-admin users should only see their shifts
+        // ✅ BRANCH FILTER
+        if (!empty($request->branch_id)) {
+
+            $shiftQuery->where('branch_id', $request->branch_id);
+        }
+
+        // ✅ USER ROLE
+        if (auth()->user()->role_id == 1) {
+
             // $shiftQuery->where('admin_status', 'verify');
         }
 
-        $shiftIds = $shiftQuery->pluck('id')->toArray();
+        // =====================================================
+        // GET SHIFTS
+        // =====================================================
 
-        $query = \App\Models\Invoice::with('branch', 'commissionUser', 'partyUser', 'shift')
+        $shifts = $shiftQuery
+            ->orderBy('id', 'DESC')
+            ->get();
+
+        $shiftIds = $shifts->pluck('id')->toArray();
+
+        // =====================================================
+        // INVOICE QUERY
+        // IMPORTANT:
+        // ONLY SHIFT WISE
+        // NO CREATED_AT FILTER
+        // =====================================================
+
+        $invoices = \App\Models\Invoice::with([
+            'branch',
+            'commissionUser',
+            'partyUser',
+            'shift'
+        ])
             ->where('status', '!=', 'Hold')
-            ->whereIn('shift_id', $shiftIds);
+            ->whereIn('shift_id', $shiftIds)
+            ->when(!empty($request->branch_id), function ($q) use ($request) {
 
-        // 🔥 SAME FILTERS (NO CHANGE)
-        if (!empty($request->branch_id)) {
-            $query->where('branch_id', $request->branch_id);
-        }
+                $q->where('branch_id', $request->branch_id);
+            })
+            ->when(!empty($request->shift_id), function ($q) use ($request) {
 
-        if (!empty($request->date_range) && str_contains($request->date_range, ' - ')) {
+                $q->where('shift_id', $request->shift_id);
+            })
+            ->orderBy('id', 'DESC')
+            ->get();
 
-            [$start, $end] = explode(' - ', $request->date_range);
+        // =====================================================
+        // GROUPING SHIFT WISE
+        // =====================================================
 
-            $startDate = \Carbon\Carbon::parse($start)->startOfDay();
-            $endDate   = \Carbon\Carbon::parse($end)->endOfDay();
+        $grouped = collect();
 
-            $query->whereBetween('created_at', [$startDate, $endDate]);
-        } else {
-            $query->whereDate('created_at', \Carbon\Carbon::today());
-        }
+        foreach ($shifts as $shift) {
 
+            // =========================================
+            // GET SHIFT INVOICES
+            // =========================================
 
-        if (!empty($request->shift_id)) {
-            $query->where('shift_id', $request->shift_id);
-        }
+            $shiftInvoices = $invoices
+                ->where('shift_id', $shift->id)
+                ->values();
 
-        $invoices = $query->get();
+            // =========================================
+            // EMPTY SHIFT CASE
+            // =========================================
 
-        // 🔥 SAME GROUPING (100% SAME)
-        $grouped = $invoices->groupBy(function ($item) {
-            return $item->branch_id . '_'
-                . \Carbon\Carbon::parse($item->created_at)->format('Y-m-d')
-                . '_'
-                . $item->shift_id;
-        });
+            if ($shiftInvoices->count() == 0) {
 
-
-        // ✅ ADD EMPTY SHIFTS (NO INVOICE CASE)
-        foreach ($shiftIds as $shiftId) {
-
-            $exists = $grouped->contains(function ($items) use ($shiftId) {
-                return optional($items->first())->shift_id == $shiftId;
-            });
-
-            if (!$exists) {
-
-                $shift = \App\Models\ShiftClosing::with('branch')->find($shiftId);
-
-                if ($shift) {
-
-                    $key = $shift->branch_id . '_'
-                        . \Carbon\Carbon::parse($shift->created_at)->format('Y-m-d')
-                        . '_'
-                        . $shift->id;
-
-                    // 🔥 dummy invoice (IMPORTANT)
-                    $dummy = collect([
-                        (object)[
-                            'id' => null,
-                            'branch_id' => $shift->branch_id,
-                            'shift_id' => $shift->id,
-                            'created_at' => $shift->created_at,
-                            'total' => 0,
-                            'sub_total' => 0,
-                            'party_amount' => 0,
-                            'commission_amount' => 0,
-                            'branch' => $shift->branch,
-                            'shift' => $shift,
-                            'admin_status' => $shift->admin_status,
-                            'super_admin_status' => $shift->super_admin_status,
-                            'partyUser' => null,
-                            'commissionUser' => null,
-                        ]
-                    ]);
-
-                    $grouped->put($key, $dummy);
-                }
-            }
-        }
-
-        // 🔥 SAME STATUS LOGIC (UNCHANGED)
-        $shiftStatuses = [];
-        $shiftOthersTotal = [];
-
-        foreach ($grouped as $key => $sales) {
-
-            $first = $sales->first();
-            $shift = $first->shift; //
-            $shiftId = $first->shift_id;
-
-
-            // ✅ Withdraw
-            $totalWith = \App\Models\WithdrawCash::where('branch_id', $shift->branch_id)
-                ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
-                ->sum('amount');
-
-            // ✅ Cash In Hand
-            $cashInHand = \App\Models\CashBreakdown::where('branch_id', $shift->branch_id)
-                ->where('type', 'cashinhand')
-                // ->where('shift_id', $shift->id)
-                ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
-                ->sum('total');
-
-            // ✅ Credit Collection (BEST)
-            $creditCollection = \DB::table('credit_collections as cc')
-                ->join('cash_breakdowns as cb', 'cc.cash_break_id', '=', 'cb.id')
-                ->where('cc.shift_id', $shift->id)
-                ->sum('cc.amount');
-
-            // ✅ Final
-            $extraTotal = $creditCollection + $cashInHand - $totalWith;
-
-            $sales->total_withdraw = $totalWith;
-            $sales->credit_collection = $creditCollection;
-            $sales->total_cash_in_hand = $cashInHand;
-            $sales->grand_total = $extraTotal;
-
-            $extraTotal =
-                ($creditCollection ?? 0)
-                + ($cashInHand ?? 0)
-                - ($totalWith ?? 0); // withdraw minus (money going out)
-
-            $checkStatus = function ($model, $column) use ($shiftId) {
-
-                $query = $model::where('shift_id', $shiftId);
-
-                if (!$query->exists()) {
-                    return 'verify';
-                }
-
-                return $query->where($column, 'unverify')->exists()
-                    ? 'unverify'
-                    : 'verify';
-            };
-
-            $checkStatus = function ($model, $column) use ($shiftId) {
-
-                $query = $model::where('shift_id', $shiftId);
-
-                if (!$query->exists()) {
-                    return 'verify';
-                }
-
-                return $query->where($column, 'unverify')->exists()
-                    ? 'unverify'
-                    : 'verify';
-            };
-
-            $shiftStatuses[$shiftId] = [
-
-                // ✅ ADMIN
-                'admin' => [
-                    'inv' => $checkStatus(\App\Models\Invoice::class, 'super_admin_status'),
-                    'tra' => $checkStatus(\App\Models\StockTransfer::class, 'super_admin_status'),
-                    'req' => $checkStatus(\App\Models\StockRequest::class, 'super_admin_status'),
-                    'shift' => \App\Models\ShiftClosing::where('id', $shiftId)
-                        ->where('super_admin_status', 'unverify')
-                        ->exists() ? 'unverify' : 'verify',
-                ],
-
-
-                // ✅ SUPER ADMIN
-                'sub_admin' => [
-                    'inv' => $checkStatus(\App\Models\Invoice::class, 'admin_status'),
-                    'tra' => $checkStatus(\App\Models\StockTransfer::class, 'admin_status'),
-                    'req' => $checkStatus(\App\Models\StockRequest::class, 'admin_status'),
-                    'shift' => \App\Models\ShiftClosing::where('id', $shiftId)
-                        ->where('admin_status', 'unverify')
-                        ->exists() ? 'unverify' : 'verify',
-                ],
-            ];
-
-
-            // $checkStatus = function ($model) use ($shiftId) {
-
-            //     $query = $model::where('shift_id', $shiftId);
-
-            //     if (!$query->exists()) {
-            //         return 'verify';
-            //     }
-
-            //     return $query->where('admin_status', 'unverify')->exists()
-            //         ? 'unverify'
-            //         : 'verify';
-            // };
-
-            // $finalAdminStatusReq = $checkStatus(\App\Models\StockRequest::class);
-            // $finalAdminStatusTra = $checkStatus(\App\Models\StockTransfer::class);
-            // $finalAdminStatusInv = $checkStatus(\App\Models\Invoice::class);
-
-            // $finalAdminStatusShift = \App\Models\ShiftClosing::where('id', $shiftId)
-            //     ->where('admin_status', 'unverify')
-            //     ->exists()
-            //     ? 'unverify'
-            //     : 'verify';
-
-            // $finalShiftStatus = (
-            //     $finalAdminStatusReq === 'verify' &&
-            //     $finalAdminStatusTra === 'verify' &&
-            //     $finalAdminStatusInv === 'verify' &&
-            //     $finalAdminStatusShift === 'verify'
-            // ) ? 'verify' : 'unverify';
-
-            // $shiftStatuses[$shiftId] = [
-            //     'inv' => $finalAdminStatusInv,
-            //     'tra' => $finalAdminStatusTra,
-            //     'req' => $finalAdminStatusReq,
-            //     'shift' => $finalShiftStatus,
-            // ];
-        }
-
-        // AJAX
-        if ($request->ajax()) {
-            return view('sales.partials.store-data', compact('grouped', 'shiftStatuses'))->render();
-        }
-
-        // OTHER DATA (UNCHANGED)
-        $branches = \App\Models\Branch::all();
-
-        return view('sales.sales_report', compact(
-            'grouped',
-            'branches',
-            'shiftStatuses'
-        ));
-    }
-
-    public function getSingleShiftData(Request $request, $shift_id)
-    {
-        // ✅ ONLY ONE SHIFT
-        $shiftIds = [$shift_id];
-
-        $query = \App\Models\Invoice::with('branch', 'commissionUser', 'partyUser', 'shift')
-            ->where('status', '!=', 'Hold')
-            ->where('shift_id', $shift_id);
-
-        $invoices = $query->get();
-
-        // ✅ SAME GROUPING (KEEP SAME UI)
-        $grouped = $invoices->groupBy(function ($item) {
-            return $item->branch_id . '_'
-                . \Carbon\Carbon::parse($item->created_at)->format('Y-m-d')
-                . '_'
-                . $item->shift_id;
-        });
-
-        // ✅ IF NO INVOICE → ADD EMPTY SHIFT
-        if ($grouped->isEmpty()) {
-
-            $shift = \App\Models\ShiftClosing::with('branch')->find($shift_id);
-
-            if ($shift) {
-
-                $key = $shift->branch_id . '_'
-                    . \Carbon\Carbon::parse($shift->created_at)->format('Y-m-d')
-                    . '_'
-                    . $shift->id;
-
-                $dummy = collect([
+                $shiftInvoices = collect([
                     (object)[
                         'id' => null,
                         'branch_id' => $shift->branch_id,
@@ -328,55 +145,455 @@ class SalesReportController extends Controller
                         'branch' => $shift->branch,
                         'shift' => $shift,
                         'admin_status' => $shift->admin_status,
+                        'super_admin_status' => $shift->super_admin_status,
                         'partyUser' => null,
                         'commissionUser' => null,
                     ]
                 ]);
-
-                $grouped->put($key, $dummy);
             }
-        }
 
-        // ✅ COPY YOUR EXTRA CALCULATION (IMPORTANT)
-        $shiftStatuses = [];
+            // =========================================
+            // WITHDRAW
+            // =========================================
 
-        foreach ($grouped as $key => $sales) {
-
-            $first = $sales->first();
-            $shift = $first->shift;
-            $shiftId = $first->shift_id;
-
-            $totalWith = \App\Models\WithdrawCash::where('branch_id', $shift->branch_id)
-                ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
+            $totalWith = \App\Models\WithdrawCash::where(
+                'branch_id',
+                $shift->branch_id
+            )
+                ->whereBetween(
+                    'created_at',
+                    [$shift->start_time, $shift->end_time]
+                )
                 ->sum('amount');
 
-            $cashInHand = \App\Models\CashBreakdown::where('branch_id', $shift->branch_id)
+            // =========================================
+            // CASH IN HAND
+            // =========================================
+
+            $cashInHand = \App\Models\CashBreakdown::where(
+                'branch_id',
+                $shift->branch_id
+            )
                 ->where('type', 'cashinhand')
-                ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
+                ->whereBetween(
+                    'created_at',
+                    [$shift->start_time, $shift->end_time]
+                )
                 ->sum('total');
 
+            // =========================================
+            // CREDIT COLLECTION
+            // =========================================
+
             $creditCollection = \DB::table('credit_collections as cc')
-                ->join('cash_breakdowns as cb', 'cc.cash_break_id', '=', 'cb.id')
+                ->join(
+                    'cash_breakdowns as cb',
+                    'cc.cash_break_id',
+                    '=',
+                    'cb.id'
+                )
                 ->where('cc.shift_id', $shift->id)
                 ->sum('cc.amount');
 
-            $sales->total_withdraw = $totalWith;
-            $sales->credit_collection = $creditCollection;
-            $sales->total_cash_in_hand = $cashInHand;
-            $sales->grand_total = $creditCollection + $cashInHand - $totalWith;
+            // =========================================
+            // EXTRA TOTAL
+            // =========================================
 
-            // ✅ STATUS (same logic)
+            $extraTotal =
+                ($creditCollection ?? 0)
+                + ($cashInHand ?? 0)
+                - ($totalWith ?? 0);
+
+            // =========================================
+            // STORE EXTRA DATA
+            // =========================================
+
+            $shiftInvoices->total_withdraw = $totalWith;
+
+            $shiftInvoices->credit_collection = $creditCollection;
+
+            $shiftInvoices->total_cash_in_hand = $cashInHand;
+
+            $shiftInvoices->grand_total = $extraTotal;
+
+            // =========================================
+            // KEY = SHIFT ID
+            // =========================================
+
+            $grouped->put($shift->id, $shiftInvoices);
+        }
+
+        // =====================================================
+        // SHIFT STATUS
+        // =====================================================
+
+        $shiftStatuses = [];
+
+        foreach ($grouped as $shiftId => $sales) {
+
+            $first = $sales->first();
+
+            if (!$first || !$first->shift) {
+                continue;
+            }
+
+            // =========================================
+            // STATUS FUNCTION
+            // =========================================
+
+            $checkStatus = function ($model, $column) use ($shiftId) {
+
+                $query = $model::where('shift_id', $shiftId);
+
+                if (!$query->exists()) {
+                    return 'verify';
+                }
+
+                return $query
+                    ->where($column, 'unverify')
+                    ->exists()
+                    ? 'unverify'
+                    : 'verify';
+            };
+
+            // =========================================
+            // STATUS ARRAY
+            // =========================================
             $shiftStatuses[$shiftId] = [
-                'shift' => $shift->admin_status == 'verify' ? 'verify' : 'unverify'
+
+                // =====================================
+                // SUB ADMIN
+                // =====================================
+
+                'sub_admin' => [
+
+                    'inv' => $checkStatus(
+                        \App\Models\Invoice::class,
+                        'admin_status'
+                    ),
+
+                    'tra' => $checkStatus(
+                        \App\Models\StockTransfer::class,
+                        'admin_status'
+                    ),
+
+                    'req' => $checkStatus(
+                        \App\Models\StockRequest::class,
+                        'admin_status'
+                    ),
+
+                    'shift' => \App\Models\ShiftClosing::where(
+                        'id',
+                        $shiftId
+                    )
+                        ->where('admin_status', 'unverify')
+                        ->exists()
+                        ? 'unverify'
+                        : 'verify',
+                ],
+
+                // =====================================
+                // SUPER ADMIN
+                // =====================================
+
+                'admin' => [
+
+                    'inv' => $checkStatus(
+                        \App\Models\Invoice::class,
+                        'super_admin_status'
+                    ),
+
+                    'tra' => $checkStatus(
+                        \App\Models\StockTransfer::class,
+                        'super_admin_status'
+                    ),
+
+                    'req' => $checkStatus(
+                        \App\Models\StockRequest::class,
+                        'super_admin_status'
+                    ),
+
+                    'shift' => \App\Models\ShiftClosing::where(
+                        'id',
+                        $shiftId
+                    )
+                        ->where('super_admin_status', 'unverify')
+                        ->exists()
+                        ? 'unverify'
+                        : 'verify',
+                ],
             ];
         }
 
-        return view('sales.partials.shift-single-data', compact('grouped', 'shiftStatuses'))->render();
+        // =====================================================
+        // AJAX
+        // =====================================================
+
+        if ($request->ajax()) {
+
+            return view(
+                'sales.partials.store-data',
+                compact(
+                    'grouped',
+                    'shiftStatuses'
+                )
+            )->render();
+        }
+
+        // =====================================================
+        // OTHER DATA
+        // =====================================================
+
+        $branches = \App\Models\Branch::all();
+
+        // =====================================================
+        // RETURN VIEW
+        // =====================================================
+
+        return view(
+            'sales.sales_report',
+            compact(
+                'grouped',
+                'branches',
+                'shiftStatuses'
+            )
+        );
+    }
+
+    public function getSingleShiftData(Request $request, $shift_id)
+    {
+        // =====================================================
+        // GET SHIFT
+        // =====================================================
+
+        $shift = \App\Models\ShiftClosing::with('branch')
+            ->findOrFail($shift_id);
+
+        // =====================================================
+        // GET INVOICES
+        // IMPORTANT:
+        // ONLY SHIFT WISE
+        // =====================================================
+
+        $invoices = \App\Models\Invoice::with([
+            'branch',
+            'commissionUser',
+            'partyUser',
+            'shift'
+        ])
+            ->where('status', '!=', 'Hold')
+            ->where('shift_id', $shift_id)
+            ->orderBy('id', 'DESC')
+            ->get();
+
+        // =====================================================
+        // GROUP SHIFT WISE
+        // =====================================================
+
+        $grouped = collect();
+
+        // =====================================================
+        // NO INVOICE CASE
+        // =====================================================
+
+        if ($invoices->count() == 0) {
+
+            $shiftInvoices = collect([
+                (object)[
+                    'id' => null,
+                    'branch_id' => $shift->branch_id,
+                    'shift_id' => $shift->id,
+                    'created_at' => $shift->created_at,
+                    'total' => 0,
+                    'sub_total' => 0,
+                    'party_amount' => 0,
+                    'commission_amount' => 0,
+                    'branch' => $shift->branch,
+                    'shift' => $shift,
+                    'admin_status' => $shift->admin_status,
+                    'super_admin_status' => $shift->super_admin_status,
+                    'partyUser' => null,
+                    'commissionUser' => null,
+                ]
+            ]);
+        } else {
+
+            $shiftInvoices = $invoices->values();
+        }
+
+        // =====================================================
+        // WITHDRAW
+        // =====================================================
+
+        $totalWith = \App\Models\WithdrawCash::where(
+            'branch_id',
+            $shift->branch_id
+        )
+            ->whereBetween(
+                'created_at',
+                [$shift->start_time, $shift->end_time]
+            )
+            ->sum('amount');
+
+        // =====================================================
+        // CASH IN HAND
+        // =====================================================
+
+        $cashInHand = \App\Models\CashBreakdown::where(
+            'branch_id',
+            $shift->branch_id
+        )
+            ->where('type', 'cashinhand')
+            ->whereBetween(
+                'created_at',
+                [$shift->start_time, $shift->end_time]
+            )
+            ->sum('total');
+
+        // =====================================================
+        // CREDIT COLLECTION
+        // =====================================================
+
+        $creditCollection = \DB::table('credit_collections as cc')
+            ->join(
+                'cash_breakdowns as cb',
+                'cc.cash_break_id',
+                '=',
+                'cb.id'
+            )
+            ->where('cc.shift_id', $shift->id)
+            ->sum('cc.amount');
+
+        // =====================================================
+        // GRAND TOTAL
+        // =====================================================
+
+        $extraTotal =
+            ($creditCollection ?? 0)
+            + ($cashInHand ?? 0)
+            - ($totalWith ?? 0);
+
+        // =====================================================
+        // STORE EXTRA DATA
+        // =====================================================
+
+        $shiftInvoices->total_withdraw = $totalWith;
+
+        $shiftInvoices->credit_collection = $creditCollection;
+
+        $shiftInvoices->total_cash_in_hand = $cashInHand;
+
+        $shiftInvoices->grand_total = $extraTotal;
+
+        // =====================================================
+        // GROUP KEY = SHIFT ID
+        // =====================================================
+
+        $grouped->put($shift->id, $shiftInvoices);
+
+        // =====================================================
+        // STATUS LOGIC
+        // =====================================================
+
+        $shiftStatuses = [];
+
+        $checkStatus = function ($model, $column) use ($shift_id) {
+
+            $query = $model::where('shift_id', $shift_id);
+
+            if (!$query->exists()) {
+                return 'verify';
+            }
+
+            return $query
+                ->where($column, 'unverify')
+                ->exists()
+                ? 'unverify'
+                : 'verify';
+        };
+
+        $shiftStatuses[$shift_id] = [
+
+            // =============================================
+            // ADMIN
+            // =============================================
+
+            'admin' => [
+
+                'inv' => $checkStatus(
+                    \App\Models\Invoice::class,
+                    'super_admin_status'
+                ),
+
+                'tra' => $checkStatus(
+                    \App\Models\StockTransfer::class,
+                    'super_admin_status'
+                ),
+
+                'req' => $checkStatus(
+                    \App\Models\StockRequest::class,
+                    'super_admin_status'
+                ),
+
+                'shift' => \App\Models\ShiftClosing::where(
+                    'id',
+                    $shift_id
+                )
+                    ->where('super_admin_status', 'unverify')
+                    ->exists()
+                    ? 'unverify'
+                    : 'verify',
+            ],
+
+            // =============================================
+            // SUB ADMIN
+            // =============================================
+
+            'sub_admin' => [
+
+                'inv' => $checkStatus(
+                    \App\Models\Invoice::class,
+                    'admin_status'
+                ),
+
+                'tra' => $checkStatus(
+                    \App\Models\StockTransfer::class,
+                    'admin_status'
+                ),
+
+                'req' => $checkStatus(
+                    \App\Models\StockRequest::class,
+                    'admin_status'
+                ),
+
+                'shift' => \App\Models\ShiftClosing::where(
+                    'id',
+                    $shift_id
+                )
+                    ->where('admin_status', 'unverify')
+                    ->exists()
+                    ? 'unverify'
+                    : 'verify',
+            ],
+        ];
+
+        // =====================================================
+        // RETURN VIEW
+        // =====================================================
+
+        return view(
+            'sales.partials.shift-single-data',
+            compact(
+                'grouped',
+                'shiftStatuses',
+                'shift'
+            )
+        )->render();
     }
 
     function getShiftStatuses($shiftId)
     {
-        $checkStatus = function ($model) use ($shiftId) {
+        $checkStatus = function ($model, $column) use ($shiftId) {
 
             $query = $model::where('shift_id', $shiftId);
 
@@ -384,7 +601,7 @@ class SalesReportController extends Controller
                 return 'verify';
             }
 
-            return $query->where('admin_status', 'unverify')->exists()
+            return $query->where($column, 'unverify')->exists()
                 ? 'unverify'
                 : 'verify';
         };

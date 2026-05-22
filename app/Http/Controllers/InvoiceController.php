@@ -248,7 +248,7 @@ class InvoiceController extends Controller
         $partyUsers = Partyuser::where('status', 'Active')->get();
         $commissionUsers = Commissionuser::where('is_active', '1')->get();
 
-        $type = request('type');
+        $type = 'admin_sale';
 
         // ✅ IMPORTANT: return PARTIAL (no layout)
         return view('invoice.partials.add-sales-modal', compact(
@@ -805,7 +805,7 @@ class InvoiceController extends Controller
                 'updated_at'         => $created_at,
                 'shift_id'           => $request->shift_id,
                 'admin_status'       => 'verify',
-                'super_admin_status' => (Auth::user()->role_id == 1) ? 'verify' : null,
+                'super_admin_status' => (Auth::user()->role_id == 1) ? 'verify' : 'unverify',
             ]);
 
             // ================= POS VOUCHER BUILD =================

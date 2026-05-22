@@ -191,9 +191,7 @@
     }
 @endphp
 
-<a href="{{ $editUrl }}" class="btn btn-secondary btn-sm">
-    ✏️ Edit
-</a>
+
 @section('page-content')
     <div class="wrapper">
         <div class="content-page accounting-ledgers-page">
@@ -449,3 +447,4 @@
         }
     </script>
 @endsection
+

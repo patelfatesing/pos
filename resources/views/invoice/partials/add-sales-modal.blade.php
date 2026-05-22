@@ -221,7 +221,9 @@
     function submitForm() {
         document.getElementById('vendorForm').submit();
     }
-    let oldItems = @json(old('items', []));
+
+    window.oldItems = @json(old('items', []));
+    window.itemIndex = window.itemIndex || 0;
 
     $(document).ready(function() {
 
@@ -276,13 +278,14 @@
                         `;
 
                 $('#invoice-items-body').append(row);
+
                 itemIndex++;
             });
 
             updateTotals();
         }
 
-        let itemIndex = 0;
+
         const storeId = {{ $branch_data->id }};
 
         let creditLimit = 0;

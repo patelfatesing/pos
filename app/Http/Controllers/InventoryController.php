@@ -29,7 +29,13 @@ class InventoryController extends Controller
         $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
         $subcategories = SubCategory::where('is_deleted', 'no')->get();
 
-        return view('inventories.index', compact('data', 'branch', 'subcategories'));
+        if (auth()->user()->role_id == 1 || canDo(auth()->user()->role_id, 'inventory')) {
+            return view('inventories.index', compact('data', 'branch', 'subcategories'));
+        } else {
+            return view('errors.403', [
+                'message' => 'You do not have permission to view this stock request.'
+            ]);
+        }
     }
 
     public function getData(Request $request)
@@ -100,7 +106,7 @@ class InventoryController extends Controller
 
         // $recordsTotal = \App\Models\Inventory::count();
 
-         $recordsTotal = \App\Models\Inventory::join('products', 'products.id', '=', 'inventories.product_id')
+        $recordsTotal = \App\Models\Inventory::join('products', 'products.id', '=', 'inventories.product_id')
             ->where('products.is_deleted', 'no')->count();
 
         $recordsFiltered = $query->count();
@@ -116,7 +122,7 @@ class InventoryController extends Controller
         $data = $query->orderBy($orderColumn, $orderDirection)->get();
 
         $roleId = auth()->user()->role_id;
-      
+
         $listAccess = getAccess($roleId, 'inventory');
 
         // ❌ No permission → return empty table
@@ -135,7 +141,7 @@ class InventoryController extends Controller
         foreach ($data as $inventory) {
             $total_qty = Inventory::countQty($inventory->product_id, $inventory->store_id);
 
-            $lowAccess = canDo($roleId, 'stock-low-level','');
+            $lowAccess = canDo($roleId, 'stock-low-level', '');
 
             // ❌ No permission → return empty table
             if ($lowAccess == 'yes') {

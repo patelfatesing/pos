@@ -77,6 +77,14 @@ class CollationModal extends Component
         $this->showModal = true;
     }
 
+    public function openCollectModal($userId)
+    {
+        $this->selectedUser = PartyUser::where('status', 'Active')->find($userId);
+        $this->cashNotes = []; // Reset
+        $this->calculateTotals();
+        $this->showCollectModal = true;
+    }
+
     public function closeModal()
     {
         $this->showModal = false;

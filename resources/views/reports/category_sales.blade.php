@@ -7,7 +7,9 @@
                 <div>
                     <h4 class="mb-0">Category-wise Sales</h4>
                 </div>
-                <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
+                    <button onclick="window.history.back()" class="btn btn-secondary">
+                        Back
+                    </button>
             </div>
 
             <!-- Filters -->

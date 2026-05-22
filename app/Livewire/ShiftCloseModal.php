@@ -302,8 +302,10 @@ class ShiftCloseModal extends Component
         $this->categoryTotals['summary']['REFUND_CREDIT'] = $totals->debit_total;
         if (!empty($this->creditCollacted->collacted_cash_amount))
             $this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] = @$this->creditCollacted->collacted_cash_amount;
-        $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['CASH ADDED'] + $this->categoryTotals['summary']['OPENING CASH'] + $this->categoryTotals['summary']['TOTAL SALES'] + $this->categoryTotals['summary']['DISCOUNT'] + $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $this->categoryTotals['summary']['UPI PAYMENT'] + @$this->categoryTotals['summary']['REFUND'] +
-            @$this->categoryTotals['summary']['ONLINE PAYMENT'] + @$this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] + $totalRoundOf + $this->categoryTotals['summary']['CREDIT'] + $totalRefundReturn + $this->creditCollacted->collacted_cash_amount;
+        // $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['CASH ADDED'] + $this->categoryTotals['summary']['OPENING CASH'] + $this->categoryTotals['summary']['TOTAL SALES'] + $this->categoryTotals['summary']['DISCOUNT'] + $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $this->categoryTotals['summary']['UPI PAYMENT'] + @$this->categoryTotals['summary']['REFUND'] +
+        //     @$this->categoryTotals['summary']['ONLINE PAYMENT'] + @$this->categoryTotals['summary']['CREDIT COLLACTED BY CASH'] + $totalRoundOf + $this->categoryTotals['summary']['CREDIT'] + $totalRefundReturn + $this->creditCollacted->collacted_cash_amount;
+             $this->categoryTotals['summary']['TOTAL'] = $this->categoryTotals['summary']['CASH ADDED'] + $this->categoryTotals['summary']['OPENING CASH'] + $this->categoryTotals['summary']['TOTAL SALES'] + $this->categoryTotals['summary']['DISCOUNT'] + $this->categoryTotals['summary']['WITHDRAWAL PAYMENT'] + $this->categoryTotals['summary']['UPI PAYMENT'] + @$this->categoryTotals['summary']['REFUND'] +
+            @$this->categoryTotals['summary']['ONLINE PAYMENT'] + $totalRoundOf + $this->categoryTotals['summary']['CREDIT'] + $totalRefundReturn + $this->creditCollacted->collacted_cash_amount;
         $this->categoryTotals['summary']['REFUND'] = $totalRefund * (-1) + $totalRefundReturn * (-1);
 
         $cashBreakdowns = CashBreakdown::where('user_id', auth()->id())
@@ -526,37 +528,46 @@ class ShiftCloseModal extends Component
 
             $Shift_data = ShiftClosing::find(optional($this->currentShift)->id);
 
-            $invoice_number = Invoice::generateInvoiceNumberNew($branch_id, $Shift_data->start_time);
+            if (!$this->no_sale_product) {
+                $invoice_number = Invoice::generateInvoiceNumberNew($branch_id, $Shift_data->start_time);
 
-            \Log::info('Before Invoice Creation');
-            $invoice_id = DB::table('invoices')->insertGetId([
-                'user_id'            => Auth::id(),
-                'branch_id'          => $branch_id,
-                'roundof'            => $this->roundedTotal,
-                'invoice_number'     => $invoice_number,
-                'commission_user_id' => null,
-                'party_user_id'      => null,
-                'payment_mode'       => 'cashupi',
-                'items'              => json_encode($data),
-                'total_item_qty'     => $this->totalQuantity,
-                'total_item_total'   => $this->total_item_total,
-                'upi_amount'         => $this->upi,
-                'change_amount'      => 0,
-                'creditpay'          => 0,
-                'cash_amount'        => $this->cash,
-                'online_amount'      => $this->online_amount,
-                'sub_total'          => $sale_total,
-                'status'             => 'Paid',
-                'invoice_status'     => 'paid',
-                'commission_amount'  => 0,
-                'party_amount'       => 0,
-                'total'              => $sale_total,
-                'tax'                => 0,
-                'sales_type'         => 'one_time',
-                'created_at' => now()->format('Y-m-d H:i:s'),
-                'updated_at' => now()->format('Y-m-d H:i:s'),
-                'shift_id' => $this->currentShift->id
-            ]);
+                \Log::info('Before Invoice Creation');
+                $invoice_id = DB::table('invoices')->insertGetId([
+                    'user_id'            => Auth::id(),
+                    'branch_id'          => $branch_id,
+                    'roundof'            => $this->roundedTotal,
+                    'invoice_number'     => $invoice_number,
+                    'commission_user_id' => null,
+                    'party_user_id'      => null,
+                    'payment_mode'       => 'cashupi',
+                    'items'              => json_encode($data),
+                    'total_item_qty'     => $this->totalQuantity,
+                    'total_item_total'   => $this->total_item_total,
+                    'upi_amount'         => $this->upi,
+                    'change_amount'      => 0,
+                    'creditpay'          => 0,
+                    'cash_amount'        => $this->cash,
+                    'online_amount'      => $this->online_amount,
+                    'sub_total'          => $sale_total,
+                    'status'             => 'Paid',
+                    'invoice_status'     => 'paid',
+                    'commission_amount'  => 0,
+                    'party_amount'       => 0,
+                    'total'              => $sale_total,
+                    'tax'                => 0,
+                    'sales_type'         => 'one_time',
+                    'created_at' => now()->format('Y-m-d H:i:s'),
+                    'updated_at' => now()->format('Y-m-d H:i:s'),
+                    'shift_id' => $this->currentShift->id
+                ]);
+
+                $invoice = Invoice::findOrFail($invoice_id);
+
+                $pdf = App::make('dompdf.wrapper');
+                $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => @$first_name, "ref_no" => $invoice->ref_no, "hold_date" => $invoice->hold_date]);
+                $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
+                $pdf->save($pdfPath);
+            }
 
             $query = DailyProductStock::with('product')
                 ->where('branch_id', $branch_id)
@@ -566,13 +577,6 @@ class ShiftCloseModal extends Component
                         ->where('transferred_stock', 0)
                         ->where('added_stock', 0);
                 });
-
-            $invoice = Invoice::findOrFail($invoice_id);
-
-            $pdf = App::make('dompdf.wrapper');
-            $pdf->loadView('invoice', ['invoice' => $invoice, 'items' => $invoice->items, 'branch' => auth()->user()->userinfo->branch, 'customer_name' => @$first_name, "ref_no" => $invoice->ref_no, "hold_date" => $invoice->hold_date]);
-            $pdfPath = storage_path('app/public/invoices/' . $invoice->invoice_number . '.pdf');
-            $pdf->save($pdfPath);
 
             $rawStockData = $query->get();
 
