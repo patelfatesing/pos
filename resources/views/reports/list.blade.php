@@ -47,7 +47,7 @@
                                     'route' => route('reports.balance-sheet'),
                                 ],
                                 [
-                                    'name' => 'Stock Summary',
+                                    'name' => 'Stock Summary(Tally)',
                                     'slug' => 'stock-summary',
                                     'route' => route('accounting.stock.summary'),
                                 ],
