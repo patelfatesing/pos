@@ -19,8 +19,14 @@ class BranchController extends Controller
         //     abort(403, 'Unauthorized - You do not have the required permission.');
         // }
 
-        $data = Branch::where('is_deleted', 'no')->get();
-        return view('branch.index', compact('data'));
+        if (auth()->user()->role_id == 1 || canAccess(auth()->user()->role_id, 'store-manage')) {
+            $data = Branch::where('is_deleted', 'no')->get();
+            return view('branch.index', compact('data'));
+        } else {
+            return view('errors.403', [
+                'message' => 'You do not have permission to view this stock request.'
+            ]);
+        }
     }
 
     public function getAvailableNotes()

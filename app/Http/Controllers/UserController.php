@@ -18,8 +18,15 @@ class UserController extends Controller
      */
     public function index()
     {
-        $data = User::where('is_deleted', 'no')->get();
-        return view('user.index', compact('data'));
+
+         if (auth()->user()->role_id == 1 || canAccess(auth()->user()->role_id, 'users')) {
+            $data = User::where('is_deleted', 'no')->get();
+            return view('user.index', compact('data'));
+        } else {
+            return view('errors.403', [
+                'message' => 'You do not have permission to view this stock request.'
+            ]);
+        }
     }
 
     public function changePassword(Request $request)

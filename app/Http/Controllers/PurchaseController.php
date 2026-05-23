@@ -28,7 +28,14 @@ class PurchaseController extends Controller
      */
     public function index()
     {
-        return view('purchase.index');
+        
+        if (auth()->user()->role_id == 1 || canAccess(auth()->user()->role_id, 'purchase-invoice')) {
+            return view('purchase.index');
+        } else {
+            return view('errors.403', [
+                'message' => 'You do not have permission to view this stock request.'
+            ]);
+        }
     }
 
     /**

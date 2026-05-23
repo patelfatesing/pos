@@ -11,9 +11,17 @@ class SubCategoryController extends Controller
 {
     public function index()
     {
-        $subCategories = SubCategory::with('category')->get();
-        $categories = Category::all();
-        return view('subcategories.index', compact('subCategories', 'categories'));
+
+
+        if (auth()->user()->role_id == 1 || canAccess(auth()->user()->role_id, 'sub-categories')) {
+            $subCategories = SubCategory::with('category')->get();
+            $categories = Category::all();
+            return view('subcategories.index', compact('subCategories', 'categories'));
+        } else {
+            return view('errors.403', [
+                'message' => 'You do not have permission to view this stock request.'
+            ]);
+        }
     }
 
     public function getData(Request $request)
