@@ -391,13 +391,27 @@
 
         #linesTable .remove_badge {
             padding: 0;
-            width: 0px;
+            width: 35px;
+            min-width: 35px;
+            text-align: center;
         }
 
         .remove_badge .remove {
-            position: relative;
-            left: 2px;
-            padding: 2px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            color: #c0392b;
+            font-weight: bold;
+            font-size: 18px;
+            border-radius: 4px;
+        }
+
+        .remove_badge .remove:hover {
+            background-color: #ffe6e6;
+            color: #ff0000;
         }
 
         .title-table {
@@ -407,7 +421,6 @@
             min-width: 30%;
         }
     </style>
-
 
     <div class="wrapper">
         <div class="content-page create-voucher-page">
@@ -425,7 +438,7 @@
                                 class="btn btn-success btn-sm">Create Ledger</a>
 
                             <button onclick="window.history.back()" class="btn btn-secondary">
-                            Back
+                                Back
                             </button>
                         </div>
                     </div>
@@ -522,19 +535,18 @@
                                                         </td>
 
                                                         <td class="text-end min-w-100">
-                                                            <input type="number" class="dr-input text-end"
+                                                            <input type="text" class="dr-input text-end amount-format"
                                                                 value="{{ $line->dc == 'Dr' ? $line->amount : '' }}">
                                                         </td>
 
                                                         <td class="text-end min-w-100">
-                                                            <input type="number" class="cr-input text-end"
+                                                            <input type="text" class="cr-input text-end amount-format"
                                                                 value="{{ $line->dc == 'Cr' ? $line->amount : '' }}">
                                                         </td>
 
                                                         <td class="text-center remove_badge">
-                                                            <span class="remove {{ $loop->count == 1 ? 'd-none' : '' }}">
-                                                                <i class="fa-solid fa-xmark"></i>
-                                                            </span>
+                                                            
+                                                            <span class="remove" {{ $loop->count == 1 ? 'd-none' : '' }}">✕</span>
                                                         </td>
 
                                                     </tr>
@@ -606,172 +618,385 @@
     </div>
 
     <script>
-        let lineIndex = {{count($voucher->lines)}};
+        let lineIndex = {{ count($voucher->lines) }};
 
-        function syncAmountInputs(row) {
-            const dc = row.find('.dc-select').val();
-            row.find('.dr-input, .cr-input').addClass('hidden-amount');
+        // ================= INDIAN FORMAT =================
+        function formatIndianNumber(value) {
 
-            if (dc === 'Dr') row.find('.dr-input').removeClass('hidden-amount');
-            if (dc === 'Cr') row.find('.cr-input').removeClass('hidden-amount');
+            value = String(value).replace(/,/g, '');
+
+            if (value === '' || isNaN(value)) {
+                return '';
+            }
+
+            let parts = value.split('.');
+
+            let integerPart = parts[0];
+            let decimalPart = parts.length > 1 ? '.' + parts[1] : '';
+
+            let lastThree = integerPart.substring(integerPart.length - 3);
+            let otherNumbers = integerPart.substring(0, integerPart.length - 3);
+
+            if (otherNumbers !== '') {
+                lastThree = ',' + lastThree;
+            }
+
+            let formatted =
+                otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree;
+
+            return formatted + decimalPart;
         }
 
-        function updateTotals() {
-            let dr = 0,
-                cr = 0;
+        // ================= FORMAT INPUT =================
+        $(document).on('input', '.amount-format', function() {
 
-            $('#linesTable tbody tr').each(function() {
-                dr += parseFloat($(this).find('.dr-input').val()) || 0;
-                cr += parseFloat($(this).find('.cr-input').val()) || 0;
+            let raw = $(this).val().replace(/,/g, '');
+
+            if (raw === '' || isNaN(raw)) {
+                $(this).val('');
+                return;
+            }
+
+            $(this).val(formatIndianNumber(raw));
+
+        });
+
+        // ================= INPUT VISIBILITY =================
+        function syncAmountInputs($row) {
+
+            const dc = $row.find('.dc-select').val();
+
+            $row.find('.dr-input').addClass('hidden-amount');
+            $row.find('.cr-input').addClass('hidden-amount');
+
+            if (dc === 'Dr') {
+
+                $row.find('.dr-input').removeClass('hidden-amount');
+                $row.find('.cr-input').val('');
+
+            } else {
+
+                $row.find('.cr-input').removeClass('hidden-amount');
+                $row.find('.dr-input').val('');
+            }
+        }
+
+        // ================= TOTALS =================
+        function updateTotals() {
+
+            let dr = 0;
+            let cr = 0;
+
+            $('#linesTable tbody tr.line').each(function() {
+
+                const rowDr = parseFloat(
+                    ($(this).find('.dr-input').val() || '0').replace(/,/g, '')
+                ) || 0;
+
+                const rowCr = parseFloat(
+                    ($(this).find('.cr-input').val() || '0').replace(/,/g, '')
+                ) || 0;
+
+                dr += rowDr;
+                cr += rowCr;
+
             });
 
-            $('#totalDrText').text(dr.toFixed(2));
-            $('#totalCrText').text(cr.toFixed(2));
+            $('#totalDrText').text(formatIndianNumber(dr.toFixed(2)));
+            $('#totalCrText').text(formatIndianNumber(cr.toFixed(2)));
         }
 
-        /* ================= ADD AUTO BALANCING ROW ================= */
-
-        function addAutoRow(dc, amount) {
-            if (amount <= 0) return;
+        // ================= ADD NEW ROW =================
+        function addNewRow() {
 
             const row = `
-                    <tr class="line auto-row">
-                        <td>
-                            <input type="hidden" name="lines[${lineIndex}][amount]" class="amount" value="${amount}">
-                            <select name="lines[${lineIndex}][dc]" class="dc-select">
-                                <option value="Dr" ${dc === 'Dr' ? 'selected' : ''}>By</option>
-                                <option value="Cr" ${dc === 'Cr' ? 'selected' : ''}>To</option>
-                            </select>
-                        </td>
+                <tr class="line">
 
-                        <td>
-                            <select name="lines[${lineIndex}][ledger_id]" class="ledger">
-                                <option value="">Select Ledger</option>
-                                @foreach ($ledgers as $l)
-                                    <option value="{{ $l->id }}">{{ $l->name }}</option>
-                                @endforeach
-                            </select>
-                        </td>
+                    <td width="5%">
+                        <input type="hidden"
+                            name="lines[${lineIndex}][amount]"
+                            class="amount">
 
-                        <td>
-                            <input type="number" class="dr-input" value="${dc === 'Dr' ? amount : ''}">
-                        </td>
+                        <select name="lines[${lineIndex}][dc]"
+                            class="dc-select">
 
-                        <td>
-                            <input type="number" class="cr-input" value="${dc === 'Cr' ? amount : ''}">
-                        </td>
+                            <option value="Dr">By</option>
+                            <option value="Cr">To</option>
 
-                        <td>
-                            <span class="remove"><i class="fa fa-times"></i></span>
-                        </td>
-                    </tr>`;
+                        </select>
+                    </td>
+
+                    <td width="70%">
+                        <select name="lines[${lineIndex}][ledger_id]"
+                            class="ledger">
+
+                            <option value="">Select Ledger</option>
+
+                            @foreach ($ledgers as $l)
+                                <option value="{{ $l->id }}"
+                                    data-group-id="{{ $l->group_id }}">
+                                    {{ $l->name }}
+                                </option>
+                            @endforeach
+
+                        </select>
+                    </td>
+
+                    <td class="text-end min-w-100">
+                        <input type="text"
+                            class="dr-input text-end amount-format">
+                    </td>
+
+                    <td class="text-end min-w-100">
+                        <input type="text"
+                            class="cr-input text-end amount-format">
+                    </td>
+
+                    <td class="text-center remove_badge">
+                        <span class="remove" style="display:none;">✕</span>
+                    </td>
+
+                </tr>
+                `;
 
             $('#linesTable tbody').append(row);
-            syncAmountInputs($('#linesTable tbody tr:last'));
-            updateTotals();
+
+            const $row = $('#linesTable tbody tr.line:last');
+
+            syncAmountInputs($row);
+
             lineIndex++;
+
+            toggleRemoveButtons();
+
+            return $row;
         }
 
-        /* ================= PREVENT ENTER SUBMIT ================= */
-
-        $('#voucherForm').on('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                return false;
-            }
-        });
-
-        /* ================= DOCUMENT READY ================= */
-
+        // ================= DOCUMENT READY =================
         $(document).ready(function() {
 
-            // Initial sync
-            $('#linesTable tbody tr').each(function() {
-                syncAmountInputs($(this));
+            $('#linesTable tbody tr.line').each(function() {
+
+                const $row = $(this);
+
+                syncAmountInputs($row);
+
+                // format existing values
+                let dr = $row.find('.dr-input').val();
+                let cr = $row.find('.cr-input').val();
+
+                if (dr) {
+                    $row.find('.dr-input')
+                        .val(formatIndianNumber(dr));
+                }
+
+                if (cr) {
+                    $row.find('.cr-input')
+                        .val(formatIndianNumber(cr));
+                }
+
             });
 
             updateTotals();
 
-            $(document).on('focus', '.dr-input, .cr-input', function() {
-                $(this).data('old', parseFloat(this.value) || 0);
-            });
-
-            $(document).on('blur', '.dr-input, .cr-input', function() {
-
-                const row = $(this).closest('tr');
-                if (row.hasClass('auto-row')) return;
-
-                const isDr = $(this).hasClass('dr-input');
-                const oldVal = parseFloat($(this).data('old')) || 0;
-                const newVal = parseFloat(this.value) || 0;
-                const diff = newVal - oldVal;
-
-                if (diff === 0) return;
-
-                // Update own hidden amount
-                row.find('.amount').val(newVal);
-
-                // ===== FIND NEXT ROW (TALLY STYLE) =====
-                let nextRow = row.next('tr.line');
-
-                const applyDc = isDr ?
-                    (diff > 0 ? 'Cr' : 'Dr') :
-                    (diff > 0 ? 'Dr' : 'Cr');
-
-                const absDiff = Math.abs(diff);
-
-                if (nextRow.length) {
-                    // === APPLY TO EXISTING NEXT ROW ===
-
-                    const drInput = nextRow.find('.dr-input');
-                    const crInput = nextRow.find('.cr-input');
-
-                    if (applyDc === 'Dr') {
-                        drInput.val((parseFloat(drInput.val()) || 0) + absDiff);
-                        crInput.val('');
-                    } else {
-                        crInput.val((parseFloat(crInput.val()) || 0) + absDiff);
-                        drInput.val('');
-                    }
-
-                    nextRow.find('.dc-select').val(applyDc);
-                    nextRow.find('.amount').val(absDiff);
-                    syncAmountInputs(nextRow);
-
-                } else {
-                    // === NO NEXT ROW → CREATE ONE ===
-                    addAutoRow(applyDc, absDiff);
-                }
-
-                updateTotals();
-            });
-
-
-            /* DC change */
-            $(document).on('change', '.dc-select', function() {
-                const row = $(this).closest('tr');
-                row.find('.dr-input, .cr-input').val('');
-                row.find('.amount').val(0);
-                syncAmountInputs(row);
-                updateTotals();
-            });
-
-            /* Remove row */
-            $(document).on('click', '.remove', function() {
-                $(this).closest('tr').remove();
-                updateTotals();
-            });
         });
 
+        // ================= DR / CR BLUR =================
+        $(document).on('blur', '.dr-input, .cr-input', function() {
+
+            const $row = $(this).closest('tr');
+
+            const dr = parseFloat(
+                ($row.find('.dr-input').val() || '0').replace(/,/g, '')
+            ) || 0;
+
+            const cr = parseFloat(
+                ($row.find('.cr-input').val() || '0').replace(/,/g, '')
+            ) || 0;
+
+            if (dr === 0 && cr === 0) {
+                return;
+            }
+
+            // store hidden amount
+            if (dr > 0) {
+
+                $row.find('.amount').val(dr);
+                $row.find('.dc-select').val('Dr');
+
+            } else {
+
+                $row.find('.amount').val(cr);
+                $row.find('.dc-select').val('Cr');
+            }
+
+            // calculate totals
+            let totalDr = 0;
+            let totalCr = 0;
+
+            $('#linesTable tbody tr.line').each(function() {
+
+                const rowDr = parseFloat(
+                    ($(this).find('.dr-input').val() || '0').replace(/,/g, '')
+                ) || 0;
+
+                const rowCr = parseFloat(
+                    ($(this).find('.cr-input').val() || '0').replace(/,/g, '')
+                ) || 0;
+
+                totalDr += rowDr;
+                totalCr += rowCr;
+
+            });
+
+            const balance = totalDr - totalCr;
+
+            // next row
+            let $nextRow = $row.nextAll('tr.line:first');
+
+            if (!$nextRow.length) {
+                $nextRow = addNewRow();
+            }
+
+            // auto fill
+            if (balance > 0) {
+
+                $nextRow.find('.dc-select').val('Cr');
+
+                $nextRow.find('.dr-input').val('');
+
+                $nextRow.find('.cr-input')
+                    .val(formatIndianNumber(balance.toString()));
+
+                $nextRow.find('.amount').val(balance);
+
+            } else if (balance < 0) {
+
+                $nextRow.find('.dc-select').val('Dr');
+
+                $nextRow.find('.cr-input').val('');
+
+                $nextRow.find('.dr-input')
+                    .val(formatIndianNumber(Math.abs(balance).toString()));
+
+                $nextRow.find('.amount')
+                    .val(Math.abs(balance));
+            }
+
+            syncAmountInputs($nextRow);
+
+            updateTotals();
+
+        });
+
+        // ================= LEDGER CHANGE =================
+        $(document).on('change', '.ledger', function() {
+
+            const $row = $(this).closest('tr');
+
+            syncAmountInputs($row);
+
+            const dc = $row.find('.dc-select').val();
+
+            setTimeout(() => {
+
+                const $target = dc === 'Cr' ?
+                    $row.find('.cr-input:visible') :
+                    $row.find('.dr-input:visible');
+
+                if ($target.length) {
+
+                    $target.focus();
+
+                    if ($target.val()) {
+                        $target.select();
+                    }
+                }
+
+            }, 50);
+
+        });
+
+        // ================= REMOVE =================
+        // ================= TOGGLE REMOVE BUTTON =================
+        function toggleRemoveButtons() {
+
+            let totalRows = $('#linesTable tbody tr.line').length;
+
+            if (totalRows <= 2) {
+
+                $('#linesTable tbody tr.line .remove').addClass('d-none');
+
+            } else {
+
+                $('#linesTable tbody tr.line .remove').removeClass('d-none');
+            }
+        }
+
+        // ================= REMOVE =================
+        $(document).on('click', '.remove', function() {
+
+            let totalRows = $('#linesTable tbody tr.line').length;
+
+            // minimum 2 rows required (1 Dr + 1 Cr)
+            if (totalRows <= 2) {
+                return;
+            }
+
+            $(this).closest('tr').remove();
+
+            updateTotals();
+
+            toggleRemoveButtons();
+        });
+
+        // ================= DC CHANGE =================
+        $(document).on('change', '.dc-select', function() {
+
+            const $row = $(this).closest('tr');
+
+            syncAmountInputs($row);
+
+            updateTotals();
+
+        });
+
+        // ================= TYPE CHANGE =================
         $(document).on('click', '.type-pill', function() {
 
             const type = $(this).data('type');
 
             $('#voucher_type').val(type);
+
             $('#voucherTypeLabel').text(type);
 
             $('.type-pill').removeClass('active');
+
             $(this).addClass('active');
+
+        });
+
+        $('#voucherForm').on('keydown', function(e) {
+
+            if (e.key === 'Enter') {
+
+                e.preventDefault();
+
+                return false;
+            }
+
+        });
+
+        // ================= REMOVE COMMA BEFORE SUBMIT =================
+        $('#voucherForm').on('submit', function() {
+
+            $('.amount-format').each(function() {
+
+                $(this).val(
+                    $(this).val().replace(/,/g, '')
+                );
+
+            });
 
         });
     </script>

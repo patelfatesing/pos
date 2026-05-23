@@ -357,7 +357,7 @@
 
             .avc-header .btn-secondary {
                 /* padding: 4px 8px;
-                                        font-size: 12px; */
+                                                                                font-size: 12px; */
             }
 
             .voucher-table .cmn-table td {
@@ -519,12 +519,14 @@
                                                                 </select>
                                                             </td>
                                                             <td class="text-end min-w-100">
-                                                                <input type="number" class="dr-input text-end"
+                                                                <input type="text"
+                                                                    class="dr-input text-end amount-format"
                                                                     value="{{ ($line['dc'] ?? '') === 'Dr' ? $line['amount'] : '' }}">
                                                             </td>
 
                                                             <td class="text-end min-w-100">
-                                                                <input type="number" class="cr-input text-end"
+                                                                <input type="text"
+                                                                    class="cr-input text-end amount-format"
                                                                     value="{{ ($line['dc'] ?? '') === 'Cr' ? $line['amount'] : '' }}">
                                                             </td>
 
@@ -572,12 +574,12 @@
                                                         </td>
 
                                                         <td class="text-end min-w-100">
-                                                            <input type="number" class="dr-input text-end"
+                                                            <input type="text" class="dr-input text-end amount-format"
                                                                 value="{{ ($line['dc'] ?? '') === 'Dr' ? $line['amount'] : '' }}">
                                                         </td>
 
                                                         <td class="text-end min-w-100">
-                                                            <input type="number" class="cr-input text-end"
+                                                            <input type="text" class="cr-input text-end amount-format"
                                                                 value="{{ ($line['dc'] ?? '') === 'Cr' ? $line['amount'] : '' }}">
                                                         </td>
 
@@ -657,6 +659,61 @@
 
         {{-- ================= SYNC LABEL WITH EXISTING JS ================= --}}
         <script>
+            // ================= INDIAN NUMBER FORMAT =================
+            function formatIndianNumber(value) {
+
+                value = value.replace(/,/g, '');
+
+                if (value === '' || isNaN(value)) {
+                    return '';
+                }
+
+                let parts = value.split('.');
+
+                let integerPart = parts[0];
+                let decimalPart = parts.length > 1 ? '.' + parts[1] : '';
+
+                let lastThree = integerPart.substring(integerPart.length - 3);
+                let otherNumbers = integerPart.substring(0, integerPart.length - 3);
+
+                if (otherNumbers !== '') {
+                    lastThree = ',' + lastThree;
+                }
+
+                let formatted =
+                    otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree;
+
+                return formatted + decimalPart;
+            }
+
+            // FORMAT WHILE TYPING
+            $(document).on('input', '.amount-format', function() {
+
+                let cursorPos = this.selectionStart;
+
+                let raw = $(this).val().replace(/,/g, '');
+
+                if (raw === '' || isNaN(raw)) {
+                    $(this).val('');
+                    return;
+                }
+
+                $(this).val(formatIndianNumber(raw));
+            });
+
+            // REMOVE COMMA BEFORE FORM SUBMIT
+            $('#voucherForm').on('submit', function() {
+
+                $('.amount-format').each(function() {
+
+                    $(this).val(
+                        $(this).val().replace(/,/g, '')
+                    );
+
+                });
+
+            });
+
             const HAS_OLD_VALUES = {{ old('lines') ? 'true' : 'false' }};
 
             $(document).on('click', '.type-pill', function() {
@@ -807,11 +864,11 @@
                         </td>
 
                         <td class="text-end min-w-100">
-                            <input type="number" class="dr-input text-end">
+                            <input type="text" class="dr-input text-end amount-format">
                         </td>
 
                         <td class="text-end min-w-100">
-                            <input type="number"  class="cr-input text-end">
+                            <input type="text"  class="cr-input text-end amount-format">
                         </td>
 
                         <td class="text-center remove_badge">
@@ -1176,44 +1233,64 @@
 
                     const $row = $(this).closest('tr');
 
-                    const dr = parseFloat($row.find('.dr-input').val()) || 0;
-                    const cr = parseFloat($row.find('.cr-input').val()) || 0;
+                    const dr = parseFloat(
+                        ($row.find('.dr-input').val() || '0').replace(/,/g, '')
+                    ) || 0;
 
-                    // Keep input visibility correct
+                    const cr = parseFloat(
+                        ($row.find('.cr-input').val() || '0').replace(/,/g, '')
+                    ) || 0;
+
+                    // keep correct visibility
+                    syncAmountInputs($row);
+
+                    // restore existing value
                     if (dr > 0) {
-                        $row.find('.dr-input').removeClass('hidden-amount');
-                        $row.find('.cr-input').addClass('hidden-amount');
+
                         $row.find('.amount').val(dr);
                         $row.find('.dc-select').val('Dr');
+
+                        $row.find('.dr-input')
+                            .val(formatIndianNumber(dr.toString()));
+
                     } else if (cr > 0) {
-                        $row.find('.cr-input').removeClass('hidden-amount');
-                        $row.find('.dr-input').addClass('hidden-amount');
+
                         $row.find('.amount').val(cr);
                         $row.find('.dc-select').val('Cr');
+
+                        $row.find('.cr-input')
+                            .val(formatIndianNumber(cr.toString()));
                     }
 
-                    // Show current balance
+                    // show balance
                     if ($(this).val()) {
                         showCurBalanceRow($row);
                     }
 
-
-                    // ✅ FIX: total will not become 0
                     updateDrCrTotals();
                     updateSubmitVisibility();
-                    const dc = $row.find('.dc-select').val();
 
-                    let $targetInput = dc === 'Cr' ?
-                        $row.find('.cr-input') :
-                        $row.find('.dr-input');
-
-                    // Focus + highlight
+                    // focus only visible input
                     setTimeout(() => {
-                        $targetInput
-                            .removeClass('hidden-amount')
-                            .focus()
-                            .select();
+
+                        const dc = $row.find('.dc-select').val();
+
+                        let $targetInput = (dc === 'Cr') ?
+                            $row.find('.cr-input:visible') :
+                            $row.find('.dr-input:visible');
+
+                        if ($targetInput.length) {
+
+                            $targetInput.focus();
+
+                            // select only if value exists
+                            if ($targetInput.val()) {
+                                $targetInput.select();
+                            }
+                        }
+
                     }, 50);
+
                 });
 
                 $(document).on('change', '.account-ledger', function() {
@@ -1457,51 +1534,119 @@
                 return $row2.length ? $row2.find('.dc-select').val() : null;
             }
 
+            // ================= FINAL DR / CR AUTO BALANCE =================
             $(document).on('blur', '.dr-input, .cr-input', function() {
 
                 const $row = $(this).closest('tr');
-                const rowIndex = $row.index();
 
-                const dr = parseFloat($row.find('.dr-input').val()) || 0;
-                const cr = parseFloat($row.find('.cr-input').val()) || 0;
+                // prevent duplicate execution
+                if ($row.data('processing')) return;
 
-                // Ignore empty rows
-                if (dr === 0 && cr === 0) return;
+                $row.data('processing', true);
 
-                // Prevent duplicate row creation
-                if ($row.data('row-done')) return;
-                $row.data('row-done', true);
+                // current row values
+                const dr = parseFloat(
+                    ($row.find('.dr-input').val() || '0').replace(/,/g, '')
+                ) || 0;
 
-                // ---- CALCULATE RUNNING BALANCE ----
-                let balance = 0;
+                const cr = parseFloat(
+                    ($row.find('.cr-input').val() || '0').replace(/,/g, '')
+                ) || 0;
 
-                $('#linesTable tbody tr').each(function(i) {
-                    if (i > rowIndex) return;
-
-                    const d = parseFloat($(this).find('.dr-input').val()) || 0;
-                    const c = parseFloat($(this).find('.cr-input').val()) || 0;
-
-                    balance += (d - c);
-                });
-
-                // if (balance === 0) return;
-
-                // ---- CREATE NEXT ROW ----
-                window._addLineRow();
-
-                const $nextRow = $('#linesTable tbody tr').last();
-
-                if (balance > 0) {
-                    // Need CREDIT
-                    $nextRow.find('.dc-select').val('Cr');
-                    $nextRow.find('.cr-input').val(balance);
-                } else {
-                    // Need DEBIT
-                    $nextRow.find('.dc-select').val('Dr');
-                    $nextRow.find('.dr-input').val(Math.abs(balance));
+                // empty row
+                if (dr === 0 && cr === 0) {
+                    $row.data('processing', false);
+                    return;
                 }
 
+                // store hidden amount
+                if (dr > 0) {
+                    $row.find('.amount').val(dr);
+                    $row.find('.dc-select').val('Dr');
+
+                    $row.find('.dr-input')
+                        .val(formatIndianNumber(dr.toString()));
+
+                } else {
+
+                    $row.find('.amount').val(cr);
+                    $row.find('.dc-select').val('Cr');
+
+                    $row.find('.cr-input')
+                        .val(formatIndianNumber(cr.toString()));
+                }
+
+                // ================= CALCULATE TOTAL BALANCE =================
+                let totalDr = 0;
+                let totalCr = 0;
+
+                $('#linesTable tbody tr.line').each(function() {
+
+                    const rowDr = parseFloat(
+                        ($(this).find('.dr-input').val() || '0').replace(/,/g, '')
+                    ) || 0;
+
+                    const rowCr = parseFloat(
+                        ($(this).find('.cr-input').val() || '0').replace(/,/g, '')
+                    ) || 0;
+
+                    totalDr += rowDr;
+                    totalCr += rowCr;
+
+                });
+
+                // difference
+                let balance = totalDr - totalCr;
+
+                // ================= CHECK NEXT ROW =================
+                let $nextRow = $row.nextAll('tr.line:first');
+
+                // create next row if missing
+                if (!$nextRow.length) {
+
+                    window._addLineRow();
+
+                    $nextRow = $('#linesTable tbody tr.line:last');
+                }
+
+                // ================= AUTO FILL NEXT ROW =================
+                if (balance > 0) {
+
+                    // need CREDIT
+                    $nextRow.find('.dc-select').val('Cr');
+
+                    $nextRow.find('.dr-input').val('');
+
+                    $nextRow.find('.cr-input')
+                        .val(formatIndianNumber(balance.toString()));
+
+                    $nextRow.find('.amount').val(balance);
+
+                } else if (balance < 0) {
+
+                    // need DEBIT
+                    $nextRow.find('.dc-select').val('Dr');
+
+                    $nextRow.find('.cr-input').val('');
+
+                    $nextRow.find('.dr-input')
+                        .val(formatIndianNumber(Math.abs(balance).toString()));
+
+                    $nextRow.find('.amount').val(Math.abs(balance));
+
+                }
+
+                // show correct input
                 syncAmountInputs($nextRow);
+
+                // update totals
+                updateDrCrTotals();
+
+                // allow next processing
+                setTimeout(() => {
+                    $row.data('processing', false);
+                }, 100);
+
             });
 
             $(document).on('focus', '.dr-input, .cr-input', function() {
@@ -1594,26 +1739,7 @@
             }
 
             // When amount changes
-            $(document).on('input', '.dr-input, .cr-input', function() {
-                const $row = $(this).closest('tr');
 
-                const dr = parseFloat($row.find('.dr-input').val()) || 0;
-                const cr = parseFloat($row.find('.cr-input').val()) || 0;
-
-                if (dr > 0) {
-                    $row.find('.amount').val(dr);
-                    $row.find('.dc-select').val('Dr');
-                } else if (cr > 0) {
-                    $row.find('.amount').val(cr);
-                    $row.find('.dc-select').val('Cr');
-                }
-
-                // ✅ Update running balance
-                updateRunningBalance($row);
-
-                // ✅ Update totals
-                updateDrCrTotals();
-            });
 
             function updateRunningBalance($row) {
 
@@ -1722,8 +1848,12 @@
                 let balance = 0;
 
                 $('#linesTable tbody tr.line').each(function() {
-                    const dr = parseFloat($(this).find('.dr-input').val()) || 0;
-                    const cr = parseFloat($(this).find('.cr-input').val()) || 0;
+                    const dr = parseFloat(
+                        ($(this).find('.dr-input').val() || '0').replace(/,/g, '')
+                    ) || 0;
+                    const cr = parseFloat(
+                        ($(this).find('.cr-input').val() || '0').replace(/,/g, '')
+                    ) || 0;
 
                     balance += (cr - dr);
                 });
@@ -1789,24 +1919,34 @@
             }
 
             function updateDrCrTotals() {
+
                 let dr = 0;
                 let cr = 0;
 
-                $('#linesTable tbody tr').each(function() {
-                    const dc = $(this).find('.dc-select').val();
-                    const amount = parseFloat($(this).find('.amount').val()) || 0;
+                $('#linesTable tbody tr.line').each(function() {
 
-                    if (dc === 'Dr') dr += amount;
-                    if (dc === 'Cr') cr += amount;
+                    let drVal = $(this).find('.dr-input').val() || '';
+                    let crVal = $(this).find('.cr-input').val() || '';
+
+                    // remove commas
+                    drVal = drVal.replace(/,/g, '');
+                    crVal = crVal.replace(/,/g, '');
+
+                    const drAmount = parseFloat(drVal) || 0;
+                    const crAmount = parseFloat(crVal) || 0;
+
+                    dr += drAmount;
+                    cr += crAmount;
+
                 });
 
-                // Update hidden inputs
-                $('#totalDr').val(dr.toFixed(2));
-                $('#totalCr').val(cr.toFixed(2));
+                // hidden inputs
+                $('#totalDr').val(dr);
+                $('#totalCr').val(cr);
 
-                // Update footer UI
-                $('#totalDrText').text(dr.toFixed(2));
-                $('#totalCrText').text(cr.toFixed(2));
+                // footer display with Indian format
+                $('#totalDrText').text(formatIndianNumber(dr.toFixed(2)));
+                $('#totalCrText').text(formatIndianNumber(cr.toFixed(2)));
             }
 
             $(document).on('change', '.dc-select', function() {
