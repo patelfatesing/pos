@@ -37,7 +37,7 @@ class StockTransferController extends Controller
             $type = $_GET['type'];
         }
 
-        if (auth()->user()->role_id == 1 || canDo(auth()->user()->role_id, 'stock-transfer-list')) {
+        if (auth()->user()->role_id == 1 || canAccess(auth()->user()->role_id, 'stock-transfer')) {
             return view('stocks_transfer.list', compact('branch_id', 'shift_id', 'type'));
         } else {
             return view('errors.403', [

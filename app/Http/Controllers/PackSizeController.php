@@ -11,8 +11,14 @@ class PackSizeController extends Controller
 {
     public function index()
     {
-        $packSizes = PackSize::all();
-        return view('pack_sizes.index', compact('packSizes'));
+        if (auth()->user()->role_id == 1 || canAccess(auth()->user()->role_id, 'pack-size')) {
+            $packSizes = PackSize::all();
+            return view('pack_sizes.index', compact('packSizes'));
+        } else {
+            return view('errors.403', [
+                'message' => 'You do not have permission to view this stock request.'
+            ]);
+        }
     }
 
     public function getData(Request $request)

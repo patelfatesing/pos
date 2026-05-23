@@ -140,6 +140,51 @@
         padding: 3px 7px;
         border-radius: 50%;
     }
+
+    /* Store Modal */
+    #storeRowModal {
+        z-index: 1055;
+    }
+
+    /* Invoice Modal */
+    #invoiceModal {
+        z-index: 1065;
+    }
+
+    /* PDF Modal */
+    #pdfModal {
+        z-index: 1075;
+    }
+
+    #pdfModal .modal-dialog {
+        z-index: 1080;
+    }
+
+    /* Customer Photo Modal */
+    #salesCustPhotoShowModal {
+        z-index: 1090;
+    }
+
+    #salesCustPhotoShowModal .modal-dialog {
+        z-index: 1095;
+    }
+
+    /* Backdrops */
+    .modal-backdrop:nth-of-type(1) {
+        z-index: 1050 !important;
+    }
+
+    .modal-backdrop:nth-of-type(2) {
+        z-index: 1060 !important;
+    }
+
+    .modal-backdrop:nth-of-type(3) {
+        z-index: 1070 !important;
+    }
+
+    .modal-backdrop:nth-of-type(4) {
+        z-index: 1085 !important;
+    }
 </style>
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">

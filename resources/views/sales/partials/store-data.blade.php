@@ -257,7 +257,6 @@
                                     </div>
                                 @endif
 
-
                             </div>
                         @else
                             <div class="pull-right">
@@ -273,16 +272,13 @@
                             data-shift="{{ $first->shift_id }}">
                             View
                         </a>
-
-
-
                     </div>
                 </div>
             </td>
         </tr>
 
         <!-- Expand Row -->
-        <tr class="sales-row d-none" id="sales-{{ $key }}">
+        {{-- <tr class="sales-row d-none" id="sales-{{ $key }}">
             <td colspan="2" style="background:#ffffff; padding:10px;">
 
                 @php
@@ -410,19 +406,11 @@
                             <td></td>
                         </tr>
 
-                        {{-- <tr style="background:#e2e3e5; font-weight:700;">
-                            <td colspan="3" class="text-end">Final Shift Total</td>
-                            <td>
-                                ₹{{ number_format($total + ($shiftOthersTotal['grand_total'] ?? 0), 2) }}
-    </td>
-    <td></td>
-</tr> --}}
-
                     </table>
                 </div>
 
             </td>
-        </tr>
+        </tr> --}}
     @endforeach
     <tr style="background:#e9ecef; font-weight:700;">
         <td class="ps-3" colspan="1">

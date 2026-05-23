@@ -14,7 +14,14 @@ class CommissionUserController extends Controller
     public function index()
     {
         $commissionUsers = Commissionuser::with('images')->latest()->get();
-        return view('commission_users.index', compact('commissionUsers'));
+        
+        if (auth()->user()->role_id == 1 || canAccess(auth()->user()->role_id, 'commission-customer')) {
+            return view('commission_users.index', compact('commissionUsers'));
+        } else {
+            return view('errors.403', [
+                'message' => 'You do not have permission to view this stock request.'
+            ]);
+        }
     }
 
     public function getData(Request $request)

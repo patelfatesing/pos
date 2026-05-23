@@ -12,13 +12,19 @@ class GroupController extends Controller
 {
     public function index()
     {
-        $groups = AccountGroup::with('parent')
+        if (auth()->user()->role_id == 1 || canAccess(auth()->user()->role_id, 'accounting-groups')) {
+            $groups = AccountGroup::with('parent')
             ->orderBy('parent_id')
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
 
-        return view('accounting.groups.index', compact('groups'));
+            return view('accounting.groups.index', compact('groups'));
+        } else {
+            return view('errors.403', [
+                'message' => 'You do not have permission to view this stock request.'
+            ]);
+        }
     }
 
     public function getData(Request $request)

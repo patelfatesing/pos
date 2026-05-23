@@ -21,7 +21,13 @@ class LedgerController extends Controller
         $groups   = AccountGroup::orderBy('name')->get(['id', 'name']);
         $branches = Branch::where('is_deleted', 'no')->orderBy('name')->get(['id', 'name']);
 
-        return view('accounting.ledgers.index', compact('ledgers', 'groups', 'branches'));
+        if (auth()->user()->role_id == 1 || canAccess(auth()->user()->role_id, 'accounting-ledgers')) {
+            return view('accounting.ledgers.index', compact('ledgers', 'groups', 'branches'));
+        } else {
+            return view('errors.403', [
+                'message' => 'You do not have permission to view this stock request.'
+            ]);
+        }
     }
 
     public function getData(Request $request)

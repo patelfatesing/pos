@@ -10,8 +10,16 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::all();
-        return view('categories.index', compact('categories'));
+    
+        if (auth()->user()->role_id == 1 || canAccess(auth()->user()->role_id, 'categories')) {
+            $categories = Category::all();
+            return view('categories.index', compact('categories'));
+        } else {
+            return view('errors.403', [
+                'message' => 'You do not have permission to view this stock request.'
+            ]);
+        }
+        
     }
 
     public function getData(Request $request)

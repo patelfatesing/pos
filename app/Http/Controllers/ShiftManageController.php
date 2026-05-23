@@ -82,7 +82,7 @@ class ShiftManageController extends Controller
         }
 
         if (auth()->user()->role_id == 1) {
-            $query->where('admin_status', 'verify');
+            // $query->where('admin_status', 'verify');
         }
 
         if (!empty($searchValue)) {

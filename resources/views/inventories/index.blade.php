@@ -48,6 +48,7 @@
                                     <th>Product</th>
                                     <th>Store</th>
                                     <th>In-Stock</th>
+                                    <th>Cost Price</th>
                                     <th>Sales Price</th>
                                     <th>Stock Low Level</th>
                                     <th>Last updated</th>
@@ -181,11 +182,11 @@
                         orderable: false,
                         className: "text-center"
                     },
-                    // {
-                    //     data: 'cost_price',
-                    //     orderable: false,
-                    //     className: "text-center"
-                    // },
+                    {
+                        data: 'cost_price',
+                        orderable: false,
+                        className: "text-center"
+                    },
                     // {
                     //     data: 'discount_price',
                     //     orderable: false,
@@ -250,7 +251,7 @@
                 ],
                 autoWidth: false,
                 order: [
-                    [6, 'desc']
+                    [7, 'desc']
                 ], // Order by updated_at
                 lengthMenu: [
                     [10, 25, 50, 100, -1],

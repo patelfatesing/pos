@@ -13,8 +13,15 @@ class VendorListController extends Controller
     public function index()
     {
         // sendNotification('low_stock', 'Item ABC is low on stock', 1, Auth::id());
-        $VendorLists = VendorList::get();
-        return view('vendors.index', compact('VendorLists'));
+
+        if (auth()->user()->role_id == 1 || canAccess(auth()->user()->role_id, 'vendor')) {
+            $VendorLists = VendorList::get();
+            return view('vendors.index', compact('VendorLists'));
+        } else {
+            return view('errors.403', [
+                'message' => 'You do not have permission to view this stock request.'
+            ]);
+        }
     }
 
     public function getData(Request $request)

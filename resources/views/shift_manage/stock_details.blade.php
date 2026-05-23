@@ -158,7 +158,7 @@
                         </div>
 
                         @if ($shift->status == 'completed')
-                            <div class="d-flex align-items-center gap-3">
+                            {{-- <div class="d-flex align-items-center gap-3">
                                 <div class="d-flex align-items-center gap-1 verify-box sales ml-2">
                                     <input type="checkbox" onchange="changeVerifyStatus('sales', this.checked)"
                                         {{ $finalAdminStatusInv == 'verify' ? 'checked' : '' }}>
@@ -197,16 +197,16 @@
                                         {!! $finalShiftStatus == 'verify' ? '✔ Shift Verify' : '✖ Shift Verify' !!}
                                     </span>
                                 </div>
-                            </div>
+                            </div> --}}
                         @else
-                            <div class="pull-right">
+                            {{-- <div class="pull-right">
 
                                 <div class="d-flex gap-1 verify-box shift ml-2 pull-right">
                                     <span>
                                         Shift Open
                                     </span>
                                 </div>
-                            </div>
+                            </div> --}}
                         @endif
                     </div>
                 </form>
