@@ -185,6 +185,15 @@
     .modal-backdrop:nth-of-type(4) {
         z-index: 1085 !important;
     }
+
+    /* Add Sales Modal */
+    #addSalesModal {
+        z-index: 1100;
+    }
+
+    #addSalesModal .modal-dialog {
+        z-index: 1105;
+    }
 </style>
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
