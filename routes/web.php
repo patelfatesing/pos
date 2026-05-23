@@ -339,7 +339,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/stock-transfer/craete-transfer', [StockTransferController::class, 'craeteTransfer'])->name('stock-transfer.craete-transfer');
     Route::get('/stock-transfer/list', [StockTransferController::class, 'index'])->name('stock-transfer.list');
     Route::get('/stock-transfer/get-transfer-data', [StockTransferController::class, 'getTransferData'])->name('stock-transfer.get-transfer-data');
-        Route::get('/stock-transfer/get-transfer-data-new', [StockTransferController::class, 'getTransferDataNew'])->name('stock-transfer.get-transfer-data-new');
+    Route::get('/stock-transfer/get-transfer-data-new', [StockTransferController::class, 'getTransferDataNew'])->name('stock-transfer.get-transfer-data-new');
     Route::get('/stock-transfer/view/{id}', [StockTransferController::class, 'view'])->name('stock-transfer.view');
     Route::post('/stock-transfer/store', [StockTransferController::class, 'store'])->name('stock-transfer.store');
     Route::get('/stock-transfer/edit/{id}', [StockTransferController::class, 'edit'])->name('stock-transfer.edit');
@@ -590,7 +590,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/ledger/current-balance/{ledger}', [LedgerController::class, 'currentBalance'])->name('ledger.current.balance');
         Route::get('/ledger/view/{id}', [LedgerController::class, 'ledgerView'])->name('ledgers.view');
         Route::get('/ledger/{id}/data', [LedgerController::class, 'ledgerData'])->name('ledgers.vouchers.data1');
-        
+
         Route::get('/stock-summary', [StockSummaryController::class, 'stockSummary'])->name('stock.summary');
         Route::get('/stock-summary-data', [StockSummaryController::class, 'stockSummaryData'])->name('stock.summary.data');
 
@@ -600,7 +600,9 @@ Route::middleware('auth')->group(function () {
         Route::delete('vouchers/{voucher}', [VoucherController::class, 'destroy'])->name('vouchers.destroy'); // optional
         Route::post('vouchers/get-data', [VoucherController::class, 'getData'])->name('vouchers.getData');
         Route::get('vouchers/edit/{id}', [VoucherController::class, 'edit'])->name('vouchers.edit');
-        Route::put('/vouchers/update', [VoucherController::class, 'update'])->name('vouchers.update');
+        // Route::put('/vouchers/update', [VoucherController::class, 'update'])->name('vouchers.update');
+        Route::put('/vouchers/update/{id}', [VoucherController::class, 'update'])
+            ->name('vouchers.update');
         // Route::get('vouchers/{voucher}/edit', [VoucherController::class, 'edit'])
         //     ->name('vouchers.edit');
         Route::delete('/vouchers/delete/{id}', [VoucherController::class, 'destroy'])->name('vouchers.destroy');

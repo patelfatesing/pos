@@ -30,181 +30,181 @@ class VoucherController extends Controller
     }
 
     public function getData(Request $request)
-{
-    $draw   = (int) $request->input('draw', 1);
-    $start  = (int) $request->input('start', 0);
-    $length = (int) $request->input('length', 10);
+    {
+        $draw   = (int) $request->input('draw', 1);
+        $start  = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
 
-    $searchValue = $request->input('search.value', '');
+        $searchValue = $request->input('search.value', '');
 
-    // =========================
-    // BASE QUERY
-    // =========================
-    $base = DB::table('vouchers as v')
-        ->leftJoin('branches as b', 'b.id', '=', 'v.branch_id')
-        ->leftJoin('voucher_lines as l', 'l.voucher_id', '=', 'v.id')
-        ->select([
+        // =========================
+        // BASE QUERY
+        // =========================
+        $base = DB::table('vouchers as v')
+            ->leftJoin('branches as b', 'b.id', '=', 'v.branch_id')
+            ->leftJoin('voucher_lines as l', 'l.voucher_id', '=', 'v.id')
+            ->select([
+                'v.id',
+                'v.voucher_date',
+                'v.voucher_type',
+                'v.ref_no',
+                'v.narration',
+                'v.admin_status',
+                'v.super_admin_status',
+                DB::raw('COALESCE(b.name, "-") as branch_name'),
+                DB::raw("ROUND(SUM(CASE WHEN l.dc='Dr' THEN l.amount ELSE 0 END),2) as dr_total"),
+                DB::raw("ROUND(SUM(CASE WHEN l.dc='Cr' THEN l.amount ELSE 0 END),2) as cr_total"),
+            ]);
+
+        // =========================
+        // FILTERS
+        // =========================
+
+        // Voucher Type Filter
+        if ($request->filled('voucher_type')) {
+            $base->where('v.voucher_type', $request->voucher_type);
+        }
+
+        // Admin verify filter
+        if (auth()->user()->role_id == 1) {
+            $base->where('v.super_admin_status', 'verify');
+        }
+
+        // Permission check
+        $roleId = auth()->user()->role_id;
+        $userId = auth()->id();
+
+        $listAccess = getAccess($roleId, 'accounting-voucher-manage');
+
+        if (in_array($listAccess, ['none', 'no'])) {
+            return response()->json([
+                'draw' => $draw,
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => []
+            ]);
+        }
+
+        if ($listAccess === 'own') {
+            $base->where('v.created_by', $userId);
+        }
+
+        // =========================
+        // GROUP BY
+        // =========================
+        $groupBy = [
             'v.id',
             'v.voucher_date',
             'v.voucher_type',
             'v.ref_no',
             'v.narration',
+            'b.name',
             'v.admin_status',
-            'v.super_admin_status',
-            DB::raw('COALESCE(b.name, "-") as branch_name'),
-            DB::raw("ROUND(SUM(CASE WHEN l.dc='Dr' THEN l.amount ELSE 0 END),2) as dr_total"),
-            DB::raw("ROUND(SUM(CASE WHEN l.dc='Cr' THEN l.amount ELSE 0 END),2) as cr_total"),
-        ]);
+            'v.super_admin_status'
+        ];
 
-    // =========================
-    // FILTERS
-    // =========================
+        $base->groupBy($groupBy);
 
-    // Voucher Type Filter
-    if ($request->filled('voucher_type')) {
-        $base->where('v.voucher_type', $request->voucher_type);
-    }
+        // =========================
+        // TOTAL RECORDS
+        // =========================
+        $recordsTotal = (clone $base)->get()->count();
 
-    // Admin verify filter
-    if (auth()->user()->role_id == 1) {
-        $base->where('v.super_admin_status', 'verify');
-    }
+        // =========================
+        // SEARCH
+        // =========================
+        if ($searchValue !== '') {
 
-    // Permission check
-    $roleId = auth()->user()->role_id;
-    $userId = auth()->id();
+            $base->where(function ($q) use ($searchValue) {
 
-    $listAccess = getAccess($roleId, 'accounting-voucher-manage');
+                $q->where('v.voucher_type', 'like', "%{$searchValue}%")
+                    ->orWhere('v.ref_no', 'like', "%{$searchValue}%")
+                    ->orWhere('v.narration', 'like', "%{$searchValue}%")
+                    ->orWhere('b.name', 'like', "%{$searchValue}%");
+            });
+        }
 
-    if (in_array($listAccess, ['none', 'no'])) {
-        return response()->json([
-            'draw' => $draw,
-            'recordsTotal' => 0,
-            'recordsFiltered' => 0,
-            'data' => []
-        ]);
-    }
+        // =========================
+        // FILTERED RECORDS
+        // =========================
+        $recordsFiltered = (clone $base)->get()->count();
 
-    if ($listAccess === 'own') {
-        $base->where('v.created_by', $userId);
-    }
+        // =========================
+        // ORDERING
+        // =========================
+        $columns = [
+            0 => 'v.voucher_date',
+            1 => 'v.voucher_type',
+            2 => 'v.ref_no',
+            3 => 'branch_name',
+            4 => 'v.narration',
+            5 => 'dr_total',
+            6 => 'cr_total',
+        ];
 
-    // =========================
-    // GROUP BY
-    // =========================
-    $groupBy = [
-        'v.id',
-        'v.voucher_date',
-        'v.voucher_type',
-        'v.ref_no',
-        'v.narration',
-        'b.name',
-        'v.admin_status',
-        'v.super_admin_status'
-    ];
+        $orderColumnIndex = $request->input('order.0.column', 0);
 
-    $base->groupBy($groupBy);
+        $orderDir = $request->input('order.0.dir', 'desc');
 
-    // =========================
-    // TOTAL RECORDS
-    // =========================
-    $recordsTotal = (clone $base)->get()->count();
+        $orderColumn = $columns[$orderColumnIndex] ?? 'v.voucher_date';
 
-    // =========================
-    // SEARCH
-    // =========================
-    if ($searchValue !== '') {
+        $base->orderBy($orderColumn, $orderDir);
 
-        $base->where(function ($q) use ($searchValue) {
+        // =========================
+        // PAGINATION
+        // =========================
+        if ($length != -1) {
 
-            $q->where('v.voucher_type', 'like', "%{$searchValue}%")
-                ->orWhere('v.ref_no', 'like', "%{$searchValue}%")
-                ->orWhere('v.narration', 'like', "%{$searchValue}%")
-                ->orWhere('b.name', 'like', "%{$searchValue}%");
-        });
-    }
+            $base->offset($start)->limit($length);
+        }
 
-    // =========================
-    // FILTERED RECORDS
-    // =========================
-    $recordsFiltered = (clone $base)->get()->count();
+        $rows = $base->get();
 
-    // =========================
-    // ORDERING
-    // =========================
-    $columns = [
-        0 => 'v.voucher_date',
-        1 => 'v.voucher_type',
-        2 => 'v.ref_no',
-        3 => 'branch_name',
-        4 => 'v.narration',
-        5 => 'dr_total',
-        6 => 'cr_total',
-    ];
+        // =========================
+        // DATA FORMAT
+        // =========================
+        $data = $rows->map(function ($r) {
 
-    $orderColumnIndex = $request->input('order.0.column', 0);
+            $ok = (float)$r->dr_total === (float)$r->cr_total;
 
-    $orderDir = $request->input('order.0.dir', 'desc');
+            $status = $ok
+                ? '<span class="badge bg-success">Balanced</span>'
+                : '<span class="badge bg-danger">Unbalanced</span>';
 
-    $orderColumn = $columns[$orderColumnIndex] ?? 'v.voucher_date';
+            $deleteUrl = route('accounting.vouchers.destroy', $r->id);
 
-    $base->orderBy($orderColumn, $orderDir);
+            $viewUrl = url('/accounting/vouchers/view/' . $r->id);
 
-    // =========================
-    // PAGINATION
-    // =========================
-    if ($length != -1) {
+            $actions = '<div class="d-flex align-items-center gap-1">';
 
-        $base->offset($start)->limit($length);
-    }
+            // Verify Button
+            if (auth()->user()->role_id !== 1) {
 
-    $rows = $base->get();
+                if ($r->super_admin_status === 'verify') {
 
-    // =========================
-    // DATA FORMAT
-    // =========================
-    $data = $rows->map(function ($r) {
-
-        $ok = (float)$r->dr_total === (float)$r->cr_total;
-
-        $status = $ok
-            ? '<span class="badge bg-success">Balanced</span>'
-            : '<span class="badge bg-danger">Unbalanced</span>';
-
-        $deleteUrl = route('accounting.vouchers.destroy', $r->id);
-
-        $viewUrl = url('/accounting/vouchers/view/' . $r->id);
-
-        $actions = '<div class="d-flex align-items-center gap-1">';
-
-        // Verify Button
-        if (auth()->user()->role_id !== 1) {
-
-            if ($r->super_admin_status === 'verify') {
-
-                $actions .= '
+                    $actions .= '
                     <a href="' . e($viewUrl) . '" class="btn btn-sm btn-success mr-1">
                         Verify
                     </a>';
-            } else {
+                } else {
 
-                $actions .= '
+                    $actions .= '
                     <a href="' . e($viewUrl) . '" class="btn btn-sm btn-warning mr-1">
                         Unverified
                     </a>';
-            }
-        } else {
+                }
+            } else {
 
-            $actions .= '
+                $actions .= '
                 <a href="' . e($viewUrl) . '" class="btn btn-sm btn-success mr-1">
                     Verify
                 </a>';
-        }
+            }
 
-        $actions .= '</div>';
+            $actions .= '</div>';
 
-        // Delete Button
-        $actions1 = '
+            // Delete Button
+            $actions1 = '
             <div class="d-flex align-items-center gap-1">
 
                 <form method="POST"
@@ -227,61 +227,64 @@ class VoucherController extends Controller
 
             </div>';
 
-        return [
+            return [
 
-            'voucher_date' => $r->voucher_date
-                ? \Illuminate\Support\Carbon::parse($r->voucher_date)->format('Y-m-d')
-                : '-',
+                'voucher_date' => $r->voucher_date
+                    ? \Illuminate\Support\Carbon::parse($r->voucher_date)->format('Y-m-d')
+                    : '-',
 
-            'voucher_type' => e($r->voucher_type),
+                'voucher_type' => e($r->voucher_type),
 
-            'ref_no' => e($r->ref_no ?? '-'),
+                'ref_no' => e($r->ref_no ?? '-'),
 
-            'branch' => e($r->branch_name),
+                'branch' => e($r->branch_name),
 
-            'narration' => e(\Illuminate\Support\Str::limit($r->narration ?? '', 60)),
+                'narration' => e(\Illuminate\Support\Str::limit($r->narration ?? '', 60)),
 
-            'dr_total' => number_format((float)$r->dr_total, 2),
+                'dr_total' => number_format((float)$r->dr_total, 2),
 
-            'cr_total' => number_format((float)$r->cr_total, 2),
+                'cr_total' => number_format((float)$r->cr_total, 2),
 
-            'status' => $status,
+                'status' => $status,
 
-            'admin_status' => $actions,
+                'admin_status' => $actions,
 
-            'action' => $actions1,
-        ];
-    });
+                'action' => $actions1,
+            ];
+        });
 
-    // =========================
-    // RESPONSE
-    // =========================
-    return response()->json([
-        'draw' => $draw,
-        'recordsTotal' => $recordsTotal,
-        'recordsFiltered' => $recordsFiltered,
-        'data' => $data,
-    ]);
-}
+        // =========================
+        // RESPONSE
+        // =========================
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $data,
+        ]);
+    }
 
     public function create()
     {
         $branches = \App\Models\Branch::select('name', 'id')->get();
 
 
+        $today = now()->format('Ymd');
+
         $lastVoucher = Voucher::where('voucher_type', 'Journal')
-            // ->where('branch_id', $r->branch_id) // optional
+            ->whereDate('created_at', now()->toDateString())
             ->orderBy('id', 'desc')
             ->value('ref_no');
 
-        if ($lastVoucher !== null) {
-            $num = (int) str_replace('JN-', '', $lastVoucher);
-            $num++;
-            $lastVoucher = 'JN-' . str_pad($num, 4, '0', STR_PAD_LEFT);
+        if ($lastVoucher && preg_match('/(\d+)$/', $lastVoucher, $match)) {
+
+            $num = (int) $match[1] + 1;
         } else {
-            $lastVoucher = "JN-0001";
+
+            $num = 1;
         }
 
+        $lastVoucher = 'JN-' . $today . '-' . str_pad($num, 4, '0', STR_PAD_LEFT);
 
         return view('accounting.vouchers.create', [
             'ledgers' => AccountLedger::where('is_active', 1)->orderBy('name')->get(),
@@ -603,153 +606,318 @@ class VoucherController extends Controller
         ]);
     }
 
-    public function update(Request $r)
+    public function update(Request $r, $id)
     {
-        $id = $r->input('id');
         $voucher = Voucher::with('lines')->findOrFail($id);
 
-        // ---------- 0) Normalize inputs (same logic as store) ----------
+        // ---------- normalize helper ----------
         $nv = function ($v) {
             return ($v === '' || $v === null) ? null : $v;
         };
 
+        // ---------- normalize lines ----------
+        $lines = collect($r->lines ?? [])
+            ->map(function ($line) {
+
+                return [
+                    'ledger_id' => $line['ledger_id'] ?? null,
+                    'dc'        => $line['dc'] ?? null,
+                    'amount'    => $line['amount'] ?? null,
+                ];
+            })
+            ->filter(function ($line) {
+
+                // allow removing fully empty auto row
+                return !(
+                    empty($line['ledger_id']) &&
+                    empty($line['amount'])
+                );
+            })
+            ->values()
+            ->toArray();
+
+        $r->merge([
+            'lines' => $lines
+        ]);
+
+        // ---------- voucher type ----------
         $type = $r->input('voucher_type');
 
-        $partyFromPR = $nv($r->input('party_ledger_id')) ?: $nv($r->input('pr_party_ledger'));
-        $partyFromTR = $nv($r->input('party_ledger_id')) ?: $nv($r->input('tr_party_ledger'));
+        $partyFromPR = $nv($r->input('party_ledger_id'))
+            ?: $nv($r->input('pr_party_ledger'));
+
+        $partyFromTR = $nv($r->input('party_ledger_id'))
+            ?: $nv($r->input('tr_party_ledger'));
 
         $party = null;
+
         if (in_array($type, ['Payment', 'Receipt'])) {
+
             $party = $partyFromPR ?: $partyFromTR;
-        } elseif (in_array($type, ['Sales', 'Purchase', 'DebitNote', 'CreditNote'])) {
+        } elseif (in_array($type, [
+            'Journal',
+            'Sales',
+            'Purchase',
+            'DebitNote',
+            'CreditNote'
+        ])) {
+
             $party = $partyFromTR ?: $partyFromPR;
         }
 
+        // ---------- mode ----------
         $mode = $nv($r->input('mode'));
-        $cashLedger = $nv($r->input('cash_ledger_id')) ?: $nv($r->input('pr_cash_ledger'));
-        $bankLedger = $nv($r->input('bank_ledger_id')) ?: $nv($r->input('pr_bank_ledger'));
+
+        $cashLedger = $nv($r->input('cash_ledger_id'))
+            ?: $nv($r->input('pr_cash_ledger'));
+
+        $bankLedger = $nv($r->input('bank_ledger_id'))
+            ?: $nv($r->input('pr_bank_ledger'));
 
         if ($mode === 'cash') {
+
             $bankLedger = null;
         } elseif (in_array($mode, ['bank', 'upi', 'card'])) {
+
             $cashLedger = null;
         } else {
+
             $cashLedger = null;
             $bankLedger = null;
         }
 
-        $subTotal   = $nv($r->input('sub_total'))   ?? $nv($r->input('tr_subtotal'));
-        $discount   = $nv($r->input('discount'))    ?? $nv($r->input('tr_discount'));
-        $tax        = $nv($r->input('tax'))         ?? $nv($r->input('tr_tax'));
-        $grandTotal = $nv($r->input('grand_total')) ?? $nv($r->input('tr_grand'));
+        // ---------- totals ----------
+        $subTotal = $nv($r->input('sub_total'))
+            ?? $nv($r->input('tr_subtotal'));
 
-        $fromLedger = $nv($r->input('from_ledger_id')) ?? $nv($r->input('ct_from'));
-        $toLedger   = $nv($r->input('to_ledger_id'))   ?? $nv($r->input('ct_to'));
+        $discount = $nv($r->input('discount'))
+            ?? $nv($r->input('tr_discount'));
 
-        $prAmount = $nv($r->input('amount')) ?? $nv($r->input('pr_amount'));
+        $tax = $nv($r->input('tax'))
+            ?? $nv($r->input('tr_tax'));
 
+        $grandTotal = $nv($r->input('grand_total'))
+            ?? $nv($r->input('tr_grand'));
+
+        // ---------- ledger ----------
+        $fromLedger = $nv($r->input('from_ledger_id'))
+            ?? $nv($r->input('ct_from'));
+
+        $toLedger = $nv($r->input('to_ledger_id'))
+            ?? $nv($r->input('ct_to'));
+
+        // ---------- merge ----------
         $r->merge([
+
             'party_ledger_id' => $party,
             'mode'            => $mode,
             'cash_ledger_id'  => $cashLedger,
             'bank_ledger_id'  => $bankLedger,
+
             'sub_total'       => $subTotal,
             'discount'        => $discount,
             'tax'             => $tax,
             'grand_total'     => $grandTotal,
+
             'from_ledger_id'  => $fromLedger,
             'to_ledger_id'    => $toLedger,
-            'amount'          => $prAmount,
+
             'branch_id'       => $nv($r->input('branch_id')),
             'ref_no'          => $nv($r->input('ref_no')),
         ]);
 
-        // ---------- 1) Validation (same as store, but ref_no unique ignores current voucher) ----------
+        // ---------- validation ----------
         $rules = [
-            'voucher_date' => ['required', 'date'],
-            'voucher_type' => ['required', Rule::in(['Journal', 'Payment', 'Receipt', 'Contra', 'Sales', 'Purchase', 'DebitNote', 'CreditNote'])],
-            'ref_no'       => ['nullable', 'string', 'max:50'],
-            'branch_id'    => ['nullable', 'integer', 'exists:branches,id'],
-            'narration'    => ['nullable', 'string', 'max:2000'],
 
-            'lines'                 => ['required', 'array', 'min:2'],
-            'lines.*.ledger_id'     => ['required', 'exists:account_ledgers,id'],
-            'lines.*.dc'            => ['required', Rule::in(['Dr', 'Cr'])],
-            'lines.*.amount'        => ['required', 'numeric', 'gt:0'],
-            'lines.*.line_narration' => ['nullable', 'string', 'max:1000'],
+            'voucher_date' => ['required', 'date'],
+
+            'voucher_type' => [
+                'required',
+                Rule::in([
+                    'Journal',
+                    'Payment',
+                    'Receipt',
+                    'Contra',
+                    'Sales',
+                    'Purchase',
+                    'DebitNote',
+                    'CreditNote'
+                ])
+            ],
+
+            'ref_no'    => ['nullable', 'string', 'max:50'],
+
+            'branch_id' => ['nullable', 'integer', 'exists:branches,id'],
+
+            'narration' => ['nullable', 'string', 'max:2000'],
+
+            'lines' => ['required', 'array', 'min:2'],
+
+            'lines.*.ledger_id' => [
+                'nullable',
+                'exists:account_ledgers,id'
+            ],
+
+            'lines.*.dc' => [
+                'required',
+                Rule::in(['Dr', 'Cr'])
+            ],
+
+            'lines.*.amount' => [
+                'nullable',
+                'numeric',
+                'gt:0'
+            ],
         ];
 
-        // unique ref_no within (branch_id, voucher_type) when present — ignore current voucher id
+        // ---------- unique ref no ----------
         if ($r->filled('ref_no')) {
+
             $rules['ref_no'][] = Rule::unique('vouchers')
                 ->where(
-                    fn($q) => $q
-                        ->where('voucher_type', $r->input('voucher_type'))
-                        ->where('branch_id', $r->input('branch_id'))
-                )->ignore($voucher->id);
+                    fn($q) =>
+                    $q->where('voucher_type', $r->voucher_type)
+                        ->where('branch_id', $r->branch_id)
+                )
+                ->ignore($voucher->id);
         }
 
         $data = $r->validate($rules);
 
-        // Compute grand_total if header totals provided but grand_total missing
-        if (!$r->filled('grand_total') && ($r->filled('sub_total') || $r->filled('discount') || $r->filled('tax'))) {
-            $data['grand_total'] = round(
-                (float)($r->input('sub_total', 0)) - (float)($r->input('discount', 0)) + (float)($r->input('tax', 0)),
-                2
-            );
+        // ---------- merge extra validated ----------
+        $data = array_merge($data, [
+
+            'party_ledger_id' => $r->party_ledger_id,
+            'mode'            => $r->mode,
+            'cash_ledger_id'  => $r->cash_ledger_id,
+            'bank_ledger_id'  => $r->bank_ledger_id,
+
+            'sub_total'       => $r->sub_total,
+            'discount'        => $r->discount,
+            'tax'             => $r->tax,
+            'grand_total'     => $r->grand_total,
+
+            'from_ledger_id'  => $r->from_ledger_id,
+            'to_ledger_id'    => $r->to_ledger_id,
+
+            'instrument_no'   => $r->instrument_no,
+            'instrument_date' => $r->instrument_date,
+        ]);
+
+        // ---------- partial row validation ----------
+        foreach ($data['lines'] as $index => $line) {
+
+            $ledgerFilled = !empty($line['ledger_id']);
+
+            $amountFilled = !empty($line['amount']);
+
+            if ($ledgerFilled && !$amountFilled) {
+
+                return back()
+                    ->withErrors([
+                        "lines.$index.amount" => 'Amount required.'
+                    ])
+                    ->withInput();
+            }
+
+            if (!$ledgerFilled && $amountFilled) {
+
+                return back()
+                    ->withErrors([
+                        "lines.$index.ledger_id" => 'Ledger required.'
+                    ])
+                    ->withInput();
+            }
         }
 
-        // ---------- 2) Check Dr/Cr balance ----------
+        // ---------- Dr / Cr balance ----------
         $dr = 0;
         $cr = 0;
+
         foreach ($data['lines'] as $line) {
-            if ($line['dc'] === 'Dr') $dr += (float)$line['amount'];
-            else $cr += (float)$line['amount'];
-        }
-        if (round($dr, 2) !== round($cr, 2)) {
-            return back()->withErrors(['lines' => 'Total Debit and Credit must be equal.'])->withInput();
+
+            if ($line['dc'] === 'Dr') {
+
+                $dr += (float)$line['amount'];
+            } else {
+
+                $cr += (float)$line['amount'];
+            }
         }
 
-        // ---------- 3) Persist (transaction) ----------
+        if (round($dr, 2) !== round($cr, 2)) {
+
+            return back()
+                ->withErrors([
+                    'lines' => 'Total Debit and Credit must be equal.'
+                ])
+                ->withInput();
+        }
+
+        // ---------- update ----------
         DB::transaction(function () use ($voucher, $data) {
-            // update voucher header
+
+            // update voucher
             $voucher->update([
+
                 'voucher_date'    => $data['voucher_date'],
                 'voucher_type'    => $data['voucher_type'],
                 'ref_no'          => $data['ref_no'] ?? null,
                 'branch_id'       => $data['branch_id'] ?? null,
                 'narration'       => $data['narration'] ?? null,
+
                 'updated_by'      => Auth::id(),
 
                 'party_ledger_id' => $data['party_ledger_id'] ?? null,
                 'mode'            => $data['mode'] ?? null,
+
                 'instrument_no'   => $data['instrument_no'] ?? null,
                 'instrument_date' => $data['instrument_date'] ?? null,
+
                 'cash_ledger_id'  => $data['cash_ledger_id'] ?? null,
                 'bank_ledger_id'  => $data['bank_ledger_id'] ?? null,
+
                 'from_ledger_id'  => $data['from_ledger_id'] ?? null,
                 'to_ledger_id'    => $data['to_ledger_id'] ?? null,
 
-                'sub_total'       => $data['sub_total']   ?? 0,
-                'discount'        => $data['discount']    ?? 0,
-                'tax'             => $data['tax']         ?? 0,
+                'sub_total'       => $data['sub_total'] ?? 0,
+                'discount'        => $data['discount'] ?? 0,
+                'tax'             => $data['tax'] ?? 0,
                 'grand_total'     => $data['grand_total'] ?? 0,
             ]);
 
-            // delete old lines and recreate (simple and safe)
+            // remove old lines
             $voucher->lines()->delete();
 
+            // recreate lines
             foreach ($data['lines'] as $line) {
+
+                // skip empty row
+                if (
+                    empty($line['ledger_id']) ||
+                    empty($line['amount'])
+                ) {
+                    continue;
+                }
+
                 $voucher->lines()->create([
-                    'ledger_id'      => $line['ledger_id'],
-                    'dc'             => $line['dc'],
-                    'amount'         => round((float)$line['amount'], 2),
-                    'line_narration' => $line['line_narration'] ?? null,
+
+                    'ledger_id' => $line['ledger_id'],
+
+                    'dc'        => $line['dc'],
+
+                    'amount'    => round(
+                        (float)$line['amount'],
+                        2
+                    ),
+
                 ]);
             }
         });
 
-        return redirect()->route('accounting.vouchers.index')->with('success', 'Voucher updated successfully.');
+        return redirect()
+            ->route('accounting.vouchers.index')
+            ->with('success', 'Voucher updated successfully.');
     }
 
     public function destroy(Request $request, $id)
