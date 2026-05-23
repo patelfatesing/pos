@@ -20,7 +20,13 @@ class VoucherController extends Controller
         $branches = \App\Models\Branch::select('name', 'id')->get();
         $types    = ['Payment', 'Receipt', 'Contra', 'Journal', 'Purchase', 'Sales', 'Credit Note', 'Debit Note']; // adjust to your set
 
-        return view('accounting.vouchers.index', compact('vouchers', 'branches', 'types'));
+        if (auth()->user()->role_id == 1 || canAccess(auth()->user()->role_id, 'accounting-voucher')) {
+            return view('accounting.vouchers.index', compact('vouchers', 'branches', 'types'));
+        } else {
+            return view('errors.403', [
+                'message' => 'You do not have permission to view this stock request.'
+            ]);
+        }
     }
 
     public function getData(Request $request)

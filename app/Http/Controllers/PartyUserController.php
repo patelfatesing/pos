@@ -18,7 +18,14 @@ class PartyUserController extends Controller
     public function index()
     {
         $partyUsers = Partyuser::with('images')->latest()->get();
-        return view('party_users.index', compact('partyUsers'));
+        
+        if (auth()->user()->role_id == 1 || canAccess(auth()->user()->role_id, 'party-customer')) {
+            return view('party_users.index', compact('partyUsers'));
+        } else {
+            return view('errors.403', [
+                'message' => 'You do not have permission to view this stock request.'
+            ]);
+        }
     }
 
     public function getData(Request $request)

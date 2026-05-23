@@ -13,7 +13,14 @@ class ReportController extends Controller
 
     public function index()
     {
-        return view('reports.list');
+        
+        if (auth()->user()->role_id == 1 || canAccess(auth()->user()->role_id, 'reports')) {
+            return view('reports.list');
+        } else {
+            return view('errors.403', [
+                'message' => 'You do not have permission to view this stock request.'
+            ]);
+        }
     }
 
     public function lowLevel()

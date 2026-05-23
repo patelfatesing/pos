@@ -18,8 +18,15 @@ class DemandOrderController extends Controller
 {
     public function index()
     {
-        $demandOrders = DemandOrder::with('vendor')->with('products')->latest()->paginate(10);
-        return view('demand_orders.index', compact('demandOrders'));
+        
+        if (auth()->user()->role_id == 1 || canAccess(auth()->user()->role_id, 'demand-order')) {
+            $demandOrders = DemandOrder::with('vendor')->with('products')->latest()->paginate(10);
+            return view('demand_orders.index', compact('demandOrders'));
+        } else {
+            return view('errors.403', [
+                'message' => 'You do not have permission to view this stock request.'
+            ]);
+        }
     }
 
 
