@@ -1,5 +1,5 @@
 @extends('layouts.backend.layouts')
-<script src="{{ asset('assets/js/jquery-3.6.0.min.js')}}"></script>
+<script src="{{ asset('assets/js/jquery-3.6.0.min.js') }}"></script>
 @section('page-content')
     <!-- Wrapper Start -->
     <div class="wrapper">
@@ -58,12 +58,16 @@
                                         <div class="col-12">
                                             <div class="alert alert-info">
                                                 <h5 class="alert-heading">Import Instructions</h5>
-                                                
+
                                                 <ol class="mb-0">
-                                                    <li>Download sample file start by downloading the provided sample CSV file.</li>
-                                                    <li>Prepare your CSV File by using the sample file as a template to format your own excel data.</li>
-                                                    <li>Fill in all required fields & missing required data may cause import to fail or result in incomplete records.</li>
-                                                    <li>Verify field mapping after uploading, review and confirm the mapping between your CSV columns & system fields.</li>
+                                                    <li>Download sample file start by downloading the provided sample CSV
+                                                        file.</li>
+                                                    <li>Prepare your CSV File by using the sample file as a template to
+                                                        format your own excel data.</li>
+                                                    <li>Fill in all required fields & missing required data may cause import
+                                                        to fail or result in incomplete records.</li>
+                                                    <li>Verify field mapping after uploading, review and confirm the mapping
+                                                        between your CSV columns & system fields.</li>
                                                 </ol>
                                             </div>
                                         </div>
@@ -113,20 +117,27 @@
             // File input change handler
             $('#file').on('change', function() {
                 const file = this.files[0];
+
                 if (file) {
+
+                    // Show selected file name
+                    $('.custom-file-label').text(file.name);
+
                     // Validate file type
                     const validTypes = ['text/csv', 'text/plain'];
                     if (!validTypes.includes(file.type)) {
                         alert('Please select a valid CSV or TXT file.');
                         this.value = '';
+                        $('.custom-file-label').text('Choose file');
                         return;
                     }
 
                     // Validate file size (10MB)
-                    const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+                    const maxSize = 10 * 1024 * 1024;
                     if (file.size > maxSize) {
                         alert('File size must be less than 10MB.');
                         this.value = '';
+                        $('.custom-file-label').text('Choose file');
                         return;
                     }
                 }
