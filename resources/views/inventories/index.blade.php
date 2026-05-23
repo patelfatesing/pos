@@ -36,7 +36,6 @@
                 </div>
             </div>
 
-
             <div class="row">
                 <div class="col-12">
 
@@ -57,9 +56,11 @@
                             <tbody></tbody>
                             <tfoot>
                                 <tr>
-                                    <th colspan="3" style="text-align:right">Total:</th>
+                                    <th colspan="3" class="text-end">Total:</th>
+
                                     <th id="total_stock" class="text-center"></th>
-                                    <th colspan="3"></th>
+
+                                    <th colspan="4"></th>
                                 </tr>
                             </tfoot>
                         </table>
