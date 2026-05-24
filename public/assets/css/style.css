@@ -81,6 +81,10 @@
             color: #999;
         }
 
+        .hide-search-icon::after{
+            display:none !important;
+        }
+
         .dataTables_length select {
             border-radius: 6px;
             width: 60px;

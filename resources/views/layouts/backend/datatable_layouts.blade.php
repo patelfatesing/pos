@@ -100,6 +100,14 @@
         setTimeout(function() {
             $('.toast').fadeOut('slow');
         }, 5000);
+
+        $(document).on('input', '.dataTables_filter input', function () {
+            if ($(this).val().trim() !== '') {
+                $('.dataTables_filter').addClass('hide-search-icon');
+            } else {
+                $('.dataTables_filter').removeClass('hide-search-icon');
+            }
+        });
     </script>
 
     @yield('scripts')
