@@ -31,10 +31,10 @@
                                                     <th>Sr No</th>
                                                     <th>Product Name</th>
                                                     <th>Quantity</th>
-                                                    {{-- <th>Barcode</th> --}}
+                                                    <th>Barcode</th>
                                                     <th>MRP</th>
-                                                    <th>Cost</th>
-                                                    <th>Totol Cost</th>
+                                                    <th>Rate</th>
+                                                    <th>Sell Price</th>
                                                     <th>Delivery Status</th>
                                                     <th>Delivery Quantity</th>
                                                     <th>Created At</th>
@@ -47,7 +47,7 @@
                                                         <td>{{ $key + 1 }}</td>
                                                         <td>{{ $product->product_name }}</td>
                                                         <td>{{ $product->quantity }}</td>
-                                                        {{-- <td>{{ $product->barcode }}</td> --}}
+                                                        <td>{{ $product->barcode }}</td>
                                                         <td>{{ number_format($product->mrp, 2) }}</td>
                                                         <td>{{ number_format($product->rate, 2) }}</td>
                                                         <td>{{ number_format($product->sell_price, 2) }}</td>

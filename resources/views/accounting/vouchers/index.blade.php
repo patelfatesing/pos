@@ -65,15 +65,6 @@
 
                         <div class="col-md-3 pr-0">
                             <div class="form-group mb-0">
-                                <select name="statusFilter" id="statusFilter" class="form-control">
-                                    <option value="">All Status</option>
-                                    <option value="verify">Verify</option>
-                                    <option value="unverify">Unverify</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3 pr-0">
-                            <div class="form-group mb-0">
                                 <select name="typeFilter" id="typeFilter" class="form-control">
                                     <option value="">All</option>
                                     @foreach ($types as $t)
@@ -137,10 +128,9 @@
                     type: "POST",
                     data: function(d) {
                         d.voucher_type = $('#typeFilter').val() || '';
-                        d.status = $('#statusFilter').val() || '';
                     }
                 },
-                lengthMenu: [
+                 lengthMenu: [
                     [10, 25, 50, 100, -1],
                     [10, 25, 50, 100, "All"]
                 ],

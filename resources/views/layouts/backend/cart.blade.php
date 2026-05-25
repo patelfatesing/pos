@@ -96,11 +96,11 @@
 
     <script async src="../assets/js/jquery-3.6.0.min.js"></script>
 
-    <!-- Select2 JS — after jQuery -->
-    <script src="{{ asset('assets/js/select2.min.js') }}"></script>
-
     <!-- Backend Bundle JavaScript -->
     <script src="../assets/js/backend-bundle.min.js"></script>
+
+     <!-- Select2 JS — after jQuery -->
+     <script src="{{ asset('assets/js/select2.min.js') }}"></script>
 
     <!-- Table Treeview JavaScript -->
     <script src="../assets/js/table-treeview.js"></script>

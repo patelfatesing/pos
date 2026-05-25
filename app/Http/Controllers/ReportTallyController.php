@@ -21,95 +21,61 @@ class ReportTallyController extends Controller
         return view('reports_tally.pnl_tally', compact('branches'));
     }
 
-    public function getProfitLossData(Request $request)
-    {
-        $tz  = config('app.timezone', 'Asia/Kolkata');
-        $now = \Carbon\Carbon::now($tz);
+   public function getProfitLossData(Request $request)
+{
+    $tz  = config('app.timezone', 'Asia/Kolkata');
+    $now = \Carbon\Carbon::now($tz);
 
-        $start = $request->filled('start_date')
-            ? \Carbon\Carbon::parse($request->input('start_date'), $tz)->startOfDay()
-            : $now->copy()->subDays(29)->startOfDay();
+    $start = $request->filled('start_date')
+        ? \Carbon\Carbon::parse($request->input('start_date'), $tz)->startOfDay()
+        : $now->copy()->subDays(29)->startOfDay();
 
-        $end = $request->filled('end_date')
-            ? \Carbon\Carbon::parse($request->input('end_date'), $tz)->endOfDay()
-            : $now->copy()->endOfDay();
+    $end = $request->filled('end_date')
+        ? \Carbon\Carbon::parse($request->input('end_date'), $tz)->endOfDay()
+        : $now->copy()->endOfDay();
 
-        $verify = $request->input('admin_status', 'verify');
+    $verify = $request->input('admin_status', 'verify');
 
-        /*
-        |--------------------------------------------------------------------------
-        | BASE QUERY
-        |--------------------------------------------------------------------------
-        */
+    /* =========================================================
+     | BASE QUERY
+     * ========================================================= */
+    $linesBase = DB::table('voucher_lines as vl')
+        ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
+        ->join('account_ledgers as l', 'l.id', '=', 'vl.ledger_id')
+        ->join('account_groups as g', 'g.id', '=', 'l.group_id')
+        ->where('v.admin_status', $verify)
+        ->whereBetween('v.voucher_date', [
+            $start->toDateString(),
+            $end->toDateString()
+        ])
+        ->where('l.is_deleted', 0);
 
-        $linesBase = DB::table('voucher_lines as vl')
-            ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
-            ->join('account_ledgers as l', 'l.id', '=', 'vl.ledger_id')
-            ->join('account_groups as g', 'g.id', '=', 'l.group_id')
+    /* =========================================================
+     | COMMON GROUP FUNCTION
+     * ========================================================= */
+    $groupWithLedger = function ($scope) use ($linesBase) {
 
-            ->where('v.admin_status', $verify)
+        $base = $scope(clone $linesBase);
 
-            ->whereBetween('v.voucher_date', [
-                $start->toDateString(),
-                $end->toDateString()
-            ])
+        $groups = (clone $base)
+            ->selectRaw('g.id as gid, g.name as gname')
+            ->groupBy('g.id', 'g.name')
+            ->get();
 
-            ->where('l.is_deleted', 0);
+        $total = 0;
+        $children = [];
 
-        /*
-        |--------------------------------------------------------------------------
-        | GROUP + SUBGROUP + LEDGER
-        |--------------------------------------------------------------------------
-        */
+        foreach ($groups as $g) {
 
-        $groupWithLedger = function ($scope) use ($linesBase) {
-
-            $base = $scope(clone $linesBase);
-
-            $subGroups = (clone $base)
-
-                ->leftJoin(
-                    'account_groups as pg',
-                    'pg.id',
-                    '=',
-                    'g.parent_id'
-                )
-
-                ->selectRaw('
-                g.id as subgroup_id,
-                g.name as subgroup_name,
-
-                pg.id as parent_group_id,
-                pg.name as parent_group_name
-            ')
-
-                ->groupBy(
-                    'g.id',
-                    'g.name',
-                    'pg.id',
-                    'pg.name'
-                )
-
-                ->get();
-
-            $total = 0;
-
-            $children = [];
-
-            foreach ($subGroups as $group) {
-
-                $ledgers = (clone $base)
-
-                    ->where('g.id', $group->subgroup_id)
-
-                    ->selectRaw("
+            $ledgers = (clone $base)
+                ->where('g.id', $g->gid)
+                ->selectRaw("
                     l.id as lid,
                     l.name as lname,
 
                     COALESCE(SUM(
                         CASE
-                            WHEN vl.dc='Dr'
-                            THEN vl.amount
+                            WHEN vl.dc='Dr' THEN vl.amount
                             ELSE 0
                         END
                     ),0)
@@ -118,637 +84,371 @@ class ReportTallyController extends Controller
 
                     COALESCE(SUM(
                         CASE
-                            WHEN vl.dc='Cr'
-                            THEN vl.amount
+                            WHEN vl.dc='Cr' THEN vl.amount
                             ELSE 0
                         END
                     ),0)
 
                     as amt
                 ")
+                ->groupBy('l.id', 'l.name')
+                ->havingRaw('amt <> 0')
+                ->get();
 
-                    ->groupBy(
-                        'l.id',
-                        'l.name'
-                    )
+            $groupTotal = 0;
+            $rows = [];
 
-                    ->havingRaw('amt <> 0')
+            foreach ($ledgers as $r) {
 
-                    ->get();
+                $amt = (float) $r->amt;
 
-                $groupTotal = 0;
+                $groupTotal += $amt;
 
-                $ledgerRows = [];
-
-                foreach ($ledgers as $ledger) {
-
-                    $amt = abs((float)$ledger->amt);
-
-                    $groupTotal += $amt;
-
-                    $ledgerRows[] = [
-
-                        'label' => $ledger->lname,
-
-                        'amount' => number_format($amt, 2),
-
-                        'ledger_id' => $ledger->lid
-                    ];
-                }
-
-                if ($groupTotal <= 0) {
-                    continue;
-                }
-
-                $total += $groupTotal;
-
-                $children[] = [
-
-                    'label' => $group->subgroup_name,
-
-                    'amount' => number_format($groupTotal, 2),
-
-                    'group_id' => $group->subgroup_id,
-
-                    // KEEP CHILDREN FOR TOTALS
-                    'children' => []
+                $rows[] = [
+                    'label'     => $r->lname,
+                    'amount'    => number_format($amt, 2),
+                    'ledger_id' => $r->lid
                 ];
             }
 
-            return [
+            if ($groupTotal == 0) {
+                continue;
+            }
 
-                'total' => $total,
+            $total += $groupTotal;
 
-                'children' => $children
-            ];
-        };
-
-        /*
-        |--------------------------------------------------------------------------
-        | PURCHASE GROUP
-        |--------------------------------------------------------------------------
-        */
-
-        $purchaseGroupId = DB::table('account_groups')
-            ->whereRaw("LOWER(name) = 'purchase accounts'")
-            ->value('id');
-
-        /*
-        |--------------------------------------------------------------------------
-        | PURCHASE VOUCHERS
-        |--------------------------------------------------------------------------
-        */
-
-        $purchaseVoucherIds = DB::table('voucher_lines as vl')
-
-            ->join('account_ledgers as l', 'l.id', '=', 'vl.ledger_id')
-            ->join('account_groups as g', 'g.id', '=', 'l.group_id')
-            ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
-
-            ->where('v.admin_status', $verify)
-
-            ->whereBetween('v.voucher_date', [
-                $start->toDateString(),
-                $end->toDateString()
-            ])
-
-            ->where('g.id', $purchaseGroupId)
-
-            ->pluck('vl.voucher_id')
-            ->unique();
-
-        /*
-        |--------------------------------------------------------------------------
-        | PURCHASE VENDOR WISE
-        |--------------------------------------------------------------------------
-        */
-
-        $vendors = DB::table('voucher_lines as vl')
-
-            ->join('account_ledgers as l', 'l.id', '=', 'vl.ledger_id')
-            ->join('account_groups as g', 'g.id', '=', 'l.group_id')
-            ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
-
-            ->whereIn('vl.voucher_id', $purchaseVoucherIds)
-
-            ->where('vl.dc', 'Cr')
-
-            ->where(function ($q) {
-
-                $q->whereRaw("LOWER(g.name) like '%creditor%'")
-                    ->orWhereRaw("LOWER(g.name) like '%vendor%'");
-            })
-
-            ->selectRaw("
-            l.id as lid,
-            l.name as lname,
-            SUM(vl.amount) as amt
-        ")
-
-            ->groupBy('l.id', 'l.name')
-            ->get();
-
-        $purchaseChildren = [];
-        $purchaseTotal = 0;
-
-        foreach ($vendors as $vendor) {
-
-            $amt = (float)$vendor->amt;
-
-            $purchaseTotal += $amt;
-
-            $purchaseChildren[] = [
-
-                'label' => $vendor->lname,
-
-                'amount' => number_format($amt, 2),
-
-                'ledger_id' => $vendor->lid,
+            $children[] = [
+                'label'     => $g->gname,
+                'amount'    => number_format($groupTotal, 2),
+                'group_id'  => $g->gid,
+                'children'  => $rows
             ];
         }
 
-        $purchase = [
-
-            'total' => $purchaseTotal,
-
-            'children' => $purchaseChildren
+        return [
+            'total'    => $total,
+            'children' => $children
         ];
+    };
 
-        /*
-        |--------------------------------------------------------------------------
-        | DIRECT EXPENSES
-        |--------------------------------------------------------------------------
-        */
+    /* =========================================================
+     | PURCHASE GROUP
+     * ========================================================= */
 
-        $directRaw = $groupWithLedger(
+    $purchaseGroupId = DB::table('account_groups')
+        ->whereRaw("LOWER(name) = 'purchase accounts'")
+        ->value('id');
 
-            fn($q) =>
+    $purchaseRaw = $groupWithLedger(
+        fn($q) =>
+        $q->where('g.id', $purchaseGroupId)
+    );
 
-            $q->where('g.nature', 'Expense')
+    $purchase = [
+        'total' => $purchaseRaw['total'],
 
-                ->where('g.affects_gross', 1)
+        'children' => collect($purchaseRaw['children'])
+            ->flatMap(fn($i) => $i['children'] ?? [$i])
+            ->values()
+            ->all()
+    ];
 
-                ->where('g.id', '!=', $purchaseGroupId)
-        );
+    /* =========================================================
+     | DIRECT EXPENSES
+     | IMPORTANT FIX:
+     | EXCLUDE PURCHASE GROUP
+     * ========================================================= */
 
-        /*
-        |--------------------------------------------------------------------------
-        | FINAL DIRECT STRUCTURE
-        |--------------------------------------------------------------------------
-        */
+    $directRaw = $groupWithLedger(
+        fn($q) =>
+        $q->where('g.nature', 'Expense')
+            ->where('g.affects_gross', 1)
+            ->where('g.id', '!=', $purchaseGroupId)
+    );
 
-        $direct = [
+    $direct = [
 
-            'total' => $directRaw['total'],
+        'total' => $directRaw['total'],
 
-            'children' => [
+        'children' => collect($directRaw['children'])
+            ->flatMap(function ($group) {
 
-                [
+                return collect($group['children'])
+                    ->map(function ($ledger) use ($group) {
 
-                    'label' => 'Direct Expenses',
-
-                    'amount' => number_format(
-                        $directRaw['total'],
-                        2
-                    ),
-
-                    'section_group_id' => 13,
-
-                    'children' => $directRaw['children']
-                ]
-            ]
-        ];
-
-        /*
-        |--------------------------------------------------------------------------
-        | INDIRECT EXPENSES
-        |--------------------------------------------------------------------------
-        */
-
-        $indirectRaw = $groupWithLedger(
-
-            fn($q) =>
-
-            $q->where('g.nature', 'Expense')
-
-                ->where(function ($w) {
-
-                    $w->where('g.affects_gross', 0)
-
-                        ->orWhereNull('g.affects_gross');
-                })
-        );
-
-        $indirect = [
-
-            'total' => $indirectRaw['total'],
-
-            'children' => $indirectRaw['children']
-        ];
-
-        /*
-        |--------------------------------------------------------------------------
-        | SALES
-        |--------------------------------------------------------------------------
-        */
-
-        $salesAccounts = 0;
-
-        $salesChildren = DB::table('vouchers as v')
-
-            ->join('invoices as i', 'i.id', '=', 'v.gen_id')
-
-            ->where('v.admin_status', $verify)
-
-            ->whereBetween('v.voucher_date', [
-                $start->toDateString(),
-                $end->toDateString()
-            ])
-
-            ->where('v.voucher_type', 'Sales')
-
-            ->select('i.items')
-
-            ->get()
-
-            ->flatMap(function ($row) {
-
-                $items = json_decode($row->items, true);
-
-                if (!is_array($items)) {
-                    return [];
-                }
-
-                return collect($items)->map(function ($item) {
-
-                    $subCategoryName = trim(
-                        (string)($item['subcategory'] ?? 'Others')
-                    ) ?: 'Others';
-
-                    return [
-                        'category' => $subCategoryName,
-                        'amount' => (float)($item['price'] ?? 0),
-                    ];
-                });
+                        return [
+                            'label'     => $ledger['label'],
+                            'amount'    => $ledger['amount'],
+                            'ledger_id' => $ledger['ledger_id'],
+                            'group_id'  => $group['group_id']
+                        ];
+                    });
             })
+            ->values()
+            ->all()
+    ];
 
-            ->groupBy('category')
+    /* =========================================================
+     | INDIRECT EXPENSES
+     * ========================================================= */
 
-            ->map(function ($rows, $category) use (&$salesAccounts) {
+    $indirectRaw = $groupWithLedger(
+        fn($q) =>
+        $q->where('g.nature', 'Expense')
+            ->where(function ($w) {
+                $w->where('g.affects_gross', 0)
+                    ->orWhereNull('g.affects_gross');
+            })
+    );
 
-                $total = $rows->sum('amount');
+    $indirect = [
 
-                $salesAccounts += $total;
+        'total' => $indirectRaw['total'],
+
+        'children' => collect($indirectRaw['children'])
+            ->flatMap(fn($i) => $i['children'] ?? [$i])
+            ->values()
+            ->all()
+    ];
+
+    /* =========================================================
+     | SALES
+     * ========================================================= */
+
+    $salesAccounts = 0;
+
+    $salesChildren = DB::table('vouchers as v')
+        ->join('invoices as i', 'i.id', '=', 'v.gen_id')
+
+        ->where('v.admin_status', $verify)
+
+        ->whereBetween('v.voucher_date', [
+            $start->toDateString(),
+            $end->toDateString()
+        ])
+
+        ->where('v.voucher_type', 'Sales')
+
+        ->select('i.items')
+        ->get()
+
+        ->flatMap(function ($row) {
+
+            $items = json_decode($row->items, true);
+
+            if (!is_array($items)) {
+                return [];
+            }
+
+            return collect($items)->map(function ($item) {
+
+                $subCategoryName = trim(
+                    (string) ($item['subcategory'] ?? 'Others')
+                ) ?: 'Others';
 
                 return [
-
-                    'label' => $category,
-
-                    'amount' => number_format($total, 2),
-
-                    'sub_category_name' => $category,
-
-                    'report' => 'category_sales',
-
-                    'group_by' => 'subcategory',
+                    'category' => $subCategoryName,
+                    'amount'   => (float) ($item['price'] ?? 0),
                 ];
-            })
+            });
+        })
 
-            ->values()
+        ->groupBy('category')
 
-            ->all();
+        ->map(function ($rows, $category) use (&$salesAccounts) {
 
+            $total = $rows->sum('amount');
 
-        /*
-        |--------------------------------------------------------------------------
-        | OPENING STOCK
-        |--------------------------------------------------------------------------
-        */
+            $salesAccounts += $total;
 
-        $openingStockDate = DB::table('daily_product_stocks')
-            ->whereDate('date', '<=', $start->toDateString())
-            ->max('date');
-
-        $openingStockRows = collect();
-
-        if ($openingStockDate) {
-
-            $openingStockRows = DB::table('daily_product_stocks as dps')
-
-            ->join('products as p', 'p.id', '=', 'dps.product_id')
-            ->join('sub_categories as sc', 'sc.id', '=', 'p.subcategory_id')
-
-            ->whereDate('dps.date', $openingStockDate)
-
-            ->selectRaw('
-                sc.id as subcategory_id,
-                sc.name as subcategory_name,
-
-                SUM(
-                    COALESCE(dps.closing_stock,0)
-                ) as qty,
-
-                SUM(
-                    COALESCE(dps.closing_stock,0)
-                    *
-                    COALESCE(p.cost_price,0)
-                ) as total
-            ')
-
-            ->groupBy(
-                'sc.id',
-                'sc.name'
-            )
-
-            ->get();
-        }
-
-        $openingStockChildren = [];
-        $openingStock = 0;
-
-        foreach ($openingStockRows as $row) {
-
-            $amt = (float) $row->total;
-
-            $openingStock += $amt;
-
-            $openingStockChildren[] = [
-
-                'label' => $row->subcategory_name .
-                    ' (' . number_format($row->qty, 0) . ' Qty)',
-
-                'amount' => number_format($amt, 2),
-
-                'report' => 'stock_summary',
-
-                'sub_category_id' => $row->subcategory_id,
-
-                'sub_category_name' => $row->subcategory_name,
+            return [
+                'label'             => $category,
+                'amount'            => number_format($total, 2),
+                'sub_category_name' => $category,
+                'report'            => 'category_sales',
+                'group_by'          => 'subcategory',
             ];
-        }
+        })
 
-        /*
-        |--------------------------------------------------------------------------
-        | CLOSING STOCK
-        |--------------------------------------------------------------------------
-        */
+        ->values()
+        ->all();
 
-        $closingStockDate = DB::table('daily_product_stocks')
-            ->whereDate('date', '<=', $end->toDateString())
-            ->max('date');
+    /* =========================================================
+     | STOCK
+     * ========================================================= */
 
-        $closingStockRows = collect();
+    $openingStock = 0;
+    $closingStock = 0;
 
-        if ($closingStockDate) {
+    /* =========================================================
+     | TRADING CALCULATION
+     * ========================================================= */
 
-            $closingStockRows = DB::table('daily_product_stocks as dps')
+    $tradingDr =
+        $openingStock +
+        $purchase['total'] +
+        $direct['total'];
 
-                ->join('products as p', 'p.id', '=', 'dps.product_id')
-                ->join('sub_categories as sc', 'sc.id', '=', 'p.subcategory_id')
+    $tradingCr =
+        $salesAccounts +
+        $closingStock;
 
-                ->whereDate('dps.date', $closingStockDate)
+    $grossProfit = max(0, $tradingCr - $tradingDr);
 
-                ->selectRaw('
-            sc.id as subcategory_id,
-            sc.name as subcategory_name,
+    $grossLoss = max(0, $tradingDr - $tradingCr);
 
-            SUM(dps.closing_stock) as qty,
+    /* =========================================================
+     | P&L CALCULATION
+     * ========================================================= */
 
-            SUM(
-                dps.closing_stock * p.cost_price
-            ) as total
-        ')
+    $plDrBase =
+        $indirect['total'] +
+        $grossLoss;
 
-                ->groupBy(
-                    'sc.id',
-                    'sc.name'
-                )
+    $plCrBase =
+        $grossProfit;
 
-                ->get();
-        }
+    $nettProfit = max(0, $plCrBase - $plDrBase);
 
-        $closingStockChildren = [];
-        $closingStock = 0;
+    $nettLoss = max(0, $plDrBase - $plCrBase);
 
-        foreach ($closingStockRows as $row) {
+    /* =========================================================
+     | RESPONSE
+     * ========================================================= */
 
-            $amt = (float) $row->total;
+    return response()->json([
 
-            $closingStock += $amt;
+        'trading' => [
 
-            $closingStockChildren[] = [
+            'dr' => [
 
-                'label' => $row->subcategory_name .
-                    ' (' . number_format($row->qty, 0) . ' Qty)',
+                'rows' => [
 
-                'amount' => number_format($amt, 2),
+                    [
+                        'label'  => 'Opening Stock',
+                        'amount' => number_format($openingStock, 2)
+                    ],
 
-                'report' => 'stock_summary',
+                    [
+                        'label' => 'Purchase Accounts',
 
-                'sub_category_id' => $row->subcategory_id,
+                        'amount' => number_format(
+                            $purchase['total'],
+                            2
+                        ),
 
-                'sub_category_name' => $row->subcategory_name,
-            ];
-        }
+                        'children' => $purchase['children'],
 
-        /*
-        |--------------------------------------------------------------------------
-        | TRADING
-        |--------------------------------------------------------------------------
-        */
+                        'section_group_id' => $purchaseGroupId
+                    ],
 
-        $tradingDr =
-            $openingStock +
-            $purchase['total'] +
-            $direct['total'];
+                    [
+                        'label' => 'Direct Expenses',
 
-        $tradingCr =
-            $salesAccounts +
-            $closingStock;
+                        'amount' => number_format(
+                            $direct['total'],
+                            2
+                        ),
 
-        $grossProfit = max(0, $tradingCr - $tradingDr);
+                        'children' => $direct['children']
+                    ],
 
-        $grossLoss = max(0, $tradingDr - $tradingCr);
-
-        /*
-        |--------------------------------------------------------------------------
-        | P&L
-        |--------------------------------------------------------------------------
-        */
-
-        $plDrBase =
-            $indirect['total'] +
-            $grossLoss;
-
-        $plCrBase =
-            $grossProfit;
-
-        $nettProfit = max(0, $plCrBase - $plDrBase);
-
-        $nettLoss = max(0, $plDrBase - $plCrBase);
-
-        /*
-        |--------------------------------------------------------------------------
-        | RESPONSE
-        |--------------------------------------------------------------------------
-        */
-
-        return response()->json([
-
-            'trading' => [
-
-                'dr' => [
-
-                    'rows' => [
-
-                        [
-                            'label' => 'Opening Stock',
-
-                            'amount' => number_format(
-                                $openingStock,
-                                2
-                            ),
-
-                            'children' => $openingStockChildren
-                        ],
-
-                        [
-                            'label' => 'Purchase Accounts',
-
-                            'amount' => number_format(
-                                $purchase['total'],
-                                2
-                            ),
-
-                            'children' => $purchase['children'],
-
-                            'section_group_id' => $purchaseGroupId
-                        ],
-
-                        ...$direct['children'],
-
-                        [
-                            'label' => 'Gross Profit c/o',
-
-                            'amount' => number_format(
-                                $grossProfit,
-                                2
-                            )
-                        ],
-                    ]
-                ],
-
-                'cr' => [
-
-                    'rows' => [
-
-                        [
-                            'label' => 'Sales Accounts',
-
-                            'amount' => number_format(
-                                $salesAccounts,
-                                2
-                            ),
-
-                            'children' => $salesChildren
-                        ],
-
-                        [
-                            'label' => 'Closing Stock',
-
-                            'amount' => number_format(
-                                $closingStock,
-                                2
-                            ),
-
-                            'children' => $closingStockChildren
-                        ],
-
-                        [
-                            'label' => 'Gross Loss c/o',
-
-                            'amount' => number_format(
-                                $grossLoss,
-                                2
-                            )
-                        ],
-                    ]
-                ],
-
-                'table_total' => number_format(
-                    max($tradingDr, $tradingCr),
-                    2
-                )
+                    [
+                        'label'  => 'Gross Profit c/o',
+                        'amount' => number_format($grossProfit, 2)
+                    ],
+                ]
             ],
 
-            'pl' => [
+            'cr' => [
 
-                'dr' => [
+                'rows' => [
 
-                    'rows' => [
+                    [
+                        'label' => 'Sales Accounts',
 
-                        [
-                            'label' => 'Gross Loss b/f',
+                        'amount' => number_format(
+                            $salesAccounts,
+                            2
+                        ),
 
-                            'amount' => number_format(
-                                $grossLoss,
-                                2
-                            )
-                        ],
+                        'report' => 'category_sales',
 
-                        [
-                            'label' => 'Indirect Expenses',
+                        'group_by' => 'subcategory',
 
-                            'amount' => number_format(
-                                $indirect['total'],
-                                2
-                            ),
+                        'children' => $salesChildren
+                    ],
 
-                            'children' => $indirect['children']
-                        ],
+                    [
+                        'label'  => 'Closing Stock',
+                        'amount' => number_format($closingStock, 2)
+                    ],
 
-                        [
-                            'label' => 'Net Profit',
+                    [
+                        'label'  => 'Gross Loss c/o',
+                        'amount' => number_format($grossLoss, 2)
+                    ],
+                ]
+            ],
 
-                            'amount' => number_format(
-                                $nettProfit,
-                                2
-                            )
-                        ],
-                    ]
-                ],
+            'table_total' => number_format(
+                max($tradingDr, $tradingCr),
+                2
+            )
+        ],
 
-                'cr' => [
+        'pl' => [
 
-                    'rows' => [
+            'dr' => [
 
-                        [
-                            'label' => 'Gross Profit b/f',
+                'rows' => [
 
-                            'amount' => number_format(
-                                $grossProfit,
-                                2
-                            )
-                        ],
+                    [
+                        'label'  => 'Gross Loss b/f',
+                        'amount' => number_format($grossLoss, 2)
+                    ],
 
-                        [
-                            'label' => 'Net Loss',
+                    [
+                        'label' => 'Indirect Expenses',
 
-                            'amount' => number_format(
-                                $nettLoss,
-                                2
-                            )
-                        ],
-                    ]
-                ],
+                        'amount' => number_format(
+                            $indirect['total'],
+                            2
+                        ),
 
-                'table_total' => number_format(
-                    max($plDrBase, $plCrBase),
-                    2
-                )
-            ]
-        ]);
-    }
+                        'children' => $indirect['children']
+                    ],
+
+                    [
+                        'label'  => 'Nett Profit',
+                        'amount' => number_format($nettProfit, 2)
+                    ],
+                ]
+            ],
+
+            'cr' => [
+
+                'rows' => [
+
+                    [
+                        'label'  => 'Gross Profit b/f',
+                        'amount' => number_format($grossProfit, 2)
+                    ],
+
+                    [
+                        'label'  => 'Nett Loss',
+                        'amount' => number_format($nettLoss, 2)
+                    ],
+                ]
+            ],
+
+            'table_total' => number_format(
+                max($plDrBase, $plCrBase),
+                2
+            )
+        ]
+    ]);
+}
 
     public function profitLossPdf(Request $request)
     {
@@ -1385,13 +1085,13 @@ class ReportTallyController extends Controller
             ['label' => 'Gross Loss b/f',     'amount' => number_format($grossLoss, 2)],
             ['label' => 'Indirect Expenses',  'amount' => number_format($indirectExp, 2), 'children' => $indirectFx['children'], 'flatten' => $indirectFx['flatten'], 'section' => 'indirect', 'section_group_id' => $indirectFx['section_group_id'] ?? null],
         ];
-        if ($nettProfit > 0) $plDrRows[] = ['label' => 'Net Profit', 'amount' => number_format($nettProfit, 2)];
+        if ($nettProfit > 0) $plDrRows[] = ['label' => 'Nett Profit', 'amount' => number_format($nettProfit, 2)];
 
         $plCrRows = [
             ['label' => 'Gross Profit b/f',  'amount' => number_format($grossProfit, 2)],
             ['label' => 'Indirect Incomes',  'amount' => number_format($indirectIncTot, 2), 'children' => $indInFx['children'], 'flatten' => $indInFx['flatten'], 'section' => 'income',  'section_group_id' => $indInFx['section_group_id'] ?? null],
         ];
-        if ($nettLoss > 0) $plCrRows[] = ['label' => 'Net Loss', 'amount' => number_format($nettLoss, 2)];
+        if ($nettLoss > 0) $plCrRows[] = ['label' => 'Nett Loss', 'amount' => number_format($nettLoss, 2)];
 
         $branchName = 'All Branches';
 

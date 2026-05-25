@@ -28,7 +28,7 @@
                                     <th>Shipping Date</th>
                                     <th>Total Quantity</th>
                                     <th>Total Cost Price</th>
-                                    <th>Category</th>
+                                    <th>Sub Category</th>
                                     <th>Status</th>
                                     <th>Action</th>
                                 </tr>
@@ -241,47 +241,6 @@
                 ]
             });
         });
-
-        function delete_demand(id) {
-
-            Swal.fire({
-                title: "Are you sure?",
-                text: "You won't be able to revert this!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Yes, delete it!",
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        type: "POST", // "method" also works
-                        url: "{{ url('demand-order/delete') }}", // Ensure correct Laravel URL
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        data: {
-                            id: id
-                        },
-                        success: function(response) {
-                            Swal.fire("Deleted!", "The demand order has been deleted.", "success").then(
-                                () => {
-                                    let table = $('#demand_order_tbl').DataTable();
-
-                                    table.ajax.reload(function() {
-
-                                        table.columns.adjust().draw();
-
-                                    }, true);
-                                });
-                        },
-                        error: function(xhr) {
-                            swal("Error!", "Something went wrong.", "error");
-                        }
-                    });
-                }
-            });
-
-        }
-
 
         function getBase64Image(url, callback) {
             var img = new Image();

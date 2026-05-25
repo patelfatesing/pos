@@ -68,13 +68,6 @@ class VoucherController extends Controller
         // Admin verify filter
         if (auth()->user()->role_id == 1) {
             $base->where('v.super_admin_status', 'verify');
-            if ($request->filled('status')) {
-                $base->where('v.super_admin_status', $request->status);
-            }
-        } else {
-            if ($request->filled('status')) {
-                $base->where('v.admin_status', $request->status);
-            }
         }
 
         // Permission check
@@ -974,6 +967,8 @@ class VoucherController extends Controller
             'toLedger',
             'lines.ledger' // ✅ correct relation
         ])->findOrFail($id);
+
+        // dd($voucher);
 
         return view('accounting.vouchers.view_voucher', compact('voucher'));
     }

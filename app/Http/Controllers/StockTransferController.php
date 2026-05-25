@@ -15,10 +15,8 @@ use App\Models\StockTransfer;
 use Illuminate\Support\Str;
 use App\Models\ShiftClosing;
 use App\Models\Category;
-use App\Models\SubCategory;
 use App\Models\UserShift;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 
 class StockTransferController extends Controller
 {
@@ -52,8 +50,6 @@ class StockTransferController extends Controller
     {
         $categories = Category::all();
 
-        $subCategories = subCategory::all();
-
         $shift_id = isset($_GET['shift_id']);
 
         $shift = '';
@@ -68,7 +64,7 @@ class StockTransferController extends Controller
             ->where('is_deleted', 'no')
             ->firstOrFail();
 
-        return view('stocks_transfer.create', compact('stores', 'products', 'data', 'categories', 'shift_id', 'shift', 'subCategories'));
+        return view('stocks_transfer.create', compact('stores', 'products', 'data', 'categories', 'shift_id', 'shift'));
     }
 
     public function getData(Request $request)
@@ -378,158 +374,96 @@ class StockTransferController extends Controller
     public function store(Request $request)
     {
         try {
+            $validated = $request->validate([
+                'from_store_id' => 'required|exists:branches,id',
+                'to_store_id' => 'required|exists:branches,id',
+                'items' => 'required|array|min:1',
+                'items.*.product_id' => 'required|exists:products,id',
+                'items.*.quantity' => 'required|integer|min:1',
+            ]);
 
-            $validated = $request->validate(
-                [
-                    'from_store_id'        => 'required|exists:branches,id',
-                    'to_store_id'          => 'required|exists:branches,id',
-                    'items'                => 'required|array|min:1',
-                    'items.*.product_id'   => 'required|exists:products,id',
-                    'items.*.quantity'     => 'required|integer|min:1',
-                ],
-                [
-                    'from_store_id.required' => 'Please select From Store.',
-                    'from_store_id.exists'   => 'Selected From Store not found.',
-
-                    'to_store_id.required'   => 'Please select To Store.',
-                    'to_store_id.exists'     => 'Selected To Store not found.',
-
-                    'items.required'         => 'Please add at least one product.',
-                    'items.array'            => 'Invalid product data.',
-
-                    'items.*.product_id.required' => 'Please select product.',
-                    'items.*.product_id.exists'   => 'Selected product not found.',
-
-                    'items.*.quantity.required' => 'Please enter quantity.',
-                    'items.*.quantity.integer'  => 'Quantity must be number.',
-                    'items.*.quantity.min'      => 'Quantity must be greater than 0.',
-                ]
-            );
-
-            // ✅ SAME STORE CHECK
+            // ❌ SAME STORE CHECK
             if ($request->from_store_id == $request->to_store_id) {
-
-                return $this->errorResponse(
-                    $request,
-                    'From and To store must be different.',
-                    [
-                        'to_store_id' => [
-                            'From and To store must be different.'
-                        ]
-                    ]
-                );
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'status' => false,
+                        'errors' => ['to_store_id' => ['From and To store must be different']]
+                    ], 422);
+                }
+                return back()->withErrors(['to_store_id' => 'From and To store must be different']);
             }
 
             DB::beginTransaction();
 
-            $shift_id   = $request->shift_id;
+            $shift_id = $request->shift_id;
             $shift_date = $request->date;
 
             $datePart = now()->format('ymd');
-            $prefix   = 'TF';
-
-            // =========================================================
-            // WITHOUT SHIFT ID
-            // =========================================================
+            $prefix = 'TF';
             if (empty($shift_id)) {
 
                 $running_shift = ShiftClosing::where('branch_id', $request->to_store_id)
                     ->where('status', 'pending')
-                    ->latest()
                     ->first();
 
-                if (!$running_shift) {
 
-                    return $this->errorResponse(
-                        $request,
-                        'The destination store is not open.',
-                        [
-                            'to_store_id' => [
-                                'The destination store is not open.'
-                            ]
-                        ]
-                    );
+                if (!$running_shift) {            // null  ➔ destination store not open
+                    return back()
+                        ->withErrors(['to_store_id' => 'The destination store is not open.'])
+                        ->withInput();
                 }
 
-                $running_shift_form = ShiftClosing::where('branch_id', $request->from_store_id)
+                $running_shift_form = ShiftClosing::where('branch_id', $request->to_store_id)
+                    ->where('status', 'pending')
+                    ->first();
+
+
+                if (!$running_shift_form) {            // null  ➔ destination store not open
+                    return back()
+                        ->withErrors(['from_store_id' => 'The from store is not open.'])
+                        ->withInput();
+                }
+
+
+                $datePart = now()->format('ymd'); // e.g., 250607
+
+                $currentShiftFrom = UserShift::where('branch_id', $request->from_store_id)
                     ->where('status', 'pending')
                     ->latest()
                     ->first();
 
-                if (!$running_shift_form) {
-
-                    return $this->errorResponse(
-                        $request,
-                        'The from store is not open.',
-                        [
-                            'from_store_id' => [
-                                'The from store is not open.'
-                            ]
-                        ]
-                    );
-                }
-
-                $currentShiftFrom = ShiftClosing::where('branch_id', $request->from_store_id)
-                    ->where('status', 'pending')
-                    ->latest()
-                    ->first();
-
-                $currentShiftTo = ShiftClosing::where('branch_id', $request->to_store_id)
+                $currentShiftTo = UserShift::where('branch_id', $request->to_store_id)
                     ->where('status', 'pending')
                     ->latest()
                     ->first();
 
                 if (!$currentShiftFrom || !$currentShiftTo) {
-
                     DB::rollback();
-
-                    return $this->errorResponse(
-                        $request,
-                        'Shift not found for selected date.'
-                    );
+                    return back()->with('error', 'Shift not found for selected date.');
                 }
-            }
-
-            // =========================================================
-            // WITH SHIFT ID
-            // =========================================================
-            else {
+            } else {
 
                 $shift_date = Carbon::parse($request->date)->toDateString();
-
-                $currentShiftTo = ShiftClosing::where('branch_id', $request->to_store_id)
+                $currentShiftTo = UserShift::where('branch_id', $request->to_store_id)
                     ->whereDate('start_time', $shift_date)
                     ->latest()
                     ->first();
 
-                $currentShiftFrom = ShiftClosing::where('branch_id', $request->from_store_id)
+                $currentShiftFrom = UserShift::where('branch_id', $request->from_store_id)
                     ->whereDate('start_time', $shift_date)
                     ->latest()
                     ->first();
 
                 if (!$currentShiftFrom || !$currentShiftTo) {
-
                     DB::rollback();
-
-                    return $this->errorResponse(
-                        $request,
-                        'Shift not found for selected date.'
-                    );
+                    return back()->with('error', 'Shift not found for selected date.');
                 }
-
                 $datePart = Carbon::parse($shift_date)->format('ymd');
             }
 
-            // =========================================================
-            // TRANSFER NUMBER
-            // =========================================================
-            $randomPart = str_pad(random_int(1, 99), 2, '0', STR_PAD_LEFT);
-
+            $randomPart = str_pad(random_int(1, 99), 2, '0', STR_PAD_LEFT); // e.g., 06
             $transferNumber = "{$prefix}-{$datePart}-{$randomPart}";
 
-            // =========================================================
-            // STOCK VALIDATION
-            // =========================================================
             foreach ($request->items as $item) {
 
                 $availableQty = Inventory::where('product_id', $item['product_id'])
@@ -538,21 +472,19 @@ class StockTransferController extends Controller
 
                 if ($availableQty < $item['quantity']) {
 
-                    return $this->errorResponse(
-                        $request,
-                        "Insufficient stock for product ID {$item['product_id']}",
-                        [
-                            'items' => [
-                                "Insufficient stock for product ID {$item['product_id']}"
+                    if ($request->expectsJson()) {
+                        return response()->json([
+                            'status' => false,
+                            'errors' => [
+                                'items' => ["Insufficient stock for product ID {$item['product_id']}"]
                             ]
-                        ]
-                    );
+                        ], 422);
+                    }
+
+                    return back()->withErrors(['items' => 'Insufficient stock']);
                 }
             }
 
-            // =========================================================
-            // SAVE TRANSFER
-            // =========================================================
             foreach ($request->items as $item) {
 
                 Inventory::where('product_id', $item['product_id'])
@@ -561,9 +493,9 @@ class StockTransferController extends Controller
 
                 Inventory::updateOrCreate(
                     [
-                        'store_id'    => $request->to_store_id,
+                        'store_id' => $request->to_store_id,
                         'location_id' => $request->to_store_id,
-                        'product_id'  => $item['product_id']
+                        'product_id' => $item['product_id']
                     ],
                     [
                         'quantity' => DB::raw("quantity + {$item['quantity']}")
@@ -572,85 +504,52 @@ class StockTransferController extends Controller
 
                 StockTransfer::create([
                     'transfer_number' => $transferNumber,
-                    'from_branch_id'  => $request->from_store_id,
-                    'to_branch_id'    => $request->to_store_id,
-                    'product_id'      => $item['product_id'],
-                    'quantity'        => $item['quantity'],
-                    'status'          => 'approved',
-                    'transfer_by'     => Auth::id(),
-                    'shift_id'        => $shift_id,
-                    'transferred_at'  => now()
+                    'from_branch_id' => $request->from_store_id,
+                    'to_branch_id' => $request->to_store_id,
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'status' => 'approved',
+                    'transfer_by' => Auth::id(),
+                    'shift_id' => $shift_id,
+                    'transferred_at' => now()
                 ]);
             }
 
             DB::commit();
 
-            // =========================================================
-            // SUCCESS RESPONSE
-            // =========================================================
+            // ✅ AJAX RESPONSE (MOST IMPORTANT)
             if ($request->expectsJson()) {
-
                 return response()->json([
-                    'status'   => true,
-                    'message'  => 'Transfer created successfully',
+                    'status' => true,
+                    'message' => 'Transfer created successfully',
                     'shift_id' => $shift_id
                 ]);
             }
 
-            return redirect()->back()->with('success', 'Transfer created successfully');
+            return redirect()->back()->with('success', 'Transfer created');
         } catch (\Illuminate\Validation\ValidationException $e) {
 
-            $errors = collect($e->errors())
-                ->flatten()
-                ->implode('<br>');
-
             if ($request->expectsJson()) {
-
                 return response()->json([
-                    'status'  => false,
-                    'message' => $errors,
-                    'errors'  => $e->errors()
+                    'status' => false,
+                    'errors' => $e->errors()
                 ], 422);
             }
 
-            return back()
-                ->withErrors($e->errors())
-                ->withInput();
+            return back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
 
             DB::rollback();
 
-            Log::error('TRANSFER ERROR', [
-                'message' => $e->getMessage(),
-                'line'    => $e->getLine(),
-                'file'    => $e->getFile(),
-                'trace'   => $e->getTraceAsString()
-            ]);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $e->getMessage()
+                ], 500);
+            }
 
-            return $this->errorResponse(
-                $request,
-                $e->getMessage()
-            );
+            return back()->with('error', $e->getMessage());
         }
-    }
-
-    // =========================================================
-    // COMMON ERROR RESPONSE
-    // =========================================================
-    private function errorResponse(Request $request, $message, $errors = [], $code = 422)
-    {
-        if ($request->expectsJson()) {
-
-            return response()->json([
-                'status'  => false,
-                'message' => $message,
-                'errors'  => $errors
-            ], $code);
-        }
-
-        return back()
-            ->withErrors($errors ?: ['error' => $message])
-            ->withInput();
     }
 
     public function edit($id)
@@ -931,16 +830,13 @@ class StockTransferController extends Controller
             ->where('is_deleted', 'no')
             ->firstOrFail();
 
-        $subCategories = subCategory::all();
-
         return view('stocks_transfer.partials.add-modal', compact(
             'stores',
             'products',
             'data',
             'categories',
             'shift_id',
-            'shift',
-            'subCategories'
+            'shift'
         ));
     }
 

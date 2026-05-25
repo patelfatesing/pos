@@ -1,6 +1,7 @@
 @extends('layouts.backend.datatable_layouts')
 
 @section('page-content')
+
     <style>
         /* ===== SAME STYLE AS LEDGER PAGE ===== */
         .tally-top-grid {
@@ -115,11 +116,10 @@
             background: #f5d210 !important;
             font-weight: bold;
         }
-
         #gs_period:hover {
-            text-decoration: underline;
-            color: #007bff;
-        }
+    text-decoration: underline;
+    color: #007bff;
+}
     </style>
 
     <div class="wrapper">
@@ -172,99 +172,88 @@
                     {{-- TABLE --}}
                     <table class="tally-table">
                         <tbody>
-                        <tbody>
+                            @foreach ($ledgers as $ledger)
+                                <tr class="{{ $loop->first ? 'active-row' : '' }}">
+                                    <td class="col-particulars">
+                                        <a
+                                            href="{{ route('reports.monthly', [
+                                                'ledger' => $ledger->id,
+                                                'start_date' => request('start_date'),
+                                                'end_date' => request('end_date'),
+                                            ]) }}">
 
-                            @if (count($ledgers) > 0)
-                                @foreach ($ledgers as $ledger)
-                                    <tr class="{{ $loop->first ? 'active-row' : '' }}">
-
-                                        <td class="col-particulars">
-                                            <a
-                                                href="{{ route('reports.monthly', [
-                                                    'ledger' => $ledger->id,
-                                                    'start_date' => request('start_date'),
-                                                    'end_date' => request('end_date'),
-                                                ]) }}">
-
-                                                {{ $ledger->name }}
-                                            </a>
-                                        </td>
-
-                                        <td class="col-dr text-right">
-                                            {{ number_format($ledger->dr, 2) }}
-                                        </td>
-
-                                        <td class="col-cr text-right">
-                                            {{ number_format($ledger->cr, 2) }}
-                                        </td>
-
-                                        <td class="col-closing text-right">
-
-                                            {{ number_format(abs($ledger->closing), 2) }}
-                                            {{ $ledger->closing >= 0 ? 'Dr' : 'Cr' }}
-
-                                        </td>
-
-                                    </tr>
-                                @endforeach
-                            @else
-                                <tr>
-                                    <td colspan="4"
-                                        style="text-align:center; color:red; font-weight:bold; padding:15px;">
-                                        data not available
+                                            {{ $ledger->name }}
+                                        </a>
                                     </td>
+
+                                    <td class="col-dr text-right">
+                                        {{ number_format($ledger->dr, 2) }}
+                                    </td>
+
+                                    <td class="col-cr text-right">
+                                        {{ number_format($ledger->cr, 2) }}
+                                    </td>
+
+                                    <td class="col-closing text-right">
+
+                                        {{ number_format(abs($ledger->closing), 2) }}
+                                        {{ $ledger->closing >= 0 ? 'Dr' : 'Cr' }}
+
+                                    </td>
+
                                 </tr>
-                            @endif
+                            @endforeach
 
                         </tbody>
-                        </tbody>
+
                     </table>
+
                 </div>
+
             </div>
         </div>
     </div>
 @endsection
 @section('scripts')
-    <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
-    <script>
-        $(document).ready(function() {
+<script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
-            let start = "{{ request('start_date') }}";
-            let end = "{{ request('end_date') }}";
+<script>
+$(document).ready(function () {
 
-            const groupId = "{{ $group->id }}";
+    let start = "{{ request('start_date') }}";
+    let end   = "{{ request('end_date') }}";
 
-            // ✅ init picker
-            $('#gs_daterange').daterangepicker({
-                startDate: moment(start),
-                endDate: moment(end),
-                locale: {
-                    format: 'YYYY-MM-DD'
-                }
-            });
+    const groupId = "{{ $group->id }}";
 
-            // ✅ click label → open picker
-            $('#gs_period').on('click', function() {
-                $('#gs_daterange').data('daterangepicker').show();
-            });
+    // ✅ init picker
+    $('#gs_daterange').daterangepicker({
+        startDate: moment(start),
+        endDate: moment(end),
+        locale: { format: 'YYYY-MM-DD' }
+    });
 
-            // ✅ on select → redirect (NO AJAX)
-            $('#gs_daterange').on('apply.daterangepicker', function(ev, picker) {
+    // ✅ click label → open picker
+    $('#gs_period').on('click', function () {
+        $('#gs_daterange').data('daterangepicker').show();
+    });
 
-                start = picker.startDate.format('YYYY-MM-DD');
-                end = picker.endDate.format('YYYY-MM-DD');
+    // ✅ on select → redirect (NO AJAX)
+    $('#gs_daterange').on('apply.daterangepicker', function(ev, picker) {
 
-                // update label instantly
-                $('#gs_period').text(start + ' to ' + end);
+        start = picker.startDate.format('YYYY-MM-DD');
+        end   = picker.endDate.format('YYYY-MM-DD');
 
-                // ✅ redirect with params
-                const url = `/reports/group-summary/${groupId}?start_date=${start}&end_date=${end}`;
+        // update label instantly
+        $('#gs_period').text(start + ' to ' + end);
 
-                window.location.href = url;
-            });
+        // ✅ redirect with params
+        const url = `/reports/group-summary/${groupId}?start_date=${start}&end_date=${end}`;
 
-        });
-    </script>
+        window.location.href = url;
+    });
+
+});
+</script>
 @endsection

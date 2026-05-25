@@ -4,49 +4,49 @@
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <div class="content-page">
-        <div class="container-fluid">
-            <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
-                <div>
-                    <h4 class="mb-0">Account Groups</h4>
-                </div>
-                @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'accounting-groups-create'))
-                    <a href="{{ route('accounting.groups.create') }}" class="btn btn-success">
-                        <i class="las la-plus me-1"></i> Add Group
-                    </a>
-                @endif
-            </div>
-            <div class="row mt-1">
-
-                <div class="col-lg-12">
-                    @if (session('success'))
-                        <div class="alert alert-success">{{ session('success') }}</div>
-                    @endif
-                    @if ($errors->any())
-                        <div class="alert alert-danger">{{ $errors->first() }}</div>
-                    @endif
-
-                    <div class="table-responsive rounded mb-3">
-                        <table class="table table-striped table-bordered nowrap" id="groups_table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Nature</th>
-                                    <th>Affects Gross</th>
-                                    <th>Parent</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+        <div class="content-page">
+            <div class="container-fluid">
+                <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-0">Account Groups</h4>
                     </div>
-
+                    @if (auth()->user()->role_id == 1 || canCreate(auth()->user()->role_id, 'accounting-groups-create'))
+                        <a href="{{ route('accounting.groups.create') }}" class="btn btn-success">
+                            <i class="las la-plus me-1"></i> Add Group
+                        </a>
+                    @endif
                 </div>
+                <div class="row mt-1">
+
+                    <div class="col-lg-12">
+                        @if (session('success'))
+                            <div class="alert alert-success">{{ session('success') }}</div>
+                        @endif
+                        @if ($errors->any())
+                            <div class="alert alert-danger">{{ $errors->first() }}</div>
+                        @endif
+
+                        <div class="table-responsive rounded mb-3">
+                            <table class="table table-striped table-bordered nowrap" id="groups_table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Nature</th>
+                                        <th>Affects Gross</th>
+                                        <th>Parent</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
-
         </div>
-    </div>
-
+   
 
     <script>
         var pdfLogo = "";
@@ -101,11 +101,7 @@
                 order: [
                     [0, 'asc']
                 ],
-                lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    ['10 rows', '25 rows', '50 rows', '100 rows', 'All']
-                ],
-                buttons: [{
+                 buttons: [{
                     extend: 'collection',
                     text: '<i class="fa fa-download"></i>',
                     className: 'btn btn-info btn-sm',
@@ -139,7 +135,8 @@
                                 doc.content[0].alignment = 'center';
 
                                 // MAKE TABLE WIDTH FULL PAGE
-                                doc.content[0].table.widths = ['auto', '*', '*', '*'];
+                                doc.content[0].table.widths = ['auto', '*', '*', '*'
+                                ];
 
                                 doc.styles.tableHeader.alignment = 'center';
 
@@ -231,7 +228,7 @@
 
         });
 
-        function getBase64Image(url, callback) {
+         function getBase64Image(url, callback) {
             var img = new Image();
             img.crossOrigin = "Anonymous";
 

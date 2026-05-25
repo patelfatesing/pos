@@ -298,7 +298,8 @@
                                     <div class="position-relative" wire:ignore>
 
                                         @if (auth()->user()->hasRole('cashier'))
-                                            <select id="commissionUser" class="form-control custom-border w-100"
+                                            <select id="commissionUser"
+                                                class="form-control custom-border w-100"
                                                 @if ($removeCrossHold || $this->selectedSalesReturn == true) disabled @endif>
                                                 <option value="">Select Commission Customer</option>
                                                 @foreach ($commissionUsers as $user)
@@ -311,10 +312,10 @@
                                         @endif
 
                                         @if (auth()->user()->hasRole('warehouse'))
-                                            <select id="partyUser" class="form-control custom-border w-100"
+                                            <select id="partyUser"
+                                                class="form-control custom-border w-100"
                                                 @if ($removeCrossHold || $this->selectedSalesReturn == true) disabled @endif>
-                                                <option value="">{{ __('messages.select_party_customer') }}
-                                                </option>
+                                                <option value="">{{ __('messages.select_party_customer') }}</option>
                                                 @foreach ($partyUsers as $user)
                                                     <option value="{{ $user->id }}"
                                                         {{ $selectedPartyUser == $user->id ? 'selected' : '' }}>
@@ -694,18 +695,23 @@
                         <div class="row text-center align-items-center">
                             <div class="col-4 border-end fs-4 fw-bold tbody-txt text-custom-blue">
                                 {{ $this->cartCount }}</div>
-
+                              
                             <div class="col-4 border-end fs-4 fw-bold tbody-txt text-custom-blue">
-                                @php
-                                    if ($this->paymentType == 'credit') {
-                                        $this->roundedTotal = (float) $this->creditPay - round($this->cartItemTotalSum);
-                                    } else {
-                                        $this->roundedTotal =
-                                            (float) $this->cashAmount +
-                                            (float) $this->creditPay -
-                                            round($this->cartItemTotalSum);
-                                    }
-                                @endphp
+                            @php
+                                if($this->paymentType == 'credit'){
+                                   
+                                $this->roundedTotal =
+                                    (float) $this->creditPay -
+                                    round($this->cartItemTotalSum); 
+                                }else{
+
+                                $this->roundedTotal =
+                                    (float) $this->cashAmount +
+                                    (float) $this->creditPay -
+                                    round($this->cartItemTotalSum);
+                                }
+
+                            @endphp
                                 {{ $this->roundedTotal }}
                                 <input type="hidden" id="roundedTotal" value="{{ $this->roundedTotal }}"
                                     wire:model="roundedTotal">
@@ -1948,7 +1954,7 @@
                                         value="{{ $this->cashAmount }}" readonly>
                                     @php
                                         $this->cash = $totalAmount ?: '';
-                                        $this->upi = $this->cashAmount - $totalAmount ?: '';
+                                        $this->upi = ($this->cashAmount - $totalAmount) ?: '';
 
                                     @endphp
                                     <label for="cash" class="form-label">Cash Amount</label>
@@ -1984,7 +1990,7 @@
                                             <span wire:loading wire:target="onlinePaymentCheckout">Loading...</span>
                                         </button>
                                     @else
-                                        @if ($inOutStatus && (float) $this->cashAmount == (float) $this->cash + (float) $this->upi && (float) $this->upi >= 0)
+                                        @if ($inOutStatus && $this->cashAmount == $this->cash + $this->upi && $this->upi >= 0)
                                             <button id="paymentSubmit"
                                                 class="btn btn-default submit-btn btn-lg rounded-pill fw-bold w-100"
                                                 wire:click="checkout" wire:loading.attr="disabled"
@@ -2055,7 +2061,7 @@
                                         Credit limit exceeded. Please use another payment method.
                                     </p>
                                 @endif
-
+                               
                                 <div class="d-flex justify-content-between align-items-center credit-note">
                                     <label class="mb-0">
                                         {{ __('messages.credit') }}
@@ -2089,7 +2095,7 @@
                                         value="{{ $this->cashAmount }}" readonly>
                                     @php
                                         $this->cash = $totalAmount ?: '';
-                                        $this->upi = $this->cashAmount - $totalAmount ?: '';
+                                        $this->upi = ($this->cashAmount - $totalAmount) ?: '';
 
                                     @endphp
                                 </div>
@@ -2345,8 +2351,8 @@
             // OR if we are forcing it (like after a transaction)
             const activeEl = document.activeElement;
             const isInputActive = activeEl && (
-                activeEl.tagName === 'INPUT' ||
-                activeEl.tagName === 'TEXTAREA' ||
+                activeEl.tagName === 'INPUT' || 
+                activeEl.tagName === 'TEXTAREA' || 
                 activeEl.tagName === 'SELECT' ||
                 activeEl.isContentEditable
             );
@@ -2394,7 +2400,7 @@
             // Auto-focus after each Livewire update, unless user is typing elsewhere
             focusBarcode();
         });
-
+        
         // Handle wire:navigate (SPA)
         document.addEventListener('livewire:navigated', () => {
             setTimeout(focusBarcode, 300);
@@ -2446,7 +2452,7 @@
     });
 
     // ✅ Focus when modals are closed
-    $(document).on('hidden.bs.modal', function() {
+    $(document).on('hidden.bs.modal', function () {
         setTimeout(forceFocusBarcode, 300);
     });
 
@@ -2489,7 +2495,7 @@
         // Remove 'modal-open' class from body to restore scroll
         document.body.classList.remove('modal-open');
         document.body.style.paddingRight = '';
-
+        
         forceFocusBarcode();
     });
 
@@ -3096,9 +3102,9 @@
 
     window.addEventListener('order-saved', event => {
 
-        $('#commissionUser').val(null).trigger('change');
-        $('#partyUser').val(null).trigger('change');
-
+    $('#commissionUser').val(null).trigger('change');
+    $('#partyUser').val(null).trigger('change');
+    
         const {
             type,
             title,
@@ -4014,7 +4020,7 @@
         });
     });
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
 
         // Commission Customer (Cashier role)
         if ($('#commissionUser').length) {
@@ -4025,11 +4031,11 @@
             });
 
             // Restore selected value on load
-            const commVal = '{{ $selectedCommissionUser ?? '' }}';
+            const commVal = '{{ $selectedCommissionUser ?? "" }}';
             if (commVal) $('#commissionUser').val(commVal).trigger('change.select2');
 
             // Sync to Livewire on change
-            $('#commissionUser').on('change', function() {
+            $('#commissionUser').on('change', function () {
                 const value = $(this).val() || '';
                 @this.set('selectedCommissionUser', value);
                 @this.call('calculateCommission');
@@ -4039,17 +4045,17 @@
         // Party Customer (Warehouse role)
         if ($('#partyUser').length) {
             $('#partyUser').select2({
-                placeholder: '{{ __('messages.select_party_customer') }}',
+                placeholder: '{{ __("messages.select_party_customer") }}',
                 allowClear: true,
                 width: '100%',
             });
 
             // Restore selected value on load
-            const partyVal = '{{ $selectedPartyUser ?? '' }}';
+            const partyVal = '{{ $selectedPartyUser ?? "" }}';
             if (partyVal) $('#partyUser').val(partyVal).trigger('change.select2');
 
             // Sync to Livewire on change
-            $('#partyUser').on('change', function() {
+            $('#partyUser').on('change', function () {
                 const value = $(this).val() || '';
                 @this.set('selectedPartyUser', value);
                 @this.call('calculateParty');
@@ -4100,11 +4106,11 @@
     });
 
     window.addEventListener('reset-customer-selects', () => {
-        if ($('#commissionUser').length) {
-            $('#commissionUser').val(null).trigger('change');
-        }
-        if ($('#partyUser').length) {
-            $('#partyUser').val(null).trigger('change');
-        }
-    });
+    if ($('#commissionUser').length) {
+        $('#commissionUser').val(null).trigger('change');
+    }
+    if ($('#partyUser').length) {
+        $('#partyUser').val(null).trigger('change');
+    }
+});
 </script>

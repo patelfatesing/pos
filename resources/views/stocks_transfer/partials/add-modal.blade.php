@@ -4,6 +4,7 @@
         <div>
             <h4 class="mb-0">Stock Transfer Store to Store</h4>
         </div>
+
     </div>
 
     <div class="row">
@@ -36,7 +37,7 @@
                         </div>
                     @endif
 
-                    <form id="transferFormModel" action="{{ route('stock-transfer.store') }}" method="POST">
+                    <form id="transferForm" action="{{ route('stock-transfer.store') }}" method="POST">
                         @csrf
                         <div class="row">
                             @if ($shift_id != '')
@@ -49,10 +50,8 @@
                                         @error('name')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror
-                                        <input type="hidden" value="{{ $shift_id }}" name="shift_id"
-                                            id="shift_id_1">
-                                        <input type="hidden" value="{{ $shift->start_time }}" id="shift_date_1"
-                                            name="date">
+                                        <input type="hidden" value="{{ $shift_id }}" name="shift_id" id="shift_id_1">
+                                        <input type="hidden" value="{{ $shift->start_time }}" id="shift_date_1" name="date">
                                     </div>
                                 </div>
                                 <div class="col-md-6"></div>
@@ -94,7 +93,7 @@
                                     @enderror
                                 </div>
                             </div>
-                            {{-- <div class="col-md-6">
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Category</label>
                                     <select name="category_id" id="category_id"
@@ -111,19 +110,13 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
-                            </div> --}}
+                            </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label>Category *</label>
+                                    <label>Sub Category *</label>
                                     <select id="sub_category_ids" name="subcategory_id" class="form-control"
                                         data-style="py-0">
-                                        <option value="" selected>Select Category</option>
-                                        @foreach ($subCategories as $cate)
-                                            <option value="{{ $cate->id }}"
-                                                {{ old('subcategory_id') == $cate->id ? 'selected' : '' }}>
-                                                {{ $cate->name }}
-                                            </option>
-                                        @endforeach
+                                        <option value="" selected>Select Sub Category</option>
                                         @if (old('subcategory_id'))
                                             @php
                                                 $oldSub = \App\Models\SubCategory::find(old('subcategory_id'));
@@ -196,8 +189,7 @@
                                         <tr class="item-row product_items">
                                             <td class="sr-no">1</td>
                                             <td>
-                                                <select name="items[0][product_id]"
-                                                    class="form-control product-select">
+                                                <select name="items[0][product_id]" class="form-control product-select">
                                                     <option value="">Select Product</option>
                                                 </select>
                                             </td>
@@ -243,6 +235,7 @@
             </div>
         </div>
     </div>
+
 </div>
 
 
@@ -308,73 +301,41 @@
     // ✅ ADD PRODUCT
     $(document).on('click', '#add-item', function() {
 
-        let subCategoryId = $('#sub_category_ids').val();
+        let html = `
+        <tr class="item-row">
+            <td class="sr-no"></td>
 
-        const template = `
-            <tr class="item-row product_items">
-                <td class="sr-no"></td>
+            <td>
+                <select name="items[${window.itemIndex}][product_id]"
+                    class="form-control product-select">
+                    <option value="">Select Product</option>
+                    @foreach ($products as $product)
+                        <option value="{{ $product->id }}">{{ $product->name }}</option>
+                    @endforeach
+                </select>
+            </td>
 
-                <td>
-                    <select name="items[${itemIndex}][product_id]"
-                        class="form-control product-select">
-                        <option value="">Select Product</option>
-                    </select>
-                </td>
+            <td><div class="availability-container small text-muted"></div></td>
 
-                <td>
-                    <div class="availability-container small text-muted"></div>
-                </td>
+            <td>
+                <input type="number"
+                    name="items[${window.itemIndex}][quantity]"
+                    class="form-control"
+                    min="1">
+            </td>
 
-                <td>
-                    <input type="number"
-                        name="items[${itemIndex}][quantity]"
-                        class="form-control"
-                        min="1">
-                </td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm remove-item">Remove</button>
+            </td>
+        </tr>`;
 
-                <td>
-                    <button type="button"
-                        class="btn btn-sm btn-danger remove-item">
-                        Remove
-                    </button>
-                </td>
-            </tr>`;
+        $('#productBody').append(html);
 
-        $('#productBody').append(template);
-
-        let currentRow = $('#productBody tr:last');
-        let selectBox = currentRow.find('.product-select');
-
-        // load selected sub category products
-        if (subCategoryId) {
-
-            $.ajax({
-                url: "{{ url('/products/get-products') }}/" + subCategoryId,
-                type: "GET",
-                dataType: "json",
-                success: function(data) {
-
-                    $.each(data, function(key, product) {
-
-                        selectBox.append(
-                            '<option value="' + product.id + '">' +
-                            product.name +
-                            '</option>'
-                        );
-
-                    });
-
-                }
-            });
-
-        }
-
-        itemIndex++;
+        window.itemIndex++;
 
         updateSrNo();
         updateAddButton();
         updateTotalQuantity();
-
     });
 
 
@@ -472,4 +433,7 @@
             }
         }
     });
+
+
+          
 </script>

@@ -446,7 +446,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/edit/{id}', [DemandOrderController::class, 'edit'])->name('edit');   // note: you used 'demand-orders.edit' earlier; keep consistent
         Route::get('/create-pre', [DemandOrderController::class, 'createPrediction'])->name('create.pre');
         Route::get('/view/{id}', [DemandOrderController::class, 'view'])->name('view');
-        Route::post('/delete', [DemandOrderController::class, 'delete'])->name('delete');
     });
 
     // Product Import Routes

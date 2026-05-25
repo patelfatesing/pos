@@ -56,27 +56,6 @@
             text-decoration: underline;
             color: #007bff;
         }
-
-        /* hidden input fully remove from layout */
-        #pnl_daterange {
-            position: absolute !important;
-            left: -99999px !important;
-            width: 1px;
-            height: 1px;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        /* daterangepicker popup above buttons/cards */
-        .daterangepicker {
-            z-index: 99999 !important;
-        }
-
-        /* optional spacing */
-        #pnl_pdf_link {
-            position: relative;
-            z-index: 1;
-        }
     </style>
 @endsection
 
@@ -97,7 +76,7 @@
                 </div>
 
                 <!-- hidden daterange -->
-                <input type="text" id="pnl_daterange" hidden>
+                <input type="text" id="pnl_daterange" style="position:absolute; opacity:0;">
 
                 <a id="pnl_pdf_link" class="btn btn-sm btn-outline-primary mb-2" target="_blank">
                     Download PDF
@@ -273,7 +252,6 @@
             function render(selector, rows) {
 
                 const tbody = document.querySelector(selector);
-
                 tbody.innerHTML = '';
 
                 const startParam = encodeURIComponent(start);
@@ -285,193 +263,69 @@
 
                         let url = null;
 
-                        /*
-                        |--------------------------------------------------------------------------
-                        | GROUP LINK
-                        |--------------------------------------------------------------------------
-                        */
-
+                        // ✅ GROUP LINK
                         if (r.group_id || r.section_group_id) {
-
                             let gid = r.group_id ?? r.section_group_id;
-
-                            url =
-                                `/reports/group-summary/${gid}?start_date=${startParam}&end_date=${endParam}`;
+                            url = `/reports/group-summary/${gid}?start_date=${startParam}&end_date=${endParam}`;
                         }
 
-                        /*
-                        |--------------------------------------------------------------------------
-                        | LEDGER LINK
-                        |--------------------------------------------------------------------------
-                        */
-
+                        // ✅ LEDGER LINK
                         if (r.ledger_id) {
-
                             url =
                                 `/accounting/ledger/view/${r.ledger_id}?start_date=${startParam}&end_date=${endParam}`;
                         }
 
-                        /*
-                        |--------------------------------------------------------------------------
-                        | CATEGORY SALES LINK
-                        |--------------------------------------------------------------------------
-                        */
-
                         if (r.report === 'category_sales') {
-
                             const params = new URLSearchParams({
-
                                 start_date: start,
-
                                 end_date: end,
-
                                 admin_status: 'verify',
-
                                 date_source: 'voucher',
-
                                 group_by: r.group_by || 'category'
                             });
 
                             if (r.category_id) {
-
-                                params.set(
-                                    'category_id',
-                                    r.category_id
-                                );
+                                params.set('category_id', r.category_id);
                             }
 
                             if (r.category_name) {
-
-                                params.set(
-                                    'category_name',
-                                    r.category_name
-                                );
+                                params.set('category_name', r.category_name);
                             }
 
                             if (r.sub_category_id) {
-
-                                params.set(
-                                    'sub_category_id',
-                                    r.sub_category_id
-                                );
-
-                                params.set(
-                                    'group_by',
-                                    'subcategory'
-                                );
+                                params.set('sub_category_id', r.sub_category_id);
+                                params.set('group_by', 'subcategory');
                             }
 
                             if (r.sub_category_name) {
-
-                                params.set(
-                                    'sub_category_name',
-                                    r.sub_category_name
-                                );
-
-                                params.set(
-                                    'group_by',
-                                    'subcategory'
-                                );
+                                params.set('sub_category_name', r.sub_category_name);
+                                params.set('group_by', 'subcategory');
                             }
 
-                            url =
-                                `${CATEGORY_SALES_URL}?${params.toString()}`;
+                            url = `${CATEGORY_SALES_URL}?${params.toString()}`;
                         }
 
-                        /*
-                        |--------------------------------------------------------------------------
-                        | STOCK SUMMARY LINK
-                        |--------------------------------------------------------------------------
-                        */
-
-                        if (r.report === 'stock_summary') {
-
-                            const params = new URLSearchParams({
-
-                                start_date: start,
-
-                                end_date: end,
-
-                                category: r.sub_category_id || ''
-                            });
-
-                            url =
-                                `/accounting/stock-summary?${params.toString()}`;
-                        }
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | SAFE LABEL
-                        |--------------------------------------------------------------------------
-                        */
-
-                        const safeLabel = escapeHtml(
-                            r.label || ''
-                        );
-
+                        const safeLabel = escapeHtml(r.label || '');
                         let labelHtml = url ?
-
-                            `<a href="${url}" 
-                            style="
-                                color:#2563eb;
-                                text-decoration:none;
-                            ">
-                            ${safeLabel}
-                        </a>`
-
-                            :
-
+                            `<a href="${url}" style="color:#2563eb;text-decoration:none;">${safeLabel}</a>` :
                             safeLabel;
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | ROW
-                        |--------------------------------------------------------------------------
-                        */
 
                         const tr = document.createElement('tr');
 
                         tr.innerHTML = `
-                        <td style="padding-left:${level * 20}px;">
-
-                            ${level === 0
-
-                                ? '<strong>' + labelHtml + '</strong>'
-
-                                : '↳ ' + labelHtml
-                            }
-
-                        </td>
-
-                        <td class="amount">
-
-                            ${level === 0
-
-                                ? '<strong>' + r.amount + '</strong>'
-
-                                : r.amount
-                            }
-
-                        </td>
-                    `;
+                <td style="padding-left:${level * 20}px;">
+                    ${level === 0 ? '<strong>' + labelHtml + '</strong>' : '↳ ' + labelHtml}
+                </td>
+                <td class="amount">
+                    ${level === 0 ? '<strong>' + r.amount + '</strong>' : r.amount}
+                </td>
+            `;
 
                         tbody.appendChild(tr);
 
-                        /*
-                        |--------------------------------------------------------------------------
-                        | CHILD LOOP
-                        |--------------------------------------------------------------------------
-                        */
-
-                        if (
-                            r.children &&
-                            r.children.length
-                        ) {
-
-                            loop(
-                                r.children,
-                                level + 1
-                            );
+                        // ✅ recursion only (NO duplicate loop)
+                        if (r.children && r.children.length) {
+                            loop(r.children, level + 1);
                         }
                     });
                 }

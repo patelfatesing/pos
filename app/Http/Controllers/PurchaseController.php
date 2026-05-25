@@ -18,7 +18,7 @@ use App\Models\ExpenseCategory;
 use App\Models\Expense;
 use App\Models\PurchaseLedger;
 use App\Models\SubCategory;
-use App\Models\Accounting\{Voucher, VoucherLine, AccountLedger, AccountGroup};
+use App\Models\Accounting\{Voucher, VoucherLine, AccountLedger};
 use Illuminate\Validation\Rule;
 
 class PurchaseController extends Controller
@@ -28,7 +28,7 @@ class PurchaseController extends Controller
      */
     public function index()
     {
-
+        
         if (auth()->user()->role_id == 1 || canAccess(auth()->user()->role_id, 'purchase-invoice')) {
             return view('purchase.index');
         } else {
@@ -91,82 +91,9 @@ class PurchaseController extends Controller
         return view('purchase.create', compact('subcategories', 'vendors', 'products', 'expMainCategory', 'purchaseLedger', 'ledgers', 'ledgersAll'));
     }
 
-
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | AUTO CREATE GROUP
-    |--------------------------------------------------------------------------
-    */
-
-    private function getOrCreateGroup($groupName, $parentGroupName = null)
-    {
-        $parentId = null;
-
-        if ($parentGroupName) {
-
-            $parentGroup = AccountGroup::firstOrCreate(
-                [
-                    'name' => $parentGroupName
-                ],
-                [
-                    'parent_id' => null,
-                    'is_active' => 1
-                ]
-            );
-
-            $parentId = $parentGroup->id;
-        }
-
-        return AccountGroup::firstOrCreate(
-            [
-                'name'      => $groupName,
-                'parent_id' => $parentId
-            ],
-            [
-                'is_active' => 1
-            ]
-        );
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | AUTO CREATE LEDGER
-    |--------------------------------------------------------------------------
-    */
-
-    private function getOrCreateLedger(
-        $ledgerName,
-        $groupName,
-        $parentGroupName = 'Direct Expenses'
-    ) {
-
-        $group = $this->getOrCreateGroup(
-            $groupName,
-            $parentGroupName
-        );
-
-        return AccountLedger::firstOrCreate(
-            [
-                'name'     => $ledgerName,
-                'group_id' => $group->id
-            ],
-            [
-                'opening_balance' => 0,
-                'opening_type'    => 'Dr',
-                'is_active'       => 1,
-                'is_deleted'      => 0
-            ]
-        );
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | STORE PURCHASE
-    |--------------------------------------------------------------------------
-    */
-
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
 
@@ -191,8 +118,13 @@ class PurchaseController extends Controller
             ->where('status', 'pending')
             ->first();
 
-        if (!$running_shift) {
+        // if (!$running_shift) {
+        //     return back()
+        //         ->withErrors(['to_store_id' => 'The Warehouse is not open.'])
+        //         ->withInput();
+        // }
 
+        if (!$running_shift) {
             return back()
                 ->with('warehouse_error', 'Warehouse shift is not open, Please check.')
                 ->withInput();
@@ -200,16 +132,21 @@ class PurchaseController extends Controller
 
         DB::beginTransaction();
 
+        $permitExcise   = (float) ($request->permit_fee_excise ?? 0);
+        $vendExcise     = (float) ($request->vend_fee_excise ?? 0);
+        $compositeExcise = (float) ($request->composite_fee_excise ?? 0);
+        $exciseTotal    = (float) ($request->excise_total_amount ?? 0);
+        $excise_fee    = (float) ($request->excise_fee ?? 0);
+        $surcharge_on_ca    = (float) ($request->surcharge_on_ca ?? 0);
+        $case_purchase_amt =        (float) ($request->case_purchase_amt ?? 0);
+        $excise_80 = (float) ($request->excise_duty_80 ?? 0);
+        $excise_20 = (float) ($request->excise_duty_20 ?? 0);
+
+        $loading = (float) ($request->loading_charges ?? 0);
+
         try {
-
-            /*
-            |--------------------------------------------------------------------------
-            | PURCHASE MASTER
-            |--------------------------------------------------------------------------
-            */
-
+            // ----------------- 1) SAVE PURCHASE MASTER -----------------
             $purchase = Purchase::create([
-
                 'bill_no' => $request->bill_no,
                 'vendor_id' => $request->vendor_id,
                 'vendor_new_id' => $request->vendor_new_id,
@@ -233,24 +170,19 @@ class PurchaseController extends Controller
                 'case_purchase_amt' => $request->case_purchase_amt,
                 'status' => $request->status ?? 'pending',
                 'created_by' => Auth::id(),
-                'permit_fee_excise' => $request->permit_fee_excise ?? 0,
-                'vend_fee_excise' => $request->vend_fee_excise ?? 0,
-                'composite_fee_excise' => $request->composite_fee_excise ?? 0,
-                'excise_total_amount' => $request->excise_total_amount ?? 0,
-                'loading_charges' => $request->loading_charges ?? 0,
+                'permit_fee_excise'     => $permitExcise,
+                'vend_fee_excise'       => $vendExcise,
+                'composite_fee_excise'  => $compositeExcise,
+                'excise_total_amount'   => $exciseTotal,
+                'loading_charges' => $loading,
                 'itp_value' => $request->itp_value
             ]);
 
-            /*
-            |--------------------------------------------------------------------------
-            | SAVE PRODUCTS
-            |--------------------------------------------------------------------------
-            */
-
+            // ----------------- 2) SAVE PRODUCTS + INVENTORY -----------------
             foreach ($request->products as $product) {
 
+                $product_id = $product['product_id'];
                 PurchaseProduct::create([
-
                     'brand_name' => $product['brand_name'],
                     'batch' => $product['batch'],
                     'mfg_date' => $product['mfg_date'],
@@ -259,183 +191,342 @@ class PurchaseController extends Controller
                     'rate' => $product['rate'],
                     'amount' => $product['amount'],
                     'purchase_id' => $purchase->id,
-                    'product_id' => $product['product_id']
+                    'product_id' => $product_id
                 ]);
+
+                $batch = $product['batch'];
+                $expiryDatePlusOneYear = Carbon::parse($product['mfg_date'])->addYear();
+
+                $store_id = 1; // Warehouse
+                $record = Product::with(['inventorieUnfiltered' => function ($query) use ($store_id) {
+                    $query->where('store_id', $store_id);
+                }])
+                    ->where('id', $product_id)
+                    ->where('is_deleted', 'no')
+                    ->firstOrFail();
+
+                $inventoryService = new \App\Services\InventoryService();
+
+                if (!empty($record->inventorieUnfiltered)) {
+
+                    $batchNumber = strtoupper($request->sku) . '-' . now()->format('Ymd') . '-' . Str::upper(Str::random(4));
+
+                    if ($record->inventorieUnfiltered->batch_no == $batch) {
+
+                        $inventory = Inventory::findOrFail($record->inventorieUnfiltered->id);
+
+                        $qnt = $product['qnt'] + $inventory->quantity;
+                        $inventory->updated_at = now();
+                        $inventory->quantity = $qnt;
+                        $inventory->save();
+
+                        stockStatusChange($product_id, 1, $product['qnt'], 'add_stock');
+                        $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $qnt, 'add_stock');
+                    } else {
+                        $inventory = Inventory::firstOrCreate([
+                            'product_id'  => $product_id,
+                            'store_id'    => 1,
+                            'location_id' => 1,
+                            'batch_no'    => $batch,
+                            'expiry_date' => $expiryDatePlusOneYear,
+                            'quantity'    => $product['qnt'],
+                            'added_by'    => Auth::id(),
+                        ]);
+
+                        stockStatusChange($product_id, 1, $product['qnt'], 'add_stock');
+                        $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $product['qnt'], 'add_stock');
+                    }
+
+                    // This second transfer looks redundant but keeping as per your original logic
+                    $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $product['qnt'], 'add_stock');
+                } else {
+
+                    $inventory = Inventory::firstOrCreate([
+                        'product_id'  => $product_id,
+                        'store_id'    => 1,
+                        'location_id' => 1,
+                        'batch_no'    => $batch,
+                        'expiry_date' => $expiryDatePlusOneYear,
+                        'added_by'    => Auth::id(),
+                        'quantity'    => $product['qnt']
+                    ]);
+
+                    stockStatusChange($product_id, 1, $product['qnt'], 'add_stock');
+                    $inventoryService->transferProduct($product_id, $inventory->id, 1, '', $product['qnt'], 'add_stock');
+                }
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | ACCOUNTING ENTRY
-            |--------------------------------------------------------------------------
-            */
+            // ----------------- 3) CREATE ACCOUNTING VOUCHER (Purchase) -----------------
 
+            // 3.1 Vendor info
             $vendor = VendorList::findOrFail($request->vendor_id);
 
-            $vendorName = $vendor->name;
+            if (!$request->parchase_ledger) {
+                throw new \Exception('Vendor/Purchase ledger is not selected.');
+            }
 
-            $baseAmount  = (float)$request->total;
-            $grandAmount = (float)$request->total_amount;
+            // In your current design, same ledger id used for Purchase & Vendor.
+            // Later you can split them if needed.
+            $purchaseLedgerId = (int) $request->parchase_ledger; // Purchase A/c (Dr)
+            $vendorLedgerId   = (int) $request->vendor_new_id; // Vendor (Cr)
 
-            /*
-            |--------------------------------------------------------------------------
-            | CREATE VOUCHER
-            |--------------------------------------------------------------------------
-            */
+            // Base & grand total
+            $baseAmount  = (float) ($request->total ?? 0);          // goods value
+            $grandAmount = (float) ($request->total_amount ?? 0);   // final bill
+
+            if ($grandAmount <= 0) {
+                throw new \Exception('Invalid purchase total amount for voucher posting.');
+            }
+
+            // Extra components (will post separate Dr lines)
+            $aed         = (float) ($request->aed_to_be_paid ?? 0);
+            $gFull       = (float) ($request->guarantee_fulfilled ?? 0);
+            $tcs         = (float) ($request->tcs ?? 0);
+            $vat         = (float) ($request->vat ?? 0);
+            $surVat      = (float) ($request->surcharge_on_vat ?? 0);
+            $blf         = (float) ($request->blf ?? 0);
+            $permit      = (float) ($request->permit_fee ?? 0);
+            $rsgsm       = (float) ($request->rsgsm_purchase ?? 0);
+
+            $loading_charges = (float) ($request->loading_charges ?? 0);
+
+            // 3.2 Voucher header (like Tally Purchase)
+            $baseAmount  = (float) $request->total;
+            $grandAmount = (float) $request->total_amount;
 
             $voucher = Voucher::create([
-
-                'gen_id' => $purchase->id,
-                'voucher_date' => $request->date,
-                'voucher_type' => 'Purchase',
-                'ref_no' => $request->bill_no,
-                'branch_id' => $running_shift->branch_id,
-                'narration' => 'Purchase bill no ' . $request->bill_no,
-                'created_by' => Auth::id(),
-                'party_ledger_id' => (int)$request->parchase_ledger,
-                'sub_total' => $baseAmount,
-                'discount' => 0,
-                'tax' => ($request->vat ?? 0)
-                    + ($request->surcharge_on_vat ?? 0),
-                'grand_total' => $grandAmount,
-                'admin_status' => 'verify',
-                'super_admin_status' => 'verify'
+                'gen_id'          => $purchase->id,
+                'voucher_date'    => $request->date,
+                'voucher_type'    => 'Purchase',
+                'ref_no'          => $request->bill_no,
+                'branch_id'       => $running_shift->branch_id,
+                'narration'       => 'Purchase bill no ' . $request->bill_no,
+                'created_by'      => Auth::id(),
+                'party_ledger_id' => (int) $request->parchase_ledger,
+                'sub_total'       => $baseAmount,
+                'discount'        => 0,
+                'tax'             => $vat + $surVat,
+                'grand_total'     => $grandAmount,
+                'admin_status'   => 'verify',
+                'super_admin_status'   => 'verify'
             ]);
 
-            /*
-            |--------------------------------------------------------------------------
-            | PURCHASE DR
-            |--------------------------------------------------------------------------
-            */
-
+            // 3.3 Dr Purchase (basic goods)
             VoucherLine::create([
-
-                'voucher_id' => $voucher->id,
-                'ledger_id' => $request->parchase_ledger,
-                'dc' => 'Dr',
-                'amount' => $baseAmount,
+                'voucher_id'     => $voucher->id,
+                'ledger_id'      => $purchaseLedgerId,
+                'dc'             => 'Dr',
+                'amount'         => $baseAmount,
                 'line_narration' => 'Purchase - ' . $request->bill_no,
             ]);
 
-            /*
-            |--------------------------------------------------------------------------
-            | AUTO TAX LEDGER ENTRY
-            |--------------------------------------------------------------------------
-            */
+            // 3.4 Dr charges/Taxes – only when amount > 0
 
-            $taxEntries = [
-
-                [
-                    'amount' => $request->aed_to_be_paid,
-                    'ledger' => $vendorName . ' - AED TO BE PAID',
-                ],
-
-                [
-                    'amount' => $request->tcs,
-                    'ledger' => $vendorName . ' - TCS',
-                ],
-
-                [
-                    'amount' => $request->vat,
-                    'ledger' => $vendorName . ' - VAT',
-                ],
-
-                [
-                    'amount' => $request->surcharge_on_vat,
-                    'ledger' => $vendorName . ' - SURCHARGE ON VAT',
-                ],
-
-                [
-                    'amount' => $request->blf,
-                    'ledger' => $vendorName . ' - BLF',
-                ],
-
-                [
-                    'amount' => $request->excise_fee,
-                    'ledger' => $vendorName . ' - EXCISE FEE',
-                ],
-
-                [
-                    'amount' => $request->loading_charges,
-                    'ledger' => $vendorName . ' - Loading Charges',
-                ],
-
-                [
-                    'amount' => $request->composition_vat,
-                    'ledger' => $vendorName . ' - COMPOSITION VAT',
-                ],
-
-                [
-                    'amount' => $request->surcharge_on_ca,
-                    'ledger' => $vendorName . ' - SURCHARGE ON CA',
-                ],
-
-                [
-                    'amount' => $request->permit_fee,
-                    'ledger' => $vendorName . ' - Permit Fee',
-                ],
-
-                [
-                    'amount' => $request->excise_duty_20,
-                    'ledger' => $vendorName . ' - EXCISE DUTY 20%',
-                ],
-
-                [
-                    'amount' => $request->excise_duty_80,
-                    'ledger' => $vendorName . ' - EXCISE DUTY 80%',
-                ],
-            ];
-
-            foreach ($taxEntries as $entry) {
-
-                $amount = (float)$entry['amount'];
-
-                if ($amount <= 0) {
-                    continue;
+            if ($aed > 0) {
+                $l = AccountLedger::where('name', 'AED TO BE PAID')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $aed,
+                        'line_narration' => 'AED TO BE PAID - ' . $request->bill_no,
+                    ]);
                 }
-
-                /*
-                |--------------------------------------------------------------------------
-                | AUTO CREATE GROUP + LEDGER
-                |--------------------------------------------------------------------------
-                */
-
-                $ledger = $this->getOrCreateLedger(
-
-                    $entry['ledger'],
-
-                    $vendorName . ' Duties & Taxes'
-
-                );
-
-                /*
-                |--------------------------------------------------------------------------
-                | CREATE VOUCHER LINE
-                |--------------------------------------------------------------------------
-                */
-
-                VoucherLine::create([
-
-                    'voucher_id' => $voucher->id,
-                    'ledger_id' => $ledger->id,
-                    'dc' => 'Dr',
-                    'amount' => $amount,
-                    'line_narration' =>
-                    $entry['ledger'] . ' - ' . $request->bill_no,
-                ]);
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | CR VENDOR
-            |--------------------------------------------------------------------------
-            */
+            if ($tcs > 0) {
+                $l = AccountLedger::where('name', 'TCS')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $tcs,
+                        'line_narration' => 'TCS - ' . $request->bill_no,
+                    ]);
+                }
+            }
 
+            if ($vat > 0) {
+                $l = AccountLedger::where('name', 'VAT')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $vat,
+                        'line_narration' => 'VAT - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            if ($surVat > 0) {
+                $l = AccountLedger::where('name', 'SURCHARGE ON VAT')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $surVat,
+                        'line_narration' => 'SURCHARGE ON VAT - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            if ($blf > 0) {
+                $l = AccountLedger::where('name', 'BLF')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Cr',
+                        'amount'         => $blf,
+                        'line_narration' => 'BLF - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            if ($excise_fee > 0) {
+                $l = AccountLedger::where('name', 'EXCISE FEE')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $excise_fee,
+                        'line_narration' => 'EXCISE FEE - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            if ($loading_charges > 0) {
+                $l = AccountLedger::where('name', 'Loading Charges')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $loading_charges,
+                        'line_narration' => 'Loading Charges - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            if ($compositeExcise > 0) {
+                $l = AccountLedger::where('name', 'COMPOSITION VAT')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $compositeExcise,
+                        'line_narration' => 'COMPOSITION VAT - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            if ($surcharge_on_ca > 0) {
+                $l = AccountLedger::where('name', 'SURCHARGE ON CA')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $surcharge_on_ca,
+                        'line_narration' => 'SURCHARGE ON CA - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            // Excise Duty 80%
+            if ($excise_80 > 0) {
+                $l = AccountLedger::where('name', 'EXCISE DUTY 80%')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Cr',
+                        'amount'         => $excise_80,
+                        'line_narration' => 'Excise Duty 80% - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            // Excise Duty 20%
+            if ($excise_20 > 0) {
+                $l = AccountLedger::where('name', 'EXCISE DUTY 20%')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Dr',
+                        'amount'         => $excise_20,
+                        'line_narration' => 'Excise Duty 20% - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            if ($case_purchase_amt > 0) {
+
+                $ledger = AccountLedger::where('name', 'CASH PURCHASE')->first();
+
+                if ($ledger) {
+
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $ledger->id,
+                        'dc'             => 'Cr',
+                        'amount'         => $case_purchase_amt,
+                        'line_narration' => 'Cash Purchase Adjustment - ' . $request->bill_no,
+                    ]);
+                }
+            }
+            // if ($rsgsm > 0) {
+            //     $l = AccountLedger::where('name', 'RSGSM Purchase')->first();
+            //     if ($l) {
+            //         VoucherLine::create([
+            //             'voucher_id'     => $voucher->id,
+            //             'ledger_id'      => $l->id,
+            //             'dc'             => 'Dr',
+            //             'amount'         => $rsgsm,
+            //             'line_narration' => 'RSGSM Purchase - ' . $request->bill_no,
+            //         ]);
+            //     }
+            // }
+
+            if ($permit > 0) {
+                $l = AccountLedger::where('name', 'Permit Fee')->first();
+                if ($l) {
+                    VoucherLine::create([
+                        'voucher_id'     => $voucher->id,
+                        'ledger_id'      => $l->id,
+                        'dc'             => 'Cr',
+                        'amount'         => $permit,
+                        'line_narration' => 'Permit Fee - ' . $request->bill_no,
+                    ]);
+                }
+            }
+
+            // if ($gFull > 0) {
+            //     $l = AccountLedger::where('name', 'Guarantee Fulfilled')->first();
+            //     if ($l) {
+            //         VoucherLine::create([
+            //             'voucher_id'     => $voucher->id,
+            //             'ledger_id'      => $l->id,
+            //             'dc'             => 'Dr',
+            //             'amount'         => $gFull,
+            //             'line_narration' => 'Guarantee Fulfilled - ' . $request->bill_no,
+            //         ]);
+            //     }
+            // }
+
+            // 3.5 Cr Vendor (full bill amount)
             VoucherLine::create([
-
-                'voucher_id' => $voucher->id,
-                'ledger_id' => $request->vendor_new_id,
-                'dc' => 'Cr',
-                'amount' => $grandAmount,
+                'voucher_id'     => $voucher->id,
+                'ledger_id'      => $vendorLedgerId,
+                'dc'             => 'Cr',
+                'amount'         => $grandAmount,
                 'line_narration' => 'Vendor: ' . $vendor->name,
             ]);
 
@@ -445,18 +536,14 @@ class PurchaseController extends Controller
                 ->route('purchase.list')
                 ->with('success', 'Delivery has been successfully added.');
         } catch (\Exception $e) {
-
             DB::rollBack();
 
             return response()->json([
-
                 'error' => 'Failed to create purchase order.',
                 'message' => $e->getMessage()
-
             ], 500);
         }
     }
-
 
     public function edit($id)
     {
@@ -1088,61 +1175,4 @@ class PurchaseController extends Controller
 
         return response()->json($products);
     }
-
-    // private function getOrCreateGroup($groupName, $parentGroupName = null)
-    // {
-    //     $parentId = null;
-
-    //     // Find/Create Parent Group
-    //     if ($parentGroupName) {
-
-    //         $parentGroup = AccountGroup::firstOrCreate(
-    //             ['name' => $parentGroupName],
-    //             [
-    //                 'parent_id' => null,
-    //                 'is_active' => 1
-    //             ]
-    //         );
-
-    //         $parentId = $parentGroup->id;
-    //     }
-
-    //     // Find/Create Child Group
-    //     return AccountGroup::firstOrCreate(
-    //         [
-    //             'name'      => $groupName,
-    //             'parent_id' => $parentId
-    //         ],
-    //         [
-    //             'is_active' => 1
-    //         ]
-    //     );
-    // }
-
-    // private function getOrCreateLedger(
-    //     $ledgerName,
-    //     $groupName,
-    //     $parentGroupName = 'Direct Expenses'
-    // ) {
-
-    //     // Create Group Automatically
-    //     $group = $this->getOrCreateGroup(
-    //         $groupName,
-    //         $parentGroupName
-    //     );
-
-    //     // Create Ledger Automatically
-    //     return AccountLedger::firstOrCreate(
-    //         [
-    //             'name' => $ledgerName
-    //         ],
-    //         [
-    //             'group_id'        => $group->id,
-    //             'opening_balance' => 0,
-    //             'opening_type'    => 'Dr',
-    //             'is_active'       => 1,
-    //             'is_deleted'      => 0
-    //         ]
-    //     );
-    // }
 }

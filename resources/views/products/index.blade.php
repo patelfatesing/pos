@@ -339,7 +339,7 @@ $minDate = \Carbon\Carbon::today()->addDay()->format('Y-m-d');
                 ],
 
                 order: [
-                    [7, 'asc']
+                    [7, 'desc']
                 ], // Order by updated_at
                 lengthMenu: [
                     [10, 25, 50, 100, -1],

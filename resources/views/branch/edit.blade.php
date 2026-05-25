@@ -66,10 +66,6 @@
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
-                                             <a href="{{ route('accounting.ledgers.create', 'purchase') }}"
-                                                    class="btn btn-outline-secondary btn-sm">
-                                                    Create Ledger
-                                                </a>
                                         </div>
                                     <div class="col-md-6">
                                         <div class="form-group">

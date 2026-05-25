@@ -559,7 +559,7 @@
                                                     <td colspan="2">
                                                         Narration :
                                                         <input type="text" name="narration"
-                                                            value="{{ $voucher->narration }}" class="inline-input" style="width: 500px;">
+                                                            value="{{ $voucher->narration }}">
                                                     </td>
 
                                                     <td class="text-end min-w-100"
