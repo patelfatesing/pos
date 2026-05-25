@@ -2,14 +2,29 @@
 <style>
     .report-box {
         background: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        border: 1px solid #e5e7eb;
+        transition: 0.3s;
         font-size: 15px;
-        font-weight: 500;
-        transition: 0.2s;
+        font-weight: 600;
+        color: #333;
     }
 
     .report-box:hover {
-        background: #f5f5f5;
-        border-color: #000;
+        background: #f8fafc;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border-color: #0d6efd;
+        color: #0d6efd;
+    }
+
+    .report-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: #111827;
     }
 </style>
 @section('page-content')
@@ -20,7 +35,7 @@
             <div class="container-fluid">
                 <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
                     <div>
-                        <h4 class="mb-0">Reports List</h4>
+                        <h4 class="report-title">Reports Dashboard</h4>
                     </div>
 
 
@@ -169,7 +184,8 @@
                                 <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
                                     <a href="{{ $report['route'] }}" class="text-decoration-none">
                                         <div class="border rounded p-3 text-center report-box">
-                                            <text class="dark">{{ $report['name'] }}</text>
+                                                <text class="dark">{{ $report['name'] }}</text>
+                                            
                                         </div>
                                     </a>
                                 </div>
