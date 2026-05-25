@@ -200,7 +200,7 @@
                 <!-- ================= HEADER ================= -->
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <div class="ledger-title">
-                        <h4 class="mb-0">Ledger Vouchers — {{ $voucher->name }}</h4>
+                        <h4 class="mb-0">Voucher View</h4>
                         {{-- <p><small id="dateRangeLabel">{{ $start }} to {{ $end }}</small></p> --}}
                     </div>
                     <h5 class="title-table">LIQUOR HUB</h5>

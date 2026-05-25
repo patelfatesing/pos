@@ -109,7 +109,7 @@
                                                 <div class="col-md-4">
                                                     <label for="purchase_date" class="form-label">Date</label>
                                                     <input type="date" class="form-control" id="purchase_date"
-                                                        name="purchase_date" required>
+                                                        name="purchase_date" required value="{{ old('purchase_date') }}">
                                                     @error('purchase_date')
                                                         <span class="text-danger">{{ $message }}</span>
                                                     @enderror
@@ -124,7 +124,7 @@
                                                         <label for="shipping_date" class="form-label">Shipping Date</label>
                                                         <input type="date" id="shipping_date" name="shipping_date"
                                                             class="form-control" min="{{ $today }}"
-                                                            max="{{ $maxDate }}">
+                                                            max="{{ $maxDate }}" value="{{ old('shipping_date') }}">
                                                         @error('shipping_date')
                                                             <span class="text-danger">{{ $message }}</span>
                                                         @enderror
@@ -142,13 +142,13 @@
                                                 <div class="col-md-4">
                                                     <div class="form-group">
                                                         <label for="avg_sales">Average Sale</label>
-                                                        <select name="avg_sales" id="avg_sales" class="form-control">
+                                                        <select name="avg_sales"  id="avg_sales" class="form-control">
                                                             <option value="">-- Select Average Sale --</option>
-                                                            <option value="7">Last week</option>
-                                                            <option value="14">Last 2 week</option>
-                                                            <option value="21">Last 3 week</option>
-                                                            <option value="30">Last 1 Month</option>
-                                                            <option value="0">Free Selection</option>
+                                                            <option value="7" {{ old('avg_sales') == 7 ? 'selected' : '' }}>Last week</option>
+                                                            <option value="14" {{ old('avg_sales') == 14 ? 'selected' : '' }}>Last 2 week</option>
+                                                            <option value="21" {{ old('avg_sales') == 21 ? 'selected' : '' }}>Last 3 week</option>
+                                                            <option value="30" {{ old('avg_sales') == 30 ? 'selected' : '' }}>Last 1 Month</option>
+                                                            <option value="0" {{ old('avg_sales') == 0 ? 'selected' : '' }}>Free Selection</option>
                                                             {{-- This will trigger date inputs --}}
 
                                                         </select>

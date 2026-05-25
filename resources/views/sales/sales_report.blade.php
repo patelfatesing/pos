@@ -103,14 +103,14 @@
         pointer-events: auto;
     }
 
-    .verify-single-btn .text{
-       font-size: 12px;
-       color: #dcdee4 !important;
+    .verify-single-btn .text {
+        font-size: 12px;
+        color: #dcdee4 !important;
     }
 
-    .verify-single-btn .icon{
-       font-size: 12px;
-       color: #dcdee4 !important;
+    .verify-single-btn .icon {
+        font-size: 12px;
+        color: #dcdee4 !important;
     }
 
     .verify-checkbox input {
@@ -193,6 +193,15 @@
 
     #addSalesModal .modal-dialog {
         z-index: 1105;
+    }
+
+    /* SweetAlert always top */
+    .swal2-container {
+        z-index: 20000 !important;
+    }
+
+    .swal2-popup {
+        z-index: 20001 !important;
     }
 </style>
 @section('page-content')
@@ -1236,42 +1245,42 @@
             let oldValue = !checkbox.checked;
 
             updateVerifyUI(checkbox);
-              // ====================================
-    // MAIN CHECKBOX ENABLE / DISABLE
-    // ====================================
+            // ====================================
+            // MAIN CHECKBOX ENABLE / DISABLE
+            // ====================================
 
-    let prefix = type === 'sales'
-        ? 'sales'
-        : type === 'transfer'
-        ? 'tra'
-        : 'shift';
+            let prefix = type === 'sales' ?
+                'sales' :
+                type === 'transfer' ?
+                'tra' :
+                'shift';
 
-    let mainCheckbox = document.getElementById(
-        `main_${prefix}_${currentShiftId}`
-    );
+            let mainCheckbox = document.getElementById(
+                `main_${prefix}_${currentShiftId}`
+            );
 
-    if (mainCheckbox) {
+            if (mainCheckbox) {
 
-        // checked update
-        mainCheckbox.checked = checkbox.checked;
+                // checked update
+                mainCheckbox.checked = checkbox.checked;
 
-        // enable disable
-        mainCheckbox.disabled = !checkbox.checked;
+                // enable disable
+                mainCheckbox.disabled = !checkbox.checked;
 
-        // class update
-        let btn = mainCheckbox.parentElement.querySelector('.verify-single-btn');
+                // class update
+                let btn = mainCheckbox.parentElement.querySelector('.verify-single-btn');
 
-        if (btn) {
+                if (btn) {
 
-            btn.classList.toggle('verified', checkbox.checked);
+                    btn.classList.toggle('verified', checkbox.checked);
 
-            btn.classList.toggle('unverified', !checkbox.checked);
+                    btn.classList.toggle('unverified', !checkbox.checked);
 
-            btn.classList.toggle('disabled-btn', !checkbox.checked);
-        }
-    }
+                    btn.classList.toggle('disabled-btn', !checkbox.checked);
+                }
+            }
 
-    // ====================================
+            // ====================================
 
             if (type === 'shift') {
                 verifyFullShift(currentShiftId, checkbox.checked, 'sub_admin', checkbox, oldValue);
@@ -1332,7 +1341,7 @@
                 btn.classList.remove('unverified');
                 btn.querySelector('.icon').innerText = '✔';
                 btn.querySelector('.text').innerText = 'VERIFIED';
-                
+
             } else {
                 btn.classList.add('unverified');
                 btn.classList.remove('verified');

@@ -968,8 +968,6 @@ class VoucherController extends Controller
             'lines.ledger' // ✅ correct relation
         ])->findOrFail($id);
 
-        // dd($voucher);
-
         return view('accounting.vouchers.view_voucher', compact('voucher'));
     }
 
