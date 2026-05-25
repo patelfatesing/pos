@@ -1,11 +1,6 @@
 @extends('layouts.backend.layouts')
 @section('page-content')
     <style>
-        #product_table {
-            table-layout: fixed;
-            width: 100%;
-        }
-
         #product_table th,
         #product_table td {
             vertical-align: middle;
@@ -14,53 +9,73 @@
         /* Column widths */
         #product_table th:nth-child(1),
         #product_table td:nth-child(1) {
-            width: 5%;
+            width: 1%;
         }
 
         #product_table th:nth-child(2),
         #product_table td:nth-child(2) {
-            width: 25%;
+            width: 22%;
         }
 
         #product_table th:nth-child(3),
         #product_table td:nth-child(3) {
-            width: 8%;
+            width: 7%;
         }
 
         #product_table th:nth-child(4),
         #product_table td:nth-child(4) {
-            width: 13%;
+            width: 0%;
         }
 
         #product_table th:nth-child(5),
         #product_table td:nth-child(5) {
-            width: 8%;
+            width: 5%;
         }
 
         #product_table th:nth-child(6),
         #product_table td:nth-child(6) {
-            width: 8%;
+            width: 5%;
         }
 
         #product_table th:nth-child(7),
         #product_table td:nth-child(7) {
-            width: 10%;
+            width: 7%;
         }
 
         #product_table th:nth-child(8),
         #product_table td:nth-child(8) {
-            width: 10%;
+            width: 7%;
         }
 
         #product_table th:nth-child(9),
         #product_table td:nth-child(9) {
-            width: 10%;
+            width: 7%;
         }
 
         .ledger-info {
             font-size: 11px;
             color: #6c757d;
             font-style: italic;
+        }
+
+        .product-table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #product_table {
+            min-width: 1200px;
+            width: max-content;
+            table-layout: auto;
+            white-space: nowrap;
+        }
+
+        #product_table th,
+        #product_table td {
+            white-space: nowrap;
+            vertical-align: middle;
         }
     </style>
     @if (session('warehouse_error'))
@@ -199,7 +214,8 @@
                                         <hr />
 
                                         {{-- PRODUCTS TABLE --}}
-                                        <div class="table-responsive mb-3">
+                                        <div class="table-responsive mb-3 product-table-wrapper">
+                                            
                                             <table class="table table-bordered" id="product_table">
                                                 <thead class="table-light">
                                                     <tr>
@@ -219,7 +235,7 @@
                                                         @foreach (old('products') as $i => $product)
                                                             <tr>
                                                                 <td>{{ $i + 1 }}</td>
-                                                                <td style="width:25%">
+                                                                <td>
                                                                     <select id="product_select_{{ $i }}"
                                                                         name="products[{{ $i }}][product_id]"
                                                                         class="form-control product_select_row">
@@ -800,7 +816,7 @@
 
                     <td>${rowIndex + 1}</td>
 
-                    <td style="width:25%">
+                    <td>
                         <select name="products[${rowIndex}][product_id]" id="product_select_${rowIndex}" class="form-control product_select_row">
                             <option value="">Select Product</option>
                         </select>
