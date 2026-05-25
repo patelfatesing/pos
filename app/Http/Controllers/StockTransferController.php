@@ -15,8 +15,10 @@ use App\Models\StockTransfer;
 use Illuminate\Support\Str;
 use App\Models\ShiftClosing;
 use App\Models\Category;
+use App\Models\SubCategory;
 use App\Models\UserShift;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class StockTransferController extends Controller
 {
@@ -50,6 +52,8 @@ class StockTransferController extends Controller
     {
         $categories = Category::all();
 
+        $subCategories = subCategory::all();
+
         $shift_id = isset($_GET['shift_id']);
 
         $shift = '';
@@ -64,7 +68,7 @@ class StockTransferController extends Controller
             ->where('is_deleted', 'no')
             ->firstOrFail();
 
-        return view('stocks_transfer.create', compact('stores', 'products', 'data', 'categories', 'shift_id', 'shift'));
+        return view('stocks_transfer.create', compact('stores', 'products', 'data', 'categories', 'shift_id', 'shift', 'subCategories'));
     }
 
     public function getData(Request $request)
@@ -400,6 +404,7 @@ class StockTransferController extends Controller
 
             $datePart = now()->format('ymd');
             $prefix = 'TF';
+
             if (empty($shift_id)) {
 
                 $running_shift = ShiftClosing::where('branch_id', $request->to_store_id)
@@ -460,7 +465,7 @@ class StockTransferController extends Controller
                 }
                 $datePart = Carbon::parse($shift_date)->format('ymd');
             }
-
+  
             $randomPart = str_pad(random_int(1, 99), 2, '0', STR_PAD_LEFT); // e.g., 06
             $transferNumber = "{$prefix}-{$datePart}-{$randomPart}";
 
@@ -538,6 +543,12 @@ class StockTransferController extends Controller
 
             return back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
+            Log::error('TRANSFER ERROR', [
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'trace' => $e->getTraceAsString()
+            ]);
 
             DB::rollback();
 
@@ -830,13 +841,16 @@ class StockTransferController extends Controller
             ->where('is_deleted', 'no')
             ->firstOrFail();
 
+        $subCategories = subCategory::all();
+
         return view('stocks_transfer.partials.add-modal', compact(
             'stores',
             'products',
             'data',
             'categories',
             'shift_id',
-            'shift'
+            'shift',
+            'subCategories'
         ));
     }
 

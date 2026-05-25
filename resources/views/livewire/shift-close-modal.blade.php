@@ -470,7 +470,7 @@
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        @if (auth()->user()->hasRole('cashier'))
+                                        {{-- @if (auth()->user()->hasRole('cashier'))
                                             <div class="position-relative">
                                                 <select id="commissionUser" class="form-control rounded-pill custom-border w-100" wire:model="selectedCommissionUser">
                                                     <option value="">Select Commission Customer</option>
@@ -493,7 +493,7 @@
                                                     @endforeach
                                                 </select>
                                             </div>
-                                        @endif
+                                        @endif --}}
                                     </div>
                                 </div>
                             </div>
