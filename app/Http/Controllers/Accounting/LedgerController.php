@@ -250,6 +250,8 @@ class LedgerController extends Controller
             'contact_details' => 'nullable|string'
         ]);
 
+        $data['is_active'] = $request->has('is_active') ? 1 : 0;
+
         $ledger->update($data);
 
         return redirect()->route('accounting.ledgers.list')

@@ -78,7 +78,7 @@
         }
     </style>
 
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="{{ asset('assets/css/select2.min.css') }}" rel="stylesheet" />
 
     @livewireStyles
 </head>
@@ -97,7 +97,7 @@
     <script async src="../assets/js/jquery-3.6.0.min.js"></script>
 
     <!-- Select2 JS — after jQuery -->
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="{{ asset('assets/js/select2.min.js') }}"></script>
 
     <!-- Backend Bundle JavaScript -->
     <script src="../assets/js/backend-bundle.min.js"></script>
