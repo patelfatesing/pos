@@ -65,7 +65,7 @@
                                             </div>
                                             <div class="col-md-6"></div>
                                         @endif
-                                         <input type="hidden" name="type" value="{{ request('type') }}">
+                                        <input type="hidden" name="type" value="{{ request('type') }}">
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>From Store *</label>
@@ -102,7 +102,7 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        {{-- <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Category</label>
                                                 <select name="category_id" id="category_id"
@@ -119,13 +119,19 @@
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                             </div>
-                                        </div>
+                                        </div> --}}
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label>Sub Category *</label>
+                                                <label>Category *</label>
                                                 <select id="sub_category_ids" name="subcategory_id" class="form-control"
                                                     data-style="py-0">
-                                                    <option value="" selected>Select Sub Category</option>
+                                                    <option value="" selected>Select Category</option>
+                                                    @foreach ($subCategories as $cate)
+                                                        <option value="{{ $cate->id }}"
+                                                            {{ old('subcategory_id') == $cate->id ? 'selected' : '' }}>
+                                                            {{ $cate->name }}
+                                                        </option>
+                                                    @endforeach
                                                     @if (old('subcategory_id'))
                                                         @php
                                                             $oldSub = \App\Models\SubCategory::find(
@@ -393,46 +399,73 @@
 
         $(document).on('click', '#add-item', function() {
 
+            let subCategoryId = $('#sub_category_ids').val();
+
             const template = `
-                <tr class="item-row product_items">
-                    <td class="sr-no"></td>
+    <tr class="item-row product_items">
+        <td class="sr-no"></td>
 
-                    <td>
-                        <select name="items[${itemIndex}][product_id]" 
-                            class="form-control product-select">
-                            <option value="">Select Product</option>
-                            @foreach ($products as $product)
-                                <option value="{{ $product->id }}">{{ $product->name }}</option>
-                            @endforeach
-                        </select>
-                    </td>
-  <td>
-                        <div class="availability-container small text-muted"></div>
-                    </td>
-                    <td>
-                        <input type="number" 
-                            name="items[${itemIndex}][quantity]" 
-                            class="form-control"
-                            min="1">
-                    </td>
+        <td>
+            <select name="items[${itemIndex}][product_id]"
+                class="form-control product-select">
+                <option value="">Select Product</option>
+            </select>
+        </td>
 
-                  
+        <td>
+            <div class="availability-container small text-muted"></div>
+        </td>
 
-                    <td>
-                        <button type="button" class="btn btn-sm btn-danger remove-item">
-                            Remove
-                        </button>
-                    </td>
-                </tr>
-                `;
+        <td>
+            <input type="number"
+                name="items[${itemIndex}][quantity]"
+                class="form-control"
+                min="1">
+        </td>
+
+        <td>
+            <button type="button"
+                class="btn btn-sm btn-danger remove-item">
+                Remove
+            </button>
+        </td>
+    </tr>`;
 
             $('#productBody').append(template);
+
+            let currentRow = $('#productBody tr:last');
+            let selectBox = currentRow.find('.product-select');
+
+            // load selected sub category products
+            if (subCategoryId) {
+
+                $.ajax({
+                    url: "{{ url('/products/get-products') }}/" + subCategoryId,
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data) {
+
+                        $.each(data, function(key, product) {
+
+                            selectBox.append(
+                                '<option value="' + product.id + '">' +
+                                product.name +
+                                '</option>'
+                            );
+
+                        });
+
+                    }
+                });
+
+            }
 
             itemIndex++;
 
             updateSrNo();
             updateAddButton();
             updateTotalQuantity();
+
         });
 
         // Remove item handler

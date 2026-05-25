@@ -1093,7 +1093,7 @@
             });
         }
 
-        $(document).off('submit', '#transferForm').on('submit', '#transferForm', function(e) {
+        $(document).off('submit', '#transferFormModel').on('submit', '#transferFormModel', function(e) {
 
             e.preventDefault();
 
@@ -1113,40 +1113,66 @@
 
                 success: function(res) {
 
-                    // ✅ CLOSE ADD/EDIT MODAL
-                    $('#transferActionModal').modal('hide');
+                    if (res.status) {
 
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: res.message || 'Transfer Added Successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
 
-                    $('#transferModalContent').html('Loading...');
+                        // ✅ CLOSE MODAL
+                        $('#transferActionModal').modal('hide');
 
-                    $.get('/stock-transfer/modal-list', function(view) {
+                        // ✅ RELOAD LIST
+                        $('#transferModalContent').html('Loading...');
 
-                        $('#transferModalContent').html(view);
+                        $.get('/stock-transfer/modal-list', function(view) {
 
-                        // 🔥 RE-INIT DATATABLE
-                        initTransferTable(currentBranchId, res.shift_id, 'admin');
+                            $('#transferModalContent').html(view);
 
-                    });
+                            initTransferTable(currentBranchId, res.shift_id, 'admin');
 
-
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Transfer Added!',
-                        timer: 1200,
-                        showConfirmButton: false
-                    });
+                        });
+                    }
                 },
 
                 error: function(xhr) {
 
-                    let errors = xhr.responseJSON?.errors;
+                    let response = xhr.responseJSON;
 
-                    if (errors) {
-                        let msg = Object.values(errors).flat().join("\n");
-                        alert(msg);
+                    // validation errors
+                    if (response.errors) {
+
+                        let msg = Object.values(response.errors)
+                            .flat()
+                            .join('<br>');
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Validation Error',
+                            html: msg
+                        });
+
+                    }
+                    // normal error message
+                    else if (response.message) {
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: response.message
+                        });
+
                     } else {
-                        alert('Something went wrong');
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Something went wrong'
+                        });
                     }
                 },
 
