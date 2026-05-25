@@ -611,5 +611,130 @@
             }
 
         });
+
+        $(document).off('submit', '#transferForm').on('submit', '#transferForm', function(e) {
+
+            e.preventDefault();
+
+            let form = $(this);
+            let btn = $('#submitBtn');
+
+            // clear old errors
+            $('.is-invalid').removeClass('is-invalid');
+            $('.invalid-feedback').remove();
+
+            btn.prop('disabled', true).html('Processing...');
+
+            $.ajax({
+                url: form.attr('action'),
+                type: "POST",
+                data: form.serialize(),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+
+                success: function(response) {
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: response.message || 'Transfer created successfully',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+
+                    // optional reset
+                    form[0].reset();
+
+                    // reset rows
+                    $('#productBody').html(`
+                <tr class="item-row product_items">
+                    <td class="sr-no">1</td>
+
+                    <td>
+                        <select name="items[0][product_id]"
+                            class="form-control product-select">
+                            <option value="">Select Product</option>
+                        </select>
+                    </td>
+
+                    <td>
+                        <div class="availability-container small text-muted"></div>
+                    </td>
+
+                    <td>
+                        <input type="number"
+                            name="items[0][quantity]"
+                            class="form-control"
+                            min="1">
+                    </td>
+
+                    <td>
+                        <button type="button"
+                            class="btn btn-sm btn-danger remove-item">
+                            Remove
+                        </button>
+                    </td>
+                </tr>
+            `);
+
+                    updateSrNo();
+                    updateAddButton();
+                    updateTotalQuantity();
+                },
+
+                error: function(xhr) {
+
+                    console.log(xhr.responseText);
+
+                    let response = xhr.responseJSON;
+
+                    // validation errors
+                    if (response?.errors) {
+
+                        $.each(response.errors, function(key, value) {
+
+                            let field = key.replace(/\./g, '\\.');
+
+                            let input = $('[name="' + field + '"]');
+
+                            input.addClass('is-invalid');
+
+                            input.after(
+                                '<div class="invalid-feedback">' +
+                                value[0] +
+                                '</div>'
+                            );
+                        });
+
+                        let msg = Object.values(response.errors)
+                            .flat()
+                            .join('<br>');
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Validation Error',
+                            html: msg
+                        });
+
+                    } else {
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: response?.message || 'Something went wrong'
+                        });
+                    }
+                },
+
+                complete: function() {
+
+                    btn.prop('disabled', false)
+                        .html('Submit Transfer');
+                }
+            });
+
+        });
     </script>
 @endsection

@@ -1143,37 +1143,11 @@
 
                     let response = xhr.responseJSON;
 
-                    // validation errors
-                    if (response.errors) {
-
-                        let msg = Object.values(response.errors)
-                            .flat()
-                            .join('<br>');
-
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Validation Error',
-                            html: msg
-                        });
-
-                    }
-                    // normal error message
-                    else if (response.message) {
-
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: response.message
-                        });
-
-                    } else {
-
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Something went wrong'
-                        });
-                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        html: response.message || 'Something went wrong'
+                    });
                 },
 
                 complete: function() {
@@ -1182,6 +1156,68 @@
             });
 
         });
+
+        $(document).off('submit', '#editTransferForm')
+            .on('submit', '#editTransferForm', function(e) {
+
+                e.preventDefault();
+
+                let form = $(this);
+                let btn = form.find('#submitBtn');
+
+                btn.prop('disabled', true).text('Processing...');
+
+                $.ajax({
+                    url: form.attr('action'),
+                    type: "POST",
+                    data: form.serialize(),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+
+                    success: function(res) {
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: res.message || 'Transfer Updated Successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+
+                        $('#transferActionModal').modal('hide');
+
+                        $('#transferModalContent').html('Loading...');
+
+                        $.get('/stock-transfer/modal-list', function(view) {
+
+                            $('#transferModalContent').html(view);
+
+                            initTransferTable(currentBranchId, res.shift_id, 'admin');
+                        });
+                    },
+
+                    error: function(xhr) {
+
+                        console.log(xhr.responseText);
+
+                        let response = xhr.responseJSON;
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            html: response?.message || 'Something went wrong'
+                        });
+                    },
+
+                    complete: function() {
+
+                        btn.prop('disabled', false)
+                            .text('Update Transfer');
+                    }
+                });
+            });
 
         $('#transferActionModal').on('hidden.bs.modal', function() {
 
