@@ -344,6 +344,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/stock-transfer/store', [StockTransferController::class, 'store'])->name('stock-transfer.store');
     Route::get('/stock-transfer/edit/{id}', [StockTransferController::class, 'edit'])->name('stock-transfer.edit');
     Route::post('/stock-transfer/{id}/update', [StockTransferController::class, 'update'])->name('stock-transfer.update');
+    Route::post('/stock-transfer/{id}/update-form', [StockTransferController::class, 'updateForm'])->name('stock-transfer.update-form');
 
     Route::get('/stock-transfer/modal-list', [StockTransferController::class, 'modalList']);
     Route::get('/transfer/modal/create', [StockTransferController::class, 'createTransferModal']);

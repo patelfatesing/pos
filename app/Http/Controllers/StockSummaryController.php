@@ -13,12 +13,17 @@ class StockSummaryController extends Controller
     public function stockSummary(Request $request)
     {
         $branches = DB::table('branches')->pluck('name', 'id');
-        $fromDate = $request->from_date;
-        $toDate   = $request->to_date;
-        $category = $request->category;
-        return view('stock_summary.stock_summary', compact('branches', 'fromDate', 'toDate', 'category'));
-    }
 
+        $fromDate = $request->start_date;
+        $toDate   = $request->end_date;
+        $category = $request->category;
+
+        return view(
+            'stock_summary.stock_summary',
+            compact('branches', 'fromDate', 'toDate', 'category')
+        );
+    }
+    
     public function stockSummaryData(Request $request)
     {
         $fromDate = $request->from_date;
@@ -44,8 +49,9 @@ class StockSummaryController extends Controller
                 DB::raw("SUM(dps.added_stock + dps.transferred_stock) as inward"),
 
                 // OUTWARD
-                DB::raw("SUM(dps.sold_stock) as outward"),
+                DB::raw("SUM(dps.transferred_stock) as outward"),
 
+                DB::raw("SUM(dps.sold_stock) as sold"),
                 // ADJUSTMENT
                 DB::raw("SUM(dps.modify_sale_add_qty - dps.modify_sale_remove_qty) as adjustment"),
 

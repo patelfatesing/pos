@@ -54,9 +54,9 @@
                             <th>Category</th>
                             <th>Product</th>
                             <th>Opening</th>
-                            <th>Inward</th>
-                            <th>Outward</th>
-                            <th>Adjustment</th>
+                            <th>In</th>
+                            <th>Out</th>
+                            <th>Sold</th>
                             <th>Closing</th>
                         </tr>
                     </thead>
@@ -101,7 +101,7 @@
                         opening: 0,
                         inward: 0,
                         outward: 0,
-                        adjustment: 0,
+                        sold: 0,
                         closing: 0
                     };
 
@@ -114,7 +114,7 @@
                             opening: 0,
                             inward: 0,
                             outward: 0,
-                            adjustment: 0,
+                            sold: 0,
                             closing: 0
                         };
 
@@ -122,7 +122,7 @@
                             cat.opening += parseFloat(r.opening);
                             cat.inward += parseFloat(r.inward);
                             cat.outward += parseFloat(r.outward);
-                            cat.adjustment += parseFloat(r.adjustment);
+                            cat.sold += parseFloat(r.sold);
                             cat.closing += parseFloat(r.closing);
                         });
 
@@ -133,7 +133,7 @@
                             opening: cat.opening,
                             inward: cat.inward,
                             outward: cat.outward,
-                            adjustment: cat.adjustment,
+                            sold: cat.sold,
                             closing: cat.closing,
                             is_category: true
                         });
@@ -146,7 +146,7 @@
                                 opening: r.opening,
                                 inward: r.inward,
                                 outward: r.outward,
-                                adjustment: r.adjustment,
+                                sold: r.sold,
                                 closing: r.closing,
                                 is_category: false
                             });
@@ -156,7 +156,7 @@
                         total.opening += cat.opening;
                         total.inward += cat.inward;
                         total.outward += cat.outward;
-                        total.adjustment += cat.adjustment;
+                        total.sold += cat.sold;
                         total.closing += cat.closing;
                     });
 
@@ -167,7 +167,7 @@
                         opening: total.opening,
                         inward: total.inward,
                         outward: total.outward,
-                        adjustment: total.adjustment,
+                        sold: total.sold,
                         closing: total.closing,
                         is_total: true
                     });
@@ -195,7 +195,7 @@
                     className: 'text-right'
                 },
                 {
-                    data: 'adjustment',
+                    data: 'sold',
                     className: 'text-right'
                 },
                 {
@@ -223,6 +223,19 @@
 
         // FILTER
         $('#filter').click(function() {
+
+            let from_date = $('#from_date').val();
+            let to_date = $('#to_date').val();
+            let category = $('#category').val();
+
+            let url =
+                "{{ url('accounting/stock-summary') }}" +
+                '?from_date=' + from_date +
+                '&to_date=' + to_date +
+                '&category=' + category;
+
+            window.history.replaceState({}, '', url);
+
             table.ajax.reload();
         });
     </script>

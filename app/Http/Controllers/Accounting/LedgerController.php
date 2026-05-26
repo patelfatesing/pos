@@ -540,7 +540,11 @@ class LedgerController extends Controller
     {
         $ledger = AccountLedger::findOrFail($ledgerId);
 
-        // ✅ GET DATE FROM URL (same as your P&L)
+        /*
+    |--------------------------------------------------------------------------
+    | DATE FILTER
+    |--------------------------------------------------------------------------
+    */
         $start = $request->filled('start_date')
             ? \Carbon\Carbon::parse($request->start_date)->startOfDay()
             : null;
@@ -549,51 +553,238 @@ class LedgerController extends Controller
             ? \Carbon\Carbon::parse($request->end_date)->endOfDay()
             : null;
 
+        /*
+    |--------------------------------------------------------------------------
+    | MAIN LEDGER ENTRIES
+    |--------------------------------------------------------------------------
+    */
         $entries = DB::table('voucher_lines as vl')
+
             ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
-            ->join('account_ledgers as al', 'al.id', '=', 'vl.ledger_id')
-
-            ->join('voucher_lines as vl2', function ($join) {
-                $join->on('vl2.voucher_id', '=', 'v.id')
-                    ->whereColumn('vl2.id', '!=', 'vl.id');
-            })
-
-            ->join('account_ledgers as al2', 'al2.id', '=', 'vl2.ledger_id')
 
             ->where('vl.ledger_id', $ledgerId)
 
-            // ✅ APPLY DATE FILTER
             ->when($start && $end, function ($q) use ($start, $end) {
-                $q->whereBetween('v.voucher_date', [
-                    $start->toDateString(),
-                    $end->toDateString()
-                ]);
+
+                $q->whereBetween(
+                    'v.voucher_date',
+                    [
+                        $start->toDateString(),
+                        $end->toDateString()
+                    ]
+                );
             })
 
             ->select(
-                'v.id as voucher_id',
-                'v.voucher_date',
-                'v.voucher_type',
-                'v.ref_no',
+                'vl.id',
+                'vl.voucher_id',
                 'vl.dc',
                 'vl.amount',
-                DB::raw("GROUP_CONCAT(al2.name SEPARATOR ', ') as particulars")
-            )
-
-            ->groupBy(
-                'vl.id',
-                'v.id',
+                'vl.line_narration',
+                'v.gen_id',
                 'v.voucher_date',
                 'v.voucher_type',
                 'v.ref_no',
-                'vl.dc',
-                'vl.amount'
+                'v.narration'
             )
 
             ->orderBy('v.voucher_date')
+            ->orderBy('v.id')
+
             ->get();
 
-        return view('accounting.ledgers.ledger_list', compact('ledger', 'entries', 'start', 'end'));
+        /*
+    |--------------------------------------------------------------------------
+    | OPENING BALANCE
+    |--------------------------------------------------------------------------
+    */
+        $openingDebit = DB::table('voucher_lines as vl')
+
+            ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
+
+            ->where('vl.ledger_id', $ledgerId)
+
+            ->when($start, function ($q) use ($start) {
+
+                $q->whereDate(
+                    'v.voucher_date',
+                    '<',
+                    $start->toDateString()
+                );
+            })
+
+            ->where('vl.dc', 'Dr')
+
+            ->sum('vl.amount');
+
+        $openingCredit = DB::table('voucher_lines as vl')
+
+            ->join('vouchers as v', 'v.id', '=', 'vl.voucher_id')
+
+            ->where('vl.ledger_id', $ledgerId)
+
+            ->when($start, function ($q) use ($start) {
+
+                $q->whereDate(
+                    'v.voucher_date',
+                    '<',
+                    $start->toDateString()
+                );
+            })
+
+            ->where('vl.dc', 'Cr')
+
+            ->sum('vl.amount');
+
+        $openingBalance = $openingDebit - $openingCredit;
+
+        /*
+    |--------------------------------------------------------------------------
+    | TALLY ROWS
+    |--------------------------------------------------------------------------
+    */
+        $rows = [];
+
+        $runningBalance = $openingBalance;
+
+        foreach ($entries as $entry) {
+
+            /*
+        |--------------------------------------------------------------------------
+        | GET ONLY ONE OPPOSITE LEDGER
+        |--------------------------------------------------------------------------
+        */
+            $particular = DB::table('voucher_lines as vl2')
+
+                ->join(
+                    'account_ledgers as al2',
+                    'al2.id',
+                    '=',
+                    'vl2.ledger_id'
+                )
+
+                ->where('vl2.voucher_id', $entry->voucher_id)
+
+                ->where('vl2.ledger_id', '!=', $ledgerId)
+
+                ->select('al2.name')
+
+                ->first();
+
+            /*
+        |--------------------------------------------------------------------------
+        | DEBIT / CREDIT
+        |--------------------------------------------------------------------------
+        */
+            $debit = 0;
+            $credit = 0;
+
+            if ($entry->dc == 'Dr') {
+
+                $debit = $entry->amount;
+
+                $runningBalance += $entry->amount;
+            } else {
+
+                $credit = $entry->amount;
+
+                $runningBalance -= $entry->amount;
+            }
+
+            if ($entry->voucher_type == 'Purchase') {
+
+                if (!empty($entry->gen_id)) {
+
+                    $editUrl = route(
+                        'purchase.edit',
+                        $entry->gen_id
+                    );
+                } else {
+
+                    $editUrl = route(
+                        'accounting.vouchers.edit',
+                        $entry->voucher_id
+                    );
+                }
+            } elseif ($entry->voucher_type == 'Sales') {
+
+                $editUrl = route(
+                    'sales.edit-sales',
+                    $entry->gen_id
+                );
+            } else {
+
+                $editUrl = route(
+                    'accounting.vouchers.edit',
+                    $entry->voucher_id
+                );
+            }
+            /*
+        |--------------------------------------------------------------------------
+        | ROW
+        |--------------------------------------------------------------------------
+        */
+            $rows[] = [
+
+
+
+                'date' => \Carbon\Carbon::parse(
+                    $entry->voucher_date
+                )->format('d-m-Y'),
+
+                'particulars' => $particular->name ?? '-',
+
+                'voucher_type' => $entry->voucher_type,
+
+                'voucher_no' => $entry->ref_no,
+
+                'debit' => $debit,
+
+                'credit' => $credit,
+
+                'balance' =>
+                number_format(abs($runningBalance), 2)
+                    . ' ' .
+                    ($runningBalance >= 0 ? 'Dr' : 'Cr'),
+
+                'narration' =>
+                $entry->line_narration
+                    ?? $entry->narration,
+                'edit_url' => $editUrl,
+            ];
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | TOTALS
+    |--------------------------------------------------------------------------
+    */
+        $totalDebit = collect($rows)->sum('debit');
+
+        $totalCredit = collect($rows)->sum('credit');
+
+        $closingBalance =
+            $openingBalance +
+            ($totalDebit - $totalCredit);
+
+        /*
+    |--------------------------------------------------------------------------
+    | RETURN VIEW
+    |--------------------------------------------------------------------------
+    */
+        return view(
+            'accounting.ledgers.ledger_list',
+            [
+                'ledger' => $ledger,
+                'rows' => $rows,
+                'start' => $start,
+                'end' => $end,
+                'openingBalance' => $openingBalance,
+                'totalDebit' => $totalDebit,
+                'totalCredit' => $totalCredit,
+                'closingBalance' => $closingBalance,
+            ]
+        );
     }
 
     public function balanceByName(Request $request)

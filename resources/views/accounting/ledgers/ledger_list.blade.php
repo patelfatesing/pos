@@ -168,16 +168,16 @@
         }
 
         /* .controls .btn {
-            background: #fff;
-            border: 1px solid #ccc;
-            color: #333;
-        }
+                    background: #fff;
+                    border: 1px solid #ccc;
+                    color: #333;
+                }
 
-        .controls .btn-secondary {
-            background: #32BDEA;
-            border: 1px solid #32BDEA;
-            color: #fff;
-        } */
+                .controls .btn-secondary {
+                    background: #32BDEA;
+                    border: 1px solid #32BDEA;
+                    color: #fff;
+                } */
 
         div.dataTables_wrapper {
             min-height: calc(100vh - 350px);
@@ -223,36 +223,175 @@
 
             <!-- ================= TABLE ================= -->
             <table id="vouchersTable" class="display border" style="width:100%">
+
                 <thead>
+
                     <tr>
+
                         <th>Date</th>
+
                         <th>Particulars</th>
+
                         <th>Vch Type</th>
+
                         <th>Vch No</th>
-                        <th>Debit</th>
-                        <th>Credit</th>
+
+                        <th class="text-end">Debit</th>
+
+                        <th class="text-end">Credit</th>
+
+                        <th class="text-end">Balance</th>
+
                     </tr>
+
                 </thead>
-                <tbody></tbody>
+
+                <tbody>
+
+                    @forelse($rows as $row)
+                        <tr>
+
+                            <td>
+                                {{ $row['date'] }}
+                            </td>
+
+                            <td class="col-particulars">
+
+                                <strong>
+                                    {{ $row['particulars'] }}
+                                </strong>
+
+                                @if (!empty($row['narration']))
+                                    <br>
+
+                                    <small style="color:#777">
+
+                                        {{ $row['narration'] }}
+
+                                    </small>
+                                @endif
+
+                            </td>
+
+                            <td class="text-center">
+
+                                <a href="{{ $row['edit_url'] }}" style="color:#007bff; text-decoration:none;">
+
+                                    {{ $row['voucher_type'] }}
+
+                                </a>
+
+                            </td>
+
+                            <td class="text-center">
+
+                                {{ $row['voucher_no'] }}
+
+                            </td>
+
+                            <td class="text-end">
+
+                                @if ($row['debit'] > 0)
+                                    {{ number_format($row['debit'], 2) }}
+                                @endif
+
+                            </td>
+
+                            <td class="text-end">
+
+                                @if ($row['credit'] > 0)
+                                    {{ number_format($row['credit'], 2) }}
+                                @endif
+
+                            </td>
+
+                            <td class="text-end">
+
+                                {{ $row['balance'] }}
+
+                            </td>
+
+                        </tr>
+
+                    @empty
+
+                        <tr>
+
+                            <td colspan="7" class="text-center">
+
+                                No voucher entries found
+
+                            </td>
+
+                        </tr>
+                    @endforelse
+
+                </tbody>
+
             </table>
 
-            <!-- ================= BALANCE FOOTER ================= -->
+            <!-- ================= FOOTER ================= -->
+
             <div class="tally-footer-right">
+
                 <table>
+
                     <tr>
+
                         <td>Opening Balance:</td>
-                        <td id="openingBalance">-</td>
+
+                        <td>
+
+                            {{ number_format(abs($openingBalance), 2) }}
+
+                            {{ $openingBalance >= 0 ? 'Dr' : 'Cr' }}
+
+                        </td>
+
                     </tr>
+
                     <tr>
-                        <td>Current Balance:</td>
-                        <td id="currentTotal">-</td>
+
+                        <td>Total Debit:</td>
+
+                        <td>
+
+                            {{ number_format($totalDebit, 2) }}
+
+                        </td>
+
                     </tr>
+
+                    <tr>
+
+                        <td>Total Credit:</td>
+
+                        <td>
+
+                            {{ number_format($totalCredit, 2) }}
+
+                        </td>
+
+                    </tr>
+
                     <tr class="tally-closing">
+
                         <td>Closing Balance:</td>
-                        <td id="closingBalance">-</td>
+
+                        <td>
+
+                            {{ number_format(abs($closingBalance), 2) }}
+
+                            {{ $closingBalance >= 0 ? 'Dr' : 'Cr' }}
+
+                        </td>
+
                     </tr>
+
                 </table>
+
             </div>
+
 
 
         </div>
@@ -261,130 +400,87 @@
 
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
     <script>
-        window.onload = function() {
+        $(document).ready(function() {
 
-            let start = moment().subtract(29, 'days'); // last 30 days
-            let end = moment();
+            $('#vouchersTable').DataTable({
 
-            let table = $('#vouchersTable').DataTable({
-                processing: true,
-                serverSide: false,
                 ordering: false,
-                pageLength: 50,
 
-                ajax: {
-                    url: "{{ route('accounting.ledgers.vouchers.data1', $ledger->id) }}",
-                    data: function(d) {
+                paging: true,
 
-                        let range = $('#daterange').val();
+                searching: true,
 
-                        if (range) {
-                            let dates = range.split(' to ');
-                            d.from_date = dates[0];
-                            d.to_date = dates[1];
-                        }
-                    },
+                info: false,
 
-                    dataSrc: function(json) {
-
-                        /* ---------- OPENING ---------- */
-                        const opening = json.opening || {
-                            balance: 0
-                        };
-                        $('#openingBalance').text(
-                            (opening.balance >= 0 ? 'Dr ' : 'Cr ') +
-                            Math.abs(opening.balance)
-                        );
-
-                        /* ---------- CURRENT ---------- */
-                        const period = json.period || {
-                            total_debit: 0,
-                            total_credit: 0
-                        };
-                        $('#currentTotal').text(
-                            'Dr ' + period.total_debit +
-                            ' | Cr ' + period.total_credit
-                        );
-
-                        /* ---------- CLOSING ---------- */
-                        const closing = opening.balance + (period.total_debit - period.total_credit);
-
-                        $('#closingBalance').text(
-                            (closing >= 0 ? 'Dr ' : 'Cr ') +
-                            Math.abs(closing)
-                        );
-
-                        return json.data || [];
-                    }
-                },
-
-                columns: [{
-                        data: 'date',
-                        render: (d, t, r) => r.type === 'main' ? d : ''
-                    },
-                    {
-                        data: 'particulars',
-                        className: 'col-particulars',
-                        render: function(d, t, r) {
-                            if (r.type === 'detail') {
-                                return `<span style="padding-left:30px;">${d}</span>`;
-                            }
-                            return `<strong>${d}</strong>`;
-                        }
-                    },
-                    {
-                        data: 'vch_type',
-                        render: function(d, t, r) {
-                            if (r.type === 'main') {
-                                return `<a href="${r.edit_url}" style="color:#007bff">${d}</a>`;
-                            }
-                            return '';
-                        }
-                    },
-                    {
-                        data: 'vch_no',
-                        render: (d, t, r) => r.type === 'main' ? d : ''
-                    },
-                    {
-                        data: 'debit',
-                        className: 'text-end',
-                        render: (d, t, r) => r.type === 'main' ? parseFloat(d || 0) : ''
-                    },
-                    {
-                        data: 'credit',
-                        className: 'text-end',
-                        render: (d, t, r) => r.type === 'main' ? parseFloat(d || 0) : ''
-                    }
-                ]
+                pageLength: 50
             });
 
-            // ✅ Date Range Picker
+            let start = moment().subtract(29, 'days');
+
+            let end = moment();
+
             function cb(start, end) {
+
                 $('#daterange').val(
-                    start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD')
+                    start.format('YYYY-MM-DD') +
+                    ' to ' +
+                    end.format('YYYY-MM-DD')
                 );
-                table.ajax.reload();
             }
 
             $('#daterange').daterangepicker({
+
                 startDate: start,
+
                 endDate: end,
+
                 ranges: {
+
                     'Today': [moment(), moment()],
-                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                    'This Month': [moment().startOf('month'), moment().endOf('month')],
+
+                    'Last 7 Days': [
+                        moment().subtract(6, 'days'),
+                        moment()
+                    ],
+
+                    'Last 30 Days': [
+                        moment().subtract(29, 'days'),
+                        moment()
+                    ],
+
+                    'This Month': [
+                        moment().startOf('month'),
+                        moment().endOf('month')
+                    ],
+
                     'Last Month': [
                         moment().subtract(1, 'month').startOf('month'),
                         moment().subtract(1, 'month').endOf('month')
                     ]
                 }
+
             }, cb);
 
-            cb(start, end); // default load
-        };
+            cb(start, end);
+
+            $('#daterange').on('apply.daterangepicker', function(ev, picker) {
+
+                let from = picker.startDate.format('YYYY-MM-DD');
+
+                let to = picker.endDate.format('YYYY-MM-DD');
+
+                let url = new URL(window.location.href);
+
+                url.searchParams.set('start_date', from);
+
+                url.searchParams.set('end_date', to);
+
+                window.location.href = url.toString();
+            });
+        });
     </script>
 @endsection

@@ -175,7 +175,7 @@
                             orderable: false
                         },
                         {
-                            data: 'category_name'
+                            data: 'subcategory_name'
                         },
                         {
                             data: 'mrp',

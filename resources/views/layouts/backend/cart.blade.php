@@ -85,7 +85,7 @@
 
 <body>
     @yield('page-content')
-    
+
     <div class="modal fade bd-example-modal-lg" id="approveModal" tabindex="-1" role="dialog"
         aria-labelledby="approveModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
@@ -96,11 +96,11 @@
 
     <script async src="../assets/js/jquery-3.6.0.min.js"></script>
 
-    <!-- Select2 JS — after jQuery -->
-    <script src="{{ asset('assets/js/select2.min.js') }}"></script>
-
     <!-- Backend Bundle JavaScript -->
     <script src="../assets/js/backend-bundle.min.js"></script>
+
+    <!-- Select2 JS — after jQuery -->
+    <script src="{{ asset('assets/js/select2.min.js') }}"></script>
 
     <!-- Table Treeview JavaScript -->
     <script src="../assets/js/table-treeview.js"></script>
@@ -113,7 +113,7 @@
 
     <!-- app JavaScript -->
     <script src="../assets/js/app.js"></script>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- SweetAlert2 -->
@@ -245,4 +245,5 @@
     </div>
 
 </body>
+
 </html>
