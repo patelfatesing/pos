@@ -252,7 +252,7 @@
                 ],
                 autoWidth: false,
                 order: [
-                    [7, 'desc']
+                    [7, 'asc']
                 ], // Order by updated_at
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
