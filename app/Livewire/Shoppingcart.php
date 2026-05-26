@@ -3119,12 +3119,28 @@ class Shoppingcart extends Component
             } else {
 
                 // =====================================================
-                // ✅ OTHER BRANCH (OLD LOGIC)
+                // ✅ OTHER BRANCH (TALLY DISCOUNT LOGIC)
                 // =====================================================
 
                 $lines = [];
 
+                $branch = Branch::findOrFail($branchId);
+
+                $salesLedger = AccountLedger::where('name', $branch->name)->firstOrFail();
+
+                // Associate branch discount
+                $discountAmt = round((float) $this->commissionAmount, 2);
+
+                // Gross sale before discount
+                $grossSale = round((float) $this->sub_total, 2);
+
+                // Final net sale
+                $netSale = round($grossSale - $discountAmt, 2);
+
+                // ================= CASH DR =================
+
                 if ($cashPaid > 0) {
+
                     $lines[] = [
                         'ledger_id' => $cashLedgerId,
                         'dc'        => 'Dr',
@@ -3132,7 +3148,10 @@ class Shoppingcart extends Component
                     ];
                 }
 
+                // ================= UPI DR =================
+
                 if ($upiPaid > 0 && $upiLedgerId) {
+
                     $lines[] = [
                         'ledger_id' => $upiLedgerId,
                         'dc'        => 'Dr',
@@ -3140,13 +3159,29 @@ class Shoppingcart extends Component
                     ];
                 }
 
-                $branch      = Branch::findOrFail($branchId);
-                $salesLedger = AccountLedger::where('name', $branch->name)->firstOrFail();
+                // ================= DISCOUNT DR =================
+
+                if ($this->commissionAmount > 0) {
+
+                    $discountLedger = AccountLedger::where('name', 'Discount Allowed')->first();
+
+                    if ($discountLedger) {
+
+                        $lines[] = [
+                            'ledger_id' => $discountLedger->id,
+                            'dc'        => 'Dr',
+                            'amount'    => $this->commissionAmount,
+                        ];
+                    }
+                }
+
+                // ================= SALES CR =================
+                // FULL GROSS SALES
 
                 $lines[] = [
                     'ledger_id' => $salesLedger->id,
                     'dc'        => 'Cr',
-                    'amount'    => $totalSale,
+                    'amount'    => $grossSale,
                 ];
 
                 $payload = [
@@ -3154,8 +3189,12 @@ class Shoppingcart extends Component
                     'voucher_type' => 'Sales',
                     'branch_id'    => $branchId,
                     'ref_no'       => "POS-" . $branchId . "-" . time(),
-                    'sub_total'    => $totalSale,
-                    'grand_total'  => $totalSale,
+
+                    // IMPORTANT
+                    'sub_total'    => $grossSale,
+                    'discount'     => $discountAmt,
+                    'grand_total'  => $netSale,
+
                     'lines'        => $lines,
                 ];
 
@@ -4450,7 +4489,6 @@ class Shoppingcart extends Component
                 ]
             );
 
-
             // ------------------- POS VOUCHER BUILD -------------------
 
             $branchId = $branch_id;
@@ -4637,14 +4675,26 @@ class Shoppingcart extends Component
 
                 $voucher = $salesVoucher;
             } else {
-
                 // =====================================================
-                // ✅ OTHER BRANCH LOGIC
+                // ✅ OTHER BRANCH TALLY DISCOUNT LOGIC
                 // =====================================================
 
                 $lines = [];
 
-                // CASH DR
+                $branch = Branch::findOrFail($branchId);
+
+                $salesLedger = AccountLedger::where('name', $branch->name)->firstOrFail();
+
+                // Gross sale
+                $grossSale = round((float) $this->sub_total, 2);
+
+                // Associate branch discount
+                $discountAmt = round((float) $this->commissionAmount, 2);
+
+                // Final amount
+                $netSale = round($grossSale - $discountAmt, 2);
+
+                // ================= CASH DR =================
 
                 if ($cashPaid > 0) {
 
@@ -4656,7 +4706,7 @@ class Shoppingcart extends Component
                     ];
                 }
 
-                // UPI DR
+                // ================= UPI DR =================
 
                 if ($upiPaid > 0 && $upiLedgerId) {
 
@@ -4668,16 +4718,27 @@ class Shoppingcart extends Component
                     ];
                 }
 
-                // SALES CR
+                // ================= DISCOUNT DR =================
 
-                $branch = Branch::findOrFail($branchId);
+                if ($this->commissionAmount > 0) {
 
-                $salesLedger = AccountLedger::where('name', $branch->name)->firstOrFail();
+                    $discountLedger = AccountLedger::where('name', 'Discount Allowed')->first();
+
+                    $lines[] = [
+                        'ledger_id' => $discountLedger->id,
+                        'dc'        => 'Dr',
+                        'amount'    => $discountAmt,
+                        'line_narration' => 'Discount Allowed',
+                    ];
+                }
+
+                // ================= SALES CR =================
+                // FULL GROSS SALES
 
                 $lines[] = [
                     'ledger_id' => $salesLedger->id,
                     'dc'        => 'Cr',
-                    'amount'    => $totalSale,
+                    'amount'    => $grossSale,
                     'line_narration' => 'POS Sales',
                 ];
 
@@ -4687,9 +4748,12 @@ class Shoppingcart extends Component
                     'branch_id'    => $branchId,
                     'ref_no'       => "POS-" . $branchId . "-" . time(),
                     'narration'    => 'Counter Sale',
-                    'sub_total'    => $grossAmount,
+
+                    // IMPORTANT
+                    'sub_total'    => $grossSale,
                     'discount'     => $discountAmt,
-                    'grand_total'  => $totalSale,
+                    'grand_total'  => $netSale,
+
                     'lines'        => $lines,
                 ];
 

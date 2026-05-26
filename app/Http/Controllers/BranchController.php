@@ -194,20 +194,36 @@ class BranchController extends Controller
             if (canDo($roleId, 'store-edit', $ownerId)) {
                 $action .= '<a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit"
                     href="' . url('/store/edit/' . $store->id) . '"><i class="ri-pencil-line mr-0"></i></a>';
-
                 $action .= '<div class="custom-control custom-switch custom-control-inline">
-                        <input type="checkbox" class="custom-control-input" id="customSwitch' . $store->id . '" ' . ($store->in_out_enable ? 'checked' : '') . ' data-store-id="' . $store->id . '">
-                        <label class="custom-control-label" for="customSwitch' . $store->id . '">
-                            <span class="switch-label">' . ($store->in_out_enable ? 'In/Out' : 'In/Out') . '</span>
-                        </label>
-                    </div>';
 
-                $action .= '<div class="custom-control custom-switch custom-control-inline">
-                        <input type="checkbox" class="custom-control-input capture-status-switch" id="captureSwitch' . $store->id . '" ' . ($store->is_capture ? 'checked' : '') . ' data-store-id="' . $store->id . '">
-                        <label class="custom-control-label" for="captureSwitch' . $store->id . '">
-                            <span class="switch-label">' . ($store->is_capture ? 'Capture' : 'Capture') . '</span>
-                        </label>
-                    </div>';
+    <input type="checkbox"
+        class="custom-control-input store-status-switch"
+        id="customSwitch' . $store->id . '"
+        ' . ($store->in_out_enable ? 'checked' : '') . '
+        data-store-id="' . $store->id . '">
+
+    <label class="custom-control-label pt-1"
+        for="customSwitch' . $store->id . '">
+        In/Out
+    </label>
+
+</div>';
+
+
+                $action .= '<div class="custom-control custom-switch custom-control-inline ml-2">
+
+    <input type="checkbox"
+        class="custom-control-input capture-status-switch"
+        id="captureSwitch' . $store->id . '"
+        ' . ($store->is_capture ? 'checked' : '') . '
+        data-store-id="' . $store->id . '">
+
+    <label class="custom-control-label pt-1"
+        for="captureSwitch' . $store->id . '">
+        Capture
+    </label>
+
+</div>';
             }
 
             $action .= '</div>';

@@ -1,22 +1,26 @@
 @extends('layouts.backend.datatable_layouts')
 
 <style>
-    .is-invalid {
-        border-color: #dc3545;
+    .custom-switch {
+        display: inline-flex !important;
+        align-items: center;
+        margin-right: 10px;
     }
 
-    .scrollable-content {
-        max-height: 450px;
-        overflow-y: auto;
+    .custom-switch .custom-control-label {
+        cursor: pointer;
+        padding-left: 8px;
+        font-size: 14px;
+        line-height: 20px;
+        white-space: nowrap;
     }
 
-    .table th,
-    .table td {
-        vertical-align: middle;
+    .custom-switch .custom-control-label::before {
+        top: 0.20rem;
     }
 
-    .buttons-collection{
-        height: 40px !important;
+    .custom-switch .custom-control-label::after {
+        top: calc(0.20rem + 2px);
     }
 </style>
 
@@ -25,7 +29,7 @@
 @endphp
 @section('page-content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <!-- Wrapper Start -->
+
     <div class="content-page">
         <div class="container-fluid">
             <div class="card-header mb-2 d-flex flex-wrap align-items-center justify-content-between">
@@ -48,7 +52,7 @@
                             </th>
                             <th>Address</th>
                             <th>Status</th>
-                            <th>Main Branch</th>
+                            {{-- <th>Main Branch</th> --}}
                             <th>Bank Ledger</th>
                             <th>Created Date</th>
                             <th>Updated Date</th>
@@ -62,7 +66,6 @@
             </div>
         </div>
     </div>
-
     <!-- Wrapper End-->
 
     <div class="modal fade bd-example-modal-lg" id="lowlevelStockBranchModal" tabindex="-1" role="dialog"
@@ -200,13 +203,24 @@
 
     <script>
         var pdfLogo = "";
-        // Dynamically bind event for the custom switch
-        $(document).on('change', '.custom-control-input:not(.capture-status-switch)', function() {
-            var storeId = $(this).data('store-id'); // Get store ID from data attribute
-            var isEnabled = $(this).prop('checked') ? 1 :
-                0; // Check if the switch is on (enabled) or off (disabled)
 
-            // Show SweetAlert2 confirmation dialog
+
+        $(document).on('click', '.store-status-switch, .capture-status-switch', function(e) {
+            e.stopPropagation();
+        });
+
+
+        // STORE STATUS SWITCH
+        $(document).on('change', '.store-status-switch', function(e) {
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            let checkbox = $(this);
+
+            let storeId = checkbox.data('store-id');
+            let isEnabled = checkbox.prop('checked') ? 1 : 0;
+
             Swal.fire({
                 title: "Are you sure?",
                 text: "Do you want to change the store in out status?",
@@ -215,50 +229,61 @@
                 confirmButtonText: "Yes, change it!",
                 cancelButtonText: "No, cancel"
             }).then((result) => {
+
                 if (result.isConfirmed) {
-                    // Send AJAX request to update the in_out_enable field
+
                     $.ajax({
-                        url: '/store/update-status', // The URL that handles the store update
-                        method: 'POST',
+                        url: '/store/update-status',
+                        type: 'POST',
                         data: {
                             store_id: storeId,
-                            in_out_enable: isEnabled, // Send the updated status
-                            _token: $('meta[name="csrf-token"]').attr(
-                                'content') // CSRF token for security
+                            in_out_enable: isEnabled,
+                            _token: $('meta[name="csrf-token"]').attr('content')
                         },
+
                         success: function(response) {
 
-                            // Show success message
                             Swal.fire({
                                 title: "Success!",
                                 text: "Store status has been changed.",
                                 icon: "success",
-                                timer: 1000, // Auto close after 2 seconds (2000 ms)
-                                timerProgressBar: true,
-                                showConfirmButton: false // Hide "OK" button
-                            }).then(() => {
-                                // After alert closes, reload page or DataTable
-                                // location.reload();
-                                $('#branch_table').DataTable().ajax.reload(null, false);
+                                timer: 1000,
+                                showConfirmButton: false
                             });
+
                         },
-                        error: function(error) {
-                            console.log("Error:", error); // Log any errors
-                            Swal.fire("Error!", "Something went wrong.",
-                                "error"); // Show error message if AJAX fails
+
+                        error: function(xhr) {
+
+                            checkbox.prop('checked', !isEnabled);
+
+                            Swal.fire(
+                                "Error!",
+                                "Something went wrong.",
+                                "error"
+                            );
                         }
                     });
+
                 } else {
-                    // If user cancels, we just log it
-                    $(this).prop('checked', !isEnabled);
-                    console.log("Status change was cancelled.");
+
+                    checkbox.prop('checked', !isEnabled);
                 }
             });
         });
 
-        $(document).on('change', '.capture-status-switch', function() {
-            var storeId = $(this).data('store-id');
-            var isCapture = $(this).prop('checked') ? 1 : 0;
+
+
+        // CAPTURE STATUS SWITCH
+        $(document).on('change', '.capture-status-switch', function(e) {
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            let checkbox = $(this);
+
+            let storeId = checkbox.data('store-id');
+            let isCapture = checkbox.prop('checked') ? 1 : 0;
 
             Swal.fire({
                 title: "Are you sure?",
@@ -268,34 +293,45 @@
                 confirmButtonText: "Yes, change it!",
                 cancelButtonText: "No, cancel"
             }).then((result) => {
+
                 if (result.isConfirmed) {
+
                     $.ajax({
                         url: '/store/update-capture-status',
-                        method: 'POST',
+                        type: 'POST',
                         data: {
                             store_id: storeId,
                             is_capture: isCapture,
                             _token: $('meta[name="csrf-token"]').attr('content')
                         },
+
                         success: function(response) {
+
                             Swal.fire({
                                 title: "Success!",
                                 text: "Capture status has been changed.",
                                 icon: "success",
                                 timer: 1000,
-                                timerProgressBar: true,
                                 showConfirmButton: false
-                            }).then(() => {
-                                $('#branch_table').DataTable().ajax.reload(null, false);
                             });
+
                         },
-                        error: function(error) {
-                            console.log("Error:", error);
-                            Swal.fire("Error!", "Something went wrong.", "error");
+
+                        error: function(xhr) {
+
+                            checkbox.prop('checked', !isCapture);
+
+                            Swal.fire(
+                                "Error!",
+                                "Something went wrong.",
+                                "error"
+                            );
                         }
                     });
+
                 } else {
-                    $(this).prop('checked', !isCapture);
+
+                    checkbox.prop('checked', !isCapture);
                 }
             });
         });
@@ -309,30 +345,29 @@
             });
 
             $('#branch_table').DataTable().clear().destroy();
-
-            $('#branch_table').DataTable({
-                pagelength: 10,
-                responsive: true,
+            let table = $('#branch_table').DataTable({
+                destroy: true,
                 processing: true,
+                serverSide: true,
                 ordering: true,
                 bLengthChange: true,
-                serverSide: true,
+
+                responsive: false,
+                autoWidth: false,
+
+                pageLength: 10,
+
+                ajax: {
+                    url: '{{ url('store/get-data') }}',
+                    type: 'POST'
+                },
+
                 language: {
                     search: "",
                     lengthMenu: "_MENU_"
                 },
-                "ajax": {
-                    "url": '{{ url('store/get-data') }}',
-                    "type": "post",
-                    "data": function(d) {},
-                },
-              dom: "<'row dt_height'<'col-md-12 d-flex justify-content-end align-items-center'f l>>t<'row'<'col-md-6'i><'col-md-6'p>>",
-                  initComplete: function() {
-                    $('.dataTables_filter input').attr("placeholder", "Search List...");
-                },
-                aoColumns: [
 
-                    {
+                columns: [{
                         data: 'name'
                     },
                     {
@@ -341,10 +376,10 @@
                     {
                         data: 'is_active'
                     },
+                    // {
+                    //     data: 'main_branch'
+                    // },
                     {
-                        data: 'main_branch'
-                    },
-                     {
                         data: 'bank_ledger'
                     },
                     {
@@ -354,100 +389,11 @@
                         data: 'updated_at'
                     },
                     {
-                        data: 'action'
+                        data: 'action',
+                        orderable: false,
+                        searchable: false
                     }
-                    // Define more columns as per your table structure
-
-                ],
-                aoColumnDefs: [{
-                    bSortable: false,
-                    aTargets: [0,1, 2, 3, 7]
-                }],
-                order: [
-                    [4, 'desc']
-                ], // 🟢 Sort by created_at DESC by default
-                lengthMenu: [
-                    [10, 25, 50],
-                    ['10 rows', '25 rows', '50 rows', 'All']
-                ],
-                buttons: [{
-                    extend: 'collection',
-                    text: '<i class="fa fa-download"></i>',
-                    className: 'btn btn-info btn-sm',
-                    autoClose: true,
-                    buttons: [{
-                            extend: 'excelHtml5',
-                            text: '<i class="fa fa-file-excel-o"></i> Excel',
-                            title: 'Store List',
-                            filename: 'store_list',
-                            exportOptions: {
-                                columns: ':visible'
-                            }
-                        },
-                        {
-                            extend: 'pdfHtml5',
-                            text: '<i class="fa fa-file-pdf-o"></i> PDF',
-                            filename: 'store_list',
-                            orientation: 'landscape',
-                            pageSize: 'A4',
-
-                            exportOptions: {
-                                columns: [0, 1, 2, 3, 4]
-                            },
-
-                            customize: function(doc) {
-
-                                // REMOVE default title
-                                doc.content.splice(0, 1);
-
-                                doc.styles.tableHeader.alignment = 'center';
-
-                                // HEADER
-                                doc.content.unshift({
-                                    margin: [0, 0, 0, 12],
-                                    columns: [{
-                                            width: '33%',
-                                            columns: [{
-                                                    image: pdfLogo,
-                                                    width: 30
-                                                },
-                                                {
-                                                    text: 'LiquorHub',
-                                                    fontSize: 11,
-                                                    bold: true,
-                                                    margin: [5, 8, 0, 0]
-                                                }
-                                            ]
-                                        },
-
-                                        {
-                                            width: '34%',
-                                            text: 'Store List',
-                                            alignment: 'center',
-                                            fontSize: 16,
-                                            bold: true,
-                                            margin: [0, 8, 0, 0]
-                                        },
-
-                                        {
-                                            width: '33%',
-                                            text: 'Generated: ' + new Date()
-                                                .toLocaleString(),
-                                            alignment: 'right',
-                                            fontSize: 9,
-                                            margin: [0, 8, 0, 0]
-                                        }
-
-                                    ]
-                                });
-
-                                doc.styles.tableHeader.fontSize = 10;
-                                doc.defaultStyle.fontSize = 9;
-                            }
-                        }
-                    ]
-                }]
-
+                ]
             });
         });
 
@@ -542,7 +488,7 @@
                     });
                     var modal = new bootstrap.Modal(document.getElementById('lowlevelStockBranchModal'));
                     modal.show();
-                   
+
                 },
                 error: function() {
                     alert('Failed to load products.');
