@@ -18,7 +18,7 @@ class DemandOrderController extends Controller
 {
     public function index()
     {
-        
+
         if (auth()->user()->role_id == 1 || canAccess(auth()->user()->role_id, 'demand-order')) {
             $demandOrders = DemandOrder::with('vendor')->with('products')->latest()->paginate(10);
             return view('demand_orders.index', compact('demandOrders'));
@@ -28,7 +28,6 @@ class DemandOrderController extends Controller
             ]);
         }
     }
-
 
     public function getData(Request $request)
     {
@@ -66,8 +65,8 @@ class DemandOrderController extends Controller
             $query->skip($start)->take($length);
         }
 
-         $roleId = auth()->user()->role_id;
-        
+        $roleId = auth()->user()->role_id;
+
         $userId = auth()->id();
 
         $listAccess = getAccess($roleId, 'demand-order-manage');
@@ -103,6 +102,8 @@ class DemandOrderController extends Controller
                 <i class="las la-file-pdf"></i> View File
             </button>
             <a href="' . route('demand-order.view', $order->id) . '" class="btn btn-info btn-sm ml-2">View</a>
+           <button type="button" onclick="delete_demand(' . $order->id . ')" class="btn btn-danger btn-sm ml-2">Delete</button>
+
         </div>';
 
             $records[] = [
@@ -828,5 +829,25 @@ class DemandOrderController extends Controller
         $product = Product::with('subcategory')->find($product_data->product_id);
 
         return $product && $product->subcategory ? $product->subcategory->name : 'N/A';
+    }
+
+    // Soft delete a record
+    public function destroy(Request $request)
+    {
+        $id = $request->id;
+        // Find the user and soft delete
+        $record = User::findOrFail($id);
+        $record->update(['is_deleted' => 'yes']);
+
+        return redirect()->route('users.list')->with('success', 'Record deleted successfully.');
+    }
+
+     public function delete(Request $request)
+    {
+        $id = $request->id;
+        $demandOrder = DemandOrder::findOrFail($id);
+        $demandOrder->delete();
+
+        return response()->json(['success' => true, 'message' => 'Demand order deleted successfully.']);
     }
 }

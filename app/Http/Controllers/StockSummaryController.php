@@ -10,55 +10,62 @@ use Carbon\Carbon;
 
 class StockSummaryController extends Controller
 {
-public function stockSummary()
+    public function stockSummary(Request $request)
     {
         $branches = DB::table('branches')->pluck('name', 'id');
-        return view('stock_summary.stock_summary', compact('branches'));
+        $fromDate = $request->from_date;
+        $toDate   = $request->to_date;
+        $category = $request->category;
+        return view('stock_summary.stock_summary', compact('branches', 'fromDate', 'toDate', 'category'));
     }
 
- public function stockSummaryData(Request $request)
-{
-    $fromDate = $request->from_date;
-    $toDate   = $request->to_date;
+    public function stockSummaryData(Request $request)
+    {
+        $fromDate = $request->from_date;
+        $toDate   = $request->to_date;
+        $category = $request->category;
 
-    $data = DB::table('daily_product_stocks as dps')
-        ->join('products as p', 'p.id', '=', 'dps.product_id')
-        ->join('sub_categories as sc', 'sc.id', '=', 'p.subcategory_id')
-        ->select(
-            'p.name as product',
-            'sc.name as category',
+        $data = DB::table('daily_product_stocks as dps')
+            ->join('products as p', 'p.id', '=', 'dps.product_id')
+            ->join('sub_categories as sc', 'sc.id', '=', 'p.subcategory_id')
+            ->select(
+                'p.name as product',
+                'sc.name as category',
 
-            // OPENING (first day total of all branches)
-            DB::raw("
+                // OPENING (first day total of all branches)
+                DB::raw("
                 SUM(CASE 
                     WHEN dps.date = '$fromDate' THEN dps.opening_stock 
                     ELSE 0 
                 END) as opening
             "),
 
-            // INWARD (ALL branches)
-            DB::raw("SUM(dps.added_stock + dps.transferred_stock) as inward"),
+                // INWARD (ALL branches)
+                DB::raw("SUM(dps.added_stock + dps.transferred_stock) as inward"),
 
-            // OUTWARD
-            DB::raw("SUM(dps.sold_stock) as outward"),
+                // OUTWARD
+                DB::raw("SUM(dps.sold_stock) as outward"),
 
-            // ADJUSTMENT
-            DB::raw("SUM(dps.modify_sale_add_qty - dps.modify_sale_remove_qty) as adjustment"),
+                // ADJUSTMENT
+                DB::raw("SUM(dps.modify_sale_add_qty - dps.modify_sale_remove_qty) as adjustment"),
 
-            // CLOSING (last day total)
-            DB::raw("
+                // CLOSING (last day total)
+                DB::raw("
                 SUM(CASE 
                     WHEN dps.date = '$toDate' THEN dps.closing_stock 
                     ELSE 0 
                 END) as closing
             ")
-        )
-        ->whereBetween('dps.date', [$fromDate, $toDate])
-        ->groupBy('p.id', 'p.name', 'sc.name')
-        ->orderBy('sc.name')
-        ->orderBy('p.name')
-        ->get();
+            )
+            ->whereBetween('dps.date', [$fromDate, $toDate])
+            ->when($category, function ($query) use ($category) {
+                $query->where('sc.id', $category);
+            })
+            ->groupBy('p.id', 'p.name', 'sc.name')
+            ->orderBy('sc.name')
+            ->orderBy('p.name')
+            ->get();
 
-    return response()->json(['data' => $data]);
-}
+        return response()->json(['data' => $data]);
+    }
 }

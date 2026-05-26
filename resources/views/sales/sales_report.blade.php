@@ -103,14 +103,14 @@
         pointer-events: auto;
     }
 
-    .verify-single-btn .text{
-       font-size: 12px;
-       color: #dcdee4 !important;
+    .verify-single-btn .text {
+        font-size: 12px;
+        color: #dcdee4 !important;
     }
 
-    .verify-single-btn .icon{
-       font-size: 12px;
-       color: #dcdee4 !important;
+    .verify-single-btn .icon {
+        font-size: 12px;
+        color: #dcdee4 !important;
     }
 
     .verify-checkbox input {
@@ -193,6 +193,15 @@
 
     #addSalesModal .modal-dialog {
         z-index: 1105;
+    }
+
+    /* SweetAlert always top */
+    .swal2-container {
+        z-index: 20000 !important;
+    }
+
+    .swal2-popup {
+        z-index: 20001 !important;
     }
 </style>
 @section('page-content')
@@ -1084,7 +1093,7 @@
             });
         }
 
-        $(document).off('submit', '#transferForm').on('submit', '#transferForm', function(e) {
+        $(document).off('submit', '#transferFormModel').on('submit', '#transferFormModel', function(e) {
 
             e.preventDefault();
 
@@ -1104,41 +1113,41 @@
 
                 success: function(res) {
 
-                    // ✅ CLOSE ADD/EDIT MODAL
-                    $('#transferActionModal').modal('hide');
+                    if (res.status) {
 
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: res.message || 'Transfer Added Successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
 
-                    $('#transferModalContent').html('Loading...');
+                        // ✅ CLOSE MODAL
+                        $('#transferActionModal').modal('hide');
 
-                    $.get('/stock-transfer/modal-list', function(view) {
+                        // ✅ RELOAD LIST
+                        $('#transferModalContent').html('Loading...');
 
-                        $('#transferModalContent').html(view);
+                        $.get('/stock-transfer/modal-list', function(view) {
 
-                        // 🔥 RE-INIT DATATABLE
-                        initTransferTable(currentBranchId, res.shift_id, 'admin');
+                            $('#transferModalContent').html(view);
 
-                    });
+                            initTransferTable(currentBranchId, res.shift_id, 'admin');
 
-
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Transfer Added!',
-                        timer: 1200,
-                        showConfirmButton: false
-                    });
+                        });
+                    }
                 },
 
                 error: function(xhr) {
 
-                    let errors = xhr.responseJSON?.errors;
+                    let response = xhr.responseJSON;
 
-                    if (errors) {
-                        let msg = Object.values(errors).flat().join("\n");
-                        alert(msg);
-                    } else {
-                        alert('Something went wrong');
-                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        html: response.message || 'Something went wrong'
+                    });
                 },
 
                 complete: function() {
@@ -1147,6 +1156,68 @@
             });
 
         });
+
+        $(document).off('submit', '#editTransferForm')
+            .on('submit', '#editTransferForm', function(e) {
+
+                e.preventDefault();
+
+                let form = $(this);
+                let btn = form.find('#submitBtn');
+
+                btn.prop('disabled', true).text('Processing...');
+
+                $.ajax({
+                    url: form.attr('action'),
+                    type: "POST",
+                    data: form.serialize(),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+
+                    success: function(res) {
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: res.message || 'Transfer Updated Successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+
+                        $('#transferActionModal').modal('hide');
+
+                        $('#transferModalContent').html('Loading...');
+
+                        $.get('/stock-transfer/modal-list', function(view) {
+
+                            $('#transferModalContent').html(view);
+
+                            initTransferTable(currentBranchId, res.shift_id, 'admin');
+                        });
+                    },
+
+                    error: function(xhr) {
+
+                        console.log(xhr.responseText);
+
+                        let response = xhr.responseJSON;
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            html: response?.message || 'Something went wrong'
+                        });
+                    },
+
+                    complete: function() {
+
+                        btn.prop('disabled', false)
+                            .text('Update Transfer');
+                    }
+                });
+            });
 
         $('#transferActionModal').on('hidden.bs.modal', function() {
 
@@ -1236,42 +1307,42 @@
             let oldValue = !checkbox.checked;
 
             updateVerifyUI(checkbox);
-              // ====================================
-    // MAIN CHECKBOX ENABLE / DISABLE
-    // ====================================
+            // ====================================
+            // MAIN CHECKBOX ENABLE / DISABLE
+            // ====================================
 
-    let prefix = type === 'sales'
-        ? 'sales'
-        : type === 'transfer'
-        ? 'tra'
-        : 'shift';
+            let prefix = type === 'sales' ?
+                'sales' :
+                type === 'transfer' ?
+                'tra' :
+                'shift';
 
-    let mainCheckbox = document.getElementById(
-        `main_${prefix}_${currentShiftId}`
-    );
+            let mainCheckbox = document.getElementById(
+                `main_${prefix}_${currentShiftId}`
+            );
 
-    if (mainCheckbox) {
+            if (mainCheckbox) {
 
-        // checked update
-        mainCheckbox.checked = checkbox.checked;
+                // checked update
+                mainCheckbox.checked = checkbox.checked;
 
-        // enable disable
-        mainCheckbox.disabled = !checkbox.checked;
+                // enable disable
+                mainCheckbox.disabled = !checkbox.checked;
 
-        // class update
-        let btn = mainCheckbox.parentElement.querySelector('.verify-single-btn');
+                // class update
+                let btn = mainCheckbox.parentElement.querySelector('.verify-single-btn');
 
-        if (btn) {
+                if (btn) {
 
-            btn.classList.toggle('verified', checkbox.checked);
+                    btn.classList.toggle('verified', checkbox.checked);
 
-            btn.classList.toggle('unverified', !checkbox.checked);
+                    btn.classList.toggle('unverified', !checkbox.checked);
 
-            btn.classList.toggle('disabled-btn', !checkbox.checked);
-        }
-    }
+                    btn.classList.toggle('disabled-btn', !checkbox.checked);
+                }
+            }
 
-    // ====================================
+            // ====================================
 
             if (type === 'shift') {
                 verifyFullShift(currentShiftId, checkbox.checked, 'sub_admin', checkbox, oldValue);
@@ -1332,7 +1403,7 @@
                 btn.classList.remove('unverified');
                 btn.querySelector('.icon').innerText = '✔';
                 btn.querySelector('.text').innerText = 'VERIFIED';
-                
+
             } else {
                 btn.classList.add('unverified');
                 btn.classList.remove('verified');

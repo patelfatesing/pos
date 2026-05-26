@@ -200,7 +200,7 @@
                 <!-- ================= HEADER ================= -->
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <div class="ledger-title">
-                        <h4 class="mb-0">Ledger Vouchers — {{ $voucher->name }}</h4>
+                        <h4 class="mb-0">Voucher View</h4>
                         {{-- <p><small id="dateRangeLabel">{{ $start }} to {{ $end }}</small></p> --}}
                     </div>
                     <h5 class="title-table">LIQUOR HUB</h5>
@@ -217,10 +217,10 @@
                             <div class="d-flex align-items-center gap-1 verify-box voucher">
                                 <input type="checkbox"
                                     onchange="changeVoucherVerifyStatus({{ $voucher->id }}, this.checked)"
-                                    {{ $voucher->admin_status == 'verify' ? 'checked' : '' }}>
+                                    {{ $voucher->super_admin_status == 'verify' ? 'checked' : '' }}>
 
-                                <span onclick="handleVoucherClick({{ $voucher->id }})">
-                                    ✔ Verify
+                                <span onclick="handleVoucherClick({{ $voucher->id }})" class="verify-text ml-1" style="cursor: pointer;">
+                                    {{ $voucher->super_admin_status == 'verify' ? 'Verify' : 'Unverify' }}
                                 </span>
                             </div>
                         {{-- @endif --}}

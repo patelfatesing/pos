@@ -14,10 +14,10 @@ class GroupController extends Controller
     {
         if (auth()->user()->role_id == 1 || canAccess(auth()->user()->role_id, 'accounting-groups')) {
             $groups = AccountGroup::with('parent')
-            ->orderBy('parent_id')
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
+                ->orderBy('parent_id')
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get();
 
             return view('accounting.groups.index', compact('groups'));
         } else {
@@ -104,12 +104,13 @@ class GroupController extends Controller
         ];
         $orderByCol = $sortable[$orderColumn] ?? 'account_groups.name';
 
-        // Fetch page
-        $rows = $base
-            ->orderBy($orderByCol, $orderDirection)
-            ->offset($start)
-            ->limit($length)
-            ->get();
+        $query = $base->orderBy($orderByCol, $orderDirection);
+
+        if ($length != -1) {
+            $query->skip($start)->take($length);
+        }
+
+        $rows = $query->get();
 
         // Build response rows
         $records = [];

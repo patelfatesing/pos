@@ -71,9 +71,10 @@
                                     <strong>Day Book</strong>
                                     <h5 class="title-table">LIQUOR HUB</h5>
                                     <small id="dateLabel" style="cursor:pointer;">
-    For {{ \Carbon\Carbon::parse($from)->format('d-M-y') }}
-</small>
-<input type="text" id="singleDate" style="position:absolute; opacity:0; width:1px;" />
+                                        For {{ \Carbon\Carbon::parse($from)->format('d-M-y') }}
+                                    </small>
+                                    <input type="text" id="singleDate"
+                                        style="position:absolute; opacity:0; width:1px;" />
                                     <a href="{{ route('reports.list') }}" class="btn btn-secondary">Back</a>
                                 </div>
 
@@ -94,55 +95,60 @@
 
                                         <tbody>
                                             <?php
-
+                                            
                                             ?>
-                                            @foreach ($entries as $e)
-                                                <tr>
-                                                    <td>{{ \Carbon\Carbon::parse($e['date'])->format('d-M-y') }}</td>
-                                                    <td>
+                                        <tbody>
+                                            @if (count($entries) > 0)
+                                                @foreach ($entries as $e)
+                                                    <tr>
+                                                        <td>{{ \Carbon\Carbon::parse($e['date'])->format('d-M-y') }}</td>
 
-                                                        @if ($e['voucher_type'] == 'Purchase')
-                                                            @if ($e['gen_id'] != NULL)
-                                                                <a href="{{ route('purchase.edit', $e['gen_id']) }}"
+                                                        <td>
+                                                            @if ($e['voucher_type'] == 'Purchase')
+                                                                @if ($e['gen_id'] != null)
+                                                                    <a href="{{ route('purchase.edit', $e['gen_id']) }}"
+                                                                        class="text-primary text-decoration-none fw-bold">
+                                                                        {{ $e['particulars'] }}
+                                                                    </a>
+                                                                @else
+                                                                    <a href="{{ route('accounting.vouchers.edit', $e['id']) }}"
+                                                                        class="text-primary text-decoration-none fw-bold">
+                                                                        {{ $e['particulars'] }}
+                                                                    </a>
+                                                                @endif
+                                                            @elseif ($e['voucher_type'] == 'Sales')
+                                                                <a href="{{ route('sales.edit-sales', $e['gen_id'] ?? $e['id']) }}"
                                                                     class="text-primary text-decoration-none fw-bold">
                                                                     {{ $e['particulars'] }}
-                                                                    
                                                                 </a>
-                                                                @else
+                                                            @else
                                                                 <a href="{{ route('accounting.vouchers.edit', $e['id']) }}"
                                                                     class="text-primary text-decoration-none fw-bold">
                                                                     {{ $e['particulars'] }}
                                                                 </a>
-                                                                @endif
-                                                        @elseif ($e['voucher_type'] == 'Sales')
-                                                            <a href="{{  route('sales.edit-sales', $e['gen_id'] ?? $e['id'])}}"
-                                                                class="text-primary text-decoration-none fw-bold">
-                                                                {{ $e['particulars'] }}
-                                                            </a>
-                                                        @else
-                                                            <a href="{{ route('accounting.vouchers.edit', $e['id']) }}"
-                                                                class="text-primary text-decoration-none fw-bold">
-                                                                {{ $e['particulars'] }}
-                                                            </a>
-                                                        @endif
+                                                            @endif
+                                                        </td>
 
-                                           
+                                                        <td>{{ $e['voucher_type'] }}</td>
+                                                        <td>{{ $e['voucher_no'] }}</td>
 
-                                          
-                                            </td>
+                                                        <td class="text-end">
+                                                            {{ $e['debit'] ? number_format($e['debit'], 2) : '' }}
+                                                        </td>
 
-                                            <td>{{ $e['voucher_type'] }}</td>
-                                            <td>{{ $e['voucher_no'] }}</td>
-
-                                            <td class="text-end">
-                                                {{ $e['debit'] ? number_format($e['debit'], 2) : '' }}
-                                            </td>
-
-                                            <td class="text-end">
-                                                {{ $e['credit'] ? number_format($e['credit'], 2) : '' }}
-                                            </td>
-                                            </tr>
-                                            @endforeach
+                                                        <td class="text-end">
+                                                            {{ $e['credit'] ? number_format($e['credit'], 2) : '' }}
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            @else
+                                                <tr>
+                                                    <td colspan="6" class="text-center text-danger py-3">
+                                                        Data not available
+                                                    </td>
+                                                </tr>
+                                            @endif
+                                        </tbody>
                                         </tbody>
 
                                         {{-- <tfoot>
@@ -167,39 +173,39 @@
 
 @section('scripts')
     <script>
-        $('#dateLabel').on('click', function () {
-    $('#singleDate').data('daterangepicker').show();
-});
+        $('#dateLabel').on('click', function() {
+            $('#singleDate').data('daterangepicker').show();
+        });
 
 
-$(document).ready(function () {
+        $(document).ready(function() {
 
-    let selectedDate = "{{ $from }}";
+            let selectedDate = "{{ $from }}";
 
-    $('#singleDate').daterangepicker({
-        singleDatePicker: true,
-        showDropdowns: true,
-        autoApply: true, // ✅ auto close after select
-        startDate: selectedDate,
-        locale: {
-            format: 'YYYY-MM-DD'
-        }
-    });
+            $('#singleDate').daterangepicker({
+                singleDatePicker: true,
+                showDropdowns: true,
+                autoApply: true, // ✅ auto close after select
+                startDate: selectedDate,
+                locale: {
+                    format: 'YYYY-MM-DD'
+                }
+            });
 
-    // ✅ set default value in input
-    $('#singleDate').val(selectedDate);
+            // ✅ set default value in input
+            $('#singleDate').val(selectedDate);
 
-    // ✅ when date selected
-    $('#singleDate').on('apply.daterangepicker', function(ev, picker) {
-        let date = picker.startDate.format('YYYY-MM-DD');
+            // ✅ when date selected
+            $('#singleDate').on('apply.daterangepicker', function(ev, picker) {
+                let date = picker.startDate.format('YYYY-MM-DD');
 
-        $(this).val(date); // show selected date in input
+                $(this).val(date); // show selected date in input
 
-        // reload page
-        window.location.href = "?date=" + date;
-    });
+                // reload page
+                window.location.href = "?date=" + date;
+            });
 
-});
+        });
 
         $(document).on("click", ".open-voucher", function() {
             let id = $(this).data("id");
