@@ -28,7 +28,7 @@
                                     <th>Sr No</th> <!-- Added this line -->
                                     <th>Customer Name</th>
                                     <th>Mobile Number</th>
-                                    <th>Commission Type</th>
+                                    {{-- <th>Commission Type</th> --}}
                                     {{-- <th>Applies To</th> --}}
                                     <th>Status</th>
                                     <th>Created Date</th>
@@ -90,10 +90,10 @@
                     {
                         data: 'mobile_number'
                     },
-                    {
-                        data: 'commission_type',
-                        orderable: false
-                    },
+                    // {
+                    //     data: 'commission_type',
+                    //     orderable: false
+                    // },
                     // {
                     //     data: 'applies_to', orderable: false
                     // },
@@ -112,7 +112,7 @@
                     }
                 ],
                 order: [
-                    [5, 'desc']
+                    [4, 'desc']
                 ],
                 lengthMenu: [
                     [10, 25, 50, 100, -1],

@@ -36,7 +36,7 @@
                         @endif
 
                         <!-- FORM -->
-                        <form id="transferForm" action="{{ route('stock-transfer.update', $transfer->id) }}" method="POST">
+                        <form id="transferForm" action="{{ route('stock-transfer.update-form', $transfer->id) }}" method="POST">
                             @csrf
 
                             <div class="row">
@@ -55,6 +55,7 @@
                                     </select>
                                 </div>
                                 <input type="hidden" name="type" value="{{ request('type') }}">
+                                <input type="hidden" name="shift_id" value="{{ $transfer->shift_id }}">
                                 <!-- To Store -->
                                 <div class="col-md-6">
                                     <label>To Store *</label>

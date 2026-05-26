@@ -357,7 +357,7 @@
 
             .avc-header .btn-secondary {
                 /* padding: 4px 8px;
-                                                                                font-size: 12px; */
+                                                                                                                    font-size: 12px; */
             }
 
             .voucher-table .cmn-table td {
@@ -595,10 +595,10 @@
 
                                             <tfoot>
                                                 <tr class="">
-                                                    <td colspan="2">
+                                                    <td>
                                                         <div class="">
                                                             Narration :
-                                                            <input type="text" name="narration" class="">
+                                                            <input type="text" name="narration" class="inline-input" style="width: 500px;">
                                                         </div>
                                                     </td>
 
@@ -878,11 +878,22 @@
                 }
 
                 function rowHasAnyValue($tr) {
+
                     const ledger = $tr.find('.ledger').val();
-                    const dc = $tr.find('input[name*="[dc]"]').val();
-                    const amt = parseFloat($tr.find('.amount').val() || 0);
-                    const narration = $tr.find('input[name*="[line_narration]"]').val();
-                    return !!(ledger || dc || amt || narration);
+
+                    const dr = parseFloat(
+                        ($tr.find('.dr-input').val() || '0').replace(/,/g, '')
+                    ) || 0;
+
+                    const cr = parseFloat(
+                        ($tr.find('.cr-input').val() || '0').replace(/,/g, '')
+                    ) || 0;
+
+                    return !!(
+                        ledger ||
+                        dr > 0 ||
+                        cr > 0
+                    );
                 }
 
                 // NEW: check if any row has value
@@ -899,20 +910,36 @@
 
                 // NEW: show/hide Create button
                 function updateSubmitVisibility() {
-                    let hasDr = false;
-                    let hasCr = false;
 
-                    $('#linesTable tbody tr').each(function() {
-                        const dc = $(this).find('.dc-select').val();
-                        const amount = parseFloat($(this).find('.amount').val()) || 0;
+                    let totalDr = 0;
+                    let totalCr = 0;
 
-                        if (dc === 'Dr' && amount > 0) hasDr = true;
-                        if (dc === 'Cr' && amount > 0) hasCr = true;
+                    $('#linesTable tbody tr.line').each(function() {
+
+                        const dr = parseFloat(
+                            ($(this).find('.dr-input').val() || '0').replace(/,/g, '')
+                        ) || 0;
+
+                        const cr = parseFloat(
+                            ($(this).find('.cr-input').val() || '0').replace(/,/g, '')
+                        ) || 0;
+
+                        totalDr += dr;
+                        totalCr += cr;
+
                     });
 
-                    if (hasDr && hasCr) {
+                    // show only when balanced and not zero
+                    if (
+                        totalDr > 0 &&
+                        totalCr > 0 &&
+                        totalDr === totalCr
+                    ) {
+
                         $('#btnSubmit').show();
+
                     } else {
+
                         $('#btnSubmit').hide();
                     }
                 }
@@ -1042,7 +1069,13 @@
 
                     // Remove the actual line row
                     $lineRow.remove();
-                    setTimeout(updateDrCrTotals, 50);
+                    setTimeout(function() {
+
+                        updateDrCrTotals();
+
+                        updateSubmitVisibility();
+
+                    }, 50);
                     toggleRemoveButtons();
                     // recalc();
                 });
@@ -1051,9 +1084,29 @@
 
 
                 function linesHaveAnyAmount() {
-                    return $('#linesTable tbody tr .amount').filter(function() {
-                        return $(this).val();
-                    }).length > 0;
+
+                    let found = false;
+
+                    $('#linesTable tbody tr.line').each(function() {
+
+                        const dr = parseFloat(
+                            ($(this).find('.dr-input').val() || '0').replace(/,/g, '')
+                        ) || 0;
+
+                        const cr = parseFloat(
+                            ($(this).find('.cr-input').val() || '0').replace(/,/g, '')
+                        ) || 0;
+
+                        if (dr > 0 || cr > 0) {
+
+                            found = true;
+
+                            return false;
+                        }
+
+                    });
+
+                    return found;
                 }
 
                 function ensureRow(idx, dc) {
@@ -1233,60 +1286,39 @@
 
                     const $row = $(this).closest('tr');
 
-                    const dr = parseFloat(
-                        ($row.find('.dr-input').val() || '0').replace(/,/g, '')
-                    ) || 0;
+                    // DO NOT auto change existing DC
+                    let dc = $row.find('.dc-select').val();
 
-                    const cr = parseFloat(
-                        ($row.find('.cr-input').val() || '0').replace(/,/g, '')
-                    ) || 0;
+                    // if empty only then decide
+                    if (!dc) {
 
-                    // keep correct visibility
+                        const prevRow = $row.prevAll('tr.line:first');
+
+                        if (prevRow.length) {
+
+                            const prevDc = prevRow.find('.dc-select').val();
+
+                            dc = (prevDc === 'Dr') ? 'Cr' : 'Dr';
+
+                        } else {
+
+                            dc = 'Dr';
+                        }
+
+                        $row.find('.dc-select').val(dc);
+                    }
+
                     syncAmountInputs($row);
-
-                    // restore existing value
-                    if (dr > 0) {
-
-                        $row.find('.amount').val(dr);
-                        $row.find('.dc-select').val('Dr');
-
-                        $row.find('.dr-input')
-                            .val(formatIndianNumber(dr.toString()));
-
-                    } else if (cr > 0) {
-
-                        $row.find('.amount').val(cr);
-                        $row.find('.dc-select').val('Cr');
-
-                        $row.find('.cr-input')
-                            .val(formatIndianNumber(cr.toString()));
-                    }
-
-                    // show balance
-                    if ($(this).val()) {
-                        showCurBalanceRow($row);
-                    }
-
-                    updateDrCrTotals();
-                    updateSubmitVisibility();
-
-                    // focus only visible input
+                    updateSubmitVisibility(); // NEW
+                    // focus visible field
                     setTimeout(() => {
-
-                        const dc = $row.find('.dc-select').val();
 
                         let $targetInput = (dc === 'Cr') ?
                             $row.find('.cr-input:visible') :
                             $row.find('.dr-input:visible');
 
                         if ($targetInput.length) {
-
                             $targetInput.focus();
-
-                            // select only if value exists
-                            if ($targetInput.val()) {
-                                $targetInput.select();
-                            }
                         }
 
                     }, 50);
@@ -1377,12 +1409,12 @@
 
                 // Loading
                 $lineRow.after(`
-        <tr class="cur-bal-row">
-            <td colspan="3" style="padding-left:115px;font-style:italic;">
-                Loading current balance...
-            </td>
-        </tr>
-    `);
+                    <tr class="cur-bal-row">
+                        <td colspan="3" style="padding-left:115px;font-style:italic;">
+                            Loading current balance...
+                        </td>
+                    </tr>
+                `);
 
                 $.ajax({
                     url: "/accounting/ledger/current-balance/" + ledgerId,
@@ -1642,6 +1674,9 @@
                 // update totals
                 updateDrCrTotals();
 
+                // IMPORTANT
+                updateSubmitVisibility();
+
                 // allow next processing
                 setTimeout(() => {
                     $row.data('processing', false);
@@ -1825,22 +1860,24 @@
             }
 
             $(document).on('change', '.dc-select', function() {
+
                 const $row = $(this).closest('tr');
 
                 if ($(this).val() === 'Dr') {
+
                     $row.find('.cr-input').val('');
+
                 } else {
+
                     $row.find('.dr-input').val('');
                 }
 
-                updateDrCrAndTotal();
-
-                // ❌ Prevent changing first row
-                if ($row.index() === 0) {
-                    return;
-                }
-
                 syncAmountInputs($row);
+
+                updateDrCrTotals();
+
+                updateSubmitVisibility();
+
             });
 
 

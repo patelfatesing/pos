@@ -15,8 +15,10 @@ use App\Models\StockTransfer;
 use Illuminate\Support\Str;
 use App\Models\ShiftClosing;
 use App\Models\Category;
+use App\Models\SubCategory;
 use App\Models\UserShift;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class StockTransferController extends Controller
 {
@@ -50,6 +52,8 @@ class StockTransferController extends Controller
     {
         $categories = Category::all();
 
+        $subCategories = subCategory::all();
+
         $shift_id = isset($_GET['shift_id']);
 
         $shift = '';
@@ -64,7 +68,7 @@ class StockTransferController extends Controller
             ->where('is_deleted', 'no')
             ->firstOrFail();
 
-        return view('stocks_transfer.create', compact('stores', 'products', 'data', 'categories', 'shift_id', 'shift'));
+        return view('stocks_transfer.create', compact('stores', 'products', 'data', 'categories', 'shift_id', 'shift', 'subCategories'));
     }
 
     public function getData(Request $request)
@@ -374,97 +378,145 @@ class StockTransferController extends Controller
     public function store(Request $request)
     {
         try {
-            $validated = $request->validate([
-                'from_store_id' => 'required|exists:branches,id',
-                'to_store_id' => 'required|exists:branches,id',
-                'items' => 'required|array|min:1',
-                'items.*.product_id' => 'required|exists:products,id',
-                'items.*.quantity' => 'required|integer|min:1',
-            ]);
 
-            // ❌ SAME STORE CHECK
+            // =====================================================
+            // VALIDATION
+            // =====================================================
+
+            $validated = $request->validate(
+                [
+                    'from_store_id'        => 'required|exists:branches,id',
+                    'to_store_id'          => 'required|exists:branches,id',
+                    'items'                => 'required|array|min:1',
+                    'items.*.product_id'   => 'required|exists:products,id',
+                    'items.*.quantity'     => 'required|integer|min:1',
+                ],
+                [
+                    'from_store_id.required' => 'Please select the source store.',
+                    'to_store_id.required'   => 'Please select the destination store.',
+
+                    'items.required'         => 'At least one product is required.',
+
+                    'items.*.product_id.required' => 'Please select a product.',
+
+                    'items.*.quantity.required' => 'Please enter quantity.',
+                    'items.*.quantity.min'      => 'Quantity must be at least 1.',
+                ]
+            );
+
+            // =====================================================
+            // SAME STORE CHECK
+            // =====================================================
+
             if ($request->from_store_id == $request->to_store_id) {
-                if ($request->expectsJson()) {
-                    return response()->json([
-                        'status' => false,
-                        'errors' => ['to_store_id' => ['From and To store must be different']]
-                    ], 422);
-                }
-                return back()->withErrors(['to_store_id' => 'From and To store must be different']);
+
+                return $this->errorResponse(
+                    $request,
+                    'From and To store must be different.',
+                    [
+                        'to_store_id' => [
+                            'From and To store must be different.'
+                        ]
+                    ]
+                );
             }
 
             DB::beginTransaction();
 
+            $shift_id   = $request->shift_id;
             $shift_id = $request->shift_id;
-            $shift_date = $request->date;
+
+            $shift_date = !empty($request->date)
+                ? Carbon::parse($request->date)->toDateString()
+                : now()->toDateString();
 
             $datePart = now()->format('ymd');
-            $prefix = 'TF';
+            $prefix   = 'TF';
+
+            // =====================================================
+            // SHIFT VALIDATION
+            // =====================================================
+
             if (empty($shift_id)) {
 
-                $running_shift = ShiftClosing::where('branch_id', $request->to_store_id)
-                    ->where('status', 'pending')
-                    ->first();
-
-
-                if (!$running_shift) {            // null  ➔ destination store not open
-                    return back()
-                        ->withErrors(['to_store_id' => 'The destination store is not open.'])
-                        ->withInput();
-                }
-
-                $running_shift_form = ShiftClosing::where('branch_id', $request->to_store_id)
-                    ->where('status', 'pending')
-                    ->first();
-
-
-                if (!$running_shift_form) {            // null  ➔ destination store not open
-                    return back()
-                        ->withErrors(['from_store_id' => 'The from store is not open.'])
-                        ->withInput();
-                }
-
-
-                $datePart = now()->format('ymd'); // e.g., 250607
-
-                $currentShiftFrom = UserShift::where('branch_id', $request->from_store_id)
+                $currentShiftTo = ShiftClosing::where('branch_id', $request->to_store_id)
+                    ->whereDate('start_time', $shift_date)
                     ->where('status', 'pending')
                     ->latest()
                     ->first();
 
-                $currentShiftTo = UserShift::where('branch_id', $request->to_store_id)
+
+                if (!$currentShiftTo) {
+
+                    return $this->errorResponse(
+                        $request,
+                        'The destination store is not open.',
+                        [
+                            'to_store_id' => [
+                                'The destination store is not open.'
+                            ]
+                        ]
+                    );
+                }
+
+                $currentShiftFrom = ShiftClosing::where('branch_id', $request->from_store_id)
                     ->where('status', 'pending')
+                    ->whereDate('start_time', $shift_date)
                     ->latest()
                     ->first();
 
-                if (!$currentShiftFrom || !$currentShiftTo) {
-                    DB::rollback();
-                    return back()->with('error', 'Shift not found for selected date.');
+                if (!$currentShiftFrom) {
+
+                    return $this->errorResponse(
+                        $request,
+                        'The source store is not open.',
+                        [
+                            'from_store_id' => [
+                                'The source store is not open.'
+                            ]
+                        ]
+                    );
                 }
             } else {
 
                 $shift_date = Carbon::parse($request->date)->toDateString();
-                $currentShiftTo = UserShift::where('branch_id', $request->to_store_id)
+
+                $currentShiftTo = ShiftClosing::where('branch_id', $request->to_store_id)
                     ->whereDate('start_time', $shift_date)
                     ->latest()
                     ->first();
 
-                $currentShiftFrom = UserShift::where('branch_id', $request->from_store_id)
+                $currentShiftFrom = ShiftClosing::where('branch_id', $request->from_store_id)
                     ->whereDate('start_time', $shift_date)
                     ->latest()
                     ->first();
 
                 if (!$currentShiftFrom || !$currentShiftTo) {
-                    DB::rollback();
-                    return back()->with('error', 'Shift not found for selected date.');
+
+                    return $this->errorResponse(
+                        $request,
+                        'Shift not found for selected date.'
+                    );
                 }
+
                 $datePart = Carbon::parse($shift_date)->format('ymd');
             }
 
-            $randomPart = str_pad(random_int(1, 99), 2, '0', STR_PAD_LEFT); // e.g., 06
+            // =====================================================
+            // TRANSFER NUMBER
+            // =====================================================
+
+            $randomPart = str_pad(random_int(1, 99), 2, '0', STR_PAD_LEFT);
+
             $transferNumber = "{$prefix}-{$datePart}-{$randomPart}";
 
-            foreach ($request->items as $item) {
+            // =====================================================
+            // PRE STOCK VALIDATION
+            // =====================================================
+
+            $errors = [];
+
+            foreach ($request->items as $key => $item) {
 
                 $availableQty = Inventory::where('product_id', $item['product_id'])
                     ->where('store_id', $request->from_store_id)
@@ -472,84 +524,346 @@ class StockTransferController extends Controller
 
                 if ($availableQty < $item['quantity']) {
 
-                    if ($request->expectsJson()) {
-                        return response()->json([
-                            'status' => false,
-                            'errors' => [
-                                'items' => ["Insufficient stock for product ID {$item['product_id']}"]
-                            ]
-                        ], 422);
-                    }
-
-                    return back()->withErrors(['items' => 'Insufficient stock']);
+                    $errors["items.$key.quantity"] =
+                        "Insufficient stock. Available: {$availableQty}";
                 }
             }
 
+            if (!empty($errors)) {
+
+                return $this->errorResponse(
+                    $request,
+                    'Stock validation failed.',
+                    $errors
+                );
+            }
+
+            // =====================================================
+            // TRANSFER PROCESS
+            // =====================================================
+
+            $arr_low_stock = [];
+            $affectedProducts = [];
+
             foreach ($request->items as $item) {
 
-                Inventory::where('product_id', $item['product_id'])
-                    ->where('store_id', $request->from_store_id)
-                    ->decrement('quantity', $item['quantity']);
+                $remainingQty = $item['quantity'];
 
-                Inventory::updateOrCreate(
-                    [
-                        'store_id' => $request->to_store_id,
-                        'location_id' => $request->to_store_id,
-                        'product_id' => $item['product_id']
-                    ],
-                    [
-                        'quantity' => DB::raw("quantity + {$item['quantity']}")
-                    ]
+                $inventories = Inventory::where('product_id', $item['product_id'])
+                    ->where('store_id', $request->from_store_id)
+                    ->orderBy('expiry_date')
+                    ->get();
+
+                foreach ($inventories as $inventory) {
+
+                    if ($remainingQty <= 0) {
+                        break;
+                    }
+
+                    $low_qty_level = Inventory::lowLevelQty(
+                        $item['product_id'],
+                        $request->from_store_id
+                    );
+
+                    $total_qty = Inventory::countQty(
+                        $item['product_id'],
+                        $request->from_store_id
+                    );
+
+                    $deductQty = min($inventory->quantity, $remainingQty);
+
+                    // =================================================
+                    // DEDUCT SOURCE
+                    // =================================================
+
+                    $inventory->quantity -= $deductQty;
+                    $inventory->save();
+
+                    $total_qty -= $deductQty;
+
+                    // =================================================
+                    // ADD DESTINATION
+                    // =================================================
+
+                    $criteria = [
+                        'store_id'    => $request->to_store_id,
+                        'product_id'  => $item['product_id'],
+                        'batch_no'    => $inventory->batch_no,
+                        'expiry_date' => $inventory->expiry_date
+                            ? $inventory->expiry_date->toDateString()
+                            : null,
+                    ];
+
+                    $storeInventory = Inventory::where($criteria)->first();
+
+                    if ($storeInventory) {
+
+                        $storeInventory->quantity += $deductQty;
+                        $storeInventory->save();
+                    } else {
+
+                        $low_qty_level_wh = Inventory::lowLevelQty(
+                            $item['product_id'],
+                            1
+                        );
+
+                        Inventory::create([
+                            'store_id'      => $request->to_store_id,
+                            'location_id'   => $request->to_store_id,
+                            'product_id'    => $item['product_id'],
+                            'batch_no'      => $inventory->batch_no,
+                            'expiry_date'   => $inventory->expiry_date
+                                ? $inventory->expiry_date->toDateString()
+                                : null,
+                            'quantity'      => $deductQty,
+                            'low_level_qty' => $low_qty_level_wh,
+                        ]);
+                    }
+
+                    // =================================================
+                    // LOW STOCK
+                    // =================================================
+
+                    if ($total_qty < $low_qty_level) {
+
+                        $arr_low_stock[$item['product_id']] =
+                            $item['product_id'];
+                    }
+
+                    // =================================================
+                    // STOCK HISTORY
+                    // =================================================
+
+                    stockStatusChange(
+                        $item['product_id'],
+                        $request->from_store_id,
+                        $deductQty,
+                        'transfer_stock',
+                        $currentShiftFrom->id,
+                        '',
+                        $shift_date
+                    );
+
+                    stockStatusChange(
+                        $item['product_id'],
+                        $request->to_store_id,
+                        $deductQty,
+                        'add_stock',
+                        $currentShiftTo->id,
+                        '',
+                        $shift_date
+                    );
+
+                    // =================================================
+                    // INVENTORY SERVICE
+                    // =================================================
+
+                    $inventoryService = new \App\Services\InventoryService();
+
+                    $inventoryService->transferProduct(
+                        $item['product_id'],
+                        $inventory->id,
+                        $request->from_store_id,
+                        $request->to_store_id,
+                        $deductQty,
+                        'store_to_store',
+                        'store'
+                    );
+
+                    // =================================================
+                    // SAVE TRANSFER
+                    // =================================================
+
+                    StockTransfer::create([
+                        'stock_request_id' => $request->request_id ?? null,
+                        'transfer_number' => $transferNumber,
+                        'from_branch_id'  => $request->from_store_id,
+                        'to_branch_id'    => $request->to_store_id,
+                        'product_id'      => $item['product_id'],
+                        'quantity'        => $deductQty,
+                        'status'          => 'approved',
+                        'transfer_by'     => Auth::id(),
+                        'shift_id'        => $currentShiftTo->id,
+                        'from_shift_id'   => $currentShiftFrom->id,
+                        'transferred_at'  => now(),
+                    ]);
+
+                    $remainingQty -= $deductQty;
+                }
+
+                $affectedProducts[] = $item['product_id'];
+            }
+
+            // =====================================================
+            // RECALCULATE STOCK
+            // =====================================================
+
+            $recalculateDate = $shift_date
+                ? Carbon::parse($shift_date)->toDateString()
+                : now()->toDateString();
+
+            foreach (array_unique($affectedProducts) as $pid) {
+
+                recalculateStockFromDateTransfer(
+                    $pid,
+                    $request->from_store_id,
+                    $recalculateDate
                 );
 
-                StockTransfer::create([
-                    'transfer_number' => $transferNumber,
-                    'from_branch_id' => $request->from_store_id,
-                    'to_branch_id' => $request->to_store_id,
-                    'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'status' => 'approved',
-                    'transfer_by' => Auth::id(),
-                    'shift_id' => $shift_id,
-                    'transferred_at' => now()
-                ]);
+                recalculateStockFromDateTransfer(
+                    $pid,
+                    $request->to_store_id,
+                    $recalculateDate
+                );
+            }
+
+            // =====================================================
+            // LOW STOCK NOTIFICATION
+            // =====================================================
+
+            if (!empty($arr_low_stock)) {
+
+                $arr['product_id'] = implode(
+                    ',',
+                    array_values($arr_low_stock)
+                );
+
+                $arr['store_id'] = (string) $request->from_store_id;
+
+                sendNotification(
+                    'low_stock',
+                    'Some products have low level stock please check',
+                    $request->from_store_id,
+                    Auth::id(),
+                    json_encode($arr)
+                );
+
+                sendNotification(
+                    'low_stock',
+                    'Some products have low level stock please check',
+                    null,
+                    Auth::id(),
+                    json_encode($arr)
+                );
+            }
+
+            // =====================================================
+            // TRANSFER NOTIFICATION
+            // =====================================================
+
+            $data['id']         = $transferNumber;
+            $data['from_store'] = Branch::find($request->from_store_id)->name;
+            $data['to_store']   = Branch::find($request->to_store_id)->name;
+            $data['type']       = 'transfer_stock';
+
+            if ($request->to_store_id != 1) {
+
+                sendNotification(
+                    'transfer_stock',
+                    'Stock transfer completed successfully',
+                    1,
+                    Auth::id(),
+                    json_encode($data),
+                    0
+                );
+
+                sendNotification(
+                    'transfer_stock',
+                    'Stock transfer completed successfully',
+                    $request->to_store_id,
+                    Auth::id(),
+                    json_encode($data),
+                    0
+                );
+            } else {
+
+                sendNotification(
+                    'transfer_stock',
+                    'Stock transfer completed successfully',
+                    1,
+                    Auth::id(),
+                    json_encode($data),
+                    0
+                );
             }
 
             DB::commit();
 
-            // ✅ AJAX RESPONSE (MOST IMPORTANT)
+            // =====================================================
+            // SUCCESS RESPONSE
+            // =====================================================
+
             if ($request->expectsJson()) {
+
                 return response()->json([
-                    'status' => true,
-                    'message' => 'Transfer created successfully',
-                    'shift_id' => $shift_id
+                    'status'   => true,
+                    'message'  => 'Transfer created successfully',
+                    'shift_id' => $currentShiftTo->id
                 ]);
             }
 
-            return redirect()->back()->with('success', 'Transfer created');
+            return redirect()
+                ->back()
+                ->with('success', 'Transfer created successfully');
         } catch (\Illuminate\Validation\ValidationException $e) {
 
             if ($request->expectsJson()) {
+
                 return response()->json([
-                    'status' => false,
-                    'errors' => $e->errors()
+                    'status'  => false,
+                    'message' => collect($e->errors())
+                        ->flatten()
+                        ->implode('<br>'),
+                    'errors'  => $e->errors()
                 ], 422);
             }
 
-            return back()->withErrors($e->errors())->withInput();
+            return back()
+                ->withErrors($e->errors())
+                ->withInput();
         } catch (\Exception $e) {
 
             DB::rollback();
 
+            Log::error('TRANSFER ERROR', [
+                'message' => $e->getMessage(),
+                'line'    => $e->getLine(),
+                'file'    => $e->getFile(),
+            ]);
+
             if ($request->expectsJson()) {
+
                 return response()->json([
-                    'status' => false,
+                    'status'  => false,
                     'message' => $e->getMessage()
                 ], 500);
             }
 
-            return back()->with('error', $e->getMessage());
+            return back()
+                ->with('error', $e->getMessage())
+                ->withInput();
         }
+    }
+
+    private function errorResponse(
+        Request $request,
+        $message,
+        $errors = [],
+        $code = 422
+    ) {
+
+        if ($request->expectsJson()) {
+
+            return response()->json([
+                'status'  => false,
+                'message' => $message,
+                'errors'  => $errors
+            ], $code);
+        }
+
+        return back()
+            ->withErrors($errors ?: ['error' => $message])
+            ->withInput();
     }
 
     public function edit($id)
@@ -807,6 +1121,238 @@ class StockTransferController extends Controller
         }
     }
 
+    public function updateForm(Request $request, $id)
+    {
+        try {
+
+            $request->validate([
+                'from_store_id' => 'required|exists:branches,id',
+                'to_store_id'   => 'required|exists:branches,id',
+                'items'         => 'required|array|min:1',
+                'items.*.product_id' => 'required|exists:products,id',
+                'items.*.quantity'   => 'required|integer|min:1',
+            ]);
+
+            DB::beginTransaction();
+
+            $transfer = StockTransfer::findOrFail($id);
+
+            $oldTransfers = StockTransfer::where('transfer_number', $transfer->transfer_number)->get();
+
+            $oldShiftTo   = $oldTransfers->first()->shift_id;
+            $oldShiftFrom = $oldTransfers->first()->from_shift_id;
+
+            $transferDate = \Carbon\Carbon::parse($oldTransfers->first()->transferred_at)->toDateString();
+
+            // =========================
+            // 🔍 FIND REMOVED PRODUCTS
+            // =========================
+            $oldProductIds = $oldTransfers->pluck('product_id')->toArray();
+            $newProductIds = collect($request->items)->pluck('product_id')->toArray();
+
+            $removedProducts = array_diff($oldProductIds, $newProductIds);
+
+            $affectedProducts = [];
+
+            // =========================
+            // 🔴 REMOVE PRODUCTS
+            // =========================
+            foreach ($oldTransfers as $old) {
+
+                if (in_array($old->product_id, $removedProducts)) {
+
+                    $remainingQty = $old->quantity;
+                    $affectedProducts[] = $old->product_id; // ✅ ADD THIS
+
+                    // add back to source
+                    Inventory::create([
+                        'store_id'   => $old->from_branch_id,
+                        'product_id' => $old->product_id,
+                        'quantity'   => $old->quantity,
+                        'location_id' => $old->from_branch_id
+                    ]);
+
+                    // deduct from destination
+                    $destInventories = Inventory::where('product_id', $old->product_id)
+                        ->where('store_id', $old->to_branch_id)
+                        ->orderBy('expiry_date')
+                        ->get();
+
+                    foreach ($destInventories as $inv) {
+                        if ($remainingQty <= 0) break;
+
+                        $deduct = min($inv->quantity, $remainingQty);
+                        $inv->quantity -= $deduct;
+                        $inv->save();
+
+                        $remainingQty -= $deduct;
+                    }
+
+                    // reverse daily stock
+                    stockStatusChange($old->product_id, $old->from_branch_id, $old->quantity, 'add_stock', $oldShiftFrom, '', $transferDate);
+                    stockStatusChange($old->product_id, $old->to_branch_id, $old->quantity, 'transfer_stock', $oldShiftTo, '', $transferDate);
+
+                    // delete row
+                    $old->delete();
+                }
+            }
+
+            // =========================
+            // 🟢 UPDATE EXISTING PRODUCTS
+            // =========================
+            foreach ($request->items as $item) {
+
+                $existing = $oldTransfers->where('product_id', $item['product_id'])->first();
+
+                if (!$existing) continue;
+
+                $oldQty = $existing->quantity;
+                $newQty = $item['quantity'];
+
+                if ($oldQty == $newQty) continue;
+
+                $diff = $newQty - $oldQty;
+                $affectedProducts[] = $item['product_id']; // ✅ ADD THIS
+
+                // 🔺 INCREASE
+                if ($diff > 0) {
+
+                    $remainingQty = $diff;
+
+                    $inventories = Inventory::where('product_id', $item['product_id'])
+                        ->where('store_id', $existing->from_branch_id)
+                        ->orderBy('expiry_date')
+                        ->get();
+
+                    foreach ($inventories as $inventory) {
+
+                        if ($remainingQty <= 0) break;
+
+                        $deductQty = min($inventory->quantity, $remainingQty);
+
+                        $inventory->quantity -= $deductQty;
+                        $inventory->save();
+
+                        $dest = Inventory::where([
+                            'store_id' => $existing->to_branch_id,
+                            'product_id' => $item['product_id'],
+                            'batch_no' => $inventory->batch_no,
+                            'expiry_date' => optional($inventory->expiry_date)->toDateString(),
+                        ])->first();
+
+                        if ($dest) {
+                            $dest->quantity += $deductQty;
+                            $dest->save();
+                        }
+
+                        $remainingQty -= $deductQty;
+                    }
+
+                    stockStatusChange($item['product_id'], $existing->from_branch_id, $diff, 'transfer_stock', $oldShiftFrom, '', $transferDate);
+                    stockStatusChange($item['product_id'], $existing->to_branch_id, $diff, 'add_stock', $oldShiftTo, '', $transferDate);
+                }
+
+                // 🔻 DECREASE
+                elseif ($diff < 0) {
+
+                    $diff = abs($diff);
+
+                    Inventory::create([
+                        'store_id'   => $existing->from_branch_id,
+                        'product_id' => $item['product_id'],
+                        'quantity'   => $diff,
+                        'location_id' => $existing->from_branch_id
+                    ]);
+
+                    $remainingQty = $diff;
+
+                    $destInventories = Inventory::where('product_id', $item['product_id'])
+                        ->where('store_id', $existing->to_branch_id)
+                        ->orderBy('expiry_date')
+                        ->get();
+
+                    foreach ($destInventories as $inv) {
+                        if ($remainingQty <= 0) break;
+
+                        $deduct = min($inv->quantity, $remainingQty);
+                        $inv->quantity -= $deduct;
+                        $inv->save();
+
+                        $remainingQty -= $deduct;
+                    }
+
+                    stockStatusChange($item['product_id'], $existing->from_branch_id, $diff, 'add_stock', $oldShiftFrom, '', $transferDate);
+                    stockStatusChange($item['product_id'], $existing->to_branch_id, $diff, 'transfer_stock', $oldShiftTo, '', $transferDate);
+                }
+
+                // update record
+                $existing->update([
+                    'quantity' => $newQty
+                ]);
+            }
+
+
+            $affectedProducts = array_unique($affectedProducts);
+
+            if (!empty($affectedProducts)) {
+
+                foreach ($affectedProducts as $pid) {
+
+                    // FROM branch
+                    recalculateStockFromDateTransfer(
+                        $pid,
+                        $request->from_store_id,
+                        $transferDate
+                    );
+
+                    // TO branch
+                    recalculateStockFromDateTransfer(
+                        $pid,
+                        $request->to_store_id,
+                        $transferDate
+                    );
+                }
+            }
+
+            DB::commit();
+
+            // if ($request->type == 'admin') {
+            //     // ✅ AJAX RESPONSE (MOST IMPORTANT)
+            //     if ($request->expectsJson()) {
+            //         return response()->json([
+            //             'status' => true,
+            //             'message' => 'Transfer created successfully',
+            //             'shift_id' => $transfer->shift_id
+            //         ]);
+            //     }
+            //     return redirect()->route('sales.salas-report')
+            //         ->with('success', 'Transfer updated successfully');
+            // } else {
+            //     // ✅ AJAX RESPONSE (MOST IMPORTANT)
+            //     if ($request->expectsJson()) {
+            //         return response()->json([
+            //             'status' => true,
+            //             'message' => 'Transfer created successfully',
+            //             'shift_id' => $transfer->shift_id
+            //         ]);
+            //     }
+                return redirect()->route('stock-transfer.list')
+                    ->with('success', 'Transfer updated successfully');
+            // }
+        } catch (\Exception $e) {
+
+            DB::rollback();
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $e->getMessage()
+                ], 500);
+            }
+
+            return back()->with('error', $e->getMessage())->withInput();
+        }
+    }
+
     public function createTransferModal(Request $request)
     {
         // DEBUG (keep for now)
@@ -830,13 +1376,16 @@ class StockTransferController extends Controller
             ->where('is_deleted', 'no')
             ->firstOrFail();
 
+        $subCategories = subCategory::all();
+
         return view('stocks_transfer.partials.add-modal', compact(
             'stores',
             'products',
             'data',
             'categories',
             'shift_id',
-            'shift'
+            'shift',
+            'subCategories'
         ));
     }
 
