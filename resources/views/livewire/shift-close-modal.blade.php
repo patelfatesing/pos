@@ -504,7 +504,21 @@
                                 {{-- ===================== WAREHOUSE UI ===================== --}}
                                 @if ($branch_name == 'WAREHOUSE')
 
-                                @if (!empty($this->addstockStatus))
+                                @if (!$this->hasSales)
+                                <div class="d-flex justify-content-center mt-1">
+                                    <div class="form-check d-flex align-items-center gap-2">
+                                        <input class="form-check-input start-zero-checkbox"
+                                            wire:model="no_sale_product" type="checkbox"
+                                            id="no_sale_product" name="no_sale_product" value="1">
+                                        <label class="form-check-label mb-0">
+                                            Save with no sale product
+                                        </label>
+                                        @error('no_sale_product')
+                                        <span class="text-danger small">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                                @elseif (!empty($this->addstockStatus))
                                 <div class="table-responsive">
                                     <table class="table table-bordered physical-table mb-0">
                                         <thead class="table-info">
@@ -534,7 +548,12 @@
                                         </tbody>
                                     </table>
                                 </div>
+                                @endif
+
+                                {{-- ===================== NON-WAREHOUSE UI (Grouped by Name x Size) ===================== --}}
                                 @else
+
+                                @if (!$this->hasSales)
                                 <div class="d-flex justify-content-center mt-1">
                                     <div class="form-check d-flex align-items-center gap-2">
                                         <input class="form-check-input start-zero-checkbox"
@@ -548,12 +567,7 @@
                                         @enderror
                                     </div>
                                 </div>
-                                @endif
-
-                                {{-- ===================== NON-WAREHOUSE UI (Grouped by Name x Size) ===================== --}}
-                                @else
-
-                                @if (!empty($groupedProducts))
+                                @elseif (!empty($groupedProducts))
                                 @php $sizes = $this->getSizes(); @endphp
                                 <div class="table-responsive stock-table-wrapper">
                                     <table class="table table-bordered physical-table mb-0 sticky-table">
@@ -639,21 +653,6 @@
                                     </div>
                                 </div>
 
-                                @else
-                                {{-- No products found --}}
-                                <div class="d-flex justify-content-center mt-1">
-                                    <div class="form-check d-flex align-items-center gap-2">
-                                        <input class="form-check-input start-zero-checkbox"
-                                            wire:model="no_sale_product" type="checkbox"
-                                            id="no_sale_product" name="no_sale_product" value="1">
-                                        <label class="form-check-label mb-0">
-                                            Save with no sale product
-                                        </label>
-                                        @error('no_sale_product')
-                                        <span class="text-danger small">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                </div>
                                 @endif
 
                                 @endif

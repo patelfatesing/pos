@@ -124,6 +124,7 @@ class ShiftCloseModal extends Component
     public $capturedImage;
     public $currentShift = "";
     public $no_sale_product = false;
+    public $hasSales = false;
 
     // ✅ Non-warehouse grouped product UI
     public $selectedCategory = 'BEER';
@@ -400,6 +401,9 @@ class ShiftCloseModal extends Component
             $this->dispatch('notiffication-error', ['message' => 'Physical stock already added.']);
             return;
         }
+
+        $this->hasSales = Invoice::where('shift_id', optional($this->currentShift)->id)->sum('total_item_qty') > 0;
+    
         $this->showPhysicalModal = true;
         $this->dispatch('test');
 
@@ -969,9 +973,9 @@ class ShiftCloseModal extends Component
     {
         switch ($this->selectedCategory) {
             case 'IMFL':
-                return ['750ML', '375ML', '180ML', '500ML'];
+                return ['180ML', '275ML', '375ML', '500ML', '750ML'];
             case 'BEER':
-                return ['650ML', '500ML', '330ML'];
+                return ['330ML', '500ML', '650ML'];
             case 'CL_RML':
                 return ['180ML', '375ML', '750ML'];
             default:
