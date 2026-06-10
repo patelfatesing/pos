@@ -1,7 +1,7 @@
 @extends('layouts.backend.layouts')
 @section('page-content')
     <style>
-        .product-table-wrapper {
+        /* .product-table-wrapper {
             width: 100%;
             overflow-x: auto !important;
             overflow-y: visible !important;
@@ -16,7 +16,7 @@
             width: 100%;
             min-width: 1320px;
             margin-bottom: 0;
-        }
+        } */
 
         #product_table th,
         #product_table td {
@@ -30,16 +30,16 @@
 
         #product_table th:nth-child(1),
         #product_table td:nth-child(1) {
-            width: 60px;
-            min-width: 60px;
+            width: 40px;
+            min-width: 40px;
             text-align: center;
         }
 
         #product_table th:nth-child(2),
         #product_table td:nth-child(2) {
-            width: 220px;
-            min-width: 150px;
-            max-width: 400px;
+            width: 130px;
+            min-width: 110px;
+            max-width: 330px;
             overflow: hidden;
             position: relative;
             z-index: 5;
@@ -71,17 +71,17 @@
         }
 
         #product_table th:nth-child(3),
-        #product_table td:nth-child(3) { width: 130px; min-width: 130px; } /* Batch */
+        #product_table td:nth-child(3) { width: 70px; min-width: 70px; } /* Batch */
         #product_table th:nth-child(4),
-        #product_table td:nth-child(4) { width: 160px; min-width: 160px; } /* MFG Date */
+        #product_table td:nth-child(4) { width: 130px; min-width: 130px; } /* MFG Date */
         #product_table th:nth-child(5),
-        #product_table td:nth-child(5) { width: 120px; min-width: 120px; } /* MRP Rate */
+        #product_table td:nth-child(5) { width: 70px; min-width: 70px; } /* MRP Rate */
         #product_table th:nth-child(6),
-        #product_table td:nth-child(6) { width: 100px; min-width: 100px; } /* Qty */
+        #product_table td:nth-child(6) { width: 70px; min-width: 70px; } /* Qty */
         #product_table th:nth-child(7),
-        #product_table td:nth-child(7) { width: 120px; min-width: 120px; } /* Cost Price */
+        #product_table td:nth-child(7) { width: 90px; min-width: 90px; } /* Cost Price */
         #product_table th:nth-child(8),
-        #product_table td:nth-child(8) { width: 130px; min-width: 130px; } /* Amount */
+        #product_table td:nth-child(8) { width: 90px; min-width: 90px; } /* Amount */
 
         #product_table th:nth-child(9),
         #product_table td:nth-child(9),
@@ -119,6 +119,50 @@
             font-size: 11px;
             color: #6c757d;
             font-style: italic;
+        }
+
+        .btn-icon-action {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border-radius: 50%;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+            flex-shrink: 0;
+            line-height: 1 !important;
+            vertical-align: middle;
+        }
+
+        .btn-icon-action svg {
+            pointer-events: none;
+            display: block !important;
+            flex-shrink: 0;
+            fill: #fff;
+        }
+
+        .btn-icon-action:hover {
+            transform: scale(1.12);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+            opacity: 0.92;
+        }
+        .btn-add-row {
+            background-color: #198754;
+            color: #fff;
+        }
+        .btn-remove-row {
+            background-color: #dc3545;
+            color: #fff;
+        }
+        #product_table th:nth-child(9),
+        #product_table td:nth-child(9),
+        #product_table td.action-col {
+            width: 50px !important;
+            min-width: 50px !important;
+            text-align: center;
         }
 
         @media (max-width: 767.98px) {
@@ -367,9 +411,8 @@
                                                                     @enderror
                                                                 </td>
                                                                 <td class="action-col">
-                                                                    <button type="button"
-                                                                        class="btn btn-sm btn-danger remove">
-                                                                        Remove
+                                                                    <button type="button" class="btn btn-icon-action btn-remove-row remove-row" title="Remove">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
                                                                     </button>
                                                                 </td>
                                                             </tr>
@@ -385,7 +428,7 @@
                                             <div class="offset-lg-8 col-lg-4">
                                                 <div class="rounded">
                                                     <div class="p-3 d-flex justify-content-between align-items-center">
-                                                        <h6 class="mr-4">Sub Total: </h6>
+                                                        <h4 class="mr-4">Sub Total: </h4>
                                                         <input hidden class="total_amt">
                                                         <h3 class="pull-right text-primary font-weight-700" id="total"></h3>
                                                     </div>
@@ -398,7 +441,7 @@
                                         {{-- BOTTOM THREE COLUMNS --}}
                                         <div class="row mt-4 mb-3">
                                             {{-- LEFT: LICENSE LEDGER --}}
-                                            <div class="col-lg-4" id="">
+                                            <div class="col-lg-4" id="license-ledger-col">
                                                 <div class="or-detail rounded" id="license-ledger-box">
                                                     <div class="p-3">
                                                         <h5 class="mb-3">Details For License Ledger</h5>
@@ -444,7 +487,7 @@
                                             </div>
 
                                             {{-- MIDDLE: EXCISE FEE BOX (vendor 1) --}}
-                                            <div class="col-lg-4 excise-section d-none" id="">
+                                            <div class="col-lg-4 excise-section d-none" id="excise-col">
                                                 <div class="or-detail rounded">
                                                     <div class="p-3">
                                                         <h5 class="mb-3">Excise Fee</h5>
@@ -476,7 +519,6 @@
                                                                             value="{{ old('composite_fee_excise') }}" />
                                                                     </div>
                                                                 </div>
-                                                                <!-- ✅ NEW 80/20 (ONLY VENDOR 2) -->
                                                                 <div class="col-md-6 excise-duty-80-20 d-none">
                                                                     <div class="form-group">
                                                                         <label>Excise Duty 80%</label>
@@ -542,12 +584,20 @@
                                                                             name="composition_vat" id="composition_vat" />
                                                                     </div>
                                                                 </div>
-                                                                <div class="col-md-12">
+                                                                <div class="col-md-6">
                                                                     <div class="form-group">
                                                                         <label>SURCHARGE ON CA</label>
                                                                         <input type="number" class="form-control"
                                                                             value="{{ old('surcharge_on_ca') }}"
                                                                             name="surcharge_on_ca" id="surcharge_on_ca" />
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <div class="form-group">
+                                                                        <label>TCS</label>
+                                                                        <input type="number" id="tcs_vendor_1"
+                                                                            value="{{ old('tcs') }}" class="form-control"
+                                                                            name="tcs" />
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -588,59 +638,57 @@
                                                                             name="permit_fee" id="permit_fee" />
                                                                     </div>
                                                                 </div>
-                                                            </div>
-                                                        </div>
-
-                                                        {{-- Common for vendor 1 & 2 --}}
-                                                        <div class="vendor-common">
-                                                            <div class="form-group">
-                                                                <label>TCS</label>
-                                                                <input type="number" id="tcs"
-                                                                    value="{{ old('tcs') }}" class="form-control"
-                                                                    name="tcs" />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {{-- Other vendors: cash purchase --}}
-                                                    <div id="vendor-others-fields" class="vendor-fields d-none">
-                                                        <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center border border-danger"
-                                                            style="background-color: #fdf1f7;">
-                                                            <div>
-                                                                <strong class="d-block">CASH PURCHASE</strong>
-                                                                <div class="d-flex align-items-center">
-                                                                    <label class="mr-1 mb-0">(-)</label>
-                                                                    <input type="float"
-                                                                        class="form-control form-control-sm pur_dis"
-                                                                        placeholder="%" name="case_purchase_per"
-                                                                        style="width: 80px;" min="0"
-                                                                        max="100"
-                                                                        value="{{ old('case_purchase_per') }}">
-                                                                    <span class="ml-1">%</span>
+                                                                <div class="col-md-12">
+                                                                    <div class="form-group">
+                                                                        <label>TCS</label>
+                                                                        <input type="number" id="tcs_vendor_2"
+                                                                            value="{{ old('tcs') }}" class="form-control"
+                                                                            name="tcs" />
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="text-right d-flex align-items-center">
-                                                                <label class="mr-1 mb-0">(-)</label>
-                                                                <input type="float" name="case_purchase_amt"
-                                                                    class="form-control form-control-sm pur_amt text-danger font-weight-bold"
-                                                                    placeholder="Amount" style="width: 120px;"
-                                                                    min="0"
-                                                                    value="{{ old('case_purchase_amt') }}">
+                                                        </div>
+
+                                                        {{-- Other vendors: cash purchase --}}
+                                                        <div id="vendor-others-fields" class="vendor-fields d-none">
+                                                            <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center border border-danger"
+                                                                style="background-color: #fdf1f7;">
+                                                                <div>
+                                                                    <strong class="d-block">CASH PURCHASE</strong>
+                                                                    <div class="d-flex align-items-center">
+                                                                        <label class="mr-1 mb-0">(-)</label>
+                                                                        <input type="float"
+                                                                            class="form-control form-control-sm pur_dis"
+                                                                            placeholder="%" name="case_purchase_per"
+                                                                            style="width: 80px;" min="0"
+                                                                            max="100"
+                                                                            value="{{ old('case_purchase_per') }}">
+                                                                        <span class="ml-1">%</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="text-right d-flex align-items-center">
+                                                                    <label class="mr-1 mb-0">(-)</label>
+                                                                    <input type="float" name="case_purchase_amt"
+                                                                        class="form-control form-control-sm pur_amt text-danger font-weight-bold"
+                                                                        placeholder="Amount" style="width: 120px;"
+                                                                        min="0"
+                                                                        value="{{ old('case_purchase_amt') }}">
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
 
-                                                    <div
-                                                        class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center border-top">
-                                                        <h6>Total Amount</h6>
-                                                        <div>
-                                                            <input type="hidden" name="total_amount"
-                                                                class="total_amount" value="{{ old('total_amount') }}" />
-                                                            <h3 class="text-primary font-weight-700" id="total_amount">
-                                                                @if (old('total_amount'))
-                                                                    ₹{{ number_format(old('total_amount'), 2) }}
-                                                                @endif
-                                                            </h3>
+                                                        <div
+                                                            class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center border-top">
+                                                            <h4>Total Amount</h4>
+                                                            <div>
+                                                                <input type="hidden" name="total_amount"
+                                                                    class="total_amount" value="{{ old('total_amount') }}" />
+                                                                <h3 class="text-primary font-weight-700" id="total_amount">
+                                                                    @if (old('total_amount'))
+                                                                        ₹{{ number_format(old('total_amount'), 2) }}
+                                                                    @endif
+                                                                </h3>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -659,7 +707,7 @@
                 </div>
             </div>
             <!-- Page end -->
-        </div>
+            </div>
     </div>
 
     <!-- Wrapper End -->
@@ -683,13 +731,13 @@
          * Products list આપો → longest name ની width measure કરો →
          * product column + table min-width dynamically update કરો.
          *
-         * @param {Array} products  - [{id, name}, ...]
-         * @param {number} minPx    - minimum column width (default 150)
-         * @param {number} maxPx    - maximum column width (default 400)
+         * @param {Array} products   - [{id, name}, ...]
+         * @param {number} minPx     - minimum column width (default 150)
+         * @param {number} maxPx     - maximum column width (default 400)
          */
         function applyDynamicProductColumnWidth(products, minPx, maxPx) {
-            minPx = minPx || 150;
-            maxPx = maxPx || 400;
+            minPx = minPx || 110;
+            maxPx = maxPx || 330;
 
             const font = '14px sans-serif'; // bootstrap table font approximate
             let maxTextWidth = 0;
@@ -753,11 +801,20 @@
 
         function updateBillingTotal() {
             const baseTotal = parseInt($(".total_amt").val()) || 0;
+            const vendorId = $('#vendor_id').val();
 
             const excise = parseFloat($('#excise_fee').val()) || 0;
             const compVat = parseFloat($('#composition_vat').val()) || 0;
             const surcharge = parseFloat($('#surcharge_on_ca').val()) || 0;
-            const tcs = parseFloat($('#tcs').val()) || 0;
+            
+            // ✅ Read TCS dynamically depending on which vendor view is active
+            let tcs = 0;
+            if (vendorId === '1') {
+                tcs = parseFloat($('#tcs_vendor_1').val()) || 0;
+            } else if (vendorId === '2') {
+                tcs = parseFloat($('#tcs_vendor_2').val()) || 0;
+            }
+
             const vat = parseFloat($('#vat').val()) || 0;
             const surcharge_on_vat = parseFloat($('#surcharge_on_vat').val()) || 0;
             const blf = parseFloat($('#blf').val()) || 0;
@@ -834,40 +891,58 @@
             const subcatId = $('#subcategories').val();
 
             $('.vendor-fields').addClass('d-none');
-            $('.vendor-common').hide();
             $('.excise-section').addClass('d-none');
             $('.excise-duty-80-20').addClass('d-none');
 
-            if (vendorId === '1' || vendorId === '2') {
+            // Set up appropriate active TCS fields on explicit vendor change
+            if (vendorId === '1') {
+                $('#tcs_vendor_2').attr('name', ''); // strip inactive name asset mapping
+                $('#tcs_vendor_1').attr('name', 'tcs');
+
+                // 3-column layout
+                $('#license-ledger-col').removeClass('d-none col-lg-6').addClass('col-lg-4');
+                $('#excise-col').removeClass('d-none col-lg-6').addClass('col-lg-4 excise-section');
+                $('#billing-column').removeClass('col-lg-6').addClass('col-lg-4');
+
                 $('#license-ledger-box').removeClass('d-none');
                 $('.excise-section').removeClass('d-none');
-            } else {
-                $('#license-ledger-box').addClass('d-none');
-            }
-
-            if (vendorId === '1') {
                 $('#vendor-1-fields').removeClass('d-none');
-                $('.vendor-common').show();
+
                 $('#permit_fee_excise').closest('.col-md-6').removeClass('d-none');
                 $('#vend_fee_excise').closest('.col-md-6').removeClass('d-none');
                 $('#composite_fee_excise').closest('.col-md-12').removeClass('d-none');
                 $('.excise-duty-80-20').addClass('d-none');
 
             } else if (vendorId === '2') {
+                $('#tcs_vendor_1').attr('name', ''); // strip inactive name asset mapping
+                $('#tcs_vendor_2').attr('name', 'tcs');
+
+                // 2-column layout — hide excise, expand license + billing to col-lg-6
+                $('#license-ledger-col').removeClass('col-lg-4').addClass('col-lg-6');
+                $('#excise-col').addClass('d-none');
+                $('#billing-column').removeClass('col-lg-4').addClass('col-lg-6');
+
+                $('#license-ledger-box').removeClass('d-none');
                 $('#vendor-2-fields').removeClass('d-none');
-                $('.vendor-common').show();
-                $('#permit_fee_excise').closest('.col-md-6').addClass('d-none');
-                $('#vend_fee_excise').closest('.col-md-6').addClass('d-none');
-                $('#composite_fee_excise').closest('.col-md-12').addClass('d-none');
 
                 if (subcatId === '3') {
                     $('.excise-duty-80-20').removeClass('d-none');
-                } else {
-                    $('.excise-duty-80-20').addClass('d-none');
                 }
 
             } else if (vendorId) {
+                // Other vendors — hide license ledger, full-width billing
+                $('#license-ledger-col').addClass('d-none');
+                $('#excise-col').addClass('d-none');
+                $('#billing-column').removeClass('col-lg-4 col-lg-6').addClass('col-lg-12');
+
                 $('#vendor-others-fields').removeClass('d-none');
+
+            } else {
+                // No vendor selected — reset all
+                $('#license-ledger-col').removeClass('d-none col-lg-6 col-lg-12').addClass('col-lg-4');
+                $('#excise-col').addClass('d-none');
+                $('#billing-column').removeClass('col-lg-6 col-lg-12').addClass('col-lg-4');
+                $('#license-ledger-box').addClass('d-none');
             }
 
             calculateProductTotals();
@@ -906,7 +981,9 @@
                         <input type="number" name="products[${rowIndex}][amount]" class="form-control amount">
                     </td>
                     <td class="action-col">
-                        <button type="button" class="btn btn-success btn-sm add-row">Add Product</button>
+                        <button type="button" class="btn btn-icon-action btn-add-row add-row" title="Add Product">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/></svg>
+                        </button>
                     </td>
                 </tr>
                 `;
@@ -964,9 +1041,9 @@
                 const actionCell = $(this).find('.action-col');
 
                 if (index === $('#product_table tbody tr').length - 1) {
-                    actionCell.html('<button type="button" class="btn btn-success btn-sm add-row">Add Product</button>');
+                    actionCell.html('<button type="button" class="btn btn-icon-action btn-add-row add-row" title="Add Product"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/></svg></button>');
                 } else {
-                    actionCell.html('<button type="button" class="btn btn-danger btn-sm remove-row">Remove</button>');
+                    actionCell.html('<button type="button" class="btn btn-icon-action btn-remove-row remove-row" title="Remove"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg></button>');
                 }
             });
         }
@@ -1010,7 +1087,7 @@
                     const lastRow = $('#product_table tbody tr:last');
                     lastRow.find('.product_select_row').html(options);
 
-                    // 🔥 Dynamic column width based on longest product name
+                    // Dynamic column width based on longest product name
                     applyDynamicProductColumnWidth(products);
                 }
             });
@@ -1030,7 +1107,6 @@
             if ($('#product_table tbody tr').length === 0) {
                 addEmptyRow();
             }
-            $('.vendor-common').hide();
 
             // Product select -> fetch details
             $('#product_select').change(function() {
@@ -1131,7 +1207,7 @@
                     $('#excise_fee, #composition_vat, #surcharge_on_ca, #aed_to_be_paid').val('');
                     $('#vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase').val('');
                     $('.pur_dis, .pur_amt').val('');
-                    $('#tcs').val('');
+                    $('#tcs_vendor_1, #tcs_vendor_2').val('');
                     $('#total_amount').text('₹0');
                     $('.total_amount').val('0');
                     $('#excise_total_amount').text('₹0');
@@ -1161,8 +1237,8 @@
                 updateBillingTotal();
             });
 
-            // Billing fields
-            $('#excise_fee, #composition_vat, #surcharge_on_ca, #tcs, #vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase, #aed_to_be_paid, #loading_charges')
+            // Billing fields - ✅ updated listener to incorporate new unique unique TCS IDs
+            $('#excise_fee, #composition_vat, #surcharge_on_ca, #tcs_vendor_1, #tcs_vendor_2, #vat, #surcharge_on_vat, #blf, #permit_fee, #rsgsm_purchase, #aed_to_be_paid, #loading_charges')
                 .on('input', function() {
                     updateBillingTotal();
                 });
@@ -1302,8 +1378,7 @@
                     const lastRow = $('#product_table tbody tr:last');
                     lastRow.find('.product_select_row').html(options);
 
-                    // 🔥 Column width already set from subcategory change,
-                    // but re-apply to keep consistency if new row added after subcategory change
+                    // Dynamic column width adjustments
                     applyDynamicProductColumnWidth(products);
                 }
             });
@@ -1317,6 +1392,7 @@
             return Math.round((parseFloat(num) || 0) * 100) / 100;
         }
 
+        // ✅ Updated dynamic map layout logic to support both instances of TCS
         const ledgerMap = {
             aed_to_be_paid: "AED TO BE PAID",
             guarantee_fulfilled: "Guarantee Fulfilled",
@@ -1327,7 +1403,8 @@
             excise_fee: "EXCISE FEE",
             composition_vat: "COMPOSITION VAT",
             surcharge_on_ca: "SURCHARGE ON CA",
-            tcs: "TCS",
+            tcs_vendor_1: "TCS",
+            tcs_vendor_2: "TCS",
             blf: "BLF",
             vat: "VAT",
             surcharge_on_vat: "SURCHARGE ON VAT"
