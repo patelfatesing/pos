@@ -427,10 +427,10 @@
                                         <div class="row">
                                             <div class="offset-lg-8 col-lg-4">
                                                 <div class="rounded">
-                                                    <div class="p-3 d-flex justify-content-between align-items-center">
-                                                        <h4 class="mr-4">Sub Total: </h4>
+                                                    <div class="p-3 d-flex justify-content-end align-items-center gap-2">
+                                                        <h4 class="mb-0 mr-2">Sub Total: </h4>
                                                         <input hidden class="total_amt">
-                                                        <h3 class="pull-right text-primary font-weight-700" id="total"></h3>
+                                                        <h3 class="mb-0 text-primary font-weight-700" id="total">₹0</h3>
                                                     </div>
                                                 </div>
                                             </div>
@@ -677,18 +677,16 @@
                                                             </div>
                                                         </div>
 
-                                                        <div
-                                                            class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center border-top">
-                                                            <h4>Total Amount</h4>
-                                                            <div>
-                                                                <input type="hidden" name="total_amount"
-                                                                    class="total_amount" value="{{ old('total_amount') }}" />
-                                                                <h3 class="text-primary font-weight-700" id="total_amount">
-                                                                    @if (old('total_amount'))
-                                                                        ₹{{ number_format(old('total_amount'), 2) }}
-                                                                    @endif
-                                                                </h3>
-                                                            </div>
+                                                        <div class="ttl-amt py-2 px-3 d-flex justify-content-end align-items-center gap-2 border-top">
+                                                            <h4 class="mb-0 mr-2">Total Amount: </h4>
+                                                            <input type="hidden" name="total_amount" class="total_amount" value="{{ old('total_amount') }}" />
+                                                            <h3 class="mb-0 text-primary font-weight-700" id="total_amount">
+                                                                @if (old('total_amount'))
+                                                                    ₹{{ number_format(old('total_amount'), 2) }}
+                                                                @else
+                                                                    ₹0
+                                                                @endif
+                                                            </h3>
                                                         </div>
                                                     </div>
                                                 </div>
