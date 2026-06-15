@@ -436,7 +436,7 @@
                                             </div>
                                         </div>
 
-                                        <hr />
+                                        <hr /> 
 
                                         {{-- BOTTOM THREE COLUMNS --}}
                                         <div class="row mt-4 mb-3">
