@@ -168,16 +168,16 @@
         }
 
         /* .controls .btn {
-                    background: #fff;
-                    border: 1px solid #ccc;
-                    color: #333;
-                }
+                        background: #fff;
+                        border: 1px solid #ccc;
+                        color: #333;
+                    }
 
-                .controls .btn-secondary {
-                    background: #32BDEA;
-                    border: 1px solid #32BDEA;
-                    color: #fff;
-                } */
+                    .controls .btn-secondary {
+                        background: #32BDEA;
+                        border: 1px solid #32BDEA;
+                        color: #fff;
+                    } */
 
         div.dataTables_wrapper {
             min-height: calc(100vh - 350px);
@@ -316,13 +316,13 @@
                     @empty
 
                         <tr>
-
-                            <td colspan="7" class="text-center">
-
-                                No voucher entries found
-
-                            </td>
-
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td>No voucher entries found</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
                     @endforelse
 

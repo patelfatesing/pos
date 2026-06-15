@@ -109,7 +109,7 @@
                                                                      {{-- Value --}}
                                                                      <td class="px-3 py-2 text-end">
                                                                          <span
-                                                                             class="{{ $isTotal ? 'text-success fs-6 fw-bold' : 'fw-semibold text-dark' }}">
+                                                                             class="{{ $isTotal ? 'mb-0 text-white text-uppercase fw-bold' : 'fw-semibold text-dark' }}">
                                                                              {{ format_inr($value) }}
                                                                          </span>
                                                                      </td>
