@@ -3035,7 +3035,20 @@ class Shoppingcart extends Component
                     'line_narration' => 'POS Sales',
                 ];
 
-                $ref = "POS-" . $branchId . "-" . time();
+                $prefix = 'SL';
+
+                $lastRefNo = Voucher::where('voucher_type', 'Sales')
+                    ->where('ref_no', 'like', $prefix . '-%')
+                    ->orderByDesc('id')
+                    ->value('ref_no');
+
+                if ($lastRefNo && preg_match('/(\d+)$/', $lastRefNo, $match)) {
+                    $num = (int) $match[1] + 1;
+                } else {
+                    $num = 1;
+                }
+
+                $ref = $prefix . '-' . str_pad($num, 4, '0', STR_PAD_LEFT);
 
                 $salesPayload = [
                     'voucher_date'    => now(),
@@ -3184,11 +3197,26 @@ class Shoppingcart extends Component
                     'amount'    => $grossSale,
                 ];
 
+                $prefix = 'SL';
+
+                $lastRefNo = Voucher::where('voucher_type', 'Sales')
+                    ->where('ref_no', 'like', $prefix . '-%')
+                    ->orderByDesc('id')
+                    ->value('ref_no');
+
+                if ($lastRefNo && preg_match('/(\d+)$/', $lastRefNo, $match)) {
+                    $num = (int) $match[1] + 1;
+                } else {
+                    $num = 1;
+                }
+
+                $nextRefNo = $prefix . '-' . str_pad($num, 4, '0', STR_PAD_LEFT);
+
                 $payload = [
                     'voucher_date' => now(),
                     'voucher_type' => 'Sales',
                     'branch_id'    => $branchId,
-                    'ref_no'       => "POS-" . $branchId . "-" . time(),
+                    'ref_no'       => $nextRefNo,
 
                     // IMPORTANT
                     'sub_total'    => $grossSale,
@@ -3735,19 +3763,20 @@ class Shoppingcart extends Component
             // REF NUMBER
             // =====================================================
 
-            $prefix = "POS-" . $branchId . "-";
+            $prefix = 'SL';
 
-            $lastRef = Voucher::where('voucher_type', 'Sales')
-                ->where('branch_id', $branchId)
-                ->where('ref_no', 'like', $prefix . '%')
-                ->orderBy('id', 'desc')
+            $lastRefNo = Voucher::where('voucher_type', 'Sales')
+                ->where('ref_no', 'like', $prefix . '-%')
+                ->orderByDesc('id')
                 ->value('ref_no');
 
-            $nextNumber = $lastRef
-                ? ((int) str_replace($prefix, '', $lastRef)) + 1
-                : 1;
+            if ($lastRefNo && preg_match('/(\d+)$/', $lastRefNo, $match)) {
+                $num = (int) $match[1] + 1;
+            } else {
+                $num = 1;
+            }
 
-            $nextRef = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+            $nextRefNo = $prefix . '-' . str_pad($num, 4, '0', STR_PAD_LEFT);
 
             // =====================================================
             // MODE
@@ -3767,7 +3796,7 @@ class Shoppingcart extends Component
 
                 'branch_id'       => $branchId,
 
-                'ref_no'          => $nextRef,
+                'ref_no'          => $nextRefNo,
 
                 'narration'       => 'Credit Sale',
 
@@ -4594,7 +4623,20 @@ class Shoppingcart extends Component
                     'line_narration' => 'POS Sales',
                 ];
 
-                $ref = "POS-" . $branchId . "-" . time();
+                $prefix = 'SL';
+
+                $lastRefNo = Voucher::where('voucher_type', 'Sales')
+                    ->where('ref_no', 'like', $prefix . '-%')
+                    ->orderByDesc('id')
+                    ->value('ref_no');
+
+                if ($lastRefNo && preg_match('/(\d+)$/', $lastRefNo, $match)) {
+                    $num = (int) $match[1] + 1;
+                } else {
+                    $num = 1;
+                }
+
+                $ref = $prefix . '-' . str_pad($num, 4, '0', STR_PAD_LEFT);
 
                 $salesPayload = [
                     'voucher_date'    => now(),
@@ -4742,11 +4784,26 @@ class Shoppingcart extends Component
                     'line_narration' => 'POS Sales',
                 ];
 
+                $prefix = 'SL';
+
+                $lastRefNo = Voucher::where('voucher_type', 'Sales')
+                    ->where('ref_no', 'like', $prefix . '-%')
+                    ->orderByDesc('id')
+                    ->value('ref_no');
+
+                if ($lastRefNo && preg_match('/(\d+)$/', $lastRefNo, $match)) {
+                    $num = (int) $match[1] + 1;
+                } else {
+                    $num = 1;
+                }
+
+                $nextRefNo = $prefix . '-' . str_pad($num, 4, '0', STR_PAD_LEFT);
+
                 $payload = [
                     'voucher_date' => now(),
                     'voucher_type' => 'Sales',
                     'branch_id'    => $branchId,
-                    'ref_no'       => "POS-" . $branchId . "-" . time(),
+                    'ref_no'       => $nextRefNo,
                     'narration'    => 'Counter Sale',
 
                     // IMPORTANT

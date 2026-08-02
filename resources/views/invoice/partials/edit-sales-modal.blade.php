@@ -103,6 +103,9 @@
 
                     <label class="switch m-0">
                        @if(auth()->user()->role_id == 1)
+                            @if ($invoice->admin_status != 'verify')
+                              <span class="text-warning">  Pending Sub Admin Verification</span>
+                            @endif
                         <input type="checkbox" onchange="verifyInvoice({{ $invoice->id }}, this.checked, 'super_admin')"
                             {{ $invoice->super_admin_status == 'verify' ? 'checked' : '' }}>
                             @else

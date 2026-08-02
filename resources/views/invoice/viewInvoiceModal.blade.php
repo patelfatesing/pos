@@ -5,6 +5,15 @@
                </div>
                <div class="invoice-btn">
 
+
+                   @if ($invoice->admin_status == 'verify' && $invoice->super_admin_status != 'verify')
+                       <span class="text-warning"> Verify Sub Admin</span>
+                   @endif
+
+                   @if ($invoice->super_admin_status == 'verify' && $invoice->super_admin_status == 'verify')
+                       <span class="text-warning"> Verify this invoice</span>
+                   @endif
+
                    @if ($invoice->party_user_id != '')
                        <button onClick="showPhoto({{ $invoice->id }},'',{{ $invoice->party_user_id }})"
                            class="btn btn-success mr-2">
@@ -20,9 +29,9 @@
 
 
 
-                   <button class="btn btn-success mr-2 view-pdf" data-invoice="{{ $invoice->invoice_number }}">
+                   {{-- <button class="btn btn-success mr-2 view-pdf" data-invoice="{{ $invoice->invoice_number }}">
                        <i class="las la-print"></i> View Invoice
-                   </button>
+                   </button> --}}
                    <a href="{{ route('invoice.download', $invoice->id) }}" class="btn btn-success">
                        <i class="las la-file-download"></i> Download Invoice
                    </a>
@@ -133,7 +142,24 @@
                                                    <p> ₹{{ number_format($invoice->roundof, 2) }}</p>
                                                </div>
                                            @endif
-                                       </div>
+                                                                                  @if ($invoice->payment_mode == 'cashupi')
+                                               <div class="mb-2 d-flex justify-content-between">
+                                                   <h6>By CASE: </h6>
+
+                                                   <p> ₹{{ number_format($invoice->cash_amount, 2) }}
+                                                   </p>
+
+                                               </div>
+                                               <div class="mb-2 d-flex justify-content-between">
+                                                   <h6>By UPI: </h6>
+
+                                                   <p> ₹{{ number_format($invoice->upi_amount, 2) }}
+                                                   </p>
+
+                                               </div>
+                                           @endif
+                                        </div>
+
                                        <div class="ttl-amt py-2 px-3 d-flex justify-content-between align-items-center">
                                            <h6>Total</h6>
                                            <h3 class="text-primary font-weight-700">
