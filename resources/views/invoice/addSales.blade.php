@@ -38,6 +38,19 @@
 
         #add-product-btn {
             white-space: nowrap;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            position: relative;
+            margin-left: -6px;
+            z-index: 2;
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        #new-product-qty {
+            border-top-right-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
         }
 
         #payment-fields {
@@ -47,6 +60,64 @@
 
         #payment-fields .payment-input {
             flex: 1;
+        }
+
+        /* ✅ Select2 styling fix for #new-product-id */
+        .select2-container {
+            min-width: 220px; /* base width */
+        }
+
+        .select2-container .select2-selection--single {
+            height: 38px !important;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+
+        .select2-container .select2-selection--single .select2-selection__rendered {
+            line-height: 36px !important;
+            padding-left: 12px;
+            padding-right: 45px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Arrow: pointer-events none so it never blocks the clear (x) icon underneath */
+        .select2-container .select2-selection--single .select2-selection__arrow {
+            height: 36px !important;
+            right: 6px;
+            pointer-events: none;
+        }
+
+        /* Clear (x) icon: given its own space, higher z-index, and real click target */
+        .select2-container .select2-selection--single .select2-selection__clear {
+            position: absolute;
+            right: 28px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+        .select2-dropdown {
+            width: auto !important;
+            min-width: 100%;
+            max-width: 480px;
+        }
+
+        .select2-results__option {
+            white-space: nowrap;
+            padding-right: 20px;
+        }
+
+        .select2-search--dropdown .select2-search__field {
+            padding: 6px 8px;
+        }
+
+        /* Qty shifted a bit right for breathing room from the dropdown */
+        #new-product-qty-wrap {
+            margin-left: 15px;
         }
     </style>
 
@@ -66,8 +137,8 @@
                     @csrf
                     <div class="card mb-3">
                         <div class="card-body">
-                            <div class="row g-2 align-items-center">
-                                <div class="col-md-4">
+                            <div class="d-flex flex-nowrap align-items-center" style="gap: 12px; overflow-x: auto;">
+                                <div id="product-select-wrap" style="flex: 0 1 auto; min-width: 0;">
                                     <select id="new-product-id" class="form-control">
                                         <option value="">Select Product</option>
                                         @foreach ($allProducts as $product)
@@ -84,18 +155,19 @@
                                 <input type="hidden" name="branch_id" value="{{ $branch_data->id }}">
                                 <input type="hidden" name="type" value="{{ $type }}">
                                 <input type="hidden" name="shift_id" value="{{ $Shift_data->id }}">
-                                <div class="col-md-1">
-                                    <input type="number" min="1" id="new-product-qty" class="form-control"
-                                        placeholder="Qty">
+                                <div class="d-flex align-items-center" style="gap: 0; flex: 0 0 auto;">
+                                    <div id="new-product-qty-wrap" style="flex: 0 0 90px;">
+                                        <input type="number" min="1" id="new-product-qty" class="form-control"
+                                            placeholder="Qty">
+                                    </div>
+                                    <div style="flex: 0 0 auto;">
+                                        <button type="button" class="btn btn-success" id="add-product-btn">
+                                            Add Item
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="col-md-1">
-                                    <button type="button" class="btn btn-success mr-2" id="add-product-btn">
-                                        Add Item
-                                    </button>
-                                </div>
-                                <div class="col-md-4 d-flex">
-                                </div>
-                                <div class="col-md-2 gap-2">
+                                <div style="flex: 1 1 auto;"></div>
+                                <div style="flex: 0 0 auto; min-width: 200px;">
                                     @if ($branch_data->id == 1)
                                         <select id="party-id" class="form-control" name="party_user_id">
                                             <option value="">Select Party Customer</option>
@@ -240,6 +312,49 @@
         let oldItems = @json(old('items', []));
 
         $(document).ready(function() {
+
+            // ✅ Resize helper for #new-product-id select2 box (accessible everywhere below)
+            function resizeProductSelect() {
+                const $sel = $('#new-product-id');
+                const text = $sel.find('option:selected').text().trim() || $sel.data('placeholder') ||
+                    'Select Product';
+
+                let $ruler = $('#product-select-ruler');
+                if ($ruler.length === 0) {
+                    $ruler = $('<span id="product-select-ruler"></span>').css({
+                        position: 'absolute',
+                        visibility: 'hidden',
+                        whiteSpace: 'nowrap',
+                        fontSize: '14px'
+                    }).appendTo('body');
+                }
+
+                $ruler.text(text);
+                const textWidth = $ruler.width();
+
+                const minWidth = 220;
+                const maxWidth = 420;
+                const newWidth = Math.min(maxWidth, Math.max(minWidth, textWidth + 70));
+
+                $sel.next('.select2-container').css('width', newWidth + 'px')
+                    .find('.select2-selection__rendered').attr('title', text);
+            }
+
+            // ✅ Select2 init for Product dropdown
+            if ($('#new-product-id').length) {
+                $('#new-product-id').select2({
+                    placeholder: 'Select Product',
+                    allowClear: true,
+                    width: 'resolve',
+                    dropdownAutoWidth: true,
+                });
+
+                resizeProductSelect();
+
+                $('#new-product-id').on('select2:select select2:unselect select2:clear', function() {
+                    resizeProductSelect();
+                });
+            }
 
             if (oldItems && Object.keys(oldItems).length > 0) {
 
@@ -541,7 +656,9 @@
                         }
                     }
 
-                    $('#new-product-id').val('');
+                    // ✅ Reset dropdown + qty (with select2-aware reset)
+                    $('#new-product-id').val('').trigger('change.select2');
+                    resizeProductSelect();
                     $('#new-product-qty').val('');
 
                 });
@@ -846,7 +963,6 @@
             });
 
             // When Cash input changes
-            // When Cash input changes
             $('#cash-amount').on('input', function() {
                 let cash = parseFloat($(this).val()) || 0;
 
@@ -858,7 +974,6 @@
                 }
             });
 
-            // When UPI input changes
             // When UPI input changes
             $('#upi-amount').on('input', function() {
                 let upi = parseFloat($(this).val()) || 0;

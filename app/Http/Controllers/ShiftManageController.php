@@ -1110,6 +1110,10 @@ class ShiftManageController extends Controller
         if (!$shift->closing_shift_time) {
             $closeShift = $this->closeShift($id, "html");
 
+            $allSubcategories = DB::table('sub_categories')
+                ->where('is_deleted', 'no')
+                ->pluck('name');
+
             $stockTotals = DB::table('daily_product_stocks')
                 ->where('shift_id', $id)
                 ->selectRaw('
@@ -1132,7 +1136,20 @@ class ShiftManageController extends Controller
             //     ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
             //     ->count();
 
-            $pdf = Pdf::loadView('shift_manage.shift_print', ['totalTrasaction' => $totalTrasaction, 'stockTotals' => $stockTotals, 'user_name' => $closeShift['user_name'], 'shift' => $closeShift['shift'], "categoryTotals" => $closeShift['categoryTotals'], "shiftcash" => $closeShift['shiftcash'], "closing_cash" => $closeShift['closing_cash'], 'cash_discrepancy' => $closeShift['cash_discrepancy'], 'closeShift' => $closeShift, 'branch_name' => $closeShift['branch_name']]);
+            $pdf = Pdf::loadView('shift_manage.shift_print', [
+                'totalTrasaction' => $totalTrasaction,
+                'stockTotals' => $stockTotals,
+                'user_name' => $closeShift['user_name'],
+                'shift' => $closeShift['shift'],
+                'categoryTotals' => $closeShift['categoryTotals'],
+                'shiftcash' => $closeShift['shiftcash'],
+                'closing_cash' => $closeShift['closing_cash'],
+                'cash_discrepancy' => $closeShift['cash_discrepancy'],
+                'closeShift' => $closeShift,
+                'branch_name' => $closeShift['branch_name'],
+                'allSubcategories' => $allSubcategories,
+            ]);
+            
             return $pdf->download('shift_report_' . Str::slug($shift->shift_no) . '.pdf');
         }
 
