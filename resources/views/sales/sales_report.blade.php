@@ -515,6 +515,18 @@
 
 @section('scripts')
     <script>
+        $(document).on('shown.bs.modal', '.modal', function() {
+            if ($('.modal.show').length > 1) {
+                $('body').addClass('modal-open');
+            }
+        });
+
+        $(document).on('hidden.bs.modal', '.modal', function() {
+            if ($('.modal.show').length) {
+                $('body').addClass('modal-open');
+            }
+        });
+
         $(document).on('click', '.store-row td:nth-child(1), .store-row td:nth-child(2)', function(e) {
 
             // ❌ ignore clicks on buttons/links/switch

@@ -11,8 +11,17 @@
 
         body {
             font-family: Arial, sans-serif;
-            font-size: 12px;
+            font-size: 13px;
+            line-height: 1.2;
             color: #222;
+        }
+
+        /* ===== Generated-on line (now sits above everything) ===== */
+        .generated-on {
+            font-size: 12px;
+            text-align: right;
+            color: #333;
+            padding-bottom: 4px;
         }
 
         /* ===== Top header ===== */
@@ -26,14 +35,14 @@
         }
 
         .shop-name {
-            font-size: 22px;
+            font-size: 23px;
             font-weight: bold;
             text-align: center;
             letter-spacing: 0.5px;
         }
 
         .shop-sub {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: bold;
             text-align: center;
             text-decoration: underline;
@@ -41,31 +50,24 @@
             margin-bottom: 10px;
         }
 
-        .generated-on {
-            font-size: 12px;
-            text-align: right;
-            color: #333;
-            padding-top: 4px;
-        }
-
         .report-bar {
             background: #bfbfbf;
             text-align: center;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: bold;
-            padding: 4px 0;
-            margin: 6px 0 8px 0;
+            padding: 5px 0;
+            margin: 6px 0 9px 0;
         }
 
         /* ===== shift meta row ===== */
         .meta-table {
             width: 100%;
-            margin-bottom: 8px;
+            margin-bottom: 9px;
         }
 
         .meta-table td {
-            padding: 1px 0;
-            font-size: 12px;
+            padding: 2px 0;
+            font-size: 13px;
         }
 
         .meta-left {
@@ -87,7 +89,7 @@
             border-collapse: separate;
             border-spacing: 0;
             table-layout: fixed;
-            margin-bottom: 8px;
+            margin-bottom: 9px;
         }
 
         .grid-row td.col {
@@ -111,9 +113,25 @@
         .card-title {
             background: #e6e6e6;
             font-weight: bold;
-            font-size: 12px;
-            padding: 3px 6px;
+            font-size: 13px;
+            padding: 4px 6px;
             border-bottom: 1px solid #999;
+        }
+
+        .card-title-split {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .card-title-split td {
+            padding: 0;
+            border: none;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .card-title-split td.right {
+            text-align: right;
         }
 
         .card table {
@@ -122,8 +140,8 @@
         }
 
         .card table td {
-            padding: 2px 6px;
-            font-size: 12px;
+            padding: 3px 6px;
+            font-size: 13px;
             border-bottom: 1px solid #eee;
         }
 
@@ -143,7 +161,7 @@
 
         .full-card {
             width: 100%;
-            margin-bottom: 8px;
+            margin-bottom: 9px;
             border: 1px solid #999;
         }
 
@@ -153,8 +171,8 @@
         }
 
         .full-card table td {
-            padding: 2px 6px;
-            font-size: 12px;
+            padding: 3px 6px;
+            font-size: 13px;
             border-bottom: 1px solid #eee;
         }
 
@@ -171,23 +189,22 @@
         .empty-note {
             font-style: italic;
             color: #888;
-            font-size: 9px;
+            font-size: 10px;
         }
     </style>
 </head>
 
 <body>
 
+    {{-- ===== Generated-on line — now above the shop header ===== --}}
+    <div class="generated-on">Generated On {{ now()->format('d-m-Y H:i:s') }}</div>
+
     {{-- ===== Header ===== --}}
     <table class="top-header">
         <tr>
-            <td style="width:30%;"></td>
-            <td style="width:40%;">
+            <td style="width:100%; text-align:center;">
                 <div class="shop-name">LIQUOR HUB</div>
                 <div class="shop-sub">{{ $branch_name }}</div>
-            </td>
-            <td style="width:30%;">
-                <div class="generated-on">Generated On {{ now()->format('d-m-Y H:i:s') }}</div>
             </td>
         </tr>
     </table>
@@ -239,6 +256,14 @@
                 $categoryRows[] = [ucwords(strtolower($cat)), number_format($amt, 2)];
             }
         }
+
+        $allSubcategories = $allSubcategories ?? [];
+        if (empty($categoryRows) && !empty($allSubcategories)) {
+            foreach ($allSubcategories as $subcatName) {
+                $categoryRows[] = [ucwords(strtolower($subcatName)), number_format(0, 2)];
+            }
+        }
+
         $categoryTotalRow = ['Total Category Wise Sales', number_format($categoryTotals['sales']['TOTAL'] ?? 0, 2)];
 
         $maxRows1 = max(count($salesSummaryRows), count($categoryRows));
@@ -251,7 +276,14 @@
         <tr>
             <td class="col">
                 <div class="card">
-                    <div class="card-title">Sales Summary</div>
+                    <div class="card-title">
+                        <table class="card-title-split">
+                            <tr>
+                                <td>Sales Summary</td>
+                                <td class="right">Total</td>
+                            </tr>
+                        </table>
+                    </div>
                     <table>
                         @for ($i = 0; $i < $maxRows1; $i++)
                             <tr>
@@ -268,7 +300,14 @@
             </td>
             <td class="col">
                 <div class="card">
-                    <div class="card-title">Category Wise Sales</div>
+                    <div class="card-title">
+                        <table class="card-title-split">
+                            <tr>
+                                <td>Category Wise Sales</td>
+                                <td class="right">Total</td>
+                            </tr>
+                        </table>
+                    </div>
                     <table>
                         @for ($i = 0; $i < $maxRows1; $i++)
                             <tr>
@@ -320,7 +359,14 @@
         <tr>
             <td class="col">
                 <div class="card">
-                    <div class="card-title">Paid Out Expenses</div>
+                    <div class="card-title">
+                        <table class="card-title-split">
+                            <tr>
+                                <td>Paid Out Expenses</td>
+                                <td class="right">Total</td>
+                            </tr>
+                        </table>
+                    </div>
                     <table>
                         @for ($i = 0; $i < $maxRows2; $i++)
                             @if ($expenseNote && $i === 0)
@@ -343,7 +389,14 @@
             </td>
             <td class="col">
                 <div class="card">
-                    <div class="card-title">Stock Summary Report</div>
+                    <div class="card-title">
+                        <table class="card-title-split">
+                            <tr>
+                                <td>Stock Summary Report</td>
+                                <td class="right">Total</td>
+                            </tr>
+                        </table>
+                    </div>
                     <table>
                         @for ($i = 0; $i < $maxRows2; $i++)
                             <tr @if ($stockRows[$i][0] === 'Difference') class="total-row" @endif>
@@ -394,12 +447,15 @@
         <tr>
             <td class="col">
                 <div class="card">
-                    <div class="card-title">Payment Mode</div>
+                    <div class="card-title">
+                        <table class="card-title-split">
+                            <tr>
+                                <td>Payment Mode</td>
+                                <td class="right">Total</td>
+                            </tr>
+                        </table>
+                    </div>
                     <table>
-                        <tr>
-                            <td>{!! "&nbsp;" !!}</td>
-                            <td class="text-right">{!! "&nbsp;" !!}</td>
-                        </tr>
                         @for ($i = 0; $i < $maxRows3; $i++)
                             <tr>
                                 <td>{{ $paymentRows[$i][0] !== '' ? $paymentRows[$i][0] : "\u{00A0}" }}</td>
@@ -415,12 +471,15 @@
             </td>
             <td class="col">
                 <div class="card">
-                    <div class="card-title">Cash Denomination</div>
+                    <div class="card-title">
+                        <table class="card-title-split">
+                            <tr>
+                                <td>Cash Denomination</td>
+                                <td class="right">Total</td>
+                            </tr>
+                        </table>
+                    </div>
                     <table>
-                        <tr>
-                            <td><strong>Denomination</strong></td>
-                            <td class="text-right"><strong>Amount</strong></td>
-                        </tr>
                         @for ($i = 0; $i < $maxRows3; $i++)
                             <tr>
                                 <td>{{ $denomRows[$i][0] }} {{ $denomRows[$i][1] }}</td>
@@ -439,7 +498,14 @@
 
     {{-- ===== Cash Summary (full width card) ===== --}}
     <div class="full-card">
-        <div class="card-title">Cash Summary</div>
+        <div class="card-title">
+            <table class="card-title-split">
+                <tr>
+                    <td>Cash Summary</td>
+                    <td class="right">Total</td>
+                </tr>
+            </table>
+        </div>
         <table>
             <tr>
                 <td style="width:70%;">System Cash</td>

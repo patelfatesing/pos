@@ -114,7 +114,7 @@
                                     <div
                                         class="custom-control custom-checkbox custom-checkbox-color-check custom-control-inline">
                                         <input type="checkbox" class="custom-control-input bg-success" id="customCheck-2"
-                                            checked="">
+                                            checked="" disabled>
                                         <label class="custom-control-label" for="customCheck-2"></label>
                                     </div>
                                     @endif

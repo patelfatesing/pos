@@ -297,8 +297,12 @@ class ShiftManageController extends Controller
             ->join('branches', 'invoices.branch_id', '=', 'branches.id')
             ->leftJoin('party_users', 'invoices.party_user_id', '=', 'party_users.id')
             ->leftJoin('commission_users', 'invoices.commission_user_id', '=', 'commission_users.id')
+            ->leftJoin('users', 'invoices.user_id', '=', 'users.id')
+            ->leftJoin('roles', 'users.role_id', '=', 'roles.id')
+
             ->select(
                 'invoices.id',
+                'invoices.user_id',
                 'invoices.invoice_number',
                 'invoices.party_amount',
                 'invoices.status',
@@ -317,7 +321,8 @@ class ShiftManageController extends Controller
                 'invoices.party_user_id',
                 'party_users.first_name as party_user',
                 'commission_users.first_name as commission_user',
-                'invoices.edit_in' // Include the 'edit_in' field
+                'invoices.edit_in', // Include the 'edit_in' field
+                'roles.name as role_name'
             );
 
         // Date filter
@@ -461,11 +466,13 @@ class ShiftManageController extends Controller
                                 📝 View History
                             </button>
                         ' : '') . '
-                        ' . ($invoice->sales_type == "admin_sale" ? '
-                            <span class="text-danger ms-2 fw-bold" style="font-size:12px;">
-                                (Admin)
-                            </span>
-                        ' : '') . '
+' . (
+                    $invoice->user_id == 1
+                    ? '<span class="text-danger ms-2 fw-bold" style="font-size:12px;">(Admin)</span>'
+                    : (!empty($invoice->role_name)
+                        ? '<span class="text-primary ms-2 fw-bold" style="font-size:12px;">(' . $invoice->role_name . ')</span>'
+                        : '')
+                ) . '
                     ',
             ];
         }
@@ -1103,6 +1110,10 @@ class ShiftManageController extends Controller
         if (!$shift->closing_shift_time) {
             $closeShift = $this->closeShift($id, "html");
 
+            $allSubcategories = DB::table('sub_categories')
+                ->where('is_deleted', 'no')
+                ->pluck('name');
+
             $stockTotals = DB::table('daily_product_stocks')
                 ->where('shift_id', $id)
                 ->selectRaw('
@@ -1125,7 +1136,20 @@ class ShiftManageController extends Controller
             //     ->whereBetween('created_at', [$shift->start_time, $shift->end_time])
             //     ->count();
 
-            $pdf = Pdf::loadView('shift_manage.shift_print', ['totalTrasaction' => $totalTrasaction, 'stockTotals' => $stockTotals, 'user_name' => $closeShift['user_name'], 'shift' => $closeShift['shift'], "categoryTotals" => $closeShift['categoryTotals'], "shiftcash" => $closeShift['shiftcash'], "closing_cash" => $closeShift['closing_cash'], 'cash_discrepancy' => $closeShift['cash_discrepancy'], 'closeShift' => $closeShift, 'branch_name' => $closeShift['branch_name']]);
+            $pdf = Pdf::loadView('shift_manage.shift_print', [
+                'totalTrasaction' => $totalTrasaction,
+                'stockTotals' => $stockTotals,
+                'user_name' => $closeShift['user_name'],
+                'shift' => $closeShift['shift'],
+                'categoryTotals' => $closeShift['categoryTotals'],
+                'shiftcash' => $closeShift['shiftcash'],
+                'closing_cash' => $closeShift['closing_cash'],
+                'cash_discrepancy' => $closeShift['cash_discrepancy'],
+                'closeShift' => $closeShift,
+                'branch_name' => $closeShift['branch_name'],
+                'allSubcategories' => $allSubcategories,
+            ]);
+            
             return $pdf->download('shift_report_' . Str::slug($shift->shift_no) . '.pdf');
         }
 

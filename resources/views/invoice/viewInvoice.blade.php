@@ -41,7 +41,13 @@
                                     <h4 class="card-title mb-0">Invoice #{{ $invoice->invoice_number }}</h4>
                                 </div>
                                 <div class="invoice-btn">
+                                    @if ($invoice->admin_status == 'verify' && $invoice->super_admin_status != 'verify')
+                                        <span class="text-info"> Verify Sub Admin</span>
+                                    @endif
 
+                                    @if ($invoice->super_admin_status == 'verify' && $invoice->super_admin_status == 'verify')
+                                        <span class="text-info"> Verify this invoice</span>
+                                    @endif
                                     @if ($showEditButton)
                                         <a href="{{ route('sales.edit-sales', $invoice->id) }}"
                                             class="btn btn-success-dark">
@@ -79,9 +85,9 @@
                                         </button> --}}
                                     @endif
 
-                                    <button class="btn btn-success-dark mr-2" data-toggle="modal" data-target="#pdfModal">
+                                    {{-- <button class="btn btn-success-dark mr-2" data-toggle="modal" data-target="#pdfModal">
                                         <i class="las la-print"></i>View Invoice
-                                    </button>
+                                    </button> --}}
                                     <a href="{{ route('invoice.download', $invoice->id) }}" class="btn btn-success-dark">
                                         <i class="las la-file-download"></i> Download Invoice
                                     </a>
