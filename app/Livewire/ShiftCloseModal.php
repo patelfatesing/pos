@@ -901,6 +901,7 @@ class ShiftCloseModal extends Component
             $this->addError('general', 'An error occurred while closing the shift. Please try again.');
         }
     }
+    
 
     public function getStockStatus(): array
     {

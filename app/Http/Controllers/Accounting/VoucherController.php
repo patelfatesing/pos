@@ -275,23 +275,20 @@ class VoucherController extends Controller
     {
         $branches = \App\Models\Branch::select('name', 'id')->get();
 
+        $prefix = 'JN-';
 
-        $today = now()->format('Ymd');
-
-        $lastVoucher = Voucher::where('voucher_type', 'Journal')
-            ->whereDate('created_at', now()->toDateString())
-            ->orderBy('id', 'desc')
+        $lastRefNo = Voucher::where('voucher_type', 'Journal')
+            ->where('ref_no', 'like', $prefix . '%')
+            ->orderByDesc('id')
             ->value('ref_no');
 
-        if ($lastVoucher && preg_match('/(\d+)$/', $lastVoucher, $match)) {
-
+        if ($lastRefNo && preg_match('/(\d+)$/', $lastRefNo, $match)) {
             $num = (int) $match[1] + 1;
         } else {
-
             $num = 1;
         }
 
-        $lastVoucher = 'JN-' . $today . '-' . str_pad($num, 4, '0', STR_PAD_LEFT);
+        $lastVoucher = $prefix . str_pad($num, 4, '0', STR_PAD_LEFT);
 
         return view('accounting.vouchers.create', [
             'ledgers' => AccountLedger::where('is_active', 1)->orderBy('name')->get(),
@@ -528,36 +525,36 @@ class VoucherController extends Controller
     public function getLastRef(Request $request)
     {
         $voucherType = $request->voucher_type;
-        // $branchId    = $request->branch_id;
 
-        $voucherType = $request->voucher_type;
-
-        // Prefix
+        // Voucher Prefix
         $prefixMap = [
             'Journal'  => 'JN',
             'Payment'  => 'PM',
             'Receipt'  => 'RC',
             'Contra'   => 'CT',
             'Purchase' => 'PU',
+            'Sales'    => 'SL',
+            'DebitNote' => 'DN',
+            'CreditNote' => 'CN',
         ];
 
         $prefix = $prefixMap[$voucherType] ?? 'VN';
 
-        // Get last voucher ref_no
-        $lastVoucher = Voucher::where('voucher_type', $voucherType)
-            // ->where('branch_id', $request->branch_id) // enable if needed
-            ->orderBy('id', 'desc')
+        // Get last voucher of this type
+        $lastRefNo = Voucher::where('voucher_type', $voucherType)
+            // ->where('branch_id', $request->branch_id) // Uncomment if branch-wise numbering
+            ->where('ref_no', 'like', $prefix . '-%')
+            ->orderByDesc('id')
             ->value('ref_no');
 
-        if ($lastVoucher) {
-            // Remove prefix safely (JN-, PM-, etc.)
-            $num = (int) preg_replace('/[^0-9]/', '', $lastVoucher);
-            $num++;
+        // Generate next number
+        if ($lastRefNo && preg_match('/(\d+)$/', $lastRefNo, $match)) {
+            $num = (int) $match[1] + 1;
         } else {
             $num = 1;
         }
 
-        // Generate next voucher no
+        // Next Voucher Number
         $nextRefNo = $prefix . '-' . str_pad($num, 4, '0', STR_PAD_LEFT);
 
         return response()->json([
