@@ -25,7 +25,7 @@
                         <div class="col-md-3">
                             <div class="form-group mb-0">
                                 <select name="subCategorySearch" id="subCategorySearch" class="form-control">
-                                    <option value="">Select All Sub Category</option>
+                                    <option value="">Select All Category</option>
                                     @foreach ($subcategories as $id => $name)
                                         <option value="{{ $name->id }}">{{ $name->name }}</option>
                                     @endforeach
@@ -49,6 +49,7 @@
                                     <th>In-Stock</th>
                                     <th>Cost Price</th>
                                     <th>Sales Price</th>
+                                    <th>Discount Price</th>
                                     <th>Stock Low Level</th>
                                     <th>Last updated</th>
                                 </tr>
@@ -60,7 +61,7 @@
 
                                     <th id="total_stock" class="text-center"></th>
 
-                                    <th colspan="4"></th>
+                                    <th colspan="5"></th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -207,6 +208,11 @@
                         orderable: false,
                         className: "text-center"
                     },
+                    {
+                        data: 'discount_price',
+                        orderable: false,
+                        className: "text-center"
+                    },
                     // {
                     //     data: 'expiry_date',
                     //     orderable: true
@@ -252,7 +258,7 @@
                 ],
                 autoWidth: false,
                 order: [
-                    [7, 'asc']
+                    [8, 'asc']
                 ], // Order by updated_at
                 lengthMenu: [
                     [10, 25, 50, 100, -1],
