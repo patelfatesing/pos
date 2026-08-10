@@ -679,7 +679,8 @@
                     grandTotal += rowTotal;
                 });
 
-                $('#total').text('₹' + Math.ceil(totalSellPrice));
+                const grossTotal = totalSellPrice + discountTotal;
+                $('#total').text('₹' + Math.ceil(grossTotal));
                 $('#grand-total').text('₹' + Math.ceil(grandTotal));
 
                 if (partyId || commissionId) {
