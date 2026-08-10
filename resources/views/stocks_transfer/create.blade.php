@@ -328,8 +328,79 @@
                 $sel.select2({
                     placeholder: 'Select Product',
                     allowClear: true,
-                    width: '100%',
-                    dropdownParent: $('body') 
+                    width: '100%'
+                });
+
+                // Bind event directly to the element
+                $sel.on('select2:select', function(e) {
+                    const productId = e.params?.data?.id || $(this).val();
+                    console.log('Directly bound select2:select fired/triggered:', productId);
+                    const from_store_id = $("#from_store_id").val();
+                    const to_store_id = $("#to_store_id").val();
+                    const container = $(this).closest('.item-row').find('.availability-container');
+                    const currentSelect = $(this);
+
+                    // Check if this product is already selected in another row
+                    if (productId) {
+                        const isDuplicate = $('.product-select').not(this).toArray().some(select => select.value ===
+                            productId);
+                        if (isDuplicate) {
+                            alert("This product is already selected. Please choose a different product.");
+                            currentSelect.val(null).trigger('change.select2');
+                            container.empty();
+                            return false;
+                        }
+                    }
+
+                    if (!from_store_id) {
+                        alert("Please select the source store first.");
+                        currentSelect.val(null).trigger('change.select2');
+                        return false;
+                    }
+
+                    if (!to_store_id) {
+                        alert("Please select the destination store first.");
+                        currentSelect.val(null).trigger('change.select2');
+                        return false;
+                    }
+
+                    if (productId) {
+                        $.ajax({
+                            url: "{{ url('/products/get-availability-branch') }}/" + productId +
+                                "?from=" + encodeURIComponent(from_store_id) +
+                                "&to=" + encodeURIComponent(to_store_id),
+                            type: "GET",
+                            dataType: "json",
+                            success: function(data) {
+                                console.log('Stock availability response:', data);
+
+                                if (data.from_count <= 0) {
+                                    alert("Insufficient stock in the source store for this product.");
+
+                                    currentSelect.val(null).trigger('change.select2');
+                                    container.empty();
+                                    return false;
+                                }
+                                let html = `
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <strong>Source Store Stock:</strong> ${data.from_count}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Destination Store Stock:</strong> ${data.to_count}
+                                        </div>
+                                    </div>`;
+                                container.html(html);
+                            },
+                            error: function() {
+                                container.html(
+                                    '<div class="text-danger">Failed to load stock information. Please try again.</div>'
+                                );
+                            }
+                        });
+                    } else {
+                        container.empty();
+                    }
                 });
             });
         }
@@ -398,6 +469,7 @@
 
                             if ($lastSelect.hasClass('select2-hidden-accessible')) {
                                 $lastSelect.trigger('change.select2');
+                                $lastSelect.trigger('change');
                             }
                         },
                         error: function() {
@@ -545,6 +617,7 @@
                         });
 
                         selectBox.trigger('change.select2');
+                        selectBox.trigger('change');
 
                     }
                 });
@@ -570,74 +643,8 @@
         });
 
         // Product selection handler
-        $(document).on('change', '.product-select', function() {
-            const productId = $(this).val();
-            const from_store_id = $("#from_store_id").val();
-            const to_store_id = $("#to_store_id").val();
-            const container = $(this).closest('.item-row').find('.availability-container');
-            const currentSelect = $(this);
+        // Removed: replaced by direct binding in initProductSelect2
 
-            // Check if this product is already selected in another row
-            if (productId) {
-                const isDuplicate = $('.product-select').not(this).toArray().some(select => select.value ===
-                    productId);
-                if (isDuplicate) {
-                    alert("This product is already selected. Please choose a different product.");
-                    currentSelect.val(null).trigger('change.select2');
-                    container.empty();
-                    return false;
-                }
-            }
-
-            if (!from_store_id) {
-                alert("Please select the source store first.");
-                currentSelect.val(null).trigger('change.select2');
-                return false;
-            }
-
-            if (!to_store_id) {
-                alert("Please select the destination store first.");
-                currentSelect.val(null).trigger('change.select2');
-                return false;
-            }
-
-            if (productId) {
-                $.ajax({
-                    url: "{{ url('/products/get-availability-branch') }}/" + productId +
-                        "?from=" + encodeURIComponent(from_store_id) +
-                        "&to=" + encodeURIComponent(to_store_id),
-                    type: "GET",
-                    dataType: "json",
-                    success: function(data) {
-
-                        if (data.from_count <= 0) {
-                            alert("Insufficient stock in the source store for this product.");
-
-                            currentSelect.val(null).trigger('change.select2');
-                            container.empty();
-                            return false;
-                        }
-                        let html = `
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <strong>Source Store Stock:</strong> ${data.from_count}
-                                </div>
-                                <div class="col-md-6">
-                                    <strong>Destination Store Stock:</strong> ${data.to_count}
-                                </div>
-                            </div>`;
-                        container.html(html);
-                    },
-                    error: function() {
-                        container.html(
-                            '<div class="text-danger">Failed to load stock information. Please try again.</div>'
-                        );
-                    }
-                });
-            } else {
-                container.empty();
-            }
-        });
 
         // Trigger change event for pre-selected products
         $(document).ready(function() {
@@ -645,7 +652,7 @@
 
             $('.product-select').each(function() {
                 if ($(this).val()) {
-                    $(this).trigger('change');
+                    $(this).trigger('select2:select', { params: { data: { id: $(this).val() } } }); 
                 }
             });
         });
