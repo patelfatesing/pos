@@ -86,7 +86,7 @@ class ShiftCloseModal extends Component
     public $showModal = false;
     public $availableNotes = "";
     public $selectedUser = 0;
-    protected $listeners = ['updateProductList' => 'loadCartData', 'openCloseModal' => 'openModal', 'loadHoldTransactions', 'updateNewProductDetails', 'resetData', 'setCapturedImage'];
+    protected $listeners = ['updateProductList' => 'loadCartData', 'openCloseModal' => 'openModal', 'loadHoldTransactions', 'updateNewProductDetails', 'resetData', 'setCapturedImage', 'removeHold'];
     public $noteDenominations = [10, 20, 50, 100, 200, 500];
     public $remainingAmount = 0;
     public $totalBreakdown = [];
@@ -172,7 +172,7 @@ class ShiftCloseModal extends Component
     }
 
     public function removeHold()
-    {
+    {    
         $date = \Carbon\Carbon::parse($this->currentShift->start_time)->toDateString();
         $branch_id = (!empty(auth()->user()->userinfo->branch->id)) ? auth()->user()->userinfo->branch->id : "";
 

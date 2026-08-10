@@ -68,11 +68,11 @@
                                 <th>Barcode</th>
                                 <th>Category</th>
                                 <th>MRP</th>
-                                <th>Selling Price</th>
+                                <th>Sale Price</th>
                                 <th>Cost Price</th>
                                 <th>Qty</th>
                                 <th>Sold</th>
-                                <th>Total Stock Value</th>
+                                <th>Total Value</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -88,7 +88,7 @@
                                 <th colspan="6" id="selling-total" class="text-left"></th>
                             </tr>
                             <tr>
-                                <th colspan="5" class="text-right">Total Stock Value:</th>
+                                <th colspan="5" class="text-right">Total Value:</th>
                                 <th colspan="6" id="purchase-total" class="text-left"></th>
                             </tr>
                         </tfoot>
@@ -262,11 +262,11 @@
                                         90, // Barcode
                                         70, // Category
                                         50, // MRP
-                                        60, // Selling
+                                        60, // Sale Price
                                         60, // Cost
                                         35, // Qty
                                         35, // Sold
-                                        70 // Stock Value
+                                        70 // Total Value
                                     ];
 
                                     // header style
@@ -343,7 +343,7 @@
 
                                     // Purchase total
                                     doc.content[0].table.body.push([{
-                                            text: 'Purchase Total:',
+                                            text: 'Total Value:',
                                             colSpan: 10,
                                             alignment: 'right',
                                             bold: true

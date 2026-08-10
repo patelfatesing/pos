@@ -552,10 +552,13 @@ $branch = Branch::where('is_deleted', 'no')->pluck('name', 'id');
 @endif
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('clearDateFilter').addEventListener('click', function() {
-            document.getElementById('start_date').value = '';
-            document.getElementById('end_date').value = '';
-            document.getElementById('dateFilterForm').submit();
-        });
+        const clearBtn = document.getElementById('clearDateFilter');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function() {
+                document.getElementById('start_date').value = '';
+                document.getElementById('end_date').value = '';
+                document.getElementById('dateFilterForm').submit();
+            });
+        }
     });
 </script>

@@ -41,14 +41,14 @@
                             <div class="d-flex gap-1 action-buttons-block justify-content-center">
                                 <button
                                     wire:click="resumeTransaction('{{ $transaction->id }}', '{{ $transaction->commission_user_id }}', '{{ $transaction->party_user_id }}')"
-                                    class="btn btn-success btn-sm px-3">
+                                    class="btn btn-success btn-sm px-3 btn-resume-hold">
                                     Resume
                                 </button>
-                                <button class="pdf-view"
+                                <button class="pdf-view btn-pdf-hold"
                                     wire:click="printInvoice('{{ $transaction->id }}')">
                                     <img src="{{ asset('assets/images/sidebar-imgs/pdf-ic.svg') }}" alt="PDF">
                                 </button>
-                                <button class="btn btn-danger btn-sm ms-2 remove-item"
+                                <button class="btn btn-danger btn-sm ms-2 remove-item btn-delete-hold"
                                     onclick="confirmDelete({{ $transaction->id }})">
                                     <i class="fa fa-trash-o" aria-hidden="true"></i>
                                 </button>

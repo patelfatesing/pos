@@ -46,10 +46,7 @@
                 <table class="table table-striped table-bordered nowrap" id="branch_table">
                     <thead class="bg-white text-uppercase">
                         <tr class="ligth ligth-data">
-
-                            <th>
-                                Name
-                            </th>
+                            <th>Name</th>
                             <th>Address</th>
                             <th>Status</th>
                             {{-- <th>Main Branch</th> --}}
@@ -68,6 +65,7 @@
     </div>
     <!-- Wrapper End-->
 
+    <!-- Low Level Stock Modal -->
     <div class="modal fade bd-example-modal-lg" id="lowlevelStockBranchModal" tabindex="-1" role="dialog"
         aria-labelledby="lowlevelStockBranchModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
@@ -106,10 +104,7 @@
         </div>
     </div>
 
-    <!-- Add this in your Blade layout -->
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <!-- Modal -->
+    <!-- Add Holiday Modal -->
     <div class="modal fade bd-example-modal-lg" id="AddHolidayModal" tabindex="-1" aria-labelledby="AddHolidayModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -164,7 +159,7 @@
         </div>
     </div>
 
-    <!-- Modal -->
+    <!-- Add One Time Sales Modal -->
     <div class="modal fade bd-example-modal-sm" id="AddOneTimeModal" tabindex="-1"
         aria-labelledby="AddOneTimeModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-sm">
@@ -183,10 +178,6 @@
                         <input type="hidden" name="branch_id" id="ots_branch_id"
                             value="{{ $currentBranch->id ?? 1 }}">
 
-                        <!-- Holiday Date -->
-                        @php
-                            $today = \Carbon\Carbon::now('Asia/Kolkata')->toDateString();
-                        @endphp
                         <label for="one_time_sales">Time <span class="text-danger">*</span></label>
                         <input type="time" class="form-control" id="one_time_sales" name="one_time_sales"
                             value="{{ old('one_time_sales') }}" min="{{ $minTime }}">
@@ -204,20 +195,16 @@
     <script>
         var pdfLogo = "";
 
-
         $(document).on('click', '.store-status-switch, .capture-status-switch', function(e) {
             e.stopPropagation();
         });
 
-
         // STORE STATUS SWITCH
         $(document).on('change', '.store-status-switch', function(e) {
-
             e.preventDefault();
             e.stopPropagation();
 
             let checkbox = $(this);
-
             let storeId = checkbox.data('store-id');
             let isEnabled = checkbox.prop('checked') ? 1 : 0;
 
@@ -229,9 +216,7 @@
                 confirmButtonText: "Yes, change it!",
                 cancelButtonText: "No, cancel"
             }).then((result) => {
-
                 if (result.isConfirmed) {
-
                     $.ajax({
                         url: '/store/update-status',
                         type: 'POST',
@@ -240,9 +225,7 @@
                             in_out_enable: isEnabled,
                             _token: $('meta[name="csrf-token"]').attr('content')
                         },
-
                         success: function(response) {
-
                             Swal.fire({
                                 title: "Success!",
                                 text: "Store status has been changed.",
@@ -250,13 +233,9 @@
                                 timer: 1000,
                                 showConfirmButton: false
                             });
-
                         },
-
                         error: function(xhr) {
-
                             checkbox.prop('checked', !isEnabled);
-
                             Swal.fire(
                                 "Error!",
                                 "Something went wrong.",
@@ -264,24 +243,18 @@
                             );
                         }
                     });
-
                 } else {
-
                     checkbox.prop('checked', !isEnabled);
                 }
             });
         });
 
-
-
         // CAPTURE STATUS SWITCH
         $(document).on('change', '.capture-status-switch', function(e) {
-
             e.preventDefault();
             e.stopPropagation();
 
             let checkbox = $(this);
-
             let storeId = checkbox.data('store-id');
             let isCapture = checkbox.prop('checked') ? 1 : 0;
 
@@ -293,9 +266,7 @@
                 confirmButtonText: "Yes, change it!",
                 cancelButtonText: "No, cancel"
             }).then((result) => {
-
                 if (result.isConfirmed) {
-
                     $.ajax({
                         url: '/store/update-capture-status',
                         type: 'POST',
@@ -304,9 +275,7 @@
                             is_capture: isCapture,
                             _token: $('meta[name="csrf-token"]').attr('content')
                         },
-
                         success: function(response) {
-
                             Swal.fire({
                                 title: "Success!",
                                 text: "Capture status has been changed.",
@@ -314,13 +283,9 @@
                                 timer: 1000,
                                 showConfirmButton: false
                             });
-
                         },
-
                         error: function(xhr) {
-
                             checkbox.prop('checked', !isCapture);
-
                             Swal.fire(
                                 "Error!",
                                 "Something went wrong.",
@@ -328,16 +293,13 @@
                             );
                         }
                     });
-
                 } else {
-
                     checkbox.prop('checked', !isCapture);
                 }
             });
         });
 
         $(document).ready(function() {
-
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -351,43 +313,27 @@
                 serverSide: true,
                 ordering: true,
                 bLengthChange: true,
-
                 responsive: false,
                 autoWidth: false,
-
                 pageLength: 10,
-
                 ajax: {
                     url: '{{ url('store/get-data') }}',
                     type: 'POST'
                 },
-
                 language: {
                     search: "",
                     lengthMenu: "_MENU_"
                 },
-
-                columns: [{
-                        data: 'name'
-                    },
-                    {
-                        data: 'address'
-                    },
-                    {
-                        data: 'is_active'
-                    },
+                columns: [
+                    { data: 'name' },
+                    { data: 'address' },
+                    { data: 'is_active' },
                     // {
                     //     data: 'main_branch'
                     // },
-                    {
-                        data: 'bank_ledger'
-                    },
-                    {
-                        data: 'created_at'
-                    },
-                    {
-                        data: 'updated_at'
-                    },
+                    { data: 'bank_ledger' },
+                    { data: 'created_at' },
+                    { data: 'updated_at' },
                     {
                         data: 'action',
                         orderable: false,
@@ -398,7 +344,6 @@
         });
 
         function delete_store(id) {
-
             Swal.fire({
                 title: "Are you sure?",
                 text: "You won't be able to revert this!",
@@ -408,28 +353,22 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        type: "POST", // "method" also works
-                        url: "{{ url('store/delete') }}", // Ensure correct Laravel URL
+                        type: "POST",
+                        url: "{{ url('store/delete') }}",
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
-                        data: {
-                            id: id
-                        },
+                        data: { id: id },
                         success: function(response) {
                             $('#branch_table').DataTable().ajax.reload();
                             Swal.fire("Deleted!", "The store has been deleted.", "success");
-
-                            // swal("Deleted!", "The store has been deleted.", "success")
-                            //     .then(() => location.reload());
                         },
                         error: function(xhr) {
-                            swal("Error!", "Something went wrong.", "error");
+                            Swal.fire("Error!", "Something went wrong.", "error");
                         }
                     });
                 }
             });
-
         }
 
         function branchStatusChange(id, newStatus) {
@@ -443,7 +382,7 @@
                 if (result.isConfirmed) {
                     $.ajax({
                         type: "POST",
-                        url: "{{ url('store/status-change') }}", // Update this to your route
+                        url: "{{ url('store/status-change') }}",
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
@@ -452,11 +391,9 @@
                             status: newStatus
                         },
                         success: function(response) {
-                            Swal.fire("Success!", "Store status has been changed.", "success").then(
-                                () => {
-                                    $('#branch_table').DataTable().ajax.reload(null,
-                                        false); // ✅ Only reload DataTable
-                                });
+                            Swal.fire("Success!", "Store status has been changed.", "success").then(() => {
+                                $('#branch_table').DataTable().ajax.reload(null, false);
+                            });
                         },
                         error: function(xhr) {
                             Swal.fire("Error!", "Something went wrong.", "error");
@@ -488,7 +425,6 @@
                     });
                     var modal = new bootstrap.Modal(document.getElementById('lowlevelStockBranchModal'));
                     modal.show();
-
                 },
                 error: function() {
                     alert('Failed to load products.');
@@ -527,7 +463,6 @@
                 data: formData,
                 success: function(response) {
                     $('#lowlevelStockBranchModal').modal('hide');
-                    // $('#inventory_table').DataTable().ajax.reload(null, false);
                     alert('Low level quantities updated successfully.');
                     location.reload();
                 },
@@ -540,19 +475,19 @@
         document.addEventListener('DOMContentLoaded', function() {
             const scrollable = document.getElementById('scrollableContent');
 
-            // Auto-focus when modal is shown
             $('.modal').on('shown.bs.modal', function() {
-                scrollable.focus();
+                if (scrollable) scrollable.focus();
             });
 
-            // Allow focus again on click
-            scrollable.addEventListener('click', () => {
-                scrollable.focus();
-            });
+            if (scrollable) {
+                scrollable.addEventListener('click', () => {
+                    scrollable.focus();
+                });
+            }
         });
 
         function add_store_holiday(storeId) {
-            $('#hd_store_id').val(storeId);
+            $('#hd_branch_id').val(storeId);
             var modal = new bootstrap.Modal(document.getElementById('AddHolidayModal'));
             modal.show();
         }
@@ -566,9 +501,12 @@
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
             const offset = today.getTimezoneOffset();
-            today.setMinutes(today.getMinutes() - offset); // adjust to local timezone
+            today.setMinutes(today.getMinutes() - offset);
             const minDate = today.toISOString().split('T')[0];
-            document.getElementById('holiday_date').setAttribute('min', minDate);
+            const holidayDateInput = document.getElementById('holiday_date');
+            if (holidayDateInput) {
+                holidayDateInput.setAttribute('min', minDate);
+            }
         });
 
         $('#addHolidayForm').on('submit', function(e) {
@@ -587,8 +525,8 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(res) {
-                    $('#AddOneTimeModal').modal('hide');
-                    alert('Onetime sales time set added successfully.');
+                    $('#AddHolidayModal').modal('hide');
+                    alert('Holiday added successfully.');
                     location.reload();
                 },
                 error: function(xhr) {
@@ -599,8 +537,7 @@
                         $.each(errors, function(key, messages) {
                             let input = $('[name="' + key + '"]');
                             input.addClass('is-invalid');
-                            input.after('<div class="invalid-feedback d-block">' + messages[0] +
-                                '</div>');
+                            input.after('<div class="invalid-feedback d-block">' + messages[0] + '</div>');
                         });
                     } else {
                         alert('Something went wrong.');
@@ -629,20 +566,18 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(res) {
-                    $('#AddHolidayModal').modal('hide');
-                    alert('Holiday added successfully.');
+                    $('#AddOneTimeModal').modal('hide');
+                    alert('Onetime sales time set added successfully.');
                     location.reload();
                 },
                 error: function(xhr) {
-                    $('#holidayErrors').empty();
                     $('.is-invalid').removeClass('is-invalid');
                     if (xhr.status === 422) {
                         let errors = xhr.responseJSON.errors;
                         $.each(errors, function(key, messages) {
                             let input = $('[name="' + key + '"]');
                             input.addClass('is-invalid');
-                            input.after('<div class="invalid-feedback d-block">' + messages[0] +
-                                '</div>');
+                            input.after('<div class="invalid-feedback d-block">' + messages[0] + '</div>');
                         });
                     } else {
                         alert('Something went wrong.');

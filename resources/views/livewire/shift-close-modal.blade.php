@@ -127,9 +127,10 @@
                                                         Add Physical Stock
                                                     </button>
                                                     @if ($this->showYesterDayShiftTime)
-                                                        <button type="button" wire:click="removeHold"
-                                                            class="btn btn-secondary rounded-pill remove_hold_btn"
-                                                            title="View Stock Status">
+                                                        <button type="button"
+                                                            class="btn btn-secondary rounded-pill view_hold_btn"
+                                                            onclick="openHoldTransactionsModal()"
+                                                            title="Remove Hold">
                                                             Remove Hold
                                                         </button>
                                                     @endif
@@ -737,6 +738,20 @@
 </div>
 
 <script>
+
+    function openHoldTransactionsModal() {
+        Livewire.dispatch('loadHoldTransactions');
+
+        const modalEl = document.getElementById('holdTransactionsModal');
+        modalEl.classList.add('via-remove-hold'); 
+
+        const modal = new bootstrap.Modal(modalEl, {
+            backdrop: true,
+            keyboard: true
+        });
+        modal.show();
+    }
+
     window.addEventListener('test', (event) => {
         setTimeout(() => {
             let video = document.getElementById('webcam');

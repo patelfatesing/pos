@@ -5,10 +5,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        input[type=number] {
-            width: 90px !important;
-        }
-
         .price-stack {
             display: flex;
             flex-direction: column;
@@ -27,9 +23,25 @@
             font-size: 90%;
         }
 
+        /* Snug input controls inside table cells */
+        .qty-input,
         .item-price,
         .item-total-input {
-            width: 100px !important;
+            width: 100% !important;
+            max-width: 95px;
+            margin: 0 auto;
+        }
+
+        /* Column width optimization */
+        #items-table th:nth-child(1), #items-table td:nth-child(1) { width: 40px; text-align: center; }
+        #items-table th:nth-child(2), #items-table td:nth-child(2) { width: auto; } /* Expand Item Column */
+        #items-table th:nth-child(3), #items-table td:nth-child(3) { width: 105px; text-align: center; }
+        #items-table th:nth-child(4), #items-table td:nth-child(4) { width: 115px; text-align: center; }
+        #items-table th:nth-child(5), #items-table td:nth-child(5) { width: 115px; text-align: center; }
+        #items-table th:nth-child(6), #items-table td:nth-child(6) { width: 70px; text-align: center; }
+
+        #items-table td {
+            vertical-align: middle;
         }
 
         .credit-section {
@@ -276,6 +288,10 @@
             margin: 8px 0;
         }
 
+        #product-table-card {
+            margin-bottom: 5px;
+        }
+
         @media (max-width: 768px) {
             .order-details-body {
                 padding: 15px;
@@ -370,17 +386,17 @@
                         </div>
                     </div>
 
-                    <div class="card">
+                    <div class="card" id="product-table-card">
                         <div class="card-body table-responsive">
                             <table class="table table-bordered" id="items-table">
                                 <thead>
                                     <tr>
                                         <th>#</th>
                                         <th>Item</th>
-                                        <th>Qty</th>
-                                        <th>Price</th>
-                                        <th>Total</th>
-                                        <th>Action</th>
+                                        <th style="text-align: center;">Qty</th>
+                                        <th style="text-align: center;">Price</th>
+                                        <th style="text-align: center;">Total</th>
+                                        <th style="text-align: center;">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="invoice-items-body"></tbody>
@@ -496,7 +512,7 @@
 
                     <div class="d-flex justify-content-end mt-3 total-summary mb-3">
                         <div>
-                            <button type="submit" class="btn btn-success">Save Invoice Items</button>
+                            <button type="submit" class="btn btn-success">Save Invoice</button>
                         </div>
                     </div>
 
@@ -657,7 +673,7 @@
                     $row.find('.item-total-input').val(rowTotal);
                     const disAmt = (sell_price - discount) * qty;
 
-                
+
                     totalSellPrice += rowTotal;
                     discountTotal += disAmt;
                     grandTotal += rowTotal;
