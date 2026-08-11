@@ -123,7 +123,7 @@ class BranchController extends Controller
         $length = $request->input('length', 10);
         $searchValue = $request->input('search.value', '');
         $orderColumnIndex = $request->input('order.0.column', 0);
-        $orderColumn = $request->input('columns.' . $orderColumnIndex . '.data', 'id');
+        $orderColumn = $request->input('columns' . $orderColumnIndex . 'data', 'id');
         $orderDirection = $request->input('order.0.dir', 'asc');
 
         $query = Branch::leftJoin('account_ledgers', 'branches.bank_ledger_id', '=', 'account_ledgers.id')
@@ -157,7 +157,7 @@ class BranchController extends Controller
             ]);
         }
 
-        // 👤 Own permission → only own stores
+        // 👤 Own permission → only own products
         if ($listAccess === 'own') {
             $query->where('created_by', $userId);
         }
@@ -169,95 +169,61 @@ class BranchController extends Controller
 
         $records = [];
 
+        $url = url('/');
         foreach ($data as $store) {
             $ownerId = $store->created_by;
-
-            $action = '<div class="d-flex align-items-center justify-content-start list-action">';
-
-            // 1. In/Out Switch
-            if (canDo($roleId, 'store-edit', $ownerId)) {
-                $action .= '<div class="custom-control custom-switch custom-control-inline mr-2">
-                    <input type="checkbox"
-                        class="custom-control-input store-status-switch"
-                        id="customSwitch' . $store->id . '"
-                        ' . ($store->in_out_enable ? 'checked' : '') . '
-                        data-store-id="' . $store->id . '">
-                    <label class="custom-control-label pt-1" for="customSwitch' . $store->id . '">
-                        In/Out
-                    </label>
-                </div>';
-
-                // 2. Capture Switch
-                $action .= '<div class="custom-control custom-switch custom-control-inline mr-3">
-                    <input type="checkbox"
-                        class="custom-control-input capture-status-switch"
-                        id="captureSwitch' . $store->id . '"
-                        ' . ($store->is_capture ? 'checked' : '') . '
-                        data-store-id="' . $store->id . '">
-                    <label class="custom-control-label pt-1" for="captureSwitch' . $store->id . '">
-                        Capture
-                    </label>
-                </div>';
-            }
-
-            // 3. Three-dot Dropdown Actions Menu
-            $dropdownItems = '';
-
-            if (canDo($roleId, 'store-edit', $ownerId)) {
-                $dropdownItems .= '<li>
-                    <a class="dropdown-item" href="' . url('/store/edit/' . $store->id) . '">
-                        <i class="ri-pencil-line mr-2"></i>Edit Details
-                    </a>
-                </li>';
-            }
-
-            if (canDo($roleId, 'product-low-stock-set', $ownerId)) {
-                $dropdownItems .= '<li>
-                    <a class="dropdown-item" href="javascript:void(0);" onclick="low_level_stock(' . $store->id . ')">
-                        <i class="ri-equalizer-line mr-2"></i>Stock Adjustment
-                    </a>
-                </li>';
-            }
-
-            if (canDo($roleId, 'add-holiday', $ownerId)) {
-                $dropdownItems .= '<li>
-                    <a class="dropdown-item" href="javascript:void(0);" onclick="add_store_holiday(' . $store->id . ')">
-                        <i class="ri-calendar-event-line mr-2"></i>Add Holiday
-                    </a>
-                </li>';
-            }
-
-            if (canDo($roleId, 'one-time-sales', $ownerId)) {
-                $dropdownItems .= '<li>
-                    <a class="dropdown-item" href="javascript:void(0);" onclick="add_one_time_sales(' . $store->id . ')">
-                        <i class="ri-price-tag-line mr-2"></i>One Time Sales
-                    </a>
-                </li>';
-            }
-
+            // if (canDo($roleId, 'product-edit', $ownerId)) {
+            // }
+            $action = '<div class="d-flex align-items-center list-action">';
             if ($store->is_warehouser != 'yes') {
-                $dropdownItems .= '<li>
-                    <a class="dropdown-item text-danger" href="javascript:void(0);" onclick="delete_store(' . $store->id . ')">
-                        <i class="ri-delete-bin-line mr-2"></i>Delete
-                    </a>
-                </li>';
+                // $action .= '<a class="badge bg-warning mr-2" data-toggle="tooltip" data-placement="top" title="Delete"
+                // href="#" onclick="delete_store(' . $store->id . ')"><i class="ri-delete-bin-line mr-0"></i></a>';
             }
+            if (canDo($roleId, 'add-holiday', $ownerId)) {
+                $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
+                    href="#" onclick="add_store_holiday(' . $store->id . ')"><i class="ri-calendar-event-line"></i></a>';
+            }
+            if (canDo($roleId, 'one-time-sales', $ownerId)) {
+                $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
+                    href="#" onclick="add_one_time_sales(' . $store->id . ')"><i class="ri-price-tag-line"></i></a>';
+            }
+            if (canDo($roleId, 'product-low-stock-set', $ownerId)) {
+                $action .= '<a class="badge badge-primary mr-2" data-toggle="tooltip" data-placement="top" title="" data-original-title="View"
+                    href="#" onclick="low_level_stock(' . $store->id . ')"><i class="ri-battery-low-line"></i></a>';
+            }
+            if (canDo($roleId, 'store-edit', $ownerId)) {
+                $action .= '<a class="badge bg-success mr-2" data-toggle="tooltip" data-placement="top" title="Edit"
+                    href="' . url('/store/edit/' . $store->id) . '"><i class="ri-pencil-line mr-0"></i></a>';
+                $action .= '<div class="custom-control custom-switch custom-control-inline">
 
-            if (!empty($dropdownItems)) {
-                $action .= '<div class="dropdown">
-                    <button class="btn btn-primary btn-sm rounded-circle d-flex align-items-center justify-content-center p-0" 
-                            type="button" 
-                            id="dropdownMenuButton' . $store->id . '" 
-                            data-toggle="dropdown" 
-                            aria-haspopup="true" 
-                            aria-expanded="false" 
-                            style="width: 32px; height: 32px;">
-                        <i class="ri-more-fill" style="font-size: 18px;"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-right shadow border-0" aria-labelledby="dropdownMenuButton' . $store->id . '">
-                        ' . $dropdownItems . '
-                    </ul>
-                </div>';
+    <input type="checkbox"
+        class="custom-control-input store-status-switch"
+        id="customSwitch' . $store->id . '"
+        ' . ($store->in_out_enable ? 'checked' : '') . '
+        data-store-id="' . $store->id . '">
+
+    <label class="custom-control-label pt-1"
+        for="customSwitch' . $store->id . '">
+        In/Out
+    </label>
+
+</div>';
+
+
+                $action .= '<div class="custom-control custom-switch custom-control-inline ml-2">
+
+    <input type="checkbox"
+        class="custom-control-input capture-status-switch"
+        id="captureSwitch' . $store->id . '"
+        ' . ($store->is_capture ? 'checked' : '') . '
+        data-store-id="' . $store->id . '">
+
+    <label class="custom-control-label pt-1"
+        for="captureSwitch' . $store->id . '">
+        Capture
+    </label>
+
+</div>';
             }
 
             $action .= '</div>';
