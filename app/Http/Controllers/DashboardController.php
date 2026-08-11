@@ -1116,53 +1116,55 @@ class DashboardController extends Controller
     {
         $data = $this->getTopAndWorstProductsByCategory($request->fy);
 
-        $categoryImages = [
-            'BEER' => 'assets/images/subcategory/Beer-Category.jpeg',
-            'CL'   => 'assets/images/subcategory/Country-Liqour-Category.jpeg',
-            'IMFL' => 'assets/images/subcategory/Imfl-Category.jpeg',
-            'RML'  => 'assets/images/subcategory/Rml-Category.jpeg',
-        ];
-
         $products = $request->type === 'top'
             ? $data['top']
             : $data['worst'];
 
-        $bgClass = $request->type === 'top'
-            ? 'bg-warning-light'
-            : 'bg-danger-light';
+        $html = '
+        <div class="table-responsive shadow-sm rounded border bg-white mb-4">
+            <table class="table table-bordered table-hover align-middle mb-0 custom-dashboard-table">
+                <thead>
+                    <tr class="bg-light text-secondary">
+                        <th class="border-top-0 border-left-0">Product</th>
+                        <th class="text-center">Category</th>
+                        <th class="text-right">Quantity</th>
+                        <th class="text-right border-right-0">Earned (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>';
 
-        $html = '';
+        $hasData = false;
 
         foreach ($products as $category => $product) {
-
             if (!$product) continue;
-
-            $img = asset($categoryImages[$category] ?? 'assets/images/default.png');
+            $hasData = true;
 
             $html .= '
-        <div class="card card-block card-stretch card-height-helf mb-3">
-            <div class="card-body card-item-right">
-                <div class="d-flex align-items-top">
-                    <div class="' . $bgClass . ' rounded">
-                        <img src="' . $img . '"
-                            class="style-img m-auto"
-                            style="width: 250px; height: 180px;"
-                            alt="' . $category . '">
-                    </div>
-                    <div class="style-text text-left ml-3">
-                        <h5 class="mb-1">' . e($product->product_name) . '</h5>
-                        <small class="text-muted">' . $category . '</small>
-                        <p class="mb-1">Total Sell : ' . number_format($product->total_qty) . '</p>
-                        <p class="mb-0">Total Earned : ₹' . number_format($product->total_amount, 2) . '</p>
-                    </div>
-                </div>
-            </div>
-        </div>';
+                    <tr>
+                        <td class="border-left-0">
+                            <span class="product-name font-weight-bold text-primary">' . e($product->product_name) . '</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge badge-soft-info px-2 py-1 font-weight-bold" style="font-size: 11px;">' . e($category) . '</span>
+                        </td>
+                        <td class="text-right font-weight-bold text-dark">' . number_format($product->total_qty) . '</td>
+                        <td class="text-right font-weight-bold text-success border-right-0">₹' . number_format($product->total_amount, 2) . '</td>
+                    </tr>';
         }
 
-        if ($html === '') {
-            $html = '<p class="text-center text-muted">No data found</p>';
+        if (!$hasData) {
+            $html .= '
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4 font-weight-bold border-left-0 border-right-0">
+                            No data found
+                        </td>
+                    </tr>';
         }
+
+        $html .= '
+                </tbody>
+            </table>
+        </div>';
 
         return response()->json(['html' => $html]);
     }

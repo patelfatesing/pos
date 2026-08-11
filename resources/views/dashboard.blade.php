@@ -10,6 +10,49 @@ $categoryImages = [
 @section('page-content')
 
 <style>
+
+    /* Custom Table Styling for Top & Worst Products */
+    .custom-dashboard-table {
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .custom-dashboard-table thead th {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 12px 15px;
+        background-color: #f8f9fa;
+        color: #555;
+    }
+
+    .custom-dashboard-table tbody tr {
+        transition: background-color 0.2s ease;
+    }
+
+    .custom-dashboard-table tbody tr:hover {
+        background-color: #f1f5f9;
+    }
+
+    .custom-dashboard-table tbody td {
+        padding: 12px 15px;
+        font-size: 13.5px;
+        border-top: 1px solid #edf2f7;
+        vertical-align: middle;
+    }
+
+    .product-name {
+        color: #2b6cb0;
+        text-decoration: none;
+    }
+
+    .badge-soft-info {
+        background-color: #ebf8ff;
+        color: #2b6cb0;
+        border: 1px solid #bee3f8;
+        border-radius: 4px;
+    }
     /* Mobile only */
     @media (max-width: 767px) {
 
@@ -595,13 +638,11 @@ $categoryImages = [
                                 <h4 class="card-title mb-0">Top Products</h4>
                             </div>
                             <div class="card-header-toolbar d-flex align-items-center gap-2">
-
                                 <div class="mr-3">
                                     <a href="{{ route('reports.best_selling.view') }}" class="btn btn-success">
                                         View All
                                     </a>
                                 </div>
-
                                 <div class="dropdown">
                                     <span class="dropdown-toggle dropdown-bg btn"
                                         id="dropdownMenuButtonFYTopProduct"
@@ -611,7 +652,6 @@ $categoryImages = [
                                     </span>
 
                                     <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButtonFYTopProduct">
-
                                         @foreach ($data['financial_year_dropdown'] as $fy)
                                         <a class="dropdown-item"
                                             href="javascript:void(0)"
@@ -624,30 +664,9 @@ $categoryImages = [
                             </div>
                         </div>
                     </div>
-                    <div id="topProductsWrapper">
+                    <!-- Added mb-4 class here -->
+                    <div id="topProductsWrapper" class="mb-5">
                         <p class="text-center text-muted">Loading...</p>
-                        @foreach($data['top_and_worst_product']['top'] as $category => $product)
-                        @if($product)
-                        <div class="card card-block card-stretch card-height-helf mb-3">
-                            <div class="card-body card-item-right">
-                                <div class="d-flex align-items-top">
-                                    <div class="bg-warning-light rounded">
-                                        <img src="{{ asset($categoryImages[$category]) }}"
-                                            class="style-img m-auto"
-                                            style="width: 250px; height: 180px;"
-                                            alt="{{ $category }}" />
-                                    </div>
-                                    <div class="style-text text-left ml-3">
-                                        <h5 class="mb-1">{{ $product->product_name }}</h5>
-                                        <p class="mb-1">Category : {{ $category }}</p>
-                                        <p class="mb-1">Total Quantity : {{ number_format($product->total_qty) }}</p>
-                                        <p class="mb-0">Total Sell Amount : ₹{{ number_format($product->total_amount, 2) }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        @endif
-                        @endforeach
                     </div>
                 </div>
 
@@ -673,7 +692,6 @@ $categoryImages = [
                                     </span>
 
                                     <div class="dropdown-menu dropdown-menu-right shadow-none" aria-labelledby="dropdownMenuButtonFYWorstProduct">
-
                                         @foreach ($data['financial_year_dropdown'] as $fy)
                                         <a class="dropdown-item"
                                             href="javascript:void(0)"
@@ -681,36 +699,14 @@ $categoryImages = [
                                             {{ $fy }}
                                         </a>
                                         @endforeach
-
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div id="worstProductsWrapper">
+                    <!-- Added mb-4 class here -->
+                    <div id="worstProductsWrapper" class="mb-5">
                         <p class="text-center text-muted">Loading...</p>
-                        @foreach($data['top_and_worst_product']['worst'] as $category => $product)
-                        @if($product)
-                        <div class="card card-block card-stretch card-height-helf mb-3">
-                            <div class="card-body card-item-right">
-                                <div class="d-flex align-items-top">
-                                    <div class="bg-danger-light rounded">
-                                        <img src="{{ asset($categoryImages[$category]) }}"
-                                            class="style-img m-auto"
-                                            style="width: 250px; height: 180px;"
-                                            alt="{{ $category }}" />
-                                    </div>
-                                    <div class="style-text text-left ml-3">
-                                        <h5 class="mb-1">{{ $product->product_name }}</h5>
-                                        <p class="mb-1">Category : {{ $category }}</p>
-                                        <p class="mb-1">Total Quantity : {{ number_format($product->total_qty) }}</p>
-                                        <p class="mb-0">Total Sell Amount : ₹{{ number_format($product->total_amount, 2) }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        @endif
-                        @endforeach
                     </div>
                 </div>
 

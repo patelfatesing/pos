@@ -52,7 +52,8 @@
                         <tr class="ligth ligth-data">
                             <th>Shift No</th>
                             <th>User</th>
-                            
+                            <th>Shift Start</th>
+                            <th>Shift End</th>
                             <th>Opening Cash</th>
                             <th>Closing Cash</th>
                             <th>Status</th>
@@ -65,7 +66,7 @@
                     </tbody>
                     <tfoot>
                         <tr style="font-weight:bold;background:#f8f9fa;">
-                            <th colspan="2" class="text-end">Total :</th>
+                            <th colspan="4" class="text-end">Total :</th>
                             <th id="ft_opening_cash">₹0.00</th>
                             <th id="ft_closing_cash">₹0.00</th>
                             <th></th>
@@ -262,16 +263,16 @@
                         name: 'user_name',
                         orderable: false
                     },
-                    // {
-                    //     data: 'start_time',
-                    //     name: 'start_time',
-                    //     orderable: false
-                    // },
-                    // {
-                    //     data: 'end_time',
-                    //     name: 'end_time',
-                    //     orderable: false
-                    // },
+                    {
+                        data: 'start_time',
+                        name: 'start_time',
+                        orderable: false
+                    },
+                    {
+                        data: 'end_time',
+                        name: 'end_time',
+                        orderable: false
+                    },
                     {
                         data: 'opening_cash',
                         name: 'opening_cash',
@@ -316,12 +317,12 @@
                         parseFloat(v.replace(/[₹,]/g, '')) || 0 :
                         typeof v === 'number' ? v : 0;
 
-                    let openingTotal = api.column(2, {
+                    let openingTotal = api.column(4, {
                             page: 'current'
                         })
                         .data().reduce((a, b) => intVal(a) + intVal(b), 0);
 
-                    let closingTotal = api.column(3, {
+                    let closingTotal = api.column(5, {
                             page: 'current'
                         })
                         .data().reduce((a, b) => intVal(a) + intVal(b), 0);
@@ -375,7 +376,7 @@
                             pageSize: 'A4',
 
                             exportOptions: {
-                                columns: [0, 1, 2, 3, 4,5]
+                                columns: [0, 1, 2, 3, 4, 5, 6, 7]
                             },
 
                             customize: function(doc) {
